@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label="Avatar Santriwati &amp; Bibi">
+  <!-- ========================================== -->
+  <!-- 1. BAYANGAN STIKER & BINTANG ISLAMI 8 SUDUT -->
+  <!-- ========================================== -->
+  <!-- Bayangan Offset Hijau Sage khas Stiker Bibi -->
+  <path d="M 100 10 L 123 36 L 158 28 L 154 63 L 184 90 L 158 118 L 164 155 L 126 150 L 100 182 L 74 150 L 36 155 L 42 118 L 16 90 L 46 63 L 42 28 L 77 36 Z" transform="translate(-5, 6)" fill="#CFD8B6" />
+
+  <!-- Latar Bintang Segi Delapan (Rub el Hizb) -->
+  <path d="M 100 10 L 123 36 L 158 28 L 154 63 L 184 90 L 158 118 L 164 155 L 126 150 L 100 182 L 74 150 L 36 155 L 42 118 L 16 90 L 46 63 L 42 28 L 77 36 Z" fill="#F4FBF8" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+
+  <!-- Garis Aksen Dekoratif di Latar Belakang -->
+  <path d="M 30 52 C 22 38 32 20 50 24 M 170 52 C 178 38 168 20 150 24" fill="none" stroke="#C5D6A7" stroke-width="2" stroke-linecap="round" />
+
+  <!-- ========================================== -->
+  <!-- 2. GAMIS KUNING & JILBAB SYAR'I TOSKA      -->
+  <!-- ========================================== -->
+  <!-- Bagian Bawah Gamis Kuning (Warna Badan Bibi) -->
+  <path d="M 42 184 C 44 150 68 138 100 138 C 132 138 156 150 158 184 C 138 192 62 192 42 184 Z" fill="#FBBF24" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Shading Sabit Gamis Kuning Tua -->
+  <path d="M 45 175 C 65 186 135 186 155 175 L 158 184 C 138 192 62 192 42 184 Z" fill="#EAA012" />
+  <path d="M 42 184 C 44 150 68 138 100 138 C 132 138 156 150 158 184 C 138 192 62 192 42 184 Z" fill="none" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+
+  <!-- Renda Putih Bergelombang (Terinspirasi Bulu Sayap Putih Bibi) -->
+  <path d="M 45 162 C 52 174 68 174 74 164 C 82 176 118 176 126 164 C 132 174 148 174 155 162 L 150 140 L 50 140 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+
+  <!-- Kerudung / Khimar Bahu (Toska Utama) -->
+  <path d="M 44 156 C 42 122 62 108 100 108 C 138 108 158 122 156 156 C 146 166 132 165 125 156 C 115 168 85 168 75 156 C 68 165 54 166 44 156 Z" fill="#00B894" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+
+  <!-- Lipatan / Shading Kerudung Bahu (Toska Gelap) -->
+  <path d="M 46 146 C 56 156 68 155 75 146 C 85 158 115 158 125 146 C 132 155 144 156 154 146 L 156 156 C 146 166 132 165 125 156 C 115 168 85 168 75 156 C 68 165 54 166 44 156 Z" fill="#00937D" />
+  <!-- Outline Ulang Kerudung Bahu -->
+  <path d="M 44 156 C 42 122 62 108 100 108 C 138 108 158 122 156 156 C 146 166 132 165 125 156 C 115 168 85 168 75 156 C 68 165 54 166 44 156 Z" fill="none" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+
+  <!-- ========================================== -->
+  <!-- 3. BAGIAN KEPALA HIJAB & AKSESORIS         -->
+  <!-- ========================================== -->
+  <!-- Tudung Kepala Hijab (Toska Terang & Gelap) -->
+  <path d="M 48 92 C 46 34 154 34 152 92 C 152 124 132 142 100 144 C 68 142 48 124 48 92 Z" fill="#00B894" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+  <!-- Shading Sisi Kiri-Bawah Hijab -->
+  <path d="M 49 85 C 52 118 72 136 108 138 C 74 144 48 124 48 92 Z" fill="#00937D" />
+  <path d="M 48 92 C 46 34 154 34 152 92 C 152 124 132 142 100 144 C 68 142 48 124 48 92 Z" fill="none" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+
+  <!-- Garis Lipatan Halus Hijab di Bawah Dagu -->
+  <path d="M 78 134 Q 100 142 122 134" fill="none" stroke="#07473C" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Pin / Hiasan Daun 3 Helai di Hijab Atas (Mirip Jambul Bibi) -->
+  <path d="M 62 52 C 52 46 48 36 55 32 C 60 29 66 36 67 40 C 64 28 68 20 74 22 C 80 23 79 33 75 43 C 81 36 88 34 90 40 C 92 46 82 54 70 54 Z" fill="#00B894" stroke="#07473C" stroke-width="3.2" stroke-linejoin="round" />
+  <circle cx="70" cy="52" r="4.5" fill="#FBBF24" stroke="#07473C" stroke-width="2.5" />
+
+  <!-- Bros Bintang / Bunga Kecil di Dada Hijab -->
+  <g transform="translate(100, 148)">
+    <circle cx="0" cy="0" r="8" fill="#FBBF24" stroke="#07473C" stroke-width="3" />
+    <circle cx="0" cy="0" r="3.5" fill="#FF5E6C" />
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 4. WAJAH & CIPUT DALAM PUTIH               -->
+  <!-- ========================================== -->
+  <!-- Lingkaran Wajah (Kulit Hangat) -->
+  <ellipse cx="100" cy="92" rx="39" ry="36" fill="#FFE6C2" stroke="#07473C" stroke-width="3.8" />
+
+  <!-- Shading Sabit di Pipi Kiri-Bawah Wajah -->
+  <path d="M 62 98 C 68 118 88 126 115 123 C 90 131 64 120 62 98 Z" fill="#F5C690" />
+
+  <!-- Ciput / Inner Hijab Putih di Dahi -->
+  <path d="M 63 80 C 72 54 128 54 137 80 C 122 68 78 68 63 80 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+
+  <!-- Outline Ulang Bingkai Wajah Hijab -->
+  <ellipse cx="100" cy="92" rx="39" ry="36" fill="none" stroke="#07473C" stroke-width="3.8" />
+
+  <!-- ========================================== -->
+  <!-- 5. MATA BERKILAU BINTANG, PIPI, & SENYUM   -->
+  <!-- ========================================== -->
+  <!-- Alis Halus -->
+  <path d="M 72 76 Q 80 72 88 75" fill="none" stroke="#07473C" stroke-width="2.8" stroke-linecap="round" />
+  <path d="M 112 75 Q 120 72 128 76" fill="none" stroke="#07473C" stroke-width="2.8" stroke-linecap="round" />
+
+  <!-- Bulu Mata Lentik Perempuan -->
+  <path d="M 67 89 L 62 85 M 69 84 L 65 80" stroke="#07473C" stroke-width="3" stroke-linecap="round" />
+  <path d="M 133 89 L 138 85 M 131 84 L 135 80" stroke="#07473C" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Pipi Coral Pink Khas Bibi -->
+  <circle cx="71" cy="105" r="7.5" fill="#FF5E6C" />
+  <circle cx="129" cy="105" r="7.5" fill="#FF5E6C" />
+
+  <!-- Mata Kiri (Style Bibi dengan Iris Toska & Bintang) -->
+  <g transform="translate(80, 92)">
+    <ellipse cx="0" cy="0" rx="12" ry="13" fill="#FFFFFF" stroke="#07473C" stroke-width="3.2" />
+    <circle cx="0.5" cy="0" r="9.2" fill="#008F7A" />
+    <circle cx="1" cy="0" r="7.2" fill="#053B33" />
+    <!-- Pantulan Cahaya Bulat -->
+    <circle cx="4.5" cy="-3.8" r="3.2" fill="#FFFFFF" />
+    <!-- Kilau Bintang 4 Sudut -->
+    <path d="M -2.5 0.5 Q -2.5 3 0 3 Q -2.5 3 -2.5 5.5 Q -2.5 3 -5 3 Q -2.5 3 -2.5 0.5 Z" fill="#FFFFFF" />
+  </g>
+
+  <!-- Mata Kanan (Style Bibi dengan Iris Toska & Bintang) -->
+  <g transform="translate(120, 92)">
+    <ellipse cx="0" cy="0" rx="12" ry="13" fill="#FFFFFF" stroke="#07473C" stroke-width="3.2" />
+    <circle cx="-0.5" cy="0" r="9.2" fill="#008F7A" />
+    <circle cx="-1" cy="0" r="7.2" fill="#053B33" />
+    <!-- Pantulan Cahaya Bulat -->
+    <circle cx="3.5" cy="-3.8" r="3.2" fill="#FFFFFF" />
+    <!-- Kilau Bintang 4 Sudut -->
+    <path d="M -3.5 0.5 Q -3.5 3 -1 3 Q -3.5 3 -3.5 5.5 Q -3.5 3 -6 3 Q -3.5 3 -3.5 0.5 Z" fill="#FFFFFF" />
+  </g>
+
+  <!-- Hidung Mungil -->
+  <path d="M 99 98 Q 100 100 101 98" fill="none" stroke="#07473C" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Mulut Tersenyum Ceria dengan Lidah Coral -->
+  <path d="M 91 105 Q 100 107 109 105 C 109 116 91 116 91 105 Z" fill="#07473C" stroke="#07473C" stroke-width="2.8" stroke-linejoin="round" />
+  <path d="M 94 110 Q 100 107 106 110 C 104 115 96 115 94 110 Z" fill="#FF5E6C" />
+
+  <!-- ========================================== -->
+  <!-- 6. MASKOT BIBI MINI DI PUNDAK KANAN        -->
+  <!-- ========================================== -->
+  <g transform="translate(150, 118) scale(0.18)">
+    <!-- Sayap Kanan Belakang Bibi -->
+    <path d="M 60 -20 L 130 -65 C 142 -55 135 -25 100 -10 Z" fill="#00B894" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    
+    <!-- Ekor Bibi -->
+    <path d="M -75 30 C -115 20 -135 0 -140 15 C -145 30 -120 50 -80 55 Z" fill="#00937D" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+
+    <!-- Jambul 3 Helai Bibi -->
+    <path d="M -10 -95 C -25 -105 -30 -120 -20 -125 C -12 -130 -5 -115 0 -110 C -5 -130 5 -140 12 -135 C 20 -130 15 -115 10 -108 C 20 -120 32 -120 35 -110 C 38 -100 20 -90 5 -95 Z" fill="#00B894" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+
+    <!-- Badan Bulat Kuning Bibi -->
+    <circle cx="0" cy="0" r="95" fill="#FBBF24" stroke="#07473C" stroke-width="16" />
+    <path d="M -85 35 C -55 85 25 95 75 70 C 35 105 -55 95 -85 35 Z" fill="#EAA012" />
+    <circle cx="0" cy="0" r="95" fill="none" stroke="#07473C" stroke-width="16" />
+
+    <!-- Sayap Kiri Depan Bibi (Putih & Toska) -->
+    <path d="M -45 -10 C -95 -40 -135 -65 -145 -50 C -155 -30 -125 15 -75 30 C -50 35 -35 15 -45 -10 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    <path d="M -45 -10 C -85 -35 -120 -60 -135 -48 C -145 -35 -115 -5 -80 5 C -55 12 -40 2 -45 -10 Z" fill="#00937D" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+
+    <!-- Pipi Coral Bibi -->
+    <circle cx="-20" cy="5" r="14" fill="#FF5E6C" />
+    <circle cx="65" cy="-2" r="12" fill="#FF5E6C" />
+
+    <!-- Mata Bibi -->
+    <circle cx="-5" cy="-28" r="24" fill="#FFFFFF" stroke="#07473C" stroke-width="12" />
+    <circle cx="-3" cy="-28" r="14" fill="#053B33" />
+    <circle cx="3" cy="-34" r="6" fill="#FFFFFF" />
+
+    <circle cx="52" cy="-32" r="22" fill="#FFFFFF" stroke="#07473C" stroke-width="12" />
+    <circle cx="54" cy="-32" r="13" fill="#053B33" />
+    <circle cx="59" cy="-38" r="5.5" fill="#FFFFFF" />
+
+    <!-- Paruh Terbuka Bibi -->
+    <path d="M 20 -12 L 62 -28 L 45 -5 L 55 20 Z" fill="#FF5E6C" stroke="#07473C" stroke-width="12" stroke-linejoin="round" />
+  </g>
+</svg>

@@ -1,0 +1,327 @@
+/* ============================================================
+   Tartila — Emerald Oasis theme
+   Palette anchors: #F0FDF4 (background) · #0D9488 (primary) · #FF6B6B (accent)
+   Channel-based CSS vars keep every tone themeable at runtime.
+   ============================================================ */
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Neutral surfaces */
+  --c-bg: 240 253 244; /* #F0FDF4 — emerald oasis */
+  --c-card: 255 255 255; /* #FFFFFF */
+  --c-card2: 236 253 245; /* #ECFDF5 */
+  --c-border: 209 250 229; /* #D1FAE5 */
+  --c-muted: 100 116 139; /* #64748B */
+  --c-text: 19 78 74; /* #134E4A — deep teal (primary text & contour) */
+
+  /* Primary — teal */
+  --c-accent: 13 148 136; /* #0D9488 */
+  --c-accent-dark: 15 118 110; /* #0F766E */
+  --c-accent-light: 204 251 241; /* #CCFBF1 */
+
+  /* Secondary accent — coral */
+  --c-accent-2: 255 107 107; /* #FF6B6B */
+  --c-accent-2-dark: 230 57 70; /* #E63946 */
+  --c-accent-2-light: 255 228 230; /* #FFE4E6 */
+
+  /* Semantic */
+  --c-danger: 220 38 38; /* #DC2626 */
+  --c-warning: 245 158 11; /* #F59E0B */
+  --c-success: 22 163 74; /* #16A34A */
+  --c-info: 13 148 136; /* #0D9488 */
+  --c-info-soft: 204 251 241;
+
+  --shadow-card: 0 1px 2px rgb(6 78 59 / 0.05), 0 1px 3px rgb(6 78 59 / 0.04);
+  --shadow-float:
+    0 14px 34px rgb(13 148 136 / 0.2), 0 2px 8px rgb(6 78 59 / 0.06);
+  --shadow-bar: 0 -1px 8px rgb(6 78 59 / 0.05);
+
+  --c-shimmer: 255 255 255;
+
+  color-scheme: light;
+}
+
+.dark {
+  --c-bg: 6 32 30;
+  --c-card: 13 47 45;
+  --c-card2: 10 39 37;
+  --c-border: 22 78 74;
+  --c-muted: 148 163 184;
+  --c-text: 240 253 244;
+
+  --c-accent: 45 212 191;
+  --c-accent-dark: 94 234 212;
+  --c-accent-light: 15 118 110;
+
+  --c-accent-2: 255 107 107;
+  --c-accent-2-dark: 255 170 170;
+  --c-accent-2-light: 80 25 30;
+
+  --c-danger: 248 113 113;
+  --c-warning: 251 191 36;
+  --c-success: 74 222 128;
+  --c-info: 45 212 191;
+  --c-info-soft: 15 118 110;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.28), 0 1px 3px rgb(0 0 0 / 0.2);
+  --shadow-float: 0 14px 34px rgb(0 0 0 / 0.38), 0 2px 8px rgb(0 0 0 / 0.22);
+  --shadow-bar: 0 -1px 8px rgb(0 0 0 / 0.22);
+  --c-shimmer: 148 163 184;
+
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------
+   Tailwind v4 design tokens
+   ------------------------------------------------------------ */
+@theme inline {
+  --color-surface-bg: rgb(var(--c-bg));
+  --color-surface-card: rgb(var(--c-card));
+  --color-surface-card2: rgb(var(--c-card2));
+  --color-surface-border: rgb(var(--c-border));
+  --color-surface-muted: rgb(var(--c-muted));
+  --color-surface-text: rgb(var(--c-text));
+
+  --color-background: rgb(var(--c-bg));
+  --color-card: rgb(var(--c-card));
+  --color-border: rgb(var(--c-border));
+  --color-muted: rgb(var(--c-muted));
+  --color-text: rgb(var(--c-text));
+
+  --color-accent: rgb(var(--c-accent));
+  --color-accent-dark: rgb(var(--c-accent-dark));
+  --color-accent-soft: rgb(var(--c-accent-light));
+  --color-accent-softStrong: rgb(var(--c-accent) / 0.16);
+
+  --color-accent2: rgb(var(--c-accent-2));
+  --color-accent2-dark: rgb(var(--c-accent-2-dark));
+  --color-accent2-soft: rgb(var(--c-accent-2-light));
+
+  --color-success: rgb(var(--c-success));
+  --color-success-soft: rgb(var(--c-success) / 0.12);
+  --color-danger: rgb(var(--c-danger));
+  --color-danger-soft: rgb(var(--c-danger) / 0.12);
+  --color-warning: rgb(var(--c-warning));
+  --color-warning-soft: rgb(var(--c-warning) / 0.14);
+  --color-info: rgb(var(--c-info));
+  --color-info-soft: rgb(var(--c-info-soft));
+
+  /* Emerald Oasis brand scales */
+  --color-emerald-50: #f0fdf4;
+  --color-emerald-100: #dcfce7;
+  --color-emerald-200: #bbf7d0;
+  --color-emerald-300: #86efac;
+  --color-emerald-400: #4ade80;
+  --color-emerald-500: #22c55e;
+  --color-emerald-600: #16a34a;
+  --color-emerald-700: #15803d;
+  --color-emerald-800: #166534;
+  --color-emerald-900: #14532d;
+
+  /* Coral accent scale */
+  --color-coral-50: #fff8f5;
+  --color-coral-100: #ffe8e0;
+  --color-coral-200: #ffd1c5;
+  --color-coral-300: #ffb8a1;
+  --color-coral-400: #ff9966;
+  --color-coral-500: #ff6b6b;
+  --color-coral-600: #e63946;
+  --color-coral-700: #cf2a3a;
+
+  /* Emerald Oasis & Sunset Coral — named brand tokens */
+  --color-mint-cloud: #f0fdf4;
+  --color-mint-soft: #f0fdfa;
+  --color-deep-teal: #134e4a;
+  --color-teal-emerald: #0d9488;
+  --color-teal-emerald-dark: #0f766e;
+  --color-coral-glow: #ff6b6b;
+  --color-coral-glow-dark: #ff5252;
+  --color-coral-soft: #fff0f0;
+  --color-coral-soft2: #ffe8e0;
+  --color-gold-glow: #f59e0b;
+
+  /* 
+    FONT SYSTEM: 
+    - Display (Judul): Gabarito (Tebal, geometris, modern)
+    - Body (Teks): Plus Jakarta Sans (Bersih, mudah dibaca)
+    - Rounded: Gabarito (Untuk tombol/badge)
+    - Arabic: Scheherazade New (Sangat jelas harakatnya)
+  */
+  --font-sans:
+    "Plus Jakarta Sans", ui-rounded, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-display: "Gabarito", "Bricolage Grotesque", ui-rounded, sans-serif;
+  --font-rounded: "Gabarito", "Quicksand", ui-rounded, sans-serif;
+  --font-arabic: "Scheherazade New", "Amiri", "Noto Naskh Arabic", serif;
+
+  --text-ios-nav: 17px;
+  --text-ios-body: 15px;
+  --text-ios-subhead: 14px;
+  --text-ios-footnote: 13px;
+  --text-ios-caption: 11px;
+  --text-ios-tab: 10px;
+
+  --shadow-neu: var(--shadow-card);
+  --shadow-neu-float: var(--shadow-float);
+  --shadow-neu-bar-top: var(--shadow-bar);
+  --shadow-neu-bar-bottom: 0 1px 8px rgb(0 0 0 / 0.05);
+
+  --radius-ios: 0.875rem;
+  --radius-neu: 1rem;
+  --radius-xl2: 1.25rem;
+
+  --animate-float-soft: floatSoft 3s ease-in-out infinite;
+  --animate-stagger-in: slideUpStagger 0.28s ease-out both;
+  --animate-message-in: messageIn 0.22s ease-out both;
+  --animate-success-pop: successPop 0.3s ease-out both;
+}
+
+@keyframes floatSoft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes slideUpStagger {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes successPop {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Game-feel utilities */
+.spring {
+  animation: spring 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes spring {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.shake {
+  animation: shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-8px);
+  }
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spring,
+  .shake,
+  .float-soft {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ============================================================
+   TYPOGRAPHY FIX: Mengatasi Huruf Kecil Dempet (Cramped)
+   ============================================================ */
+
+/* 
+  1. Semua teks kecil (<= 12px) diberikan letter-spacing tambahan.
+  2. Line-height dilonggarkan agar tidak menumpuk vertikal.
+*/
+.text-\[9px\],
+.text-\[10px\],
+.text-\[11px\],
+.text-\[12px\],
+.text-xs {
+  letter-spacing: 0.025em;
+  line-height: 1.5;
+}
+
+/* 
+  Khusus teks kecil yang tebal (font-black/extrabold), 
+  turunkan sedikit weight-nya dan tambah tracking agar tidak blob/gumpalan.
+*/
+.text-\[9px\].font-black,
+.text-\[10px\].font-black,
+.text-\[11px\].font-black,
+.text-\[12px\].font-black,
+.text-xs.font-black,
+.text-\[10px\].font-extrabold,
+.text-xs.font-extrabold {
+  font-weight: 800; /* Turun dari 900 ke 800 */
+  letter-spacing: 0.04em;
+}
+
+/* Uppercase tracking untuk badge/label */
+.uppercase.tracking-widest,
+.uppercase.tracking-wider {
+  letter-spacing: 0.08em;
+}
+
+/* Judul besar tetap solid dan sedikit dirapatkan */
+.font-display,
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+/* Font Arab: pastikan tidak ada letter-spacing */
+.font-arabic,
+[dir="rtl"] {
+  letter-spacing: 0 !important;
+  line-height: 2.2 !important;
+}

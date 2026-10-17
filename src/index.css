@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@import "./styles/theme.css";
+@import "./styles/clay.css";
+@import "./styles/print.css";
+
+html,
+body,
+#root {
+  min-height: 100%;
+  min-height: 100dvh;
+  background-color: rgb(var(--c-bg));
+  color: rgb(var(--c-text));
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans); /* Akan memanggil Nunito */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid rgb(var(--c-accent));
+  outline-offset: 2px;
+}
+
+/* Safe-area helpers */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbars where requested */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.font-tabular,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Game canvas container styling */
+.game-canvas-container {
+  width: 100%;
+  height: 100%;
+  background: rgb(var(--c-bg));
+}
+
+/* Bottom nav hidden during gameplay */
+.bottom-nav-hidden .ngaji-ceria-bottom-nav {
+  display: none;
+}
+
+/* ============================================================
+   TYPOGRAPHY FIXES: Mengatasi Huruf Kecil yang Dempet
+   ============================================================ */
+
+/* 1. Beri jarak antar huruf (letter-spacing) khusus untuk teks kecil */
+.text-\[9px\],
+.text-\[10px\],
+.text-\[11px\],
+.text-xs {
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+/* 2. Sedikit longgarkan teks yang sangat tebal di ukuran kecil */
+.text-\[9px\].font-black,
+.text-\[10px\].font-black,
+.text-\[11px\].font-black,
+.text-xs.font-black,
+.font-extrabold {
+  font-weight: 800; /* Turunkan dari 900 (black) ke 800 (extrabold) agar tidak menumpuk */
+  letter-spacing: 0.03em;
+}
+
+/* 3. Pastikan Judul Besar tetap tebal dan kokoh */
+.font-display,
+h1,
+h2,
+h3 {
+  font-family: var(--font-display); /* Akan memanggil Gabarito */
+  letter-spacing: -0.01em; /* Sedikit dirapatkan untuk judul agar terlihat solid */
+}

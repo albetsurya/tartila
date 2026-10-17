@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label="Avatar Santri Fatih & Bibi">
+  <!-- BAYANGAN STIKER & BINTANG ISLAMI 8 SUDUT -->
+  <path d="M 100 10 L 123 36 L 158 28 L 154 63 L 184 90 L 158 118 L 164 155 L 126 150 L 100 182 L 74 150 L 36 155 L 42 118 L 16 90 L 46 63 L 42 28 L 77 36 Z" transform="translate(-5, 6)" fill="#CFD8B6" />
+  <path d="M 100 10 L 123 36 L 158 28 L 154 63 L 184 90 L 158 118 L 164 155 L 126 150 L 100 182 L 74 150 L 36 155 L 42 118 L 16 90 L 46 63 L 42 28 L 77 36 Z" fill="#F4FBF8" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+  <path d="M 28 50 C 20 36 30 18 48 22 M 172 50 C 180 36 170 18 152 22" fill="none" stroke="#C5D6A7" stroke-width="2.2" stroke-linecap="round" />
+
+  <!-- BADAN, BAJU KOKO TOSKA, & SORBAN BAHU -->
+  <path d="M 44 184 C 46 140 68 128 100 128 C 132 128 154 140 156 184 C 136 192 64 192 44 184 Z" fill="#00B894" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+  <path d="M 46 168 C 68 184 132 184 154 168 L 156 184 C 136 192 64 192 44 184 Z" fill="#00937D" />
+  <path d="M 44 184 C 46 140 68 128 100 128 C 132 128 154 140 156 184 C 136 192 64 192 44 184 Z" fill="none" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+  <path d="M 52 142 C 62 132 74 130 82 130 L 68 187 L 46 184 C 47 166 49 152 52 142 Z" fill="#FBBF24" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+  <path d="M 50 168 L 71 172 L 68 187 L 46 184 Z" fill="#EAA012" />
+  <path d="M 52 142 C 62 132 74 130 82 130 L 68 187 L 46 184 C 47 166 49 152 52 142 Z" fill="none" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+  <path d="M 91 132 L 109 132 L 109 189 L 91 189 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+  <path d="M 78 126 C 78 142 92 146 100 146 C 108 146 122 142 122 126 L 114 122 L 86 122 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+  <path d="M 100 136 L 100 188" stroke="#07473C" stroke-width="3" stroke-linecap="round" />
+  <circle cx="100" cy="154" r="3.5" fill="#FBBF24" stroke="#07473C" stroke-width="2.2" />
+  <circle cx="100" cy="168" r="3.5" fill="#FBBF24" stroke="#07473C" stroke-width="2.2" />
+  <circle cx="100" cy="182" r="3.5" fill="#FBBF24" stroke="#07473C" stroke-width="2.2" />
+  <path d="M 118 154 L 136 154 L 136 170 Q 127 175 118 170 Z" fill="#00937D" stroke="#07473C" stroke-width="3" stroke-linejoin="round" />
+
+  <!-- LEHER, TELINGA, & WAJAH -->
+  <path d="M 88 118 L 88 134 Q 100 140 112 134 L 112 118 Z" fill="#F5C690" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+  <circle cx="54" cy="96" r="10.5" fill="#FFE6C2" stroke="#07473C" stroke-width="3.8" />
+  <path d="M 52 93 C 49 95 49 99 53 100" fill="none" stroke="#07473C" stroke-width="2.5" stroke-linecap="round" />
+  <circle cx="146" cy="96" r="10.5" fill="#FFE6C2" stroke="#07473C" stroke-width="3.8" />
+  <path d="M 148 93 C 151 95 151 99 147 100" fill="none" stroke="#07473C" stroke-width="2.5" stroke-linecap="round" />
+  <ellipse cx="100" cy="92" rx="45" ry="41" fill="#FFE6C2" stroke="#07473C" stroke-width="3.8" />
+  <path d="M 57 98 C 65 124 92 132 124 126 C 95 137 62 126 57 98 Z" fill="#F5C690" />
+  <ellipse cx="100" cy="92" rx="45" ry="41" fill="none" stroke="#07473C" stroke-width="3.8" />
+
+  <!-- MATA, PIPI, & SENYUM -->
+  <path d="M 69 75 Q 78 70 87 74" fill="none" stroke="#07473C" stroke-width="3.5" stroke-linecap="round" />
+  <path d="M 113 74 Q 122 70 131 75" fill="none" stroke="#07473C" stroke-width="3.5" stroke-linecap="round" />
+  <circle cx="67" cy="105" r="8" fill="#FF5E6C" />
+  <circle cx="133" cy="105" r="8" fill="#FF5E6C" />
+
+  <!-- MATA KIRI -->
+  <g transform="translate(78, 92)">
+    <ellipse cx="0" cy="0" rx="12.5" ry="13.5" fill="#FFFFFF" stroke="#07473C" stroke-width="3.4" />
+    <circle cx="0.5" cy="0" r="9.6" fill="#008F7A" />
+    <circle cx="1" cy="0" r="7.5" fill="#053B33" />
+    <circle cx="4.5" cy="-4" r="3.4" fill="#FFFFFF" />
+    <path d="M -2.5 0.5 Q -2.5 3.2 0.2 3.2 Q -2.5 3.2 -2.5 5.9 Q -2.5 3.2 -5.2 3.2 Q -2.5 3.2 -2.5 0.5 Z" fill="#FFFFFF" />
+  </g>
+
+  <!-- MATA KANAN -->
+  <g transform="translate(122, 92)">
+    <ellipse cx="0" cy="0" rx="12.5" ry="13.5" fill="#FFFFFF" stroke="#07473C" stroke-width="3.4" />
+    <circle cx="-0.5" cy="0" r="9.6" fill="#008F7A" />
+    <circle cx="-1" cy="0" r="7.5" fill="#053B33" />
+    <circle cx="3.5" cy="-4" r="3.4" fill="#FFFFFF" />
+    <path d="M -3.5 0.5 Q -3.5 3.2 -0.8 3.2 Q -3.5 3.2 -3.5 5.9 Q -3.5 3.2 -6.2 3.2 Q -3.5 3.2 -3.5 0.5 Z" fill="#FFFFFF" />
+  </g>
+
+  <path d="M 98.5 97 Q 100 100 101.5 97" fill="none" stroke="#07473C" stroke-width="2.8" stroke-linecap="round" />
+  <path d="M 89 105 Q 100 108 111 105 C 111 118 89 118 89 105 Z" fill="#07473C" stroke="#07473C" stroke-width="3" stroke-linejoin="round" />
+  <path d="M 93 111 Q 100 107 107 111 C 105 117 95 117 93 111 Z" fill="#FF5E6C" />
+
+  <!-- JAMBUL & PECI TOSKA MIRING -->
+  <path d="M 56 75 L 54 86 L 60 82 Z" fill="#07473C" stroke="#07473C" stroke-width="2" stroke-linejoin="round" />
+  <path d="M 144 75 L 146 86 L 140 82 Z" fill="#07473C" stroke="#07473C" stroke-width="2" stroke-linejoin="round" />
+
+  <g transform="rotate(-3, 100, 52)">
+    <path d="M 53 68 C 52 44 62 32 100 32 C 138 32 148 44 147 68 C 122 60 78 60 53 68 Z" fill="#00B894" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+    <path d="M 53 68 C 52 46 62 34 92 32 C 72 40 66 52 72 63 C 64 64 58 66 53 68 Z" fill="#00937D" />
+    <path d="M 53 68 C 78 60 122 60 147 68 L 148 61 C 122 53 78 53 52 61 Z" fill="#FBBF24" stroke="#07473C" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M 53 68 C 52 44 62 32 100 32 C 138 32 148 44 147 68 C 122 60 78 60 53 68 Z" fill="none" stroke="#07473C" stroke-width="3.8" stroke-linejoin="round" />
+    <path d="M 122 40 L 124 45 L 129 46 L 125 49 L 126 54 L 122 51 L 118 54 L 119 49 L 115 46 L 120 45 Z" fill="#FBBF24" stroke="#07473C" stroke-width="2.2" stroke-linejoin="round" />
+  </g>
+
+  <path d="M 92 61 C 86 67 80 71 77 67 C 75 64 80 59 85 58 C 82 66 85 73 90 71 C 94 70 96 64 96 59 C 96 66 101 70 105 67 C 108 64 104 59 98 58 Z" fill="#07473C" stroke="#07473C" stroke-width="2" stroke-linejoin="round" />
+
+  <!-- MASKOT BIBI MINI DI PUNDAK KANAN -->
+  <g transform="translate(150, 118) scale(0.18)">
+    <path d="M 60 -20 L 130 -65 C 142 -55 135 -25 100 -10 Z" fill="#00B894" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    <path d="M -75 30 C -115 20 -135 0 -140 15 C -145 30 -120 50 -80 55 Z" fill="#00937D" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    <circle cx="0" cy="0" r="95" fill="#FBBF24" stroke="#07473C" stroke-width="16" />
+    <path d="M -85 35 C -55 85 25 95 75 70 C 35 105 -55 95 -85 35 Z" fill="#EAA012" />
+    <circle cx="0" cy="0" r="95" fill="none" stroke="#07473C" stroke-width="16" />
+    <path d="M -55 -75 C -55 -115 45 -120 50 -80 C 15 -90 -20 -88 -55 -75 Z" fill="#00B894" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    <path d="M -55 -75 C -20 -88 15 -90 50 -80 L 52 -68 C 15 -78 -20 -76 -55 -63 Z" fill="#FBBF24" stroke="#07473C" stroke-width="12" stroke-linejoin="round" />
+    <path d="M -45 -10 C -95 -40 -135 -65 -145 -50 C -155 -30 -125 15 -75 30 C -50 35 -35 15 -45 -10 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    <path d="M -45 -10 C -85 -35 -120 -60 -135 -48 C -145 -35 -115 -5 -80 5 C -55 12 -40 2 -45 -10 Z" fill="#00937D" stroke="#07473C" stroke-width="14" stroke-linejoin="round" />
+    <circle cx="-20" cy="5" r="14" fill="#FF5E6C" />
+    <circle cx="65" cy="-2" r="12" fill="#FF5E6C" />
+    <circle cx="-5" cy="-28" r="24" fill="#FFFFFF" stroke="#07473C" stroke-width="12" />
+    <circle cx="-3" cy="-28" r="14" fill="#053B33" />
+    <circle cx="3" cy="-34" r="6" fill="#FFFFFF" />
+    <circle cx="52" cy="-32" r="22" fill="#FFFFFF" stroke="#07473C" stroke-width="12" />
+    <circle cx="54" cy="-32" r="13" fill="#053B33" />
+    <circle cx="59" cy="-38" r="5.5" fill="#FFFFFF" />
+    <path d="M 20 -12 L 62 -28 L 45 -5 L 55 20 Z" fill="#FF5E6C" stroke="#07473C" stroke-width="12" stroke-linejoin="round" />
+  </g>
+</svg>

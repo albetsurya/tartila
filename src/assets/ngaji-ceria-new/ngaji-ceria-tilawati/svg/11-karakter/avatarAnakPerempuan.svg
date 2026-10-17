@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 140" width="128" height="140" role="img" aria-label="Avatar Tartila Perempuan">
+  <defs>
+    <!-- Pola Titik untuk Latar Belakang -->
+    <pattern id="dotsGirl" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#0D9488" opacity="0.15" />
+    </pattern>
+    <!-- Clip Path agar Karakter tidak keluar lingkaran -->
+    <clipPath id="circleClipGirl">
+      <circle cx="64" cy="70" r="52" />
+    </clipPath>
+  </defs>
+
+  <!-- Hard Shadow Background -->
+  <circle cx="64" cy="76" r="52" fill="#134E4A" />
+  
+  <!-- Main Background -->
+  <circle cx="64" cy="70" r="52" fill="#F0FDF4" stroke="#134E4A" stroke-width="5" />
+  
+  <!-- Pola Titik -->
+  <circle cx="64" cy="70" r="52" fill="url(#dotsGirl)" />
+
+  <!-- Karakter -->
+  <g clip-path="url(#circleClipGirl)">
+    
+    <!-- Badan / Baju Koko (Teal Emerald) -->
+    <path d="M 24 116 C 28 92 44 86 64 86 C 84 86 100 92 104 116 Z" fill="#0D9488" stroke="#134E4A" stroke-width="5" stroke-linejoin="round" />
+    
+    <!-- Kerah Baju Koko (Putih) -->
+    <path d="M 52 86 L 64 100 L 76 86" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 52 86 L 64 100 L 76 86" fill="none" stroke="#134E4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Badge Bintang Tartila di Dada -->
+    <circle cx="64" cy="110" r="7" fill="#FF6B6B" stroke="#134E4A" stroke-width="2" />
+    <path d="M 64 106 L 65.5 108.5 L 68.5 108.5 L 66 110 L 67 113 L 64 111.5 L 61 113 L 62 110 L 59.5 108.5 L 62.5 108.5 Z" fill="#FFFFFF" />
+
+    <!-- Hijab Drape (Bagian Belakang & Bawah Leher) -->
+    <path d="M 26 114 C 22 70 30 26 64 26 C 98 26 106 70 102 114 C 94 122 34 122 26 114 Z" fill="#FF6B6B" stroke="#134E4A" stroke-width="5" stroke-linejoin="round" />
+
+    <!-- Wajah (Kuning Hangat) -->
+    <circle cx="64" cy="64" r="24" fill="#FCD34D" stroke="#134E4A" stroke-width="5" />
+
+    <!-- Hijab Frame Depan (Lebih Tipis & Pas) -->
+    <!-- Outer path lebih kecil (dari 34 ke 94), Inner path adalah lingkaran wajah -->
+    <path d="M 34 64 C 34 30 94 30 94 64 C 94 100 80 108 64 108 C 48 108 34 100 34 64 Z M 88 64 A 24 24 0 1 0 40 64 A 24 24 0 1 0 88 64 Z" fill="#FF6B6B" stroke="#134E4A" stroke-width="5" fill-rule="evenodd" stroke-linejoin="round" />
+
+    <!-- Mata -->
+    <circle cx="54" cy="64" r="4.5" fill="#134E4A" />
+    <circle cx="74" cy="64" r="4.5" fill="#134E4A" />
+    
+    <!-- Catchlights (Pantulan Mata) -->
+    <circle cx="52" cy="62" r="1.5" fill="#FFFFFF" />
+    <circle cx="72" cy="62" r="1.5" fill="#FFFFFF" />
+
+    <!-- Pipi Merah (Coral Glow) -->
+    <circle cx="48" cy="74" r="5" fill="#FF6B6B" opacity="0.6" />
+    <circle cx="80" cy="74" r="5" fill="#FF6B6B" opacity="0.6" />
+
+    <!-- Mulut Tersenyum -->
+    <path d="M 58 74 C 61 80 67 80 70 74" fill="none" stroke="#134E4A" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- Hiasan Bunga/Bintang Kecil di Hijab Kanan -->
+    <circle cx="88" cy="45" r="3" fill="#FCD34D" stroke="#134E4A" stroke-width="1.5" />
+
+  </g>
+</svg>
