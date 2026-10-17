@@ -93,18 +93,25 @@ export function BibiMascot({
     return () => unsubscribe();
   }, [rotationValue]);
 
-  const dynamicStyles = useTransform(rotationValue, (latest) => {
+  const scaleXValue = useTransform(rotationValue, (latest) => {
     let normalized = latest % 360;
     if (normalized < 0) normalized += 360;
-
     const rad = (normalized * Math.PI) / 180;
+    return Math.max(Math.abs(Math.cos(rad)), 0.15);
+  });
 
-    const sX = Math.max(Math.abs(Math.cos(rad)), 0.15);
-    const rY = Math.sin(rad) * 25;
+  const rotateYValue = useTransform(rotationValue, (latest) => {
+    let normalized = latest % 360;
+    if (normalized < 0) normalized += 360;
+    const rad = (normalized * Math.PI) / 180;
+    return Math.sin(rad) * 25;
+  });
 
-    const op = 0.15 + 0.85 * Math.abs(Math.cos(2 * rad));
-
-    return { scaleX: sX, rotateY: rY, opacity: op };
+  const opacityValue = useTransform(rotationValue, (latest) => {
+    let normalized = latest % 360;
+    if (normalized < 0) normalized += 360;
+    const rad = (normalized * Math.PI) / 180;
+    return 0.15 + 0.85 * Math.abs(Math.cos(2 * rad));
   });
 
   const manualDirection = autoDirection && dynamicDir ? dynamicDir : direction;
@@ -296,9 +303,9 @@ export function BibiMascot({
         style={{
           width: "100%",
           height: "100%",
-          scaleX: isRotationActive ? dynamicStyles.scaleX : 1,
-          rotateY: isRotationActive ? dynamicStyles.rotateY : 0,
-          opacity: isRotationActive ? dynamicStyles.opacity : 1,
+          scaleX: isRotationActive ? scaleXValue : 1,
+          rotateY: isRotationActive ? rotateYValue : 0,
+          opacity: isRotationActive ? opacityValue : 1,
           transformStyle: "preserve-3d",
         }}
       >
