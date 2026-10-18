@@ -18,7 +18,7 @@ export type { PageTipConfig };
 
 interface NgajiCeriaLayoutProps {
   children: ReactNode;
-  title: ReactNode;
+  title?: ReactNode;
   hideNav?: boolean;
   hideHeader?: boolean;
   showBack?: boolean;

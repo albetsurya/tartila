@@ -2,6 +2,7 @@ import { API_BASE_URL } from "../constants";
 
 const REQUEST_TIMEOUT_MS = 15000;
 const TOKEN_COOKIE = "tartila_token";
+const GROUP_ID_COOKIE = "tartila_group_id";
 
 export function getToken(): string | null {
   try {
@@ -22,6 +23,16 @@ export function setToken(token: string) {
 
 export function clearToken() {
   document.cookie = `${TOKEN_COOKIE}=; path=/; SameSite=Strict; Max-Age=-1`;
+}
+
+export function setGroupId(groupId: string | null) {
+  if (groupId) {
+    document.cookie = `${GROUP_ID_COOKIE}=${encodeURIComponent(
+      groupId,
+    )}; path=/; SameSite=Strict`;
+  } else {
+    document.cookie = `${GROUP_ID_COOKIE}=; path=/; SameSite=Strict; Max-Age=-1`;
+  }
 }
 
 export class ApiError extends Error {
@@ -48,9 +59,10 @@ export async function callREST<T>(
   data?: Record<string, any>,
   queryParams?: Record<string, any>,
 ): Promise<T> {
-  let baseUrl = API_BASE_URL.endsWith("/api")
-    ? API_BASE_URL.slice(0, -4)
-    : API_BASE_URL;
+  let baseUrl = API_BASE_URL || "/api";
+  if (baseUrl.endsWith("/api")) {
+    baseUrl = baseUrl.slice(0, -4);
+  }
   let url = `${baseUrl}${path}`;
   if (queryParams) {
     const search = new URLSearchParams();

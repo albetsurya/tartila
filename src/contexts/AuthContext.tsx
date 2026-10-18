@@ -1,110 +1,197 @@
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
   useState,
   type ReactNode,
 } from "react";
+import { authApi, type User } from "@/services/authApi";
+import { clearToken, getToken, setGroupId, ApiError } from "@/services/api";
 
-export interface CeriaUser {
-  id?: string;
-  name: string;
-  role?: string;
-  member_id?: string;
-  username?: string;
-  photo_url?: string;
-  gender?: string;
-}
+export type CeriaUser = User;
 
 interface AuthContextValue {
-  user: CeriaUser | null;
+  user: User | null;
+  groupId: string | null;
   loading: boolean;
-  login: (identifier: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   registerCeria: (
     name: string,
     username: string,
     password: string,
-    confirmPassword: string,
+    confirmPassword: string
   ) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
-const STORAGE_KEY = "tartila-ceria-user";
+const CACHED_USER_KEY = "tartila_cached_user";
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-function readStoredUser(): CeriaUser | null {
+function getCachedUser(): User | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CeriaUser) : null;
+    const raw = localStorage.getItem(CACHED_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
+function setCachedUser(user: User | null) {
+  try {
+    if (user) {
+      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(CACHED_USER_KEY);
+    }
+  } catch {}
+}
+
+function isAuthenticationError(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    (error.message.toLowerCase().includes("unauthorized") ||
+      error.message.toLowerCase().includes("sesi tidak valid") ||
+      error.message.toLowerCase().includes("token") ||
+      error.statusCode === 401)
+  );
+}
+
+let validateSessionPromise: Promise<User> | null = null;
+
+function getValidateSessionPromise(): Promise<User> {
+  if (!validateSessionPromise) {
+    validateSessionPromise = authApi.validateSession().finally(() => {
+      validateSessionPromise = null;
+    });
+  }
+  return validateSessionPromise;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CeriaUser | null>(null);
+  const [user, setUser] = useState<User | null>(() => getCachedUser());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUser(readStoredUser());
-    setLoading(false);
+    let cancelled = false;
+
+    (async () => {
+      if (!getToken()) {
+        setUser(null);
+        setCachedUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const u = await getValidateSessionPromise();
+        if (!cancelled) {
+          setGroupId(u?.group_id ?? null);
+          setUser(u);
+          setCachedUser(u);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          // A cached profile is only an optimistic render hint, never proof of
+          // authentication. Do not leave it active when validation fails.
+          if (isAuthenticationError(err)) {
+            clearToken();
+            setCachedUser(null);
+            setGroupId(null);
+            setUser(null);
+          } else {
+            // Other network errors etc. might be transient, keep cached user
+            setLoading(false);
+            return; // Don't clear user for transient errors, but stop loading
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const persist = (next: CeriaUser | null) => {
-    setUser(next);
-    try {
-      if (next) localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      else localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* storage unavailable — ignore */
-    }
-  };
+  async function login(username: string, password: string) {
+    const u = await authApi.login(username, password);
+    setGroupId(u?.group_id ?? null);
+    setUser(u);
+    setCachedUser(u);
+  }
 
-  const login = async (_identifier: string, _password: string) => {
-    persist({
-      id: "local",
-      name: "Hamba Allah",
-      role: "MEMBER",
-      member_id: "LOCAL",
-    });
-    setLoading(false);
-  };
+  async function loginWithGoogle(credential: string) {
+    const u = await authApi.loginWithGoogle(credential);
+    setGroupId(u?.group_id ?? null);
+    setUser(u);
+    setCachedUser(u);
+  }
 
-  const registerCeria = async (
+  async function registerCeria(
     name: string,
     username: string,
-    _password: string,
-    _confirmPassword: string,
-  ) => {
-    persist({
-      id: "local",
+    password: string,
+    confirmPassword: string
+  ) {
+    const u = await authApi.registerCeria(
       name,
       username,
-      role: "MEMBER",
-      member_id: "LOCAL",
-    });
-    setLoading(false);
-  };
+      password,
+      confirmPassword
+    );
+    setGroupId(u?.group_id ?? null);
+    setUser(u);
+    setCachedUser(u);
+  }
 
-  const logout = async () => {
-    persist(null);
-    setLoading(false);
-  };
+  async function logout() {
+    const revoke = authApi.logout(); // Start revocation while token is still available
+    clearToken();
+    setCachedUser(null);
+    setGroupId(null);
+    setUser(null);
+    await revoke.catch(() => {}); // Ignore network errors on logout
+  }
+
+  async function refreshUser() {
+    try {
+      const u = await authApi.validateSession();
+      setUser(u);
+      setCachedUser(u);
+    } catch (err) {
+      if (isAuthenticationError(err)) {
+        clearToken();
+        setCachedUser(null);
+        setGroupId(null);
+        setUser(null);
+      }
+    }
+  }
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, registerCeria, logout }}
+      value={{
+        user,
+        groupId: user?.group_id ?? null,
+        loading,
+        login,
+        loginWithGoogle,
+        registerCeria,
+        logout,
+        refreshUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth(): AuthContextValue {
+export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!ctx) throw new Error("useAuth harus dipakai di dalam AuthProvider");
   return ctx;
 }

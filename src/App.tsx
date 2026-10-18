@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./contexts/AuthContext";
 import { GameLockGuard } from "./features/ngaji-ceria/components/GameLockGuard";
 import NgajiCeriaLoginPage from "./features/ngaji-ceria/pages/NgajiCeriaLoginPage";
@@ -317,7 +318,9 @@ const HUB_ROUTES: Array<{ hub: string; title: string }> = [
 ];
 
 export default function App() {
-  return (
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+  const appContent = (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -448,4 +451,14 @@ export default function App() {
       </BrowserRouter>
     </AuthProvider>
   );
+
+  if (googleClientId) {
+    return (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        {appContent}
+      </GoogleOAuthProvider>
+    );
+  }
+
+  return appContent;
 }

@@ -1,0 +1,71 @@
+import { setToken, getToken, clearToken, callREST } from "./api";
+
+export interface User {
+  id?: string;
+  user_id?: string;
+  name: string;
+  role?: string;
+  member_id?: string;
+  username?: string;
+  photo_url?: string;
+  gender?: string;
+  group_id?: string;
+}
+
+function storeSessionToken(token?: string) {
+  if (token) setToken(token);
+  else clearToken();
+}
+
+export const authApi = {
+  async login(username: string, password: string): Promise<User> {
+    const data = await callREST<{ token?: string; user: User }>(
+      "POST",
+      "/api/v1/auth/login",
+      { username, password }
+    );
+    storeSessionToken(data.token);
+    return data.user;
+  },
+
+  async loginWithGoogle(credential: string): Promise<User> {
+    const data = await callREST<{ token?: string; user: User }>(
+      "POST",
+      "/api/v1/auth/oauth/google",
+      { credential, intent: "ceria" }
+    );
+    storeSessionToken(data.token);
+    return data.user;
+  },
+
+  async registerCeria(
+    name: string,
+    username: string,
+    password: string,
+    confirmPassword: string
+  ): Promise<User> {
+    const data = await callREST<{ token?: string; user: User }>(
+      "POST",
+      "/api/v1/auth/register/ceria",
+      { name, username, password, confirm_password: confirmPassword }
+    );
+    storeSessionToken(data.token);
+    return data.user;
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await callREST("POST", "/api/v1/auth/logout");
+    } finally {
+      clearToken();
+    }
+  },
+
+  async validateSession(): Promise<User> {
+    const data = await callREST<{ user: User }>(
+      "GET",
+      "/api/v1/auth/validate-session"
+    );
+    return data.user;
+  },
+};
