@@ -11,6 +11,8 @@ import {
   ChevronLeft,
 } from "../../../../components/ui/FontAwesomeIcons";
 import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
+import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
+import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
 import { NGAJI_CERIA_ASSETS } from "../../data/assets";
 
@@ -240,6 +242,8 @@ export default function TilawatiMapPage() {
   const theme = MAP_THEMES[jilid as keyof typeof MAP_THEMES] || MAP_THEMES[1];
 
   const [isPanduanOpen, setIsPanduanOpen] = useState(false);
+  const [energyEmpty, setEnergyEmpty] = useState(false);
+  const consumeHeart = useEconomyStore((s) => s.consumeHeart);
   const [selectedNode, setSelectedNode] = useState<
     (typeof TILAWATI_PAGES)[0] | null
   >(null);
@@ -281,6 +285,10 @@ export default function TilawatiMapPage() {
 
   const handleStartLearning = () => {
     if (!selectedNode) return;
+    if (!consumeHeart()) {
+      setEnergyEmpty(true);
+      return;
+    }
     triggerBibiReaction("play");
     setSelectedNode(null);
     navigate(
@@ -689,6 +697,12 @@ export default function TilawatiMapPage() {
         <PanduanMembacaModal
           open={isPanduanOpen}
           onClose={() => setIsPanduanOpen(false)}
+        />
+
+        <OutOfEnergyModal
+          visible={energyEmpty}
+          type="heart"
+          onClose={() => setEnergyEmpty(false)}
         />
       </div>
     </NgajiCeriaLayout>

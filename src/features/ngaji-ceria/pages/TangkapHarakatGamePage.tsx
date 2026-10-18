@@ -64,8 +64,10 @@ export default function TangkapHarakatGamePage() {
   };
 
   const pickNextTarget = () => {
-    const nextHarakat = HARAKAT_LIST[Math.floor(Math.random() * HARAKAT_LIST.length)];
-    const nextLetter = BASE_LETTERS[Math.floor(Math.random() * BASE_LETTERS.length)];
+    const nextHarakat =
+      HARAKAT_LIST[Math.floor(Math.random() * HARAKAT_LIST.length)];
+    const nextLetter =
+      BASE_LETTERS[Math.floor(Math.random() * BASE_LETTERS.length)];
     setTargetHarakat(nextHarakat);
     setCurrentLetter(nextLetter);
   };
@@ -154,18 +156,28 @@ export default function TangkapHarakatGamePage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Tangkap Harakat" hideNav showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+    <NgajiCeriaLayout
+      title="Tangkap Harakat"
+      hideNav
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
       <div className="px-4 py-3 bg-[#F0FDF4] h-[calc(100vh-70px)] flex flex-col justify-between overflow-hidden">
         {/* Top Game Bar */}
         <div className="flex items-center justify-between bg-white p-3 rounded-2xl border border-gray-100 shadow-sm shrink-0 mb-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-black text-[#134e4a]/70">Waktu:</span>
-            <span className="text-base font-black text-[#ff6b6b]">{timeLeft}d</span>
+            <span className="text-base font-black text-[#ff6b6b]">
+              {timeLeft}d
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFF3E4] border border-[#ffd9d9]">
             <span className="text-[11px] font-black text-[#0F766E]">
-              Tangkap: <span className="underline decoration-2">{targetHarakat.name}</span>
+              Tangkap:{" "}
+              <span className="underline decoration-2">
+                {targetHarakat.name}
+              </span>
             </span>
           </div>
 
@@ -178,12 +190,17 @@ export default function TangkapHarakatGamePage() {
         {!isPlaying && !isGameOver ? (
           <div className="bg-white rounded-[28px] p-6 text-center border border-gray-100 shadow-md space-y-4 my-auto max-w-sm mx-auto w-full">
             <div className="w-20 h-20 mx-auto rounded-3xl bg-[#f0fdfa] border-2 border-[#ccfbf1] flex items-center justify-center">
-              <span className="font-arabic text-5xl font-black text-[#0d9488]">بَ</span>
+              <span className="font-arabic text-5xl font-black text-[#0d9488]">
+                بَ
+              </span>
             </div>
             <div>
-              <h3 className="font-display font-black text-xl text-[#134e4a]">Tangkap Harakat</h3>
+              <h3 className="font-display font-black text-xl text-[#134e4a]">
+                Tangkap Harakat
+              </h3>
               <p className="text-xs text-[#134e4a]/70 mt-1 leading-relaxed max-w-xs mx-auto">
-                Geser huruf di bawah ke 3 jalur (Kiri, Tengah, Kanan) untuk menangkap harakat yang diminta sebelum waktu habis!
+                Geser huruf di bawah ke 3 jalur (Kiri, Tengah, Kanan) untuk
+                menangkap harakat yang diminta sebelum waktu habis!
               </p>
             </div>
             <button
@@ -203,8 +220,12 @@ export default function TangkapHarakatGamePage() {
                 <Sparkles size={10} />
                 Waktu Selesai
               </div>
-              <h3 className="font-display font-black text-xl text-[#134e4a]">Bagus Sekali!</h3>
-              <p className="text-xs text-[#134e4a]/70 mt-1">Skor tangkapan harakat: {score}</p>
+              <h3 className="font-display font-black text-xl text-[#134e4a]">
+                Bagus Sekali!
+              </h3>
+              <p className="text-xs text-[#134e4a]/70 mt-1">
+                Skor tangkapan harakat: {score}
+              </p>
             </div>
             <div className="flex gap-2.5">
               <button

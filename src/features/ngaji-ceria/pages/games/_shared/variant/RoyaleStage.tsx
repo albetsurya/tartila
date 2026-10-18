@@ -1,5 +1,42 @@
 import { NGAJI_CERIA_ASSETS } from "../../../../data/assets";
 
-export function RoyaleStage({ players, round }: { players: { name: string; alive: boolean; score: number }[]; round: number }) {
-  return <div aria-label="Papan peserta royale" className="relative overflow-hidden rounded-3xl border border-rose-300/25 bg-gradient-to-b from-teal-900 to-teal-950 p-3"><div className="absolute left-1/2 top-1/2 h-32 w-64 -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-rose-300/20 bg-rose-500/10 shadow-[0_0_45px_#ff6b6b55]" /><p className="relative z-10 text-center text-[10px] font-black uppercase tracking-widest text-rose-200">Zona Ronde {round}</p><div className="relative z-10 mt-3 grid grid-cols-4 gap-2">{players.map((player) => <div key={player.name} className={`rounded-xl border p-2 text-center ${player.alive ? "border-white/15 bg-white/10" : "border-red-400/20 bg-red-950/40 opacity-60"}`}><img src={NGAJI_CERIA_ASSETS.avatarAnak} alt={player.name} draggable={false} className={`mx-auto h-8 w-8 object-contain ${player.alive ? "" : "grayscale"}`} /><span className="block truncate text-[9px] font-bold text-white">{player.name}</span><span className="text-[9px] text-rose-200">{player.alive ? `${player.score} XP` : "OUT"}</span></div>)}</div></div>;
+export function RoyaleStage({
+  players,
+  round,
+}: {
+  players: { name: string; alive: boolean; score: number }[];
+  round: number;
+}) {
+  return (
+    <div
+      aria-label="Papan peserta royale"
+      className="relative overflow-hidden rounded-3xl border border-rose-300/25 bg-gradient-to-b from-teal-900 to-teal-950 p-3"
+    >
+      <div className="absolute left-1/2 top-1/2 h-32 w-64 -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-rose-300/20 bg-rose-500/10 shadow-[0_0_45px_#ff6b6b55]" />
+      <p className="relative z-10 text-center text-[10px] font-black uppercase tracking-widest text-rose-200">
+        Zona Ronde {round}
+      </p>
+      <div className="relative z-10 mt-3 grid grid-cols-4 gap-2">
+        {players.map((player) => (
+          <div
+            key={player.name}
+            className={`rounded-xl border p-2 text-center ${player.alive ? "border-white/15 bg-white/10" : "border-red-400/20 bg-red-950/40 opacity-60"}`}
+          >
+            <img
+              src={NGAJI_CERIA_ASSETS.avatarAnak}
+              alt={player.name}
+              draggable={false}
+              className={`mx-auto h-8 w-8 object-contain ${player.alive ? "" : "grayscale"}`}
+            />
+            <span className="block truncate text-[9px] font-bold text-white">
+              {player.name}
+            </span>
+            <span className="text-[9px] text-rose-200">
+              {player.alive ? `${player.score} XP` : "OUT"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

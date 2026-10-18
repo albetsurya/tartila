@@ -2,6 +2,7 @@ import React, { ReactNode, useEffect, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "../../../components/ui/FontAwesomeIcons";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
+import { EconomyHUD } from "./EconomyHUD";
 import { RewardChestModal } from "./RewardChestModal";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
@@ -17,7 +18,7 @@ export type { PageTipConfig };
 
 interface NgajiCeriaLayoutProps {
   children: ReactNode;
-  title?: string;
+  title: ReactNode;
   hideNav?: boolean;
   hideHeader?: boolean;
   showBack?: boolean;
@@ -103,14 +104,7 @@ export function NgajiCeriaLayout({
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-coral-soft text-coral-glow border border-coral-glow/30 font-bold text-xs shadow-sm">
-                <img
-                  src={NGAJI_CERIA_ASSETS.hatiNyawa}
-                  alt="Nyawa"
-                  className="w-4 h-4 object-contain"
-                />
-                <span>5</span>
-              </div>
+              <EconomyHUD />
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-coral-soft text-deep-teal border border-coral-glow/20 font-bold text-xs shadow-sm">
                 <img
                   src={NGAJI_CERIA_ASSETS.apiStreak}
@@ -137,7 +131,7 @@ export function NgajiCeriaLayout({
       )}
 
       <main
-        className={`flex-1 min-h-0 max-w-md w-full mx-auto relative ${hideNav ? "h-full overflow-hidden pb-0" : "pb-28"}`}
+        className={`flex-1 min-h-0 w-full relative ${hideNav ? "max-w-none h-full overflow-hidden pb-0" : "max-w-md mx-auto pb-28"}`}
       >
         <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
       </main>
@@ -146,7 +140,9 @@ export function NgajiCeriaLayout({
       {!hideNav && <RewardChestModal />}
       <ProgressionNotice />
 
-      <BibiCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
+      <div data-bibi-companion>
+        <BibiCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
+      </div>
     </div>
   );
 }

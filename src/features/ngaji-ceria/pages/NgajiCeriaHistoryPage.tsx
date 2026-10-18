@@ -69,7 +69,9 @@ export default function NgajiCeriaHistoryPage() {
             >
               <ChevronLeft size={18} />
             </button>
-            <h1 className="font-display text-base font-black">Riwayat & Laporan</h1>
+            <h1 className="font-display text-base font-black">
+              Riwayat & Laporan
+            </h1>
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
               <ChartLine size={18} className="text-[#FF6B6B]" />
             </span>
@@ -77,7 +79,9 @@ export default function NgajiCeriaHistoryPage() {
           <p className="mt-4 font-display text-xl font-black">
             Luar biasa, <span className="text-[#FF6B6B]">{displayName}</span>!
           </p>
-          <p className="text-xs text-white/70">Terus semangat, capaianmu makin bertambah.</p>
+          <p className="text-xs text-white/70">
+            Terus semangat, capaianmu makin bertambah.
+          </p>
         </header>
 
         <div className="space-y-4 px-4 pb-4">
@@ -85,17 +89,23 @@ export default function NgajiCeriaHistoryPage() {
           <section className="-mt-6 grid grid-cols-3 gap-3">
             <div className="rounded-3xl border border-gray-100 bg-white p-3 text-center shadow-sm">
               <Star size={20} className="mx-auto text-[#FF6B6B]" />
-              <p className="mt-2 text-lg font-black text-[#134E4A]">{totalStars}</p>
+              <p className="mt-2 text-lg font-black text-[#134E4A]">
+                {totalStars}
+              </p>
               <p className="text-[10px] font-bold text-[#134E4A]/60">Bintang</p>
             </div>
             <div className="rounded-3xl border border-gray-100 bg-white p-3 text-center shadow-sm">
               <BookOpen size={20} className="mx-auto text-[#0D9488]" />
-              <p className="mt-2 text-lg font-black text-[#134E4A]">{totalDone}</p>
+              <p className="mt-2 text-lg font-black text-[#134E4A]">
+                {totalDone}
+              </p>
               <p className="text-[10px] font-bold text-[#134E4A]/60">Halaman</p>
             </div>
             <div className="rounded-3xl border border-gray-100 bg-white p-3 text-center shadow-sm">
               <LayerGroup size={20} className="mx-auto text-[#134E4A]" />
-              <p className="mt-2 text-lg font-black text-[#134E4A]">{currentJilidNumber}</p>
+              <p className="mt-2 text-lg font-black text-[#134E4A]">
+                {currentJilidNumber}
+              </p>
               <p className="text-[10px] font-bold text-[#134E4A]/60">Level</p>
             </div>
           </section>
@@ -104,7 +114,9 @@ export default function NgajiCeriaHistoryPage() {
           <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <h3 className="font-display text-sm font-black text-[#134E4A]">Progress Keseluruhan</h3>
+                <h3 className="font-display text-sm font-black text-[#134E4A]">
+                  Progress Keseluruhan
+                </h3>
                 <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
                     className="h-full rounded-full bg-[#0D9488] transition-all"
@@ -161,7 +173,9 @@ export default function NgajiCeriaHistoryPage() {
                           <Star size={12} className="fill-[#FF6B6B]" />
                           {item.stars}
                         </span>
-                        {isLocked && <Lock size={14} className="text-[#134E4A]/50" />}
+                        {isLocked && (
+                          <Lock size={14} className="text-[#134E4A]/50" />
+                        )}
                       </div>
                     </div>
                     <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">

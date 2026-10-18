@@ -60,22 +60,33 @@ type TimelineClip = {
 export default function CekAudioManualPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialJilid = Math.min(5, Math.max(1, Number(searchParams.get("jilid")) || 1));
-  const initialHal = Math.min(44, Math.max(1, Number(searchParams.get("hal")) || 1));
+  const initialJilid = Math.min(
+    5,
+    Math.max(1, Number(searchParams.get("jilid")) || 1),
+  );
+  const initialHal = Math.min(
+    44,
+    Math.max(1, Number(searchParams.get("hal")) || 1),
+  );
   const [jilid, setJilid] = useState(initialJilid);
   const [hal, setHal] = useState(initialHal);
 
   useEffect(() => {
     const paramJilid = Number(searchParams.get("jilid"));
     const paramHal = Number(searchParams.get("hal"));
-    if (paramJilid && paramJilid !== jilid) setJilid(Math.min(5, Math.max(1, paramJilid)));
-    if (paramHal && paramHal !== hal) setHal(Math.min(44, Math.max(1, paramHal)));
+    if (paramJilid && paramJilid !== jilid)
+      setJilid(Math.min(5, Math.max(1, paramJilid)));
+    if (paramHal && paramHal !== hal)
+      setHal(Math.min(44, Math.max(1, paramHal)));
   }, [searchParams]);
 
   const updatePage = (newJilid: number, newHal: number) => {
     setJilid(newJilid);
     setHal(newHal);
-    setSearchParams({ jilid: String(newJilid), hal: String(newHal) }, { replace: true });
+    setSearchParams(
+      { jilid: String(newJilid), hal: String(newHal) },
+      { replace: true },
+    );
   };
   const [playingId, setPlayingId] = useState<number | string | null>(null);
   const [testedAudio, setTestedAudio] = useState<Record<string, boolean>>(
@@ -192,7 +203,9 @@ export default function CekAudioManualPage() {
   };
 
   const getQuestionKey = (questionIndex: number) =>
-    questionIndex === -1 ? `${jilid}:${hal}:page` : `${jilid}:${hal}:${questionIndex}`;
+    questionIndex === -1
+      ? `${jilid}:${hal}:page`
+      : `${jilid}:${hal}:${questionIndex}`;
 
   const setAudioTested = (questionIndex: number, tested: boolean) => {
     const key = getQuestionKey(questionIndex);
@@ -828,7 +841,10 @@ export default function CekAudioManualPage() {
                   onChange={(event) => {
                     const val = event.target.value;
                     const parts = val.split("\n");
-                    const autoArabic = parts.map((p) => latinToArabic(p.trim())).filter(Boolean).join(" ");
+                    const autoArabic = parts
+                      .map((p) => latinToArabic(p.trim()))
+                      .filter(Boolean)
+                      .join(" ");
                     setEditorDraft({
                       ...editorDraft,
                       transliteration: val,
@@ -1121,9 +1137,7 @@ export default function CekAudioManualPage() {
                           : "cursor-not-allowed text-[#134e4a]/40"
                       }`}
                       title={
-                        audioUrl
-                          ? "Sudah ada audio"
-                          : "Audio belum tersedia"
+                        audioUrl ? "Sudah ada audio" : "Audio belum tersedia"
                       }
                     >
                       <input

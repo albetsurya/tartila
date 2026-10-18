@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 import type { GamePhase } from "./types";
-import { getNgajiActivity, getNgajiCeriaScope, hydrateActivity, recordActivity } from "../../../hooks/useNgajiCeriaStore";
+import {
+  getNgajiActivity,
+  getNgajiCeriaScope,
+  hydrateActivity,
+  recordActivity,
+} from "../../../hooks/useNgajiCeriaStore";
 import { activityDate } from "../../../utils/activityDate";
 import { getToken } from "../../../../../services/api";
-import { isNgajiCeriaServerAvailable, ngajiCeriaApi, type ServerNgajiProgress, type ServerProgressEvent } from "../../../services/ngajiCeriaApi";
+import {
+  isNgajiCeriaServerAvailable,
+  ngajiCeriaApi,
+  type ServerNgajiProgress,
+  type ServerProgressEvent,
+} from "../../../services/ngajiCeriaApi";
 
 const PROGRESS_KEY = "ngajiceria:progress:v1";
 const PROGRESS_EVENT = "ngajiceria:progress-updated";
@@ -38,12 +48,18 @@ let fallbackPendingScope = "";
 const rewardQueue: PendingReward[] = [];
 let rewardSeq = 0;
 
-function rewardEvent() { window.dispatchEvent(new CustomEvent(REWARD_EVENT)); }
+function rewardEvent() {
+  window.dispatchEvent(new CustomEvent(REWARD_EVENT));
+}
 
 /** Antrean hadiah yang menunggu dirayakan lewat peti. Saldo sudah masuk saat push. */
 export function pushReward(coins: number, label: string): PendingReward | null {
   if (!Number.isFinite(coins) || coins <= 0) return null;
-  const reward: PendingReward = { id: `reward-${Date.now()}-${rewardSeq++}`, coins: Math.floor(coins), label };
+  const reward: PendingReward = {
+    id: `reward-${Date.now()}-${rewardSeq++}`,
+    coins: Math.floor(coins),
+    label,
+  };
   rewardQueue.push(reward);
   rewardEvent();
   return reward;
@@ -68,6 +84,15 @@ export function grantCoins(coins: number, label: string): GameProgress {
   return next;
 }
 
+/** Belanjakan koin (penukaran di Warung Santri). false bila saldo kurang. */
+export function spendCoins(coins: number): boolean {
+  const cost = nonNegativeInteger(coins);
+  const current = getProgress();
+  if (cost <= 0 || current.coins < cost) return false;
+  saveProgress({ ...current, coins: current.coins - cost });
+  return true;
+}
+
 /** Tambahkan XP tanpa menghitung ulang sesi game atau jumlah permainan. */
 export function grantXp(xp: number): GameProgress {
   const amount = nonNegativeInteger(xp);
@@ -77,25 +102,84 @@ export function grantXp(xp: number): GameProgress {
   return next;
 }
 
-export interface RankInfo { title: string; minXp: number; nextXp: number | null }
-export interface LeaderboardEntry { id: string; name: string; score: number; gameId: string; updatedAt: number }
+export interface RankInfo {
+  title: string;
+  minXp: number;
+  nextXp: number | null;
+}
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  score: number;
+  gameId: string;
+  updatedAt: number;
+}
 
-export const ACHIEVEMENT_LABELS: Record<string, { title: string; description: string }> = {
-  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((jilid) => [`jilid-${jilid}-clear`, { title: `Qari Cilik Jilid ${jilid}`, description: `Selesaikan seluruh halaman Jilid ${jilid}.` }])),
-  "pejuang-istiqomah": { title: "Pejuang Istiqomah", description: "Belajar lima hari berturut-turut." },
-  "qari-cepat": { title: "Qari Cepat", description: "Jawab 5 soal tepat dan cepat berturut-turut." },
-  "pejuang-tajwid": { title: "Pejuang Tajwid", description: "Tuntaskan satu permainan Tajwid Lab." },
-  "first-game": { title: "Langkah Pertama", description: "Menyelesaikan game pertama." },
-  "doa-dungeon-clear": { title: "Penjaga Doa", description: "Menaklukkan Doa Dungeon." },
-  "nabi-chronicles-complete": { title: "Pemburu Hikmah", description: "Menyelesaikan Nabi Chronicles." },
-  "malaikat-master": { title: "Mission Master", description: "Menyelesaikan Malaikat Mission." },
-  "ayat-hunter-clear": { title: "Penemu Ayat", description: "Menemukan seluruh misi Ayat Hunter." },
-  "tetris-lines": { title: "Penata Tajwid", description: "Mencetak skor di Tajwid Tetris." },
+export const ACHIEVEMENT_LABELS: Record<
+  string,
+  { title: string; description: string }
+> = {
+  ...Object.fromEntries(
+    [1, 2, 3, 4, 5, 6].map((jilid) => [
+      `jilid-${jilid}-clear`,
+      {
+        title: `Qari Cilik Jilid ${jilid}`,
+        description: `Selesaikan seluruh halaman Jilid ${jilid}.`,
+      },
+    ]),
+  ),
+  "pejuang-istiqomah": {
+    title: "Pejuang Istiqomah",
+    description: "Belajar lima hari berturut-turut.",
+  },
+  "qari-cepat": {
+    title: "Qari Cepat",
+    description: "Jawab 5 soal tepat dan cepat berturut-turut.",
+  },
+  "pejuang-tajwid": {
+    title: "Pejuang Tajwid",
+    description: "Tuntaskan satu permainan Tajwid Lab.",
+  },
+  "first-game": {
+    title: "Langkah Pertama",
+    description: "Menyelesaikan game pertama.",
+  },
+  "doa-dungeon-clear": {
+    title: "Penjaga Doa",
+    description: "Menaklukkan Doa Dungeon.",
+  },
+  "nabi-chronicles-complete": {
+    title: "Pemburu Hikmah",
+    description: "Menyelesaikan Nabi Chronicles.",
+  },
+  "malaikat-master": {
+    title: "Mission Master",
+    description: "Menyelesaikan Malaikat Mission.",
+  },
+  "ayat-hunter-clear": {
+    title: "Penemu Ayat",
+    description: "Menemukan seluruh misi Ayat Hunter.",
+  },
+  "tetris-lines": {
+    title: "Penata Tajwid",
+    description: "Mencetak skor di Tajwid Tetris.",
+  },
 };
 
-export const LEADERBOARD_GAME_IDS = ["ayat-hunter", "doa-dungeon", "nabi-chronicles", "malaikat-mission", "tajwid-tetris"];
+export const LEADERBOARD_GAME_IDS = [
+  "ayat-hunter",
+  "doa-dungeon",
+  "nabi-chronicles",
+  "malaikat-mission",
+  "tajwid-tetris",
+];
 
-const emptyDaily = (): DailyProgress => ({ date: activityDate(), gamesPlayed: 0, totalScore: 0, claimedMissions: [] });
+const emptyDaily = (): DailyProgress => ({
+  date: activityDate(),
+  gamesPlayed: 0,
+  totalScore: 0,
+  claimedMissions: [],
+});
 let fallbackProgress: GameProgress | null = null;
 let fallbackProgressScope = "";
 const DEFAULT_ENTRIES = [
@@ -104,8 +188,12 @@ const DEFAULT_ENTRIES = [
   { name: "Naila", score: 320 },
 ];
 
-function progressEvent() { window.dispatchEvent(new CustomEvent(PROGRESS_EVENT)); }
-function leaderboardEvent() { window.dispatchEvent(new CustomEvent(LEADERBOARD_EVENT)); }
+function progressEvent() {
+  window.dispatchEvent(new CustomEvent(PROGRESS_EVENT));
+}
+function leaderboardEvent() {
+  window.dispatchEvent(new CustomEvent(LEADERBOARD_EVENT));
+}
 
 function scopedKey(base: string): string {
   const scope = getNgajiCeriaScope();
@@ -114,11 +202,18 @@ function scopedKey(base: string): string {
 
 export function getProgress(): GameProgress {
   const scope = getNgajiCeriaScope();
-  let parsed: Partial<GameProgress> | null = fallbackProgressScope === scope ? fallbackProgress : null;
+  let parsed: Partial<GameProgress> | null =
+    fallbackProgressScope === scope ? fallbackProgress : null;
   try {
-    if (!parsed) parsed = JSON.parse(window.localStorage.getItem(scopedKey(PROGRESS_KEY)) ?? "null");
-  } catch { /* Storage tidak tersedia; gunakan saldo sesi. */ }
-  const daily = parsed?.daily?.date === activityDate() ? parsed.daily : emptyDaily();
+    if (!parsed)
+      parsed = JSON.parse(
+        window.localStorage.getItem(scopedKey(PROGRESS_KEY)) ?? "null",
+      );
+  } catch {
+    /* Storage tidak tersedia; gunakan saldo sesi. */
+  }
+  const daily =
+    parsed?.daily?.date === activityDate() ? parsed.daily : emptyDaily();
   return {
     xp: nonNegativeInteger(parsed?.xp),
     totalScore: nonNegativeInteger(parsed?.totalScore),
@@ -135,17 +230,28 @@ export function getProgress(): GameProgress {
 }
 
 function nonNegativeInteger(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.floor(value))
+    : 0;
 }
 
 function stringList(value: unknown): string[] {
-  return Array.isArray(value) ? [...new Set(value.filter((item): item is string => typeof item === "string"))] : [];
+  return Array.isArray(value)
+    ? [
+        ...new Set(
+          value.filter((item): item is string => typeof item === "string"),
+        ),
+      ]
+    : [];
 }
 
 export function saveProgress(progress: GameProgress): void {
   const scope = getNgajiCeriaScope();
   try {
-    window.localStorage.setItem(scopedKey(PROGRESS_KEY), JSON.stringify(progress));
+    window.localStorage.setItem(
+      scopedKey(PROGRESS_KEY),
+      JSON.stringify(progress),
+    );
     fallbackProgress = null;
     fallbackProgressScope = scope;
   } catch {
@@ -166,7 +272,9 @@ function fromServerProgress(server: ServerNgajiProgress): GameProgress {
       date: server.dailyDate || activityDate(),
       gamesPlayed: Math.max(0, server.dailyGamesPlayed || 0),
       totalScore: Math.max(0, server.dailyTotalScore || 0),
-      claimedMissions: Array.isArray(server.dailyClaimedMissions) ? server.dailyClaimedMissions : [],
+      claimedMissions: Array.isArray(server.dailyClaimedMissions)
+        ? server.dailyClaimedMissions
+        : [],
     },
   };
 }
@@ -180,9 +288,12 @@ export function applyServerProgress(server: ServerNgajiProgress): GameProgress {
 
 function readPendingEvents(): ServerProgressEvent[] {
   const scope = getNgajiCeriaScope();
-  if (fallbackPendingEvents && fallbackPendingScope === scope) return fallbackPendingEvents;
+  if (fallbackPendingEvents && fallbackPendingScope === scope)
+    return fallbackPendingEvents;
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(scopedKey(PENDING_EVENTS_KEY)) ?? "[]") as ServerProgressEvent[];
+    const parsed = JSON.parse(
+      window.localStorage.getItem(scopedKey(PENDING_EVENTS_KEY)) ?? "[]",
+    ) as ServerProgressEvent[];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     fallbackPendingScope = scope;
@@ -192,21 +303,35 @@ function readPendingEvents(): ServerProgressEvent[] {
 
 function writePendingEvents(events: ServerProgressEvent[]): void {
   const scope = getNgajiCeriaScope();
-  try { window.localStorage.setItem(scopedKey(PENDING_EVENTS_KEY), JSON.stringify(events)); fallbackPendingEvents = null; }
-  catch { fallbackPendingEvents = events; fallbackPendingScope = scope; }
+  try {
+    window.localStorage.setItem(
+      scopedKey(PENDING_EVENTS_KEY),
+      JSON.stringify(events),
+    );
+    fallbackPendingEvents = null;
+  } catch {
+    fallbackPendingEvents = events;
+    fallbackPendingScope = scope;
+  }
 }
 
 function queueProgressEvent(event: ServerProgressEvent): void {
   const events = readPendingEvents();
-  if (!events.some((item) => item.eventId === event.eventId)) writePendingEvents([...events, event]);
+  if (!events.some((item) => item.eventId === event.eventId))
+    writePendingEvents([...events, event]);
 }
 
 function removePendingEvent(eventId: string): void {
-  writePendingEvents(readPendingEvents().filter((event) => event.eventId !== eventId));
+  writePendingEvents(
+    readPendingEvents().filter((event) => event.eventId !== eventId),
+  );
 }
 
 function newEventId(gameId: string): string {
-  const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const suffix =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return `${gameId}-${suffix}`;
 }
 
@@ -214,17 +339,24 @@ let syncing: Promise<void> | null = null;
 async function flushProgressEvents(): Promise<void> {
   if (syncing) return syncing;
   if (!isNgajiCeriaServerAvailable() || !getToken()) return;
-  syncing = (async () => { while (true) {
-    const event = readPendingEvents()[0];
-    if (!event) break;
-    try {
-      // EventId membuat retry idempotent untuk XP dan papan skor.
-      const result = await ngajiCeriaApi.submitLeaderboard(event);
-      removePendingEvent(event.eventId);
-      if (readPendingEvents().length === 0) applyServerProgress(result.progress);
-      leaderboardEvent();
-    } catch { break; }
-  } })().finally(() => { syncing = null; });
+  syncing = (async () => {
+    while (true) {
+      const event = readPendingEvents()[0];
+      if (!event) break;
+      try {
+        // EventId membuat retry idempotent untuk XP dan papan skor.
+        const result = await ngajiCeriaApi.submitLeaderboard(event);
+        removePendingEvent(event.eventId);
+        if (readPendingEvents().length === 0)
+          applyServerProgress(result.progress);
+        leaderboardEvent();
+      } catch {
+        break;
+      }
+    }
+  })().finally(() => {
+    syncing = null;
+  });
   return syncing;
 }
 
@@ -236,7 +368,9 @@ export async function syncNgajiCeriaProgress(): Promise<void> {
       const server = await ngajiCeriaApi.getProgress();
       if (!readPendingEvents().length) applyServerProgress(server);
     }
-  } catch { /* Offline/member API belum tersedia: local progress tetap dipakai. */ }
+  } catch {
+    /* Offline/member API belum tersedia: local progress tetap dipakai. */
+  }
 }
 
 export function getRank(xp: number): RankInfo {
@@ -247,19 +381,26 @@ export function getRank(xp: number): RankInfo {
     { title: "Guru Muda", minXp: 1400 },
     { title: "Ustadz Cilik", minXp: 2500 },
   ];
-  const current = [...ranks].reverse().find((rank) => xp >= rank.minXp) ?? ranks[0];
+  const current =
+    [...ranks].reverse().find((rank) => xp >= rank.minXp) ?? ranks[0];
   const next = ranks.find((rank) => rank.minXp > current.minXp);
   return { ...current, nextXp: next?.minXp ?? null };
 }
 
-export function awardProgress(gameId: string, score: number, baseXp: number, achievementIds: string[] = []): GameProgress {
+export function awardProgress(
+  gameId: string,
+  score: number,
+  baseXp: number,
+  achievementIds: string[] = [],
+): GameProgress {
   gameId = gameId.split(":")[0];
   score = nonNegativeInteger(score);
   baseXp = nonNegativeInteger(baseXp);
   const current = getProgress();
   const achievements = new Set(current.achievements);
   recordActivity();
-  if (getNgajiActivity().currentStreak >= 5) achievementIds = [...achievementIds, "pejuang-istiqomah"];
+  if (getNgajiActivity().currentStreak >= 5)
+    achievementIds = [...achievementIds, "pejuang-istiqomah"];
   achievements.add("first-game");
   achievementIds.forEach((id) => achievements.add(id));
   const earnedCoins = Math.max(5, Math.floor((baseXp + score) / 10));
@@ -269,7 +410,11 @@ export function awardProgress(gameId: string, score: number, baseXp: number, ach
     gamesPlayed: current.gamesPlayed + 1,
     achievements: [...achievements],
     coins: (current.coins || 0) + earnedCoins,
-    daily: { ...current.daily, gamesPlayed: current.daily.gamesPlayed + 1, totalScore: current.daily.totalScore + score },
+    daily: {
+      ...current.daily,
+      gamesPlayed: current.daily.gamesPlayed + 1,
+      totalScore: current.daily.totalScore + score,
+    },
   };
   saveProgress(next);
   const event: ServerProgressEvent = {
@@ -294,19 +439,45 @@ function leaderboardKey(gameId: string) {
 
 export function getLeaderboard(gameId: string): LeaderboardEntry[] {
   try {
-    const stored = JSON.parse(window.localStorage.getItem(leaderboardKey(gameId)) ?? "null") as LeaderboardEntry[] | null;
-    if (Array.isArray(stored)) return stored.sort((a, b) => b.score - a.score).slice(0, 10);
-  } catch { /* Use the offline seed below. */ }
-  return DEFAULT_ENTRIES.map((entry, index) => ({ ...entry, id: `${gameId}:seed:${index}`, gameId, updatedAt: 0 }));
+    const stored = JSON.parse(
+      window.localStorage.getItem(leaderboardKey(gameId)) ?? "null",
+    ) as LeaderboardEntry[] | null;
+    if (Array.isArray(stored))
+      return stored.sort((a, b) => b.score - a.score).slice(0, 10);
+  } catch {
+    /* Use the offline seed below. */
+  }
+  return DEFAULT_ENTRIES.map((entry, index) => ({
+    ...entry,
+    id: `${gameId}:seed:${index}`,
+    gameId,
+    updatedAt: 0,
+  }));
 }
 
-export function recordLeaderboard(gameId: string, score: number): LeaderboardEntry[] {
-  const previous = getLeaderboard(gameId).find((entry) => entry.name === "Kamu")?.score ?? 0;
+export function recordLeaderboard(
+  gameId: string,
+  score: number,
+): LeaderboardEntry[] {
+  const previous =
+    getLeaderboard(gameId).find((entry) => entry.name === "Kamu")?.score ?? 0;
   score = Math.max(previous, nonNegativeInteger(score));
-  const entries = getLeaderboard(gameId).filter((entry) => entry.name !== "Kamu");
-  entries.push({ id: `${gameId}:kamu`, name: "Kamu", score, gameId, updatedAt: Date.now() });
+  const entries = getLeaderboard(gameId).filter(
+    (entry) => entry.name !== "Kamu",
+  );
+  entries.push({
+    id: `${gameId}:kamu`,
+    name: "Kamu",
+    score,
+    gameId,
+    updatedAt: Date.now(),
+  });
   const next = entries.sort((a, b) => b.score - a.score).slice(0, 10);
-  try { window.localStorage.setItem(leaderboardKey(gameId), JSON.stringify(next)); } catch { /* Score remains visible for this render. */ }
+  try {
+    window.localStorage.setItem(leaderboardKey(gameId), JSON.stringify(next));
+  } catch {
+    /* Score remains visible for this render. */
+  }
   leaderboardEvent();
   return next;
 }
@@ -319,7 +490,9 @@ export function useNgajiProgress() {
     return () => window.removeEventListener(PROGRESS_EVENT, refresh);
   }, []);
   useEffect(() => {
-    const sync = () => { void syncNgajiCeriaProgress(); };
+    const sync = () => {
+      void syncNgajiCeriaProgress();
+    };
     sync();
     window.addEventListener("online", sync);
     return () => window.removeEventListener("online", sync);

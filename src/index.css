@@ -59,6 +59,10 @@ button:focus-visible {
   display: none;
 }
 
+body.game-active [data-bibi-companion] {
+  display: none !important;
+}
+
 /* ============================================================
    TYPOGRAPHY FIXES: Mengatasi Huruf Kecil yang Dempet
    ============================================================ */

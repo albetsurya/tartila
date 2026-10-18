@@ -29,7 +29,9 @@ export default function BalonHijaiyahGamePage() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [currentTarget, setCurrentTarget] = useState<HijaiyahItem>(HIJAIYAH_LIST[0]);
+  const [currentTarget, setCurrentTarget] = useState<HijaiyahItem>(
+    HIJAIYAH_LIST[0],
+  );
   const [balloons, setBalloons] = useState<BalloonTarget[]>([]);
 
   const pickNewTarget = useCallback((): HijaiyahItem => {
@@ -43,7 +45,8 @@ export default function BalonHijaiyahGamePage() {
     // Generate 4 balloons (1 correct, 3 random wrong)
     const options: HijaiyahItem[] = [targetLetter];
     while (options.length < 4) {
-      const candidate = HIJAIYAH_LIST[Math.floor(Math.random() * HIJAIYAH_LIST.length)];
+      const candidate =
+        HIJAIYAH_LIST[Math.floor(Math.random() * HIJAIYAH_LIST.length)];
       if (!options.find((o) => o.id === candidate.id)) {
         options.push(candidate);
       }
@@ -115,13 +118,19 @@ export default function BalonHijaiyahGamePage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Balon Hijaiyah" showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+    <NgajiCeriaLayout
+      title="Balon Hijaiyah"
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
       <div className="px-4 py-4 space-y-4 bg-[#F0FDF4] min-h-full rounded-t-3xl flex flex-col justify-between">
         {/* Top Game Bar */}
         <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="text-xs font-black text-[#134e4a]/70">Waktu:</span>
-            <span className={`text-base font-black ${timeLeft <= 5 ? "text-[#ff6b6b] animate-pulse" : "text-[#134e4a]"}`}>
+            <span
+              className={`text-base font-black ${timeLeft <= 5 ? "text-[#ff6b6b] animate-pulse" : "text-[#134e4a]"}`}
+            >
               {timeLeft}d
             </span>
           </div>
@@ -136,7 +145,9 @@ export default function BalonHijaiyahGamePage() {
         <div className="relative flex-1 min-h-[360px] bg-gradient-to-b from-[#f0fdfa] via-[#F2FAFD] to-white rounded-3xl border-2 border-[#ccfbf1] p-4 flex flex-col items-center justify-between overflow-hidden shadow-inner">
           {/* Target Instruction Prompt */}
           <div className="z-10 bg-white/95 px-5 py-2.5 rounded-2xl border-2 border-[#ccfbf1] shadow-md flex items-center gap-3">
-            <span className="text-xs font-bold text-[#0d9488]">Pecahkan huruf:</span>
+            <span className="text-xs font-bold text-[#0d9488]">
+              Pecahkan huruf:
+            </span>
             <span className="text-2xl font-black text-[#134e4a] font-arabic">
               {currentTarget.arabic}
             </span>

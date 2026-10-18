@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
-import { takeRewards, subscribeRewards, type PendingReward } from "../pages/games/_shared/progression";
+import {
+  takeRewards,
+  subscribeRewards,
+  type PendingReward,
+} from "../pages/games/_shared/progression";
 import { playSfx } from "../pages/games/_shared/audio";
 import { tapFeedback } from "../../../lib/haptics";
 

@@ -4,7 +4,12 @@ import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { TILAWATI_DATA } from "../data/tilawati";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
-import { Sparkles, Check, Lock, Play } from "../../../components/ui/FontAwesomeIcons";
+import {
+  Sparkles,
+  Check,
+  Lock,
+  Play,
+} from "../../../components/ui/FontAwesomeIcons";
 import { LoginPromptModal } from "../components/LoginPromptModal";
 import { useJilidAccess } from "../components/GameLockGuard";
 import { parseJilidNumber, tierForRole } from "../data/gameAccess";
@@ -102,9 +107,14 @@ function StandaloneBookCard({
         {/* Star Rating & Progress Bar */}
         <div className="mt-1.5 flex flex-col items-center gap-1">
           <div className="flex items-center gap-1">
-            <img src={NGAJI_CERIA_ASSETS.bintang} className="w-3.5 h-3.5" alt="Star" />
+            <img
+              src={NGAJI_CERIA_ASSETS.bintang}
+              className="w-3.5 h-3.5"
+              alt="Star"
+            />
             <span className="text-[10px] font-black text-[#134e4a]">
-              {status === "completed" ? totalPages : currentPage}/{totalPages} Hal
+              {status === "completed" ? totalPages : currentPage}/{totalPages}{" "}
+              Hal
             </span>
           </div>
 
@@ -114,8 +124,8 @@ function StandaloneBookCard({
                 status === "completed"
                   ? "bg-[#0F766E]"
                   : status === "active"
-                  ? "bg-[#0D9488]"
-                  : "bg-[#134e4a]/30"
+                    ? "bg-[#0D9488]"
+                    : "bg-[#134e4a]/30"
               }`}
               style={{
                 width: `${status === "completed" ? 100 : progressPercentage}%`,
@@ -129,22 +139,44 @@ function StandaloneBookCard({
 }
 
 /** Pembungkus per-jilid yang menerapkan kebijakan akses (tamu J1–2, J6 segera hadir). */
-function JilidBookEntry({ jilidId, onOpen, onLocked, ...card }: {
+function JilidBookEntry({
+  jilidId,
+  onOpen,
+  onLocked,
+  ...card
+}: {
   jilidId: string;
   onOpen: () => void;
   onLocked: () => void;
-} & Omit<BookCardProps, "onClick" | "status"> & { status: BookCardProps["status"] }) {
+} & Omit<BookCardProps, "onClick" | "status"> & {
+    status: BookCardProps["status"];
+  }) {
   const access = useJilidAccess(parseJilidNumber(jilidId));
   if (access.isComingSoon) {
-    return <StandaloneBookCard {...card} status="locked" comingSoon onClick={() => {}} />;
+    return (
+      <StandaloneBookCard
+        {...card}
+        status="locked"
+        comingSoon
+        onClick={() => {}}
+      />
+    );
   }
   if (!access.isOpen) {
-    return <StandaloneBookCard {...card} status="locked" onLockedTap={onLocked} onClick={() => {}} />;
+    return (
+      <StandaloneBookCard
+        {...card}
+        status="locked"
+        onLockedTap={onLocked}
+        onClick={() => {}}
+      />
+    );
   }
   return <StandaloneBookCard {...card} onClick={onOpen} />;
 }
 
-export default function NgajiCeriaLibraryPage() {  const navigate = useNavigate();
+export default function NgajiCeriaLibraryPage() {
+  const navigate = useNavigate();
   const { currentJilid, currentPage, progressPercentage } =
     useNgajiCeriaProgress(TILAWATI_DATA);
   const [promptOpen, setPromptOpen] = useState(false);
@@ -173,7 +205,9 @@ export default function NgajiCeriaLibraryPage() {  const navigate = useNavigate(
                 Akses VIP Aktif
               </div>
               <h2 className="font-display text-lg font-black tracking-tight leading-tight text-white">
-                {isGuest ? "Jilid 1–2 Terbuka Untukmu!" : "Bebas Akses Semua Jilid!"}
+                {isGuest
+                  ? "Jilid 1–2 Terbuka Untukmu!"
+                  : "Bebas Akses Semua Jilid!"}
               </h2>
               <p className="text-xs text-white/80 mt-1 leading-relaxed">
                 {isGuest
@@ -233,7 +267,8 @@ export default function NgajiCeriaLibraryPage() {  const navigate = useNavigate(
             }
 
             const coverImg =
-              NGAJI_CERIA_ASSETS.jilidCovers[stepNum] || NGAJI_CERIA_ASSETS.bukuQuran;
+              NGAJI_CERIA_ASSETS.jilidCovers[stepNum] ||
+              NGAJI_CERIA_ASSETS.bukuQuran;
 
             // Column 2 (odd indexes in 0-based array: idx 1, 3, 5...) gets offset down for zigzag effect
             const isOffset = idx % 2 === 1;
@@ -257,7 +292,10 @@ export default function NgajiCeriaLibraryPage() {  const navigate = useNavigate(
             );
           })}
         </div>
-        <LoginPromptModal open={promptOpen} onClose={() => setPromptOpen(false)} />
+        <LoginPromptModal
+          open={promptOpen}
+          onClose={() => setPromptOpen(false)}
+        />
 
         {/* Kitab Lanjutan Section */}
         <div className="pt-8 border-t border-gray-200">
@@ -272,7 +310,10 @@ export default function NgajiCeriaLibraryPage() {  const navigate = useNavigate(
 
           <div className="flex justify-center">
             {extraBooks.map((book) => (
-              <div key={book.id} className="flex flex-col items-center text-center">
+              <div
+                key={book.id}
+                className="flex flex-col items-center text-center"
+              >
                 <div className="relative">
                   <button
                     disabled
@@ -298,11 +339,14 @@ export default function NgajiCeriaLibraryPage() {  const navigate = useNavigate(
             ))}
           </div>
         </div>
-        
+
         {/* Disclaimer Hak Cipta & Legal */}
         <div className="pt-6 pb-4 border-t border-gray-200 text-center">
           <p className="text-[10px] text-[#134e4a]/70 leading-relaxed max-w-xs mx-auto">
-            Materi latihan disusun mandiri berdasarkan urutan pokok bahasan umum (fathah, kasrah, sukun, tajwid, ghorib). Teks Al-Qur'an dari sumber domain publik. "Tilawati" adalah merek terdaftar milik Pesantren Al-Qur'an Nurul Falah Surabaya.
+            Materi latihan disusun mandiri berdasarkan urutan pokok bahasan umum
+            (fathah, kasrah, sukun, tajwid, ghorib). Teks Al-Qur'an dari sumber
+            domain publik. "Tilawati" adalah merek terdaftar milik Pesantren
+            Al-Qur'an Nurul Falah Surabaya.
           </p>
         </div>
       </div>

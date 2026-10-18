@@ -1,11 +1,33 @@
 import { ModalPanel } from "./ModalPanel";
-import { ACCENTS, type GameAccent } from "./types";
+import { StickerButton } from "@/components/ui/StickerButton";
 
-export function PauseOverlay({ visible, onResume, onExit, accent = "pink" }: { visible: boolean; onResume: () => void; onExit: () => void; accent?: GameAccent }) {
+export function PauseOverlay({
+  visible,
+  onResume,
+  onExit,
+}: {
+  visible: boolean;
+  onResume: () => void;
+  onExit: () => void;
+}) {
   if (!visible) return null;
-  return <ModalPanel title="Lagi Jeda">
-    <p className="mb-5 mt-2 text-sm text-white/70">Ambil napas dulu. Waktu dan permainan berhenti di sini.</p>
-    <button onClick={onResume} className={`game-button w-full ${ACCENTS[accent].button}`}>Lanjut</button>
-    <button onClick={onExit} className="game-button mt-2 w-full border border-white/20 bg-white/5">Keluar</button>
-  </ModalPanel>;
+  return (
+    <ModalPanel title="Lagi Jeda">
+      <p className="mb-5 mt-2 text-sm text-white/70">
+        Ambil napas dulu. Waktu dan permainan berhenti di sini.
+      </p>
+      <StickerButton variant="primary" size="lg" fullWidth onClick={onResume}>
+        Lanjut
+      </StickerButton>
+      <StickerButton
+        variant="secondary"
+        size="lg"
+        fullWidth
+        className="mt-2"
+        onClick={onExit}
+      >
+        Keluar
+      </StickerButton>
+    </ModalPanel>
+  );
 }

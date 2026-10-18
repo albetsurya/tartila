@@ -4,11 +4,12 @@ import { InputHTMLAttributes, forwardRef, ReactNode } from "react";
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   icon?: ReactNode;
+  rightAction?: ReactNode;
   error?: string;
 }
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
-  ({ label, icon, error, className = "", id, ...props }, ref) => {
+  ({ label, icon, rightAction, error, className = "", id, ...props }, ref) => {
     return (
       <div>
         {label && (
@@ -36,11 +37,13 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
               shadow-[2px_2px_0px_#134E4A] focus:shadow-[2px_2px_0px_#0D9488]
               transition-all
               ${icon ? "pl-10" : ""}
+              ${rightAction ? "pr-10" : ""}
               ${error ? "border-[#FF6B6B]" : ""}
               ${className}
             `}
             {...props}
           />
+          {rightAction}
         </div>
         {error && (
           <p className="mt-1 text-[10px] font-bold text-[#FF6B6B]">{error}</p>

@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { JUZ_AMMA_QUIZ_DATA } from "../data/hijaiyah";
 import { tapFeedback } from "../../../lib/haptics";
-import { Check, X, Sparkles, Trophy } from "../../../components/ui/FontAwesomeIcons";
+import {
+  Check,
+  X,
+  Sparkles,
+  Trophy,
+} from "../../../components/ui/FontAwesomeIcons";
 
 export default function TebakAyatGamePage() {
   const navigate = useNavigate();
@@ -13,7 +18,8 @@ export default function TebakAyatGamePage() {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
-  const question = JUZ_AMMA_QUIZ_DATA[Math.min(currentIdx, JUZ_AMMA_QUIZ_DATA.length - 1)];
+  const question =
+    JUZ_AMMA_QUIZ_DATA[Math.min(currentIdx, JUZ_AMMA_QUIZ_DATA.length - 1)];
   const totalQuestions = JUZ_AMMA_QUIZ_DATA.length;
   const progressPercent = Math.round((currentIdx / totalQuestions) * 100);
 
@@ -55,15 +61,23 @@ export default function TebakAyatGamePage() {
 
   if (isFinished) {
     return (
-      <NgajiCeriaLayout title="Tebak Ayat" showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+      <NgajiCeriaLayout
+        title="Tebak Ayat"
+        showBack
+        onBack={() => navigate("/member/ngaji-ceria/games")}
+      >
         <div className="px-4 py-10 flex flex-col items-center">
           <div className="bg-white rounded-[28px] p-8 text-center border border-gray-100 shadow-md space-y-4 max-w-sm w-full">
             <div className="w-16 h-16 rounded-full bg-[#FF6B6B] border-2 border-[#0F766E]/20 mx-auto flex items-center justify-center">
               <Trophy size={28} className="text-[#134e4a]" />
             </div>
             <div>
-              <h3 className="font-display font-black text-xl text-[#134e4a]">Misi Selesai!</h3>
-              <p className="text-xs text-[#134e4a]/70 mt-1">Skor akhir Tebak Ayat: {score}</p>
+              <h3 className="font-display font-black text-xl text-[#134e4a]">
+                Misi Selesai!
+              </h3>
+              <p className="text-xs text-[#134e4a]/70 mt-1">
+                Skor akhir Tebak Ayat: {score}
+              </p>
             </div>
             <div className="flex gap-2.5">
               <button
@@ -86,7 +100,11 @@ export default function TebakAyatGamePage() {
   }
 
   return (
-    <NgajiCeriaLayout title="Tebak Ayat" showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+    <NgajiCeriaLayout
+      title="Tebak Ayat"
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
       <div className="px-4 py-4 space-y-4 bg-[#FBF6EE] min-h-full rounded-t-3xl flex flex-col">
         {/* Progress Header */}
         <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
@@ -113,7 +131,10 @@ export default function TebakAyatGamePage() {
             Tebak Nama Surah
           </div>
 
-          <p className="font-arabic text-3xl text-white leading-loose select-none" dir="rtl">
+          <p
+            className="font-arabic text-3xl text-white leading-loose select-none"
+            dir="rtl"
+          >
             {question.ayatArabic}
           </p>
 
@@ -131,7 +152,8 @@ export default function TebakAyatGamePage() {
           <div className="grid grid-cols-2 gap-2.5">
             {question.options.map((opt) => {
               const isSelected = selected === opt;
-              const showCorrect = status !== "idle" && opt === question.surahName;
+              const showCorrect =
+                status !== "idle" && opt === question.surahName;
               const showWrong = status === "wrong" && isSelected;
 
               return (
@@ -143,10 +165,10 @@ export default function TebakAyatGamePage() {
                     showCorrect
                       ? "bg-[#D1FAE5] border-[#0F766E] text-[#0F766E] shadow-md"
                       : showWrong
-                      ? "bg-[#fff0f0] border-[#ff6b6b] text-[#ff6b6b] shadow-md"
-                      : isSelected
-                      ? "bg-[#0d9488] border-[#0f766e] text-white shadow-md"
-                      : "bg-white border-[#D1FAE5] text-[#134e4a] hover:border-[#0d9488] shadow-sm"
+                        ? "bg-[#fff0f0] border-[#ff6b6b] text-[#ff6b6b] shadow-md"
+                        : isSelected
+                          ? "bg-[#0d9488] border-[#0f766e] text-white shadow-md"
+                          : "bg-white border-[#D1FAE5] text-[#134e4a] hover:border-[#0d9488] shadow-sm"
                   }`}
                 >
                   {showCorrect && <Check size={15} />}

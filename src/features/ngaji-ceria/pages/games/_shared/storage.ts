@@ -30,5 +30,9 @@ export function setBest(gameId: string, score: number): boolean {
 }
 
 export function clearBest(gameId: string): void {
-  try { window.localStorage.removeItem(scopedKey(gameId)); } catch { /* Storage opsional. */ }
+  try {
+    window.localStorage.removeItem(scopedKey(gameId));
+  } catch {
+    /* Storage opsional. */
+  }
 }

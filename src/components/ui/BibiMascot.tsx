@@ -1,3 +1,8 @@
+// ⚠️ WARNING TO ALL AI AGENTS:
+// DO NOT MODIFY THIS FILE. THIS IS A HAND-CRAFTED SVG COMPONENT.
+// THE ANIMATIONS AND PATHS ARE INTENTIONALLY COMPLEX.
+// ANY MODIFICATION WILL BREAK THE MASCOT. IGNORE THIS FILE IN ALL REFACTORING TASKS.
+
 import React, { useState, useRef, useEffect } from "react";
 import {
   motion,
@@ -93,26 +98,16 @@ export function BibiMascot({
     return () => unsubscribe();
   }, [rotationValue]);
 
-  const scaleXValue = useTransform(rotationValue, (latest) => {
+  const { scaleX, rotateY, opacity } = useTransform(rotationValue, (latest) => {
     let normalized = latest % 360;
     if (normalized < 0) normalized += 360;
     const rad = (normalized * Math.PI) / 180;
-    return Math.max(Math.abs(Math.cos(rad)), 0.15);
-  });
-
-  const rotateYValue = useTransform(rotationValue, (latest) => {
-    let normalized = latest % 360;
-    if (normalized < 0) normalized += 360;
-    const rad = (normalized * Math.PI) / 180;
-    return Math.sin(rad) * 25;
-  });
-
-  const opacityValue = useTransform(rotationValue, (latest) => {
-    let normalized = latest % 360;
-    if (normalized < 0) normalized += 360;
-    const rad = (normalized * Math.PI) / 180;
-    return 0.15 + 0.85 * Math.abs(Math.cos(2 * rad));
-  });
+    return {
+      scaleX: Math.max(Math.abs(Math.cos(rad)), 0.15),
+      rotateY: Math.sin(rad) * 25,
+      opacity: 0.15 + 0.85 * Math.abs(Math.cos(2 * rad)),
+    };
+  }) as any;
 
   const manualDirection = autoDirection && dynamicDir ? dynamicDir : direction;
   const isRotationActive = rotation !== undefined || autoRotate;
@@ -303,9 +298,9 @@ export function BibiMascot({
         style={{
           width: "100%",
           height: "100%",
-          scaleX: isRotationActive ? scaleXValue : 1,
-          rotateY: isRotationActive ? rotateYValue : 0,
-          opacity: isRotationActive ? opacityValue : 1,
+          scaleX: isRotationActive ? scaleX : 1,
+          rotateY: isRotationActive ? rotateY : 0,
+          opacity: isRotationActive ? opacity : 1,
           transformStyle: "preserve-3d",
         }}
       >

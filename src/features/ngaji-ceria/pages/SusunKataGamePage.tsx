@@ -3,7 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { playAudioUrl, playSoundEffect } from "../utils/audioPlayer";
 import { tapFeedback } from "../../../lib/haptics";
-import { Trophy, Sparkles, Check, X, RefreshCw, Volume2 } from "../../../components/ui/FontAwesomeIcons";
+import {
+  Trophy,
+  Sparkles,
+  Check,
+  X,
+  RefreshCw,
+  Volume2,
+} from "../../../components/ui/FontAwesomeIcons";
 
 interface WordPuzzle {
   id: number;
@@ -85,10 +92,12 @@ export default function SusunKataGamePage() {
 
   const puzzle = PUZZLE_DATA[currentIdx];
 
-  const [placedTiles, setPlacedTiles] = useState<{ id: string; char: string; name: string }[]>([]);
-  const [availableTiles, setAvailableTiles] = useState<{ id: string; char: string; name: string }[]>(
-    () => [...puzzle.tiles].sort(() => Math.random() - 0.5)
-  );
+  const [placedTiles, setPlacedTiles] = useState<
+    { id: string; char: string; name: string }[]
+  >([]);
+  const [availableTiles, setAvailableTiles] = useState<
+    { id: string; char: string; name: string }[]
+  >(() => [...puzzle.tiles].sort(() => Math.random() - 0.5));
 
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
 
@@ -120,7 +129,11 @@ export default function SusunKataGamePage() {
     setAvailableTiles((prev) => prev.filter((t) => t.id !== tile.id));
   };
 
-  const handleRemoveTile = (tile: { id: string; char: string; name: string }) => {
+  const handleRemoveTile = (tile: {
+    id: string;
+    char: string;
+    name: string;
+  }) => {
     if (status !== "idle") return;
     tapFeedback();
     setPlacedTiles((prev) => prev.filter((t) => t.id !== tile.id));
@@ -176,15 +189,24 @@ export default function SusunKataGamePage() {
 
   if (isFinished) {
     return (
-      <NgajiCeriaLayout title="Susun Kata" hideNav showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+      <NgajiCeriaLayout
+        title="Susun Kata"
+        hideNav
+        showBack
+        onBack={() => navigate("/member/ngaji-ceria/games")}
+      >
         <div className="px-4 py-10 flex flex-col items-center">
           <div className="bg-white rounded-[28px] p-8 text-center border border-gray-100 shadow-md space-y-4 max-w-sm w-full">
             <div className="w-16 h-16 rounded-full bg-[#FF6B6B] border-2 border-[#0F766E]/20 mx-auto flex items-center justify-center">
               <Trophy size={28} className="text-[#134e4a]" />
             </div>
             <div>
-              <h3 className="font-display font-black text-xl text-[#134e4a]">Hebat Sekali!</h3>
-              <p className="text-xs text-[#134e4a]/70 mt-1">Kamu berhasil menyusun semua kata. Skor: {score}</p>
+              <h3 className="font-display font-black text-xl text-[#134e4a]">
+                Hebat Sekali!
+              </h3>
+              <p className="text-xs text-[#134e4a]/70 mt-1">
+                Kamu berhasil menyusun semua kata. Skor: {score}
+              </p>
             </div>
             <button
               onClick={restart}
@@ -199,12 +221,19 @@ export default function SusunKataGamePage() {
   }
 
   return (
-    <NgajiCeriaLayout title="Susun Kata" hideNav showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+    <NgajiCeriaLayout
+      title="Susun Kata"
+      hideNav
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
       <div className="px-4 py-4 space-y-4 bg-[#F0FDF4] min-h-[calc(100vh-70px)] flex flex-col justify-between">
         <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="text-xs font-black text-[#134e4a]/70">Soal:</span>
-            <span className="text-base font-black text-[#134e4a]">{currentIdx + 1}/{PUZZLE_DATA.length}</span>
+            <span className="text-base font-black text-[#134e4a]">
+              {currentIdx + 1}/{PUZZLE_DATA.length}
+            </span>
           </div>
           {renderToneBadge()}
         </div>
@@ -213,16 +242,26 @@ export default function SusunKataGamePage() {
           <button
             onClick={handlePlayAudio}
             className={`absolute top-4 right-4 w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
-              isAudioPlaying ? "bg-[#0D9488] text-white scale-110 shadow-lg" : "bg-[#fff0f0] text-[#0D9488] hover:bg-[#0D9488]/20 active:scale-95"
+              isAudioPlaying
+                ? "bg-[#0D9488] text-white scale-110 shadow-lg"
+                : "bg-[#fff0f0] text-[#0D9488] hover:bg-[#0D9488]/20 active:scale-95"
             }`}
           >
-            <Volume2 size={20} className={isAudioPlaying ? "animate-pulse" : ""} />
+            <Volume2
+              size={20}
+              className={isAudioPlaying ? "animate-pulse" : ""}
+            />
           </button>
           <div>
-            <h2 className="font-display font-black text-2xl text-[#134e4a]">"{puzzle.wordLatin}"</h2>
+            <h2 className="font-display font-black text-2xl text-[#134e4a]">
+              "{puzzle.wordLatin}"
+            </h2>
           </div>
 
-          <div className="flex justify-center items-center gap-3 min-h-[72px]" dir="rtl">
+          <div
+            className="flex justify-center items-center gap-3 min-h-[72px]"
+            dir="rtl"
+          >
             {Array.from({ length: puzzle.tiles.length }).map((_, idx) => {
               const tile = placedTiles[idx];
               return (
@@ -232,9 +271,11 @@ export default function SusunKataGamePage() {
                   onClick={() => tile && handleRemoveTile(tile)}
                   className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center font-arabic text-3xl font-black transition-all ${
                     tile
-                      ? status === "correct" ? "bg-[#D1FAE5] border-[#0F766E] text-[#0F766E]" 
-                      : status === "wrong" ? "bg-[#fff0f0] border-[#ff6b6b] text-[#ff6b6b]" 
-                      : "bg-[#FFF3E4] border-[#0D9488] text-[#134e4a]"
+                      ? status === "correct"
+                        ? "bg-[#D1FAE5] border-[#0F766E] text-[#0F766E]"
+                        : status === "wrong"
+                          ? "bg-[#fff0f0] border-[#ff6b6b] text-[#ff6b6b]"
+                          : "bg-[#FFF3E4] border-[#0D9488] text-[#134e4a]"
                       : "bg-[#F0FDF4] border-dashed border-[#D1FAE5] text-transparent"
                   }`}
                 >
@@ -262,14 +303,33 @@ export default function SusunKataGamePage() {
 
         <div className="pt-2 pb-4">
           <button
-            disabled={status !== "idle" || placedTiles.length !== puzzle.tiles.length}
-            onClick={status === "idle" ? handleCheck : (status === "correct" ? handleNext : handleRetry)}
+            disabled={
+              status !== "idle" || placedTiles.length !== puzzle.tiles.length
+            }
+            onClick={
+              status === "idle"
+                ? handleCheck
+                : status === "correct"
+                  ? handleNext
+                  : handleRetry
+            }
             className={`w-full py-4 rounded-2xl font-black text-base text-white transition-all shadow-lg active:scale-[0.98] border-b-4 ${
-              status === "idle" ? (placedTiles.length === puzzle.tiles.length ? "bg-[#0F766E] border-[#134E4A]" : "bg-[#D1FAE5] text-[#134e4a]/70")
-              : status === "correct" ? "bg-[#0F766E] border-[#134E4A]" : "bg-[#0D9488] border-[#0F766E]"
+              status === "idle"
+                ? placedTiles.length === puzzle.tiles.length
+                  ? "bg-[#0F766E] border-[#134E4A]"
+                  : "bg-[#D1FAE5] text-[#134e4a]/70"
+                : status === "correct"
+                  ? "bg-[#0F766E] border-[#134E4A]"
+                  : "bg-[#0D9488] border-[#0F766E]"
             }`}
           >
-            {status === "idle" ? "Periksa Susunan" : (status === "correct" ? (currentIdx < PUZZLE_DATA.length - 1 ? "Benar! Lanjut →" : "Selesai") : "Coba Lagi")}
+            {status === "idle"
+              ? "Periksa Susunan"
+              : status === "correct"
+                ? currentIdx < PUZZLE_DATA.length - 1
+                  ? "Benar! Lanjut →"
+                  : "Selesai"
+                : "Coba Lagi"}
           </button>
         </div>
       </div>

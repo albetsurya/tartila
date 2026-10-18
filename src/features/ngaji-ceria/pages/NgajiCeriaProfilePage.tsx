@@ -11,11 +11,9 @@ import {
   useNgajiProgress,
 } from "./games/_shared/progression";
 import {
-  ArrowRight,
   ChevronRight,
   ClipboardList,
   Coins,
-  Crown,
   Download,
   GraduationCap,
   KeyRound,
@@ -29,7 +27,7 @@ import { ModalPanel } from "./games/_shared/ModalPanel";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
-import { Avatar } from "../../../components/ui/Avatar.tsx";
+import { Avatar } from "../../../components/ui/Avatar";
 import { normalizeGender } from "../../../utils/format";
 import "./games/_shared/games.css";
 
@@ -196,7 +194,6 @@ export default function NgajiCeriaProfilePage() {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                {/* Bulan Sabit Coral */}
                 <path
                   d="M70 10 A 40 40 0 1 0 90 70 A 30 30 0 1 1 70 10 Z"
                   fill="#FF6B6B"
@@ -204,12 +201,10 @@ export default function NgajiCeriaProfilePage() {
                   strokeWidth="2.5"
                   strokeLinejoin="round"
                 />
-                {/* Bintang Utama */}
                 <path
                   d="M80 20 L82 25 L87 27 L82 29 L80 34 L78 29 L73 27 L78 25 Z"
                   fill="#F0FDF4"
                 />
-                {/* Titik Bintang */}
                 <circle cx="65" cy="15" r="2.5" fill="#F0FDF4" />
                 <circle cx="85" cy="40" r="2" fill="#F0FDF4" />
                 <circle cx="55" cy="30" r="1.5" fill="#F0FDF4" opacity="0.6" />
@@ -242,12 +237,9 @@ export default function NgajiCeriaProfilePage() {
                 />
               </svg>
             </div>
-
-            {/* Garis Dekorasi Putus-putus */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px border-l-2 border-dashed border-[#F0FDF4]/10" />
           </div>
 
-          {/* Teks Header */}
           <div className="pt-6 relative z-10">
             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF6B6B]">
               Ruang Santri
@@ -322,26 +314,6 @@ export default function NgajiCeriaProfilePage() {
                 {progress.coins || 0}
               </p>
             </div>
-          </section>
-
-          {/* VIP Banner */}
-          <section className="flex items-center justify-between rounded-[24px] bg-[#134E4A] p-4 text-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#FF6B6B] relative overflow-hidden">
-            <div className="flex items-center gap-3 relative z-10">
-              <span className="rounded-full bg-white/20 p-2.5 text-[#FF6B6B]">
-                <Crown size={20} />
-              </span>
-              <div>
-                <p className="font-display font-black text-sm">
-                  Jadi Santri VIP
-                </p>
-                <p className="text-[10px] font-bold text-white/80 mt-0.5">
-                  Semua materi terbuka • Stamina tanpa batas
-                </p>
-              </div>
-            </div>
-            <button className="rounded-xl bg-[#FF6B6B] p-2.5 text-white border-2 border-white/20 active:scale-95 transition-all relative z-10">
-              <ArrowRight size={16} />
-            </button>
           </section>
 
           {/* Lemari Lencana */}

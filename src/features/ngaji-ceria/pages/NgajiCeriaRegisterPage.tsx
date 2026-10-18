@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  GraduationCap,
-  ArrowRight,
   User,
   Lock,
   Sparkles,
-} from "../../../components/ui/FontAwesomeIcons";
-import { useAuth } from "../../../contexts/AuthContext";
-import { ApiError } from "../../../services/api";
+  StickerButton,
+  StickerCard,
+  SectionHeader,
+  GraduationCap,
+  ArrowRight,
+} from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/services/api";
 
 export default function NgajiCeriaRegisterPage() {
   const navigate = useNavigate();
@@ -28,7 +31,7 @@ export default function NgajiCeriaRegisterPage() {
       !/^[a-z0-9][a-z0-9_]{2,31}$/.test(username)
     ) {
       setError(
-        "Username harus 3–32 karakter: huruf kecil, angka, atau underscore.",
+        "Username harus 3–32 karakter: huruf kecil, angka, atau underscore."
       );
       return;
     }
@@ -47,9 +50,7 @@ export default function NgajiCeriaRegisterPage() {
       navigate("/member/ngaji-ceria");
     } catch (err) {
       setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal membuat akun. Coba lagi.",
+        err instanceof ApiError ? err.message : "Gagal membuat akun. Coba lagi."
       );
     } finally {
       setSubmitting(false);
@@ -72,23 +73,13 @@ export default function NgajiCeriaRegisterPage() {
           </p>
         </div>
 
-        {/* Form Card (Sticker Style) */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-3xl border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] space-y-4"
-        >
-          <div>
-            <label
-              htmlFor="ceria-name"
-              className="block text-xs font-black text-[#134e4a] mb-1.5"
-            >
-              Nama Panggilan
-            </label>
-            <div className="relative">
-              <Sparkles
-                size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF6B6B]"
-              />
+        {/* Form Card */}
+        <StickerCard className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="ceria-name" className="block text-xs font-black text-[#134e4a] mb-1.5">
+                Nama Panggilan
+              </label>
               <input
                 type="text"
                 id="ceria-name"
@@ -99,20 +90,11 @@ export default function NgajiCeriaRegisterPage() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-[#134E4A]/20 text-sm font-bold text-[#134e4a] focus:outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
               />
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="ceria-username"
-              className="block text-xs font-black text-[#134e4a] mb-1.5"
-            >
-              Username
-            </label>
-            <div className="relative">
-              <User
-                size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0D9488]"
-              />
+            <div>
+              <label htmlFor="ceria-username" className="block text-xs font-black text-[#134e4a] mb-1.5">
+                Username
+              </label>
               <input
                 type="text"
                 id="ceria-username"
@@ -128,20 +110,11 @@ export default function NgajiCeriaRegisterPage() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-[#134E4A]/20 text-sm font-bold text-[#134e4a] focus:outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
               />
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="ceria-password"
-              className="block text-xs font-black text-[#134e4a] mb-1.5"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <Lock
-                size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0D9488]"
-              />
+            <div>
+              <label htmlFor="ceria-password" className="block text-xs font-black text-[#134e4a] mb-1.5">
+                Password
+              </label>
               <input
                 type="password"
                 id="ceria-password"
@@ -154,20 +127,11 @@ export default function NgajiCeriaRegisterPage() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-[#134E4A]/20 text-sm font-bold text-[#134e4a] focus:outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
               />
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="ceria-confirm-password"
-              className="block text-xs font-black text-[#134e4a] mb-1.5"
-            >
-              Konfirmasi Password
-            </label>
-            <div className="relative">
-              <Lock
-                size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0D9488]"
-              />
+            <div>
+              <label htmlFor="ceria-confirm-password" className="block text-xs font-black text-[#134e4a] mb-1.5">
+                Konfirmasi Password
+              </label>
               <input
                 type="password"
                 id="ceria-confirm-password"
@@ -181,26 +145,27 @@ export default function NgajiCeriaRegisterPage() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-[#134E4A]/20 text-sm font-bold text-[#134e4a] focus:outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
               />
             </div>
-          </div>
 
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl border-2 border-[#FF6B6B]/30 bg-[#FF6B6B]/10 px-3 py-2 text-xs font-semibold leading-relaxed text-[#FF6B6B]"
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl border-2 border-[#FF6B6B]/30 bg-[#FF6B6B]/10 px-3 py-2 text-xs font-semibold leading-relaxed text-[#FF6B6B]"
+              >
+                {error}
+              </p>
+            )}
+
+            <StickerButton
+              type="submit"
+              disabled={submitting}
+              fullWidth
+              className="rounded-2xl bg-[#0D9488] border-b-4 border-[#097b71]"
             >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] border-[3px] border-[#134E4A] active:translate-y-1 active:shadow-none transition-all disabled:opacity-60"
-          >
-            {submitting ? "Memproses..." : "Mulai Belajar Sekarang"}
-            <ArrowRight size={14} className="ml-1 inline" />
-          </button>
-        </form>
+              {submitting ? "Memproses..." : "Mulai Belajar Sekarang"}
+              <ArrowRight size={14} className="ml-1 inline" />
+            </StickerButton>
+          </form>
+        </StickerCard>
 
         <div className="text-center">
           <Link

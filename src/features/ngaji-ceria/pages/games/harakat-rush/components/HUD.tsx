@@ -1,12 +1,74 @@
-import { HUD as SharedHUD } from "../../_shared/HUD";
-import { HARAKAT_LIST, POWER_UP_LABELS } from "../data/harakat-list";
-import type { RushSnapshot } from "../phaser/HarakatRushScene";
+import { Heart, Star, Trophy } from "@/components/ui/FontAwesomeIcons";
+import { StatCard } from "@/components/ui/StatCard";
+import { StickerCard } from "@/components/ui/StickerCard";
+import { HARAKAT_LIST, type HarakatId } from "../data/harakat-list";
 
-export function HUD({ game }: { game: RushSnapshot }) {
-  const target = HARAKAT_LIST.find((item) => item.id === game.target)!;
-  return <div className="space-y-2">
-    <SharedHUD score={game.score} lives={game.lives} progressLabel={`${Math.floor(game.distance)} m`} accent="cyan" />
-    <div className="flex items-center justify-between gap-2 rounded-2xl border border-teal-300/25 bg-teal-500/10 px-3 py-2"><div className="text-xs text-white/80">Tangkap <b className="text-teal-300">{target.name}</b><p className="text-[10px] text-white/60">Bunyi {target.sound} · {game.speed} px/detik</p></div><span dir="rtl" className="game-arabic text-3xl text-teal-100">{target.symbol}</span></div>
-    {game.activePowerUp !== "none" && <p aria-live="polite" className="text-center text-xs font-bold text-yellow-300">{POWER_UP_LABELS[game.activePowerUp]} aktif{game.activePowerUp === "shield" ? " · tahan satu hit" : ` · ${Math.ceil(game.powerUpTimeLeft)} detik`}</p>}
-  </div>;
+export function HUD({
+  score,
+  target,
+  level,
+  progress,
+  targetCount,
+  lives,
+  themeColor,
+}: {
+  score: number;
+  target: HarakatId;
+  level: number;
+  progress: number;
+  targetCount: number;
+  lives: number;
+  themeColor: string;
+}) {
+  const item = HARAKAT_LIST.find((h) => h.id === target)!;
+  const percent = Math.min(100, (progress / targetCount) * 100);
+
+  return (
+    <StickerCard accent="none" className="p-2">
+      <div className="flex items-stretch gap-2">
+        <StatCard
+          icon={<Trophy size={16} />}
+          label="Skor"
+          value={score}
+          iconColor="text-[#0D9488]"
+        />
+
+        <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border-[2px] border-[#134E4A] bg-[#F0FDF4] px-2 py-1 text-center shadow-[2px_2px_0px_#134E4A]">
+          <p className="text-[8px] font-black uppercase tracking-wider text-[#134E4A]/60">
+            Target
+          </p>
+          <p dir="rtl" className="text-2xl font-black leading-none text-[#FF6B6B]">
+            {item.symbol}
+          </p>
+          <p className="truncate text-[9px] font-black text-[#0D9488]">
+            {item.name}
+          </p>
+        </div>
+
+        <StatCard
+          icon={<Star size={16} />}
+          label={`Lvl ${level}`}
+          value={`${progress}/${targetCount}`}
+          iconColor="text-[#F59E0B]"
+        />
+      </div>
+
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full border-[2px] border-[#134E4A] bg-white">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${percent}%`, backgroundColor: themeColor }}
+        />
+      </div>
+
+      <div className="mt-1.5 flex items-center justify-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <Heart
+            key={i}
+            size={15}
+            className={i < lives ? "text-[#FF6B6B]" : "text-[#134E4A]/15"}
+          />
+        ))}
+      </div>
+    </StickerCard>
+  );
 }

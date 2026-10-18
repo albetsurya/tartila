@@ -30,7 +30,9 @@ export default function PasangHurufGamePage() {
   const [isWon, setIsWon] = useState(false);
 
   const setupBoard = () => {
-    const selected = [...HIJAIYAH_LIST].sort(() => Math.random() - 0.5).slice(0, 6);
+    const selected = [...HIJAIYAH_LIST]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 6);
     const newTiles: MatchTile[] = [];
 
     selected.forEach((item) => {
@@ -115,18 +117,26 @@ export default function PasangHurufGamePage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Pasang Huruf" showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
+    <NgajiCeriaLayout
+      title="Pasang Huruf"
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
       <div className="px-4 py-4 space-y-4 bg-[#F0FDF4] min-h-full rounded-t-3xl">
         {/* Score Bar */}
         <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black text-[#134e4a]/70">Langkah:</span>
+            <span className="text-xs font-black text-[#134e4a]/70">
+              Langkah:
+            </span>
             <span className="text-base font-black text-[#134e4a]">{moves}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="text-xs font-black text-[#134e4a]/70">Cocok:</span>
-            <span className="text-base font-black text-[#0F766E]">{matchesCount}/6</span>
+            <span className="text-base font-black text-[#0F766E]">
+              {matchesCount}/6
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -138,12 +148,19 @@ export default function PasangHurufGamePage() {
         {!isPlaying && !isWon ? (
           <div className="bg-white rounded-[28px] p-8 text-center border border-gray-100 shadow-md space-y-4">
             <div className="w-20 h-20 mx-auto">
-              <img src={NGAJI_CERIA_ASSETS.kartuMatchCocok} alt="Pasang Huruf" className="w-full h-full object-contain" />
+              <img
+                src={NGAJI_CERIA_ASSETS.kartuMatchCocok}
+                alt="Pasang Huruf"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <h3 className="font-display font-black text-xl text-[#134e4a]">Pasang Huruf</h3>
+              <h3 className="font-display font-black text-xl text-[#134e4a]">
+                Pasang Huruf
+              </h3>
               <p className="text-xs text-[#134e4a]/70 mt-1 leading-relaxed max-w-xs mx-auto">
-                Buka kartu satu per satu dan temukan pasangan kartu Hijaiyah Arab dan nama Latinnya yang cocok.
+                Buka kartu satu per satu dan temukan pasangan kartu Hijaiyah
+                Arab dan nama Latinnya yang cocok.
               </p>
             </div>
             <button
@@ -163,7 +180,9 @@ export default function PasangHurufGamePage() {
                 <Sparkles size={10} />
                 Papan Selesai
               </div>
-              <h3 className="font-display font-black text-xl text-[#134e4a]">Luar Biasa!</h3>
+              <h3 className="font-display font-black text-xl text-[#134e4a]">
+                Luar Biasa!
+              </h3>
               <p className="text-xs text-[#134e4a]/70 mt-1">
                 Selesai dalam {moves} langkah. Skor: {score}
               </p>
@@ -185,17 +204,21 @@ export default function PasangHurufGamePage() {
                   tile.isMatched
                     ? "bg-[#D1FAE5] border-2 border-[#0F766E] opacity-70"
                     : tile.isOpen
-                    ? "bg-white border-2 border-[#0D9488] shadow-lg scale-105"
-                    : "bg-gradient-to-b from-[#0D9488] to-[#0F766E] border-2 border-[#0F766E] shadow-md cursor-pointer hover:scale-105"
+                      ? "bg-white border-2 border-[#0D9488] shadow-lg scale-105"
+                      : "bg-gradient-to-b from-[#0D9488] to-[#0F766E] border-2 border-[#0F766E] shadow-md cursor-pointer hover:scale-105"
                 }`}
               >
                 {tile.isOpen || tile.isMatched ? (
                   tile.kind === "arabic" ? (
                     <div className="flex flex-col items-center justify-center gap-1">
-                      <span className="font-arabic text-3xl font-black text-[#134e4a] select-none">{tile.label}</span>
+                      <span className="font-arabic text-3xl font-black text-[#134e4a] select-none">
+                        {tile.label}
+                      </span>
                     </div>
                   ) : (
-                    <span className="font-black text-sm text-[#134e4a] text-center select-none">{tile.label}</span>
+                    <span className="font-black text-sm text-[#134e4a] text-center select-none">
+                      {tile.label}
+                    </span>
                   )
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-white/20 border border-white/40 flex items-center justify-center">

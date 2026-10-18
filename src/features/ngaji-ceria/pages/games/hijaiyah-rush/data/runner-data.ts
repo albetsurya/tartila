@@ -1,6 +1,10 @@
 import { HIJAIYAH_LIST } from "../../../../data/hijaiyah";
 
-export const RUNNER_LETTERS = HIJAIYAH_LIST.map((item) => ({ id: item.id, letter: item.arabic, name: item.name }));
+export const RUNNER_LETTERS = HIJAIYAH_LIST.map((item) => ({
+  id: item.id,
+  letter: item.arabic,
+  name: item.name,
+}));
 export type RunnerLetter = (typeof RUNNER_LETTERS)[number];
 export type RunnerItemKind = "letter" | "obstacle";
 

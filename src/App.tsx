@@ -7,6 +7,12 @@ import NgajiCeriaLoginPage from "./features/ngaji-ceria/pages/NgajiCeriaLoginPag
 const NgajiCeriaRegisterPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaRegisterPage"),
 );
+const WarungSantriPage = lazy(
+  () => import("./features/ngaji-ceria/pages/WarungSantriPage"),
+);
+const PremiumPage = lazy(
+  () => import("./features/ngaji-ceria/pages/PremiumPage"),
+);
 const NgajiCeriaHomePage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaHomePage"),
 );
@@ -319,6 +325,14 @@ export default function App() {
           <Route
             index
             element={<Navigate to="/member/ngaji-ceria" replace />}
+          />
+          <Route
+            path="/member/ngaji-ceria/warung-santri"
+            element={<WarungSantriPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/premium"
+            element={<PremiumPage />}
           />
           <Route
             path="/register/ngaji-ceria"

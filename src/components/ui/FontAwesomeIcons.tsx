@@ -123,6 +123,7 @@ import {
   faStopwatch,
   faFloppyDisk,
   faAward,
+  faStore, // <-- TAMBAHKAN IMPORT INI
 } from "@fortawesome/free-solid-svg-icons";
 
 export type IconProps = Omit<FontAwesomeIconProps, "icon" | "size"> & {
@@ -296,3 +297,6 @@ export const Music = createIcon(faMusic);
 export const Timer = createIcon(faStopwatch);
 export const Save = createIcon(faFloppyDisk);
 export const Award = createIcon(faAward);
+
+// --- TAMBAHKAN EXPORT INI ---
+export const Store = createIcon(faStore);

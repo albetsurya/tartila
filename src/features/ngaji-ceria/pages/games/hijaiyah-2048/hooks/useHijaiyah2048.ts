@@ -5,22 +5,66 @@ import type { GamePhase } from "../../_shared/types";
 import { HIJAIYAH_LIST } from "../../../../data/hijaiyah";
 
 export type Direction = "left" | "right" | "up" | "down";
-export interface Tile { id: string; level: number }
+export interface Tile {
+  id: string;
+  level: number;
+}
 export type Grid = (Tile | null)[][];
 /** Pergerakan satu tile untuk animasi geser: dari sel asal ke sel tujuan. */
-export interface TileMove { id: string; fromRow: number; fromCol: number; toRow: number; toCol: number; merged: boolean }
+export interface TileMove {
+  id: string;
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+  merged: boolean;
+}
 /** Tile yang terserap merge — dirender sebagai ghost yang meluncur ke titik gabung lalu memudar. */
-export interface MergeGhost { id: string; level: number; fromRow: number; fromCol: number; toRow: number; toCol: number }
-interface GameState { phase: GamePhase; grid: Grid; score: number; highest: number; moves: number; lastMerge: number | null; moveId: number; mergedIds: string[]; spawnedId: string | null; ghosts: MergeGhost[] }
+export interface MergeGhost {
+  id: string;
+  level: number;
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+}
+interface GameState {
+  phase: GamePhase;
+  grid: Grid;
+  score: number;
+  highest: number;
+  moves: number;
+  lastMerge: number | null;
+  moveId: number;
+  mergedIds: string[];
+  spawnedId: string | null;
+  ghosts: MergeGhost[];
+}
 const SIZE = 4;
-const emptyGrid = (): Grid => Array.from({ length: SIZE }, () => Array<Tile | null>(SIZE).fill(null));
-const initial = (): GameState => ({ phase: "idle", grid: emptyGrid(), score: 0, highest: 0, moves: 0, lastMerge: null, moveId: 0, mergedIds: [], spawnedId: null, ghosts: [] });
+const emptyGrid = (): Grid =>
+  Array.from({ length: SIZE }, () => Array<Tile | null>(SIZE).fill(null));
+const initial = (): GameState => ({
+  phase: "idle",
+  grid: emptyGrid(),
+  score: 0,
+  highest: 0,
+  moves: 0,
+  lastMerge: null,
+  moveId: 0,
+  mergedIds: [],
+  spawnedId: null,
+  ghosts: [],
+});
 let tileSequence = 0;
 const newTile = (level = 0): Tile => ({ id: `h2048-${++tileSequence}`, level });
 
 function addRandomTile(grid: Grid): { grid: Grid; id: string | null } {
   const empty: [number, number][] = [];
-  grid.forEach((row, rowIndex) => row.forEach((tile, columnIndex) => { if (!tile) empty.push([rowIndex, columnIndex]); }));
+  grid.forEach((row, rowIndex) =>
+    row.forEach((tile, columnIndex) => {
+      if (!tile) empty.push([rowIndex, columnIndex]);
+    }),
+  );
   if (!empty.length) return { grid, id: null };
   const [row, column] = empty[Math.floor(Math.random() * empty.length)];
   const next = grid.map((line) => [...line]);
@@ -29,17 +73,44 @@ function addRandomTile(grid: Grid): { grid: Grid; id: string | null } {
   return { grid: next, id: tile.id };
 }
 
-function readLine(grid: Grid, index: number, direction: Direction): (Tile | null)[] {
+function readLine(
+  grid: Grid,
+  index: number,
+  direction: Direction,
+): (Tile | null)[] {
   if (direction === "left" || direction === "right") return [...grid[index]];
   return grid.map((row) => row[index]);
 }
-function writeLine(grid: Grid, index: number, direction: Direction, line: (Tile | null)[]): void {
-  if (direction === "left") { grid[index] = line; return; }
-  if (direction === "right") { grid[index] = [...line].reverse(); return; }
-  line.forEach((tile, row) => { grid[row][index] = tile; });
+function writeLine(
+  grid: Grid,
+  index: number,
+  direction: Direction,
+  line: (Tile | null)[],
+): void {
+  if (direction === "left") {
+    grid[index] = line;
+    return;
+  }
+  if (direction === "right") {
+    grid[index] = [...line].reverse();
+    return;
+  }
+  line.forEach((tile, row) => {
+    grid[row][index] = tile;
+  });
 }
 
-export function moveGrid(source: Grid, direction: Direction): { grid: Grid; changed: boolean; gained: number; highest: number; mergedIds: string[]; moves: TileMove[] } {
+export function moveGrid(
+  source: Grid,
+  direction: Direction,
+): {
+  grid: Grid;
+  changed: boolean;
+  gained: number;
+  highest: number;
+  mergedIds: string[];
+  moves: TileMove[];
+} {
   const grid = emptyGrid();
   let changed = false;
   let gained = 0;
@@ -52,7 +123,10 @@ export function moveGrid(source: Grid, direction: Direction): { grid: Grid; chan
     const reverse = direction === "right" || direction === "down";
     const entries = (reverse ? [...raw].reverse() : raw)
       .map((tile, origPos) => ({ tile, origPos }))
-      .filter((entry): entry is { tile: Tile; origPos: number } => entry.tile !== null);
+      .filter(
+        (entry): entry is { tile: Tile; origPos: number } =>
+          entry.tile !== null,
+      );
     const placed: (Tile | null)[] = [];
     const placedSources: { tile: Tile; origPos: number }[][] = [];
     for (let cursor = 0; cursor < entries.length; cursor++) {
@@ -93,56 +167,144 @@ export function moveGrid(source: Grid, direction: Direction): { grid: Grid; chan
       });
     });
     const original = reverse ? [...raw].reverse() : raw;
-    if (placed.some((tile, tileIndex) => tile?.level !== original[tileIndex]?.level || Boolean(tile) !== Boolean(original[tileIndex]))) changed = true;
+    if (
+      placed.some(
+        (tile, tileIndex) =>
+          tile?.level !== original[tileIndex]?.level ||
+          Boolean(tile) !== Boolean(original[tileIndex]),
+      )
+    )
+      changed = true;
     // writeLine membalik sendiri untuk arah kanan, tapi menulis langsung untuk arah bawah —
     // jadi untuk garis vertikal yang dibalik, kita yang membalik dulu ke orientasi aktual.
-    writeLine(grid, index, direction, !horizontal && reverse ? [...placed].reverse() : placed);
+    writeLine(
+      grid,
+      index,
+      direction,
+      !horizontal && reverse ? [...placed].reverse() : placed,
+    );
   }
   return { grid, changed, gained, highest, mergedIds, moves };
 }
 
 export function canMove(grid: Grid): boolean {
-  for (let row = 0; row < SIZE; row++) for (let column = 0; column < SIZE; column++) {
-    const tile = grid[row][column];
-    if (!tile) return true;
-    if (grid[row + 1]?.[column]?.level === tile.level || grid[row]?.[column + 1]?.level === tile.level) return true;
-  }
+  for (let row = 0; row < SIZE; row++)
+    for (let column = 0; column < SIZE; column++) {
+      const tile = grid[row][column];
+      if (!tile) return true;
+      if (
+        grid[row + 1]?.[column]?.level === tile.level ||
+        grid[row]?.[column + 1]?.level === tile.level
+      )
+        return true;
+    }
   return false;
 }
 
 export function useHijaiyah2048() {
   const { state, update } = useGameState(initial);
   const record = useBestScore("hijaiyah-2048", state.phase, state.score);
-  const start = useCallback(() => update(() => { let grid = emptyGrid(); const first = addRandomTile(grid); const second = addRandomTile(first.grid); playSfx("pop"); return { ...initial(), phase: "playing", grid: second.grid, spawnedId: second.id }; }), [update]);
-  const pause = useCallback(() => update((s) => s.phase === "playing" ? { ...s, phase: "paused" } : s), [update]);
-  const resume = useCallback(() => update((s) => s.phase === "paused" ? { ...s, phase: "playing" } : s), [update]);
-  const move = useCallback((direction: Direction) => update((s) => {
-    if (s.phase !== "playing") return s;
-    const result = moveGrid(s.grid, direction);
-    if (!result.changed) {
-      if (!canMove(s.grid)) return { ...s, phase: "gameover" };
-      return s;
-    }
-    const levels = new Map<string, number>();
-    s.grid.flat().forEach((tile) => { if (tile) levels.set(tile.id, tile.level); });
-    const ghosts: MergeGhost[] = result.moves
-      .filter((entry) => entry.merged)
-      .map((entry) => ({ id: `${s.moveId + 1}:${entry.id}`, level: levels.get(entry.id) ?? 0, fromRow: entry.fromRow, fromCol: entry.fromCol, toRow: entry.toRow, toCol: entry.toCol }));
-    const spawned = addRandomTile(result.grid);
-    const grid = spawned.grid;
-    const highest = Math.max(s.highest, result.highest, ...grid.flat().filter((tile): tile is Tile => tile !== null).map((tile) => tile.level));
-    playSfx(result.gained ? "combo" : "pop");
-    return { ...s, grid, score: s.score + result.gained, highest, moves: s.moves + 1, lastMerge: result.gained || null, moveId: s.moveId + 1, mergedIds: result.mergedIds, spawnedId: spawned.id, ghosts, phase: canMove(grid) ? "playing" : "gameover" };
-  }), [update]);
+  const start = useCallback(
+    () =>
+      update(() => {
+        let grid = emptyGrid();
+        const first = addRandomTile(grid);
+        const second = addRandomTile(first.grid);
+        playSfx("pop");
+        return {
+          ...initial(),
+          phase: "playing",
+          grid: second.grid,
+          spawnedId: second.id,
+        };
+      }),
+    [update],
+  );
+  const pause = useCallback(
+    () =>
+      update((s) => (s.phase === "playing" ? { ...s, phase: "paused" } : s)),
+    [update],
+  );
+  const resume = useCallback(
+    () =>
+      update((s) => (s.phase === "paused" ? { ...s, phase: "playing" } : s)),
+    [update],
+  );
+  const move = useCallback(
+    (direction: Direction) =>
+      update((s) => {
+        if (s.phase !== "playing") return s;
+        const result = moveGrid(s.grid, direction);
+        if (!result.changed) {
+          if (!canMove(s.grid)) return { ...s, phase: "gameover" };
+          return s;
+        }
+        const levels = new Map<string, number>();
+        s.grid.flat().forEach((tile) => {
+          if (tile) levels.set(tile.id, tile.level);
+        });
+        const ghosts: MergeGhost[] = result.moves
+          .filter((entry) => entry.merged)
+          .map((entry) => ({
+            id: `${s.moveId + 1}:${entry.id}`,
+            level: levels.get(entry.id) ?? 0,
+            fromRow: entry.fromRow,
+            fromCol: entry.fromCol,
+            toRow: entry.toRow,
+            toCol: entry.toCol,
+          }));
+        const spawned = addRandomTile(result.grid);
+        const grid = spawned.grid;
+        const highest = Math.max(
+          s.highest,
+          result.highest,
+          ...grid
+            .flat()
+            .filter((tile): tile is Tile => tile !== null)
+            .map((tile) => tile.level),
+        );
+        playSfx(result.gained ? "combo" : "pop");
+        return {
+          ...s,
+          grid,
+          score: s.score + result.gained,
+          highest,
+          moves: s.moves + 1,
+          lastMerge: result.gained || null,
+          moveId: s.moveId + 1,
+          mergedIds: result.mergedIds,
+          spawnedId: spawned.id,
+          ghosts,
+          phase: canMove(grid) ? "playing" : "gameover",
+        };
+      }),
+    [update],
+  );
   useEffect(() => {
     if (state.phase !== "playing") return;
     const onKey = (event: KeyboardEvent) => {
-      const directions: Record<string, Direction | undefined> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" };
+      const directions: Record<string, Direction | undefined> = {
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        ArrowUp: "up",
+        ArrowDown: "down",
+      };
       const direction = directions[event.key];
-      if (direction) { event.preventDefault(); move(direction); }
+      if (direction) {
+        event.preventDefault();
+        move(direction);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [state.phase, move]);
-  return { ...state, ...record, start, pause, resume, move, letters: HIJAIYAH_LIST };
+  return {
+    ...state,
+    ...record,
+    start,
+    pause,
+    resume,
+    move,
+    letters: HIJAIYAH_LIST,
+  };
 }

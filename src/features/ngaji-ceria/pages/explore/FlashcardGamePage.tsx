@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import {
-  ChevronLeft,
-} from "../../../../components/ui/FontAwesomeIcons";
+import { ChevronLeft } from "../../../../components/ui/FontAwesomeIcons";
 
-const ANIMALS = ["🐧", "🐬", "🦦", "🐯", "🐸", "🐢", "🦅", "🦒", "🦓", "🦔", "🦘", "🐍"];
+const ANIMALS = [
+  "🐧",
+  "🐬",
+  "🦦",
+  "🐯",
+  "🐸",
+  "🐢",
+  "🦅",
+  "🦒",
+  "🦓",
+  "🦔",
+  "🦘",
+  "🐍",
+];
 const ARABIC_TEXTS = [
   "بِسْمِ اللَّهِ",
   "ٱلْحَمْدُ لِلَّهِ",
@@ -61,7 +72,6 @@ export default function FlashcardGamePage() {
       onBack={() => navigate("/member/ngaji-ceria/explore/practice")}
     >
       <div className="min-h-full bg-[#F0FDF4]">
-
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-200">
           <button
@@ -72,9 +82,7 @@ export default function FlashcardGamePage() {
             <ChevronLeft size={14} />
             Kembali
           </button>
-          <span className="mx-4 text-sm text-[#64748B]">
-            Iqro{' '}
-          </span>
+          <span className="mx-4 text-sm text-[#64748B]">Iqro </span>
           <span className="ml-auto text-sm text-[#64748B]">
             Jilid {jilid || ""}
           </span>
@@ -82,7 +90,6 @@ export default function FlashcardGamePage() {
 
         {/* Grid of Cards */}
         <div className="px-4 py-6 grid grid-cols-3 gap-4">
-
           {cards.map((card) => {
             const isFlipped = flipped.includes(card.id);
             return (
@@ -91,30 +98,20 @@ export default function FlashcardGamePage() {
                 className="rounded-2xl shadow-sm border border-gray-100 bg-white aspect-[3/4] flex flex-col items-center justify-center relative"
               >
                 {/* Front: Emoji animal */}
-                <span
-                  className="absolute top-2 left-2 text-xs font-bold text-[#64748B]"
-                >
+                <span className="absolute top-2 left-2 text-xs font-bold text-[#64748B]">
                   #{card.id}
                 </span>
-                <span
-                  className="absolute top-2 right-2 text-2xl text-[#FF6B6B]"
-                >
+                <span className="absolute top-2 right-2 text-2xl text-[#FF6B6B]">
                   ⭐
                 </span>
-                <span
-                  className="inline-block text-5xl font-emoji select-none"
-                >
+                <span className="inline-block text-5xl font-emoji select-none">
                   {card.animal}
                 </span>
 
                 {/* Back: Arabic text and button */}
                 {isFlipped && (
-                  <div
-                    className="w-full h-full flex flex-col items-center justify-center pt-8 pb-4 text-center"
-                  >
-                    <p
-                      className="text-4xl font-black text-[#134E4A] mb-4 select-none"
-                    >
+                  <div className="w-full h-full flex flex-col items-center justify-center pt-8 pb-4 text-center">
+                    <p className="text-4xl font-black text-[#134E4A] mb-4 select-none">
                       {card.arabic}
                     </p>
                     <button
@@ -143,23 +140,17 @@ export default function FlashcardGamePage() {
         <div className="px-4 py-3 border-t border-gray-200 bg-white sticky bottom-0">
           <div className="grid grid-cols-3 gap-2">
             {/* Acak Kartu */}
-            <button
-              className="col-span-1 rounded-lg bg-[#0D9488] text-white font-bold text-sm py-2 px-3 shadow-sm hover:bg-[#134E4A] transition-colors"
-            >
+            <button className="col-span-1 rounded-lg bg-[#0D9488] text-white font-bold text-sm py-2 px-3 shadow-sm hover:bg-[#134E4A] transition-colors">
               Acak Kartu
             </button>
 
             {/* Buka */}
-            <button
-              className="col-span-1 rounded-lg bg-[#134E4A] text-white font-bold text-sm py-2 px-3 shadow-sm hover:bg-[#0D9488] transition-colors"
-            >
+            <button className="col-span-1 rounded-lg bg-[#134E4A] text-white font-bold text-sm py-2 px-3 shadow-sm hover:bg-[#0D9488] transition-colors">
               Buka
             </button>
 
             {/* Selesai */}
-            <button
-              className="col-span-1 rounded-lg bg-gray-300 text-gray-700 font-bold text-sm py-2 px-3 shadow-sm"
-            >
+            <button className="col-span-1 rounded-lg bg-gray-300 text-gray-700 font-bold text-sm py-2 px-3 shadow-sm">
               Selesai
             </button>
           </div>
@@ -167,16 +158,12 @@ export default function FlashcardGamePage() {
 
         {/* Modal: Uji Layar */}
         {showModal && (
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
-          >
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
             <div
               className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 transform scale-95 opacity-0 transition-all duration-300"
-              style={{ transform: 'scale(1)' }}
+              style={{ transform: "scale(1)" }}
             >
-              <p
-                className="text-5xl font-black text-[#134E4A] mb-6 text-center select-none"
-              >
+              <p className="text-5xl font-black text-[#134E4A] mb-6 text-center select-none">
                 {currentArabic}
               </p>
               <button

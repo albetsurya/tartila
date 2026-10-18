@@ -31,7 +31,7 @@ interface ExploreMenuItem {
 const EXPLORE_MENU: ExploreMenuItem[] = [
   {
     key: "tilawati",
-    title: "Peta Tilawati", 
+    title: "Peta Tilawati",
     desc: "Jelajahi jalur petualangan membaca dari level dasar hingga mahir.", // <-- Disesuaikan
     badge: "6 Level",
     to: "/member/ngaji-ceria/explore/tilawati",
@@ -39,7 +39,7 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     borderClass: "border-[#F59E0B]",
     iconBg: "bg-[#F59E0B]",
     iconColor: "text-white",
-    icon: BookOpen, 
+    icon: BookOpen,
     isMain: true,
   },
   {

@@ -9,7 +9,18 @@ import type { TilawatiAudioRequest } from "../../../services/tilawatiAudio";
  * Cangkang game lawas — kini diteruskan ke ImmersiveGameLayout agar seluruh
  * game otomatis imersif (100dvh, header mengambang, tanpa bottom nav).
  */
-export function GameShell({ title, phase, onPause, onResume, accent, tutorialGameId, children, fitViewport, recitation, recitationKey }: {
+export function GameShell({
+  title,
+  phase,
+  onPause,
+  onResume,
+  accent,
+  tutorialGameId,
+  children,
+  fitViewport,
+  recitation,
+  recitationKey,
+}: {
   title: string;
   phase: GamePhase;
   onPause: () => void;
@@ -21,5 +32,19 @@ export function GameShell({ title, phase, onPause, onResume, accent, tutorialGam
   recitation?: TilawatiAudioRequest;
   recitationKey?: string;
 }) {
-  return <ImmersiveGameLayout title={title} phase={phase} onPause={onPause} onResume={onResume} accent={accent} fitViewport={fitViewport} recitation={recitation} recitationKey={recitationKey}>{children}{tutorialGameId && <GameTutorialModal gameId={tutorialGameId} />}</ImmersiveGameLayout>;
+  return (
+    <ImmersiveGameLayout
+      title={title}
+      phase={phase}
+      onPause={onPause}
+      onResume={onResume}
+      accent={accent}
+      fitViewport={fitViewport}
+      recitation={recitation}
+      recitationKey={recitationKey}
+    >
+      {children}
+      {tutorialGameId && <GameTutorialModal gameId={tutorialGameId} />}
+    </ImmersiveGameLayout>
+  );
 }

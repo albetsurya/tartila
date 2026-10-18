@@ -6,6 +6,8 @@ import { NGAJI_CERIA_ASSETS } from "../../data/assets";
 import { Play, Lock, Star } from "../../../../components/ui/FontAwesomeIcons";
 import { useGameAccess } from "../../components/GameLockGuard";
 import { LoginPromptModal } from "../../components/LoginPromptModal";
+import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
+import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { canonicalGameId, isGameOpenForGuest } from "../../data/gameAccess";
 import { getBest } from "./_shared/storage";
 
@@ -188,12 +190,18 @@ export default function GameModeHubPage({
   const config = hub ? HUBS[hub] : undefined;
   const { tier } = useGameAccess(hub ?? "");
   const [promptOpen, setPromptOpen] = useState(false);
+  const [energyEmpty, setEnergyEmpty] = useState(false);
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   if (!config) return <Navigate to="/member/ngaji-ceria/games" replace />;
 
   const openMode = (path: string, locked: boolean) => {
     if (locked && tier === "guest") {
       setPromptOpen(true);
+      return;
+    }
+    if (!consumeTicket()) {
+      setEnergyEmpty(true);
       return;
     }
     navigate(path);
@@ -322,6 +330,12 @@ export default function GameModeHubPage({
         <LoginPromptModal
           open={promptOpen}
           onClose={() => setPromptOpen(false)}
+        />
+
+        <OutOfEnergyModal
+          visible={energyEmpty}
+          type="ticket"
+          onClose={() => setEnergyEmpty(false)}
         />
       </div>
     </NgajiCeriaLayout>

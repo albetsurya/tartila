@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
-import { DAILY_MISSIONS, claimMission, getMissionCurrentProgress, isMissionClaimed } from "../data/dailyMissions";
+import {
+  DAILY_MISSIONS,
+  claimMission,
+  getMissionCurrentProgress,
+  isMissionClaimed,
+} from "../data/dailyMissions";
 import { Sparkles, Check } from "../../../components/ui/FontAwesomeIcons";
 import { useNgajiProgress } from "../pages/games/_shared/progression";
 
@@ -12,8 +17,14 @@ export function DailyMissionsCard() {
     <div className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src={NGAJI_CERIA_ASSETS.petiHarta} alt="" className="h-6 w-6 object-contain" />
-          <h3 className="font-display text-sm font-black text-deep-teal">Misi Harian</h3>
+          <img
+            src={NGAJI_CERIA_ASSETS.petiHarta}
+            alt=""
+            className="h-6 w-6 object-contain"
+          />
+          <h3 className="font-display text-sm font-black text-deep-teal">
+            Misi Harian
+          </h3>
         </div>
         <span className="rounded-full bg-coral-soft px-2.5 py-0.5 text-[10px] font-black text-coral-glow border border-coral-glow/20">
           Reset Tiap Hari
@@ -40,13 +51,17 @@ export function DailyMissionsCard() {
                 claimed
                   ? "border-mint-cloud bg-mint-cloud/60 opacity-70"
                   : completed
-                  ? "border-coral-glow/20 bg-coral-soft"
-                  : "border-teal-emerald/10 bg-mint-cloud"
+                    ? "border-coral-glow/20 bg-coral-soft"
+                    : "border-teal-emerald/10 bg-mint-cloud"
               }`}
             >
               <div className="min-w-0 flex-1">
-                <p className="font-display text-xs font-black text-deep-teal">{mission.title}</p>
-                <p className="text-[11px] text-deep-teal/60 mt-0.5">{mission.description}</p>
+                <p className="font-display text-xs font-black text-deep-teal">
+                  {mission.title}
+                </p>
+                <p className="text-[11px] text-deep-teal/60 mt-0.5">
+                  {mission.description}
+                </p>
                 <div className="mt-1.5 flex items-center gap-2">
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-mint-cloud">
                     <div
@@ -69,13 +84,14 @@ export function DailyMissionsCard() {
                   <button
                     type="button"
                     onClick={handleClaim}
-                     className="flex items-center gap-1 rounded-full bg-teal-emerald px-3 py-1 text-[10px] font-black text-white shadow-sm hover:bg-teal-emerald-dark active:scale-95"
+                    className="flex items-center gap-1 rounded-full bg-teal-emerald px-3 py-1 text-[10px] font-black text-white shadow-sm hover:bg-teal-emerald-dark active:scale-95"
                   >
-                     <Sparkles size={11} /> Klaim +{mission.rewardCoins} 🪙 · +{mission.rewardXp} XP
+                    <Sparkles size={11} /> Klaim +{mission.rewardCoins} 🪙 · +
+                    {mission.rewardXp} XP
                   </button>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[10px] font-black text-teal-emerald">
-                     +{mission.rewardCoins} 🪙 · +{mission.rewardXp} XP
+                    +{mission.rewardCoins} 🪙 · +{mission.rewardXp} XP
                   </span>
                 )}
               </div>

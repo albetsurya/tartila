@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { ACHIEVEMENT_LABELS, getProgress, getRank, subscribeProgress } from "../pages/games/_shared/progression";
+import {
+  ACHIEVEMENT_LABELS,
+  getProgress,
+  getRank,
+  subscribeProgress,
+} from "../pages/games/_shared/progression";
 
 interface Notice {
   title: string;
@@ -16,12 +21,21 @@ export function ProgressionNotice() {
       const next = getProgress();
       const previousRank = getRank(previous.xp);
       const nextRank = getRank(next.xp);
-      const newAchievement = next.achievements.find((id) => !previous.achievements.includes(id));
-      const nextNotice = newAchievement && ACHIEVEMENT_LABELS[newAchievement]
-        ? { title: `Lencana baru: ${ACHIEVEMENT_LABELS[newAchievement].title}`, description: ACHIEVEMENT_LABELS[newAchievement].description }
-        : nextRank.title !== previousRank.title
-        ? { title: `Naik pangkat: ${nextRank.title}`, description: `${next.xp} XP terkumpul. Teruskan belajar!` }
-        : null;
+      const newAchievement = next.achievements.find(
+        (id) => !previous.achievements.includes(id),
+      );
+      const nextNotice =
+        newAchievement && ACHIEVEMENT_LABELS[newAchievement]
+          ? {
+              title: `Lencana baru: ${ACHIEVEMENT_LABELS[newAchievement].title}`,
+              description: ACHIEVEMENT_LABELS[newAchievement].description,
+            }
+          : nextRank.title !== previousRank.title
+            ? {
+                title: `Naik pangkat: ${nextRank.title}`,
+                description: `${next.xp} XP terkumpul. Teruskan belajar!`,
+              }
+            : null;
       previous = next;
       if (!nextNotice) return;
       setNotice(nextNotice);
@@ -29,12 +43,25 @@ export function ProgressionNotice() {
       timer = window.setTimeout(() => setNotice(null), 4500);
     };
     const unsubscribe = subscribeProgress(refresh);
-    return () => { unsubscribe(); if (timer) window.clearTimeout(timer); };
+    return () => {
+      unsubscribe();
+      if (timer) window.clearTimeout(timer);
+    };
   }, []);
 
   if (!notice) return null;
-  return <div role="status" aria-live="polite" className="fixed left-1/2 top-20 z-[70] w-[min(90vw,22rem)] -translate-x-1/2 rounded-2xl border-2 border-[#ffd9d9] bg-[#fff0f0] px-4 py-3 text-center shadow-xl">
-    <p className="font-display text-sm font-black text-[#134e4a]">✨ {notice.title}</p>
-    <p className="mt-0.5 text-xs font-bold text-[#134e4a]/70">{notice.description}</p>
-  </div>;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed left-1/2 top-20 z-[70] w-[min(90vw,22rem)] -translate-x-1/2 rounded-2xl border-2 border-[#ffd9d9] bg-[#fff0f0] px-4 py-3 text-center shadow-xl"
+    >
+      <p className="font-display text-sm font-black text-[#134e4a]">
+        ✨ {notice.title}
+      </p>
+      <p className="mt-0.5 text-xs font-bold text-[#134e4a]/70">
+        {notice.description}
+      </p>
+    </div>
+  );
 }

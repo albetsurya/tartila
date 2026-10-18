@@ -9,15 +9,18 @@ import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import {
   BookOpen,
   ChevronRight,
-  Heart,
   HandsPraying,
   Lock,
   MapPin,
   Play,
   Sparkles,
   Trophy,
+  Store,
+  Crown,
 } from "../../../components/ui/FontAwesomeIcons";
+import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
+import { TartilaLogo } from "../components/TartilaLogo";
 
 export default function NgajiCeriaHomePage() {
   const navigate = useNavigate();
@@ -54,7 +57,7 @@ export default function NgajiCeriaHomePage() {
       {isLoading && (
         <CeriaGameLoading durationMs={1500} onLoaded={finishLoading} />
       )}
-      <NgajiCeriaLayout title="Ngaji Ceria">
+      <NgajiCeriaLayout title={<TartilaLogo />}>
         <div
           className={`px-4 py-4 space-y-5 bg-[#F0FDF4] min-h-full rounded-t-3xl transition-opacity duration-500 ${
             isLoading ? "opacity-0" : "opacity-100"
@@ -76,11 +79,6 @@ export default function NgajiCeriaHomePage() {
                   {displayName}
                 </h2>
               </div>
-            </div>
-
-            <div className="flex items-center gap-1 shrink-0 bg-white px-2 py-1.5 rounded-xl border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-              <Heart size={14} className="text-[#FF6B6B] fill-[#FF6B6B]" />
-              <span className="text-xs font-black text-[#134E4A] ml-1">5</span>
             </div>
           </div>
 
@@ -140,8 +138,68 @@ export default function NgajiCeriaHomePage() {
             })}
           </section>
 
+          {/* === SECTION BARU: TOKO & VIP === */}
+          <section className="pt-1">
+            <SectionHeader
+              title="Toko & Hadiah"
+              icon={<Store size={16} />}
+              accent="amber"
+            />
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Kartu Warung Santri (Tukar Koin) */}
+              <button
+                onClick={() => {
+                  triggerBibiReaction("click");
+                  navigate("/member/ngaji-ceria/warung-santri");
+                }}
+                className="text-left rounded-2xl bg-[#FEF3C7] border-[3px] border-[#134E4A] p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all relative overflow-hidden"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#F59E0B] text-white flex items-center justify-center border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
+                  <img
+                    src={NGAJI_CERIA_ASSETS.koinHijaiyah}
+                    alt="Koin"
+                    className="w-6 h-6 object-contain"
+                  />
+                </div>
+                <p className="mt-2 font-display font-black text-sm text-[#134E4A]">
+                  Warung Santri
+                </p>
+                <p className="text-[10px] font-bold text-[#B45309] mt-0.5">
+                  Tukar Koin
+                </p>
+                <div className="absolute -bottom-4 -right-4 opacity-10">
+                  <Store size={60} />
+                </div>
+              </button>
+
+              {/* Kartu Paspor VIP */}
+              <button
+                onClick={() => {
+                  triggerBibiReaction("click");
+                  navigate("/member/ngaji-ceria/premium");
+                }}
+                className="text-left rounded-2xl bg-[#FFF0F0] border-[3px] border-[#134E4A] p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all relative overflow-hidden"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FF6B6B] text-white flex items-center justify-center border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
+                  <Crown size={20} />
+                </div>
+                <p className="mt-2 font-display font-black text-sm text-[#134E4A]">
+                  Paspor VIP
+                </p>
+                <p className="text-[10px] font-bold text-[#FF6B6B] mt-0.5">
+                  Bebas Batas
+                </p>
+                <div className="absolute -bottom-4 -right-4 opacity-10 text-[#FF6B6B]">
+                  <Crown size={60} />
+                </div>
+              </button>
+            </div>
+          </section>
+          {/* === END SECTION BARU === */}
+
           {/* Level Cards */}
-          <section className="space-y-3 pt-2">
+          <section className="space-y-3 pt-1">
             <div className="flex items-center justify-between">
               <h4 className="font-display font-black text-sm text-[#134E4A]">
                 Petualangan Tilawati

@@ -35,7 +35,11 @@ import {
   type GhostInfo,
 } from "../components/timeline-editor/dragGhost";
 import "./TilawatiTimelineEditor.css";
-import { getPublishedTimeline, restoreTimelineDraft, tilawatiEditorApi } from "../services/tilawatiEditorApi";
+import {
+  getPublishedTimeline,
+  restoreTimelineDraft,
+  tilawatiEditorApi,
+} from "../services/tilawatiEditorApi";
 import { useTimelineDraftSave } from "../hooks/useTimelineDraftSave";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
 import { getToken } from "../../../services/api";
@@ -133,7 +137,13 @@ export default function TilawatiTimelineEditorPage() {
   const frame = useRef(0);
   const playToken = useRef(0);
   const dirty = draft !== null && JSON.stringify(draft) !== baseline;
-  const draftSave = useTimelineDraftSave(jilid, hal, draft, cloudRevision, !loading && loadedPage === `${jilid}:${hal}`);
+  const draftSave = useTimelineDraftSave(
+    jilid,
+    hal,
+    draft,
+    cloudRevision,
+    !loading && loadedPage === `${jilid}:${hal}`,
+  );
 
   function flashSnap(kind: "cut" | "play" | "boundary") {
     setSnapHint(kind);
@@ -181,7 +191,12 @@ export default function TilawatiTimelineEditorPage() {
       })
       .then(async (data) => {
         const cloud = await getPublishedTimeline(jilid, hal).catch(() => null);
-        const restored = await restoreTimelineDraft(jilid, hal, cloud?.revision ?? "", controller.signal);
+        const restored = await restoreTimelineDraft(
+          jilid,
+          hal,
+          cloud?.revision ?? "",
+          controller.signal,
+        );
         if (controller.signal.aborted) return;
         const page = TILAWATI_PAGE_DATASETS[jilid][hal];
         const questions = page.questions.map((question, index) => ({
@@ -194,7 +209,10 @@ export default function TilawatiTimelineEditorPage() {
             Boolean(page.questions[0]?.isOpening),
           ),
         }));
-        const base = cloud?.timeline ?? data.published?.timeline ?? initialTimeline(data.clips, questions);
+        const base =
+          cloud?.timeline ??
+          data.published?.timeline ??
+          initialTimeline(data.clips, questions);
         const project = restored.draft?.timeline ?? base;
         setAssets(data.clips);
         setDraft(clone(project));
@@ -202,8 +220,10 @@ export default function TilawatiTimelineEditorPage() {
         setRevision(data.revision);
         setCloudRevision(cloud?.revision ?? "");
         setLoadedPage(`${jilid}:${hal}`);
-        if (restored.draft) setMessage("Draft terbaru dipulihkan. Perubahan siap dilanjutkan.");
-        if (restored.syncError) setMessage(`Draft lokal dipakai · ${restored.syncError}`);
+        if (restored.draft)
+          setMessage("Draft terbaru dipulihkan. Perubahan siap dilanjutkan.");
+        if (restored.syncError)
+          setMessage(`Draft lokal dipakai · ${restored.syncError}`);
         setHistory([]);
         setFuture([]);
         setMergeIds([]);
@@ -918,7 +938,12 @@ export default function TilawatiTimelineEditorPage() {
       const ctx = context.current;
       await ctx.resume();
       // Dibatalkan saat menunggu (navigasi/unmount): berhenti diam-diam.
-      if (token !== playToken.current || context.current !== ctx || ctx.state === "closed") return;
+      if (
+        token !== playToken.current ||
+        context.current !== ctx ||
+        ctx.state === "closed"
+      )
+        return;
       const scheduledSegments: Array<{
         segment: AudioSegment;
         duration: number;
@@ -965,8 +990,14 @@ export default function TilawatiTimelineEditorPage() {
         const bufferDuration = buffer.duration;
         // Jepit offset/durasi ke dalam buffer: sisa noise float negatif atau
         // offset di ujung file membuat start() melempar RangeError.
-        const safeOffset = Math.min(Math.max(0, segment.start), Math.max(0, bufferDuration - 1e-6));
-        const safeDuration = Math.min(Math.max(0, duration), Math.max(0, bufferDuration - safeOffset));
+        const safeOffset = Math.min(
+          Math.max(0, segment.start),
+          Math.max(0, bufferDuration - 1e-6),
+        );
+        const safeDuration = Math.min(
+          Math.max(0, duration),
+          Math.max(0, bufferDuration - safeOffset),
+        );
         if (safeDuration > 1e-6) {
           const source = ctx.createBufferSource();
           source.buffer = buffer;
@@ -1044,18 +1075,34 @@ export default function TilawatiTimelineEditorPage() {
 
   async function publishCloud() {
     if (!draft || saving) return;
-    stopPreview(); setSaving(true); setError("");
+    stopPreview();
+    setSaving(true);
+    setError("");
     try {
-      if (!(await draftSave.save(true))) throw new Error("Draft cloud belum tersinkron. Periksa status draft sebelum publish.");
-      const data = await tilawatiEditorApi.publish(jilid, hal, draft, cloudRevision);
+      if (!(await draftSave.save(true)))
+        throw new Error(
+          "Draft cloud belum tersinkron. Periksa status draft sebelum publish.",
+        );
+      const data = await tilawatiEditorApi.publish(
+        jilid,
+        hal,
+        draft,
+        cloudRevision,
+      );
       if (!data.published) throw new Error("Timeline publish tidak tersedia.");
       setDraft(clone(data.published.timeline));
       setBaseline(JSON.stringify(data.published.timeline));
       setCloudRevision(data.published.revision);
-      setHistory([]); setFuture([]);
-      setMessage("Publish cloud selesai. Semua game memakai klip presisi dari cloud.");
-    } catch (err) { setError(err instanceof Error ? err.message : String(err)); }
-    finally { setSaving(false); }
+      setHistory([]);
+      setFuture([]);
+      setMessage(
+        "Publish cloud selesai. Semua game memakai klip presisi dari cloud.",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function leave(url: string) {
@@ -1746,8 +1793,22 @@ export default function TilawatiTimelineEditorPage() {
               ))}
             </select>
           </div>
-          <button className="te-btn" disabled={loading || saving || !draft} onClick={() => void draftSave.save()}>Simpan Draft</button>
-          {isNgajiCeriaServerAvailable() && <button className="te-btn te-primary" disabled={loading || saving || !draft || !getToken()} onClick={publishCloud}>Publish ke Cloud</button>}
+          <button
+            className="te-btn"
+            disabled={loading || saving || !draft}
+            onClick={() => void draftSave.save()}
+          >
+            Simpan Draft
+          </button>
+          {isNgajiCeriaServerAvailable() && (
+            <button
+              className="te-btn te-primary"
+              disabled={loading || saving || !draft || !getToken()}
+              onClick={publishCloud}
+            >
+              Publish ke Cloud
+            </button>
+          )}
           <button
             className="te-btn te-primary"
             disabled={loading || saving || !draft || !dirty}
@@ -1758,7 +1819,8 @@ export default function TilawatiTimelineEditorPage() {
         </div>
       </header>
       <div className="te-status" aria-live="polite">
-        {[error, message, draftSave.status].filter(Boolean).join(" · ") || "Draft tersimpan otomatis; publish merender klip audio final."}
+        {[error, message, draftSave.status].filter(Boolean).join(" · ") ||
+          "Draft tersimpan otomatis; publish merender klip audio final."}
       </div>
 
       {loading ? (
@@ -2517,7 +2579,7 @@ export default function TilawatiTimelineEditorPage() {
                     >
                       ⧉ Duplikat
                     </button>
-                    </div>
+                  </div>
                   <p className="te-help">
                     Potongan A dan B tetap di timeline. Teks awal mengikuti A;
                     pasangkan atau tambah teks B sesuai bacaan.
@@ -2583,7 +2645,10 @@ export default function TilawatiTimelineEditorPage() {
                       onChange={(event) => {
                         const val = event.target.value;
                         const parts = val.split("\n");
-                        const autoArabic = parts.map((p) => latinToArabic(p.trim())).filter(Boolean).join(" ");
+                        const autoArabic = parts
+                          .map((p) => latinToArabic(p.trim()))
+                          .filter(Boolean)
+                          .join(" ");
                         editText({
                           transliterationParts: parts,
                           arabic: autoArabic || selectedText.arabic,

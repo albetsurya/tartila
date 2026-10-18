@@ -140,11 +140,36 @@ export const TAJWID_RULES: TajwidRule[] = [
     note: "Idzhar adalah membaca huruf nun mati dan tanwin dengan jelas dan tenang (tanpa dengung) apabila bertemu dengan huruf-huruf idzhar.",
     huruf: "(ء ه ع ح غ خ)",
     examples: [
-      { number: "01", arabic: "اَنْعَمْتَ", highlight: "نْ", audioUrl: everyAyahAudio(1, 7) },
-      { number: "02", arabic: "يَنْهَى", highlight: "نْ", audioUrl: everyAyahAudio(16, 90) },
-      { number: "03", arabic: "اَلْاَنْهَارُ", highlight: "نْ", audioUrl: everyAyahAudio(2, 25) },
-      { number: "04", arabic: "يَنْهَوْنَ", highlight: "نْ", audioUrl: everyAyahAudio(6, 26) },
-      { number: "05", arabic: "وَالْمُنْخَنِقَةُ", highlight: "نْ", audioUrl: everyAyahAudio(5, 3) },
+      {
+        number: "01",
+        arabic: "اَنْعَمْتَ",
+        highlight: "نْ",
+        audioUrl: everyAyahAudio(1, 7),
+      },
+      {
+        number: "02",
+        arabic: "يَنْهَى",
+        highlight: "نْ",
+        audioUrl: everyAyahAudio(16, 90),
+      },
+      {
+        number: "03",
+        arabic: "اَلْاَنْهَارُ",
+        highlight: "نْ",
+        audioUrl: everyAyahAudio(2, 25),
+      },
+      {
+        number: "04",
+        arabic: "يَنْهَوْنَ",
+        highlight: "نْ",
+        audioUrl: everyAyahAudio(6, 26),
+      },
+      {
+        number: "05",
+        arabic: "وَالْمُنْخَنِقَةُ",
+        highlight: "نْ",
+        audioUrl: everyAyahAudio(5, 3),
+      },
     ],
   },
   {
@@ -156,10 +181,30 @@ export const TAJWID_RULES: TajwidRule[] = [
     note: "Gunnah artinya dengung, Idgham bighunnah adalah meleburkan bacaan nun mati atau tanwin disertai dengung.",
     huruf: "(ي ن م و)",
     examples: [
-      { number: "01", arabic: "وَمَنْ يَفْعَلْ", highlight: "نْ يَ", audioUrl: everyAyahAudio(25, 68) },
-      { number: "02", arabic: "وَمَنْ يُضْلِلِ", highlight: "نْ يُ", audioUrl: everyAyahAudio(39, 23) },
-      { number: "03", arabic: "مَنْ يَقُولُ", highlight: "نْ يَ", audioUrl: everyAyahAudio(2, 8) },
-      { number: "04", arabic: "وَمَنْ تَعْمَلُ", highlight: "نْ تَ", audioUrl: everyAyahAudio(4, 124) },
+      {
+        number: "01",
+        arabic: "وَمَنْ يَفْعَلْ",
+        highlight: "نْ يَ",
+        audioUrl: everyAyahAudio(25, 68),
+      },
+      {
+        number: "02",
+        arabic: "وَمَنْ يُضْلِلِ",
+        highlight: "نْ يُ",
+        audioUrl: everyAyahAudio(39, 23),
+      },
+      {
+        number: "03",
+        arabic: "مَنْ يَقُولُ",
+        highlight: "نْ يَ",
+        audioUrl: everyAyahAudio(2, 8),
+      },
+      {
+        number: "04",
+        arabic: "وَمَنْ تَعْمَلُ",
+        highlight: "نْ تَ",
+        audioUrl: everyAyahAudio(4, 124),
+      },
     ],
   },
   {
@@ -171,10 +216,30 @@ export const TAJWID_RULES: TajwidRule[] = [
     note: "Idgham Bilaghunnah adalah meleburkan huruf nun mati atau tanwin ke dalam huruf lam atau ra tanpa disertai dengung.",
     huruf: "(ل ر)",
     examples: [
-      { number: "01", arabic: "مِنْ رَبِّهِمْ", highlight: "نْ رَ", audioUrl: everyAyahAudio(2, 5) },
-      { number: "02", arabic: "وَقُلْ رَبِّ", highlight: "لْ رَ", audioUrl: everyAyahAudio(17, 24) },
-      { number: "03", arabic: "مِنْ لَدُنْهُ", highlight: "نْ لَ", audioUrl: everyAyahAudio(18, 2) },
-      { number: "04", arabic: "فَإِنْ لَمْ", highlight: "نْ لَ", audioUrl: everyAyahAudio(2, 24) },
+      {
+        number: "01",
+        arabic: "مِنْ رَبِّهِمْ",
+        highlight: "نْ رَ",
+        audioUrl: everyAyahAudio(2, 5),
+      },
+      {
+        number: "02",
+        arabic: "وَقُلْ رَبِّ",
+        highlight: "لْ رَ",
+        audioUrl: everyAyahAudio(17, 24),
+      },
+      {
+        number: "03",
+        arabic: "مِنْ لَدُنْهُ",
+        highlight: "نْ لَ",
+        audioUrl: everyAyahAudio(18, 2),
+      },
+      {
+        number: "04",
+        arabic: "فَإِنْ لَمْ",
+        highlight: "نْ لَ",
+        audioUrl: everyAyahAudio(2, 24),
+      },
     ],
   },
   {
@@ -186,10 +251,30 @@ export const TAJWID_RULES: TajwidRule[] = [
     note: "Iqlab adalah mengubah bunyi nun mati atau tanwin menjadi mim (م) apabila bertemu dengan huruf ba (ب), disertai dengung.",
     huruf: "(ب)",
     examples: [
-      { number: "01", arabic: "مِنْ بَعْدِ", highlight: "نْ بَ", audioUrl: everyAyahAudio(2, 27) },
-      { number: "02", arabic: "اَنْ بُورِكَ", highlight: "نْ بُ", audioUrl: everyAyahAudio(27, 8) },
-      { number: "03", arabic: "سَمِيعٌ بَصِيرٌ", highlight: "ٌ بَ", audioUrl: everyAyahAudio(4, 134) },
-      { number: "04", arabic: "عَلِيمٌ بِذَاتِ", highlight: "ٌ بِ", audioUrl: everyAyahAudio(3, 119) },
+      {
+        number: "01",
+        arabic: "مِنْ بَعْدِ",
+        highlight: "نْ بَ",
+        audioUrl: everyAyahAudio(2, 27),
+      },
+      {
+        number: "02",
+        arabic: "اَنْ بُورِكَ",
+        highlight: "نْ بُ",
+        audioUrl: everyAyahAudio(27, 8),
+      },
+      {
+        number: "03",
+        arabic: "سَمِيعٌ بَصِيرٌ",
+        highlight: "ٌ بَ",
+        audioUrl: everyAyahAudio(4, 134),
+      },
+      {
+        number: "04",
+        arabic: "عَلِيمٌ بِذَاتِ",
+        highlight: "ٌ بِ",
+        audioUrl: everyAyahAudio(3, 119),
+      },
     ],
   },
   {
@@ -201,10 +286,30 @@ export const TAJWID_RULES: TajwidRule[] = [
     note: "Ikhfa' adalah menyamarkan bunyi nun mati atau tanwin apabila bertemu dengan salah satu dari 15 huruf ikhfa', disertai dengung.",
     huruf: "(ت ث ج د ذ ز س ش ص ض ط ظ ف ق ك)",
     examples: [
-      { number: "01", arabic: "مِنْ قَبْلِ", highlight: "نْ قَ", audioUrl: everyAyahAudio(2, 4) },
-      { number: "02", arabic: "اَنْزَلَ", highlight: "نْ زَ", audioUrl: everyAyahAudio(2, 23) },
-      { number: "03", arabic: "مَنْ صَبَرَ", highlight: "نْ صَ", audioUrl: everyAyahAudio(42, 43) },
-      { number: "04", arabic: "اَنْفُسَهُمْ", highlight: "نْ فُ", audioUrl: everyAyahAudio(2, 9) },
+      {
+        number: "01",
+        arabic: "مِنْ قَبْلِ",
+        highlight: "نْ قَ",
+        audioUrl: everyAyahAudio(2, 4),
+      },
+      {
+        number: "02",
+        arabic: "اَنْزَلَ",
+        highlight: "نْ زَ",
+        audioUrl: everyAyahAudio(2, 23),
+      },
+      {
+        number: "03",
+        arabic: "مَنْ صَبَرَ",
+        highlight: "نْ صَ",
+        audioUrl: everyAyahAudio(42, 43),
+      },
+      {
+        number: "04",
+        arabic: "اَنْفُسَهُمْ",
+        highlight: "نْ فُ",
+        audioUrl: everyAyahAudio(2, 9),
+      },
     ],
   },
 ];

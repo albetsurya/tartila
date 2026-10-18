@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import {
-  Cards,
-  Lock,
-  Play,
-} from "../../../../components/ui/FontAwesomeIcons";
+import { Cards, Lock, Play } from "../../../../components/ui/FontAwesomeIcons";
 import { TILAWATI_SESSIONS } from "./exploreData";
 
 export default function MagicCardsPage() {
@@ -40,7 +36,8 @@ export default function MagicCardsPage() {
         {/* Session Grid */}
         <section className="grid grid-cols-2 gap-3">
           {TILAWATI_SESSIONS.map((session) => {
-            const isActive = session.unlocked && session.jilid === selectedJilid;
+            const isActive =
+              session.unlocked && session.jilid === selectedJilid;
             return (
               <button
                 key={session.jilid}
