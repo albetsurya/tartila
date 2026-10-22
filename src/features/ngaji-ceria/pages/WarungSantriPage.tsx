@@ -152,8 +152,8 @@ export default function WarungSantriPage() {
   const { user, groupId } = useAuth();
   const hearts = useEconomyStore((s) => s.hearts);
   const tickets = useEconomyStore((s) => s.tickets);
-  const isVip = useEconomyStore((s) => s.isVip);
-  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
+  const isVip = useEconomyStore((s: any) => s.isVip);
+  const isUnlimited = isUnlimitedUser(user as any, isVip, groupId as any);
   const grantEnergy = useEconomyStore((s) => s.grantEnergy);
   const purchasedToday = useEconomyStore((s) => s.purchasedToday);
 
@@ -164,8 +164,8 @@ export default function WarungSantriPage() {
   const setTilaGender = useEconomyStore((s) => s.setTilaGender);
   const [costumeFilter, setCostumeFilter] = useState<"all" | "boy" | "girl">("all");
 
-  const activeBoosters = useEconomyStore((s) => s.activeBoosters);
-  const buyBooster = useEconomyStore((s) => s.buyBooster);
+  const activeBoosters = useEconomyStore((s: any) => s.activeBoosters);
+  const buyBooster = useEconomyStore((s: any) => s.buyBooster);
 
   const tilaGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotName = getMascotName(tilaGender);

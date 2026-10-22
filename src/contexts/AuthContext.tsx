@@ -5,219 +5,206 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { authApi, type User } from "@/services/authApi";
-import { clearToken, getToken, setGroupId, ApiError } from "@/services/api";
-import { addEvent } from "@/services/eventService";
+import { supabase } from "@/lib/supabase";
+import { type User } from "@/services/api";
 
-export type CeriaUser = User;
+// Type untuk user yang kita gunakan di aplikasi
+export type CeriaUser = {
+  id: string;
+  email: string | null;
+  username: string | null;
+  name: string | null;
+  role: string; // member, tartila_admin, superadmin
+  group_id: string | null;
+  is_vip: boolean;
+  photo_url: string | null;
+};
 
+// Interface value untuk AuthContext
 interface AuthContextValue {
-  user: User | null;
-  groupId: string | null;
+  user: CeriaUser | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
-  registerCeria: (
-    name: string,
-    username: string,
-    password: string,
-    confirmPassword: string
-  ) => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  groupId: string | null;
 }
 
-const CACHED_USER_KEY = "tartila_cached_user";
+// Helper untuk membuat user dari Supabase auth response
+function createCeriaUser(sbUser: any): CeriaUser {
+  return {
+    id: sbUser.id,
+    email: sbUser.email,
+    username: sbUser.user_metadata?.username || null,
+    name: sbUser.user_metadata?.name || null,
+    role: sbUser.user_metadata?.role || 'member',
+    group_id: sbUser.user_metadata?.group_id || null,
+    is_vip: sbUser.user_metadata?.is_vip || false,
+    photo_url: sbUser.user_metadata?.photo_url || null,
+  };
+}
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-function getCachedUser(): User | null {
-  try {
-    const raw = localStorage.getItem(CACHED_USER_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function setCachedUser(user: User | null) {
-  try {
-    if (user) {
-      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(CACHED_USER_KEY);
-    }
-  } catch {}
-}
-
-function isAuthenticationError(error: unknown): boolean {
-  return (
-    error instanceof ApiError &&
-    (error.message.toLowerCase().includes("unauthorized") ||
-      error.message.toLowerCase().includes("sesi tidak valid") ||
-      error.message.toLowerCase().includes("token") ||
-      error.statusCode === 401)
-  );
-}
-
-let validateSessionPromise: Promise<User> | null = null;
-
-function getValidateSessionPromise(): Promise<User> {
-  if (!validateSessionPromise) {
-    validateSessionPromise = authApi.validateSession().finally(() => {
-      validateSessionPromise = null;
-    });
-  }
-  return validateSessionPromise;
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => getCachedUser());
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<CeriaUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Initialize: cek session Supabase saat komponen mount
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      if (!getToken()) {
-        setUser(null);
-        setCachedUser(null);
-        setLoading(false);
-        return;
+    // Cek session yang ada
+    supabase.auth.getSession().then(({ data: { session} }) => {
+      if (session && session.user) {
+        setUser(createCeriaUser(session.user));
       }
+      setLoading(false);
+    });
 
-      try {
-        const u = await getValidateSessionPromise();
-        if (!cancelled) {
-          setGroupId(u?.group_id ?? null);
-          setUser(u);
-          setCachedUser(u);
+    // Listen untuk perubahan session (login/logout)
+    const { data: { subscription} } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session && session.user) {
+          setUser(createCeriaUser(session.user));
+        } else {
+          setUser(null);
         }
-      } catch (err) {
-        if (!cancelled) {
-          // A cached profile is only an optimistic render hint, never proof of
-          // authentication. Do not leave it active when validation fails.
-          if (isAuthenticationError(err)) {
-            clearToken();
-            setCachedUser(null);
-            setGroupId(null);
-            setUser(null);
-          } else {
-            // Other network errors etc. might be transient, keep cached user
-            setLoading(false);
-            return; // Don't clear user for transient errors, but stop loading
-          }
+        // Reset state setelah logout
+        if (event === 'SIGNED_OUT') {
+          // Clear any local storage if needed
         }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
-    })();
+    );
 
+    // Cleanup subscription on unmount
     return () => {
-      cancelled = true;
+      subscription.unsubscribe();
     };
   }, []);
 
-  async function login(username: string, password: string) {
-    const u = await authApi.login(username, password);
-    setGroupId(u?.group_id ?? null);
-    setUser(u);
-    setCachedUser(u);
-    addEvent({
-      type: "login",
-      userId: u.id,
-      username: u.name || u.username,
-      details: { method: "credentials", role: u.role },
-    });
-  }
-
-  async function loginWithGoogle(credential: string) {
-    const u = await authApi.loginWithGoogle(credential);
-    setGroupId(u?.group_id ?? null);
-    setUser(u);
-    setCachedUser(u);
-    addEvent({
-      type: "login",
-      userId: u.id,
-      username: u.name || u.username,
-      details: { method: "google", role: u.role },
-    });
-  }
-
-  async function registerCeria(
-    name: string,
-    username: string,
-    password: string,
-    confirmPassword: string
-  ) {
-    const u = await authApi.registerCeria(
-      name,
-      username,
-      password,
-      confirmPassword
-    );
-    setGroupId(u?.group_id ?? null);
-    setUser(u);
-    setCachedUser(u);
-    addEvent({
-      type: "user_registered",
-      userId: u.id,
-      username: u.name || u.username,
-      details: { role: u.role },
-    });
-  }
-
-  async function logout() {
-    if (user) {
-      addEvent({
-        type: "logout",
-        userId: user.id,
-        username: user.name || user.username,
-      });
-    }
-    const revoke = authApi.logout(); // Start revocation while token is still available
-    clearToken();
-    setCachedUser(null);
-    setGroupId(null);
-    setUser(null);
-    await revoke.catch(() => {}); // Ignore network errors on logout
-  }
-
-  async function refreshUser() {
+  // Fungsi login dengan Google
+  const loginWithGoogle = async (credential: string) => {
     try {
-      const u = await authApi.validateSession();
-      setUser(u);
-      setCachedUser(u);
+      // Sign in with Google using supabase
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // redirectTo adalah URL yang akan redirect setelah login
+          // di development ini http://localhost:5173
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+      // Session akan di-update oleh onAuthStateChange listener
     } catch (err) {
-      if (isAuthenticationError(err)) {
-        clearToken();
-        setCachedUser(null);
-        setGroupId(null);
-        setUser(null);
-      }
+      console.error('Google login error:', err);
+      throw err;
     }
-  }
+  };
+
+  // Fungsi login dengan email/password (jika ada)
+  const loginWithEmail = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Email login error:', err);
+      throw err;
+    }
+  };
+
+  // Fungsi register user baru
+  const register = async (email: string, password: string, name: string) => {
+    try {
+      // Create user dengan Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            role: 'member', // Role default saat register
+            is_vip: false,
+            group_id: null,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data.user) {
+        // Buat entri di tabel users
+        await supabase.from('users').insert({
+          id: data.user.id,
+          email: data.user.email,
+          hearts: 5, // Default
+          tickets: 3, // Default
+          level: 1,
+          xp: 0,
+          role: 'member',
+          group_id: null,
+          is_vip: false,
+        });
+      }
+    } catch (err) {
+      console.error('Register error:', err);
+      throw err;
+    }
+  };
+
+  // Fungsi logout
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+      throw err;
+    }
+  };
+
+  // Fungsi refresh user data dari server
+  const refreshUser = async () => {
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user) {
+        setUser(createCeriaUser(user));
+      }
+    } catch (err) {
+      console.error('Refresh user error:', err);
+    }
+  };
+
+  // Value yang akan diterima oleh component anak
+  const value: AuthContextValue = {
+    user,
+    loading,
+    loginWithGoogle,
+    loginWithEmail,
+    register,
+    logout,
+    refreshUser,
+    groupId: user?.group_id ?? null,
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        groupId: user?.group_id ?? null,
-        loading,
-        login,
-        loginWithGoogle,
-        registerCeria,
-        logout,
-        refreshUser,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth harus dipakai di dalam AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
 }
+
+export default AuthContext;

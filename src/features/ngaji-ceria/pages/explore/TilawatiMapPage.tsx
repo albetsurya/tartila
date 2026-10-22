@@ -253,7 +253,7 @@ export default function TilawatiMapPage() {
   const [isPanduanOpen, setIsPanduanOpen] = useState(false);
   const [energyEmpty, setEnergyEmpty] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
-  const consumeHeart = useEconomyStore((s) => s.consumeHeart);
+  const consumeHeart = useEconomyStore((s: any) => s.consumeHeart);
   const [selectedNode, setSelectedNode] = useState<
     (typeof TILAWATI_PAGES)[0] | null
   >(null);
@@ -294,8 +294,8 @@ export default function TilawatiMapPage() {
   };
 
   const { user, groupId } = useAuth();
-  const isVip = useEconomyStore((s) => s.isVip);
-  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
+  const isVip = useEconomyStore((s: any) => s.isVip);
+  const isUnlimited = isUnlimitedUser(user as any, isVip, groupId as any);
 
   const handleStartLearning = (practiceOverride?: boolean) => {
     if (!selectedNode) return;

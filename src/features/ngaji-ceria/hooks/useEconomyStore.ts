@@ -1,25 +1,15 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import {
-  spendCoins,
-  grantCoins,
-} from "../pages/games/_shared/progression";
-import {
-  resolveMascotGender,
-  isAccessoryAllowedForGender,
-} from "@/utils/mascotHelper";
+import create from 'zustand';
+import { supabase } from '@/lib/supabase';
+import { spendCoins, grantCoins } from '@/pages/games/_shared/progression';
+import { resolveMascotGender, isAccessoryAllowedForGender } from '@/utils/mascotHelper';
 
-export const HEART_MAX = 5;
-export const TICKET_MAX = 3;
-export const SHOP_DAILY_LIMIT = 2;
 export const HEART_REGEN_MS = 4 * 60 * 60 * 1000; // 4 Jam
 export const TICKET_REGEN_MS = 6 * 60 * 60 * 1000; // 6 Jam
 
-export type EnergyKind = "heart" | "ticket";
-export type TilaGender = "boy" | "girl" | "neutral";
-export type TilaAccessory = "none" | "peci" | "hairbow" | "flowercrown" | "glasses" | "crown" | string;
+export type EnergyKind = 'heart' | 'ticket';
+export type TilaGender = 'boy' | 'girl' | 'neutral';
+export type TilaAccessory = 'none' | 'peci' | 'hairbow' | 'flowercrown' | 'glasses' | 'crown' | string;
 
-// Aliases
 export type BibiGender = TilaGender;
 export type BibiAccessory = TilaAccessory;
 
@@ -37,9 +27,9 @@ export const COSTUME_PRICES: Record<string, number> = {
 };
 
 export const BOOSTER_PRICES: Record<string, number> = {
-  "double-exp": 100,
-  "full-heart": 300,
-  "streak-freeze": 150,
+  'double-exp': 100,
+  'full-heart': 300,
+  'streak-freeze': 150,
 };
 
 interface DailyPurchases {
@@ -48,419 +38,332 @@ interface DailyPurchases {
   date: string;
 }
 
-/**
- * Helper untuk mengecek apakah user berhak mendapatkan kuota tanpa batas (unlimited/∞):
- * - Superadmin (role === 'SUPER_ADMIN' / 'superadmin' / 'ADMIN')
- * - VIP (isVip === true atau group_id === 'vip')
- */
+// Fungsi bantuan: cek apakah user VIP/unlimited
 export function isUnlimitedUser(
   user?: { role?: string; group_id?: string; tier?: string; is_vip?: boolean } | null,
   isVipStore?: boolean,
   groupId?: string | null,
 ): boolean {
   if (isVipStore) return true;
-  if ((groupId || "").toLowerCase() === "vip") return true;
 
-  let u = user;
-  if (!u && typeof window !== "undefined") {
-    try {
-      const raw = localStorage.getItem("tartila_cached_user");
-      if (raw) {
-        u = JSON.parse(raw);
-      }
-    } catch {
-      // ignore
-    }
+  const roleClean = (user?.role || '').toUpperCase();
+
+  // Superadmin memiliki kuota tanpa batas
+  if (
+    roleClean === 'SUPER_ADMIN' ||
+    roleClean === 'SUPERADMIN' ||
+    roleClean === 'ADMIN'
+  ) {
+    return true;
   }
 
-  if (!u) return false;
-  const role = (u.role || "").toUpperCase();
-  const gid = (u.group_id || "").toLowerCase();
-  const tier = (u.tier || "").toLowerCase();
-  const isVip = Boolean(u.is_vip);
+  // VIP (dari isVipStore atau group_id)
+  if (isVipStore || groupId === 'vip') {
+    return true;
+  }
 
-  return (
-    role === "SUPER_ADMIN" ||
-    role === "SUPERADMIN" ||
-    role === "ADMIN" ||
-    role === "VIP" ||
-    gid === "vip" ||
-    tier === "superadmin" ||
-    tier === "vip" ||
-    isVip
-  );
+  // Member/tidak punya limit (bisa di-set sesuai kebutuhan)
+  return false;
 }
 
 interface EconomyState {
+  // User identification
+  userId: string | null;
+  username: string | null;
+  role: string | null;
+  groupId: string | null;
+  isVip: boolean;
+
+  // Economy data (disimpan di Supabase, not localStorage)
   hearts: number;
   tickets: number;
-  isVip: boolean;
-  lastHeartRegen: number;
-  lastTicketRegen: number;
-  dailyPurchases: DailyPurchases;
-
-  // Tila / Bibi Customization
-  tilaGender: TilaGender;
-  bibiGender: BibiGender; // Backward-compatibility alias
-  equippedAccessory: TilaAccessory;
-  ownedAccessories: string[];
-  showMascot: boolean;
-  setShowMascot: (show: boolean) => void;
-
-  // Streak & Retention
-  streakMultiplier: number;
-  dailyRewardsClaimed: number[];
-  lastDailyClaimDate: string | null;
+  level: number;
+  xp: number;
+  lastSync: number; // timestamp
 
   // Boosters
   activeBoosters: Record<string, boolean>;
 
   // Actions
-  consumeHeart: () => boolean;
-  consumeTicket: () => boolean;
-  getHearts: () => number;
-  getTickets: () => number;
-  isUnlimited: () => boolean;
-  grantEnergy: (kind: EnergyKind) => boolean;
-  purchasedToday: (kind: EnergyKind) => number;
-  activateVip: () => void;
-  syncTime: () => void;
+  initialize: () => Promise<void>;
+  consumeHeart: () => Promise<boolean>;
+  consumeTicket: () => Promise<boolean>;
+  restoreHeart: () => Promise<boolean>;
+  restoreTicket: () => Promise<boolean>;
+  buyBooster: (boosterId: string, price: number) => Promise<boolean>;
+  setVip: (isVip: boolean) => Promise<void>;
+  setGroupId: (groupId: string | null) => Promise<void>;
 
-  setTilaGender: (gender: TilaGender) => void;
-  setBibiGender: (gender: BibiGender) => void;
-  buyAccessory: (id: string, price: number) => boolean;
-  equipAccessory: (id: string) => void;
-
-  applyStreakMultiplier: (streakDays: number) => number;
-  claimDailyReward: (
-    day: number,
-    baseCoins: number,
-    extra?: { hearts?: number; tickets?: number },
-  ) => boolean;
-  isRewardClaimedToday: () => boolean;
-  buyBooster: (boosterId: string, price: number) => boolean;
-}
-
-const todayKey = () => new Date().toDateString();
-
-export const useEconomyStore = create<EconomyState>()(
-  persist(
-    (set, get) => ({
-      hearts: HEART_MAX,
-      tickets: TICKET_MAX,
-      isVip: false,
-      lastHeartRegen: Date.now(),
-      lastTicketRegen: Date.now(),
-      dailyPurchases: { hearts: 0, tickets: 0, date: todayKey() },
-
-      tilaGender: "girl",
-      bibiGender: "girl",
-      equippedAccessory: "hairbow",
-      ownedAccessories: ["none", "peci", "hairbow"],
-      showMascot:
-        typeof window !== "undefined"
-          ? window.localStorage.getItem("tila-companion-hidden") !== "1" &&
-            window.localStorage.getItem("bibi-companion-hidden") !== "1"
-          : true,
-      setShowMascot: (show: boolean) => {
-        set({ showMascot: show });
-        if (typeof window !== "undefined") {
-          try {
-            window.localStorage.setItem("tila-companion-hidden", show ? "0" : "1");
-            window.localStorage.setItem("bibi-companion-hidden", show ? "0" : "1");
-            window.dispatchEvent(
-              new CustomEvent("tila:toggle-visibility", { detail: { hidden: !show } }),
-            );
-          } catch {}
-        }
-      },
-
-      streakMultiplier: 1,
-      dailyRewardsClaimed: [],
-      lastDailyClaimDate: null,
-
-      activeBoosters: {},
-
-      consumeHeart: () => {
-        const { hearts, isVip } = get();
-        if (isVip || isUnlimitedUser(null, isVip)) return true;
-        if (hearts <= 0) return false;
-        set({
-          hearts: hearts - 1,
-          lastHeartRegen:
-            hearts === HEART_MAX ? Date.now() : get().lastHeartRegen,
-        });
-        return true;
-      },
-
-      consumeTicket: () => {
-        const { tickets, isVip } = get();
-        if (isVip || isUnlimitedUser(null, isVip)) return true;
-        if (tickets <= 0) return false;
-        set({
-          tickets: tickets - 1,
-          lastTicketRegen:
-            tickets === TICKET_MAX ? Date.now() : get().lastTicketRegen,
-        });
-        return true;
-      },
-
-      getHearts: () => {
-        return isUnlimitedUser(null, get().isVip) ? Infinity : get().hearts;
-      },
-
-      getTickets: () => {
-        return isUnlimitedUser(null, get().isVip) ? Infinity : get().tickets;
-      },
-
-      isUnlimited: () => {
-        return isUnlimitedUser(null, get().isVip);
-      },
-
-      purchasedToday: (kind) => {
-        const purchases = get().dailyPurchases;
-        if (purchases.date !== todayKey()) return 0;
-        return kind === "heart" ? purchases.hearts : purchases.tickets;
-      },
-
-      grantEnergy: (kind) => {
-        const state = get();
-        let purchases = state.dailyPurchases;
-        if (purchases.date !== todayKey()) {
-          purchases = { hearts: 0, tickets: 0, date: todayKey() };
-        }
-
-        if (kind === "heart") {
-          if (purchases.hearts >= SHOP_DAILY_LIMIT) return false;
-          if (state.hearts >= HEART_MAX) return false;
-          set({
-            hearts: state.hearts + 1,
-            dailyPurchases: { ...purchases, hearts: purchases.hearts + 1 },
-          });
-          return true;
-        }
-
-        if (purchases.tickets >= SHOP_DAILY_LIMIT) return false;
-        if (state.tickets >= TICKET_MAX) return false;
-        set({
-          tickets: state.tickets + 1,
-          dailyPurchases: { ...purchases, tickets: purchases.tickets + 1 },
-        });
-        return true;
-      },
-
-      activateVip: () => set({ isVip: true }),
-
-      syncTime: () => {
-        const state = get();
-        if (state.isVip) return;
-        const now = Date.now();
-
-        let hearts = state.hearts;
-        let lastHeartRegen = state.lastHeartRegen;
-        if (hearts < HEART_MAX) {
-          const passed = now - lastHeartRegen;
-          if (passed >= HEART_REGEN_MS) {
-            const gained = Math.floor(passed / HEART_REGEN_MS);
-            hearts = Math.min(HEART_MAX, hearts + gained);
-            lastHeartRegen =
-              hearts === HEART_MAX
-                ? now
-                : lastHeartRegen + gained * HEART_REGEN_MS;
-          }
-        }
-
-        let tickets = state.tickets;
-        let lastTicketRegen = state.lastTicketRegen;
-        if (tickets < TICKET_MAX) {
-          const passed = now - lastTicketRegen;
-          if (passed >= TICKET_REGEN_MS) {
-            const gained = Math.floor(passed / TICKET_REGEN_MS);
-            tickets = Math.min(TICKET_MAX, tickets + gained);
-            lastTicketRegen =
-              tickets === TICKET_MAX
-                ? now
-                : lastTicketRegen + gained * TICKET_REGEN_MS;
-          }
-        }
-
-        set({
-          hearts,
-          tickets,
-          lastHeartRegen,
-          lastTicketRegen,
-        });
-      },
-
-      setTilaGender: (gender: TilaGender) => {
-        const currentEquipped = get().equippedAccessory;
-        let nextAccessory = currentEquipped;
-        const owned = get().ownedAccessories;
-
-        // Auto default atau sesuaikan aksesoris yang terikat gender spesifik
-        if (gender === "boy") {
-          if (currentEquipped === "hairbow" || currentEquipped === "flowercrown") {
-            nextAccessory = owned.includes("peci") ? "peci" : "none";
-          } else if (currentEquipped === "none" && owned.includes("peci")) {
-            nextAccessory = "peci";
-          }
-        } else if (gender === "girl") {
-          if (currentEquipped === "peci") {
-            nextAccessory = owned.includes("hairbow") ? "hairbow" : "none";
-          } else if (currentEquipped === "none" && owned.includes("hairbow")) {
-            nextAccessory = "hairbow";
-          }
-        }
-
-        set({
-          tilaGender: gender,
-          bibiGender: gender,
-          equippedAccessory: nextAccessory,
-        });
-      },
-
-      setBibiGender: (gender: BibiGender) => {
-        get().setTilaGender(gender);
-      },
-
-      buyAccessory: (id: string, price: number) => {
-        const { ownedAccessories, tilaGender } = get();
-        const currentGender = resolveMascotGender(tilaGender);
-
-        if (ownedAccessories.includes(id)) {
-          if (isAccessoryAllowedForGender(id, currentGender)) {
-            set({ equippedAccessory: id });
-          }
-          return true;
-        }
-
-        if (!spendCoins(price)) {
-          return false;
-        }
-
-        const nextOwned = [...ownedAccessories, id];
-        const nextEquipped = isAccessoryAllowedForGender(id, currentGender)
-          ? id
-          : get().equippedAccessory;
-
-        set({
-          ownedAccessories: nextOwned,
-          equippedAccessory: nextEquipped,
-        });
-        return true;
-      },
-
-      equipAccessory: (id: string) => {
-        const { ownedAccessories, tilaGender } = get();
-        const currentGender = resolveMascotGender(tilaGender);
-        if (id !== "none" && !isAccessoryAllowedForGender(id, currentGender)) {
-          return; // Blokir pemasangan aksesoris yang tidak sesuai gender
-        }
-        if (id === "none" || ownedAccessories.includes(id)) {
-          set({ equippedAccessory: id });
-        }
-      },
-
-      applyStreakMultiplier: (streakDays: number) => {
-        let mult = 1;
-        if (streakDays >= 7) {
-          mult = 2;
-        } else if (streakDays >= 3) {
-          mult = 1.5;
-        }
-        set({ streakMultiplier: mult });
-        return mult;
-      },
-
-      claimDailyReward: (
-        day: number,
-        baseCoins: number,
-        extra?: { hearts?: number; tickets?: number },
-      ) => {
-        const today = todayKey();
-        const state = get();
-        if (state.lastDailyClaimDate === today) {
-          return false;
-        }
-
-        const mult = state.streakMultiplier || 1;
-        const totalCoins = Math.round(baseCoins * mult);
-        grantCoins(totalCoins, `Hadiah Login Hari ke-${day}`);
-
-        const updates: Partial<EconomyState> = {
-          lastDailyClaimDate: today,
-          dailyRewardsClaimed: state.dailyRewardsClaimed.includes(day)
-            ? state.dailyRewardsClaimed
-            : [...state.dailyRewardsClaimed, day],
-        };
-
-        if (extra?.hearts) {
-          updates.hearts = Math.min(HEART_MAX, state.hearts + extra.hearts);
-        }
-        if (extra?.tickets) {
-          updates.tickets = Math.min(TICKET_MAX, state.tickets + extra.tickets);
-        }
-
-        // If completed 7 days, reset claimed cycle on next day
-        if (updates.dailyRewardsClaimed && updates.dailyRewardsClaimed.length >= 7) {
-          updates.dailyRewardsClaimed = [day];
-        }
-
-        set(updates as EconomyState);
-        return true;
-      },
-
-      isRewardClaimedToday: () => {
-        return get().lastDailyClaimDate === todayKey();
-      },
-
-      buyBooster: (boosterId: string, price: number) => {
-        if (!spendCoins(price)) return false;
-
-        if (boosterId === "full-heart") {
-          set({ hearts: HEART_MAX });
-          return true;
-        }
-
-        if (boosterId === "double-exp") {
-          set({
-            activeBoosters: { ...get().activeBoosters, doubleExp: true },
-          });
-          return true;
-        }
-
-        if (boosterId === "streak-freeze") {
-          set({
-            activeBoosters: { ...get().activeBoosters, streakFreeze: true },
-          });
-          return true;
-        }
-
-        return true;
-      },
-    }),
-    { name: "tartila-economy" },
-  ),
-);
-
-/**
- * Hook bantuan untuk membaca kuota energi secara reaktif dengan dukungan penuh
- * akun Superadmin / VIP (menghasilkan angka Infinity dan teks display "∞").
- */
-export function useEnergyQuota(
-  user?: { role?: string; group_id?: string } | null,
-  groupId?: string | null,
-) {
-  const hearts = useEconomyStore((s) => s.hearts);
-  const tickets = useEconomyStore((s) => s.tickets);
-  const isVip = useEconomyStore((s) => s.isVip);
-  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
-
-  return {
-    hearts: isUnlimited ? Infinity : hearts,
-    tickets: isUnlimited ? Infinity : tickets,
-    isUnlimited,
-    heartDisplay: isUnlimited ? "∞" : `${hearts}/${HEART_MAX}`,
-    ticketDisplay: isUnlimited ? "∞" : `${tickets}/${TICKET_MAX}`,
+  // Query helpers
+  energyQuota: (user?: { role?: string; group_id?: string } | null, groupId?: string | null) => {
+    hearts: number;
+    tickets: number;
+    isUnlimited: boolean;
+    heartDisplay: string;
+    ticketDisplay: string;
   };
 }
+
+export const useEconomyStore = create<EconomyState>((set, get) => ({
+  // Initial state - akan di-update saat initialize()
+  userId: null,
+  username: null,
+  role: null,
+  groupId: null,
+  isVip: false,
+  hearts: HEART_MAX,
+  tickets: TICKET_MAX,
+  level: 1,
+  xp: 0,
+  lastSync: Date.now(),
+  activeBoosters: {},
+
+  // Initialize: ambil data dari Supabase berdasarkan user yang login
+  initialize: async () => {
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user) {
+        set({ userId: user.id, username: user.email?.split('@')[0] || null });
+
+        // Ambil data user dari Supabase
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('hearts, tickets, level, xp, group_id, is_vip, role')
+          .eq('id', user.id)
+          .single();
+
+        if (userData && !error) {
+          set({
+            role: userData.role || 'member',
+            groupId: userData.group_id || null,
+            isVip: userData.is_vip || false,
+            hearts: userData.hearts ?? HEART_MAX,
+            tickets: userData.tickets ?? TICKET_MAX,
+            level: userData.level ?? 1,
+            xp: userData.xp ?? 0,
+            lastSync: Date.now(),
+          });
+        } else {
+          // Jika user baru, buat entri di Supabase
+          await supabase.from('users').insert({
+            id: user.id,
+            hearts: HEART_MAX,
+            tickets: TICKET_MAX,
+            level: 1,
+            xp: 0,
+            group_id: null,
+            is_vip: false,
+            role: 'member',
+          });
+          set({
+            role: 'member',
+            groupId: null,
+            isVip: false,
+            hearts: HEART_MAX,
+            tickets: TICKET_MAX,
+            level: 1,
+            xp: 0,
+            lastSync: Date.now(),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('EconomyStore initialize error:', error);
+      // Fallback ke nilai default jika Supabase error
+      set({
+        hearts: HEART_MAX,
+        tickets: TICKET_MAX,
+        level: 1,
+        xp: 0,
+      });
+    }
+  },
+
+  // Konsumsi hati (cek stok, kurangi, update ke Supabase)
+  consumeHeart: async () => {
+    const { hearts } = get();
+    if (hearts <= 0) return false;
+
+    // Update local state dulu (sebelum sync ke server)
+    set({ hearts: hearts - 1 });
+
+    // Coba update ke Supabase
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && get().userId) {
+        await supabase
+          .from('users')
+          .update({ hearts: get().hearts })
+          .eq('id', get().userId);
+        // Sync sukses - lastSync diupdate
+        set({ lastSync: Date.now() });
+      }
+    } catch (err) {
+      console.error('Failed to sync heart to Supabase:', err);
+      // Jika gagal sync, local state tetap, akan sync nanti
+    }
+
+    return true;
+  },
+
+  // Konsumsi tiket
+  consumeTicket: async () => {
+    const { tickets } = get();
+    if (tickets <= 0) return false;
+
+    set({ tickets: tickets - 1 });
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && get().userId) {
+        await supabase
+          .from('users')
+          .update({ tickets: get().tickets })
+          .eq('id', get().userId);
+        set({ lastSync: Date.now() });
+      }
+    } catch (err) {
+      console.error('Failed to sync ticket to Supabase:', err);
+    }
+
+    return true;
+  },
+
+  // Restore hati (full restore)
+  restoreHeart: async () => {
+    const { hearts, userId } = get();
+    if (hearts >= HEART_MAX) return false;
+
+    set({ hearts: HEART_MAX });
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && userId) {
+        await supabase
+          .from('users')
+          .update({ hearts: HEART_MAX })
+          .eq('id', userId);
+        set({ lastSync: Date.now() });
+      }
+    } catch (err) {
+      console.error('Failed to restore heart to Supabase:', err);
+    }
+
+    return true;
+  },
+
+  // Restore tiket
+  restoreTicket: async () => {
+    const { tickets, userId } = get();
+    if (tickets >= TICKET_MAX) return false;
+
+    set({ tickets: TICKET_MAX });
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && userId) {
+        await supabase
+          .from('users')
+          .update({ tickets: TICKET_MAX })
+          .eq('id', userId);
+        set({ lastSync: Date.now() });
+      }
+    } catch (err) {
+      console.error('Failed to restore ticket to Supabase:', err);
+    }
+
+    return true;
+  },
+
+  // Beli booster
+  buyBooster: async (boosterId: string, price: number) => {
+    // Coba spend coins dulu (fungsionalitas lokal)
+    if (!spendCoins(price)) return false;
+
+    // Update state lokal
+    if (boosterId === 'full-heart') {
+      set({ hearts: HEART_MAX });
+      // Sync ke server
+      try {
+        const { data: { user} } = await supabase.auth.getUser();
+        if (data?.user?.id) {
+          await supabase.from('users').update({ hearts: HEART_MAX }).eq('id', data.user.id);
+          set({ lastSync: Date.now() });
+        }
+      } catch (err) {
+        console.error('Failed to sync booster purchase:', err);
+      }
+      return true;
+    }
+
+    if (boosterId === 'double-exp') {
+      set({ activeBoosters: { ...get().activeBoosters, doubleExp: true } });
+      // TODO: Simpan booster ke Supabase
+      return true;
+    }
+
+    if (boosterId === 'streak-freeze') {
+      set({ activeBoosters: { ...get().activeBoosters, streakFreeze: true } });
+      // TODO: Simpan booster ke Supabase
+      return true;
+    }
+
+    return true;
+  },
+
+  // Set VIP status
+  setVip: async (isVip: boolean) => {
+    const { userId } = get();
+    set({ isVip });
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && userId) {
+        await supabase
+          .from('users')
+          .update({ is_vip: isVip })
+          .eq('id', userId);
+        set({ lastSync: Date.now() });
+      }
+    } catch (err) {
+      console.error('Failed to sync VIP status to Supabase:', err);
+    }
+  },
+
+  // Set group ID
+  setGroupId: async (groupId: string | null) => {
+    const { userId } = get();
+    set({ groupId });
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && userId) {
+        await supabase
+          .from('users')
+          .update({ group_id: groupId })
+          .eq('id', userId);
+        set({ lastSync: Date.now() });
+      }
+    } catch (err) {
+      console.error('Failed to sync group_id to Supabase:', err);
+    }
+  },
+
+  // Helper: ambil energy quota dengan hitungan unlimited untuk VIP
+  energyQuota: (user?, groupId?) => {
+    const hearts = get().hearts;
+    const tickets = get().tickets;
+    const isUnlimited = isUnlimitedUser(user, get().isVip, groupId);
+
+    return {
+      hearts: isUnlimited ? Infinity : hearts,
+      tickets: isUnlimited ? Infinity : tickets,
+      isUnlimited,
+      heartDisplay: isUnlimited ? '∞' : `${hearts}/${HEART_MAX}`,
+      ticketDisplay: isUnlimited ? '∞' : `${tickets}/${TICKET_MAX}`,
+    };
+  },
+})); // <-- Ini menutup create() dan export
+
+// Export fungsi isUnlimitedUser untuk digunakan di seluruh aplikasi
+export { isUnlimitedUser };
