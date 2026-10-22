@@ -24,13 +24,14 @@ export type CeriaUser = {
 interface AuthContextValue {
   user: CeriaUser | null;
   loading: boolean;
-  loginWithGoogle: (credential: string) => Promise<void>;
+  loginWithGoogle: (credential?: string) => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   groupId: string | null;
   isUstadz: boolean; // helper: apakah user adalah ustadz/ustadzah
+  setUstadzRole: (isUstadz: boolean) => Promise<void>; // Fungsi baru: set role setelah login
 }
 
 // Helper untuk membuat user dari Supabase auth response
@@ -54,6 +55,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CeriaUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initComplete, setInitComplete] = useState(false);
 
   // Initialize: cek session Supabase saat komponen mount
   useEffect(() => {
@@ -67,13 +69,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
           session.user.user_metadata?.is_ustadz === true;
         setUser(createCeriaUser(session.user, isUstadz));
       }
-      setLoading(false);
+      setInitComplete(true);
     });
 
     // Listen untuk perubahan session (login/logout)
     const { data: { subscription} } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session && session.user) {
+          // Set awal - kita akan cek lagi di setUstadzRole
           const isUstadz = 
             session.user.user_metadata?.role === 'ustadz' ||
             session.user.user_metadata?.role === 'ustadzah' ||
@@ -92,7 +95,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Fungsi login dengan Google
-  const loginWithGoogle = async (credential: string) => {
+  const loginWithGoogle = async (credential?: string) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -102,6 +105,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
+      // Setelah OAuth, arahkan ke onboarding role
+      // atau tunggu user login lalu panggil setUstadzRole
     } catch (err) {
       console.error('Google login error:', err);
       throw err;
@@ -117,6 +122,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
+      // Setelah login berhasil, cek role
+      await refreshUser();
     } catch (err) {
       console.error('Email login error:', err);
       throw err;
@@ -143,9 +150,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       if (data.user) {
-        // Determine the actual role based on isUstadz parameter
-        const actualRole = isUstadz ? 'ustadz' : 'member';
-        
         // Buat entri di tabel users dengan role yang sesuai
         await supabase.from('users').insert({
           id: data.user.id,
@@ -155,7 +159,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           tickets: 3, // Default
           level: 1,
           xp: 0,
-          role: actualRole,
+          role: isUstadz ? 'ustadz' : 'member',
           group_id: null,
           is_vip: false,
         });
@@ -174,6 +178,32 @@ function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error('Logout error:', err);
       throw err;
+    }
+  };
+
+  // FUNGSI BARU: Set role ustadz setelah login (bisa dipakai setelah OAuth)
+  const setUstadzRole = async (isUstadz: boolean) => {
+    const { user } = getAuthUnsafe(); // Helper sementara
+    if (!user) return;
+
+    setUser(createCeriaUser(user, isUstadz));
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (data.user) {
+        // Update metadata di Supabase
+        await supabase.auth.updateUser({
+          data: {
+            role: isUstadz ? 'ustadz' : 'member',
+            is_ustadz: isUstadz,
+          },
+        });
+        
+        // Update juga di tabel users
+        await supabase.from('users').update({ role_ustadz: isUstadz ? 1 : 0 }).eq('id', data.user.id);
+      }
+    } catch (err) {
+      console.error('Failed to set ustadz role:', err);
     }
   };
 
@@ -201,6 +231,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Helper aman untuk ambil user di dalam effect
+  const getAuthUnsafe = () => user;
+
   // Value yang akan diterima oleh component anak
   const value: AuthContextValue = {
     user,
@@ -212,6 +245,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser,
     groupId: user?.group_id ?? null,
     isUstadz: user?.is_ustadz ?? false,
+    setUstadzRole, // Ekspor fungsi baru
   };
 
   return (
