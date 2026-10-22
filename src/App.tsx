@@ -203,6 +203,33 @@ const MalaikatMissionPage = lazy(
   () =>
     import("./features/ngaji-ceria/pages/games/malaikat-mission/MalaikatMissionPage"),
 );
+const NotificationPage = lazy(
+  () => import("./features/ngaji-ceria/pages/NotificationPage"),
+);
+const ArenaJoinRoomPage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/JoinRoomPage"),
+);
+const ArenaCreateRoomPage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/CreateRoomPage"),
+);
+const ArenaHostLobbyPage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/HostLobbyPage"),
+);
+const ArenaHostGamePage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/HostGamePage"),
+);
+const ArenaPlayerGamePage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/PlayerGamePage"),
+);
+const ArenaPodiumPage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/ArenaPodiumPage"),
+);
+const ArenaExamReportPage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/ExamReportPage"),
+);
+const ArenaGlobalLeaderboardPage = lazy(
+  () => import("./features/ngaji-ceria/pages/arena/GlobalLeaderboardPage"),
+);
 
 const GAME_ROUTES: Array<{ path: string; element: React.ReactNode }> = [
   { path: "hijaiyah-pop", element: <HijaiyahPopPage /> },
@@ -532,6 +559,38 @@ export default function App() {
             path="/member/ngaji-ceria/explore/practice/play/:jilid"
             element={<FlashcardGamePage />}
           />
+
+          {/* NOTIFIKASI */}
+          <Route
+            path="/notifications"
+            element={<NotificationPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/notifications"
+            element={<NotificationPage />}
+          />
+
+          {/* TARTILA ARENA (REAL-TIME MULTIPLAYER QUIZ & EXAM) */}
+          <Route path="/arena" element={<Navigate to="/arena/join" replace />} />
+          <Route path="/arena/join" element={<ArenaJoinRoomPage />} />
+          <Route path="/arena/host/create" element={<ArenaCreateRoomPage />} />
+          <Route path="/arena/host/lobby/:pin" element={<ArenaHostLobbyPage />} />
+          <Route path="/arena/host/game/:pin" element={<ArenaHostGamePage />} />
+          <Route path="/arena/play/:pin" element={<ArenaPlayerGamePage />} />
+          <Route path="/arena/podium/:pin" element={<ArenaPodiumPage />} />
+          <Route path="/arena/report/:pin" element={<ArenaExamReportPage />} />
+          <Route path="/arena/leaderboard" element={<ArenaGlobalLeaderboardPage />} />
+
+          {/* Member alias for Tartila Arena */}
+          <Route path="/member/ngaji-ceria/arena" element={<Navigate to="/arena/join" replace />} />
+          <Route path="/member/ngaji-ceria/arena/join" element={<ArenaJoinRoomPage />} />
+          <Route path="/member/ngaji-ceria/arena/host/create" element={<ArenaCreateRoomPage />} />
+          <Route path="/member/ngaji-ceria/arena/host/lobby/:pin" element={<ArenaHostLobbyPage />} />
+          <Route path="/member/ngaji-ceria/arena/host/game/:pin" element={<ArenaHostGamePage />} />
+          <Route path="/member/ngaji-ceria/arena/play/:pin" element={<ArenaPlayerGamePage />} />
+          <Route path="/member/ngaji-ceria/arena/podium/:pin" element={<ArenaPodiumPage />} />
+          <Route path="/member/ngaji-ceria/arena/report/:pin" element={<ArenaExamReportPage />} />
+          <Route path="/member/ngaji-ceria/arena/leaderboard" element={<ArenaGlobalLeaderboardPage />} />
 
           {GAME_ROUTES.map((route) => (
             <Route

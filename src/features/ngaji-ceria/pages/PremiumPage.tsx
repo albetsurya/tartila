@@ -16,7 +16,7 @@ import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 
-type TierType = "monthly" | "yearly" | "lifetime";
+type TierType = "monthly" | "yearly" | "lifetime" | "ustadz-monthly";
 
 const BENEFITS_FREE = [
   {
@@ -149,18 +149,20 @@ const TIERS = [
   },
 ];
 
-// Check if user is ustadz
-const { user, isUstadz } = useAuth();
+export default function PremiumPage() {
+  const navigate = useNavigate();
 
-const TIERS_FOR_USER = isUstadz
-  ? [
-      TIERS.find((t) => t.id === "ustadz-monthly"),
-      ...TIERS.filter((t) => t.id !== "ustadz-monthly" && !t.isUstadzBenefit),
-    ]
-  : TIERS;
+  const { isUstadz } = useAuth();
 
-// Fungsi upgrade subscription
-const upgradeSubscription = async (tierId: string) => {
+  const TIERS_FOR_USER = isUstadz
+    ? [
+        TIERS.find((t) => t.id === "ustadz-monthly"),
+        ...TIERS.filter((t) => t.id !== "ustadz-monthly" && !t.isUstadzBenefit),
+      ]
+    : TIERS;
+
+  // Fungsi upgrade subscription
+  const upgradeSubscription = async (tierId: string) => {
   // Integrasi dengan useEconomyStore untuk set subscription
   const { setSubscription } = useEconomyStore.getState();
   
@@ -172,11 +174,12 @@ const upgradeSubscription = async (tierId: string) => {
     "ustadz-monthly": "vip", // Ustadz monthly jadi vip
   };
   
-  const subType = subscriptionMap[tierId];
-  if (subType) {
-    await setSubscription(subType);
-    navigate("/");
-  }
-};
+    const subType = subscriptionMap[tierId];
+    if (subType) {
+      await setSubscription(subType);
+      navigate("/");
+    }
+  };
 
-return null; // Placeholder - akan diganti UI lengkap
+  return null; // Placeholder - akan diganti UI lengkap
+}

@@ -203,7 +203,15 @@ export function NgajiCeriaLayout({
       )}
 
       <main
-        className={`flex-1 min-h-0 w-full relative ${hideNav ? "max-w-none h-full overflow-hidden pb-0" : isMainTab ? "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-28 min-h-[50vh]" : "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-10 min-h-[50vh]"}`}
+        className={`flex-1 min-h-0 w-full relative ${
+          hideNav
+            ? "max-w-none h-full overflow-hidden pb-0"
+            : hideHeader
+              ? "max-w-none h-full w-full pb-0"
+              : isMainTab
+                ? "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-28 min-h-[50vh]"
+                : "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-10 min-h-[50vh]"
+        }`}
       >
         {hideNav ? (
           <Suspense fallback={<PageContentFallback />}>{children}</Suspense>

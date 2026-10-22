@@ -3,14 +3,53 @@ import { ChevronLeftSvg, Pause, Volume2, VolumeX } from "@/components/ui/CustomI
 import { PauseOverlay } from "./PauseOverlay";
 import { useGameAudio } from "./audio";
 import { useGameExit } from "./hooks";
+import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { stopGameAudio } from "./gameAudio";
 import { soundManager, type BgmTrack } from "../../../services/soundManager";
 import { GameTutorialModal } from "../../../components/GameTutorialModal";
 import "./games.css";
 import type { GameAccent, GamePhase } from "./types";
 
-const controlBtnStyle =
-  "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#134E4A] bg-white px-2 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50";
+export type GameShellTheme = "default" | "neon" | "retro" | "pastel";
+
+const THEME_STYLE: Record<
+  GameShellTheme,
+  {
+    root: string;
+    header: string;
+    title: string;
+    controlBtn: string;
+  }
+> = {
+  default: {
+    root: "bg-[#F0FDF4]",
+    header: "bg-white border-b-[3px] border-[#134E4A] shadow-[0px_2px_0px_#134E4A]",
+    title: "text-[#134E4A]",
+    controlBtn:
+      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#134E4A] bg-white px-2 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
+  },
+  neon: {
+    root: "bg-[#111827]",
+    header: "bg-[#1F2937] border-b-[3px] border-[#38BDF8] shadow-[0px_2px_0px_#38BDF8]",
+    title: "text-[#38BDF8]",
+    controlBtn:
+      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#38BDF8] bg-[#0B1220] px-2 text-[11px] font-black text-[#38BDF8] shadow-[2px_2px_0px_#0EA5E9] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
+  },
+  retro: {
+    root: "bg-[#FFFBEB]",
+    header: "bg-[#FEF3C7] border-b-[4px] border-[#B45309]",
+    title: "text-[#92400E]",
+    controlBtn:
+      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-md border-[3px] border-[#B45309] bg-[#FFFBEB] px-2 text-[11px] font-black text-[#92400E] shadow-[2px_2px_0px_#B45309] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
+  },
+  pastel: {
+    root: "bg-[#FDF2F8]",
+    header: "bg-white border-b-[3px] border-[#EC4899] shadow-[0px_2px_0px_#F9A8D4]",
+    title: "text-[#9D174D]",
+    controlBtn:
+      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-full border-2 border-[#EC4899] bg-white px-2 text-[11px] font-black text-[#9D174D] shadow-[2px_2px_0px_#F9A8D4] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
+  },
+};
 
 /**
  * Cangkang game — layout fullscreen 100dvh: header (Back/Judul/Pause) shrink-0,
@@ -33,6 +72,12 @@ export function GameShell({
   tutorialGameId?: string;
   children: ReactNode;
 }) {
+  const equippedGameTheme = useEconomyStore(
+    (s) => s.equippedGameTheme,
+  ) as GameShellTheme;
+  const styles =
+    THEME_STYLE[equippedGameTheme] ?? THEME_STYLE["default"];
+  const controlBtnStyle = styles.controlBtn;
   const exit = useGameExit();
   const { muted, toggle } = useGameAudio();
 
@@ -95,9 +140,13 @@ export function GameShell({
   }, [phase, onPause, onResume]);
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col bg-[#F0FDF4] overflow-hidden pt-safe pb-safe">
+    <div
+      className={`h-[100dvh] w-full flex flex-col ${styles.root} overflow-hidden pt-safe pb-safe`}
+    >
       {/* HEADER GAME (Back, Judul, Pause) */}
-      <header className="shrink-0 z-40 flex items-center justify-between gap-2 px-3 pt-2 pb-2 bg-white border-b-[3px] border-[#134E4A] shadow-[0px_2px_0px_#134E4A]">
+      <header
+        className={`shrink-0 z-40 flex items-center justify-between gap-2 px-3 pt-2 pb-2 ${styles.header}`}
+      >
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -107,7 +156,7 @@ export function GameShell({
           >
             <ChevronLeftSvg size={14} />
           </button>
-          <span className="font-display truncate text-sm font-black text-[#134E4A]">
+          <span className={`font-display truncate text-sm font-black ${styles.title}`}>
             {title}
           </span>
         </div>

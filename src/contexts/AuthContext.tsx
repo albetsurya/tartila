@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabase";
+import { authApi } from "@/services/authApi";
 
 // Tipe user yang digunakan di aplikasi
 export type CeriaUser = {
@@ -18,6 +19,7 @@ export type CeriaUser = {
   is_vip: boolean;
   is_ustadz: boolean; // flag baru untuk ustadz/ustadzah
   photo_url: string | null;
+  gender: string | null;
 };
 
 // Interface value untuk AuthContext
@@ -27,6 +29,8 @@ interface AuthContextValue {
   loginWithGoogle: (credential?: string) => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>; // email atau username
+  registerCeria: (name: string, username: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   groupId: string | null;
@@ -47,6 +51,7 @@ function createCeriaUser(sbUser: any, ustadzFlag: boolean = false): CeriaUser {
     is_vip: sbUser.user_metadata?.is_vip || false,
     is_ustadz: ustadzFlag || role === 'ustadz' || role === 'ustadzah',
     photo_url: sbUser.user_metadata?.photo_url || null,
+    gender: sbUser.user_metadata?.gender || null,
   };
 }
 
@@ -183,14 +188,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   // FUNGSI BARU: Set role ustadz setelah login (bisa dipakai setelah OAuth)
   const setUstadzRole = async (isUstadz: boolean) => {
-    const { user } = getAuthUnsafe(); // Helper sementara
-    if (!user) return;
-
-    setUser(createCeriaUser(user, isUstadz));
+    // Reflect role ke state lokal secara optimis
+    setUser((current) =>
+      current ? { ...current, is_ustadz: isUstadz } : current
+    );
 
     try {
-      const { data: { user} } = await supabase.auth.getUser();
-      if (data.user) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         // Update metadata di Supabase
         await supabase.auth.updateUser({
           data: {
@@ -198,9 +203,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
             is_ustadz: isUstadz,
           },
         });
-        
+
         // Update juga di tabel users
-        await supabase.from('users').update({ role_ustadz: isUstadz ? 1 : 0 }).eq('id', data.user.id);
+        await supabase.from('users').update({ role_ustadz: isUstadz ? 1 : 0 }).eq('id', user.id);
       }
     } catch (err) {
       console.error('Failed to set ustadz role:', err);
@@ -234,6 +239,53 @@ function AuthProvider({ children }: { children: ReactNode }) {
   // Helper aman untuk ambil user di dalam effect
   const getAuthUnsafe = () => user;
 
+  // Login via email (Supabase) atau username (REST legacy)
+  const login = async (identifier: string, password: string) => {
+    if (identifier.includes('@')) {
+      await loginWithEmail(identifier, password);
+      return;
+    }
+
+    try {
+      const legacyUser = await authApi.login(identifier, password);
+      setUser({
+        id: legacyUser.user_id || legacyUser.id || identifier,
+        email: null,
+        username: legacyUser.username || identifier,
+        name: legacyUser.name || identifier,
+        role: legacyUser.role || 'member',
+        group_id: legacyUser.group_id || null,
+        is_vip: false,
+        is_ustadz:
+          legacyUser.role === 'ustadz' ||
+          legacyUser.role === 'ustadzah' ||
+          legacyUser.role === 'tartila_admin',
+        photo_url: legacyUser.photo_url || null,
+        gender: legacyUser.gender || null,
+      });
+      await refreshUser();
+    } catch (err) {
+      console.error('Username login error:', err);
+      throw err;
+    }
+  };
+
+  // Registrasi akun Ceria via REST legacy (server /api/v1)
+  const registerCeria = async (
+    name: string,
+    username: string,
+    password: string,
+    confirmPassword: string,
+  ) => {
+    try {
+      await authApi.registerCeria(name, username, password, confirmPassword);
+      await refreshUser();
+    } catch (err) {
+      console.error('Ceria register error:', err);
+      throw err;
+    }
+  };
+
   // Value yang akan diterima oleh component anak
   const value: AuthContextValue = {
     user,
@@ -241,6 +293,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
     loginWithGoogle,
     loginWithEmail,
     register,
+    login,
+    registerCeria,
     logout,
     refreshUser,
     groupId: user?.group_id ?? null,
@@ -264,3 +318,4 @@ export function useAuth() {
 }
 
 export default AuthContext;
+export { AuthProvider };

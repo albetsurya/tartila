@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ThemedHeader } from "../../components/ThemedHeader";
 import {
   ArrowLeft,
   ChevronRight,
@@ -457,107 +458,156 @@ export default function ArenaKartuPage() {
   return (
     <NgajiCeriaLayout
       title="Arena Kartu"
+      hideHeader={true}
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
-      {/* pb-48 agar kartu paling bawah tidak tertutup action bar */}
-      <div className="min-h-full bg-[#F0FDF4] px-4 py-4 pb-48">
-        <StickerCard className="mb-4 p-4 text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#FF6B6B] mb-2 border border-[#FF6B6B]/20">
-            <BookOpenSvg size={14} /> Papan Kartu Uji
-          </span>
-          <h2 className="font-display text-lg font-black text-[#134E4A]">
-            Ketuk kartu untuk membuka tulisan Arab
-          </h2>
-          <p className="text-[11px] font-bold text-[#134E4A]/60 mt-1">
-            Uji hafalan huruf hijaiyahmu!
-          </p>
-        </StickerCard>
-
-        <div className="grid grid-cols-3 gap-2.5">
-          {cards.map((card) => {
-            const isFlipped = flipped.includes(card.id);
-            return (
-              <motion.div
-                key={card.id}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleCardClick(card.id)}
-                className={`relative aspect-[3/4] flex flex-col items-center justify-center rounded-2xl border-[3px] p-2 cursor-pointer transition-all ${
-                  isFlipped
-                    ? "bg-[#F0FDF4] border-[#FF6B6B] shadow-[2px_2px_0px_#FF6B6B]"
-                    : "bg-white border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
-                }`}
-              >
-                <div className="absolute top-1.5 left-2 text-[9px] font-black text-[#134E4A]/40">
-                  #{card.id.toString().padStart(2, "0")}
-                </div>
-                <div className="absolute top-1.5 right-2 text-[#FF6B6B]">
-                  <StarSvg size={10} />
-                </div>
-
-                {isFlipped ? (
-                  <div className="flex flex-col items-center justify-center h-full w-full">
-                    <span className="font-arabic text-4xl text-[#134E4A] leading-none mb-2">
-                      {card.letter}
-                    </span>
-                    <span className="text-[9px] font-black text-[#FF6B6B] uppercase tracking-wider bg-[#FFF0F0] px-1.5 py-0.5 rounded border border-[#FF6B6B]/20">
-                      {card.latin}
-                    </span>
-                    <StickerButton
-                      variant="primary"
-                      size="sm"
-                      className="mt-2 !px-2 !py-1 !text-[8px] !border-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenModal(card.id);
-                      }}
-                    >
-                      Uji <ChevronRight size={8} />
-                    </StickerButton>
-                  </div>
-                ) : (
-                  <div className="opacity-90 drop-shadow-sm">
-                    {CARD_BACKS[card.iconName]}
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
+      {/* Meja kasino duel — fullscreen */}
+      <div className="min-h-[100dvh] w-full bg-[#065F46] relative overflow-x-hidden pb-56">
+        {/* Permukaan felt + bingkai kayu tepi */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 50% 30%, #10B98122 0, transparent 60%)",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            boxShadow: "inset 0 0 0 10px #B45309, inset 0 0 0 13px #78350F",
+          }}
+        />
+        {/* Titik lampu di tepi meja */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-3 flex justify-around z-10">
+          {["#FEF08A", "#FEF08A", "#FEF08A", "#FEF08A", "#FEF08A", "#FEF08A", "#FEF08A", "#FEF08A"].map((c, i) => (
+            <span
+              key={i}
+              className="w-2 h-2 rounded-full -mt-0.5 drop-shadow-[0_2px_2px_rgba(254,240,138,0.8)]"
+              style={{ background: c }}
+            />
+          ))}
         </div>
 
-        {/* Bottom Action Bar (Naik ke bottom-28 & diberi pr agar tidak tertutup maskot) */}
-        <div className="fixed bottom-28 left-0 right-0 z-40 px-4 pr-[72px]">
-          <StickerCard className="mx-auto max-w-md flex gap-2 p-2 shadow-[0_4px_0px_#134E4A]">
-            <StickerButton
-              variant="secondary"
-              size="sm"
-              fullWidth
-              onClick={handleShuffle}
-              className="!py-2.5"
-            >
-              <ShuffleSvg size={15} /> Acak
-            </StickerButton>
-            <StickerButton
-              variant="primary"
-              size="sm"
-              fullWidth
-              onClick={handleOpenAll}
-              className="!py-2.5"
-            >
-              <PlaySvg size={15} /> Buka
-            </StickerButton>
-            <StickerButton
-              variant="danger"
-              size="sm"
-              fullWidth
-              onClick={() => {
-                triggerBibiReaction("exit");
-                navigate("/member/ngaji-ceria/map");
-              }}
-              className="!py-2.5"
-            >
-              <XSvg size={15} /> Selesai
-            </StickerButton>
-          </StickerCard>
+        <div className="relative z-20">
+          {/* HEADER: Papan skor turnamen */}
+          <ThemedHeader
+            title="Arena Kartu"
+            onBack={() => navigate("/member/ngaji-ceria/map")}
+            themeColorClass="bg-[#1E1B4B]"
+            textColorClass="text-[#FDE68A]"
+            statVariant="wood"
+            statBgClass="bg-[#0F172A]"
+            statTextClass="text-[#FDE68A]"
+            backClass="bg-[#B45309]"
+          />
+
+          {/* Panel instruksi: papan gantung */}
+          <div className="px-4 pt-6">
+            <div className="relative mx-auto max-w-sm">
+              <div className="flex justify-center gap-6 mb-[-6px] relative z-10">
+                <span className="w-2 h-5 bg-[#FEF3C7] border-2 border-[#B45309]" />
+                <span className="w-2 h-5 bg-[#FEF3C7] border-2 border-[#B45309]" />
+              </div>
+              <StickerCard className="p-4 text-center !bg-[#FEF3C7] !border-[3px] !border-[#B45309] !shadow-[4px_4px_0px_#78350F]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#B91C1C]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#B91C1C] mb-2 border-2 border-dashed border-[#B91C1C]/30">
+                  <BookOpenSvg size={14} /> Duel Hijaiyah
+                </span>
+                <h2 className="font-display text-lg font-black text-[#7C2D12]">
+                  Ketuk kartu untuk membuka tulisan Arab
+                </h2>
+                <p className="text-[11px] font-bold text-[#92400E]/70 mt-1">
+                  Uji hafalan huruf hijaiyahmu di atas meja hijau!
+                </p>
+              </StickerCard>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 px-4 pt-4">
+            {cards.map((card) => {
+              const isFlipped = flipped.includes(card.id);
+              return (
+                <motion.div
+                  key={card.id}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleCardClick(card.id)}
+                  className={`relative aspect-[3/4] flex flex-col items-center justify-center rounded-xl border-[3px] p-2 cursor-pointer transition-all ${
+                    isFlipped
+                      ? "bg-[#FFFBEB] border-[#B91C1C] shadow-[4px_5px_0px_#78350F, 8px_10px_0px_#065F46]"
+                      : "bg-white border-[#134E4A] shadow-[4px_4px_0px_#134E4A, 8px_10px_0px_rgba(0,0,0,0.35)]"
+                  }`}
+                >
+                  <div className="absolute top-1.5 left-2 text-[9px] font-black text-[#134E4A]/40">
+                    #{card.id.toString().padStart(2, "0")}
+                  </div>
+                  <div className="absolute top-1.5 right-2 text-[#FBBF24]">
+                    <StarSvg size={10} />
+                  </div>
+
+                  {isFlipped ? (
+                    <div className="flex flex-col items-center justify-center h-full w-full">
+                      <span className="font-arabic text-4xl text-[#134E4A] leading-none mb-2">
+                        {card.letter}
+                      </span>
+                      <span className="text-[9px] font-black text-[#B91C1C] uppercase tracking-wider bg-[#FECACA] px-1.5 py-0.5 rounded border border-[#B91C1C]/30">
+                        {card.latin}
+                      </span>
+                      <StickerButton
+                        variant="primary"
+                        size="sm"
+                        className="mt-2 !px-2 !py-1 !text-[8px] !border-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(card.id);
+                        }}
+                      >
+                        Uji <ChevronRight size={8} />
+                      </StickerButton>
+                    </div>
+                  ) : (
+                    <div className="opacity-95 drop-shadow-sm">
+                      {CARD_BACKS[card.iconName]}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Bottom Action Bar */}
+          <div className="fixed bottom-28 left-0 right-0 z-40 px-4 pr-[72px]">
+            <StickerCard className="mx-auto max-w-md flex gap-2 p-2 !bg-[#1E1B4B] !border-[3px] !border-[#FDE68A] !shadow-[0_5px_0px_#0F172A]">
+              <StickerButton
+                variant="secondary"
+                size="sm"
+                fullWidth
+                onClick={handleShuffle}
+                className="!py-2.5"
+              >
+                <ShuffleSvg size={15} /> Acak
+              </StickerButton>
+              <StickerButton
+                variant="primary"
+                size="sm"
+                fullWidth
+                onClick={handleOpenAll}
+                className="!py-2.5"
+              >
+                <PlaySvg size={15} /> Buka
+              </StickerButton>
+              <StickerButton
+                variant="danger"
+                size="sm"
+                fullWidth
+                onClick={() => {
+                  triggerBibiReaction("exit");
+                  navigate("/member/ngaji-ceria/map");
+                }}
+                className="!py-2.5"
+              >
+                <XSvg size={15} /> Selesai
+              </StickerButton>
+            </StickerCard>
+          </div>
         </div>
       </div>
 

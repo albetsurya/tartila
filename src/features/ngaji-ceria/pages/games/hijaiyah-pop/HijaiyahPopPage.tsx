@@ -29,6 +29,19 @@ function Game() {
   const rawGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotGender = resolveMascotGender(rawGender);
 
+  // Tema game aktif (dari Warung Santri) → warna arena & HUD
+  const gameTheme = useEconomyStore((s) => s.equippedGameTheme) as
+    | "default"
+    | "neon"
+    | "retro"
+    | "pastel";
+  const arenaStyle = {
+    default: { bg: "bg-[#0F766E]", dot: "#2DD4BF" },
+    neon: { bg: "bg-[#0B1220]", dot: "#38BDF8" },
+    retro: { bg: "bg-[#F59E0B]", dot: "#FDE68A" },
+    pastel: { bg: "bg-[#F9A8D4]", dot: "#FDA4AF" },
+  }[gameTheme] ?? { bg: "bg-[#0F766E]", dot: "#2DD4BF" };
+
   // Audio pelafalan otomatis setiap target huruf berganti (Web Speech, tanpa aset Tilawati)
   useEffect(() => {
     if (game.phase === "playing" && game.target) playLetterAudio(game.target);
@@ -127,7 +140,7 @@ function Game() {
           <div
             ref={game.fieldRef}
             aria-label="Arena buah jatuh"
-            className={`relative flex-1 w-full overflow-hidden border-t-[3.5px] border-[#134E4A] bg-[#0F766E] select-none ${
+            className={`relative flex-1 w-full overflow-hidden border-t-[3.5px] border-[#134E4A] ${arenaStyle.bg} select-none ${
               game.shakeLeft > 0 ? "game-shake" : ""
             }`}
           >
@@ -136,7 +149,7 @@ function Game() {
               className="pointer-events-none absolute inset-0 opacity-20"
               style={{
                 backgroundImage:
-                  "radial-gradient(#2DD4BF 2px, transparent 2px)",
+                  `radial-gradient(${arenaStyle.dot} 2px, transparent 2px)`,
                 backgroundSize: "28px 28px",
               }}
             />

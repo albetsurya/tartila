@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ThemedHeader } from "../../components/ThemedHeader";
 import {
   Quran,
   Sparkles,
@@ -162,121 +163,157 @@ export default function TahfidzPage() {
   return (
     <NgajiCeriaLayout
       title="Target Tahfidz"
+      hideHeader={true}
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
-      <div className="min-h-full bg-[#F0FDF4] px-4 py-4 pb-32 space-y-5">
-        {/* Hero Banner (Sticker Style) */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#134E4A] p-5 text-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#D97706]">
-          <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full border-[6px] border-white/5" />
-          <div className="absolute right-4 top-4 text-[#FEF08A] rotate-12 opacity-90">
-            <Quran size={50} />
-          </div>
+      <div className="min-h-[100dvh] w-full bg-[#FEF3C7] relative overflow-x-hidden pb-28">
+        {/* Anyaman bambu */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg, #FCD34D22 0 6px, transparent 6px 18px), repeating-linear-gradient(-45deg, #D9770622 0 6px, transparent 6px 18px)",
+          }}
+        />
 
-          <div className="relative z-10 max-w-[80%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF08A]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FEF08A] border border-[#FEF08A]/30 mb-2">
-              <Sparkles size={12} /> Misi Tahfidz
-            </span>
-            <h2 className="mt-1 font-display text-xl font-black leading-tight text-white">
-              Hafalkan Al-Quran, Raih Mahkota Surga
-            </h2>
-            <p className="mt-1.5 text-[11px] font-medium text-white/80 leading-relaxed">
-              Targetkan hafalan ayat demi ayat secara mandiri dengan latihan interaktif.
-            </p>
-          </div>
-        </section>
+        <div className="relative z-10">
+          {/* HEADER Papan Dojo */}
+          <ThemedHeader
+            title="Padepokan Hafalan"
+            onBack={() => navigate("/member/ngaji-ceria/map")}
+            themeColorClass="bg-[#B45309]"
+            textColorClass="text-[#FDE68A]"
+            statVariant="wood"
+            statBgClass="bg-[#78350F]"
+            statTextClass="text-[#FBBF24]"
+            backClass="bg-[#92400E]"
+          />
 
-        {/* Overall Stats Card (Sticker Style) */}
-        <section className="grid grid-cols-3 gap-2.5">
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] p-3 text-center shadow-[3px_3px_0px_#134E4A]">
-            <p className="text-[10px] font-black uppercase tracking-wider text-[#92400E]">
-              Total Ayat
-            </p>
-            <p className="mt-1 text-2xl font-black text-[#134E4A]">
-              {stats.totalHafal}
-            </p>
-            <span className="text-[10px] font-bold text-[#92400E]">
-              / {stats.totalAyat}
-            </span>
-          </div>
-
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#DCFCE7] p-3 text-center shadow-[3px_3px_0px_#134E4A]">
-            <p className="text-[10px] font-black uppercase tracking-wider text-[#166534]">
-              Surah Selesai
-            </p>
-            <p className="mt-1 text-2xl font-black text-[#134E4A]">
-              {stats.surahSelesai}
-            </p>
-            <span className="text-[10px] font-bold text-[#166534]">
-              / {stats.totalSurah}
-            </span>
-          </div>
-
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FFE4E6] p-3 text-center shadow-[3px_3px_0px_#134E4A]">
-            <p className="text-[10px] font-black uppercase tracking-wider text-[#9F1239] flex items-center justify-center gap-1">
-              <Fire size={12} className="text-[#E11D48]" /> Streak
-            </p>
-            <p className="mt-1 text-2xl font-black text-[#134E4A]">
-              {streak}
-            </p>
-            <span className="text-[10px] font-bold text-[#9F1239]">
-              Hari Aktif
-            </span>
-          </div>
-        </section>
-
-        {/* Category Tabs (Sticker Buttons) */}
-        <section className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {TAHFIDZ_KATEGORI.map((kat) => {
-            const isActive = activeTab === kat.key;
-            return (
-              <button
-                key={kat.key}
-                type="button"
-                onClick={() => {
-                  triggerBibiReaction("click");
-                  setActiveTab(kat.key);
+          {/* HERO: Papan kayu dojo dengan gulung misi */}
+          <div className="px-4 pt-6">
+            <section className="relative overflow-hidden rounded-[20px] bg-[#78350F] p-5 border-[3px] border-[#FDE68A] shadow-[5px_5px_0px_#451A03]">
+              {/* Serat kayu */}
+              <div
+                className="absolute inset-0 opacity-25"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(90deg, #5C230A44 0 3px, transparent 3px 22px)",
                 }}
-                className={`flex items-center gap-2 rounded-xl border-[3px] border-[#134E4A] px-4 py-2.5 text-xs font-black whitespace-nowrap transition-all ${
-                  isActive
-                    ? "bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] translate-y-[-1px]"
-                    : "bg-white text-[#134E4A]/70 shadow-[2px_2px_0px_#134E4A] hover:bg-slate-50"
-                }`}
-              >
-                <span>{kat.emoji}</span> {kat.label}
-              </button>
-            );
-          })}
-        </section>
-
-        {/* Search Bar */}
-        <section>
-          <div className="flex items-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-white px-4 py-2.5 shadow-[3px_3px_0px_#134E4A]">
-            <Search size={18} className="text-[#134E4A]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari surah tahfidz..."
-              className="w-full bg-transparent text-sm font-bold text-[#134E4A] placeholder:text-[#134E4A]/40 focus:outline-none"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="text-xs font-bold text-[#134E4A]/60"
-              >
-                ✕
-              </button>
-            )}
+              />
+              {/* Bendera dojo */}
+              <div className="absolute right-5 top-4 flex flex-col items-center z-10">
+                <div className="w-1.5 h-10 bg-[#FDE68A] rounded-full" />
+                <div className="w-14 h-9 bg-[#B91C1C] border-2 border-[#FDE68A] [clip-path:polygon(0_0,100%_0,100%_100%,55%_85%,0_100%)]" />
+              </div>
+              <div className="relative z-10 max-w-[78%]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FDE68A]/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FDE68A] border-2 border-[#FDE68A]/35 mb-2">
+                  <Sparkles size={12} /> Dojo Al-Qur'an
+                </span>
+                <h2 className="mt-1 font-display text-xl font-black leading-tight text-[#FDE68A]">
+                  Hafalkan Al-Quran, Raih Mahkota Surga
+                </h2>
+                <p className="mt-1.5 text-[11px] font-bold text-[#FBBF24]/90 leading-relaxed">
+                  Naik sabuk demi sabuk dengan misi hafalan ayat demi ayat.
+                </p>
+              </div>
+            </section>
           </div>
-        </section>
+
+          <div className="px-4 pt-4 space-y-4">
+          {/* Overall Stats Card (Papan latihan kayu) */}
+          <section className="grid grid-cols-3 gap-2.5">
+            <div className="rounded-xl border-[3px] border-[#B45309] bg-[#FDE68A] p-3 text-center shadow-[3px_3px_0px_#B45309]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#92400E]">
+                Total Ayat
+              </p>
+              <p className="mt-1 text-2xl font-black text-[#7C2D12]">
+                {stats.totalHafal}
+              </p>
+              <span className="text-[10px] font-bold text-[#92400E]">
+                / {stats.totalAyat}
+              </span>
+            </div>
+
+            <div className="rounded-xl border-[3px] border-[#B45309] bg-[#BBF7D0] p-3 text-center shadow-[3px_3px_0px_#B45309]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#166534]">
+                Surah Selesai
+              </p>
+              <p className="mt-1 text-2xl font-black text-[#7C2D12]">
+                {stats.surahSelesai}
+              </p>
+              <span className="text-[10px] font-bold text-[#166534]">
+                / {stats.totalSurah}
+              </span>
+            </div>
+
+            <div className="rounded-xl border-[3px] border-[#B91C1C] bg-[#FECACA] p-3 text-center shadow-[3px_3px_0px_#B91C1C]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#9F1239] flex items-center justify-center gap-1">
+                <Fire size={12} className="text-[#E11D48]" /> Streak
+              </p>
+              <p className="mt-1 text-2xl font-black text-[#7C2D12]">
+                {streak}
+              </p>
+              <span className="text-[10px] font-bold text-[#9F1239]">
+                Hari Aktif
+              </span>
+            </div>
+          </section>
+
+          {/* Tab kategori: bar bambu */}
+          <section className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {TAHFIDZ_KATEGORI.map((kat) => {
+              const isActive = activeTab === kat.key;
+              return (
+                <button
+                  key={kat.key}
+                  type="button"
+                  onClick={() => {
+                    triggerBibiReaction("click");
+                    setActiveTab(kat.key);
+                  }}
+                  className={`flex items-center gap-2 rounded-lg border-[3px] border-[#B45309] px-4 py-2.5 text-xs font-black whitespace-nowrap transition-all ${
+                    isActive
+                      ? "bg-[#B45309] text-[#FDE68A] shadow-[3px_3px_0px_#7C2D12] translate-y-[-1px]"
+                      : "bg-[#FFFBEB] text-[#92400E] shadow-[2px_2px_0px_#B45309] hover:bg-[#FEF3C7]"
+                  }`}
+                >
+                  <span>{kat.emoji}</span> {kat.label}
+                </button>
+              );
+            })}
+          </section>
+
+          {/* Search Bar */}
+          <section>
+            <div className="flex items-center gap-2 rounded-full border-[3px] border-[#B45309] bg-[#FFFBEB] px-4 py-2.5 shadow-[3px_3px_0px_#B45309]">
+              <Search size={18} className="text-[#92400E]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari misi surah..."
+                className="w-full bg-transparent text-sm font-bold text-[#7C2D12] placeholder:text-[#7C2D12]/40 focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="text-xs font-bold text-[#7C2D12]/60"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </section>
+          </div>
 
         {/* Surah List Cards (Sticker Style) */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display font-black text-sm text-[#134E4A]">
-              Daftar Target ({currentTargets.length})
-            </h3>
+          {/* Daftar target: Gulungan Misi */}
+          <section className="space-y-3 px-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-black text-sm text-[#7C2D12]">
+                Misi Padepokan ({currentTargets.length})
+              </h3>
             {stats.totalHafal > 0 && (
               <button
                 type="button"
@@ -291,58 +328,74 @@ export default function TahfidzPage() {
           <div className="space-y-3">
             {currentTargets.map((target) => {
               const progress = getSurahProgress(data, target);
+              const belt = progress.percentage >= 100
+                ? { w: "bg-[#111827]", tip: "bg-[#B45309]" }
+                : progress.percentage >= 66
+                  ? { w: "bg-[#7C2D12]", tip: "bg-[#FDE68A]" }
+                  : progress.percentage >= 33
+                    ? { w: "bg-[#FEF08A]", tip: "bg-[#16A34A]" }
+                    : { w: "bg-white", tip: "bg-[#FDE68A]" };
               return (
                 <motion.div
                   key={target.surah}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleOpenSurah(target)}
-                  className="w-full cursor-pointer rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A] transition-all hover:translate-y-[-2px] active:translate-y-[2px] active:shadow-none"
+                  className="relative w-full cursor-pointer"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    {/* Nomor Surah */}
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] font-display text-sm font-black text-[#134E4A] shadow-sm">
-                      {target.surah}
-                    </div>
-
-                    {/* Info Surah */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-display font-black text-base text-[#134E4A] truncate">
-                          {target.namaLatin}
-                        </h4>
-                        {progress.complete && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-[#15803D] bg-[#DCFCE7] px-2 py-0.5 text-[9px] font-black text-[#15803D]">
-                            <Check size={10} /> Selesai
-                          </span>
-                        )}
+                  <div className="w-full rounded-[20px] border-[3px] border-[#78350F] bg-[#FFFBEB] p-3.5 shadow-[3px_3px_0px_#78350F] transition-all active:translate-y-[3px] active:shadow-none">
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Lencana Dojo (nomor) */}
+                      <div className="relative shrink-0">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-[#B91C1C] bg-[#FBBF24] font-display text-sm font-black text-[#7C2D12] shadow-[2px_2px_0px_#B45309]">
+                          {target.surah}
+                        </div>
+                        {/* Pita merah lencana */}
+                        <span className="absolute -bottom-2 left-1.5 w-2 h-5 bg-[#B91C1C] border border-[#7F1D1D] rotate-[-14deg]" />
+                        <span className="absolute -bottom-2 right-1.5 w-2 h-5 bg-[#B91C1C] border border-[#7F1D1D] rotate-[14deg]" />
                       </div>
-                      <p className="text-[11px] font-bold text-[#134E4A]/60 truncate">
-                        {target.arti} • {target.jumlahAyat} Ayat
-                      </p>
-                    </div>
 
-                    {/* Persentase & Panah */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div className="text-right">
-                        <span className="text-xs font-black text-[#134E4A]">
-                          {progress.hafal}/{progress.total}
-                        </span>
-                        <p className="text-[10px] font-bold text-[#0D9488]">
-                          {progress.percentage}%
+                      {/* Info Surah */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-display font-black text-base text-[#7C2D12] truncate">
+                            {target.namaLatin}
+                          </h4>
+                          {progress.complete && (
+                            <span className="inline-flex items-center gap-1 rounded-md border border-[#15803D] bg-[#DCFCE7] px-2 py-0.5 text-[9px] font-black text-[#15803D]">
+                              <Check size={10} /> Selesai
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] font-bold text-[#92400E]/70 truncate">
+                          {target.arti} • {target.jumlahAyat} Ayat
                         </p>
                       </div>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#F0FDF4]">
-                        <ChevronRight size={14} className="text-[#134E4A]" />
+
+                      {/* Persentase & Panah */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right">
+                          <span className="text-xs font-black text-[#7C2D12]">
+                            {progress.hafal}/{progress.total}
+                          </span>
+                          <p className="text-[10px] font-black text-[#B45309]">
+                            {progress.percentage}%
+                          </p>
+                        </div>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#78350F] bg-[#FEF3C7] shadow-[2px_2px_0px_#78350F]">
+                          <ChevronRight size={14} className="text-[#92400E]" />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Progress Bar (Sticker) */}
-                  <div className="mt-3.5 h-3 w-full overflow-hidden rounded-full border-2 border-[#134E4A] bg-[#F1F5F9]">
-                    <div
-                      className="h-full bg-[#10B981] transition-all duration-300"
-                      style={{ width: `${progress.percentage}%` }}
-                    />
+                    {/* Sabuk Karate */}
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="relative h-3 flex-1 rounded-full border-2 border-[#92400E] bg-[#78350F] overflow-hidden">
+                        <div
+                          className={`h-full rounded-r-full ${belt.w} transition-all duration-300`}
+                          style={{ width: `${progress.percentage}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -350,7 +403,7 @@ export default function TahfidzPage() {
           </div>
         </section>
 
-        {/* Modal Latihan & Tes Hafalan Surah (Sticker Style) */}
+        {/* Modal Latihan (kedalaman dojo) */}
         <AnimatePresence>
           {selectedSurah && (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
@@ -553,6 +606,7 @@ export default function TahfidzPage() {
             </div>
           )}
         </AnimatePresence>
+        </div>
       </div>
     </NgajiCeriaLayout>
   );

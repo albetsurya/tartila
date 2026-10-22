@@ -2911,3 +2911,221 @@ export const SlidersSvg: React.FC<SvgProps> = ({
 export const Maximize2 = Maximize2Svg;
 export const Sliders = SlidersSvg;
 export const Zap = ZapSvg;
+
+export const MusicSvg: React.FC<SvgProps> = ({
+  size = 20,
+  className = "",
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    {/* Batang & Garis Penghubung Nada */}
+    <path
+      d="M9 17V6L20 4V15"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Kepala Nada Kiri */}
+    <ellipse
+      cx="6"
+      cy="17"
+      rx="3"
+      ry="2.5"
+      transform="rotate(-15 6 17)"
+      fill="#A855F7"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+    {/* Kepala Nada Kanan */}
+    <ellipse
+      cx="17"
+      cy="15"
+      rx="3"
+      ry="2.5"
+      transform="rotate(-15 17 15)"
+      fill="#A855F7"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+  </svg>
+);
+
+export const Music = MusicSvg;
+
+// ── Aksesoris Maskot Baru (Warung Santri) ──
+export const TurbanSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+  >
+    <path
+      d="M12 4C7 4 4 7 4 11C4 14 6 17 8 18H16C18 17 20 14 20 11C20 7 17 4 12 4Z"
+      fill="#FEF08A"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M6 13C8 15 16 15 18 13"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M4 11C6 9 18 9 20 11"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const WizardHatSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+  >
+    <path
+      d="M12 2L4 19H20L12 2Z"
+      fill="#A855F7"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2 19H22"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <polygon
+      points="12,7 13,10 16,10 14,12 15,15 12,13 9,15 10,12 8,10 11,10"
+      fill="#FBBF24"
+      stroke="#134E4A"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const HeadphoneSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+  >
+    <path
+      d="M4 14V11C4 6.5 7.5 3 12 3C16.5 3 20 6.5 20 11V14"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <rect
+      x="2"
+      y="12"
+      width="5"
+      height="8"
+      rx="2"
+      fill="#FF6B6B"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+    <rect
+      x="17"
+      y="12"
+      width="5"
+      height="8"
+      rx="2"
+      fill="#FF6B6B"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+  </svg>
+);
+
+export const SleepMaskSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+  >
+    <path
+      d="M3 10C3 10 5 14 12 14C19 14 21 10 21 10V15C21 17 19 18 12 18C5 18 3 17 3 15V10Z"
+      fill="#60A5FA"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2 10H4M20 10H22"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M8 12H10M14 12H16"
+      stroke="#134E4A"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const AlertCircleSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
+
+// Alias
+export const Turban = TurbanSvg;
+export const WizardHat = WizardHatSvg;
+export const Headphone = HeadphoneSvg;
+export const SleepMask = SleepMaskSvg;
+export const AlertCircle = AlertCircleSvg;

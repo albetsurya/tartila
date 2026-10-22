@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ThemedHeader } from "../../components/ThemedHeader";
 import {
   WAKTU_LIST,
   getStatusInfo,
@@ -461,22 +462,97 @@ export default function JurnalIbadahPage() {
 
   return (
     <NgajiCeriaLayout
-      title="Jurnal Ibadah"
+      title="Benteng Istiqomah"
+      hideHeader={true}
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
-      <div className="min-h-full bg-[#F0FDF4] px-4 py-4 pb-32 space-y-5">
-        {/* Hero Banner (Sticker Style) */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#134E4A] p-5 text-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#0D9488]">
+      <div
+        className="min-h-[100dvh] w-full relative overflow-x-hidden pb-24"
+        style={{
+          backgroundColor: "#D1FAE5",
+          backgroundImage:
+            "repeating-linear-gradient(90deg, rgba(21,128,61,0.08) 0px, rgba(21,128,61,0.08) 2px, transparent 2px, transparent 18px), repeating-linear-gradient(0deg, rgba(21,128,61,0.05) 0px, rgba(21,128,61,0.05) 2px, transparent 2px, transparent 42px)",
+        }}
+      >
+        {/* Ornamen benteng di kedua sisi atas (menara kiri & kanan) */}
+        <svg
+          className="pointer-events-none absolute top-6 left-2 h-40 w-20 opacity-60"
+          viewBox="0 0 80 160"
+          aria-hidden="true"
+        >
+          <rect x="10" y="0" width="60" height="18" fill="#64748B" stroke="#134E4A" strokeWidth="2.5" />
+          <rect x="20" y="0" width="8" height="8" fill="#64748B" />
+          <rect x="38" y="0" width="8" height="8" fill="#64748B" />
+          <rect x="52" y="0" width="8" height="8" fill="#64748B" />
+          <rect x="18" y="18" width="44" height="130" fill="#475569" stroke="#134E4A" strokeWidth="2.5" />
+          <rect x="32" y="60" width="16" height="22" rx="8" fill="#D1FAE5" stroke="#134E4A" strokeWidth="2" />
+          <rect x="18" y="92" width="44" height="2.5" fill="#94A3B8" />
+          <rect x="18" y="112" width="44" height="2.5" fill="#94A3B8" />
+        </svg>
+        <svg
+          className="pointer-events-none absolute top-6 right-2 h-40 w-20 opacity-60"
+          viewBox="0 0 80 160"
+          aria-hidden="true"
+        >
+          <rect x="10" y="0" width="60" height="18" fill="#64748B" stroke="#134E4A" strokeWidth="2.5" />
+          <rect x="20" y="0" width="8" height="8" fill="#64748B" />
+          <rect x="38" y="0" width="8" height="8" fill="#64748B" />
+          <rect x="52" y="0" width="8" height="8" fill="#64748B" />
+          <rect x="18" y="18" width="44" height="130" fill="#475569" stroke="#134E4A" strokeWidth="2.5" />
+          <rect x="32" y="120" width="16" height="28" fill="#D1FAE5" stroke="#134E4A" strokeWidth="2" />
+          <rect x="18" y="28" width="44" height="2.5" fill="#94A3B8" />
+          <rect x="18" y="48" width="44" height="2.5" fill="#94A3B8" />
+        </svg>
+
+        {/* Header kustom: Kastil batu bata + tombol perisai */}
+        <ThemedHeader
+          title="Benteng Istiqomah"
+          onBack={() => navigate("/member/ngaji-ceria/map")}
+          themeColorClass="bg-[#64748B]"
+          textColorClass="text-[#FEF08A]"
+          statVariant="wood"
+          statBgClass="bg-[#475569] text-[#FEF08A]"
+          backClass="bg-[#78350F] text-[#FDE047]"
+        >
+          {/* Pola batu bata */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            aria-hidden="true"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, rgba(51,65,85,0.55) 0px, rgba(51,65,85,0.55) 2px, transparent 2px, transparent 20px), repeating-linear-gradient(90deg, rgba(51,65,85,0.55) 0px, rgba(51,65,85,0.55) 2px, transparent 2px, transparent 44px)",
+            }}
+          />
+        </ThemedHeader>
+
+        <div className="relative z-10 px-4 pt-4 space-y-5">
+        {/* Hero Banner (Chalkboard Style) */}
+        <section
+          className="relative overflow-hidden rounded-[28px] p-5 text-white border-[3px] border-[#14532D] shadow-[4px_4px_0px_#14532D]"
+          style={{
+            backgroundColor: "#14532D",
+            backgroundImage:
+              "repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 12px, transparent 12px, transparent 24px)",
+          }}
+        >
+          {/* Pita bookmark kain di tepi atas */}
+          <div
+            className="absolute left-8 top-0 h-16 w-6 bg-[#B91C1C] border-x-[3px] border-[#134E4A] [clip-path:polygon(0_0,100%_0,100%_100%,50%_75%,0_100%)]"
+            aria-hidden="true"
+          />
+          {/* Bekas tebusan kapur */}
+          <div className="absolute right-8 bottom-2 h-3 w-16 rounded-full bg-white/10 blur-[1px]" aria-hidden="true" />
+          <div className="absolute right-16 bottom-5 h-2 w-8 rounded-full bg-white/10 blur-[1px]" aria-hidden="true" />
           <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full border-[6px] border-white/5" />
           <div className="absolute right-4 top-4 rotate-12 opacity-90">
             <CalendarCheckSvg size={52} />
           </div>
 
           <div className="relative z-10 max-w-[85%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2DD4BF]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#2DD4BF] border border-[#2DD4BF]/30 mb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FDE047] border-2 border-dashed border-[#FDE047]/50 mb-2">
               <SparklesSvg size={14} /> {formatDateId(today)}
             </span>
-            <h2 className="font-display text-xl font-black leading-tight text-white">
+            <h2 className="font-display text-xl font-black leading-tight text-white [text-shadow:1.5px_1.5px_0_#134E4A]">
               Sholat Tepat Waktu, Hati Jadi Tenang
             </h2>
             <p className="mt-1.5 text-[11px] font-medium text-white/80 leading-relaxed">
@@ -485,8 +561,13 @@ export default function JurnalIbadahPage() {
           </div>
         </section>
 
-        {/* Progress & Streak Card (Sticker Style) */}
-        <section className="rounded-[24px] border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A]">
+        {/* Progress & Streak Card (Sticky Paper Note) */}
+        <section className="relative rounded-[20px] border-[3px] border-[#134E4A] bg-[#FEF3C7] p-4 shadow-[4px_4px_0px_#134E4A] rotate-[-1deg]">
+          {/* Selotip di sudut atas */}
+          <div
+            className="absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 rotate-[-2deg] rounded-sm border-2 border-[#134E4A]/20 bg-white/70"
+            aria-hidden="true"
+          />
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#D97706]">
@@ -569,8 +650,17 @@ export default function JurnalIbadahPage() {
             return (
               <div
                 key={w.key}
-                className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A]"
+                className="relative rounded-2xl border-[3px] border-[#134E4A] p-3.5 shadow-[3px_3px_0px_#134E4A] overflow-hidden"
+                style={{
+                  backgroundColor: "#EAD3A5",
+                  backgroundImage:
+                    "repeating-linear-gradient(90deg, rgba(146,64,14,0.12) 0px, rgba(146,64,14,0.12) 2px, transparent 2px, transparent 26px), repeating-linear-gradient(0deg, rgba(146,64,14,0.08) 0px, rgba(146,64,14,0.08) 2px, transparent 2px, transparent 44px)",
+                }}
               >
+                {/* Paku ganda di sudut papan */}
+                {(["left-2 top-2", "right-2 bottom-2"] as const).map((pos) => (
+                  <span key={pos} aria-hidden="true" className={`absolute ${pos} block h-2 w-2 rounded-full border-2 border-[#134E4A] bg-[#64748B]`} />
+                ))}
                 <div className="flex items-center justify-between gap-3 mb-2.5">
                   <div className="flex items-center gap-2.5">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#F0FDF4] shadow-[2px_2px_0px_#134E4A]">
@@ -603,13 +693,13 @@ export default function JurnalIbadahPage() {
                   </span>
                 </div>
 
-                {/* Status Selector Pills (Sticker Style) */}
+                {/* Status Selector: Cap Tinta / Ink Stamps */}
                 <div className="grid grid-cols-4 gap-1.5 pt-1">
                   {[
-                    { key: "tepat" as StatusSholat, label: "Tepat" },
-                    { key: "telat" as StatusSholat, label: "Sempat" },
-                    { key: "jamak" as StatusSholat, label: "Jamak" },
-                    { key: "tidak" as StatusSholat, label: "Terlewat" },
+                    { key: "tepat" as StatusSholat, label: "Tepat", ink: "#15803D" },
+                    { key: "telat" as StatusSholat, label: "Sempat", ink: "#A16207" },
+                    { key: "jamak" as StatusSholat, label: "Jamak", ink: "#0284C7" },
+                    { key: "tidak" as StatusSholat, label: "Terlewat", ink: "#B91C1C" },
                   ].map((s) => {
                     const isSelected = currentStatus === s.key;
                     return (
@@ -619,14 +709,19 @@ export default function JurnalIbadahPage() {
                         onClick={() =>
                           handleSetStatus(w.key, isSelected ? "belum" : s.key)
                         }
-                        className={`flex items-center justify-center gap-1 rounded-xl border-2 border-[#134E4A] py-1.5 text-[11px] font-black transition-all ${
+                        className={`flex flex-col items-center justify-center gap-0.5 rounded-lg border-[3px] border-dashed py-1.5 px-0.5 font-black uppercase transition-all active:scale-95 ${
                           isSelected
-                            ? "bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] translate-y-[-1px]"
-                            : "bg-[#F8FAFC] text-[#134E4A]/70 hover:bg-slate-100 shadow-none"
+                            ? "rotate-[-2deg] scale-105 shadow-[2px_2px_0_#134E4A]"
+                            : "rotate-0 opacity-45 hover:opacity-75"
                         }`}
+                        style={{
+                          borderColor: s.ink,
+                          color: s.ink,
+                          backgroundColor: isSelected ? `${s.ink}14` : "transparent",
+                        }}
                       >
                         <StatusIconSvg status={s.key} size={13} />
-                        {s.label}
+                        <span className="text-[9px] tracking-wide leading-none">{s.label}</span>
                       </button>
                     );
                   })}
@@ -645,7 +740,19 @@ export default function JurnalIbadahPage() {
             </h3>
           </div>
 
-          <div className="rounded-[24px] border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A] space-y-2.5">
+          <div
+            className="relative rounded-[24px] border-[3px] border-[#134E4A] p-4 shadow-[4px_4px_0px_#134E4A] space-y-2.5 overflow-hidden"
+            style={{
+              backgroundColor: "#FFFDF5",
+              backgroundImage:
+                "repeating-linear-gradient(0deg, transparent 0px, transparent 29px, rgba(11,105,119,0.1) 30px)",
+            }}
+          >
+            {/* Pita bookmark on top edge */}
+            <div
+              className="absolute right-6 top-0 h-12 w-5 bg-[#B91C1C] border-x-[2.5px] border-[#134E4A] [clip-path:polygon(0_0,100%_0,100%_100%,50%_75%,0_100%)]"
+              aria-hidden="true"
+            />
             {history.map((h, i) => {
               const rec = countRecorded(h.entry);
               const comp = isComplete(h.entry);
@@ -708,6 +815,7 @@ export default function JurnalIbadahPage() {
             </p>
           </div>
         </section>
+        </div>
       </div>
     </NgajiCeriaLayout>
   );

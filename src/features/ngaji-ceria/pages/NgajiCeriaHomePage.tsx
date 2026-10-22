@@ -31,6 +31,7 @@ import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { AvatarWithBadge } from "../../../components/ui/AvatarWithBadge";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
 import { TartilaLogo } from "../components/TartilaLogo";
+import { OnboardingModal } from "../components/OnboardingModal";
 
 interface DailyRewardItem {
   day: number;
@@ -123,9 +124,9 @@ export default function NgajiCeriaHomePage() {
 
   const currentReward = DAILY_REWARDS[activeDay - 1] || DAILY_REWARDS[0];
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
     if (todayClaimed) return;
-    const ok = claimDailyReward(activeDay, currentReward.coins, {
+    const ok = await claimDailyReward(activeDay, currentReward.coins, {
       hearts: currentReward.hearts,
       tickets: currentReward.tickets,
     });
@@ -334,6 +335,40 @@ export default function NgajiCeriaHomePage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* TARTILA ARENA BANNER (REAL-TIME MULTIPLAYER & UJIAN) */}
+          <div className="relative rounded-3xl border-[3px] border-[#134E4A] bg-[#FEF3C7] p-5 shadow-[4px_4px_0px_#134E4A] overflow-hidden">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="space-y-1 max-w-[70%]">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border-2 border-[#134E4A] bg-[#0D9488] text-white text-[10px] font-black shadow-[1px_1px_0px_#134E4A]">
+                  <SparklesSvg size={12} /> MULTIPLAYER KAHOOT-STYLE
+                </span>
+                <h3 className="font-display text-xl md:text-2xl font-black text-[#134E4A] leading-tight">
+                  Tartila Arena
+                </h3>
+                <p className="text-xs font-bold text-[#134E4A]/80">
+                  Uji kemampuan tilawati & tajwid secara real-time bersama teman sekelas atau buat ujian resmi TPQ!
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/arena/join")}
+                  className="px-4 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs md:text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-[#0F766E]"
+                >
+                  🎮 Gabung PIN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/arena/host/create")}
+                  className="px-4 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-white text-[#134E4A] font-black text-xs md:text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-gray-50"
+                >
+                  👑 Buat Room
+                </button>
+              </div>
             </div>
           </div>
 
@@ -749,6 +784,9 @@ export default function NgajiCeriaHomePage() {
             </div>
           )}
         </AnimatePresence>
+
+        {/* Modal Onboarding Peran (Santri vs Ustadz) */}
+        <OnboardingModal />
       </NgajiCeriaLayout>
     </>
   );
