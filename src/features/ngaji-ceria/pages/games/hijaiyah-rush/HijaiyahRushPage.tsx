@@ -1,18 +1,26 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { HijaiyahRushCoverSvg } from "@/components/ui/Illustrations";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { HUD } from "../_shared/HUD";
 import { ComboBadge } from "../_shared/ComboBadge";
+import { TargetBanner } from "../_shared/TargetBanner";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { RunnerField } from "./components/RunnerField";
 import { useHijaiyahRush } from "./hooks/useHijaiyahRush";
-import { letterRecitation } from "../_shared/recitation";
 
 function Game() {
   const game = useHijaiyahRush();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (game.phase === "playing" && game.target)
+      playLetterAudio(game.target);
+  }, [game.target, game.phase]);
+
   return (
     <GameShell
       title="Hijaiyah Rush"
@@ -20,16 +28,16 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="cyan"
-      recitation={letterRecitation(game.target)}
     >
       {game.phase === "idle" ? (
         <StartScreen
           title="Hijaiyah Rush"
           tagline="Lari, lompat, tangkap target"
           description="Qirra berlari otomatis di tiga jalur. Pindah jalur dan lompat untuk mengambil huruf yang diminta. Kecepatan naik setiap 30 meter, kombo memperbesar skor."
-          coverImage={NGAJI_CERIA_ASSETS.hijaiyahRush}
+          coverImage={<HijaiyahRushCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={() => navigate("/member/ngaji-ceria/games")}
           accent="cyan"
         />
       ) : (
@@ -38,18 +46,13 @@ function Game() {
             score={game.score}
             lives={game.lives}
             progressLabel={`${Math.floor(game.distance)} m`}
-            accent="cyan"
           />
-          <div className="flex items-center justify-between rounded-2xl border border-teal-300/25 bg-teal-500/10 px-4 py-2">
-            <span className="text-xs text-white/80">Tangkap huruf target</span>
-            <span dir="rtl" className="game-arabic text-3xl text-teal-200">
-              {game.target}
-            </span>
-            <span className="text-xs font-bold text-teal-300">
-              {game.targetName}
-            </span>
-          </div>
-          <div className="rounded-2xl border border-teal-300/20 bg-teal-500/10 p-2 text-[10px] font-black uppercase tracking-widest text-teal-200">
+          <TargetBanner
+            target={game.target}
+            name={game.targetName}
+            actionLabel="Tangkap"
+          />
+          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-2 text-[10px] font-black uppercase tracking-widest text-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
             Platformer Stage · {Math.floor(game.distance)}m · checkpoint{" "}
             {Math.floor(game.distance / 30) + 1}
           </div>
@@ -68,7 +71,11 @@ function Game() {
                 key={lane}
                 aria-pressed={game.lane === lane}
                 onClick={() => game.moveLane(lane)}
-                className={`game-button flex-1 border ${game.lane === lane ? "border-teal-300 bg-teal-500/20" : "border-white/20 bg-white/5"}`}
+                className={`game-button flex-1 border-[3px] border-[#134E4A] ${
+                  game.lane === lane
+                    ? "bg-[#0D9488] text-white shadow-[3px_3px_0px_#134E4A]"
+                    : "bg-white text-[#134E4A] shadow-[3px_3px_0px_#134E4A]"
+                }`}
               >
                 {["Kiri", "Tengah", "Kanan"][lane]}
               </button>

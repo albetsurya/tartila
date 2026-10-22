@@ -45,12 +45,16 @@ export function QuizEngine({
   const shared = { onAnswerSubmit, onNext, onPlayAudio, isAudioPlaying };
 
   return (
-    <div className="w-full bg-[#F0FDF4] selection:bg-[#0D9488]/20">
+    <div
+      key={modelKey}
+      className="w-full bg-[#F0FDF4] selection:bg-[#0D9488]/20"
+    >
       {(() => {
         switch (assignedModel) {
           case "fill-in-the-blank":
             return (
               <ModelFillInTheBlank
+                key={question.id}
                 question={{
                   id: question.id,
                   type: "fill-in-the-blank",
@@ -65,6 +69,7 @@ export function QuizEngine({
           case "multiple-choice-text":
             return (
               <ModelMultipleChoiceText
+                key={question.id}
                 question={{
                   id: question.id,
                   type: "multiple-choice-text",
@@ -79,6 +84,7 @@ export function QuizEngine({
           case "multiple-choice-audio":
             return (
               <ModelMultipleChoiceAudio
+                key={question.id}
                 question={{
                   id: question.id,
                   type: "multiple-choice-audio",
@@ -92,6 +98,7 @@ export function QuizEngine({
           case "audio-matching":
             return (
               <ModelAudioMatching
+                key={question.id}
                 question={{
                   id: question.id,
                   type: "audio-matching",
@@ -104,6 +111,7 @@ export function QuizEngine({
           case "material":
             return (
               <ModelMaterialCard
+                key={question.id}
                 material={{
                   id: question.id,
                   type: "material",

@@ -12,7 +12,7 @@ import {
   LayerGroup,
   Lock,
   Star,
-} from "../../../components/ui/FontAwesomeIcons";
+} from "../../../components/ui/CustomIcons";
 
 interface JilidProgress {
   jilid: number;

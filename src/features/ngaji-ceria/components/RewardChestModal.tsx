@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import {
   takeRewards,
   subscribeRewards,
@@ -8,6 +7,8 @@ import {
 } from "../pages/games/_shared/progression";
 import { playSfx } from "../pages/games/_shared/audio";
 import { tapFeedback } from "../../../lib/haptics";
+import { PetiHartaSvg, PetiBonusEmasSvg } from "@/components/ui/Illustrations";
+import { CoinSvg, SparklesSvg } from "@/components/ui/CustomIcons";
 
 export function RewardChestModal() {
   const [reward, setReward] = useState<PendingReward | null>(null);
@@ -46,92 +47,71 @@ export function RewardChestModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-[#134e4a]/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#134E4A]/70"
       />
 
+      {/* Modal Dialog Card */}
       <motion.div
-        initial={{ scale: 0.7, opacity: 0, y: 20 }}
+        initial={{ scale: 0.8, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.8, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className="relative z-10 w-full max-w-sm rounded-[32px] border-4 border-white bg-gradient-to-b from-[#F0FDF4] to-[#FFE8E0] p-6 text-center shadow-2xl shadow-[#134e4a]/40"
+        transition={{ type: "spring", stiffness: 280, damping: 20 }}
+        className="relative z-10 w-full max-w-sm rounded-[32px] border-[4px] border-[#134E4A] bg-[#FFFDF0] p-6 text-center shadow-[6px_6px_0px_#134E4A]"
       >
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#0D9488]">
-          {opened ? "Bonus Didapatkan!" : "Hadiah Menanti"}
-        </p>
-        <h2 className="mt-1 font-display text-xl font-black text-[#134e4a]">
+        <span className="inline-block px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] text-[10px] font-black uppercase tracking-wider text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A]">
+          {opened ? "Bonus Didapatkan!" : "Hadiah Spesial Menanti"}
+        </span>
+
+        <h2 className="mt-2 font-display text-xl font-black text-[#134E4A]">
           {reward.label}
         </h2>
 
         {/* Peti & Animasi Buka */}
-        <div className="relative my-6 flex h-36 items-center justify-center">
+        <div className="relative my-4 flex min-h-[160px] items-center justify-center">
           <AnimatePresence mode="wait">
             {!opened ? (
               <motion.button
                 key="closed"
                 type="button"
                 onClick={handleChestClick}
-                animate={{ scale: [1, 1.05, 1], rotate: [0, -3, 3, 0] }}
+                animate={{ scale: [1, 1.04, 1], rotate: [0, -2, 2, 0] }}
                 transition={{ repeat: Infinity, duration: 1.8 }}
-                whileTap={{ scale: 0.9 }}
-                className="relative cursor-pointer focus:outline-none"
+                whileTap={{ scale: 0.92 }}
+                className="relative cursor-pointer focus:outline-none flex flex-col items-center"
               >
-                <img
-                  src={NGAJI_CERIA_ASSETS.petiHarta}
-                  alt="Peti Harta"
-                  draggable={false}
-                  className="h-28 w-28 object-contain drop-shadow-2xl"
-                />
-                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0D9488] px-3 py-1 text-[10px] font-black text-white shadow-md animate-bounce">
-                  Ketuk untuk Buka! 🎁
+                <PetiHartaSvg size={140} />
+                <span className="mt-2 whitespace-nowrap rounded-full border-2 border-[#134E4A] bg-[#0D9488] px-3.5 py-1 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] animate-bounce">
+                  Ketuk untuk Buka!
                 </span>
               </motion.button>
             ) : (
               <motion.div
                 key="open"
-                initial={{ scale: 0.5, opacity: 0 }}
+                initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 220, damping: 14 }}
                 className="flex flex-col items-center justify-center gap-2"
               >
-                {/* Visual Peti Terbuka / Bonus Emas */}
+                {/* Visual Peti Terbuka / Bonus Emas Neo-Brutalism */}
                 <div className="relative flex items-center justify-center">
-                  <img
-                    src={NGAJI_CERIA_ASSETS.petiHartaTerbuka}
-                    alt="Peti Terbuka"
-                    draggable={false}
-                    className="h-24 w-24 object-contain drop-shadow-2xl"
-                  />
-                  <motion.img
-                    initial={{ y: 20, scale: 0 }}
-                    animate={{ y: -30, scale: 1 }}
-                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                    src={NGAJI_CERIA_ASSETS.koinHijaiyah}
-                    alt="Koin"
-                    draggable={false}
-                    className="absolute h-14 w-14 object-contain drop-shadow-xl"
-                  />
+                  <PetiBonusEmasSvg size={160} />
                 </div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-center gap-2 rounded-full border-2 border-[#ffd9d9] bg-[#fff0f0] px-4 py-1.5 shadow-sm"
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] px-5 py-2 shadow-[2.5px_2.5px_0px_#134E4A]"
                 >
-                  <img
-                    src={NGAJI_CERIA_ASSETS.koinHijaiyah}
-                    alt="Koin"
-                    draggable={false}
-                    className="h-5 w-5 object-contain"
-                  />
-                  <span className="font-display text-lg font-black text-[#134e4a]">
-                    +{reward.coins} Koin
+                  <CoinSvg size={24} />
+                  <span className="font-display text-xl font-black text-[#134E4A]">
+                    +{reward.coins} Koin Hijaiyah
                   </span>
                 </motion.div>
               </motion.div>
@@ -143,12 +123,13 @@ export function RewardChestModal() {
           <motion.button
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
             type="button"
             onClick={handleClaim}
-            className="w-full rounded-full bg-[#0D9488] py-3 text-sm font-black text-white shadow-md shadow-[#0D9488]/40 hover:bg-[#0f766e] active:scale-95"
+            className="w-full rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] py-3 text-sm font-black text-white shadow-[3px_3px_0px_#134E4A] hover:bg-[#0F766E] active:translate-y-0.5 active:shadow-none cursor-pointer flex items-center justify-center gap-2"
           >
-            Ambil Hadiah ✨
+            <SparklesSvg size={16} />
+            <span>Klaim Hadiah</span>
           </motion.button>
         )}
       </motion.div>

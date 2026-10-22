@@ -38,7 +38,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
       mood: "thinking",
       text: "Jim, Ha, dan Kho. Ha dibaca dari tengah tenggorokan, suaranya bersih.",
     },
-    { mood: "excited", text: "Ayo tirukan suara Bibi! Jim.. Ha.. Kho.. 🚀" },
+    { mood: "excited", text: "Ayo tirukan suaraku! Jim.. Ha.. Kho.." },
   ],
   "1:4": [
     {
@@ -55,7 +55,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
   "1:6": [
     {
       mood: "excited",
-      text: "Halaman latihan! Ini kelipatan 6, biasanya ada soal ya 🎯",
+      text: "Halaman latihan! Ini kelipatan 6, biasanya ada soal ya.",
     },
     { mood: "thinking", text: "Baca pelan-pelan, tidak usah buru-buru." },
   ],
@@ -66,13 +66,13 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
     },
     {
       mood: "sad",
-      text: "Jangan dipaksa kalau masih susah, pelan-pelan aja ya 💪",
+      text: "Jangan dipaksa kalau masih susah, pelan-pelan aja ya.",
     },
   ],
   "1:15": [
     {
       mood: "excited",
-      text: "Horee! Ini huruf terakhir di Jilid 1! Kamu hebat sudah sampai sini 🌟",
+      text: "Horee! Ini huruf terakhir di Jilid 1! Kamu hebat sudah sampai sini.",
     },
   ],
 
@@ -100,7 +100,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
       mood: "thinking",
       text: "Ini Dhammah (bunyi 'u'). Bibirnya dibulatkan seperti mau meniup lilin.",
     },
-    { mood: "happy", text: "Coba tiup lilinnya! Uuuuu... 💨" },
+    { mood: "happy", text: "Coba tiup lilinnya! Uuuuu..." },
   ],
   "2:30": [
     {
@@ -127,7 +127,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
       mood: "thinking",
       text: "Ada Tasydid! Hurufnya ditekan dan ditahan sebentar ya.",
     },
-    { mood: "excited", text: "Coba rasakan getarannya saat menekan huruf! 🎵" },
+    { mood: "excited", text: "Coba rasakan getarannya saat menekan huruf!" },
   ],
   "3:25": [
     {
@@ -136,7 +136,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
     },
     {
       mood: "happy",
-      text: "Coba tutup hidungmu, kalau dengungnya hilang berarti benar! 👃",
+      text: "Coba tutup hidungmu, kalau dengungnya hilang berarti benar!",
     },
   ],
 
@@ -160,7 +160,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
     },
     {
       mood: "happy",
-      text: "Bayangkan seperti mencampur madu ke dalam air, menyatu gitu! 🍯",
+      text: "Bayangkan seperti mencampur madu ke dalam air, menyatu gitu!",
     },
   ],
   "4:20": [
@@ -172,7 +172,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
   "4:35": [
     {
       mood: "excited",
-      text: "Hampir selesai Jilid 4! Kamu sudah paham hukum-hukum tajwid dasar. Hebat! 🏆",
+      text: "Hampir selesai Jilid 4! Kamu sudah paham hukum-hukum tajwid dasar. Hebat!",
     },
   ],
 
@@ -182,7 +182,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
   "5:1": [
     {
       mood: "excited",
-      text: "Jilid terakhir! Ini level lanjutan. Bibi bangga sama kamu! 🥳",
+      text: "Jilid terakhir! Ini level lanjutan. Kami bangga sama kamu!",
     },
     {
       mood: "thinking",
@@ -194,7 +194,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
       mood: "thinking",
       text: "Qalqalah artinya memantul. Hurufnya dibaca memantul saat sukun.",
     },
-    { mood: "happy", text: "Coba bayangkan bola memantul di lantai! 🏀" },
+    { mood: "happy", text: "Coba bayangkan bola memantul di lantai!" },
   ],
   "5:20": [
     {
@@ -203,7 +203,7 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
     },
     {
       mood: "excited",
-      text: "Jangan bingung, Bibi temani terus sampai kamu bisa! 💕",
+      text: "Jangan bingung, kita temani terus sampai kamu bisa!",
     },
   ],
 };
@@ -226,7 +226,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
     return [
       {
         mood: "excited",
-        text: `Halaman ${hal} biasanya halaman latihan. Ayo uji kemampuanmu! 🎯`,
+        text: `Halaman ${hal} biasanya halaman latihan. Ayo uji kemampuanmu!`,
       },
       {
         mood: "thinking",
@@ -241,7 +241,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       return [
         {
           mood: "happy",
-          text: `Selamat datang di halaman ${hal} Jilid 1! Yuk kita mulai belajar 😊`,
+          text: `Selamat datang di halaman ${hal} Jilid 1! Yuk kita mulai belajar.`,
         },
         {
           mood: "thinking",
@@ -252,7 +252,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       return [
         {
           mood: "happy",
-          text: `Halaman ${hal} Jilid 2. Semangat menyambung hurufnya! 🔗`,
+          text: `Halaman ${hal} Jilid 2. Semangat menyambung hurufnya!`,
         },
         {
           mood: "thinking",
@@ -263,7 +263,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       return [
         {
           mood: "happy",
-          text: `Halaman ${hal} Jilid 3. Waktunya jago panjang-pendek! ⏱️`,
+          text: `Halaman ${hal} Jilid 3. Waktunya jago panjang-pendek!`,
         },
         {
           mood: "thinking",
@@ -274,7 +274,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       return [
         {
           mood: "happy",
-          text: `Halaman ${hal} Jilid 4. Dunia tajwid menantimu! 🔍`,
+          text: `Halaman ${hal} Jilid 4. Dunia tajwid menantimu!`,
         },
         {
           mood: "thinking",
@@ -285,7 +285,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       return [
         {
           mood: "excited",
-          text: `Halaman ${hal} Jilid 5. Level terakhir, kamu luar biasa! 🏆`,
+          text: `Halaman ${hal} Jilid 5. Level terakhir, kamu luar biasa!`,
         },
         {
           mood: "thinking",
@@ -296,7 +296,7 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       return [
         {
           mood: "happy",
-          text: `Halaman ${hal}. Selamat belajar bersama Bibi! 😊`,
+          text: `Halaman ${hal}. Selamat belajar dan berlatih!`,
         },
         {
           mood: "thinking",

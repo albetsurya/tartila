@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { playSoundEffect } from "../utils/audioPlayer";
 import { tapFeedback } from "../../../lib/haptics";
-import { Trophy, Sparkles } from "../../../components/ui/FontAwesomeIcons";
+import { Trophy, Sparkles } from "../../../components/ui/CustomIcons";
 
 interface HarakatTarget {
   id: string;
@@ -280,7 +280,7 @@ export default function TangkapHarakatGamePage() {
                   width: "33.33%",
                 }}
               >
-                <div className="w-16 h-16 rounded-2xl bg-[#FF6B6B] border-4 border-white shadow-xl flex flex-col items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-[#FF6B6B] border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] flex flex-col items-center justify-center">
                   <span className="font-arabic text-3xl font-black text-[#134e4a] leading-tight">
                     {currentLetter.char}
                   </span>
@@ -297,10 +297,10 @@ export default function TangkapHarakatGamePage() {
                 <button
                   key={lane}
                   onClick={() => moveLane(lane)}
-                  className={`py-3.5 rounded-2xl font-black text-sm border-2 transition-transform active:scale-95 shadow-md ${
+                  className={`py-3.5 rounded-2xl font-black text-sm border-2 transition-transform active:scale-95 shadow-[2px_2px_0px_#134E4A] ${
                     basketLane === lane
-                      ? "bg-[#0d9488] text-white border-[#103445] shadow-lg"
-                      : "bg-white text-[#134e4a] border-[#D1FAE5]"
+                      ? "bg-[#0d9488] text-white border-[#134E4A] shadow-[3px_3px_0px_#134E4A]"
+                      : "bg-white text-[#134e4a] border-[#134E4A]"
                   }`}
                 >
                   {lane === 0 ? "◀ Kiri" : lane === 1 ? "▲ Tengah" : "Kanan ▶"}

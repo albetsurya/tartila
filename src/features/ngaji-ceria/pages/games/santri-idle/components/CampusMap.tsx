@@ -47,7 +47,7 @@ export function CampusMap({
           animate={{ scale: 1, opacity: 1 }}
           className={`absolute ${POSITIONS[index]} ${owned ? "" : "opacity-25 grayscale"}`}
         >
-          <div className="rounded-2xl border border-white/20 bg-teal-950/90 px-2 py-2 text-center shadow-lg">
+          <div className="rounded-2xl border-2 border-[#134E4A] bg-teal-950 px-2 py-2 text-center shadow-[2px_2px_0px_#134E4A]">
             <img
               src={definition.icon}
               alt={definition.name}

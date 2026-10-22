@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { LockSvg } from "@/components/ui/CustomIcons";
 import { NgajiCeriaLayout } from "./NgajiCeriaLayout";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { isGameOpen, tierForRole, type AccessTier } from "../data/gameAccess";
@@ -36,7 +37,7 @@ export function GameLockGuard({ gameId, title, children }: { gameId: string; tit
   return <NgajiCeriaLayout title={title} showBack onBack={() => navigate("/member/ngaji-ceria/games")}>
     <div data-testid="game-locked" className="flex min-h-[60dvh] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <img src={NGAJI_CERIA_ASSETS.iconGames} alt="" aria-hidden="true" draggable={false} className="h-20 w-20 object-contain opacity-60 grayscale" />
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#134e4a] px-3 py-1 text-xs font-black text-white">🔒 Masuk untuk Akses Penuh</span>
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#134e4a] px-3 py-1 text-xs font-black text-white"><LockSvg size={13} /> Masuk untuk Akses Penuh</span>
       <h2 className="font-display text-xl font-black text-[#134e4a]">{title}</h2>
       <p className="max-w-xs text-sm leading-relaxed text-[#134e4a]/70">
         {isLoggedIn

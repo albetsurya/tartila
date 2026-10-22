@@ -1,5 +1,8 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { TajwidDefenseCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -9,10 +12,30 @@ import { TOWER_DEFINITIONS } from "./data/towers";
 import { useTajwidDefense } from "./hooks/useTajwidDefense";
 import { useGameExit } from "../_shared/hooks";
 
+/**
+ * Data towers tidak memuat nomor surah/ayat, jadi pelafalan memakai huruf
+ * banakar per hukum tajwid via playLetterAudio (Web Speech).
+ */
+const RULE_LETTER: Record<string, string> = {
+  idgham: "ن",
+  ikhfa: "ن",
+  iqlab: "ب",
+  izhar: "ء",
+  ghunnah: "ن",
+};
+
 function Game() {
   const game = useTajwidDefense();
   const exit = useGameExit();
   const navigate = useNavigate();
+
+  // Audio pelafalan: huruf banakar menara yang dipilih, hanya saat fase playing.
+  useEffect(() => {
+    if (game.phase !== "playing" || !game.selectedTower) return;
+    const letter = RULE_LETTER[game.selectedTower];
+    if (letter) playLetterAudio(letter);
+  }, [game.selectedTower, game.phase]);
+
   return (
     <GameShell
       title="Tajwid Defense"
@@ -26,9 +49,10 @@ function Game() {
           title="Tajwid Defense"
           tagline="Pasang hukum, jaga base"
           description="Musuh dengan tajwid yang salah berjalan menuju base. Pasang menara hukum bacaan yang tepat untuk mengalahkan sepuluh wave."
-          coverImage={NGAJI_CERIA_ASSETS.harakatRush}
+          coverImage={<TajwidDefenseCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="emerald"
         />
       ) : (
@@ -37,20 +61,47 @@ function Game() {
             score={game.score}
             progressLabel={`Wave ${Math.min(game.wave, 10)}/10`}
             lives={Math.min(3, Math.ceil(game.hp / 7))}
-            accent="emerald"
           />
+          {/* Maskot sebagai komandan di belakang pasukan */}
+          <div className="flex items-center justify-between gap-3 p-2.5 rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[3px_3px_0px_#134E4A] text-[#134E4A]">
+            <div className="flex items-center gap-2">
+              <TilaMascot
+                size={64}
+                mood={game.hp < 10 ? "sad" : "excited"}
+                animation="bounce"
+                direction="right"
+                speech={game.hp < 10 ? "Pertahankan!" : "Siap bertahan!"}
+              />
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 block">
+                  Komandan Tajwid
+                </span>
+                <span className="text-xs font-bold text-[#134E4A]">
+                  Base HP: {game.hp}/20
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-bold text-teal-700 block">
+                Khazanah
+              </span>
+              <span className="text-base font-black text-amber-600">
+                {game.gold}g
+              </span>
+            </div>
+          </div>
           <div className="grid grid-cols-5 gap-2">
             {TOWER_DEFINITIONS.map((tower) => (
               <button
                 type="button"
                 key={tower.id}
                 onClick={() => game.selectTower(tower.id)}
-                className={`rounded-xl border p-2 text-center ${game.selectedTower === tower.id ? "border-teal-300 bg-teal-500/25" : "border-white/15 bg-white/5"}`}
+                className={`rounded-xl border-[3px] p-2 text-center ${game.selectedTower === tower.id ? "border-[#134E4A] bg-[#CCFBF1] shadow-[2px_2px_0px_#134E4A]" : "border-[#134E4A] bg-white"}`}
               >
-                <span className="game-arabic text-2xl text-teal-200">
+                <span className="game-arabic text-2xl text-[#134E4A]">
                   {tower.icon}
                 </span>
-                <span className="block text-[9px] text-white">
+                <span className="block text-[9px] font-bold text-[#134E4A]">
                   {tower.cost}g
                 </span>
               </button>

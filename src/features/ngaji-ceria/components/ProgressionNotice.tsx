@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SparklesSvg } from "../../../components/ui/CustomIcons";
 import {
   ACHIEVEMENT_LABELS,
   getProgress,
@@ -54,10 +55,11 @@ export function ProgressionNotice() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed left-1/2 top-20 z-[70] w-[min(90vw,22rem)] -translate-x-1/2 rounded-2xl border-2 border-[#ffd9d9] bg-[#fff0f0] px-4 py-3 text-center shadow-xl"
+      className="fixed left-1/2 top-20 z-[70] w-[min(90vw,22rem)] -translate-x-1/2 rounded-2xl border-[3px] border-[#134E4A] bg-white px-4 py-3 text-center shadow-[4px_4px_0px_#134E4A]"
     >
-      <p className="font-display text-sm font-black text-[#134e4a]">
-        ✨ {notice.title}
+      <p className="flex items-center justify-center gap-1 font-display text-sm font-black text-[#134e4a]">
+        <SparklesSvg size={14} />
+        <span>{notice.title}</span>
       </p>
       <p className="mt-0.5 text-xs font-bold text-[#134e4a]/70">
         {notice.description}

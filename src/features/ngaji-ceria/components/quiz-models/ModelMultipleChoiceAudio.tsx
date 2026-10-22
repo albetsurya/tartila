@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Volume2, X } from "../../../../components/ui/FontAwesomeIcons";
+import { motion, useReducedMotion } from "framer-motion";
+import { Check, Volume2, X } from "../../../../components/ui/CustomIcons";
 import {
   StickerButton,
   StickerCard,
-  BibiMascot,
+  TilaMascot,
 } from "../../../../components/ui";
+import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceAudioQuestion, QuizModelBaseProps } from "./types";
+import { playVoiceFeedback } from "../../utils/voiceFeedback";
 
 export interface ModelMultipleChoiceAudioProps extends QuizModelBaseProps {
   question: MultipleChoiceAudioQuestion;
@@ -20,8 +23,13 @@ export function ModelMultipleChoiceAudio({
 }: ModelMultipleChoiceAudioProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  // User wajib menekan tombol Play dulu sebelum opsi jawaban aktif,
+  // agar tidak menebak tanpa mendengar bacaannya.
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     return () => {
@@ -29,15 +37,47 @@ export function ModelMultipleChoiceAudio({
     };
   }, []);
 
+  useEffect(() => {
+    if (onPlayAudio) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  }, [question.id, question.audioUrl, onPlayAudio]);
+
   const handlePlay = () => {
+    setHasPlayedOnce(true);
     if (onPlayAudio) {
       onPlayAudio();
       return;
     }
     if (!question.audioUrl) return;
+    // Audio dibuat ulang setiap ganti soal/URL — elemen lama di-pause & dibuang
+    // agar tidak memutar sisa suara dari soal sebelumnya (anti-caching).
+    if (audioRef.current) {
+      const sameUrl =
+        question.audioUrl &&
+        audioRef.current.src ===
+          new URL(question.audioUrl, window.location.href).href;
+      if (!sameUrl) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    }
     if (!audioRef.current) {
-      audioRef.current = new Audio(question.audioUrl);
-      audioRef.current.onended = () => setIsPlaying(false);
+      const audio = new Audio(question.audioUrl);
+      audio.crossOrigin = "anonymous";
+      audio.preload = "auto";
+      audio.onloadstart = () => setIsAudioLoading(true);
+      audio.oncanplay = () => setIsAudioLoading(false);
+      audio.onwaiting = () => setIsAudioLoading(true);
+      audio.onplaying = () => setIsAudioLoading(false);
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsAudioLoading(false);
+        setIsPlaying(false);
+      };
+      audioRef.current = audio;
     }
     const audio = audioRef.current;
     if (isPlaying) {
@@ -51,6 +91,8 @@ export function ModelMultipleChoiceAudio({
   };
 
   const playing = onPlayAudio ? Boolean(isAudioPlaying) : isPlaying;
+  // Opsi jawaban terkunci sampai user memutar audio (Anti-Asal-Tebak).
+  const optionsLocked = status !== "idle" || !hasPlayedOnce;
 
   const handlePick = (option: string) => {
     if (status !== "idle") return;
@@ -58,10 +100,18 @@ export function ModelMultipleChoiceAudio({
   };
 
   const handleCheck = () => {
-    if (selected === null) return;
+    if (selected === null || status !== "idle") return;
     const isCorrect = selected === question.correctAnswer;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
+
+    audioRef.current?.pause();
+    setIsPlaying(false);
+    if (isCorrect) {
+      playVoiceFeedback("correct");
+    } else {
+      playVoiceFeedback("wrong");
+    }
   };
 
   const handleRetry = () => {
@@ -71,7 +121,6 @@ export function ModelMultipleChoiceAudio({
 
   return (
     <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-[#F0FDF4]">
-      {/* Audio Prompt */}
       <div className="flex flex-col items-center mb-6">
         <button
           type="button"
@@ -83,14 +132,20 @@ export function ModelMultipleChoiceAudio({
           {playing && (
             <span className="absolute inset-0 rounded-full bg-[#0D9488]/30 animate-ping" />
           )}
-          <Volume2 size={44} className="relative z-10" />
+          {isAudioLoading && !playing ? (
+            <span
+              aria-label="Memuat audio"
+              className="relative z-10 block h-8 w-8 animate-spin rounded-full border-[3px] border-[#134E4A]/20 border-t-[#134E4A]"
+            />
+          ) : (
+            <Volume2 size={44} className="relative z-10" />
+          )}
         </button>
         <p className="mt-3 text-xs font-black text-[#134E4A]/70 tracking-wide">
-          Sentuh untuk Putar Suara
+          {isAudioLoading && !playing ? "Memuat Audio…" : "Sentuh untuk Putar Suara"}
         </p>
       </div>
 
-      {/* Options */}
       <div className="flex flex-col gap-3">
         {question.options.map((option) => {
           const isSelected = selected === option;
@@ -99,12 +154,20 @@ export function ModelMultipleChoiceAudio({
           const showWrong = status === "wrong" && isSelected && !isAnswer;
 
           return (
-            <button
+            <motion.button
               key={option}
               type="button"
-              disabled={status !== "idle"}
+              disabled={optionsLocked}
               onClick={() => handlePick(option)}
-              className={`min-h-16 rounded-xl border-[3px] p-4 text-2xl font-arabic font-bold text-[#134E4A] transition-all shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
+              animate={answerFeedbackAnimation(
+                showCorrect ? "correct" : showWrong ? "wrong" : "none",
+                reducedMotion ?? false,
+              )}
+              className={`min-h-[68px] rounded-xl border-[3px] p-4 text-2xl font-arabic font-bold leading-snug text-[#134E4A] break-words transition-all shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
+                optionsLocked && !showCorrect && !showWrong
+                  ? "opacity-60"
+                  : ""
+              } ${
                 showCorrect
                   ? "border-[#0D9488] bg-[#F0FDF4]"
                   : showWrong
@@ -115,12 +178,11 @@ export function ModelMultipleChoiceAudio({
               }`}
             >
               {option}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
-      {/* Submit */}
       {status === "idle" && (
         <StickerButton
           variant="primary"
@@ -133,12 +195,11 @@ export function ModelMultipleChoiceAudio({
         </StickerButton>
       )}
 
-      {/* Feedback Bottom Sheet (With Bibi) */}
       {status !== "idle" && (
         <div className="fixed bottom-0 left-0 w-full bg-transparent px-4 pb-6 pt-2 z-50">
           <div className="max-w-md mx-auto relative">
             <div className="absolute -top-14 right-6 z-10">
-              <BibiMascot
+              <TilaMascot
                 size={90}
                 mood={status === "correct" ? "excited" : "sad"}
                 animation="bounce"

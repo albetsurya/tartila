@@ -5,7 +5,7 @@ import {
   Star,
   Info,
   BookOpen,
-} from "../../../components/ui/FontAwesomeIcons";
+} from "../../../components/ui/CustomIcons";
 
 type Tab = "konsonan" | "vokal" | "tips";
 

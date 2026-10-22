@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import {
@@ -9,9 +9,10 @@ import {
   Share2,
   Star,
   Volume2,
-} from "../../../../components/ui/FontAwesomeIcons";
-import { DOA_LIST } from "./exploreData";
+} from "../../../../components/ui/CustomIcons";
+import { DOA_LIST, DOA_AUDIO_PLACEHOLDER } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
+import { getDoaAudioUrl } from "../../services/doaService";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 
 export default function DoaDetailPage() {
@@ -27,7 +28,27 @@ export default function DoaDetailPage() {
   const doa = DOA_LIST[index];
   const hasPrev = index > 0;
   const hasNext = index < DOA_LIST.length - 1;
-  const isDoaPlaying = isPlaying && currentAudioUrl === doa.audioUrl;
+
+  const [audioSource, setAudioSource] = useState<string>(
+    doa?.audioUrl || DOA_AUDIO_PLACEHOLDER,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    if (doa) {
+      setAudioSource(doa.audioUrl || DOA_AUDIO_PLACEHOLDER);
+      getDoaAudioUrl(doa.id, doa.title).then((url) => {
+        if (isMounted && url) {
+          setAudioSource(url);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [doa]);
+
+  const isDoaPlaying = isPlaying && currentAudioUrl === audioSource;
 
   const goTo = (target: number) => {
     triggerBibiReaction("click");
@@ -35,8 +56,9 @@ export default function DoaDetailPage() {
   };
 
   const handlePlay = () => {
+    if (!audioSource) return;
     triggerBibiReaction(isDoaPlaying ? "click" : "play");
-    toggle(doa.audioUrl);
+    toggle(audioSource);
   };
 
   const handleCopy = async () => {
@@ -103,7 +125,11 @@ export default function DoaDetailPage() {
           <button
             type="button"
             onClick={handlePlay}
-            className={`${btnBaseStyle} w-full bg-[#0D9488] text-white`}
+            className={`${btnBaseStyle} w-full transition-colors ${
+              isDoaPlaying
+                ? "bg-[#0284C7] text-white shadow-[3px_3px_0px_#134E4A]"
+                : "bg-[#0D9488] text-white shadow-[3px_3px_0px_#134E4A]"
+            }`}
           >
             {isDoaPlaying ? <Pause size={18} /> : <Volume2 size={18} />}
             {isDoaPlaying ? "Jeda Audio" : "Dengarkan Doa"}
@@ -120,6 +146,17 @@ export default function DoaDetailPage() {
             </button>
             <button
               type="button"
+              onClick={() => {
+                triggerBibiReaction("click");
+                if (navigator.share) {
+                  navigator.share({
+                    title: doa.title,
+                    text: `${doa.arabic}\n\n${doa.latin}\n\n${doa.translation}`,
+                  }).catch(() => {});
+                } else {
+                  handleCopy();
+                }
+              }}
               className={`${btnBaseStyle} flex-1 bg-white text-[#134E4A]`}
             >
               <Share2 size={16} />

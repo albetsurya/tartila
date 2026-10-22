@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { WudhuFlowCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -28,9 +29,10 @@ function Game() {
           title="Wudhu Flow"
           tagline="Sambung pipa, jaga urutan"
           description="Putar pipa untuk mengalirkan air melalui sepuluh langkah wudhu. Pilih santai, air terbatas, atau mode ritme."
-          coverImage={NGAJI_CERIA_ASSETS.wudhuFlow}
+          coverImage={<WudhuFlowCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={() => navigate("/member/ngaji-ceria/games")}
           accent="emerald"
         >
           <div className="flex flex-wrap justify-center gap-2">
@@ -51,7 +53,6 @@ function Game() {
           <HUD
             score={game.score}
             progressLabel={`${game.completed}/10 langkah`}
-            accent="emerald"
           />
           {game.mode === "rhythm" ? (
             <>
@@ -76,6 +77,36 @@ function Game() {
             </>
           ) : (
             <>
+              {/* Maskot berdiri di dekat pancuran air */}
+              <div className="flex items-center justify-between p-2.5 rounded-2xl border-2 border-[#134E4A] bg-teal-900/60 shadow-[2px_2px_0px_#134E4A]">
+                <div className="flex items-center gap-3">
+                  <TilaMascot
+                    size={64}
+                    mood={game.completed >= 5 ? "excited" : "happy"}
+                    animation="float"
+                    direction="right"
+                    speech={
+                      game.completed >= 10
+                        ? "Wudhu Sempurna!"
+                        : "Alirkan air suci..."
+                    }
+                  />
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 block">
+                      Pancuran Air Wudhu
+                    </span>
+                    <span className="text-xs font-bold text-white">
+                      Langkah {game.completed}/10 Selesai
+                    </span>
+                  </div>
+                </div>
+                <div className="p-2 rounded-xl border-2 border-[#134E4A] bg-[#0284C7] shadow-[2px_2px_0px_#134E4A] flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#38BDF8" stroke="#ffffff" strokeWidth="2" strokeLinejoin="round">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                  </svg>
+                </div>
+              </div>
+
               <p className="text-xs text-teal-100">
                 Sumber → pipa 1 · tujuan setelah pipa 10{" "}
                 {game.mode === "challenge" && `· ${game.water} percobaan air`}

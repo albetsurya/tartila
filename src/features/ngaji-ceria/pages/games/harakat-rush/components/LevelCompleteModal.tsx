@@ -1,8 +1,8 @@
 import { ModalPanel } from "../../_shared/ModalPanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { ArrowRight, Star } from "@/components/ui/FontAwesomeIcons";
-import { BibiMascot } from "@/components/ui/BibiMascot";
+import { ArrowRight, Star } from "@/components/ui/CustomIcons";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { getLevelConfig } from "../data/levels";
 
 export function LevelCompleteModal({
@@ -25,7 +25,7 @@ export function LevelCompleteModal({
   return (
     <ModalPanel title="Level Selesai!" warm>
       <div className="mt-3 flex justify-center">
-        <BibiMascot size={120} mood="excited" animation="bounce" />
+        <TilaMascot size={120} mood="excited" animation="bounce" />
       </div>
 
       <SectionHeader

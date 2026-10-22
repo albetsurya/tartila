@@ -1,15 +1,166 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import {
-  ArrowRight,
-  Lock,
-  Star,
-  BookOpen,
-  Play,
-  Sparkles,
-} from "../../../../components/ui/FontAwesomeIcons";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
+
+/* ============================================================================
+ * NEO-BRUTALISM CUSTOM SVG ILLUSTRATIONS
+ * Style: stroke="#134E4A", strokeWidth="2.5", round joins, playful flat colors
+ * ============================================================================ */
+
+interface SvgProps {
+  size?: number;
+  className?: string;
+  fill?: string;
+}
+
+const BookOpenSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6Z"
+      fill="#2DD4BF"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 5C9 3.5 5 3.5 5 6V17C5 17 9 15 12 17C15 15 19 17 19 17V6C19 3.5 15 3.5 12 5Z"
+      fill="#FFFFFF"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 5V17"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const StarSvg: React.FC<SvgProps> = ({
+  size = 14,
+  className = "",
+  fill = "#FBBF24",
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M12 2.5L14.8 8.2L21 9.1L16.5 13.5L17.6 19.7L12 16.8L6.4 19.7L7.5 13.5L3 9.1L9.2 8.2L12 2.5Z"
+      fill={fill}
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const SparklesSvg: React.FC<SvgProps> = ({ size = 14, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M12 2L14.2 8.8L21 11L14.2 13.2L12 20L9.8 13.2L3 11L9.8 8.8L12 2Z"
+      fill="#FBBF24"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <circle cx="19" cy="5" r="2" fill="#FF6B6B" />
+  </svg>
+);
+
+const LockSvg: React.FC<SvgProps> = ({ size = 16, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <rect
+      x="5"
+      y="10"
+      width="14"
+      height="11"
+      rx="2.5"
+      fill="#CBD5E1"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+    <circle cx="12" cy="15.5" r="1.5" fill="#134E4A" />
+  </svg>
+);
+
+const ArrowRightSvg: React.FC<SvgProps> = ({ size = 14, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M4 12H15"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <path
+      d="M13 6L20 12L13 18V6Z"
+      fill="#FBBF24"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const PlaySvg: React.FC<SvgProps> = ({ size = 16, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M7 5V19L19 12L7 5Z"
+      fill="#134E4A"
+      stroke="#134E4A"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 interface TilawatiLevel {
   jilid: number;
@@ -242,7 +393,7 @@ export default function TilawatiAdventurePage() {
     >
       <div className="absolute right-4 top-3 z-50">
         <div className="flex items-center gap-1.5 rounded-xl border-[3px] border-[#134E4A] bg-white px-3 py-1.5 shadow-[2px_2px_0px_#134E4A]">
-          <Star size={14} className="text-[#F59E0B] fill-[#F59E0B]" />
+          <StarSvg size={14} fill="#F59E0B" />
           <span className="text-xs font-black text-[#134E4A]">0</span>
         </div>
       </div>
@@ -251,12 +402,12 @@ export default function TilawatiAdventurePage() {
         <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 text-white rounded-b-[40px] shadow-lg">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[8px] border-white/5" />
           <div className="absolute top-8 right-12 text-[#FF6B6B] rotate-12">
-            <BookOpen size={48} />
+            <BookOpenSvg size={48} />
           </div>
 
           <div className="relative z-10 max-w-[80%]">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FF6B6B] mb-3">
-              <Sparkles size={12} /> Petualangan Tilawati
+              <SparklesSvg size={12} /> Petualangan Tilawati
             </span>
             <h2 className="font-display text-[26px] font-black leading-tight mb-2">
               Mulai Perjalanan <br />
@@ -315,10 +466,10 @@ export default function TilawatiAdventurePage() {
                           <div
                             className={`flex h-8 w-8 items-center justify-center rounded-xl bg-white border-2 border-[#134E4A] ${theme.iconColor} shadow-sm`}
                           >
-                            <BookOpen size={16} />
+                            <BookOpenSvg size={16} />
                           </div>
                           <span className="flex items-center gap-1 text-[10px] font-bold text-[#D97706] bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded-md border-2 border-[#134E4A]">
-                            <Star size={10} fill="currentColor" />{" "}
+                            <StarSvg size={10} fill="currentColor" />{" "}
                             {level.earnedStars}/{level.totalStars}
                           </span>
                         </div>
@@ -347,7 +498,7 @@ export default function TilawatiAdventurePage() {
                               Mulai
                             </span>
                             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FF6B6B] border-2 border-[#134E4A] text-white">
-                              <ArrowRight size={14} />
+                              <ArrowRightSvg size={14} />
                             </span>
                           </div>
                         </div>
@@ -364,7 +515,7 @@ export default function TilawatiAdventurePage() {
                           <div
                             className={`flex h-8 w-8 items-center justify-center rounded-xl bg-gray-200 border-2 border-gray-400 text-gray-500`}
                           >
-                            <Lock size={16} />
+                            <LockSvg size={16} />
                           </div>
                         </div>
 
@@ -378,7 +529,7 @@ export default function TilawatiAdventurePage() {
                         </div>
 
                         <div className="relative z-10 mt-auto flex items-center gap-1.5 bg-white/50 backdrop-blur-sm w-max px-2 py-1 rounded-md border border-[#134E4A]/20">
-                          <Lock size={10} className="text-[#134E4A]/50" />
+                          <LockSvg size={10} />
                           <span className="text-[9px] font-bold text-[#134E4A]/50">
                             Terkunci
                           </span>
@@ -403,7 +554,7 @@ export default function TilawatiAdventurePage() {
           >
             <div className="relative z-10 flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0284C7] border-2 border-[#134E4A] text-white shadow-sm">
-                <BookOpen size={24} />
+                <BookOpenSvg size={24} />
               </div>
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#0284C7]">
@@ -418,10 +569,10 @@ export default function TilawatiAdventurePage() {
               </div>
             </div>
             <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white border-2 border-[#134E4A] text-[#134E4A] shadow-sm">
-              <Play size={16} fill="currentColor" className="ml-1" />
+              <PlaySvg size={16} />
             </div>
             <div className="absolute -right-2 -bottom-4 opacity-10 pointer-events-none">
-              <BookOpen size={80} className="text-[#134E4A]" />
+              <BookOpenSvg size={80} />
             </div>
           </motion.div>
         </section>

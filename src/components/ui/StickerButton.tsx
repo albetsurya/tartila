@@ -68,7 +68,13 @@ export const StickerButton = forwardRef<HTMLButtonElement, StickerButtonProps>(
         `}
         {...props}
       >
-        {loading && <span className="animate-spin">⏳</span>}
+        {loading && (
+          <div
+            className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0"
+            role="status"
+            aria-label="Memuat"
+          />
+        )}
         {children}
       </button>
     );

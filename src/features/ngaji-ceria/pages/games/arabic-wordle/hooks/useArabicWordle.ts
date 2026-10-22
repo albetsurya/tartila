@@ -33,7 +33,7 @@ function mergeKeyStatus(current: TileStatus | undefined, next: TileStatus): Tile
 
 function resultText(state: WordleState): string {
   const rows = state.statuses.map((row) => row.map((status) => status === "correct" ? "🟩" : status === "present" ? "🟨" : "⬛").join(""));
-  return `Ngaji Ceria Arabic Wordle ${state.mode === "daily" ? state.dateSeed : "latihan"}\n${rows.join("\n")}\n${state.solved ? `${state.guesses.length}/6 percobaan` : "Belum terpecahkan"}`;
+  return `Tartila Arabic Wordle ${state.mode === "daily" ? state.dateSeed : "latihan"}\n${rows.join("\n")}\n${state.solved ? `${state.guesses.length}/6 percobaan` : "Belum terpecahkan"}`;
 }
 
 export function useArabicWordle() {
@@ -70,7 +70,7 @@ export function useArabicWordle() {
   const share = useCallback(async () => {
     if (!state.shareText) return;
     try {
-      if (navigator.share) await navigator.share({ title: "Arabic Wordle Ngaji Ceria", text: state.shareText });
+      if (navigator.share) await navigator.share({ title: "Arabic Wordle Tartila", text: state.shareText });
       else await navigator.clipboard?.writeText(state.shareText);
       update((s) => ({ ...s, message: "Hasil sudah siap dibagikan." }));
     } catch { update((s) => ({ ...s, message: "Berbagi dibatalkan." })); }

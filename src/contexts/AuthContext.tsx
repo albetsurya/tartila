@@ -7,6 +7,7 @@ import {
 } from "react";
 import { authApi, type User } from "@/services/authApi";
 import { clearToken, getToken, setGroupId, ApiError } from "@/services/api";
+import { addEvent } from "@/services/eventService";
 
 export type CeriaUser = User;
 
@@ -122,6 +123,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGroupId(u?.group_id ?? null);
     setUser(u);
     setCachedUser(u);
+    addEvent({
+      type: "login",
+      userId: u.id,
+      username: u.name || u.username,
+      details: { method: "credentials", role: u.role },
+    });
   }
 
   async function loginWithGoogle(credential: string) {
@@ -129,6 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGroupId(u?.group_id ?? null);
     setUser(u);
     setCachedUser(u);
+    addEvent({
+      type: "login",
+      userId: u.id,
+      username: u.name || u.username,
+      details: { method: "google", role: u.role },
+    });
   }
 
   async function registerCeria(
@@ -146,9 +159,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGroupId(u?.group_id ?? null);
     setUser(u);
     setCachedUser(u);
+    addEvent({
+      type: "user_registered",
+      userId: u.id,
+      username: u.name || u.username,
+      details: { role: u.role },
+    });
   }
 
   async function logout() {
+    if (user) {
+      addEvent({
+        type: "logout",
+        userId: user.id,
+        username: user.name || user.username,
+      });
+    }
     const revoke = authApi.logout(); // Start revocation while token is still available
     clearToken();
     setCachedUser(null);

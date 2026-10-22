@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { AdabRpgCoverSvg } from "@/components/ui/Illustrations";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -25,9 +25,10 @@ function Game() {
           title="Jejak Santri"
           tagline="Petualangan kecil, adab besar"
           description="Jelajahi lokasi pesantren, selesaikan quest, dan ambil keputusan yang mengubah Akhlak, Ilmu, dan Sosial. Temukan satu dari empat ending."
-          coverImage={NGAJI_CERIA_ASSETS.hijaiyahMatchArena}
+          coverImage={<AdabRpgCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={() => navigate("/member/ngaji-ceria/games")}
           accent="violet"
         />
       ) : (
@@ -35,7 +36,6 @@ function Game() {
           <HUD
             score={game.score}
             progressLabel={`${game.choices}/9 quest`}
-            accent="violet"
           />
           <AdventureMap progress={game.choices} />
           <SceneView

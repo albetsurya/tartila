@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NGAJI_CERIA_ASSETS } from "../data/assets";
+import {
+  HarakatRushCoverSvg,
+  HijaiyahPopCoverSvg,
+  WudhuFlowCoverSvg,
+} from "@/components/ui/Illustrations";
 
 interface TutorialStep {
   title: string;
   description: string;
-  image?: string;
-  icon?: string;
+  image?: React.ReactNode;
 }
 
 const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
@@ -15,13 +18,15 @@ const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
     steps: [
       {
         title: "Pindah Jalur & Lompat",
-        description: "Ketuk jalur kiri/kanan untuk berpindah, atau ketuk tombol Lompat saat ada rintangan batu.",
-        image: NGAJI_CERIA_ASSETS.harakatRush,
+        description:
+          "Ketuk layar kiri atau kanan untuk berpindah jalur, dan ketuk tombol Lompat saat ada rintangan batu.",
+        image: <HarakatRushCoverSvg size={96} />,
       },
       {
-        title: "Ambil Target Harakat",
-        description: "Tabrak tile harakat yang tepat untuk mengumpulkan skor dan combo!",
-        image: NGAJI_CERIA_ASSETS.tangkapHarakat,
+        title: "Ambil Tile Harakat",
+        description:
+          "Tabrak tile harakat yang tepat untuk mengumpulkan skor dan menjaga combo tetap menyala!",
+        image: <HarakatRushCoverSvg size={96} />,
       },
     ],
   },
@@ -29,14 +34,16 @@ const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
     title: "Cara Bermain Hijaiyah Pop!",
     steps: [
       {
-        title: "Pecahkan Balon",
-        description: "Ketuk balon huruf Arab yang cocok dengan target suara/teks di layar.",
-        image: NGAJI_CERIA_ASSETS.hijaiyahPop,
+        title: "Tangkap Bintang Hijaiyah",
+        description:
+          "Ketuk bintang huruf Arab yang cocok dengan target suara atau teks yang muncul di layar.",
+        image: <HijaiyahPopCoverSvg size={96} />,
       },
       {
-        title: "Hindari Balon Salah",
-        description: "Jangan menepuk balon yang salah agar combo tidak terputus!",
-        image: NGAJI_CERIA_ASSETS.qirraPop,
+        title: "Hindari Item Salah",
+        description:
+          "Jangan mengetuk bintang yang salah agar combo tidak terputus dan nyawa tetap aman!",
+        image: <HijaiyahPopCoverSvg size={96} />,
       },
     ],
   },
@@ -45,13 +52,15 @@ const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
     steps: [
       {
         title: "Putar Pipa Wudhu",
-        description: "Ketuk pipa untuk memutarnya hingga tersambung dari pipa 1 sampai 10 sesuai urutan wudhu.",
-        image: NGAJI_CERIA_ASSETS.wudhuFlow,
+        description:
+          "Ketuk pipa untuk memutarnya hingga tersambung dari pipa 1 sampai 10 sesuai urutan wudhu.",
+        image: <WudhuFlowCoverSvg size={96} />,
       },
       {
         title: "Alirkan Air",
-        description: "Setelah pipa tersambung, ketuk Alirkan Air untuk memverifikasi urutan wudhu.",
-        image: NGAJI_CERIA_ASSETS.stepDoaSelesai,
+        description:
+          "Setelah pipa tersambung, ketuk Alirkan Air untuk memverifikasi urutan wudhu yang benar.",
+        image: <WudhuFlowCoverSvg size={96} />,
       },
     ],
   },
@@ -77,7 +86,15 @@ function markSeen(gameId: string) {
   } catch {}
 }
 
-export function GameTutorialModal({ gameId, forceShow = false, onClose }: { gameId: string; forceShow?: boolean; onClose?: () => void }) {
+export function GameTutorialModal({
+  gameId,
+  forceShow = false,
+  onClose,
+}: {
+  gameId: string;
+  forceShow?: boolean;
+  onClose?: () => void;
+}) {
   const tutorial = TUTORIALS[gameId];
   const [open, setOpen] = useState(() => {
     if (!tutorial) return false;
@@ -105,50 +122,78 @@ export function GameTutorialModal({ gameId, forceShow = false, onClose }: { game
     }
   };
 
+  const handleSkip = () => {
+    markSeen(gameId);
+    setOpen(false);
+    onClose?.();
+  };
+
   return (
-    <div className="fixed inset-0 z-[75] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#134e4a]/60 backdrop-blur-sm" />
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={handleSkip}
+          />
 
-      <motion.div
-        initial={{ scale: 0.85, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.85, opacity: 0 }}
-        className="relative z-10 w-full max-w-sm rounded-[32px] border-4 border-white bg-white p-5 text-center shadow-2xl"
-      >
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#0D9488]">
-          Panduan Bermain • {stepIndex + 1}/{tutorial.steps.length}
-        </p>
-        <h2 className="mt-1 font-display text-lg font-black text-[#134e4a]">{step.title}</h2>
-
-        {step.image && (
-          <div className="my-4 flex h-36 items-center justify-center rounded-2xl bg-[#F0FDF4] p-2">
-            <img src={step.image} alt="" className="h-full max-h-32 object-contain drop-shadow-lg" draggable={false} />
-          </div>
-        )}
-
-        <p className="text-xs leading-relaxed text-[#134e4a]/70">{step.description}</p>
-
-        <div className="mt-5 flex gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              markSeen(gameId);
-              setOpen(false);
-              onClose?.();
-            }}
-            className="flex-1 rounded-full border border-gray-200 bg-white py-2.5 text-xs font-bold text-[#134e4a]/60"
+          {/* Modal Content */}
+          <motion.div
+            initial={{ scale: 0.85, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.85, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 260 }}
+            className="relative z-10 w-full max-w-sm rounded-[24px] border-[3px] border-[#134E4A] bg-[#F0FDF4] p-5 text-center shadow-[6px_6px_0px_#134E4A]"
           >
-            Lewati
-          </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            className="flex-1 rounded-full bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-md hover:bg-[#0F766E]"
-          >
-            {isLast ? "Mulai Main!" : "Lanjut →"}
-          </button>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#FF6B6B]">
+              Panduan Bermain • {stepIndex + 1}/{tutorial.steps.length}
+            </p>
+            <h2 className="mt-1 font-display text-lg font-black text-[#134E4A]">
+              {step.title}
+            </h2>
+
+            {step.image && (
+              <div className="my-4 flex h-36 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-white p-2 shadow-[inset_2px_2px_0px_rgba(19,78,74,0.1)]">
+                {typeof step.image === "string" ? (
+                  <img
+                    src={step.image}
+                    alt=""
+                    className="h-full max-h-32 object-contain drop-shadow-[2px_2px_0px_rgba(19,78,74,0.2)]"
+                    draggable={false}
+                  />
+                ) : (
+                  step.image
+                )}
+              </div>
+            )}
+
+            <p className="text-xs font-bold text-[#134E4A]/70 leading-relaxed">
+              {step.description}
+            </p>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="flex-1 rounded-xl border-[2px] border-[#134E4A] bg-white py-2.5 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
+              >
+                Lewati
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                className="flex-1 rounded-xl border-[2px] border-[#134E4A] bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
+              >
+                {isLast ? "Mulai Main!" : "Lanjut →"}
+              </button>
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

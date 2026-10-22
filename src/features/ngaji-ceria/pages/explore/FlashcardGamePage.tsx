@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { ChevronLeft } from "../../../../components/ui/FontAwesomeIcons";
+import { ChevronLeft } from "../../../../components/ui/CustomIcons";
 
-const ANIMALS = [
-  "🐧",
-  "🐬",
-  "🦦",
-  "🐯",
-  "🐸",
-  "🐢",
-  "🦅",
-  "🦒",
-  "🦓",
-  "🦔",
-  "🦘",
-  "🐍",
+const CARD_LABELS = [
+  "ا",
+  "ب",
+  "ت",
+  "ث",
+  "ج",
+  "ح",
+  "خ",
+  "د",
+  "ذ",
+  "ر",
+  "ز",
+  "س",
 ];
 const ARABIC_TEXTS = [
   "بِسْمِ اللَّهِ",
@@ -33,13 +33,13 @@ const ARABIC_TEXTS = [
 
 interface CardData {
   id: number;
-  animal: string;
+  label: string;
   arabic: string;
 }
 
 const INITIAL_CARDS: CardData[] = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
-  animal: ANIMALS[i],
+  label: CARD_LABELS[i],
   arabic: ARABIC_TEXTS[i],
 }));
 
@@ -95,29 +95,30 @@ export default function FlashcardGamePage() {
             return (
               <div
                 key={card.id}
-                className="rounded-2xl shadow-sm border border-gray-100 bg-white aspect-[3/4] flex flex-col items-center justify-center relative"
+                className="rounded-2xl border-[3px] border-[#134E4A] bg-white aspect-[3/4] flex flex-col items-center justify-center relative shadow-[3px_3px_0px_#134E4A]"
               >
-                {/* Front: Emoji animal */}
-                <span className="absolute top-2 left-2 text-xs font-bold text-[#64748B]">
+                {/* Front: Hijaiyah card */}
+                <span className="absolute top-2 left-2 text-xs font-black text-[#134E4A]/60">
                   #{card.id}
                 </span>
-                <span className="absolute top-2 right-2 text-2xl text-[#FF6B6B]">
-                  ⭐
+                <span className="absolute top-2 right-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#FACC15" stroke="#134E4A" strokeWidth="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
                 </span>
-                <span className="inline-block text-5xl font-emoji select-none">
-                  {card.animal}
+                <span className="game-arabic inline-block text-5xl font-black text-[#134E4A] select-none">
+                  {card.label}
                 </span>
 
                 {/* Back: Arabic text and button */}
                 {isFlipped && (
                   <div className="w-full h-full flex flex-col items-center justify-center pt-8 pb-4 text-center">
-                    <p className="text-4xl font-black text-[#134E4A] mb-4 select-none">
+                    <p className="game-arabic text-3xl font-black text-[#134E4A] mb-4 select-none">
                       {card.arabic}
                     </p>
                     <button
                       onClick={() => handleUjiLayar()}
-                      className="mt-3 rounded-lg px-6 py-2.5 text-sm font-bold text-white transition-colors"
-                      style={{ backgroundColor: "#FF6B6B" }}
+                      className="mt-3 rounded-xl px-5 py-2 text-sm font-black text-white border-2 border-[#134E4A] bg-[#FF6B6B] shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all"
                     >
                       Uji Layar
                     </button>
@@ -137,20 +138,20 @@ export default function FlashcardGamePage() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="px-4 py-3 border-t border-gray-200 bg-white sticky bottom-0">
+        <div className="px-4 py-3 border-t-2 border-[#134E4A] bg-white sticky bottom-0">
           <div className="grid grid-cols-3 gap-2">
             {/* Acak Kartu */}
-            <button className="col-span-1 rounded-lg bg-[#0D9488] text-white font-bold text-sm py-2 px-3 shadow-sm hover:bg-[#134E4A] transition-colors">
+            <button className="col-span-1 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white font-black text-sm py-2 px-3 shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all">
               Acak Kartu
             </button>
 
             {/* Buka */}
-            <button className="col-span-1 rounded-lg bg-[#134E4A] text-white font-bold text-sm py-2 px-3 shadow-sm hover:bg-[#0D9488] transition-colors">
+            <button className="col-span-1 rounded-xl border-2 border-[#134E4A] bg-[#134E4A] text-white font-black text-sm py-2 px-3 shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all">
               Buka
             </button>
 
             {/* Selesai */}
-            <button className="col-span-1 rounded-lg bg-gray-300 text-gray-700 font-bold text-sm py-2 px-3 shadow-sm">
+            <button className="col-span-1 rounded-lg border-2 border-[#134E4A] bg-gray-200 text-[#134E4A] font-bold text-sm py-2 px-3 shadow-[2px_2px_0px_#134E4A]">
               Selesai
             </button>
           </div>
@@ -160,7 +161,7 @@ export default function FlashcardGamePage() {
         {showModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
             <div
-              className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 transform scale-95 opacity-0 transition-all duration-300"
+              className="relative w-full max-w-md bg-white rounded-2xl border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] p-8 transform scale-95 opacity-0 transition-all duration-300"
               style={{ transform: "scale(1)" }}
             >
               <p className="text-5xl font-black text-[#134E4A] mb-6 text-center select-none">
@@ -168,7 +169,7 @@ export default function FlashcardGamePage() {
               </p>
               <button
                 onClick={handleSudahDibaca}
-                className="w-full rounded-lg bg-[#0D9488] text-white font-bold text-sm py-3 px-6 shadow-md hover:bg-[#134E4A] transition-colors"
+                className="w-full rounded-lg border-2 border-[#134E4A] bg-[#0D9488] text-white font-bold text-sm py-3 px-6 shadow-[2px_2px_0px_#134E4A] hover:bg-[#134E4A] transition-colors"
               >
                 Sudah Dibaca
               </button>

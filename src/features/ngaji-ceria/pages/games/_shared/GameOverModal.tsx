@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { Star, Play } from "@/components/ui/FontAwesomeIcons";
+import { Star, Play, CoinSvg, Sparkles } from "@/components/ui/CustomIcons";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { ModalPanel } from "./ModalPanel";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
 import { type GameOverModalProps } from "./types";
 import { awardProgress, getProgress, recordLeaderboard } from "./progression";
 import { soundManager } from "../../../services/soundManager";
 import { canonicalGameId } from "../../../data/gameAccess";
+import { addEvent } from "@/services/eventService";
 
 export interface SecondChanceConfig {
   onSuccess: () => void;
@@ -39,6 +39,15 @@ export function GameOverModal({
   const [coinsGained, setCoinsGained] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [skipped, setSkipped] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!visible) {
@@ -78,6 +87,19 @@ export function GameOverModal({
     setCoinsGained(progress.coins - beforeCoins);
     recordLeaderboard(gameId, score);
     soundManager.playSfx(victory ? "victory" : "defeat");
+    addEvent({
+      type: "game_completed",
+      missionId: gameId,
+      missionName: gameId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      details: {
+        score,
+        best,
+        victory,
+        xpGained: progress.xp - before,
+        coinsGained: progress.coins - beforeCoins,
+        isNewRecord,
+      },
+    });
   }, [
     visible,
     secondChance,
@@ -122,15 +144,19 @@ export function GameOverModal({
                 soundManager.playSfx(
                   index === correctIndex ? "correct" : "wrong",
                 );
-                if (index === correctIndex) secondChance.onSuccess();
-                else window.setTimeout(() => setSelected(null), 450);
+                if (index === correctIndex) {
+                  secondChance.onSuccess();
+                } else {
+                  if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
+                  timeoutRef.current = window.setTimeout(() => setSelected(null), 450);
+                }
               }}
-              className={`w-full rounded-xl border-[2px] py-2.5 text-sm font-black transition-all ${
+              className={`w-full min-h-[44px] flex items-center justify-center rounded-xl border-[2px] py-2.5 px-3 text-sm font-black transition-all ${
                 selected === index
                   ? index === correctIndex
                     ? "border-[#134E4A] bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                    : "border-[#FF6B6B] bg-[#FF6B6B]/20 text-[#FF6B6B]"
-                  : "border-[#134E4A]/30 bg-white text-[#134E4A] hover:bg-gray-50"
+                    : "border-[#134E4A] bg-[#FF6B6B] text-white shadow-[2px_2px_0px_#134E4A]"
+                  : "border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-gray-50"
               }`}
             >
               {option}
@@ -140,7 +166,7 @@ export function GameOverModal({
         <button
           type="button"
           onClick={() => setSkipped(true)}
-          className="mt-4 text-xs font-bold text-[#134E4A]/50 underline w-full text-center"
+          className="mt-4 min-h-[44px] flex items-center justify-center text-xs font-bold text-[#134E4A]/70 underline w-full text-center"
         >
           Lewati dulu
         </button>
@@ -167,11 +193,7 @@ export function GameOverModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className="mt-2 flex items-center justify-center gap-1.5 rounded-xl border-[2px] border-[#F59E0B] bg-[#FEF3C7] p-2.5 text-center text-sm font-black text-[#B45309]"
         >
-          <img
-            src={NGAJI_CERIA_ASSETS.koinHijaiyah}
-            alt="Koin"
-            className="h-5 w-5 object-contain"
-          />
+          <CoinSvg size={20} />
           +{coinsGained} Koin
         </motion.p>
       )}
@@ -184,21 +206,9 @@ export function GameOverModal({
 
       {isNewRecord && (
         <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-black text-[#0D9488]">
-          <img
-            src={NGAJI_CERIA_ASSETS.konfeti}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            className="h-4 w-4 object-contain"
-          />
+          <Sparkles size={16} className="text-[#0D9488]" />
           REKOR BARU
-          <img
-            src={NGAJI_CERIA_ASSETS.konfeti}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            className="h-4 w-4 object-contain"
-          />
+          <Sparkles size={16} className="text-[#0D9488]" />
         </p>
       )}
 

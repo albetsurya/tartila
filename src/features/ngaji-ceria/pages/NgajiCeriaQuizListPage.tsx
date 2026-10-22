@@ -4,12 +4,11 @@ import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import {
-  ChevronRight,
-  Sparkles,
-  Star,
-  Lock,
-  Play,
-} from "../../../components/ui/FontAwesomeIcons";
+  LockSvg,
+  PlaySvg,
+  SparklesSvg,
+  ChevronRightSvg,
+} from "../../../components/ui/CustomIcons";
 import { LoginPromptModal } from "../components/LoginPromptModal";
 import { useJilidAccess } from "../components/GameLockGuard";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
@@ -42,10 +41,11 @@ function StandaloneQuizBookCard({
   onLockedTap,
   onClick,
 }: QuizBookProps) {
-  const isCompleted = completedQuestions === totalQuestions;
-  const progressPercent = Math.round(
-    (completedQuestions / totalQuestions) * 100,
-  );
+  const isCompleted = totalQuestions > 0 && completedQuestions === totalQuestions;
+  const progressPercent =
+    totalQuestions > 0
+      ? Math.round((completedQuestions / totalQuestions) * 100)
+      : 0;
 
   return (
     <motion.div
@@ -64,11 +64,11 @@ function StandaloneQuizBookCard({
         />
         {isLocked ? (
           <div className="absolute z-20 inset-0 m-auto w-7 h-7 rounded-full bg-[#134E4A]/80 text-white flex items-center justify-center border-2 border-white shadow-sm">
-            <Lock size={12} />
+            <LockSvg size={14} />
           </div>
         ) : (
           <div className="absolute z-20 top-1 right-1 w-6 h-6 rounded-full bg-[#FF6B6B] text-white flex items-center justify-center border-2 border-[#134E4A] shadow-sm">
-            <Play size={10} fill="white" className="ml-0.5" />
+            <PlaySvg size={12} className="ml-0.5" />
           </div>
         )}
       </div>
@@ -128,7 +128,7 @@ function StandaloneQuizBookCard({
       <button
         onClick={isLocked && onLockedTap ? onLockedTap : onClick}
         disabled={isLocked && !onLockedTap}
-        className={`shrink-0 self-center inline-flex items-center gap-1 rounded-xl px-3 py-2.5 text-[10px] font-black transition-all border-2 ${
+        className={`shrink-0 self-center inline-flex min-h-11 items-center gap-1 rounded-xl px-3 py-2.5 text-[11px] font-black transition-all border-2 ${
           isLocked
             ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
             : "bg-[#0D9488] text-white border-[#134E4A] active:scale-95"
@@ -136,11 +136,11 @@ function StandaloneQuizBookCard({
       >
         {isLocked ? (
           <>
-            <Lock size={10} /> Kunci
+            <LockSvg size={12} /> Kunci
           </>
         ) : (
           <>
-            Mulai <ChevronRight size={12} />
+            Mulai <ChevronRightSvg size={12} />
           </>
         )}
       </button>
@@ -253,7 +253,11 @@ export default function NgajiCeriaQuizListPage() {
   ];
 
   return (
-    <NgajiCeriaLayout title="Kuis Kartu" showBack onBack={() => navigate(-1)}>
+    <NgajiCeriaLayout
+      title="Kuis Kartu"
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria/explore/tilawati")}
+    >
       <div className="px-4 py-4 space-y-5 bg-[#F0FDF4] min-h-full rounded-t-3xl pb-32">
         {/* Hero Banner */}
         <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-6 pb-12 text-white rounded-[24px] border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#FF6B6B]">
@@ -267,7 +271,7 @@ export default function NgajiCeriaQuizListPage() {
             </div>
             <div>
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FF6B6B] text-white text-[10px] font-black uppercase tracking-wider mb-1">
-                <Sparkles size={10} /> Tantangan
+                <SparklesSvg size={12} /> Tantangan
               </div>
               <h2 className="font-display text-lg font-black text-white">
                 Pilih Kitab Kuis

@@ -1,5 +1,5 @@
 .ceria-game { overflow: hidden; }
-.ceria-game .game-arabic { font-family: "Amiri", "Noto Naskh Arabic", "Traditional Arabic", serif; }
+.game-arabic { font-family: "Amiri", "Noto Naskh Arabic", "Traditional Arabic", serif; }
 .game-button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 60px; padding: .75rem 1rem; border-radius: 1rem; color: white; font-size: .875rem; font-weight: 800; transition: transform 150ms cubic-bezier(.2,.8,.2,1), background-color 150ms; touch-action: manipulation; }
 .game-button:active { transform: scale(.97); }
 .game-button:disabled { opacity: .4; cursor: not-allowed; }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Info, Volume2 } from "../../../../components/ui/FontAwesomeIcons";
+import { Info, Volume2 } from "../../../../components/ui/CustomIcons";
 import { StickerButton, StickerCard } from "../../../../components/ui";
 import type { MaterialItem, QuizModelBaseProps } from "./types";
 

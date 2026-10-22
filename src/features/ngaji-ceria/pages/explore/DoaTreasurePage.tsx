@@ -4,7 +4,7 @@ import {
   ChevronRight,
   Search,
   Volume2,
-} from "../../../../components/ui/FontAwesomeIcons";
+} from "../../../../components/ui/CustomIcons";
 import { DOA_CATEGORIES, DOA_LIST } from "./exploreData";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 

@@ -13,7 +13,7 @@ import {
   isNgajiCeriaServerAvailable,
   ngajiCeriaApi,
 } from "../services/ngajiCeriaApi";
-import { Trophy, Star } from "../../../components/ui/FontAwesomeIcons";
+import { Trophy, Star } from "../../../components/ui/CustomIcons";
 
 const TITLES: Record<string, string> = {
   "ayat-hunter": "Ayat Hunter",

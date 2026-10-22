@@ -22,7 +22,7 @@ export function ModalPanel({ title, children, onClose, warm = false }: { title: 
   }, [onClose]);
   return createPortal(
     <div onClick={(event) => { if (event.target === event.currentTarget) onClose?.(); }} className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/60 px-5 py-6 backdrop-blur-sm">
-      <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={title} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }} className={`ceria-modal max-h-[calc(100dvh-3rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-3xl border p-6 text-center shadow-2xl ${warm ? "border border-gray-100 bg-[#F0FDF4] text-[#134e4a]" : "border-white/15 bg-[#0F2E2B] text-white"}`}>
+      <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={title} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }} className={`ceria-modal max-h-[calc(100dvh-3rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-3xl border-[3px] border-[#134E4A] p-6 text-center shadow-[6px_6px_0px_#134E4A] ${warm ? "bg-[#F0FDF4] text-[#134e4a]" : "bg-[#0F2E2B] text-white"}`}>
         <h2 className="font-display text-2xl font-black">{title}</h2>
         {children}
       </motion.div>

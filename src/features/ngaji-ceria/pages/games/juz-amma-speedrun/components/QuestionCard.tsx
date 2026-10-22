@@ -9,7 +9,7 @@ export function QuestionCard({ question, selectedIndex, answerState, onSelect }:
   const failed = answerState === "wrong" || answerState === "timeout";
   return <motion.div key={`${question.id}:${answerState}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.18 }} className={`relative space-y-3 ${failed ? "game-shake" : ""}`}>
     {answerState === "correct" && <SparkleBurst burstKey={question.id} />}
-    <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
+    <div className="rounded-3xl border-2 border-[#134E4A] bg-white p-6 text-center shadow-[3px_3px_0px_#134E4A]">
       <p className="text-[10px] font-black uppercase tracking-wider text-[#0D9488]">{LABELS[question.type]}</p>
       <p className="mt-2 text-xs leading-relaxed text-[#134E4A]/70">{question.prompt}</p>
       <p dir="rtl" className="game-arabic mt-3 text-center text-3xl leading-loose text-[#134E4A]">{question.promptArabic}</p>

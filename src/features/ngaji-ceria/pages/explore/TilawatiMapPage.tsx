@@ -9,10 +9,19 @@ import {
   Play,
   X,
   ChevronLeft,
-} from "../../../../components/ui/FontAwesomeIcons";
+  Sun,
+  Moon,
+  Sparkles,
+  Fire,
+  Sprout,
+  Seedling,
+  Snowflake,
+  Compass,
+} from "../../../../components/ui/CustomIcons";
 import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
-import { useEconomyStore } from "../../hooks/useEconomyStore";
+import { useEconomyStore, isUnlimitedUser } from "../../hooks/useEconomyStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
 import { NGAJI_CERIA_ASSETS } from "../../data/assets";
 
@@ -94,11 +103,11 @@ const MAP_THEMES = {
     islandShape: "rounded-[60%_40%_50%_50%/50%_60%_40%_50%]",
     decor: () => (
       <>
-        <div className="absolute top-10 right-10 opacity-70 text-6xl drop-shadow-md">
-          ☁️
+        <div className="absolute top-10 right-10 opacity-70 drop-shadow-md">
+          <Sun size={48} className="text-[#38BDF8]" />
         </div>
-        <div className="absolute top-1/3 left-4 opacity-50 text-5xl drop-shadow-md">
-          🐟
+        <div className="absolute top-1/3 left-4 opacity-50 drop-shadow-md">
+          <Sparkles size={36} className="text-[#0284C7]" />
         </div>
       </>
     ),
@@ -117,11 +126,11 @@ const MAP_THEMES = {
     islandShape: "rounded-[30%_70%_40%_60%/60%_30%_70%_40%]",
     decor: () => (
       <>
-        <div className="absolute top-12 right-8 opacity-80 text-7xl drop-shadow-lg">
-          ☀️
+        <div className="absolute top-12 right-8 opacity-80 drop-shadow-lg">
+          <Sun size={52} className="text-[#F59E0B]" />
         </div>
-        <div className="absolute top-1/2 left-2 opacity-60 text-5xl drop-shadow-md">
-          🌵
+        <div className="absolute top-1/2 left-2 opacity-60 drop-shadow-md">
+          <Sparkles size={36} className="text-[#D97706]" />
         </div>
       </>
     ),
@@ -140,11 +149,11 @@ const MAP_THEMES = {
     islandShape: "rounded-[50%_50%_30%_70%/40%_60%_40%_60%]",
     decor: () => (
       <>
-        <div className="absolute top-20 right-12 opacity-60 text-6xl drop-shadow-md">
-          🌿
+        <div className="absolute top-20 right-12 opacity-60 drop-shadow-md">
+          <Sprout size={48} className="text-[#059669]" />
         </div>
-        <div className="absolute top-2/3 left-6 opacity-70 text-5xl drop-shadow-md">
-          🦜
+        <div className="absolute top-2/3 left-6 opacity-70 drop-shadow-md">
+          <Seedling size={36} className="text-[#10B981]" />
         </div>
       </>
     ),
@@ -163,11 +172,11 @@ const MAP_THEMES = {
     islandShape: "rounded-[40%_60%_50%_50%/50%_40%_60%_50%]",
     decor: () => (
       <>
-        <div className="absolute top-16 right-6 opacity-80 text-6xl drop-shadow-md">
-          ❄️
+        <div className="absolute top-16 right-6 opacity-80 drop-shadow-md">
+          <Snowflake size={48} className="text-[#38BDF8]" />
         </div>
-        <div className="absolute top-1/2 left-8 opacity-80 text-5xl drop-shadow-md">
-          ⛄
+        <div className="absolute top-1/2 left-8 opacity-80 drop-shadow-md">
+          <Sparkles size={36} className="text-[#60A5FA]" />
         </div>
       </>
     ),
@@ -186,11 +195,11 @@ const MAP_THEMES = {
     islandShape: "rounded-[20%_80%_30%_70%/70%_30%_80%_20%]",
     decor: () => (
       <>
-        <div className="absolute top-10 right-10 opacity-90 text-7xl drop-shadow-[0_0_15px_rgba(249,115,22,0.8)]">
-          🌋
+        <div className="absolute top-10 right-10 opacity-90 drop-shadow-md">
+          <Fire size={52} className="text-[#EF4444]" />
         </div>
-        <div className="absolute top-2/3 left-4 opacity-80 text-5xl drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]">
-          🔥
+        <div className="absolute top-2/3 left-4 opacity-80 drop-shadow-md">
+          <Fire size={36} className="text-[#F97316]" />
         </div>
       </>
     ),
@@ -209,14 +218,14 @@ const MAP_THEMES = {
     islandShape: "rounded-[10%_90%_20%_80%/80%_20%_90%_10%]",
     decor: () => (
       <>
-        <div className="absolute top-12 right-8 opacity-90 text-7xl drop-shadow-[0_0_20px_rgba(192,132,252,0.8)]">
-          🪐
+        <div className="absolute top-12 right-8 opacity-90 drop-shadow-md">
+          <Moon size={52} className="text-[#A855F7]" />
         </div>
-        <div className="absolute top-1/2 left-2 opacity-80 text-5xl drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]">
-          🌟
+        <div className="absolute top-1/2 left-2 opacity-80 drop-shadow-md">
+          <Star size={36} className="text-[#FDE047] fill-[#FDE047]" />
         </div>
-        <div className="absolute bottom-20 right-10 opacity-90 text-6xl drop-shadow-md">
-          ☄️
+        <div className="absolute bottom-20 right-10 opacity-90 drop-shadow-md">
+          <Sparkles size={40} className="text-[#C084FC]" />
         </div>
       </>
     ),
@@ -243,6 +252,7 @@ export default function TilawatiMapPage() {
 
   const [isPanduanOpen, setIsPanduanOpen] = useState(false);
   const [energyEmpty, setEnergyEmpty] = useState(false);
+  const [isPracticeMode, setIsPracticeMode] = useState(false);
   const consumeHeart = useEconomyStore((s) => s.consumeHeart);
   const [selectedNode, setSelectedNode] = useState<
     (typeof TILAWATI_PAGES)[0] | null
@@ -283,16 +293,27 @@ export default function TilawatiMapPage() {
     setSelectedNode(nodeData);
   };
 
-  const handleStartLearning = () => {
+  const { user, groupId } = useAuth();
+  const isVip = useEconomyStore((s) => s.isVip);
+  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
+
+  const handleStartLearning = (practiceOverride?: boolean) => {
     if (!selectedNode) return;
-    if (!consumeHeart()) {
-      setEnergyEmpty(true);
-      return;
+    const isPractice =
+      practiceOverride !== undefined ? practiceOverride : isPracticeMode;
+    if (!isPractice && !isUnlimited) {
+      if (!consumeHeart()) {
+        setEnergyEmpty(true);
+        return;
+      }
     }
     triggerBibiReaction("play");
+    const targetNode = selectedNode;
     setSelectedNode(null);
     navigate(
-      `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${selectedNode.page}`,
+      `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${targetNode.page}${
+        isPractice ? "&practice=true" : ""
+      }`,
     );
   };
 
@@ -448,7 +469,7 @@ export default function TilawatiMapPage() {
           ))}
         </div>
 
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2 relative z-10">
+        <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2 flex-wrap relative z-50">
           <button
             type="button"
             onClick={() => navigate("/member/ngaji-ceria/explore/tilawati")}
@@ -456,6 +477,22 @@ export default function TilawatiMapPage() {
           >
             <ChevronLeft size={14} />
             Daftar Jilid
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsPracticeMode(!isPracticeMode)}
+            className={`flex items-center gap-1.5 rounded-xl border-2 ${theme.nodeBorder} px-3 py-1.5 text-[11px] font-black transition-all ${
+              isPracticeMode
+                ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                : "bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+            }`}
+          >
+            <Compass
+              size={13}
+              className={isPracticeMode ? "text-white" : "text-[#0D9488]"}
+            />
+            <span>{isPracticeMode ? "Latihan: ON" : "Latihan"}</span>
           </button>
 
           <AnimatePresence>
@@ -666,13 +703,13 @@ export default function TilawatiMapPage() {
                 </div>
 
                 <div
-                  className={`flex items-center justify-center gap-3 mb-6 ${theme.islandBg}/10 rounded-xl py-2.5 px-3 border-2 ${theme.nodeBorder}/20`}
+                  className={`flex items-center justify-center gap-3 mb-4 ${theme.islandBg}/10 rounded-xl py-2.5 px-3 border-2 ${theme.nodeBorder}/20`}
                 >
                   <div
                     className={`flex items-center gap-1 text-[11px] font-bold ${theme.textColor}`}
                   >
                     <Star size={12} className="text-[#F59E0B] fill-[#F59E0B]" />
-                    +30 Poin
+                    {isPracticeMode ? "0 Poin (Latihan)" : "+30 Poin"}
                   </div>
                   <div className={`w-px h-3 ${theme.nodeBorder}/20`} />
                   <div
@@ -683,11 +720,39 @@ export default function TilawatiMapPage() {
                   </div>
                 </div>
 
+                {/* Mode Latihan Toggle Box */}
+                <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] mb-4">
+                  <div className="text-left">
+                    <p className="text-xs font-black text-[#134E4A] flex items-center gap-1.5">
+                      <Compass size={14} className="text-[#0D9488]" /> Mode Latihan
+                    </p>
+                    <p className="text-[10px] font-bold text-[#134E4A]/60">
+                      Bebas tanpa nyawa & tanpa perolehan bintang
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPracticeMode(!isPracticeMode)}
+                    className={`w-12 h-6 rounded-full border-2 border-[#134E4A] transition-colors p-0.5 flex items-center ${
+                      isPracticeMode
+                        ? "bg-[#0D9488] justify-end"
+                        : "bg-gray-200 justify-start"
+                    }`}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white border border-[#134E4A] shadow-sm" />
+                  </button>
+                </div>
+
                 <button
-                  onClick={handleStartLearning}
-                  className={`w-full ${theme.nodeBg} text-white font-black text-sm py-4 rounded-2xl border-[3px] ${theme.nodeBorder} shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
+                  onClick={() => handleStartLearning()}
+                  className={`w-full ${
+                    isPracticeMode ? "bg-[#0D9488]" : theme.nodeBg
+                  } text-white font-black text-sm py-4 rounded-2xl border-[3px] ${
+                    theme.nodeBorder
+                  } shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
                 >
-                  Mulai Belajar <Play size={14} className="fill-white" />
+                  {isPracticeMode ? "Mulai Latihan (Bebas Nyawa)" : "Mulai Belajar (1 Hati)"}{" "}
+                  <Play size={14} className="fill-white" />
                 </button>
               </motion.div>
             </>

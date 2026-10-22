@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { SantriIdleCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { HUD } from "../_shared/HUD";
@@ -28,28 +29,32 @@ function Game() {
       accent="pink"
     >
       <div className="space-y-3">
-        <div className="flex items-center justify-center gap-3 rounded-3xl border border-rose-300/20 bg-gradient-to-br from-rose-950/70 to-amber-950/60 p-4">
-          <img
-            src={NGAJI_CERIA_ASSETS.quranQuizRoyale}
-            alt=""
-            className="h-16 w-16 object-contain"
-          />
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-rose-200/70">
-              Kas pesantren
+        <div className="flex items-center justify-between gap-4 rounded-3xl border-2 border-[#134E4A] bg-[#115E59] p-4 shadow-[3px_3px_0px_#134E4A]">
+          <div className="flex-1">
+            <p className="text-[10px] uppercase tracking-wider text-rose-200/80 font-black">
+              Kas Pesantren
             </p>
             <p className="font-display text-3xl font-black text-white">
               {formatIdleNumber(game.coins)}
             </p>
-            <p className="text-xs text-rose-200">
+            <p className="text-xs font-bold text-amber-300">
               +{formatIdleNumber(game.rate)} santri/detik
             </p>
+          </div>
+          {/* Maskot duduk bersandar di buku dengan animasi float */}
+          <div className="relative flex flex-col items-center shrink-0">
+            <TilaMascot
+              size={76}
+              animation="float"
+              mood="happy"
+              direction="front"
+              speech={`${formatIdleNumber(game.rate)}/dtk`}
+            />
           </div>
         </div>
         <HUD
           score={Math.floor(game.coins)}
           progressLabel="Bangun pesantren"
-          accent="pink"
         />
         <CampusMap
           buildings={SANTRI_BUILDINGS.map((building) => ({

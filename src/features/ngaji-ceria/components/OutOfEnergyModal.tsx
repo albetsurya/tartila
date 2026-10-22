@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModalPanel } from "../pages/games/_shared/ModalPanel";
 import { StickerButton } from "@/components/ui";
-import { BibiMascot } from "@/components/ui/BibiMascot";
-import { Coins, Crown } from "@/components/ui/FontAwesomeIcons";
+import { TilaMascot } from "@/components/ui/TilaMascot";
+import { Coins, Crown } from "@/components/ui/CustomIcons";
 import {
   HEART_REGEN_MS,
   TICKET_REGEN_MS,
   useEconomyStore,
+  isUnlimitedUser,
   type EnergyKind,
 } from "../hooks/useEconomyStore";
+import { useAuth } from "@/contexts/AuthContext";
 
 function formatWait(now: number, lastRegen: number, interval: number): string {
   const elapsed = Math.max(0, now - lastRegen);
@@ -31,20 +33,23 @@ export function OutOfEnergyModal({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
+  const { user, groupId } = useAuth();
+  const isVip = useEconomyStore((s) => s.isVip);
+  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
   const lastHeartRegen = useEconomyStore((s) => s.lastHeartRegen);
   const lastTicketRegen = useEconomyStore((s) => s.lastTicketRegen);
   const syncTime = useEconomyStore((s) => s.syncTime);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || isUnlimited) return;
     syncTime();
     setNow(Date.now());
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
-  }, [visible, syncTime]);
+  }, [visible, isUnlimited, syncTime]);
 
-  if (!visible) return null;
+  if (!visible || isUnlimited) return null;
 
   const isHeart = type === "heart";
   const wait = isHeart
@@ -54,7 +59,7 @@ export function OutOfEnergyModal({
   return (
     <ModalPanel title={isHeart ? "Hati Habis!" : "Tiket Habis!"} warm onClose={onClose}>
       <div className="my-4 flex flex-col items-center text-center">
-        <BibiMascot size={120} mood="sad" direction="front" animation="float" />
+        <TilaMascot size={120} mood="sad" direction="front" animation="float" />
 
         <p className="mt-4 text-sm font-bold text-[#134E4A]/70">
           {isHeart

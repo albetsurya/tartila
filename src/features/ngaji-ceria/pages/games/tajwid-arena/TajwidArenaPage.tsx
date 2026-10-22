@@ -1,5 +1,8 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { TajwidArenaCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot, type TilaMood, type TilaAnimation } from "@/components/ui/TilaMascot";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -14,10 +17,59 @@ import { Card } from "./components/Card";
 import { LogFeed } from "./components/LogFeed";
 import { QuestionModal } from "./components/QuestionModal";
 
+/**
+ * Tidak ada nomor surah/ayat di data questions/cards, jadi pelafalan memakai
+ * huruf banakar hukum tajwid via playLetterAudio (Web Speech).
+ */
+const RULE_LETTER: Record<string, string> = {
+  idgham: "ن",
+  ikhfa: "ن",
+  iqlab: "ب",
+  izhar: "ء",
+  ghunnah: "ن",
+};
+
 function Game() {
   const game = useTajwidArena();
   const exit = useGameExit();
   const navigate = useNavigate();
+
+  const [tilaMood, setTilaMood] = useState<TilaMood>("happy");
+  const [tilaAnimation, setTilaAnimation] = useState<TilaAnimation>("bounce");
+  const [tilaSpeech, setTilaSpeech] = useState<string>("Kartu siap!");
+
+  useEffect(() => {
+    if (game.playerHp <= 0) {
+      setTilaMood("sad");
+      setTilaAnimation("float");
+      setTilaSpeech("Jangan menyerah!");
+    } else if (game.playerHp < 30) {
+      setTilaMood("sad");
+      setTilaAnimation("float");
+      setTilaSpeech("Jaga fokus!");
+    } else if (game.answerStatus === "correct" || game.wins > 0) {
+      setTilaMood("excited");
+      setTilaAnimation("bounce");
+      setTilaSpeech("Luar biasa!");
+    } else {
+      setTilaMood("happy");
+      setTilaAnimation("bounce");
+      setTilaSpeech("Kartu siap!");
+    }
+  }, [game.playerHp, game.answerStatus, game.wins]);
+
+  // Audio pelafalan: huruf dari soal aktif (contoh "ب" pada hukum nun bertemu ب),
+  // fallback ke huruf banakar kartu hukum; aktif hanya saat fase playing.
+  useEffect(() => {
+    if (game.phase !== "playing" || game.turn !== "question") return;
+    const arabic = game.currentQuestion.prompt.match(/[\u0621-\u064A]/g);
+    const letter =
+      arabic && arabic.length > 0
+        ? arabic[arabic.length - 1]
+        : RULE_LETTER[game.currentQuestion.answerCard];
+    if (letter) playLetterAudio(letter);
+  }, [game.questionIndex, game.phase, game.turn]);
+
   return (
     <GameShell
       title="Tajwid Arena"
@@ -31,9 +83,10 @@ function Game() {
           title="Tajwid Arena"
           tagline="Majelis kartu · tiga sesi"
           description="Susun minimal tiga kartu ilmu. Jawab soal untuk fokus, mainkan kartu di meja majelis, ambil kartu baru, lalu pilih istirahat, khazanah, atau sesi pendalaman sebelum sesi akhir."
-          coverImage={NGAJI_CERIA_ASSETS.hijaiyahMatchArena}
+          coverImage={<TajwidArenaCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="violet"
         >
           <div className="mt-2 flex w-full max-w-sm flex-col gap-2 text-left">
@@ -47,7 +100,7 @@ function Game() {
                   key={card.id}
                   aria-pressed={game.deck.some((item) => item.id === card.id)}
                   onClick={() => game.toggleCard(card.id)}
-                  className="game-button border border-teal-300/30 bg-teal-500/20"
+                  className="game-button min-h-[44px] border-2 border-[#134E4A] bg-[#0D9488] shadow-[2px_2px_0px_#134E4A]"
                 >
                   {card.name}
                 </button>
@@ -60,7 +113,7 @@ function Game() {
                   key={difficulty}
                   aria-pressed={game.difficulty === difficulty}
                   onClick={() => game.setDifficulty(difficulty)}
-                  className="game-button border border-white/20"
+                  className="game-button min-h-[44px] border-2 border-[#134E4A] bg-[#115E59] shadow-[2px_2px_0px_#134E4A]"
                 >
                   {["Santai", "Normal", "Sulit"][i]}
                 </button>
@@ -69,17 +122,44 @@ function Game() {
           </div>
         </StartScreen>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 pb-24 md:pb-32 relative">
           <HUD
             score={game.score}
             progressLabel={`Sesi ${Math.min(3, game.wins + 1)}/3 · ${game.deck.length} kartu`}
-            accent="violet"
           />
           <DeckRunMap
             energy={game.energy}
             handSize={game.hand.length}
             turn={game.turn}
           />
+          {/* Maskot sebagai avatar pemain */}
+          <div className="pointer-events-none select-none flex items-center justify-between p-2.5 rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[3px_3px_0px_#134E4A] text-[#134E4A]">
+            <div className="flex items-center gap-3">
+              <TilaMascot
+                size={64}
+                mood={tilaMood}
+                animation={tilaAnimation}
+                direction="right"
+                speech={tilaSpeech}
+              />
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 block">
+                  Avatar Pemain
+                </span>
+                <span className="text-sm font-black text-[#134E4A]">
+                  Fokus: {game.playerHp}/100
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-bold text-teal-700 block">
+                Energi Majelis
+              </span>
+              <span className="text-base font-black text-amber-600">
+                {game.energy}⚡
+              </span>
+            </div>
+          </div>
           <MajelisScoreBoard
             playerHp={game.playerHp}
             rivalHp={game.aiHp}
@@ -139,7 +219,7 @@ function Game() {
             </div>
           ) : (
             <>
-              <p className="text-xs text-white/70">
+              <p className="rounded-2xl border-[3px] border-[#134E4A] bg-white px-3 py-2 shadow-[3px_3px_0px_#134E4A] text-xs font-bold text-[#134E4A]">
                 Hand kamu · {game.hand.length}/7 · shield {game.shield}
                 {game.double ? " · serangan berikutnya ×2" : ""}
               </p>

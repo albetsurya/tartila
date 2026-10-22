@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { motion } from "framer-motion";
+import { MalaikatMissionCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { ComboBadge } from "../_shared/ComboBadge";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameOverModal } from "../_shared/GameOverModal";
@@ -37,9 +39,10 @@ function Game() {
           title="Malaikat Mission"
           tagline="Kurir pos langit"
           description="Jadilah kurir amanah: antar 9 paket ke tujuannya dengan memilih malaikat yang tepat. Sepuluh detik per paket, combo untuk antar cepat."
-          coverImage={NGAJI_CERIA_ASSETS.malaikatMission}
+          coverImage={<MalaikatMissionCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={() => navigate("/member/ngaji-ceria/games")}
           accent="cyan"
         />
       ) : (
@@ -49,13 +52,31 @@ function Game() {
               score={game.score}
               progressLabel={`Paket ${game.index + 1}/${game.missions.length}`}
               timeLeft={game.timeLeft}
-              accent="cyan"
             />
             <TimerBar
               progress={game.timeLeft / 10}
               secondsLeft={game.timeLeft}
-              accent="cyan"
             />
+            {/* Maskot terbang menjelajah sebagai kurir pos langit */}
+            <div className="flex items-center justify-between p-2.5 rounded-2xl border-2 border-[#134E4A] bg-teal-900/60 shadow-[2px_2px_0px_#134E4A] overflow-hidden">
+              <motion.div
+                animate={{ x: [0, 20, 0], y: [0, -4, 0] }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                className="flex items-center gap-2"
+              >
+                <TilaMascot
+                  size={64}
+                  animation="fly"
+                  mood={game.status === "correct" ? "excited" : "happy"}
+                  direction="right"
+                  speech={courierStatus ?? "Menjelajah Langit..."}
+                />
+              </motion.div>
+              <div className="text-right text-[10px] font-bold text-teal-200">
+                <span className="block font-black text-amber-300">Pos Langit Amanah</span>
+                <span>Paket {game.index + 1}/{game.missions.length}</span>
+              </div>
+            </div>
             <SkyCourierTrack
               playerHp={game.playerHp}
               lightHp={game.monsterHp}
@@ -65,14 +86,14 @@ function Game() {
               total={game.missions.length}
               status={courierStatus}
             />
-            <div className="rounded-3xl border border-teal-300/25 bg-teal-950/60 p-4 text-center">
+            <div className="rounded-3xl border-2 border-[#134E4A] bg-[#115E59] p-4 text-center shadow-[2px_2px_0px_#134E4A]">
               <p className="text-xs font-black uppercase tracking-widest text-teal-300">
                 Mission Brief · Tujuan: {mission.monster}
               </p>
               <p className="mt-2 text-sm font-black text-white">
                 {mission.prompt}
               </p>
-              <p className="mt-2 text-xs text-white/60">
+              <p className="mt-2 text-xs text-teal-100">
                 Fokus pada tugas: {mission.task}
               </p>
             </div>
@@ -85,7 +106,13 @@ function Game() {
                   data-option-correct={index === mission.correctIndex}
                   disabled={game.status !== "idle"}
                   onClick={() => game.answer(index)}
-                  className={`rounded-2xl border p-3 text-left text-sm font-black transition active:scale-[.98] ${game.selected === index ? (game.status === "correct" ? "quiz-option-correct border-teal-300 bg-teal-500/20" : "game-shake border-red-300 bg-red-500/20") : "border-white/15 bg-white/5"}`}
+                  className={`min-h-[44px] rounded-2xl border-2 border-[#134E4A] p-3 text-left text-sm font-black transition active:scale-[.98] shadow-[2px_2px_0px_#134E4A] relative z-30 ${
+                    game.selected === index
+                      ? game.status === "correct"
+                        ? "bg-[#059669] text-white"
+                        : "game-shake bg-[#DC2626] text-white"
+                      : "bg-[#0F766E] text-white"
+                  }`}
                 >
                   {option}
                 </button>

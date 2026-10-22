@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { LockSvg } from "@/components/ui/CustomIcons";
 
 /**
  * Modal ajakan login saat tamu mengetuk konten terkunci.
@@ -40,10 +41,10 @@ export function LoginPromptModal({
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl border border-gray-100 bg-[#F0FDF4] p-6 text-center text-[#134e4a] shadow-2xl"
+        className="w-full max-w-sm rounded-3xl border-[3px] border-[#134E4A] bg-[#F0FDF4] p-6 text-center text-[#134e4a] shadow-[6px_6px_0px_#134E4A]"
       >
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#134e4a] px-3 py-1 text-xs font-black text-white">
-          🔒 {title}
+          <LockSvg size={13} /> {title}
         </span>
         <h2 className="mt-3 font-display text-xl font-black">
           Masuk untuk Akses Penuh

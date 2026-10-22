@@ -8,7 +8,7 @@ import {
   X,
   Sparkles,
   Trophy,
-} from "../../../components/ui/FontAwesomeIcons";
+} from "../../../components/ui/CustomIcons";
 
 export default function TebakAyatGamePage() {
   const navigate = useNavigate();
@@ -161,7 +161,7 @@ export default function TebakAyatGamePage() {
                   key={opt}
                   disabled={status !== "idle"}
                   onClick={() => handlePick(opt)}
-                  className={`py-3.5 px-2 rounded-2xl font-black text-sm border-2 transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
+                  className={`min-h-14 py-3.5 px-3 rounded-2xl font-black text-sm border-2 transition-all active:scale-95 flex items-center justify-center gap-1.5 break-words ${
                     showCorrect
                       ? "bg-[#D1FAE5] border-[#0F766E] text-[#0F766E] shadow-md"
                       : showWrong

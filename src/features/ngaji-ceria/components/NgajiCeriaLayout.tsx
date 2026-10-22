@@ -1,20 +1,39 @@
 import React, { ReactNode, useEffect, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "../../../components/ui/FontAwesomeIcons";
+import { motion } from "framer-motion";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
 import { EconomyHUD } from "./EconomyHUD";
 import { RewardChestModal } from "./RewardChestModal";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
+import { useEconomyStore, isUnlimitedUser } from "../hooks/useEconomyStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { getRank, useNgajiProgress } from "../pages/games/_shared/progression";
 import { ProgressionNotice } from "./ProgressionNotice";
 import { soundManager } from "../services/soundManager";
 import {
-  BibiCompanion,
+  TilaCompanion,
   type PageTipConfig,
-} from "../../../components/ui/BibiCompanion";
+} from "../../../components/ui/TilaCompanion";
+import {
+  HeartSvg,
+  TicketSvg,
+  FireSvg,
+  StarSvg,
+  CoinSvg,
+  ChevronLeftSvg,
+} from "../../../components/ui/CustomIcons";
+import { NotificationBell } from "../../../components/ui/NotificationBell";
+import type { NotificationRole } from "@/services/notificationService";
 
 export type { PageTipConfig };
+
+const MAIN_TABS = [
+  "/member/ngaji-ceria",
+  "/member/ngaji-ceria/map",
+  "/member/ngaji-ceria/games",
+  "/member/ngaji-ceria/profile",
+];
 
 interface NgajiCeriaLayoutProps {
   children: ReactNode;
@@ -29,7 +48,7 @@ interface NgajiCeriaLayoutProps {
 
 function PageContentFallback() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center bg-[#F0FDF4]">
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#F0FDF4]">
       <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0D9488]/30 border-t-[#0D9488]" />
     </div>
   );
@@ -47,9 +66,31 @@ export function NgajiCeriaLayout({
 }: NgajiCeriaLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMainTab = MAIN_TABS.includes(location.pathname.replace(/\/$/, ""));
   const { currentStreak } = useNgajiCeriaStreak();
   const progress = useNgajiProgress();
   const rank = getRank(progress.xp);
+
+  const { user, groupId } = useAuth();
+  const hearts = useEconomyStore((s) => s.hearts);
+  const tickets = useEconomyStore((s) => s.tickets);
+  const isVip = useEconomyStore((s) => s.isVip);
+  const syncTime = useEconomyStore((s) => s.syncTime);
+
+  useEffect(() => {
+    syncTime();
+  }, [syncTime]);
+
+  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
+
+  const userRole: NotificationRole =
+    (user?.role || "").toUpperCase() === "SUPER_ADMIN" ||
+    (user as any)?.tier === "superadmin"
+      ? "superadmin"
+      : (user?.role || "").toUpperCase() === "ADMIN" ||
+        (user?.role || "").toLowerCase() === "tartila_admin"
+        ? "tartila_admin"
+        : "member";
 
   useEffect(() => {
     if (hideNav) return;
@@ -78,70 +119,109 @@ export function NgajiCeriaLayout({
       className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} bg-mint-cloud text-deep-teal flex flex-col justify-between selection:bg-teal-emerald/20 relative overflow-x-clip font-sans`}
     >
       {!hideHeader && !hideNav && (
-        <header className="sticky top-0 z-40 shrink-0 pt-safe bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
-          <div
-            className="absolute inset-0 pointer-events-none opacity-20 bg-repeat-x bg-top"
-            style={{
-              backgroundImage: `url(${NGAJI_CERIA_ASSETS.topBarLatar})`,
-              backgroundSize: "auto 100%",
-            }}
-          />
-          <div className="relative z-10 max-w-md mx-auto px-4 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <header className="sticky top-0 z-40 shrink-0 pt-safe bg-white border-b-2 border-[#134E4A] shadow-[0px_2px_0px_#134E4A] transition-all">
+          {/* Container utama header responsif (Mobile, Tablet, Desktop) */}
+          <div className="relative z-10 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
+            {/* KIRI: Tombol Back & Judul */}
+            <div className="flex items-center gap-1.5 shrink-0 min-w-0">
               {showBackButton && (
                 <button
                   onClick={handleBack}
                   aria-label="Kembali ke halaman sebelumnya"
                   title="Kembali"
-                  className="p-2 rounded-2xl bg-white border border-gray-100 text-deep-teal flex items-center justify-center hover:bg-mint-cloud transition-all active:scale-95 shadow-sm"
+                  className="p-1.5 rounded-xl bg-white border-2 border-[#134E4A] text-[#134E4A] flex items-center justify-center hover:bg-[#FEF08A] transition-all active:translate-y-0.5 shadow-[1.5px_1.5px_0px_#134E4A]"
                 >
-                  <ChevronLeft size={16} className="text-deep-teal/60" />
+                  <ChevronLeftSvg size={16} />
                 </button>
               )}
-              <span className="font-display font-bold text-sm sm:text-base text-deep-teal tracking-tight truncate max-w-[120px] sm:max-w-none">
+              <span className="font-display font-black text-sm md:text-base text-[#134E4A] tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
                 {title}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <EconomyHUD />
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-coral-soft text-deep-teal border border-coral-glow/20 font-bold text-xs shadow-sm">
-                <img
-                  src={NGAJI_CERIA_ASSETS.apiStreak}
-                  alt="Streak"
-                  className="w-4 h-4 object-contain"
-                />
+            {/* KANAN: Stats (Neo-Brutalism dengan ukuran ikon seragam 16px) */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+              {/* Nyawa */}
+              <div
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                title={isUnlimited ? "Hati Tanpa Batas (Superadmin/VIP)" : `Hati: ${hearts}/5`}
+              >
+                <HeartSvg size={16} />
+                <span className={isUnlimited ? "text-xs font-black" : ""}>
+                  {isUnlimited ? "∞" : `${hearts}/5`}
+                </span>
+              </div>
+
+              {/* Ticket / Energy */}
+              <div
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                title={isUnlimited ? "Tiket Game Tanpa Batas (Superadmin/VIP)" : `Tiket: ${tickets}/3`}
+              >
+                <TicketSvg size={16} />
+                <span className={isUnlimited ? "text-xs font-black" : ""}>
+                  {isUnlimited ? "∞" : `${tickets}/3`}
+                </span>
+              </div>
+
+              {/* Streak */}
+              <div
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                title={`Streak: ${currentStreak} hari`}
+              >
+                <FireSvg size={16} />
                 <span>{currentStreak}d</span>
               </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-emerald/10 text-teal-emerald border border-teal-emerald/20 font-bold text-xs shadow-sm">
-                <span title={rank.title}>{progress.xp} XP</span>
+
+              {/* XP */}
+              <div
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
+              >
+                <StarSvg size={16} />
+                <span>{progress.xp} XP</span>
               </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-mint-soft text-deep-teal border border-teal-emerald/15 font-bold text-xs shadow-sm">
-                <img
-                  src={NGAJI_CERIA_ASSETS.koinHijaiyah}
-                  alt="Koin"
-                  className="w-4 h-4 object-contain"
-                />
+
+              {/* Koin */}
+              <div
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                title={`Koin: ${progress.coins || 0}`}
+              >
+                <CoinSvg size={16} />
                 <span>{progress.coins || 0}</span>
               </div>
+
               {rightAction}
+
+              <NotificationBell userRole={userRole} className="ml-0.5 shrink-0" />
             </div>
           </div>
         </header>
       )}
 
       <main
-        className={`flex-1 min-h-0 w-full relative ${hideNav ? "max-w-none h-full overflow-hidden pb-0" : "max-w-md mx-auto pb-28"}`}
+        className={`flex-1 min-h-0 w-full relative ${hideNav ? "max-w-none h-full overflow-hidden pb-0" : isMainTab ? "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-28 min-h-[50vh]" : "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-10 min-h-[50vh]"}`}
       >
-        <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
+        {hideNav ? (
+          <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
+        ) : (
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="w-full relative min-h-[50vh]"
+          >
+            <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
+          </motion.div>
+        )}
       </main>
 
-      {!hideNav && <NgajiCeriaBottomNav />}
+      {!hideNav && isMainTab && <NgajiCeriaBottomNav />}
       {!hideNav && <RewardChestModal />}
       <ProgressionNotice />
 
-      <div data-bibi-companion>
-        <BibiCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
+      <div data-tila-companion>
+        <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
       </div>
     </div>
   );

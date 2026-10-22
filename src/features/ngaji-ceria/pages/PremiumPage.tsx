@@ -9,9 +9,9 @@ import {
   Gamepad,
   Star,
   Sparkles,
-} from "@/components/ui/FontAwesomeIcons";
+} from "@/components/ui/CustomIcons";
 import { StickerButton, StickerCard } from "@/components/ui";
-import { BibiMascot } from "@/components/ui/BibiMascot";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 
@@ -98,7 +98,7 @@ export default function PremiumPage() {
       activateVip();
       setIsLoading(false);
       alert(
-        `Berhasil berlangganan ${selectedTier.toUpperCase()}! Selamat datang, Santri Bintang! 👑`,
+        `Berhasil berlangganan ${selectedTier.toUpperCase()}! Selamat datang, Santri Bintang!`,
       );
       navigate("/member/ngaji-ceria");
     }, 1500);
@@ -138,7 +138,7 @@ export default function PremiumPage() {
                 className="w-16 h-16 drop-shadow-md"
               />
             </div>
-            <BibiMascot
+            <TilaMascot
               size={140}
               mood="excited"
               direction="front"

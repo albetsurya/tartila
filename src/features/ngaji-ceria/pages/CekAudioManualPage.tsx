@@ -16,7 +16,7 @@ import {
   Pause,
   ChevronLeft,
   ChevronRight,
-} from "../../../components/ui/FontAwesomeIcons";
+} from "../../../components/ui/CustomIcons";
 
 const QUIZ_DATASETS: Record<number, Record<number, PageQuizData>> = {
   1: TILAWATI_JILID_1_PAGES,

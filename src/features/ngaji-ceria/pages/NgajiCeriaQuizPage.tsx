@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Volume2, X, Sparkles } from "../../../components/ui/FontAwesomeIcons";
+import { motion } from "framer-motion";
+import {
+  XSvg,
+  SparklesSvg,
+  TilawatiSvg,
+  LockSvg,
+  Volume2Svg as Volume2,
+} from "../../../components/ui/CustomIcons";
 import { tapFeedback } from "../../../lib/haptics";
 import {
   playSoundEffect,
@@ -26,7 +33,9 @@ import {
 import { getNgajiActivity } from "../hooks/useNgajiCeriaStore";
 import { soundManager } from "../services/soundManager";
 import { awardProgress } from "./games/_shared/progression";
+import { addEvent } from "@/services/eventService";
 import { QuizEngine } from "../components/quiz-models/QuizEngine";
+import { QuizSessionResult } from "../components/QuizSessionResult";
 import type { QuestionData } from "../components/quiz-models/types";
 
 const QUIZ_DATASETS = {
@@ -78,7 +87,13 @@ function toQuestionData(
   resolvedAudioUrl?: string | null,
 ): QuestionData {
   const correctReading = question.transliterationParts.join(" ");
-  const isMaterial = Boolean(question.isListenOnly || question.isOpening);
+  // Soal tanpa bacaan latin (mis. latihan angka Arab) tetap aman:
+  // diputar sebagai materi contoh, bukan soal pilihan ganda tanpa jawaban.
+  const isMaterial = Boolean(
+    question.isListenOnly ||
+      question.isOpening ||
+      question.transliterationParts.length === 0,
+  );
   // `question.audioUrl` hampir selalu kosong; URL sebenarnya dihitung oleh
   // layanan audio (getTilawatiQuestionAudioUrl). Pakai hasil resolusi itu.
   const audioUrl = question.audioUrl || resolvedAudioUrl || undefined;
@@ -118,6 +133,7 @@ function toQuestionData(
 export default function NgajiCeriaQuizPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isPractice = searchParams.get("practice") === "true";
   const jilidParam = parseInt(searchParams.get("jilid") || "1", 10);
   const activeJilid: SupportedJilid =
     jilidParam >= 1 && jilidParam <= 6 ? (jilidParam as SupportedJilid) : 1;
@@ -134,11 +150,19 @@ export default function NgajiCeriaQuizPage() {
   const pageAwarded = useRef(false);
 
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  // Bertambah tiap sesi baru/Ulangi agar model kuis selalu mount ulang
+  // (mengosongkan `selected`/`status`), termasuk saat halaman hanya 1 soal.
+  const [sessionKey, setSessionKey] = useState(0);
 
   const question = questions[currentIdx] || questions[0];
   const totalQuestions = questions.length;
   const currentStep = currentIdx + 1;
-  const progressPercent = Math.round((currentStep / totalQuestions) * 100);
+  const progressPercent =
+    totalQuestions > 0
+      ? Math.round((currentStep / totalQuestions) * 100)
+      : 0;
 
   const [isOpening, setIsOpening] = useState(true);
   const [isTaawudzPhase, setIsTaawudzPhase] = useState(true);
@@ -160,6 +184,9 @@ export default function NgajiCeriaQuizPage() {
   useEffect(() => {
     if (!access.isOpen || access.isComingSoon || !question) return;
     setCurrentIdx(0);
+    setScore(0);
+    setShowResult(false);
+    setSessionKey((prev) => prev + 1);
     setIsOpening(true);
     setIsTaawudzPhase(true);
     pageAwarded.current = false;
@@ -201,45 +228,90 @@ export default function NgajiCeriaQuizPage() {
 
   const handleExit = () => {
     stopAllAudio();
-    navigate("/member/ngaji-ceria/quiz");
+    // Kembali ke halaman asal (Peta Tilawati / node peta). Jika halaman dibuka
+    // langsung dari URL (tidak ada riwayat), mundur fallback ke Peta Tilawati.
+    if (window.history.length > 1 && window.history.state?.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/member/ngaji-ceria/explore/tilawati");
+    }
   };
+
+  const scorePercent =
+    totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+  const earnedStars =
+    scorePercent >= 90 ? 3 : scorePercent >= 70 ? 2 : 1;
 
   const handleNext = () => {
     tapFeedback();
     if (currentIdx < questions.length - 1) {
       setCurrentIdx((prev) => prev + 1);
-    } else {
-      // Halaman ini selesai! Simpan progres dan award stars
-      if (pageAwarded.current) return;
-      pageAwarded.current = true;
-      awardStars(activeJilid, activePageNum, 100);
-      const stars = getNgajiActivity().stars;
-      const completed = Object.keys(activeDataset).every(
-        (page) => stars[`jilid-${activeJilid}-hal-${page}`] > 0,
-      );
-      awardProgress(
-        "tilawati-quiz",
-        100,
-        10,
-        completed ? [`jilid-${activeJilid}-clear`] : [],
-      );
+      return;
+    }
 
-      if (activePageNum < pageCount) {
-        stopAllAudio();
-        setSearchParams({
-          jilid: String(activeJilid),
-          hal: String(activePageNum + 1),
-        });
-        setCurrentIdx(0);
-      } else {
-        stopAllAudio();
-        navigate("/member/ngaji-ceria/map");
+    // Halaman selesai: simpan bintang (ambil nilai terbaik) & progres jika bukan mode latihan.
+    stopAllAudio();
+    if (!isPractice) {
+      awardStars(activeJilid, activePageNum, scorePercent);
+      if (!pageAwarded.current) {
+        pageAwarded.current = true;
+        const stars = getNgajiActivity().stars;
+        const completed = Object.keys(activeDataset).every(
+          (page) => stars[`jilid-${activeJilid}-hal-${page}`] > 0,
+        );
+        awardProgress(
+          "tilawati-quiz",
+          scorePercent,
+          10,
+          completed ? [`jilid-${activeJilid}-clear`] : [],
+        );
       }
+    }
+    addEvent({
+      type: "quiz_completed",
+      missionId: `jilid-${activeJilid}-hal-${activePageNum}`,
+      missionName: `Tilawati Jilid ${activeJilid} Hal ${activePageNum}`,
+      details: {
+        score,
+        total: totalQuestions,
+        percent: scorePercent,
+        jilid: activeJilid,
+        hal: activePageNum,
+        stars: earnedStars,
+      },
+    });
+    setShowResult(true);
+  };
+
+  const handleReplay = () => {
+    tapFeedback();
+    stopAllAudio();
+    setScore(0);
+    setCurrentIdx(0);
+    setSessionKey((prev) => prev + 1);
+    setIsOpening(true);
+    setIsTaawudzPhase(true);
+    setShowResult(false);
+  };
+
+  const handleContinue = () => {
+    tapFeedback();
+    stopAllAudio();
+    setShowResult(false);
+    if (activePageNum < pageCount) {
+      setSearchParams({
+        jilid: String(activeJilid),
+        hal: String(activePageNum + 1),
+      });
+      setCurrentIdx(0);
+    } else {
+      navigate("/member/ngaji-ceria/map");
     }
   };
 
   const handleAnswerSubmit = (isCorrect: boolean) => {
     playSoundEffect(isCorrect ? "correct" : "wrong");
+    if (isCorrect) setScore((prev) => prev + 1);
   };
 
   const handlePlayAudio = () => {
@@ -257,10 +329,16 @@ export default function NgajiCeriaQuizPage() {
       <NgajiCeriaLayout
         title={`Jilid ${activeJilid}`}
         showBack
-        onBack={() => navigate("/member/ngaji-ceria/quiz")}
+        onBack={handleExit}
       >
         <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 px-6 text-center">
-          <div className="text-5xl">{access.isComingSoon ? "🎙️" : "🔒"}</div>
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
+            {access.isComingSoon ? (
+              <Volume2 size={32} className="text-[#0D9488]" />
+            ) : (
+              <LockSvg size={32} />
+            )}
+          </div>
           <span className="rounded-full bg-[#FF6B6B]/10 px-3 py-1 text-xs font-black text-[#FF6B6B]">
             {access.isComingSoon ? "Segera Hadir" : "Masuk untuk Akses Penuh"}
           </span>
@@ -283,6 +361,36 @@ export default function NgajiCeriaQuizPage() {
               Masuk untuk Akses Penuh
             </button>
           )}
+        </div>
+      </NgajiCeriaLayout>
+    );
+  }
+
+  if (totalQuestions === 0 || !question) {
+    return (
+      <NgajiCeriaLayout
+        title={`Jilid ${activeJilid}`}
+        showBack
+        onBack={handleExit}
+      >
+        <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0D9488]/10 text-[#0D9488]">
+            <TilawatiSvg size={28} />
+          </div>
+          <h1 className="font-display text-xl font-black text-[#134E4A]">
+            Materi belum tersedia
+          </h1>
+          <p className="max-w-xs text-sm leading-relaxed text-[#134E4A]/70">
+            Soal untuk Jilid {activeJilid} halaman {activePageNum} sedang
+            disiapkan. Coba halaman atau jilid lain ya.
+          </p>
+          <button
+            type="button"
+            className="game-button bg-[#0D9488]"
+            onClick={handleExit}
+          >
+            Pilih Kitab Lain
+          </button>
         </div>
       </NgajiCeriaLayout>
     );
@@ -317,7 +425,10 @@ export default function NgajiCeriaQuizPage() {
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       onPointerDownCapture={(event) => {
         if (
           event.target instanceof Element &&
@@ -335,7 +446,7 @@ export default function NgajiCeriaQuizPage() {
             aria-label="Kembali"
             className="min-w-[52px] h-[52px] rounded-2xl bg-white border-[3px] border-[#134E4A] flex items-center justify-center text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
           >
-            <X size={18} />
+            <XSvg size={18} />
           </button>
 
           <div className="flex-1">
@@ -357,7 +468,7 @@ export default function NgajiCeriaQuizPage() {
           </div>
 
           <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#FEF3C7] text-[#134E4A] font-black text-xs border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-            <Sparkles size={13} className="text-[#FF6B6B]" />
+            <SparklesSvg size={14} />
             <span>+10</span>
           </div>
         </div>
@@ -403,6 +514,7 @@ export default function NgajiCeriaQuizPage() {
 
           {questionData && (
             <QuizEngine
+              key={sessionKey}
               question={questionData}
               questionIndex={currentIdx}
               onAnswerSubmit={handleAnswerSubmit}
@@ -413,6 +525,16 @@ export default function NgajiCeriaQuizPage() {
           )}
         </>
       )}
-    </div>
+
+      <QuizSessionResult
+        open={showResult}
+        score={score}
+        total={totalQuestions}
+        stars={earnedStars}
+        isLastPage={activePageNum >= pageCount}
+        onReplay={handleReplay}
+        onContinue={handleContinue}
+      />
+    </motion.div>
   );
 }

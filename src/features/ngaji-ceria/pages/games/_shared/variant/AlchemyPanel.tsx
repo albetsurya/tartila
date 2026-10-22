@@ -1,5 +1,20 @@
-import { NGAJI_CERIA_ASSETS } from "@/features/ngaji-ceria/data/assets";
+import { SparklesSvg } from "@/components/ui/CustomIcons";
 
 export function AlchemyPanel({ targetLength, guesses }: { targetLength: number; guesses: number }) {
-  return <div aria-label="Meja alkimia kosakata" className="rounded-3xl border border-teal-300/25 bg-gradient-to-br from-teal-950/70 to-amber-950/50 p-3"><div className="flex items-center justify-between"><span className="text-[10px] font-black uppercase tracking-widest text-teal-200">Word Alchemy</span><img src={NGAJI_CERIA_ASSETS.iconAlkimiaTabung} alt="Alkimia" className="h-6 w-6 object-contain" /></div><div className="mt-3 flex items-center justify-center gap-2"><div className="h-10 w-10 rounded-full border-2 border-teal-300/60 bg-teal-500/20" /><div className="h-1 w-10 bg-amber-300/50" /><div className="h-12 w-12 rounded-full border-2 border-amber-300/60 bg-amber-400/20 shadow-[0_0_20px_#FF6B6B66]" /><div className="h-1 w-10 bg-amber-300/50" /><div className="h-10 w-10 rounded-full border-2 border-teal-300/60 bg-teal-500/20" /></div><p className="mt-2 text-center text-[10px] text-white/60">Potion target · {targetLength} huruf · {guesses}/6 percobaan</p></div>;
+  return (
+    <div aria-label="Meja alkimia kosakata" className="rounded-3xl border border-teal-300/25 bg-gradient-to-br from-teal-950/70 to-amber-950/50 p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-black uppercase tracking-widest text-teal-200">Word Alchemy</span>
+        <SparklesSvg size={20} className="text-teal-200" />
+      </div>
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <div className="h-10 w-10 rounded-full border-2 border-teal-300/60 bg-teal-500/20" />
+        <div className="h-1 w-10 bg-amber-300/50" />
+        <div className="h-12 w-12 rounded-full border-2 border-amber-300/60 bg-amber-400/20 shadow-[0_0_20px_#FF6B6B66]" />
+        <div className="h-1 w-10 bg-amber-300/50" />
+        <div className="h-10 w-10 rounded-full border-2 border-teal-300/60 bg-teal-500/20" />
+      </div>
+      <p className="mt-2 text-center text-[10px] text-white/60">Potion target · {targetLength} huruf · {guesses}/6 percobaan</p>
+    </div>
+  );
 }

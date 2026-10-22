@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { Cards, Lock, Play } from "../../../../components/ui/FontAwesomeIcons";
+import { Cards, Lock, Play } from "../../../../components/ui/CustomIcons";
 import { TILAWATI_SESSIONS } from "./exploreData";
 
 export default function MagicCardsPage() {

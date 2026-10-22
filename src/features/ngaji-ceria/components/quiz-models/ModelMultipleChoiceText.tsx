@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Volume2 } from "../../../../components/ui/FontAwesomeIcons";
+import { motion, useReducedMotion } from "framer-motion";
+import { Volume2 } from "../../../../components/ui/CustomIcons";
 import {
   StickerButton,
   StickerCard,
-  BibiMascot,
+  TilaMascot,
 } from "../../../../components/ui";
+import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceTextQuestion, QuizModelBaseProps } from "./types";
+import { playVoiceFeedback } from "../../utils/voiceFeedback";
 
 export interface ModelMultipleChoiceTextProps extends QuizModelBaseProps {
   question: MultipleChoiceTextQuestion;
@@ -18,6 +21,7 @@ export function ModelMultipleChoiceText({
 }: ModelMultipleChoiceTextProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
+  const reducedMotion = useReducedMotion();
 
   const handlePick = (option: string) => {
     if (status !== "idle") return;
@@ -25,10 +29,16 @@ export function ModelMultipleChoiceText({
   };
 
   const handleCheck = () => {
-    if (selected === null) return;
+    if (selected === null || status !== "idle") return;
     const isCorrect = selected === question.correctAnswer;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
+
+    if (isCorrect) {
+      playVoiceFeedback("correct");
+    } else {
+      playVoiceFeedback("wrong");
+    }
   };
 
   const handleRetry = () => {
@@ -38,7 +48,6 @@ export function ModelMultipleChoiceText({
 
   return (
     <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-[#F0FDF4]">
-      {/* Question Box */}
       <StickerCard className="relative p-8 text-center mb-6">
         {question.audioUrl && (
           <StickerButton
@@ -54,14 +63,13 @@ export function ModelMultipleChoiceText({
           </StickerButton>
         )}
         <p
-          className="text-5xl font-arabic text-[#134E4A] leading-loose"
+          className="text-4xl sm:text-5xl font-arabic text-[#134E4A] leading-loose break-words"
           dir="rtl"
         >
           {question.arabicText}
         </p>
       </StickerCard>
 
-      {/* Options */}
       <div className="grid grid-cols-2 gap-3">
         {question.options.map((option) => {
           const isSelected = selected === option;
@@ -70,12 +78,16 @@ export function ModelMultipleChoiceText({
           const showWrong = status === "wrong" && isSelected && !isAnswer;
 
           return (
-            <button
+            <motion.button
               key={option}
               type="button"
               disabled={status !== "idle"}
               onClick={() => handlePick(option)}
-              className={`min-h-16 rounded-xl border-[3px] p-4 text-2xl font-arabic font-bold text-[#134E4A] transition-all shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
+              animate={answerFeedbackAnimation(
+                showCorrect ? "correct" : showWrong ? "wrong" : "none",
+                reducedMotion ?? false,
+              )}
+              className={`min-h-[68px] rounded-xl border-[3px] p-4 text-2xl font-arabic font-bold leading-snug text-[#134E4A] break-words transition-all shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
                 showCorrect
                   ? "border-[#0D9488] bg-[#F0FDF4]"
                   : showWrong
@@ -86,12 +98,11 @@ export function ModelMultipleChoiceText({
               }`}
             >
               {option}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
-      {/* Feedback */}
       {status !== "idle" && (
         <div className="w-full mt-6">
           <StickerCard
@@ -101,7 +112,7 @@ export function ModelMultipleChoiceText({
             }`}
           >
             <div className="shrink-0 -mt-8 -ml-2">
-              <BibiMascot
+              <TilaMascot
                 size={72}
                 mood={status === "correct" ? "excited" : "sad"}
                 animation="bounce"
@@ -120,7 +131,6 @@ export function ModelMultipleChoiceText({
         </div>
       )}
 
-      {/* Submit / Next */}
       <div className="w-full mt-6">
         {status === "idle" ? (
           <StickerButton

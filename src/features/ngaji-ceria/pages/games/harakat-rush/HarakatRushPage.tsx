@@ -1,27 +1,38 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { HarakatRushCoverSvg } from "@/components/ui/Illustrations";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { ComboBadge } from "../_shared/ComboBadge";
+import { HUD as SharedHUD } from "../_shared/HUD";
+import { TimerBar } from "../_shared/TimerBar";
+import { TargetBanner } from "../_shared/TargetBanner";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { useGameExit } from "../_shared/hooks";
-import { HUD } from "./components/HUD";
 import { LevelCompleteModal } from "./components/LevelCompleteModal";
 import { Harakat3DScene } from "./components/Harakat3DScene";
-import { letterRecitation } from "../_shared/recitation";
 import { HARAKAT_LIST } from "./data/harakat-list";
-import { BibiMascot, type BibiMood } from "@/components/ui/BibiMascot";
+import { TilaMascot, type TilaMood } from "@/components/ui/TilaMascot";
 import type { GamePhase } from "../_shared/types";
 import { use3DRunnerGame } from "@/features/ngaji-ceria/pages/games/harakat-rush/hooks/use3DRunnerGame";
 
-const BIBI_SIZE = 160;
+const BIBI_SIZE = 60;
 const BIBI_BOTTOM = "22%";
 const LANE_LABELS = ["Kiri", "Tengah", "Kanan"] as const;
 
 function Game() {
   const game = use3DRunnerGame();
   const exit = useGameExit();
+  const targetItem = HARAKAT_LIST.find((h) => h.id === game.target);
+  const targetSymbol = targetItem?.symbol ?? "";
+  const targetName = targetItem?.name ?? "";
+
+  useEffect(() => {
+    if (game.phase === "playing" && targetSymbol)
+      playLetterAudio(targetSymbol);
+  }, [game.phase, targetSymbol]);
 
   useEffect(() => {
     document.body.classList.toggle("game-active", game.phase !== "idle");
@@ -71,7 +82,7 @@ function Game() {
           ? "idle"
           : "gameover";
 
-  const bibiMood: BibiMood =
+  const bibiMood: TilaMood =
     game.feedback?.type === "correct"
       ? "excited"
       : game.feedback?.type === "wrong"
@@ -111,24 +122,18 @@ function Game() {
       onResume={game.resume}
       accent="cyan"
       tutorialGameId="harakat-rush"
-      fitViewport={true}
-      recitation={letterRecitation(
-        HARAKAT_LIST.find((i) => i.id === game.target)?.symbol,
-      )}
     >
       {game.phase === "idle" && (
-        <div className="min-h-full w-full flex flex-col justify-center items-center p-4 py-8">
-          <StartScreen
-            title="Harakat Rush 3D"
-            tagline="Terbang 3D, tangkap harakat"
-            description="Geser atau pakai panah kiri/kanan untuk pindah jalur. Kumpulkan harakat target sampai target level penuh, hindari yang salah."
-            coverImage={""}
-            best={game.best}
-            onStart={game.start}
-            onExit={exit} // <-- TAMBAHKAN BARIS INI
-            accent="cyan"
-          />
-        </div>
+        <StartScreen
+          title="Harakat Rush 3D"
+          tagline="Terbang 3D, tangkap harakat"
+          description="Geser atau pakai panah kiri/kanan untuk pindah jalur. Kumpulkan harakat target sampai target level penuh, hindari yang salah."
+          coverImage={<HarakatRushCoverSvg size={112} />}
+          best={game.best}
+          onStart={game.start}
+          onExit={exit}
+          accent="cyan"
+        />
       )}
 
       {game.phase !== "idle" && (
@@ -188,11 +193,11 @@ function Game() {
                 }
                 transition={{ duration: 0.4, ease: "easeOut" }}
               >
-                <BibiMascot
-                  size={BIBI_SIZE}
-                  mood={bibiMood}
-                  direction="back"
-                  animation="fly"
+                <TilaMascot
+                  size={60}
+                  mood={game.feedback?.type === "wrong" ? "sad" : bibiMood}
+                  direction="right"
+                  animation="float"
                   talking={game.feedback?.type === "wrong"}
                   speech={bibiSpeech}
                 />
@@ -200,19 +205,25 @@ function Game() {
             </motion.div>
           </div>
 
-          <div className="pointer-events-none absolute inset-x-3 top-20 z-30">
-            <HUD
+          <div className="pointer-events-none absolute inset-x-3 top-20 z-30 space-y-2">
+            <SharedHUD
               score={game.score}
-              target={game.target}
-              level={game.level}
-              progress={game.progress}
-              targetCount={game.targetCount}
               lives={game.lives}
-              themeColor={game.themeColor}
+              progressLabel={`Level ${game.level}`}
+            />
+            <TimerBar
+              progress={
+                game.targetCount ? game.progress / game.targetCount : 0
+              }
+            />
+            <TargetBanner
+              target={targetSymbol}
+              name={targetName}
+              actionLabel="Tangkap"
             />
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-52 z-30 flex justify-center">
+          <div className="pointer-events-none absolute inset-x-0 top-64 z-30 flex justify-center">
             <ComboBadge
               combo={game.combo}
               multiplier={Math.min(1 + game.combo * 0.1, 6)}

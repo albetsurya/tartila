@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { TajwidTetrisCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { GameShell } from "../_shared/GameShell";
@@ -15,6 +17,20 @@ import {
 import { LeaderboardPanel } from "../_shared/LeaderboardPanel";
 import { ProgressPanel } from "../_shared/ProgressPanel";
 import { useGameExit } from "../_shared/hooks";
+
+/**
+ * Data tetrominoes tidak memuat nomor surah/ayat, jadi pelafalan memakai
+ * huruf banakar per hukum tajwid via playLetterAudio (Web Speech).
+ */
+const RULE_LETTER: Record<string, string> = {
+  mad: "ا",
+  izhar: "ء",
+  ikhfa: "ن",
+  idgham: "ن",
+  iqlab: "ن",
+  qalqalah: "ق",
+  ghunnah: "ن",
+};
 
 function Board({
   board,
@@ -78,6 +94,14 @@ function Game() {
   const game = useTajwidTetris();
   const exit = useGameExit();
   const { phase, move, rotate, drop } = game;
+
+  // Audio pelafalan: huruf banakar hukum pada blok aktif, berganti per spawn piece.
+  useEffect(() => {
+    if (game.phase !== "playing") return;
+    const letter = game.piece ? RULE_LETTER[game.piece.id] : undefined;
+    if (letter) playLetterAudio(letter);
+  }, [game.piece?.id, game.phase]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (phase !== "playing") return;
@@ -119,36 +143,66 @@ function Game() {
           title="Tajwid Tetris"
           tagline="Susun blok, pahami hukum"
           description="Jatuhkan blok hukum tajwid, bersihkan baris, dan baca ringkasan hukum setiap kali blok terkunci. Gunakan tombol atau keyboard untuk bermain."
-          coverImage={NGAJI_CERIA_ASSETS.tajwidTetris}
+          coverImage={<TajwidTetrisCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="cyan"
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 pb-24 md:pb-32 relative">
           <HUD
             score={game.score}
             progressLabel={`Level ${game.level} · ${game.lines} baris`}
-            accent="cyan"
           />
+          {/* Maskot memberikan jempol saat combo / baris bersih */}
+          <div className="flex items-center justify-between p-2.5 rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[3px_3px_0px_#134E4A] text-[#134E4A]">
+            <div className="pointer-events-none select-none flex items-center gap-3">
+              <TilaMascot
+                size={68}
+                mood={game.lines > 0 ? "excited" : "happy"}
+                animation={game.lines > 0 ? "bounce" : "float"}
+                direction="right"
+                speech={game.lines > 0 ? "Mantap Sekali!" : undefined}
+              />
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 block">
+                  Panduan Tajwid Tetris
+                </span>
+                <span className="text-xs font-bold text-[#134E4A]">
+                  {game.lines > 0
+                    ? "Susunan rapi, hukum tajwid tepat!"
+                    : "Susun blok sesuai hukum bacaan."}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-bold text-teal-700 block">
+                Baris Bersih
+              </span>
+              <span className="text-base font-black text-amber-600">
+                {game.lines} ✨
+              </span>
+            </div>
+          </div>
           <Board board={game.board} piece={game.piece} />
-          <div className="rounded-2xl border border-teal-300/20 bg-white/5 px-3 py-2 text-center">
-            <p className="text-[10px] font-black uppercase tracking-wider text-teal-300">
+          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#CCFBF1] px-3 py-2 text-center shadow-[3px_3px_0px_#134E4A]">
+            <p className="text-[10px] font-black uppercase tracking-wider text-teal-700">
               Pelajaran blok aktif
             </p>
             <p
               aria-live="polite"
-              className="mt-1 text-xs leading-relaxed text-white/80"
+              className="mt-1 text-xs leading-relaxed text-[#134E4A] font-semibold"
             >
               {game.feedback}
             </p>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2 relative z-30">
             <button
               type="button"
               aria-label="Geser kiri"
               onClick={() => game.move(-1)}
-              className="game-button bg-teal-600"
+              className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-teal-600 text-lg font-bold"
             >
               ←
             </button>
@@ -156,7 +210,7 @@ function Game() {
               type="button"
               aria-label="Putar blok"
               onClick={game.rotate}
-              className="game-button bg-teal-600"
+              className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-teal-600 text-lg font-bold"
             >
               ↻
             </button>
@@ -164,7 +218,7 @@ function Game() {
               type="button"
               aria-label="Geser kanan"
               onClick={() => game.move(1)}
-              className="game-button bg-teal-600"
+              className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-teal-600 text-lg font-bold"
             >
               →
             </button>
@@ -172,12 +226,12 @@ function Game() {
               type="button"
               aria-label="Jatuhkan blok"
               onClick={() => game.drop(true)}
-              className="game-button bg-rose-600"
+              className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-rose-600 text-lg font-bold"
             >
               ↓
             </button>
           </div>
-          <p className="text-center text-[11px] text-white/55">
+          <p className="text-center text-[11px] text-[#134E4A]/75 font-bold">
             Keyboard: ← → untuk geser · ↑ untuk putar · ↓ untuk turun · Spasi
             untuk jatuhkan
           </p>

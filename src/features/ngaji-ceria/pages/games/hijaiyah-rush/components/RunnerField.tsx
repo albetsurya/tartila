@@ -1,5 +1,29 @@
-import { NGAJI_CERIA_ASSETS } from "../../../../data/assets";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import type { RunnerItem } from "../hooks/useHijaiyahRush";
+
+const ObstacleRockSvg = () => (
+  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+    <path
+      d="M6 26 L12 10 L26 8 L32 20 L28 28 L10 30 Z"
+      fill="#78716C"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 10 L18 18 L28 16"
+      stroke="#134E4A"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M18 18 L16 29"
+      stroke="#134E4A"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 
 export function RunnerField({
   items,
@@ -51,25 +75,35 @@ export function RunnerField({
       {items.map((item) => (
         <div
           key={item.id}
-          className={`absolute flex h-12 w-12 items-center justify-center rounded-2xl border-2 text-center shadow-lg transition-none ${item.kind === "obstacle" ? "border-red-300/60 bg-red-950/60" : item.letter === undefined ? "" : "game-arabic border-teal-200 bg-teal-500/80 text-2xl text-teal-950"}`}
+          className={`absolute flex h-12 w-12 items-center justify-center rounded-2xl border-2 text-center shadow-[2px_2px_0px_#134E4A] transition-none ${item.kind === "obstacle" ? "border-red-300/60 bg-red-950/60" : item.letter === undefined ? "" : "game-arabic border-teal-200 bg-teal-500/80 text-2xl text-teal-950"}`}
           style={{
             left: `calc(${(item.lane + 0.5) * 33.333}% - 24px)`,
             top: `${item.y}%`,
           }}
         >
           {item.kind === "obstacle" ? (
-            <img
-              src={NGAJI_CERIA_ASSETS.obstacleBatu}
-              alt="Rintangan"
-              aria-hidden="true"
-              draggable={false}
-              className="h-9 w-9 object-contain"
-            />
+            <ObstacleRockSvg />
           ) : (
             item.letter
           )}
         </div>
       ))}
+      {/* Maskot terbang di lane aktif */}
+      <div
+        className="pointer-events-none absolute bottom-[13%] transition-all duration-150 z-20 flex justify-center"
+        style={{
+          left: `calc(${(lane + 0.5) * 33.333}% - 32px)`,
+          transform: `translateY(${-jumpArc * 50}px)`,
+        }}
+      >
+        <TilaMascot
+          size={64}
+          animation="fly"
+          mood={shake ? "sad" : "excited"}
+          direction="right"
+        />
+      </div>
+
       <div className="absolute bottom-[13%] left-0 right-0 grid grid-cols-3">
         <button
           type="button"
@@ -80,17 +114,7 @@ export function RunnerField({
           className="h-10"
           aria-label="Jalur kiri"
         />
-        <div className="flex justify-center">
-          <div
-            className="relative h-16 w-16"
-            style={{ transform: `translateY(${-jumpArc * 38}px)` }}
-          >
-            <div className="absolute inset-0 rounded-full bg-teal-400 shadow-lg shadow-teal-400/50" />
-            <span className="game-arabic relative flex h-full items-center justify-center text-3xl text-teal-950">
-              ق
-            </span>
-          </div>
-        </div>
+        <div className="h-10" />
         <button
           type="button"
           onClick={(event) => {

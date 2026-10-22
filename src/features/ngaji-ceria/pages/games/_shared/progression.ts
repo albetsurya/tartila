@@ -376,10 +376,10 @@ export async function syncNgajiCeriaProgress(): Promise<void> {
 export function getRank(xp: number): RankInfo {
   const ranks = [
     { title: "Pemula", minXp: 0 },
-    { title: "Penjelajah", minXp: 250 },
-    { title: "Penghafal", minXp: 700 },
-    { title: "Guru Muda", minXp: 1400 },
-    { title: "Ustadz Cilik", minXp: 2500 },
+    { title: "Penjelajah", minXp: 251 },
+    { title: "Penghafal", minXp: 1001 },
+    { title: "Guru Muda", minXp: 3001 },
+    { title: "Ustadz Cilik", minXp: 7501 },
   ];
   const current =
     [...ranks].reverse().find((rank) => xp >= rank.minXp) ?? ranks[0];

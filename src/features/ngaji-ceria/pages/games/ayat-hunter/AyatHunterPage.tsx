@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { AyatHunterCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot, type TilaDirection } from "@/components/ui/TilaMascot";
 import { preloadBattleModels } from "../_shared/battle/BattleScene";
 import { ComboBadge } from "../_shared/ComboBadge";
 import { GameBoundary } from "../_shared/GameBoundary";
@@ -14,7 +15,7 @@ import { LeaderboardPanel } from "../_shared/LeaderboardPanel";
 import { ProgressPanel } from "../_shared/ProgressPanel";
 import { HUNTER_ROUNDS, HUNTER_SECONDS } from "./data/hunter-missions";
 import { useAyatHunter, type HunterDirection } from "./hooks/useAyatHunter";
-import { verseRecitation } from "../_shared/recitation";
+import { playVerseAudio } from "../_shared/gameAudio";
 
 const KEY_DIRECTIONS: Record<string, HunterDirection> = {
   ArrowUp: "up",
@@ -29,6 +30,16 @@ function Game() {
   const { phase, status, move, collect } = game;
   const mission = game.currentMission;
   const disabled = phase !== "playing" || status !== "hunting";
+  const [tilaDir, setTilaDir] = useState<TilaDirection>("front");
+
+  const handleMove = (direction: HunterDirection) => {
+    if (disabled) return;
+    if (direction === "up") setTilaDir("back");
+    else if (direction === "down") setTilaDir("front");
+    else if (direction === "left") setTilaDir("left");
+    else if (direction === "right") setTilaDir("right");
+    move(direction);
+  };
 
   useEffect(() => {
     if (phase !== "playing" || status !== "hunting") return;
@@ -43,7 +54,7 @@ function Game() {
       const direction = KEY_DIRECTIONS[event.key];
       if (direction) {
         event.preventDefault();
-        move(direction);
+        handleMove(direction);
       } else if (
         event.code === "Space" &&
         !(event.target instanceof HTMLElement && event.target.closest("button"))
@@ -54,7 +65,7 @@ function Game() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [phase, status, move, collect]);
+  }, [phase, status, handleMove, collect]);
 
   // Pemanasan cache HTTP selagi di layar mulai agar scene 3D langsung tampil.
   useEffect(() => {
@@ -65,6 +76,15 @@ function Game() {
       "/models/ngaji-ceria/props/nature-rock.glb",
     );
   }, [phase]);
+
+  // Lantunkan lafal ayat misi aktif setiap misi baru dimulai.
+  useEffect(() => {
+    if (phase === "playing" && mission) {
+      playVerseAudio(Number(mission.id.split("-")[0]), mission.ayahNumber);
+    }
+    // Dependensi memakai index misi + phase agar audio tak diputar ulang tiap render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game.missionIndex, phase]);
 
   const endTitle =
     game.endReason === "complete" ? "Perburuan Selesai!" : "Pencarian Berakhir";
@@ -80,33 +100,30 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="emerald"
-      fitViewport
-      recitation={verseRecitation(mission)}
     >
       {phase === "idle" ? (
         <StartScreen
           title="Ayat Hunter"
           tagline="Jelajah kebun 3D, temukan ayat"
           description="Bantu Qirra 3D mengumpulkan kata sesuai urutan ayat di kebun tiga dimensi. Ketuk petak di sebelah Qirra atau gunakan panah, lalu tekan Ambil kata. Lima misi, 60 detik per ayat, dan tiga nyawa."
-          coverImage={NGAJI_CERIA_ASSETS.ayatHunter}
+          coverImage={<AyatHunterCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={() => navigate("/member/ngaji-ceria/games")}
           accent="emerald"
         />
       ) : (
         mission && (
-          <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+          <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden pb-24 md:pb-32 relative">
             <HUD
               score={game.score}
               lives={game.lives}
               progressLabel={`Misi ${game.missionIndex + 1}/${HUNTER_ROUNDS}`}
               timeLeft={game.timeLeft}
-              accent="emerald"
             />
             <TimerBar
               progress={game.timeLeft / HUNTER_SECONDS}
               secondsLeft={game.timeLeft}
-              accent="emerald"
             />
             <div
               data-testid="hunter-scene"
@@ -128,8 +145,8 @@ function Game() {
                 />
               </div>
               <div className="pointer-events-none absolute inset-x-3 top-2 text-center">
-                <div className="mx-auto max-w-xs rounded-2xl border border-amber-300/30 bg-black/55 px-3 py-2 backdrop-blur-sm">
-                  <p className="text-[11px] font-bold text-teal-200">
+                <div className="mx-auto max-w-xs rounded-2xl border-[3px] border-[#134E4A] bg-[#CCFBF1] px-3 py-2 shadow-[3px_3px_0px_#134E4A]">
+                  <p className="text-[11px] font-bold text-[#134E4A]">
                     {mission.surahName} · ayat {mission.ayahNumber} ·{" "}
                     {status === "cleared"
                       ? "ditemukan"
@@ -139,7 +156,7 @@ function Game() {
                     data-testid="hunter-target"
                     lang="ar"
                     dir="rtl"
-                    className="game-arabic mt-0.5 text-3xl leading-relaxed text-amber-200"
+                    className="game-arabic mt-0.5 text-3xl leading-relaxed text-[#134E4A]"
                   >
                     {status === "cleared" ? "✓" : mission.words[game.collected]}
                   </p>
@@ -148,15 +165,69 @@ function Game() {
             </div>
             <div
               data-testid="hunter-controls"
-              className="relative z-20 shrink-0 space-y-2 rounded-2xl border border-teal-950/40 bg-teal-950/80 p-2 backdrop-blur-md"
+              className="relative z-20 shrink-0 space-y-2 rounded-2xl border-[3px] border-[#134E4A] bg-white p-2 shadow-[3px_3px_0px_#134E4A]"
             >
+              {/* Maskot berjalan di peta dengan arah dinamis */}
+              <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[#0F766E] rounded-xl border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <div className="pointer-events-none select-none flex items-center gap-2">
+                  <TilaMascot
+                    size={60}
+                    direction={tilaDir}
+                    mood={status === "cleared" ? "excited" : "happy"}
+                    animation="bounce"
+                  />
+                  <div className="text-[10px] text-teal-200">
+                    <span className="font-bold block">Eksplorasi Kebun</span>
+                    <span>Petak #{game.playerCell + 1}</span>
+                  </div>
+                </div>
+
+                {/* Tombol Arah Grid */}
+                <div className="grid grid-cols-3 gap-1 relative z-30">
+                  <div />
+                  <button
+                    type="button"
+                    aria-label="Atas"
+                    onClick={() => handleMove("up")}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
+                  >
+                    ▲
+                  </button>
+                  <div />
+                  <button
+                    type="button"
+                    aria-label="Kiri"
+                    onClick={() => handleMove("left")}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Bawah"
+                    onClick={() => handleMove("down")}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
+                  >
+                    ▼
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Kanan"
+                    onClick={() => handleMove("right")}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+
               {status === "hunting" ? (
                 <>
                   <button
                     type="button"
                     disabled={disabled || !game.standingToken}
                     onClick={collect}
-                    className="game-button min-h-14 w-full bg-amber-600 px-2 text-base"
+                    className="game-button min-h-[48px] w-full bg-amber-600 px-2 text-base relative z-30 flex items-center justify-center gap-2"
                   >
                     <span>Ambil kata</span>
                     {game.standingToken && (
@@ -171,7 +242,7 @@ function Game() {
                   </button>
                   <div
                     aria-label="Kata yang ditemukan"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-center"
+                    className="rounded-2xl border-2 border-[#134E4A] bg-[#115E59] px-3 py-1.5 text-center shadow-[1px_1px_0px_#134E4A]"
                   >
                     <p
                       lang="ar"
@@ -183,15 +254,15 @@ function Game() {
                   </div>
                 </>
               ) : (
-                <div className="max-h-[24dvh] overflow-y-auto rounded-2xl border border-teal-300/30 bg-teal-800/30 p-3 text-center">
-                  <p className="text-sm leading-relaxed text-white/85">
+                <div className="max-h-[24dvh] overflow-y-auto rounded-2xl border-2 border-[#134E4A] bg-[#0F766E] p-3 text-center shadow-[2px_2px_0px_#134E4A]">
+                  <p className="text-sm leading-relaxed text-white font-medium">
                     {mission.translation}
                   </p>
                   {phase === "playing" && (
                     <button
                       type="button"
                       onClick={game.nextMission}
-                      className="game-button mt-3 w-full bg-teal-600"
+                      className="game-button min-h-[44px] mt-3 w-full bg-teal-600 relative z-30 flex items-center justify-center font-black"
                     >
                       Misi Berikutnya
                     </button>
@@ -202,7 +273,7 @@ function Game() {
             <div className="shrink-0">
               <p
                 aria-live="polite"
-                className="text-center text-xs leading-relaxed text-white/75"
+                className="text-center text-xs leading-relaxed text-[#134E4A]/70"
               >
                 {game.feedback}
               </p>
@@ -226,18 +297,18 @@ function Game() {
       >
         {mission && (
           <div className="space-y-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-              <p className="text-xs font-bold text-teal-200">
+            <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#CCFBF1] p-3">
+              <p className="text-xs font-bold text-[#134E4A]">
                 {mission.surahName} · ayat {mission.ayahNumber}
               </p>
               <p
                 lang="ar"
                 dir="rtl"
-                className="game-arabic mt-2 text-xl leading-relaxed text-white"
+                className="game-arabic mt-2 text-xl leading-relaxed text-[#134E4A]"
               >
                 {mission.arabic}
               </p>
-              <p className="mt-2 text-xs leading-relaxed text-white/75">
+              <p className="mt-2 text-xs leading-relaxed text-[#134E4A]/70">
                 {mission.translation}
               </p>
             </div>

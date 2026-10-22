@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
@@ -7,14 +6,13 @@ import {
   Volume2,
   Star,
   Sparkles,
-} from "../../../../components/ui/FontAwesomeIcons";
+} from "../../../../components/ui/CustomIcons";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 
 export default function JuzAmmaStarsPage() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<number | null>(null);
   const { isPlaying, currentAudioUrl, toggle } = useAudioPlayer();
 
   const handlePlay = (url: string) => {
@@ -24,7 +22,7 @@ export default function JuzAmmaStarsPage() {
 
   const handleSelect = (number: number) => {
     triggerBibiReaction("click");
-    setSelected(number);
+    navigate(`/member/ngaji-ceria/explore/juz-amma/${number}`);
   };
 
   return (
@@ -59,7 +57,6 @@ export default function JuzAmmaStarsPage() {
         {/* Surah Grid (Sticker Cards) */}
         <section className="grid grid-cols-2 gap-3">
           {JUZ_AMMA_SURAHS.map((surah) => {
-            const isSelected = selected === surah.number;
             const isSurahPlaying =
               isPlaying && currentAudioUrl === surah.audioUrl;
 
@@ -68,21 +65,11 @@ export default function JuzAmmaStarsPage() {
                 key={surah.number}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleSelect(surah.number)}
-                className={`relative flex flex-col justify-between rounded-2xl p-3 border-[3px] transition-all cursor-pointer ${
-                  isSelected
-                    ? "bg-[#FFF0F0] border-[#FF6B6B] shadow-[3px_3px_0px_#134E4A]"
-                    : "bg-white border-[#134E4A] shadow-[3px_3px_0px_#134E4A]"
-                }`}
+                className="relative flex flex-col justify-between rounded-2xl p-3 border-[3px] transition-all cursor-pointer bg-white border-[#134E4A] shadow-[3px_3px_0px_#134E4A]"
               >
                 {/* Header Kartu: Nomor & Nama */}
                 <div className="flex items-start gap-2 mb-2">
-                  <span
-                    className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black border-2 ${
-                      isSelected
-                        ? "bg-[#FF6B6B] text-white border-[#134E4A]"
-                        : "bg-[#F0FDF4] text-[#0D9488] border-[#134E4A]"
-                    }`}
-                  >
+                  <span className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black border-2 bg-[#F0FDF4] text-[#0D9488] border-[#134E4A]">
                     {surah.number}
                   </span>
                   <div className="min-w-0 flex-1 pt-0.5">

@@ -1,16 +1,19 @@
 import { useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Check,
   RefreshCw,
   Volume2,
   X,
-} from "../../../../components/ui/FontAwesomeIcons";
+} from "../../../../components/ui/CustomIcons";
 import {
   StickerButton,
   StickerCard,
-  BibiMascot,
-} from "../../../../components/ui"; // Sesuaikan path
+  TilaMascot,
+} from "../../../../components/ui";
+import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { FillInTheBlankQuestion, QuizModelBaseProps } from "./types";
+import { playVoiceFeedback } from "../../utils/voiceFeedback";
 
 export interface ModelFillInTheBlankProps extends QuizModelBaseProps {
   question: FillInTheBlankQuestion;
@@ -26,6 +29,7 @@ export function ModelFillInTheBlank({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
+  const reducedMotion = useReducedMotion();
 
   const selectedLetters = selected.map(
     (index) => question.availableLetters[index],
@@ -64,11 +68,19 @@ export function ModelFillInTheBlank({
   };
 
   const handleCheck = () => {
+    if (status !== "idle") return;
     const attempt = selectedLetters.join("\u0001");
     const answer = question.correctAnswer.join("\u0001");
     const isCorrect = attempt === answer;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
+
+    audioRef.current?.pause();
+    if (isCorrect) {
+      playVoiceFeedback("correct");
+    } else {
+      playVoiceFeedback("wrong");
+    }
   };
 
   const handleRetry = () => {
@@ -94,7 +106,6 @@ export function ModelFillInTheBlank({
 
   return (
     <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-[#F0FDF4]">
-      {/* Arabic Prompt (Sticker Card) */}
       <StickerCard className="relative p-8 text-center mb-6">
         <StickerButton
           variant="secondary"
@@ -105,15 +116,26 @@ export function ModelFillInTheBlank({
           <Volume2 size={18} />
         </StickerButton>
         <p
-          className="text-5xl font-arabic text-[#134E4A] leading-loose"
+          className="text-4xl sm:text-5xl font-arabic text-[#134E4A] leading-loose break-words"
           dir="rtl"
         >
           {question.arabicTemplate}
         </p>
       </StickerCard>
 
-      {/* Drop Zone (Sticker Style) */}
-      <div className="w-full min-h-[100px] border-[3px] border-dashed border-[#0D9488] rounded-2xl p-4 bg-white flex items-center justify-center gap-2.5 flex-wrap">
+      <motion.div
+        animate={answerFeedbackAnimation(
+          status === "idle" ? "none" : status,
+          reducedMotion ?? false,
+        )}
+        className={`w-full min-h-[100px] border-[3px] border-dashed rounded-2xl p-4 bg-white flex items-center justify-center gap-2.5 flex-wrap ${
+          status === "correct"
+            ? "border-[#0D9488]"
+            : status === "wrong"
+              ? "border-[#FF6B6B]"
+              : "border-[#0D9488]"
+        }`}
+      >
         {selectedLetters.length === 0 ? (
           <span className="text-sm font-bold text-[#134E4A]/50 text-center">
             Pilih kepingan huruf di bawah
@@ -130,9 +152,8 @@ export function ModelFillInTheBlank({
             </StickerButton>
           ))
         )}
-      </div>
+      </motion.div>
 
-      {/* Letter Bank + Clear */}
       <div className="w-full mt-6">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] font-black uppercase tracking-widest text-[#134E4A]/70">
@@ -155,7 +176,7 @@ export function ModelFillInTheBlank({
                 type="button"
                 disabled={used}
                 onClick={() => handlePick(index)}
-                className={`h-14 rounded-xl border-[3px] font-arabic text-2xl font-bold transition-all ${
+                className={`h-16 rounded-xl border-[3px] font-arabic text-2xl font-bold transition-all ${
                   used
                     ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none"
@@ -168,7 +189,6 @@ export function ModelFillInTheBlank({
         </div>
       </div>
 
-      {/* Feedback (With Bibi) */}
       {status !== "idle" && (
         <div className="w-full mt-6">
           <StickerCard
@@ -178,7 +198,7 @@ export function ModelFillInTheBlank({
             }`}
           >
             <div className="shrink-0 -mt-8 -ml-2">
-              <BibiMascot
+              <TilaMascot
                 size={72}
                 mood={status === "correct" ? "excited" : "sad"}
                 animation="bounce"
@@ -197,7 +217,6 @@ export function ModelFillInTheBlank({
         </div>
       )}
 
-      {/* Submit / Next */}
       <div className="w-full mt-6">
         {status === "idle" ? (
           <StickerButton

@@ -9,7 +9,7 @@ import {
   Check,
   Lock,
   Play,
-} from "../../../components/ui/FontAwesomeIcons";
+} from "../../../components/ui/CustomIcons";
 import { LoginPromptModal } from "../components/LoginPromptModal";
 import { useJilidAccess } from "../components/GameLockGuard";
 import { parseJilidNumber, tierForRole } from "../data/gameAccess";

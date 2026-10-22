@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Volume2 } from "../../../../components/ui/FontAwesomeIcons";
+import { Volume2 } from "../../../../components/ui/CustomIcons";
 import { StickerCard } from "../../../../components/ui";
 import type {
   AudioMatchingOption,

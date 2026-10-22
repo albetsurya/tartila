@@ -5,7 +5,7 @@ import {
   ChevronRight,
   Key,
   Sparkles,
-} from "../../../../components/ui/FontAwesomeIcons";
+} from "../../../../components/ui/CustomIcons";
 import { TAJWID_RULES } from "./exploreData";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 

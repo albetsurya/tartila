@@ -1,26 +1,31 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
-import { NGAJI_CERIA_ASSETS } from "../data/assets";
+import {
+  ItemBiruSvg,
+  ItemMerahSvg,
+  ItemKuningSvg,
+  ItemHijauSvg,
+} from "@/components/ui/Illustrations";
 import { HIJAIYAH_LIST, HijaiyahItem } from "../data/hijaiyah";
 import { playHijaiyahAudio, playSoundEffect } from "../utils/audioPlayer";
 import { tapFeedback } from "../../../lib/haptics";
-import { RefreshCw, Trophy } from "../../../components/ui/FontAwesomeIcons";
+import { RefreshCw, Trophy } from "../../../components/ui/CustomIcons";
 
 interface BalloonTarget {
   id: string;
   letter: HijaiyahItem;
-  balloonSvg: string;
+  colorIndex: number;
   x: number; // percentage
   y: number; // percentage
   speed: number;
 }
 
-const BALLOON_COLORS = [
-  NGAJI_CERIA_ASSETS.balonBiru,
-  NGAJI_CERIA_ASSETS.balonMerah,
-  NGAJI_CERIA_ASSETS.balonKuning,
-  NGAJI_CERIA_ASSETS.balonHijau,
+const ITEM_COMPONENTS = [
+  ItemBiruSvg,
+  ItemMerahSvg,
+  ItemKuningSvg,
+  ItemHijauSvg,
 ];
 
 export default function BalonHijaiyahGamePage() {
@@ -57,7 +62,7 @@ export default function BalonHijaiyahGamePage() {
     const newBalloons: BalloonTarget[] = shuffled.map((item, idx) => ({
       id: `${item.id}-${Date.now()}-${idx}`,
       letter: item,
-      balloonSvg: BALLOON_COLORS[idx % BALLOON_COLORS.length],
+      colorIndex: idx % ITEM_COMPONENTS.length,
       // Menambahkan efek acak posisi agar terlihat bertumpuk (offset)
       x: 10 + (idx % 2) * 20 + Math.random() * 10,
       y: 10 + Math.floor(idx / 2) * 30 + Math.random() * 10,
@@ -159,36 +164,38 @@ export default function BalonHijaiyahGamePage() {
           {/* Balloon Grid */}
           {isPlaying && (
             <div className="relative w-full h-[300px] my-auto z-10 py-4">
-              {balloons.map((balloon) => (
-                <button
-                  key={balloon.id}
-                  onClick={() => handlePop(balloon)}
-                  className="absolute transition-all duration-300 hover:scale-105 active:scale-90"
-                  style={{
-                    left: `${balloon.x}%`,
-                    top: `${balloon.y}%`,
-                    width: "45%",
-                    maxWidth: "120px",
-                  }}
-                >
-                  <img
-                    src={balloon.balloonSvg}
-                    alt="Balon"
-                    className="w-full h-full object-contain filter drop-shadow-md"
-                  />
-                  {/* Arabic letter on balloon */}
-                  <span className="absolute inset-0 flex items-center justify-center font-arabic text-3xl font-black text-[#134e4a] pb-3 select-none">
-                    {balloon.letter.arabic}
-                  </span>
-                </button>
-              ))}
+              {balloons.map((balloon) => {
+                const ItemSvg = ITEM_COMPONENTS[balloon.colorIndex];
+                return (
+                  <button
+                    key={balloon.id}
+                    onClick={() => handlePop(balloon)}
+                    className="absolute transition-all duration-300 hover:scale-105 active:scale-90"
+                    style={{
+                      left: `${balloon.x}%`,
+                      top: `${balloon.y}%`,
+                      width: "45%",
+                      maxWidth: "120px",
+                    }}
+                  >
+                    <ItemSvg
+                      size={96}
+                      className="w-full h-full object-contain filter drop-shadow-[2px_2px_0px_#134E4A]"
+                    />
+                    {/* Arabic letter on balloon */}
+                    <span className="absolute inset-0 flex items-center justify-center font-arabic text-3xl font-black text-[#134E4A] pt-2 select-none">
+                      {balloon.letter.arabic}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {/* Start / Game Over Modal Overlay */}
           {!isPlaying && (
             <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-20">
-              <div className="bg-white rounded-[28px] p-6 text-center max-w-xs w-full border-4 border-white shadow-2xl space-y-4">
+              <div className="bg-white rounded-[28px] p-6 text-center max-w-xs w-full border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] space-y-4">
                 <div className="w-16 h-16 rounded-full bg-[#f0fdfa] border-2 border-[#ccfbf1] mx-auto flex items-center justify-center">
                   <Trophy size={28} className="text-[#0d9488]" />
                 </div>

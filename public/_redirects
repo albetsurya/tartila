@@ -1,0 +1,3 @@
+# Netlify SPA fallback — biar React Router tidak 404 saat halaman di-refresh.
+# File statis yang benar-benar ada selalu dilayani lebih dulu; sisanya ke index.html.
+/*    /index.html   200

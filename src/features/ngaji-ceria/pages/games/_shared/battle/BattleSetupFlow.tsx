@@ -285,7 +285,7 @@ export function BattleSetupFlow({
                   stiffness: 260,
                   damping: 12,
                 }}
-                className="rounded-full bg-red-500 px-3 py-1.5 font-display text-lg font-black text-white shadow-lg shadow-red-950/50"
+                className="rounded-full bg-red-500 px-3 py-1.5 font-display text-lg font-black text-white border-2 border-[#134E4A] shadow-[3px_3px_0px_#134E4A]"
               >
                 VS
               </motion.span>

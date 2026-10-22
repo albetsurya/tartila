@@ -1,19 +1,40 @@
-import { useRef } from "react";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Hijaiyah2048CoverSvg } from "@/components/ui/Illustrations";
+import { StarSvg } from "@/components/ui/CustomIcons";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { HUD } from "../_shared/HUD";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { TileBoard } from "./components/TileBoard";
 import { useHijaiyah2048, type Direction } from "./hooks/useHijaiyah2048";
 import { useGameExit } from "../_shared/hooks";
-import { letterRecitation } from "../_shared/recitation";
 
 function Game() {
   const game = useHijaiyah2048();
   const exit = useGameExit();
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const [scoreIncreased, setScoreIncreased] = useState(false);
+  const prevScore = useRef(game.score);
+  const targetLetter = game.letters[game.highest]?.arabic;
+
+  useEffect(() => {
+    if (game.phase === "playing" && targetLetter) playLetterAudio(targetLetter);
+  }, [game.phase, targetLetter]);
+
+  useEffect(() => {
+    if (game.score > prevScore.current) {
+      setScoreIncreased(true);
+      const timer = setTimeout(() => setScoreIncreased(false), 1200);
+      prevScore.current = game.score;
+      return () => clearTimeout(timer);
+    }
+    prevScore.current = game.score;
+  }, [game.score]);
+
   const swipe = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!touchStart.current) return;
     const dx = event.clientX - touchStart.current.x;
@@ -37,42 +58,63 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="cyan"
-      recitation={letterRecitation(game.letters[game.highest]?.arabic)}
     >
       {game.phase === "idle" ? (
         <StartScreen
           title="Hijaiyah 2048"
           tagline="Gabungkan huruf, buka level"
           description="Geser papan seperti 2048. Dua huruf pada level yang sama bergabung menjadi huruf berikutnya. Gunakan tombol arah, keyboard, atau swipe."
-          coverImage={NGAJI_CERIA_ASSETS.hijaiyah2048}
+          coverImage={<Hijaiyah2048CoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="cyan"
         />
       ) : (
-        <div className="flex flex-col flex-1 gap-3 min-h-0 justify-between">
+        <div className="flex flex-col flex-1 gap-3 min-h-0 justify-between relative">
           <HUD
             score={game.score}
             progressLabel={`Gerakan ${game.moves}`}
-            accent="cyan"
           />
-          <div className="flex items-center justify-between rounded-2xl border border-teal-300/20 bg-white/5 px-3 py-2 text-xs">
-            <span className="text-white/70">Huruf tertinggi</span>
-            {game.letters[game.highest]?.arabic ? (
-              <span
-                dir="rtl"
-                className="game-arabic text-2xl font-bold text-teal-200"
-              >
-                {game.letters[game.highest]?.arabic}
-              </span>
-            ) : (
-              <img
-                src={NGAJI_CERIA_ASSETS.bintang}
-                alt="Level max"
-                draggable={false}
-                className="h-7 w-7 object-contain"
+          <div className="flex items-center justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-2.5 shadow-[3px_3px_0px_#134E4A]">
+            <div className="flex items-center gap-2">
+              <span className="text-[#134E4A]/70 font-bold text-xs">Huruf tertinggi</span>
+              {game.letters[game.highest]?.arabic ? (
+                <span
+                  dir="rtl"
+                  className="game-arabic text-2xl font-black text-amber-600"
+                >
+                  {game.letters[game.highest]?.arabic}
+                </span>
+              ) : (
+                <StarSvg
+                  size={24}
+                  className="fill-[#FBBF24] text-[#134E4A]"
+                />
+              )}
+            </div>
+
+            {/* TilaMascot di sudut kanan dengan reaksi skor */}
+            <div className="relative">
+              <TilaMascot
+                size={80}
+                mood={scoreIncreased ? "excited" : "happy"}
+                animation={scoreIncreased ? "bounce" : "float"}
+                direction="left"
               />
-            )}
+              <AnimatePresence>
+                {scoreIncreased && (
+                  <motion.div
+                    initial={{ scale: 0, y: 10 }}
+                    animate={{ scale: 1, y: -10 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="absolute -top-3 -right-2 px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] text-[10px] font-black"
+                  >
+                    +Score!
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
           <div
             onPointerDown={(event) => {
@@ -93,7 +135,7 @@ function Game() {
               ghosts={game.ghosts}
             />
           </div>
-          <p className="text-center text-[11px] text-white/55">
+          <p className="text-center text-[11px] text-[#134E4A]/55">
             Tekan lalu geser papan ke kiri, kanan, atas, atau bawah.
           </p>
         </div>

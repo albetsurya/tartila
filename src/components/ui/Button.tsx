@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { tapFeedback } from "../../lib/haptics";
-import { Loader2 } from "./FontAwesomeIcons";
+import { Loader2Svg as Loader2 } from "./CustomIcons";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "danger" | "soft" | "softDanger";

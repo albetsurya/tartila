@@ -48,22 +48,65 @@ export function useBalloonGame() {
         const width = fieldRef.current?.clientWidth ?? 320;
         let missedTargets = s.missedTargets; let combo = s.combo;
         const balloons = s.balloons.flatMap((balloon) => {
-          if (balloon.popped) return balloon.popAge + delta < 0.2 ? [{ ...balloon, popAge: balloon.popAge + delta }] : [];
-          const y = balloon.y - balloon.speed * 60 * delta;
-          if (y < -100) {
-            if (balloon.isTarget) { missedTargets++; if (missedTargets >= 2) { combo = 0; missedTargets = 0; } }
+          if (balloon.popped)
+            return balloon.popAge + delta < 0.2
+              ? [{ ...balloon, popAge: balloon.popAge + delta }]
+              : [];
+          // Buah jatuh dari atas ke bawah
+          const y = balloon.y + balloon.speed * 60 * delta;
+          if (y > height + 60) {
+            if (balloon.isTarget) {
+              missedTargets++;
+              if (missedTargets >= 2) {
+                combo = 0;
+                missedTargets = 0;
+              }
+            }
             return [];
           }
           return [{ ...balloon, y }];
         });
-        let next: BalloonState = { ...s, timeLeft, balloons, combo, missedTargets, targetLeft: s.targetLeft - delta, spawnLeft: s.spawnLeft - delta, shakeLeft: Math.max(0, s.shakeLeft - delta) };
+        let next: BalloonState = {
+          ...s,
+          timeLeft,
+          balloons,
+          combo,
+          missedTargets,
+          targetLeft: s.targetLeft - delta,
+          spawnLeft: s.spawnLeft - delta,
+          shakeLeft: Math.max(0, s.shakeLeft - delta),
+        };
         if (next.targetLeft <= 0) next = changeTarget(next);
         if (next.spawnLeft <= 0) {
           const elapsed = 60 - timeLeft;
-          const target = next.forceTarget || next.spawned % 3 === 0 || Math.random() < 0.35;
-          const choices = HIJAIYAH_LETTERS.filter((item) => item.letter !== next.target);
-          const letter = target ? next.target : choices[Math.floor(Math.random() * choices.length)].letter;
-          next = { ...next, spawned: next.spawned + 1, spawnLeft: 0.8 - 0.5 * elapsed / 60, forceTarget: false, balloons: [...next.balloons, { id: `balloon-${next.spawned}`, letter, x: Math.random() * Math.max(0, width - 66), y: height + 8, speed: 1.2 + Math.floor(elapsed / 10) * 0.05, isTarget: letter === next.target, popped: false, popAge: 0, color: next.spawned % 3 }] };
+          const target =
+            next.forceTarget || next.spawned % 3 === 0 || Math.random() < 0.35;
+          const choices = HIJAIYAH_LETTERS.filter(
+            (item) => item.letter !== next.target,
+          );
+          const letter = target
+            ? next.target
+            : choices[Math.floor(Math.random() * choices.length)].letter;
+          next = {
+            ...next,
+            spawned: next.spawned + 1,
+            spawnLeft: 0.8 - (0.5 * elapsed) / 60,
+            forceTarget: false,
+            balloons: [
+              ...next.balloons,
+              {
+                id: `balloon-${next.spawned}`,
+                letter,
+                x: Math.random() * Math.max(0, width - 80),
+                y: -100, // Muncul dari atas layar
+                speed: 1.3 + Math.floor(elapsed / 10) * 0.08,
+                isTarget: letter === next.target,
+                popped: false,
+                popAge: 0,
+                color: next.spawned % 4,
+              },
+            ],
+          };
         }
         return next;
       });

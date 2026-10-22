@@ -16,27 +16,68 @@ interface MajelisScoreBoardProps {
  */
 export function MajelisScoreBoard({ playerHp, rivalHp, rivalMaxHp, rivalName, roundLabel, status }: MajelisScoreBoardProps) {
   const rival = Math.max(0, Math.min(rivalMaxHp, rivalHp));
-  return <motion.section aria-label="Meja Majelis Tajwid" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden rounded-3xl border border-teal-300/25 bg-gradient-to-b from-teal-950/80 to-teal-950 p-3">
-    <p className="text-center text-[10px] font-black uppercase tracking-widest text-teal-200">Majelis Ilmu · {roundLabel}</p>
-    <div className="mt-2 flex items-center gap-3">
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-black text-white">📖 Santri · Kamu</p>
-        <div role="progressbar" aria-label="Fokus santri" aria-valuemin={0} aria-valuemax={100} aria-valuenow={playerHp} className="mt-1 h-3 overflow-hidden rounded-full border border-white/20 bg-black/40">
-          <div className="h-full bg-gradient-to-r from-teal-500 to-teal-300 transition-[width] duration-500" style={{ width: `${playerHp}%` }} />
+  return (
+    <motion.section
+      aria-label="Meja Majelis Tajwid"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="overflow-hidden rounded-3xl border-2 border-[#134E4A] bg-[#0A2E28] p-3 shadow-[3px_3px_0px_#134E4A]"
+    >
+      <p className="text-center text-[10px] font-black uppercase tracking-widest text-teal-200">
+        Majelis Ilmu · {roundLabel}
+      </p>
+      <div className="mt-2 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-black text-white">Santri · Kamu</p>
+          <div
+            role="progressbar"
+            aria-label="Fokus santri"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={playerHp}
+            className="mt-1 h-3 overflow-hidden rounded-full border border-[#134E4A] bg-black/40"
+          >
+            <div
+              className="h-full bg-[#14B8A6] transition-[width] duration-500"
+              style={{ width: `${playerHp}%` }}
+            />
+          </div>
+          <p data-testid="battle-player-hp" className="mt-1 text-[10px] font-bold text-white/70">
+            {playerHp} / 100 Fokus
+          </p>
         </div>
-        <p data-testid="battle-player-hp" className="mt-1 text-[10px] font-bold text-white/70">{playerHp} / 100 Fokus</p>
-      </div>
-      <span className="pt-4 text-xs font-black italic text-teal-200">◆</span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-black text-white">🕌 {rivalName}</p>
-        <div role="progressbar" aria-label="Skor majelis" aria-valuemin={0} aria-valuemax={rivalMaxHp} aria-valuenow={rival} className="mt-1 h-3 overflow-hidden rounded-full border border-white/20 bg-black/40">
-          <div className="h-full bg-gradient-to-r from-teal-500 to-teal-300 transition-[width] duration-500" style={{ width: `${rival / rivalMaxHp * 100}%` }} />
+        <span className="pt-4 text-xs font-black italic text-teal-200">◆</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-black text-white">{rivalName}</p>
+          <div
+            role="progressbar"
+            aria-label="Skor majelis"
+            aria-valuemin={0}
+            aria-valuemax={rivalMaxHp}
+            aria-valuenow={rival}
+            className="mt-1 h-3 overflow-hidden rounded-full border border-[#134E4A] bg-black/40"
+          >
+            <div
+              className="h-full bg-[#14B8A6] transition-[width] duration-500"
+              style={{ width: `${(rival / rivalMaxHp) * 100}%` }}
+            />
+          </div>
+          <p data-testid="battle-monster-hp" className="mt-1 text-[10px] font-bold text-white/70">
+            {rival} / {rivalMaxHp} Bahan
+          </p>
         </div>
-        <p data-testid="battle-monster-hp" className="mt-1 text-[10px] font-bold text-white/70">{rival} / {rivalMaxHp} Bahan</p>
       </div>
-    </div>
-    <motion.p key={status ?? roundLabel} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} role="status" className="mt-2 text-center text-[11px] font-bold text-white/75">
-      {status ?? "Jawab soal tajwid untuk mengisi kartu, lalu mainkan kartumu di meja."}
-    </motion.p>
-  </motion.section>;
+      <motion.p
+        key={status ?? roundLabel}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        role="status"
+        className="mt-2 text-center text-[11px] font-bold text-teal-100"
+      >
+        {status ?? "Jawab soal tajwid untuk mengisi kartu, lalu mainkan kartumu di meja."}
+      </motion.p>
+    </motion.section>
+  );
 }

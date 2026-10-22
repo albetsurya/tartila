@@ -1,9 +1,26 @@
-import { lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense, type ReactNode } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GameLockGuard } from "./features/ngaji-ceria/components/GameLockGuard";
-import NgajiCeriaLoginPage from "./features/ngaji-ceria/pages/NgajiCeriaLoginPage";
+import { adminRouteElements } from "./features/admin";
+import { LoginPage } from "./features/auth/pages/LoginPage";
+import { SessionExpiryHandler } from "./features/auth/components/SessionExpiryHandler";
+import { NgajiCeriaBottomNav } from "./features/ngaji-ceria/components/NgajiCeriaBottomNav";
+import { CeriaGameLoading } from "./features/ngaji-ceria/components/CeriaGameLoading";
+
+// Core primary tab pages imported statically for instant transitions & zero layout flashing
+import NgajiCeriaHomePage from "./features/ngaji-ceria/pages/NgajiCeriaHomePage";
+import NgajiCeriaMapPage from "./features/ngaji-ceria/pages/NgajiCeriaMapPage";
+import NgajiCeriaGamesPage from "./features/ngaji-ceria/pages/NgajiCeriaGamesPage";
+import NgajiCeriaProfilePage from "./features/ngaji-ceria/pages/NgajiCeriaProfilePage";
 
 const NgajiCeriaRegisterPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaRegisterPage"),
@@ -14,14 +31,8 @@ const WarungSantriPage = lazy(
 const PremiumPage = lazy(
   () => import("./features/ngaji-ceria/pages/PremiumPage"),
 );
-const NgajiCeriaHomePage = lazy(
-  () => import("./features/ngaji-ceria/pages/NgajiCeriaHomePage"),
-);
 const NgajiCeriaLibraryPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaLibraryPage"),
-);
-const NgajiCeriaMapPage = lazy(
-  () => import("./features/ngaji-ceria/pages/NgajiCeriaMapPage"),
 );
 const NgajiCeriaQuizListPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaQuizListPage"),
@@ -29,14 +40,14 @@ const NgajiCeriaQuizListPage = lazy(
 const NgajiCeriaQuizPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaQuizPage"),
 );
-const NgajiCeriaGamesPage = lazy(
-  () => import("./features/ngaji-ceria/pages/NgajiCeriaGamesPage"),
-);
 const NgajiCeriaLeaderboardPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaLeaderboardPage"),
 );
-const NgajiCeriaProfilePage = lazy(
-  () => import("./features/ngaji-ceria/pages/NgajiCeriaProfilePage"),
+const KamarTilaPage = lazy(
+  () => import("./features/ngaji-ceria/pages/KamarTilaPage"),
+);
+const KamarBibiPage = lazy(
+  () => import("./features/ngaji-ceria/pages/KamarTilaPage"),
 );
 const NgajiCeriaHistoryPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaHistoryPage"),
@@ -67,6 +78,15 @@ const TajwidDetailPage = lazy(
 );
 const JuzAmmaStarsPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/JuzAmmaStarsPage"),
+);
+const JuzAmmaDetailPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/JuzAmmaDetailPage"),
+);
+const TahfidzPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/TahfidzPage"),
+);
+const JurnalIbadahPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/JurnalIbadahPage"),
 );
 const MagicCardsPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/MagicCardsPage"),
@@ -317,14 +337,76 @@ const HUB_ROUTES: Array<{ hub: string; title: string }> = [
   { hub: "tajwid-lab", title: "Tajwid Lab" },
 ];
 
+function RootRouteFallback() {
+  return (
+    <div
+      className="flex min-h-dvh items-center justify-center"
+      style={{ backgroundColor: "#F0FDF4" }}
+    >
+      <div
+        className="h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
+        style={{ borderColor: "#134E4A", borderTopColor: "transparent" }}
+        role="status"
+        aria-label="Memuat"
+      />
+    </div>
+  );
+}
+
+function NgajiCeriaShellFallback({ showBottomNav = false }: { showBottomNav?: boolean }) {
+  return (
+    <div className="min-h-screen bg-mint-cloud text-deep-teal flex flex-col justify-between selection:bg-teal-emerald/20 relative overflow-x-clip font-sans">
+      <main className="flex-1 min-h-0 w-full relative max-w-md mx-auto pb-28 min-h-[50vh] flex items-center justify-center">
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-4 border-[#0D9488]/30 border-t-[#0D9488]"
+          role="status"
+          aria-label="Memuat"
+        />
+      </main>
+      {showBottomNav && <NgajiCeriaBottomNav />}
+    </div>
+  );
+}
+
+function RouteBoundary({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const MAIN_TABS = [
+    "/member/ngaji-ceria",
+    "/member/ngaji-ceria/map",
+    "/member/ngaji-ceria/games",
+    "/member/ngaji-ceria/profile",
+  ];
+  const isMainTab = MAIN_TABS.includes(location.pathname.replace(/\/$/, ""));
+  const isNgajiCeria = location.pathname.startsWith("/member/ngaji-ceria");
+  const isImmersiveGame =
+    location.pathname.includes("/games/") &&
+    !location.pathname.endsWith("/games");
+
+  const fallback = isImmersiveGame ? (
+    <CeriaGameLoading durationMs={1200} subtitle="Menyiapkan Arena Game…" />
+  ) : isNgajiCeria ? (
+    <NgajiCeriaShellFallback showBottomNav={isMainTab} />
+  ) : (
+    <RootRouteFallback />
+  );
+
+  return (
+    <ErrorBoundary resetKeys={[location.pathname]}>
+      <Suspense fallback={fallback}>{children}</Suspense>
+    </ErrorBoundary>
+  );
+}
+
 export default function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
   const appContent = (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<NgajiCeriaLoginPage />} />
+        <SessionExpiryHandler />
+        <RouteBoundary>
+          <Routes>
+          <Route path="/login" element={<LoginPage />} />
           <Route
             index
             element={<Navigate to="/member/ngaji-ceria" replace />}
@@ -371,6 +453,18 @@ export default function App() {
             element={<NgajiCeriaProfilePage />}
           />
           <Route
+            path="/member/ngaji-ceria/kamar-tila"
+            element={<KamarTilaPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/kamar-tito"
+            element={<KamarTilaPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/kamar-bibi"
+            element={<Navigate to="/member/ngaji-ceria/kamar-tila" replace />}
+          />
+          <Route
             path="/member/ngaji-ceria/profile/history"
             element={<NgajiCeriaHistoryPage />}
           />
@@ -415,6 +509,22 @@ export default function App() {
             element={<JuzAmmaStarsPage />}
           />
           <Route
+            path="/member/ngaji-ceria/explore/juz-amma/:surahNumber"
+            element={<JuzAmmaDetailPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/tahfidz"
+            element={<TahfidzPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/jurnal-ibadah"
+            element={<JurnalIbadahPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/jurnal"
+            element={<JurnalIbadahPage />}
+          />
+          <Route
             path="/member/ngaji-ceria/explore/practice"
             element={<ArenaKartuPage />}
           />
@@ -443,11 +553,14 @@ export default function App() {
             />
           ))}
 
+          {adminRouteElements}
+
           <Route
             path="*"
             element={<Navigate to="/member/ngaji-ceria" replace />}
           />
         </Routes>
+        </RouteBoundary>
       </BrowserRouter>
     </AuthProvider>
   );

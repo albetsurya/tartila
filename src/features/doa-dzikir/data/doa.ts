@@ -9,6 +9,7 @@ export interface DoaEntry {
   arab: string;
   latin: string;
   arti: string;
+  audioUrl?: string;
   sumber?: string;
   dalil?: string;
   keutamaan?: string;

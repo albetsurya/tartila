@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { NGAJI_CERIA_ASSETS } from "../../../../data/assets";
 import type { Card as CardData } from "../data/match-pairs";
 
 export function Card({
@@ -35,14 +34,10 @@ export function Card({
       >
         <div
           aria-hidden="true"
-          className="absolute inset-0 flex items-center justify-center rounded-xl border border-teal-300/30 bg-teal-950"
+          className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] shadow-[2px_2px_0px_#134E4A]"
           style={{ backfaceVisibility: "hidden" }}
         >
-          <img
-            src={NGAJI_CERIA_ASSETS.kartuBelakang}
-            alt=""
-            className="h-full w-full rounded-xl object-cover opacity-80"
-          />
+          <span className="font-display font-black text-white text-2xl select-none">؟</span>
         </div>
         <div
           aria-hidden={!open}

@@ -3,7 +3,9 @@ import {
   HEART_MAX,
   TICKET_MAX,
   useEconomyStore,
+  isUnlimitedUser,
 } from "../hooks/useEconomyStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 
 function Pill({
@@ -19,7 +21,7 @@ function Pill({
 }) {
   return (
     <div
-      className={`flex items-center gap-1 rounded-full ${bg} px-2.5 py-1 border border-[#134E4A]/15 font-bold text-xs shadow-sm`}
+      className={`flex items-center gap-1 rounded-full ${bg} px-2.5 py-1 border-2 border-[#134E4A] font-bold text-xs shadow-[2px_2px_0px_#134E4A]`}
     >
       <img src={src} alt={alt} className="w-4 h-4 object-contain" />
       <span>{children}</span>
@@ -28,10 +30,12 @@ function Pill({
 }
 
 export function EconomyHUD({ className = "" }: { className?: string }) {
+  const { user, groupId } = useAuth();
   const hearts = useEconomyStore((s) => s.hearts);
   const tickets = useEconomyStore((s) => s.tickets);
   const isVip = useEconomyStore((s) => s.isVip);
   const syncTime = useEconomyStore((s) => s.syncTime);
+  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
 
   useEffect(() => {
     syncTime();
@@ -46,22 +50,22 @@ export function EconomyHUD({ className = "" }: { className?: string }) {
         alt="Hati"
         bg="bg-coral-soft text-coral-glow"
       >
-        {isVip ? "∞" : `${hearts}/${HEART_MAX}`}
+        {isUnlimited ? "∞" : `${hearts}/${HEART_MAX}`}
       </Pill>
       <Pill
         src={NGAJI_CERIA_ASSETS.iconGames}
         alt="Tiket"
         bg="bg-[#FEF3C7] text-deep-teal"
       >
-        {isVip ? "∞" : `${tickets}/${TICKET_MAX}`}
+        {isUnlimited ? "∞" : `${tickets}/${TICKET_MAX}`}
       </Pill>
-      {isVip && (
+      {isUnlimited && (
         <Pill
           src={NGAJI_CERIA_ASSETS.mahkotaVip}
-          alt="VIP"
+          alt="Unlimited"
           bg="bg-[#FEF3C7] text-[#B45309]"
         >
-          VIP
+          {isVip ? "VIP" : "∞"}
         </Pill>
       )}
     </div>

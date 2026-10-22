@@ -5,7 +5,7 @@ import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { HIJAIYAH_LIST, HijaiyahItem } from "../data/hijaiyah";
 import { playHijaiyahAudio, playSoundEffect } from "../utils/audioPlayer";
 import { tapFeedback } from "../../../lib/haptics";
-import { Trophy, Sparkles } from "../../../components/ui/FontAwesomeIcons";
+import { Trophy, Sparkles } from "../../../components/ui/CustomIcons";
 
 interface MatchTile {
   key: string;

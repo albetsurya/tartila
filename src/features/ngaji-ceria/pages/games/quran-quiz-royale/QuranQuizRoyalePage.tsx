@@ -1,4 +1,5 @@
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { useEffect } from "react";
+import { QuranQuizRoyaleCoverSvg } from "@/components/ui/Illustrations";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -12,11 +13,20 @@ import { useQuizRoyale } from "./hooks/useQuizRoyale";
 import { RoyaleStage } from "../_shared/variant/RoyaleStage";
 import { PodiumSaf } from "../_shared/variant/PodiumSaf";
 import { useGameExit } from "../_shared/hooks";
-import { verseRecitation } from "../_shared/recitation";
+import { playVerseAudio } from "../_shared/gameAudio";
 
 function Game() {
   const game = useQuizRoyale();
   const exit = useGameExit();
+  // Lantunkan ayat soal aktif setiap ronde baru dimulai.
+  useEffect(() => {
+    const question = game.currentQuestion;
+    if (game.phase === "playing" && question) {
+      playVerseAudio(Number(question.id.split("-")[0]), question.ayahNumber);
+    }
+    // Dependensi memakai index ronde + phase agar audio tak diputar ulang tiap render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game.currentIndex, game.phase]);
   const resultTitle = game.eliminated
     ? "Kamu Tereliminasi"
     : game.phase === "gameover" && game.rank === 1
@@ -29,16 +39,16 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="pink"
-      recitation={verseRecitation(game.currentQuestion)}
     >
       {game.phase === "idle" ? (
         <StartScreen
           title="Quran Quiz Royale"
           tagline="Duduk di saf, naik podium"
           description="Bertahan dalam sepuluh soal Juz Amma. Yang salah keluar saf, yang konsisten naik podium masjid."
-          coverImage={NGAJI_CERIA_ASSETS.quranQuizRoyale}
+          coverImage={<QuranQuizRoyaleCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="pink"
         />
       ) : (
@@ -48,12 +58,10 @@ function Game() {
               score={game.score}
               progressLabel={`Ronde ${game.currentIndex + 1}/10`}
               timeLeft={game.timeLeft}
-              accent="pink"
             />
             <TimerBar
               progress={game.timeLeft / 8}
               secondsLeft={game.timeLeft}
-              accent="pink"
             />
             <PodiumSaf
               players={game.players}
@@ -74,7 +82,7 @@ function Game() {
             />
             <p
               aria-live="polite"
-              className="min-h-5 text-center text-xs font-bold text-white/80"
+              className="min-h-5 text-center text-xs font-bold text-[#134E4A]/70"
             >
               {game.answerState === "correct"
                 ? "Tepat! Kamu bertahan di ronde ini."

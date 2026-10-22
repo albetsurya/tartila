@@ -4,6 +4,31 @@ const REQUEST_TIMEOUT_MS = 15000;
 const TOKEN_COOKIE = "tartila_token";
 const GROUP_ID_COOKIE = "tartila_group_id";
 
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+let sessionExpiryNotified = false;
+
+/**
+ * Register a global handler invoked once when the API reports an
+ * expired/invalid session (401) or forbidden access (403).
+ * Wired to `AuthContext.logout()` + a redirect to `/login` by
+ * `SessionExpiryHandler` (mounted inside the router in App.tsx).
+ */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+  unauthorizedHandler = handler;
+}
+
+function notifyUnauthorized() {
+  if (sessionExpiryNotified) return;
+  sessionExpiryNotified = true;
+  try {
+    unauthorizedHandler?.();
+  } catch {
+    /* handler errors must not mask the original API error */
+  }
+}
+
 export function getToken(): string | null {
   try {
     const match = document.cookie.match(
@@ -16,6 +41,7 @@ export function getToken(): string | null {
 }
 
 export function setToken(token: string) {
+  sessionExpiryNotified = false;
   document.cookie = `${TOKEN_COOKIE}=${encodeURIComponent(
     token,
   )}; path=/; SameSite=Strict`;
@@ -54,7 +80,7 @@ export class ApiError extends Error {
 }
 
 export async function callREST<T>(
-  method: "GET" | "POST" | "PUT" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   data?: Record<string, any>,
   queryParams?: Record<string, any>,
@@ -103,6 +129,9 @@ export async function callREST<T>(
       });
     }
     if (!res.ok || json.success === false) {
+      if (res.status === 401 || res.status === 403) {
+        notifyUnauthorized();
+      }
       throw new ApiError(json.message || `REST request gagal (${res.status})`, undefined, {
         statusCode: res.status,
       });

@@ -87,6 +87,10 @@ body.game-active [data-bibi-companion] {
 }
 
 /* 3. Pastikan Judul Besar tetap tebal dan kokoh */
+.font-arabic {
+  font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", serif;
+}
+
 .font-display,
 h1,
 h2,

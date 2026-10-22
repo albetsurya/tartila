@@ -1,5 +1,6 @@
-import { Share2 } from "@/components/ui/FontAwesomeIcons";
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { Share2 } from "@/components/ui/CustomIcons";
+import { ArabicWordleCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -10,6 +11,7 @@ import { ArabicKeyboard } from "./components/ArabicKeyboard";
 import { useArabicWordle } from "./hooks/useArabicWordle";
 import { AlchemyPanel } from "../_shared/variant/AlchemyPanel";
 import { useGameExit } from "../_shared/hooks";
+import { playLetterAudio } from "../_shared/gameAudio";
 
 function Game() {
   const game = useArabicWordle();
@@ -27,9 +29,10 @@ function Game() {
           title="Arabic Wordle"
           tagline="Satu kata, enam percobaan"
           description="Tebak kata Arab lima huruf. Hijau berarti posisi tepat, kuning hurufnya ada, abu-abu tidak dipakai. Tantangan harian memakai kata yang sama sepanjang hari."
-          coverImage={NGAJI_CERIA_ASSETS.arabicWordle}
+          coverImage={<ArabicWordleCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="emerald"
         >
           <div className="flex w-full max-w-xs gap-2">
@@ -47,14 +50,39 @@ function Game() {
           </div>
         </StartScreen>
       ) : (
-        <div className="flex flex-col flex-1 gap-3 min-h-0 justify-between">
+        <div className="flex flex-col flex-1 gap-3 min-h-0 justify-between pb-24 md:pb-32 relative">
           <HUD
             score={game.score}
             progressLabel={`${game.guesses.length}/6 percobaan`}
-            accent="emerald"
           />
           <AlchemyPanel targetLength={5} guesses={game.guesses.length} />
-          <WordleBoard rows={game.board} />
+          
+          {/* Maskot berdiri di samping grid tebakan */}
+          <div className="flex items-center justify-center gap-2 sm:gap-4 w-full">
+            <WordleBoard rows={game.board} />
+            <div className="pointer-events-none select-none flex flex-col items-center justify-center">
+              <TilaMascot
+                size={72}
+                mood={
+                  game.solved
+                    ? "excited"
+                    : game.current.length > 0
+                      ? "thinking"
+                      : "idle"
+                }
+                animation={game.solved ? "bounce" : "float"}
+                direction="left"
+                speech={
+                  game.solved
+                    ? "MasyaAllah!"
+                    : game.current.length > 0
+                      ? "Hmm..."
+                      : undefined
+                }
+              />
+            </div>
+          </div>
+
           <p
             aria-live="polite"
             className="min-h-5 text-center text-xs font-bold text-white/80"
@@ -63,7 +91,10 @@ function Game() {
           </p>
           <ArabicKeyboard
             keyStatuses={game.keyStatuses}
-            onKey={game.input}
+            onKey={(letter) => {
+              playLetterAudio(letter);
+              game.input(letter);
+            }}
             onBackspace={game.backspace}
             onSubmit={game.submit}
             disabled={game.phase !== "playing"}

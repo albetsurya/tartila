@@ -10,7 +10,7 @@ import {
   X,
   RefreshCw,
   Volume2,
-} from "../../../components/ui/FontAwesomeIcons";
+} from "../../../components/ui/CustomIcons";
 
 interface WordPuzzle {
   id: number;

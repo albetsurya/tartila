@@ -1,0 +1,74 @@
+--- a/src/features/ngaji-ceria/pages/NgajiCeriaProfilePage.tsx
++++ b/src/features/ngaji-ceria/pages/NgajiCeriaProfilePage.tsx
+@@ -89,6 +89,32 @@
+ const email = user?.username
+     ? `${user.username}@santri.ngajiceria.id`
+     : "Belum terhubung akun";
+ 
++// Role indicator di profil
++const roleBadge = user?.role && (
++  user.role.toUpperCase() === "SUPER_ADMIN" || 
++  user.role.toUpperCase() === "ADMIN"
++    ? <span className="bg-[#134E4A] text-white text-xs font-medium px-2 py-1 rounded ml-2">
++        Admin
++      </span>
++    : user.role.toUpperCase() === "MEMBER"
++      ? <span className="bg-[#EAB308] text-white text-xs font-medium px-2 py-1 rounded ml-2">
++          Member
++        </span>
++      : null
++);
++
++// Fitur toggle mode admin/member
++const [isAdminMode, setIsAdminMode] = useState(false);
++
++const adminQuickLinks = [
++  { label: "Dashboard", href: "/admin", icon: "DashboardSvg" },
++  { label: "Users", href: "/admin/users", icon: "UsersSvg" },
++  { label: "Quizzes", href: "/admin/quizzes", icon: "BookOpenSvg" },
++];
++
++const isAdmin = roleClean === "SUPER_ADMIN" || roleClean === "ADMIN";
++
++// Admin mode toggle UI
++const adminModeUI = (
++  <div className="mt-4 p-3 rounded-lg border-2 border-[#134E4A] bg-[#134E4A]/10">
++    <p className="text-xs text-[#134E4A] font-medium mb-2">
++      Mode Admin Aktif
++    </p>
++    <div className="flex flex-wrap gap-2">
++      {adminQuickLinks.map((link) => (
++        <a
++          key={link.href}
++          href={link.href}
++          target="_blank"
++          rel="noopener noreferrer"
++          className="text-xs text-[#134E4A] hover:text-white transition-colors"
++        >
++          {link.icon ? <link.icon size={14} /> : ""}
++          {link.label}
++        </a>
++      ))}
++    </div>
++    <button
++      onClick={() => setIsAdminMode(false)}
++      className="mt-2 text-xs text-[#134E4A] underline underline-offset-2"
++    >
++      Tutup Mode Admin
++    </button>
++  </div>
++  );
++
++  {/* Quick nav untuk admin */}
++  {isAdmin && (
++    <div className="mt-3 text-sm text-[#134E4A]/80">
++      <p className="font-medium">Akses Cepat</p>
++      <ul className="list-disc list-inside text-xs text-[#134E4A]/80">
++        <li><a href="/admin" className="hover:text-[#134E4A]">Dashboard Admin</a></p></li>
++        <li><a href="/admin/users" className="hover:text-[#134E4A]">Manajemen Pengguna</a></p></li>
++        <li><a href="/admin/quizzes" className="hover:text-[#134E4A]">Kelola Kuis</a></p></li>
++      </ul>
++    </div>
++  );
++
++  const handleLogout = async

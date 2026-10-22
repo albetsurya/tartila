@@ -1,19 +1,24 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import fs from "node:fs";
 import os from "node:os";
 import { execFileSync } from "node:child_process";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 
-function sendEditorJson(res: any, status: number, body: unknown): void {
+function sendEditorJson(
+  res: ServerResponse,
+  status: number,
+  body: unknown,
+): void {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(body));
 }
 
-function readEditorBody(req: any): Promise<Record<string, unknown>> {
+function readEditorBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     let raw = "";
     req.on("data", (chunk: Buffer) => {
@@ -273,13 +278,13 @@ function splitAudio(body: Record<string, unknown>) {
   ];
 }
 
-function flattenTimelineSegments(clip: Record<string, any>) {
+function flattenTimelineSegments(clip: Record<string, unknown>) {
   const trimStart = Number(clip.trimStart) || 0;
   const trimEnd = Number(clip.trimEnd) || 0;
   let offset = 0;
   const output: Record<string, unknown>[] = [];
   for (const rawSegment of Array.isArray(clip.segments) ? clip.segments : []) {
-    const segment = rawSegment as Record<string, any>;
+    const segment = rawSegment as Record<string, unknown>;
     const start = Number(segment.start);
     const end = Number(segment.end);
     const length = end - start;
@@ -300,7 +305,7 @@ function flattenTimelineSegments(clip: Record<string, any>) {
 function publishTimeline(body: Record<string, unknown>) {
   const jilid = Number(body.jilid);
   const page = Number(body.page);
-  const timeline = body.timeline as Record<string, any>;
+  const timeline = body.timeline as Record<string, unknown>;
   if (!timeline || !Array.isArray(timeline.clips) || !Array.isArray(timeline.texts)) {
     throw new Error("Draft timeline tidak valid");
   }
@@ -310,7 +315,7 @@ function publishTimeline(body: Record<string, unknown>) {
   const revision = String(Date.now());
   const outputByClip = new Map<string, string>();
   for (const rawClip of timeline.clips) {
-    const clip = rawClip as Record<string, any>;
+    const clip = rawClip as Record<string, unknown>;
     const segments = flattenTimelineSegments(clip);
     if (!segments.length) continue;
     const safeId = String(clip.id).replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -321,16 +326,16 @@ function publishTimeline(body: Record<string, unknown>) {
 
   const questions = [];
   for (const rawClip of timeline.clips) {
-    const clip = rawClip as Record<string, any>;
-    const linkedTexts = timeline.texts.filter((text: Record<string, any>) => String(text.clipId || "") === String(clip.id));
+    const clip = rawClip as Record<string, unknown>;
+    const linkedTexts = timeline.texts.filter((text: Record<string, unknown>) => String(text.clipId || "") === String(clip.id));
     if (!linkedTexts.length) continue;
     const first = linkedTexts[0];
-    const parts = linkedTexts.flatMap((text: Record<string, any>) => Array.isArray(text.transliterationParts) ? text.transliterationParts : []);
-    const options = linkedTexts.flatMap((text: Record<string, any>) => Array.isArray(text.options) ? text.options : []);
+    const parts = linkedTexts.flatMap((text: Record<string, unknown>) => Array.isArray(text.transliterationParts) ? text.transliterationParts : []);
+    const options = linkedTexts.flatMap((text: Record<string, unknown>) => Array.isArray(text.options) ? text.options : []);
     questions.push({
       ...first,
       id: first.id,
-      arabic: linkedTexts.map((text: Record<string, any>) => String(text.arabic || "").replace(/\s+/g, " ").trim()).join("   "),
+      arabic: linkedTexts.map((text: Record<string, unknown>) => String(text.arabic || "").replace(/\s+/g, " ").trim()).join("   "),
       transliterationParts: parts,
       options: [...parts, ...options.filter((option: string) => !parts.includes(option)).slice(0, Math.max(8, parts.length))],
       audioUrl: outputByClip.get(String(clip.id)) || "",
@@ -338,14 +343,14 @@ function publishTimeline(body: Record<string, unknown>) {
       clipId: undefined,
     });
   }
-  for (const text of timeline.texts.filter((item: Record<string, any>) => !item.clipId)) {
+  for (const text of timeline.texts.filter((item: Record<string, unknown>) => !item.clipId)) {
     const { clipId: _clipId, ...question } = text;
     questions.push({ ...question, audioUrl: "", audioMappingComplete: true });
   }
 
   const publishedTimeline = {
     ...timeline,
-    clips: timeline.clips.map((clip: Record<string, any>) => ({
+    clips: timeline.clips.map((clip: Record<string, unknown>) => ({
       ...clip,
       outputUrl: outputByClip.get(String(clip.id)),
     })),
@@ -355,11 +360,16 @@ function publishTimeline(body: Record<string, unknown>) {
   return { published, clips: listPageAudio(jilid, page) };
 }
 
-function tilawatiEditorPlugin() {
+function tilawatiEditorPlugin(): Plugin {
   return {
     name: "tilawati-editor-local-files",
-    configureServer(server: any) {
-      server.middlewares.use(async (req: any, res: any, next: any) => {
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use(
+        async (
+          req: IncomingMessage,
+          res: ServerResponse,
+          next: (err?: unknown) => void,
+        ) => {
         if (!req.url?.startsWith("/api/tilawati-editor")) {
           next();
           return;

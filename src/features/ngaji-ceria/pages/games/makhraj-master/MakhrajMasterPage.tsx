@@ -1,4 +1,6 @@
-import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
+import { useEffect } from "react";
+import { MakhrajMasterCoverSvg } from "@/components/ui/Illustrations";
+import { TilaMascot } from "@/components/ui/TilaMascot";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
@@ -6,9 +8,9 @@ import { GameOverModal } from "../_shared/GameOverModal";
 import { HUD } from "../_shared/HUD";
 import { TimerBar } from "../_shared/TimerBar";
 import { ComboBadge } from "../_shared/ComboBadge";
+import { playLetterAudio } from "../_shared/gameAudio";
 import { useRhythmGame } from "../_shared/hooks/useRhythmGame";
 import { useGameExit } from "../_shared/hooks";
-import { letterRecitation } from "../_shared/recitation";
 
 const letters = ["ا", "ب", "ت", "ث", "ج", "ح", "خ", "د", "ذ", "ر"];
 function Game() {
@@ -19,6 +21,12 @@ function Game() {
     letters,
   });
   const exit = useGameExit();
+
+  useEffect(() => {
+    if (game.phase === "playing" && game.recitationNote)
+      playLetterAudio(game.recitationNote.letter);
+  }, [game.phase, game.recitationNote]);
+
   return (
     <GameShell
       title="Makhraj Master"
@@ -26,17 +34,16 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="cyan"
-      recitation={letterRecitation(game.recitationNote?.letter)}
-      recitationKey={game.recitationNote?.id}
     >
       {game.phase === "idle" ? (
         <StartScreen
           title="Makhraj Master"
           tagline="Dengar makhraj, tap tepat waktu"
           description="Huruf jatuh di empat lane. Tap saat menyentuh garis bawah untuk Perfect atau Good. Latency bisa dikalibrasi sebelum mulai."
-          coverImage={NGAJI_CERIA_ASSETS.hijaiyahRush}
+          coverImage={<MakhrajMasterCoverSvg size={112} />}
           best={game.best}
           onStart={game.start}
+          onExit={exit}
           accent="cyan"
         >
           <label className="flex items-center gap-2 text-xs text-white/70">
@@ -57,13 +64,58 @@ function Game() {
           <HUD
             score={game.score}
             progressLabel={`${Math.floor(game.elapsed)}/90 detik`}
-            accent="cyan"
           />
           <TimerBar
             progress={1 - game.elapsed / 90}
             secondsLeft={90 - game.elapsed}
-            accent="cyan"
           />
+          {/* Maskot membuka mulut saat timing tepat */}
+          <div className="flex items-center justify-between p-2.5 rounded-2xl border-2 border-[#134E4A] bg-teal-900/60 shadow-[2px_2px_0px_#134E4A]">
+            <div className="flex items-center gap-3">
+              <TilaMascot
+                size={64}
+                mood={
+                  game.judgement === "perfect"
+                    ? "excited"
+                    : game.judgement === "miss"
+                      ? "sad"
+                      : "happy"
+                }
+                animation={game.judgement === "perfect" ? "bounce" : "float"}
+                direction="front"
+                talking={game.judgement === "perfect" || game.judgement === "good"}
+                speech={
+                  game.judgement === "perfect"
+                    ? "Fasih Sekali!"
+                    : game.judgement === "good"
+                      ? "Bagus!"
+                      : undefined
+                }
+              />
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 block">
+                  Panduan Pelafalan Makhraj
+                </span>
+                <span className="text-xs font-bold text-white">
+                  {game.judgement === "perfect"
+                    ? "Sempurna! Artikulasi pas."
+                    : game.judgement === "good"
+                      ? "Bagus! Terus jaga ritme."
+                      : game.judgement === "miss"
+                        ? "Kurang tepat waktu."
+                        : "Tap tombol saat huruf menyentuh garis."}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-bold text-amber-300 block">
+                Combo
+              </span>
+              <span className="text-base font-black text-white">
+                x{game.combo}
+              </span>
+            </div>
+          </div>
           <div className="relative grid flex-1 min-h-[300px] grid-cols-4 gap-1 overflow-hidden rounded-3xl border border-teal-300/25 bg-teal-950">
             {game.notes.map((note) => (
               <div
@@ -97,7 +149,7 @@ function Game() {
           />
           <p
             aria-live="polite"
-            className="text-center text-xs text-white/75 shrink-0"
+            className="text-center text-xs text-[#134E4A]/75 shrink-0"
           >
             {game.judgement === "perfect"
               ? "Perfect!"
