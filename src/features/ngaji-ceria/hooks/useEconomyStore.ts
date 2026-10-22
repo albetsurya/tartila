@@ -40,9 +40,10 @@ interface DailyPurchases {
 
 // Fungsi bantuan: cek apakah user VIP/unlimited/ustadz
 export function isUnlimitedUser(
-  user?: { role?: string; group_id?: string; tier?: string; is_vip?: boolean; is_ustadz?: boolean } | null,
+  user?: { role?: string; group_id?: string; tier?: string; is_vip?: boolean; is_ustadz?: boolean; subscription_type?: string } | null,
   isVipStore?: boolean,
   groupId?: string | null,
+  subscriptionType?: string | null,
 ): boolean {
   if (isVipStore) return true;
 
@@ -62,10 +63,17 @@ export function isUnlimitedUser(
     return true;
   }
 
-  // Ustadz/Ustadzah memiliki fitur khusus (room, soal, dll)
-  // Ustadz tidak memiliki limit hati/tiket untuk fitur "belajar bareng"
+  // Ustadz/Ustadzah memiliki fitus khusus (room, soal, dll)
   if (user?.is_ustadz === true || roleClean === 'USTADZ' || roleClean === 'USTADZAH') {
-    return true;
+    // Ustadz tetap memiliki batasan berdasarkan subscription
+    if (subscriptionType === 'premium') {
+      return true; // Premium: unlimited everything
+    }
+    if (subscriptionType === 'vip') {
+      return true; // VIP: unlimited for classroom features
+    }
+    // Free ustadz masih punya batasan
+    return false;
   }
 
   // Member/tidak punya limit (bisa di-set sesuai kebutuhan)
@@ -80,6 +88,7 @@ interface EconomyState {
   groupId: string | null;
   isVip: boolean;
   isUstadz: boolean; // flag baru
+  subscriptionType: 'free' | 'vip' | 'premium'; // Langganan baru
 
   // Economy data (disimpan di Supabase)
   hearts: number;
@@ -95,6 +104,8 @@ interface EconomyState {
   ustadzRooms: any[]; // Daftar room yang dibuat ustadz
   currentRoom: any | null; // Room saat ini yang diakses
   roomParticipants: any[]; // Peserta di room current
+  roomLimit: number; // Batas room berdasarkan subscription
+  participantLimit: number; // Batas peserta per room
 
   // Actions
   initialize: () => Promise<void>;
@@ -104,7 +115,8 @@ interface EconomyState {
   restoreTicket: () => Promise<boolean>;
   buyBooster: (boosterId: string, price: number) => Promise<boolean>;
   setVip: (isVip: boolean) => Promise<void>;
-  setGroupId: (groupId: string | null) => Promise<void>;
+  setGroupId: (groupId: string | null) => Promise<void];
+  setSubscription: (subType: 'free' | 'vip' | 'premium') => Promise<void>;
   setUstadzFlag: (isUstadz: boolean) => Promise<void>;
 
   // Room management actions
@@ -113,9 +125,10 @@ interface EconomyState {
   leaveRoom: () => Promise<boolean>;
   getRooms: () => Promise<any[]>;
   getParticipantCount: (roomId: string) => Promise<number>;
+  canCreateRoom: () => boolean; // Check if user can create room
 
   // Query helpers
-  energyQuota: (user?: { role?: string; group_id?: string; is_ustadz?: boolean } | null, groupId?: string | null) => {
+  energyQuota: (user?: { role?: string; group_id?: string; is_ustadz?: boolean; subscription_type?: string } | null, groupId?: string | null, subType?: string | null) => {
     hearts: number;
     tickets: number;
     isUnlimited: boolean;
@@ -132,6 +145,7 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
   groupId: null,
   isVip: false,
   isUstadz: false,
+  subscriptionType: 'free', // Default free
   hearts: HEART_MAX,
   tickets: TICKET_MAX,
   level: 1,
@@ -141,47 +155,57 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
   ustadzRooms: [],
   currentRoom: null,
   roomParticipants: [],
+  roomLimit: 1, // Default free: 1 room
+  participantLimit: 5, // Default free: 5 peserta
 
-  // Initialize: ambil data dari Supabase dan cek ustadz status
+  // Initialize: ambil data dari Supabase dan cek subscription
   initialize: async () => {
     try {
       const { data: { user} } = await supabase.auth.getUser();
       if (user) {
         set({ userId: user.id, username: user.email?.split('@')[0] || null });
 
-        // Ambil data user dari Supabase termasuk role_ustadz
+        // Ambil data user dari Supabase termasuk subscription
         const { data: userData, error } = await supabase
           .from('users')
-          .select('hearts, tickets, level, xp, group_id, is_vip, role, role_ustadz')
+          .select('hearts, tickets, level, xp, group_id, is_vip, role, role_ustadz, subscription_type, rooms_created, max_rooms, max_participants')
           .eq('id', user.id)
           .single();
 
         if (userData && !error) {
           const role = userData.role || 'member';
-          const isUstadz = 
-            userData.role_ustadz === 1 ||
-            role === 'ustadz' ||
-            role === 'ustadzah' ||
-            userData.is_vip;
+          const subscription = userData.subscription_type || 'free';
+          
+          // Derived values dari database
+          const roomsCreated = userData.rooms_created || 0;
+          const maxRooms = userData.max_rooms ?? (subscription === 'premium' ? -1 : (subscription === 'vip' ? 5 : 1));
+          const maxParticipants = userData.max_participants ?? (subscription === 'premium' ? 50 : (subscription === 'vip' ? 10 : 5));
 
           set({
             role: role,
             groupId: userData.group_id || null,
             isVip: userData.is_vip || false,
-            isUstadz: isUstadz,
+            isUstadz: 
+              userData.role_ustadz === 1 ||
+              role === 'ustadz' ||
+              role === 'ustadzah' ||
+              userData.is_vip,
+            subscriptionType: subscription,
             hearts: userData.hearts ?? HEART_MAX,
             tickets: userData.tickets ?? TICKET_MAX,
             level: userData.level ?? 1,
             xp: userData.xp ?? 0,
             lastSync: Date.now(),
+            roomLimit: maxRooms,
+            participantLimit: maxParticipants,
           });
 
           // Jika ustadz, ambil daftar room yang dibuat
-          if (isUstadz) {
+          if (get().isUstadz) {
             await get().fetchUstadzRooms();
           }
         } else {
-          // User baru
+          // User baru - default free
           await supabase.from('users').insert({
             id: user.id,
             hearts: HEART_MAX,
@@ -192,12 +216,19 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
             is_vip: false,
             role: 'member',
             role_ustadz: 0,
+            subscription_type: 'free',
+            rooms_created: 0,
+            max_rooms: 1,
+            max_participants: 5,
           });
           set({
             role: 'member',
             groupId: null,
             isVip: false,
             isUstadz: false,
+            subscriptionType: 'free',
+            roomLimit: 1,
+            participantLimit: 5,
             hearts: HEART_MAX,
             tickets: TICKET_MAX,
             level: 1,
@@ -213,11 +244,59 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
         tickets: TICKET_MAX,
         level: 1,
         xp: 0,
+        subscriptionType: 'free',
+        roomLimit: 1,
+        participantLimit: 5,
       });
     }
   },
 
-  // ... (sisa action yang sama seperti sebelumnya, hanya menambahkan fitur ustadz)
+  // Set subscription type (dari UI pembayaran)
+  setSubscription: async (subType: 'free' | 'vip' | 'premium') => {
+    const { userId } = get();
+    if (!userId) return;
+
+    set({ subscriptionType: subType });
+
+    try {
+      const { data: { user} } = await supabase.auth.getUser();
+      if (user && userId) {
+        // Update di database
+        const column = subType === 'premium' ? 'premium_features' : 'subscription_type';
+        await supabase
+          .from('users')
+          .update({ subscription_type: subType })
+          .eq('id', userId);
+          
+        // Update room limits berdasarkan subscription
+        let roomLimit = 1;
+        let participantLimit = 5;
+        
+        if (subType === 'vip') {
+          roomLimit = 5;
+          participantLimit = 10;
+        } else if (subType === 'premium') {
+          roomLimit = -1; // Unlimited
+          participantLimit = 50;
+        }
+
+        // Update rooms_created count if upgrading
+        if (subType !== 'free' && get().roomsCreated === 0) {
+          // User pertama kalinya upgrade, reset rooms if needed
+        }
+
+        set({
+          roomLimit: roomLimit,
+          participantLimit: participantLimit,
+          lastSync: Date.now(),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to sync subscription to Supabase:', err);
+      // Revert state jika gagal sync
+      set({ subscriptionType: 'free' });
+    }
+  },
 
   // Set ustadz flag
   setUstadzFlag: async (isUstadz: boolean) => {
@@ -229,7 +308,7 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
       if (user && userId) {
         await supabase
           .from('users')
-          .update({ is_vip: isUstadz }) // Menggunakan is_vip field untuk kemudahan
+          .update({ is_vip: isUstadz })
           .eq('id', userId);
         set({ lastSync: Date.now() });
       }
@@ -238,10 +317,36 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     }
   },
 
+  // Fungsi: Cek apakah bisa membuat room
+  canCreateRoom: () => {
+    const { isUstadz, subscriptionType, roomsCreated, roomLimit } = get();
+    
+    // Bisa create room jika:
+    // 1. User adalah ustadz/ustadzah
+    // 2. Belum mencapai batas room berdasarkan subscription
+    if (!isUstadz) return false;
+    
+    // Premium users unlimited rooms
+    if (roomLimit === -1 || roomLimit === 'unlimited') return true;
+    
+    // Hitung sisa room yang bisa dibuat
+    const maxRooms = roomLimit === -1 ? Infinity : roomLimit;
+    const canCreate = roomsCreated < maxRooms;
+    
+    return canCreate;
+  },
+
   // Fungsi: Buat ruang kelas baru
   createRoom: async (name: string, password?: string, gameType: string = 'tilawati') => {
-    const { userId } = get();
-    if (!userId || !get().isUstadz) return null;
+    const { userId, isUstadz, subscriptionType, roomsCreated, roomLimit } = get();
+    
+    // Cek batasan sebelum buat room
+    if (!isUstadz) return null;
+    if (roomLimit !== -1 && roomsCreated >= roomLimit) {
+      // Sudah mencapai batas room
+      console.log(`Sudah mencapai batas room: ${roomsCreated}/${roomLimit}`);
+      return null;
+    }
 
     try {
       // Buat room di database
@@ -251,7 +356,7 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
           ustadz_id: userId,
           name: name,
           password_hash: password ? await hashPassword(password) : null,
-          max_participants: 50,
+          max_participants: get().participantLimit,
           is_active: true,
           created_at: new Date().toISOString(),
         })
@@ -268,14 +373,21 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
         joined_at: new Date().toISOString(),
       });
 
+      // Update counter rooms_created di users
+      await supabase
+        .from('users')
+        .update({ rooms_created: roomsCreated + 1 })
+        .eq('id', userId);
+
       // Update state lokal
       const updatedRooms = [room, ...get().ustadzRooms].filter(
         (r, i) => i === 0 || r.id !== room.id
-      ).slice(0, 50); // Limit 50 rooms
+      ).slice(0, 100);
 
       set({
         ustadzRooms: updatedRooms,
         currentRoom: room,
+        roomsCreated: roomsCreated + 1,
       });
 
       return room;
@@ -315,7 +427,9 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
         .select('*', { count: 'exact', head: true })
         .eq('room_id', roomId);
 
-      if ((participantCount || 0) >= (room.max_participants || 50)) return false;
+      // Check against participantLimit dari user subscription
+      const userLimit = get().participantLimit;
+      if ((participantCount || 0) >= userLimit) return false;
 
       // Tambahkan participant
       await supabase.from('ustadz_room_participants').insert({
@@ -346,12 +460,11 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     try {
       await supabase.from('ustadz_room_participants').delete({
         eq: 'room_id_user_id',
-        schema: 'public',
+        sourceKey: 'user_id',
+        sourceKeyValue: userId,
         table: 'ustadz_room_participants',
         foreignKey: 'room_id',
         foreignKeyValue: currentRoom.id,
-        sourceKey: 'user_id',
-        sourceKeyValue: userId,
       }).on('error', (err) => {
         console.error('Error leaving room:', err);
       });
@@ -373,13 +486,16 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
 
   // Fungsi: Dapatkan daftar room
   getRooms: async () => {
-    const { userId } = get();
+    const { userId, isUstadz, subscriptionType } = get();
     try {
-      let query = supabase.from('ustadz_rooms').select('*').eq('is_active', true);
+      let query = supabase.from('ustadz_rooms').select(`
+        *,
+        ustadz_room_participants!inner(count)
+      ).eq('is_active', true);
 
-      // Jika user adalah ustadz, tampilkan semua room, kalau murid tampilkan hanya room aktif
-      if (userId && get().isUstadz) {
-        // Ustadz lihat semua room
+      // Jika ustadz, tampilkan semua room, kalau murid tampilkan hanya room aktif
+      if (userId && isUstadz) {
+        // Ustadz lihat semua room boleh diakses
       } else {
         query = query.eq('is_active', true);
       }
@@ -388,23 +504,28 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
 
       if (error) throw error;
       
-      // Ambil count peserta untuk setiap room
-      const roomsWithCount = await Promise.all(
+      // Process rooms with participant counts and subscription checks
+      const processedRooms = await Promise.all(
         (rooms || []).map(async (room: any) => {
           const { count: participantCount } = await supabase
             .from('ustadz_room_participants')
             .select('*', { count: 'exact', head: true })
             .eq('room_id', room.id);
           
+          // Check if user can join this room based on their subscription
+          const canJoin = (participantCount || 0) < get().participantLimit;
+          
           return {
             ...room,
             participantCount: participantCount || 0,
+            canJoin,
+            isFull: (participantCount || 0) >= get().participantLimit,
           };
         })
       );
 
-      set({ ustadzRooms: roomsWithCount });
-      return roomsWithCount;
+      set({ ustadzRooms: processedRooms });
+      return processedRooms;
     } catch (err) {
       console.error('Failed to get ustadz rooms:', err);
       set({ ustadzRooms: [] });
@@ -426,11 +547,11 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     }
   },
 
-  // Helper: Energy quota dengan ustadz check
-  energyQuota: (user?, groupId?) => {
+  // Helper: Energy quota dengan subscription check
+  energyQuota: (user?, groupId?, subType?) => {
     const hearts = get().hearts;
     const tickets = get().tickets;
-    const isUnlimited = isUnlimitedUser(user, get().isVip, groupId, get().isUstadz);
+    const isUnlimited = isUnlimitedUser(user, get().isVip, groupId, get().subscriptionType);
 
     return {
       hearts: isUnlimited ? Infinity : hearts,
@@ -440,4 +561,15 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
       ticketDisplay: isUnlimited ? '∞' : `${tickets}/${TICKET_MAX}`,
     };
   },
-}));
+});
+
+// Helper functions for password hashing (client-side simplified)
+const hashPassword = async (password: string): Promise<string> => {
+  // Di production, gunakan proper password hashing
+  // Di sini hanya mock untuk development
+  return btoa(password); // Base64 simple untuk development
+};
+
+const verifyPassword = async (password: string, hashed: string): Promise<boolean> => {
+  return hashPassword(password) === hashed;
+};
