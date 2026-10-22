@@ -1,1 +1,91 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="120 74 260 260" width="64" height="64" fill="none">
+  <!-- App Icon Frame -->
+  <rect x="132" y="86" width="240" height="240" rx="58" fill="#134E4A" />
+  <rect x="124" y="78" width="240" height="240" rx="58" fill="#FFFFFF" stroke="#134E4A" stroke-width="9" />
+
+  <!-- Grup Maskot (Scale 0.84 agar sayap kiri-kanan muat utuh di dalam frame closeup) -->
+  <g transform="translate(246, 208) scale(0.84) translate(-250, -214)">
+    
+    <!-- Hard Shadow Badan & Sayap -->
+    <g transform="translate(6, 8)">
+      <g transform="rotate(-14 165 230)">
+        <path d="M 165 204 L 92 162 C 80 172, 87 198, 108 212 C 93 220, 98 242, 126 249 C 122 262, 138 274, 165 268 Z" fill="#134E4A" />
+      </g>
+      <g transform="rotate(14 335 230)">
+        <path d="M 335 204 L 408 162 C 420 172, 413 198, 392 212 C 407 220, 402 242, 374 249 C 378 262, 362 274, 335 268 Z" fill="#134E4A" />
+      </g>
+      <circle cx="250" cy="222" r="95" fill="#134E4A" />
+    </g>
+
+    <!-- Sayap Samping Kiri (Asli TilaMascot) -->
+    <g id="left-side-wing" transform="rotate(-14 165 230)">
+      <path d="M 165 204 L 92 162 C 80 172, 87 198, 108 212 C 93 220, 98 242, 126 249 C 122 262, 138 274, 165 268 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+      <path d="M 108 212 C 116 217, 123 220, 130 222 M 126 249 C 134 251, 140 251, 146 251" fill="none" stroke="#07473C" stroke-width="5.5" stroke-linecap="round" />
+      <path d="M 165 198 C 145 184, 126 170, 110 162 C 104 180, 109 200, 124 215 C 136 227, 150 233, 163 235 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+      <path d="M 110 162 C 96 148, 82 134, 73 139 C 65 144, 71 170, 88 188 C 99 199, 112 208, 124 215 C 109 200, 104 180, 110 162 Z" fill="#00B894" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    </g>
+
+    <!-- Sayap Samping Kanan (Asli TilaMascot) -->
+    <g id="right-side-wing" transform="rotate(14 335 230)">
+      <path d="M 335 204 L 408 162 C 420 172, 413 198, 392 212 C 407 220, 402 242, 374 249 C 378 262, 362 274, 335 268 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+      <path d="M 392 212 C 384 217, 377 220, 370 222 M 374 249 C 366 251, 360 251, 354 251" fill="none" stroke="#07473C" stroke-width="5.5" stroke-linecap="round" />
+      <path d="M 335 198 C 355 184, 374 170, 390 162 C 396 180, 391 200, 376 215 C 364 227, 350 233, 337 235 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+      <path d="M 390 162 C 404 148, 418 134, 427 139 C 435 144, 429 170, 412 188 C 401 199, 388 208, 376 215 C 391 200, 396 180, 390 162 Z" fill="#00B894" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    </g>
+
+    <!-- Body -->
+    <circle cx="250" cy="222" r="95" fill="#FBBF24" stroke="#07473C" stroke-width="7.5" />
+    <path d="M 160 252 C 185 298, 315 298, 340 252 C 320 315, 180 315, 160 252 Z" fill="#EAA012" />
+    <circle cx="250" cy="222" r="95" fill="none" stroke="#07473C" stroke-width="7.5" />
+
+    <!-- Face -->
+    <path d="M 232 216 L 268 216 L 250 246 Z" fill="#EAA012" />
+    <circle cx="174" cy="212" r="16" fill="#FF6B6B" />
+    <circle cx="326" cy="212" r="16" fill="#FF6B6B" />
+
+    <!-- Left Eye -->
+    <g transform="translate(202, 180)">
+      <ellipse cx="0" cy="0" rx="27" ry="29" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" />
+      <circle cx="0" cy="0" r="20.5" fill="#008F7A" />
+      <circle cx="0" cy="0" r="16" fill="#053B33" />
+      <circle cx="8" cy="-8" r="7.5" fill="#FFFFFF" />
+      <path d="M -6 1 Q -6 7 0 7 Q -6 7 -6 13 Q -6 7 -12 7 Q -6 7 -6 1 Z" fill="#FFFFFF" />
+    </g>
+
+    <!-- Right Eye -->
+    <g transform="translate(298, 180)">
+      <ellipse cx="0" cy="0" rx="27" ry="29" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" />
+      <circle cx="0" cy="0" r="20.5" fill="#008F7A" />
+      <circle cx="0" cy="0" r="16" fill="#053B33" />
+      <circle cx="8" cy="-8" r="7.5" fill="#FFFFFF" />
+      <path d="M -6 1 Q -6 7 0 7 Q -6 7 -6 13 Q -6 7 -12 7 Q -6 7 -6 1 Z" fill="#FFFFFF" />
+    </g>
+
+    <!-- Beak -->
+    <path d="M 228 202 L 250 238 L 272 202 Z" fill="#07473C" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    <path d="M 237 214 Q 250 208 263 214 L 250 234 Z" fill="#FF6B6B" />
+    <path d="M 224 202 C 230 183, 270 183, 276 202 Q 250 211 224 202 Z" fill="#FF6B6B" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+
+    <!-- Songkok / Peci -->
+    <path d="M 188 140 L 196 90 Q 250 82 304 90 L 312 140 Q 250 148 188 140 Z" fill="#134E4A" stroke="#07473C" stroke-width="7.5" stroke-linejoin="round" />
+    <path d="M 191 133 Q 250 141 309 133" fill="none" stroke="#F59E0B" stroke-width="6" stroke-linecap="round" />
+    <polygon points="250,96 254.5,106 265,106 257,112 260,122 250,116 240,122 243,112 235,106 245.5,106" fill="#FBBF24" stroke="#07473C" stroke-width="2.5" stroke-linejoin="round" />
+
+    <!-- Open Book -->
+    <g transform="translate(250, 276)">
+      <path d="M -60 -22 Q -30 -32 0 -20 Q 30 -32 60 -22 V 28 Q 30 18 0 30 Q -30 18 -60 28 Z" fill="#FF6B6B" stroke="#07473C" stroke-width="7" stroke-linejoin="round" />
+      <path d="M -52 -29 Q -26 -38 0 -26 Q 26 -38 52 -29 V 16 Q 26 6 0 18 Q -26 6 -52 16 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+      <line x1="0" y1="-26" x2="0" y2="18" stroke="#07473C" stroke-width="6.5" stroke-linecap="round" />
+      <circle cx="-25" cy="-6" r="8" fill="#FBBF24" stroke="#07473C" stroke-width="4" />
+      <line x1="16" y1="-9" x2="34" y2="-9" stroke="#07473C" stroke-width="5.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Front Wings Holding Book -->
+    <path d="M 152 242 C 144 286, 184 314, 232 302 C 240 288, 230 274, 212 262 C 194 252, 170 238, 152 242 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="7" stroke-linejoin="round" />
+    <path d="M 166 276 C 182 296, 208 302, 230 296 C 232 288, 226 280, 218 276 C 202 280, 182 280, 166 276 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    <g transform="translate(500 0) scale(-1 1)">
+      <path d="M 152 242 C 144 286, 184 314, 232 302 C 240 288, 230 274, 212 262 C 194 252, 170 238, 152 242 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="7" stroke-linejoin="round" />
+      <path d="M 166 276 C 182 296, 208 302, 230 296 C 232 288, 226 280, 218 276 C 202 280, 182 280, 166 276 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

@@ -1,8 +1,10 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-// Gunakan environment variables atau nilai default untuk development
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
+// Gunakan environment variables (Vite) atau nilai default untuk development
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL || "https://your-project.supabase.co";
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY || "your-anon-key";
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 

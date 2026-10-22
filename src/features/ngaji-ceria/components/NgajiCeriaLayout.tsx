@@ -15,6 +15,7 @@ import {
   TilaCompanion,
   type PageTipConfig,
 } from "../../../components/ui/TilaCompanion";
+import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
 import {
   HeartSvg,
   TicketSvg,
@@ -133,6 +134,9 @@ export function NgajiCeriaLayout({
                 >
                   <ChevronLeftSvg size={16} />
                 </button>
+              )}
+              {title === "Tartila" && (
+                <TartilaFaviconSvg variant="sticker" size={38} />
               )}
               <span className="font-display font-black text-sm md:text-base text-[#134E4A] tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
                 {title}

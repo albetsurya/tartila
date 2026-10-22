@@ -240,7 +240,7 @@ export default function WarungSantriPage() {
     }
   };
 
-  const handleBuyBooster = (item: (typeof BOOSTER_ITEMS)[number]) => {
+  const handleBuyBooster = async (item: (typeof BOOSTER_ITEMS)[number]) => {
     if (item.id === "full-heart" && hearts >= HEART_MAX) {
       setMessage("Hatimu sudah penuh maksimal!");
       return;
@@ -249,7 +249,7 @@ export default function WarungSantriPage() {
       setMessage("Koin Hijaiyah-mu belum cukup untuk booster ini.");
       return;
     }
-    const success = buyBooster(item.id, item.price);
+    const success = await buyBooster(item.id, item.price);
     if (success) {
       setMessage(`Alhamdulillah! ${item.name} berhasil diaktifkan!`);
     } else {

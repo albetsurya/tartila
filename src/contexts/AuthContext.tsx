@@ -6,17 +6,17 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import { type User } from "@/services/api";
 
-// Type untuk user yang kita gunakan di aplikasi
+// Tipe user yang digunakan di aplikasi
 export type CeriaUser = {
   id: string;
   email: string | null;
   username: string | null;
   name: string | null;
-  role: string; // member, tartila_admin, superadmin
+  role: string; // member, tartila_admin, superadmin, ustadz, ustadzah
   group_id: string | null;
   is_vip: boolean;
+  is_ustadz: boolean; // flag baru untuk ustadz/ustadzah
   photo_url: string | null;
 };
 
@@ -30,18 +30,21 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   groupId: string | null;
+  isUstadz: boolean; // helper: apakah user adalah ustadz/ustadzah
 }
 
 // Helper untuk membuat user dari Supabase auth response
-function createCeriaUser(sbUser: any): CeriaUser {
+function createCeriaUser(sbUser: any, ustadzFlag: boolean = false): CeriaUser {
+  const role = sbUser.user_metadata?.role || 'member';
   return {
     id: sbUser.id,
     email: sbUser.email,
     username: sbUser.user_metadata?.username || null,
     name: sbUser.user_metadata?.name || null,
-    role: sbUser.user_metadata?.role || 'member',
+    role: role,
     group_id: sbUser.user_metadata?.group_id || null,
     is_vip: sbUser.user_metadata?.is_vip || false,
+    is_ustadz: ustadzFlag || role === 'ustadz' || role === 'ustadzah',
     photo_url: sbUser.user_metadata?.photo_url || null,
   };
 }
@@ -57,7 +60,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
     // Cek session yang ada
     supabase.auth.getSession().then(({ data: { session} }) => {
       if (session && session.user) {
-        setUser(createCeriaUser(session.user));
+        // Determine if this user is an ustadz/ustadzah
+        const isUstadz = 
+          session.user.user_metadata?.role === 'ustadz' ||
+          session.user.user_metadata?.role === 'ustadzah' ||
+          session.user.user_metadata?.is_ustadz === true;
+        setUser(createCeriaUser(session.user, isUstadz));
       }
       setLoading(false);
     });
@@ -66,13 +74,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription} } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session && session.user) {
-          setUser(createCeriaUser(session.user));
+          const isUstadz = 
+            session.user.user_metadata?.role === 'ustadz' ||
+            session.user.user_metadata?.role === 'ustadzah' ||
+            session.user.user_metadata?.is_ustadz === true;
+          setUser(createCeriaUser(session.user, isUstadz));
         } else {
           setUser(null);
-        }
-        // Reset state setelah logout
-        if (event === 'SIGNED_OUT') {
-          // Clear any local storage if needed
         }
       }
     );
@@ -86,25 +94,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
   // Fungsi login dengan Google
   const loginWithGoogle = async (credential: string) => {
     try {
-      // Sign in with Google using supabase
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // redirectTo adalah URL yang akan redirect setelah login
-          // di development ini http://localhost:5173
           redirectTo: window.location.origin,
         },
       });
 
       if (error) throw error;
-      // Session akan di-update oleh onAuthStateChange listener
     } catch (err) {
       console.error('Google login error:', err);
       throw err;
     }
   };
 
-  // Fungsi login dengan email/password (jika ada)
+  // Fungsi login dengan email/password
   const loginWithEmail = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -122,15 +126,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
   // Fungsi register user baru
   const register = async (email: string, password: string, name: string) => {
     try {
-      // Create user dengan Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name: name,
-            role: 'member', // Role default saat register
+            role: 'member', // Role default
             is_vip: false,
+            is_ustadz: false,
             group_id: null,
           },
         },
@@ -138,12 +142,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       if (data.user) {
-        // Buat entri di tabel users
+        // Buat entri di tabel users dengan role default
         await supabase.from('users').insert({
           id: data.user.id,
           email: data.user.email,
-          hearts: 5, // Default
-          tickets: 3, // Default
+          role_ustadz: 0, // Bukan ustadz secara default
+          hearts: 5,
+          tickets: 3,
           level: 1,
           xp: 0,
           role: 'member',
@@ -173,7 +178,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data: { user} } = await supabase.auth.getUser();
       if (user) {
-        setUser(createCeriaUser(user));
+        // Cek role dari metadata atau database
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('role_ustadz')
+          .eq('id', user.id)
+          .single();
+        
+        const isUstadz = 
+          user.user_metadata?.role === 'ustadz' ||
+          user.user_metadata?.role === 'ustadzah' ||
+          (profileData?.role_ustadz && profileData.role_ustadz === 1);
+        
+        setUser(createCeriaUser(user, isUstadz));
       }
     } catch (err) {
       console.error('Refresh user error:', err);
@@ -190,6 +207,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     refreshUser,
     groupId: user?.group_id ?? null,
+    isUstadz: user?.is_ustadz ?? false,
   };
 
   return (

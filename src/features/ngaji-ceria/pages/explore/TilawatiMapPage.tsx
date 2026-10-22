@@ -297,12 +297,12 @@ export default function TilawatiMapPage() {
   const isVip = useEconomyStore((s: any) => s.isVip);
   const isUnlimited = isUnlimitedUser(user as any, isVip, groupId as any);
 
-  const handleStartLearning = (practiceOverride?: boolean) => {
+  const handleStartLearning = async (practiceOverride?: boolean) => {
     if (!selectedNode) return;
     const isPractice =
       practiceOverride !== undefined ? practiceOverride : isPracticeMode;
     if (!isPractice && !isUnlimited) {
-      if (!consumeHeart()) {
+      if (!(await consumeHeart())) {
         setEnergyEmpty(true);
         return;
       }

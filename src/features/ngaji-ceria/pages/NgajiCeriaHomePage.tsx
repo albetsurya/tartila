@@ -165,7 +165,7 @@ export default function NgajiCeriaHomePage() {
                 shape="rounded-2xl"
                 role={user?.role}
                 groupId={user?.group_id}
-                gender={user?.gender}
+                gender={user?.gender ?? undefined}
               />
               <div>
                 <p className="text-xs font-black text-[#134E4A]/60 uppercase tracking-widest mb-0.5">

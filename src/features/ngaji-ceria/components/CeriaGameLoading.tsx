@@ -9,6 +9,7 @@ import {
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
 import { SparklesSvg, GamepadSvg, StarSvg } from "@/components/ui/CustomIcons";
+import { TartilaLogoSvg } from "@/components/ui/TartilaLogo";
 
 const TIPS = [
   "Awali belajar membaca Al-Qur'an dengan bacaan Ta'awudz & Basmalah.",
@@ -95,6 +96,12 @@ export function CeriaGameLoading({
 
       {/* Main Mascot Stage Viewport */}
       <div className="flex-1 flex flex-col items-center justify-center text-center max-w-sm z-10 w-full">
+        {/* Logo Aplikasi (App Icon) */}
+        <TartilaLogoSvg
+          variant="app-icon"
+          size={90}
+          className="animate-bounce mb-4"
+        />
         {/* Dynamic Speech Bubble */}
         <div className="h-14 flex items-end justify-center mb-1">
           <AnimatePresence mode="wait">

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import { TartilaLogo } from "@/features/ngaji-ceria/components/TartilaLogo";
+import { TartilaLogoSvg } from "@/components/ui/TartilaLogo";
 import { WelcomeAnimation } from "../components/WelcomeAnimation";
 
 const WELCOMED_KEY = "tartila_welcomed_v1";
@@ -405,9 +406,14 @@ export function LoginPage() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
+          {/* Logo App Icon (Desktop) */}
+          <div className="hidden md:flex justify-center mb-6">
+            <TartilaLogoSvg variant="app-icon" size={110} />
+          </div>
           {/* Mobile Mascot Header (Hanya di layar kecil) */}
           <div className="mb-6 flex flex-col items-center md:hidden">
-            <div className="mb-3">
+            <TartilaLogoSvg variant="app-icon" size={110} />
+            <div className="mt-4">
               <TartilaLogo />
             </div>
             <MascotDuo

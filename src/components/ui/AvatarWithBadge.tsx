@@ -50,7 +50,7 @@ export function AvatarWithBadge({
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const auth = useAuth();
     authRole = auth.user?.role;
-    authGroupId = auth.groupId ?? auth.user?.group_id;
+    authGroupId = (auth.groupId ?? auth.user?.group_id) ?? undefined;
   } catch {
     // jika di luar AuthProvider
   }

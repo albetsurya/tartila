@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useGameAccess } from "@/hooks/useGameAccess";
+import { useGameAccess } from "../../components/GameLockGuard";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEconomyStore } from "@/hooks/useEconomyStore";
-import { HUBS } from "@/features/ngaji-ceria/data/hubData";
+import {
+  useEconomyStore,
+  isUnlimitedUser,
+} from "@/features/ngaji-ceria/hooks/useEconomyStore";
 
-export default function GameModeHubPage() {
+export default function GameModeHubPage({
+  hubOverride,
+}: {
+  hubOverride?: string;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, groupId } = useAuth();
