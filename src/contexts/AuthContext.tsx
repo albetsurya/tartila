@@ -26,7 +26,7 @@ interface AuthContextValue {
   loading: boolean;
   loginWithGoogle: (credential: string) => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   groupId: string | null;
@@ -123,18 +123,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Fungsi register user baru
-  const register = async (email: string, password: string, name: string) => {
+  // Fungsi register user baru (dengan opsi jadi ustadz/ustadzah)
+  const register = async (email: string, password: string, name: string, isUstadz?: boolean) => {
     try {
+      // Create user dengan Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name: name,
-            role: 'member', // Role default
+            role: isUstadz ? 'ustadz' : 'member', // Role default berdasarkan tanda
             is_vip: false,
-            is_ustadz: false,
+            is_ustadz: isUstadz || false,
             group_id: null,
           },
         },
@@ -142,16 +143,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       if (data.user) {
-        // Buat entri di tabel users dengan role default
+        // Determine the actual role based on isUstadz parameter
+        const actualRole = isUstadz ? 'ustadz' : 'member';
+        
+        // Buat entri di tabel users dengan role yang sesuai
         await supabase.from('users').insert({
           id: data.user.id,
           email: data.user.email,
-          role_ustadz: 0, // Bukan ustadz secara default
-          hearts: 5,
-          tickets: 3,
+          role_ustadz: isUstadz ? 1 : 0, // 1 = ustadz, 0 = bukan
+          hearts: 5, // Default
+          tickets: 3, // Default
           level: 1,
           xp: 0,
-          role: 'member',
+          role: actualRole,
           group_id: null,
           is_vip: false,
         });
