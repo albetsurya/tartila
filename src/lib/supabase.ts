@@ -15,4 +15,8 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
   },
 });
 
+if (import.meta.env.DEV) {
+  console.info(`[Supabase] Connected to: ${supabaseUrl}`);
+}
+
 export default supabase;
