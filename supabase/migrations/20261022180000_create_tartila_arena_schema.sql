@@ -92,14 +92,26 @@ ALTER TABLE room_answers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exam_violations ENABLE ROW LEVEL SECURITY;
 
 -- Policies for anon & authenticated users (Tartila Arena access)
+DROP POLICY IF EXISTS "Public can view rooms by pin" ON rooms;
 CREATE POLICY "Public can view rooms by pin" ON rooms FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Host can create and update rooms" ON rooms;
 CREATE POLICY "Host can create and update rooms" ON rooms FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Public can view questions (minus answer via backend)" ON room_questions;
 CREATE POLICY "Public can view questions (minus answer via backend)" ON room_questions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Host can manage questions" ON room_questions;
 CREATE POLICY "Host can manage questions" ON room_questions FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Players can view room players" ON room_players;
 CREATE POLICY "Players can view room players" ON room_players FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Players can insert and update selves" ON room_players;
 CREATE POLICY "Players can insert and update selves" ON room_players FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Room answers accessible to participants" ON room_answers;
 CREATE POLICY "Room answers accessible to participants" ON room_answers FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Exam violations recordable" ON exam_violations;
 CREATE POLICY "Exam violations recordable" ON exam_violations FOR ALL USING (true);
