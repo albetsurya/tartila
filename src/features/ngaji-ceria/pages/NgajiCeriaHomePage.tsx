@@ -112,6 +112,7 @@ export default function NgajiCeriaHomePage() {
   const todayClaimed =
     lastDailyClaimDate === todayDateKey || isRewardClaimedToday();
   const [showDailyModal, setShowDailyModal] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   const autoModalTriggeredRef = useRef(false);
 
   useEffect(() => {
@@ -143,17 +144,27 @@ export default function NgajiCeriaHomePage() {
       navigate("/login");
       return;
     }
-    if (todayClaimed) return;
-    const ok = await claimDailyReward(activeDay, currentReward.coins, {
-      hearts: currentReward.hearts,
-      tickets: currentReward.tickets,
-      userId: user.id,
-    });
-    if (ok) {
-      triggerBibiReaction("success");
-      setTimeout(() => {
-        setShowDailyModal(false);
-      }, 700);
+    if (todayClaimed || isClaiming) return;
+    setIsClaiming(true);
+    try {
+      const ok = await claimDailyReward(activeDay, currentReward.coins, {
+        hearts: currentReward.hearts,
+        tickets: currentReward.tickets,
+        userId: user.id,
+      });
+      if (ok) {
+        triggerBibiReaction("success");
+        setTimeout(() => {
+          setShowDailyModal(false);
+        }, 700);
+      } else {
+        triggerBibiReaction("error");
+      }
+    } catch (err) {
+      console.error("[DailyReward] Claim error:", err);
+      triggerBibiReaction("error");
+    } finally {
+      setIsClaiming(false);
     }
   };
 
@@ -802,13 +813,15 @@ export default function NgajiCeriaHomePage() {
                   ) : (
                     <button
                       type="button"
+                      disabled={isClaiming}
                       onClick={handleClaim}
-                      className="w-full py-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2"
+                      className="w-full py-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <SparklesSvg size={18} />
                       <span>
-                        Klaim Hadiah Hari {activeDay} (+
-                        {Math.round(currentReward.coins * streakMultiplier)})
+                        {isClaiming
+                          ? "Mengklaim Hadiah..."
+                          : `Klaim Hadiah Hari ${activeDay} (+${Math.round(currentReward.coins * streakMultiplier)})`}
                       </span>
                       <CoinSvg size={16} />
                     </button>

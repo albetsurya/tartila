@@ -982,7 +982,32 @@ export const useEconomyStore = create<EconomyState>()(
       set({ userId: activeUserId });
     }
 
-    const today = getTodayDateKey();
+    const mult = state.streakMultiplier || 1;
+    const totalCoins = Math.round(baseCoins * mult);
+
+    // Hubungi Backend Go (Single Source of Truth untuk Koin & Hadiah)
+    let serverDate = "";
+    let serverCoinsAwarded = totalCoins;
+    try {
+      const res = await userApi.claimDailyReward(day, totalCoins);
+      if (res) {
+        if (res.date) serverDate = res.date;
+        if (res.coinsAwarded) serverCoinsAwarded = res.coinsAwarded;
+      }
+    } catch (err: any) {
+      const msg = String(err?.message || "").toLowerCase();
+      // Jika server menyatakan sudah klaim hari ini, sinkronkan dan tolak
+      if (msg.includes("sudah diklaim") || msg.includes("already claimed")) {
+        const today = getTodayDateKey();
+        set({ lastDailyClaimDate: today });
+        return false;
+      }
+      if (msg.includes("unauthorized") || err?.status === 401) {
+        return false;
+      }
+    }
+
+    const today = serverDate || getTodayDateKey();
     const userClaimKey = `${DAILY_CLAIM_STORAGE_KEY}:${activeUserId}`;
     if (
       state.lastDailyClaimDate === today ||
@@ -993,9 +1018,7 @@ export const useEconomyStore = create<EconomyState>()(
       return false;
     }
 
-    const mult = state.streakMultiplier || 1;
-    const totalCoins = Math.round(baseCoins * mult);
-    grantCoins(totalCoins, `Hadiah Login Hari ke-${day}`);
+    grantCoins(serverCoinsAwarded, `Hadiah Login Hari ke-${day}`);
 
     let nextClaimedDays = state.dailyRewardsClaimed.includes(day)
       ? state.dailyRewardsClaimed
