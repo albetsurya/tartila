@@ -1,10 +1,7 @@
 import type { UniversalQuestion } from "../data/quiz/types";
 
 const SERVER_BASE =
-  import.meta.env.VITE_ARENA_SERVER_URL ||
-  (typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:8080`
-    : "http://localhost:8080");
+  import.meta.env.VITE_ARENA_SERVER_URL || "";
 
 export interface CreateRoomParams {
   hostId: string;
@@ -75,8 +72,15 @@ export const arenaApi = {
   },
 
   getWsUrl(pin: string, playerId?: string, isHost?: boolean): string {
-    const wsProto = SERVER_BASE.startsWith("https") ? "wss" : "ws";
-    const host = SERVER_BASE.replace(/^https?:\/\//, "");
+    const isHttps = SERVER_BASE
+      ? SERVER_BASE.startsWith("https")
+      : typeof window !== "undefined" && window.location.protocol === "https:";
+    const wsProto = isHttps ? "wss" : "ws";
+    const host = SERVER_BASE
+      ? SERVER_BASE.replace(/^https?:\/\//, "")
+      : typeof window !== "undefined"
+      ? window.location.host
+      : "localhost:5173";
     const query = new URLSearchParams();
     if (playerId) query.set("playerId", playerId);
     if (isHost) query.set("isHost", "true");

@@ -85,11 +85,10 @@ export async function callREST<T>(
   data?: Record<string, any>,
   queryParams?: Record<string, any>,
 ): Promise<T> {
-  let baseUrl = API_BASE_URL || "/api";
-  if (baseUrl.endsWith("/api")) {
-    baseUrl = baseUrl.slice(0, -4);
-  }
-  let url = `${baseUrl}${path}`;
+  const baseUrl = API_BASE_URL
+    ? API_BASE_URL.replace(/\/api\/?$/, "").replace(/\/$/, "")
+    : "";
+  let url = `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   if (queryParams) {
     const search = new URLSearchParams();
     Object.entries(queryParams).forEach(([k, v]) => {

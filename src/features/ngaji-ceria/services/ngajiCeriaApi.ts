@@ -1,8 +1,8 @@
 import { callREST } from "../../../services/api";
 import { API_BASE_URL } from "../../../constants";
 
-/** Vite dev tanpa backend proxy harus tetap memakai progress offline tanpa noisy CORS error. */
-export const isNgajiCeriaServerAvailable = () => Boolean(API_BASE_URL) || !import.meta.env.DEV;
+/** Di Vite dev / prod, server selalu diakses via Vite proxy / URL relatif. */
+export const isNgajiCeriaServerAvailable = () => true;
 
 export interface ServerNgajiProgress {
   xp: number;
