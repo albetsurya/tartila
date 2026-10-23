@@ -1,8 +1,9 @@
-import { defineConfig, type Plugin, type ViteDevServer } from "vite";
+import { defineConfig, loadEnv, type Plugin, type UserConfig, type ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import { execFileSync } from "node:child_process";
 import path from "path";
@@ -492,78 +493,151 @@ function tilawatiEditorPlugin(): Plugin {
   };
 }
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
+function probePort(port: number, host = "127.0.0.1", timeoutMs = 250): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let status = false;
+    socket.setTimeout(timeoutMs);
+    socket.once("connect", () => {
+      status = true;
+      socket.destroy();
+    });
+    socket.once("timeout", () => {
+      socket.destroy();
+    });
+    socket.once("error", () => {
+      socket.destroy();
+    });
+    socket.once("close", () => {
+      resolve(status);
+    });
+    socket.connect(port, host);
+  });
+}
+
+async function resolveProxyTarget(preferred?: string): Promise<string> {
+  if (preferred && preferred.trim()) {
+    const trimmed = preferred.trim();
+    try {
+      const u = new URL(trimmed);
+      const port = Number(u.port) || (u.protocol === "https:" ? 443 : 80);
+      if (await probePort(port, u.hostname || "127.0.0.1")) {
+        return trimmed;
+      }
+    } catch {
+      // ignore parsing error
+    }
+  }
+
+  // Auto-detect active Go backend port: 8080 (native) vs 29001 (Docker Compose)
+  if (await probePort(8080)) {
+    return "http://127.0.0.1:8080";
+  }
+  if (await probePort(29001)) {
+    return "http://127.0.0.1:29001";
+  }
+
+  return preferred?.trim() || "http://127.0.0.1:8080";
+}
+
+export default defineConfig(async ({ mode }): Promise<UserConfig> => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const initialTarget = await resolveProxyTarget(
+    env.VITE_API_PROXY_TARGET || process.env.VITE_API_PROXY_TARGET,
+  );
+  let activeProxyTarget = initialTarget;
+
+  return {
+    resolve: {
+      alias: {
+        "@": path.resolve(import.meta.dirname, "./src"),
+      },
     },
-  },
-  plugins: [
-    react(),
-    tailwindcss(),
-    tilawatiEditorPlugin(),
-    VitePWA({
-      registerType: "autoUpdate",
-      manifest: false,
-      includeAssets: [
-        "favicon.ico",
-        "favicon.svg",
-        "favicon-dev.svg",
-        "favicon-staging.svg",
-        "apple-touch-icon-180x180.png",
-        "favicon-dev-180x180.png",
-        "favicon-staging-180x180.png",
-        "pwa-192x192.png",
-        "pwa-512x512.png",
-        "pwa-192x192-dev.png",
-        "pwa-512x512-dev.png",
-        "pwa-192x192-staging.png",
-        "pwa-512x512-staging.png",
-        "manifest.webmanifest",
-        "manifest-dev.webmanifest",
-        "manifest-staging.webmanifest",
-      ],
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,glb,woff2,webmanifest}"],
-        globIgnores: [
-          "**/*.glb",
-          "**/HarakatRushPage-*.js",
-          "**/BattleScene-*.js",
-          "**/vendor-excel-*.js",
-          "**/vendor-pdf-*.js",
-          "**/tilawatiQuizData-*.js",
-          "**/tilawatiQuizJilid1-*.js",
+    plugins: [
+      react(),
+      tailwindcss(),
+      tilawatiEditorPlugin(),
+      VitePWA({
+        registerType: "autoUpdate",
+        manifest: false,
+        includeAssets: [
+          "favicon.ico",
+          "favicon.svg",
+          "favicon-dev.svg",
+          "favicon-staging.svg",
+          "apple-touch-icon-180x180.png",
+          "favicon-dev-180x180.png",
+          "favicon-staging-180x180.png",
+          "pwa-192x192.png",
+          "pwa-512x512.png",
+          "pwa-192x192-dev.png",
+          "pwa-512x512-dev.png",
+          "pwa-192x192-staging.png",
+          "pwa-512x512-staging.png",
+          "manifest.webmanifest",
+          "manifest-dev.webmanifest",
+          "manifest-staging.webmanifest",
         ],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api/],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: true,
-        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,glb,woff2,webmanifest}"],
+          globIgnores: [
+            "**/*.glb",
+            "**/HarakatRushPage-*.js",
+            "**/BattleScene-*.js",
+            "**/vendor-excel-*.js",
+            "**/vendor-pdf-*.js",
+            "**/tilawatiQuizData-*.js",
+            "**/tilawatiQuizJilid1-*.js",
+          ],
+          navigateFallback: "/index.html",
+          navigateFallbackDenylist: [/^\/api/],
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
+          maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        },
+        devOptions: {
+          enabled: false,
+          type: "module",
+        },
+      }),
+    ],
+    server: {
+      host: true,
+      port: 5173,
+      proxy: {
+        "/api": {
+          target: activeProxyTarget,
+          changeOrigin: true,
+          configure: (proxy: any) => {
+            proxy.on("error", async (_err: unknown, _req: unknown, res: unknown) => {
+              const altPort = activeProxyTarget.includes("8080") ? 29001 : 8080;
+              if (await probePort(altPort)) {
+                activeProxyTarget = `http://127.0.0.1:${altPort}`;
+                console.warn(`[vite proxy] Backend port switch detected -> ${activeProxyTarget}`);
+              }
+              const response = res as ServerResponse | undefined;
+              if (response && "writeHead" in response && !response.headersSent) {
+                response.writeHead(502, { "Content-Type": "application/json" });
+                response.end(
+                  JSON.stringify({
+                    error: "Backend proxy error",
+                    message: `Target ${activeProxyTarget} is not reachable. Ensure backend Go is running (port 8080 or 29001).`,
+                  }),
+                );
+              }
+            });
+          },
+        },
       },
-      devOptions: {
-        enabled: false,
-        type: "module",
-      },
-    }),
-  ],
-  server: {
-    host: true,
-    port: 5173,
-    proxy: {
-      "/api": {
-        target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8080",
-        changeOrigin: true,
+      watch: {
+        ignored: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/public/audio/tilawati/**"],
       },
     },
-    watch: {
-      ignored: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/public/audio/tilawati/**"],
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
           if (!id.includes("node_modules")) return;
           if (/[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/.test(id)) {
             return "vendor";
@@ -582,4 +656,5 @@ export default defineConfig({
       },
     },
   },
+};
 });
