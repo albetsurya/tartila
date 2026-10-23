@@ -59,7 +59,17 @@ export const tilawatiEditorApi = {
 
 function draftKey(jilid: number, page: number) {
   let user = "guest";
-  try { user = JSON.parse(sessionStorage.getItem("sambung_ngaji_cached_user") ?? "null")?.user_id ?? user; } catch { /* Guest draft. */ }
+  try {
+    const cached = JSON.parse(
+      localStorage.getItem("tartila_cached_user") ??
+        sessionStorage.getItem("tartila_cached_user") ??
+        sessionStorage.getItem("sambung_ngaji_cached_user") ??
+        "null",
+    );
+    user = cached?.id ?? cached?.user_id ?? user;
+  } catch {
+    /* Guest draft. */
+  }
   return `ngajiceria:timeline-draft:${user}:${jilid}:${page}`;
 }
 export function readLocalDraft(jilid: number, page: number): TimelineDraft | null {

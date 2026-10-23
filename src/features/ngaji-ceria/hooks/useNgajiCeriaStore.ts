@@ -12,9 +12,22 @@ const STORAGE_KEY = "ngaji-ceria-progress";
 
 function getUserScope(): string {
   try {
-    const cached = JSON.parse(sessionStorage.getItem("sambung_ngaji_cached_user") || "null") as { user_id?: unknown } | null;
-    if (typeof cached?.user_id === "string" && cached.user_id.trim()) {
-      return cached.user_id.trim();
+    if (typeof window !== "undefined") {
+      const tartilaRaw = window.localStorage.getItem("tartila_cached_user") || window.sessionStorage.getItem("tartila_cached_user");
+      if (tartilaRaw) {
+        const parsed = JSON.parse(tartilaRaw) as { id?: unknown; user_id?: unknown } | null;
+        const tartilaId = (typeof parsed?.id === "string" && parsed.id.trim()) ||
+                          (typeof parsed?.user_id === "string" && parsed.user_id.trim());
+        if (tartilaId) return tartilaId;
+      }
+
+      const legacyRaw = window.sessionStorage.getItem("sambung_ngaji_cached_user") || window.localStorage.getItem("sambung_ngaji_cached_user");
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw) as { user_id?: unknown; id?: unknown } | null;
+        const legacyId = (typeof parsed?.user_id === "string" && parsed.user_id.trim()) ||
+                         (typeof parsed?.id === "string" && parsed.id.trim());
+        if (legacyId) return legacyId;
+      }
     }
   } catch {
     // Guest scope remains the safe fallback when the cached identity is invalid.

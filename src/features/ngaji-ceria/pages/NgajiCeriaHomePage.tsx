@@ -147,6 +147,7 @@ export default function NgajiCeriaHomePage() {
     const ok = await claimDailyReward(activeDay, currentReward.coins, {
       hearts: currentReward.hearts,
       tickets: currentReward.tickets,
+      userId: user.id,
     });
     if (ok) {
       triggerBibiReaction("success");

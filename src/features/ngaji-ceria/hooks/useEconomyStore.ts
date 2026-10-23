@@ -147,10 +147,11 @@ interface EconomyState {
   activateVip: () => void;
   applyStreakMultiplier: (streakDays: number) => number;
   addCoins: (amount: number, reason?: string) => boolean;
+  setUserId: (userId: string | null) => void;
   claimDailyReward: (
     day: number,
     baseCoins: number,
-    extra?: { hearts?: number; tickets?: number },
+    extra?: { hearts?: number; tickets?: number; userId?: string },
   ) => Promise<boolean>;
   isRewardClaimedToday: () => boolean;
   fetchUstadzRooms: () => Promise<any[]>;
@@ -192,18 +193,52 @@ export const getTodayDateKey = (): string => {
   return new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
 };
 
-const getStoredDailyClaimDate = (): string | null => {
+export const getInitialUserId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw =
+      window.localStorage.getItem("tartila_cached_user") ||
+      window.sessionStorage.getItem("tartila_cached_user") ||
+      window.sessionStorage.getItem("sambung_ngaji_cached_user");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return (
+        (typeof parsed?.id === "string" && parsed.id.trim()) ||
+        (typeof parsed?.user_id === "string" && parsed.user_id.trim()) ||
+        null
+      );
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+};
+
+const getStoredDailyClaimDate = (userId?: string | null): string | null => {
   if (typeof window === 'undefined') return null;
   try {
+    const id = userId || getInitialUserId();
+    if (id) {
+      const userClaim = window.localStorage.getItem(`${DAILY_CLAIM_STORAGE_KEY}:${id}`);
+      if (userClaim) return userClaim;
+    }
     return window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
   } catch {
     return null;
   }
 };
 
-const getStoredDailyClaimedDays = (): number[] => {
+const getStoredDailyClaimedDays = (userId?: string | null): number[] => {
   if (typeof window === 'undefined') return [];
   try {
+    const id = userId || getInitialUserId();
+    if (id) {
+      const rawUser = window.localStorage.getItem(`${DAILY_CLAIMED_DAYS_STORAGE_KEY}:${id}`);
+      if (rawUser) {
+        const parsed = JSON.parse(rawUser);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    }
     const raw = window.localStorage.getItem(DAILY_CLAIMED_DAYS_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -232,7 +267,8 @@ export const useEconomyStore = create<EconomyState>()(
   persist(
     (set, get) => ({
       // Initial state
-      userId: null,
+      userId: getInitialUserId(),
+      setUserId: (userId: string | null) => set({ userId }),
       username: null,
       role: null,
       groupId: null,
@@ -921,8 +957,12 @@ export const useEconomyStore = create<EconomyState>()(
 
   addCoins: (amount: number, reason?: string) => {
     const state = get();
-    if (!state.userId) {
+    const activeUserId = state.userId || getInitialUserId();
+    if (!activeUserId) {
       return false; // Ditolak jika pengguna adalah tamu (guest)
+    }
+    if (!state.userId && activeUserId) {
+      set({ userId: activeUserId });
     }
     grantCoins(amount, reason || 'Tambah Koin');
     return true;
@@ -931,17 +971,24 @@ export const useEconomyStore = create<EconomyState>()(
   claimDailyReward: async (
     day: number,
     baseCoins: number,
-    extra?: { hearts?: number; tickets?: number },
+    extra?: { hearts?: number; tickets?: number; userId?: string },
   ) => {
     const state = get();
-    if (!state.userId) {
+    const activeUserId = extra?.userId || state.userId || getInitialUserId();
+    if (!activeUserId) {
       return false; // Ditolak jika pengguna adalah tamu (guest)
     }
+    if (!state.userId && activeUserId) {
+      set({ userId: activeUserId });
+    }
+
     const today = getTodayDateKey();
+    const userClaimKey = `${DAILY_CLAIM_STORAGE_KEY}:${activeUserId}`;
     if (
       state.lastDailyClaimDate === today ||
       (typeof window !== 'undefined' &&
-        window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY) === today)
+        (window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY) === today ||
+         window.localStorage.getItem(userClaimKey) === today))
     ) {
       return false;
     }
@@ -973,8 +1020,13 @@ export const useEconomyStore = create<EconomyState>()(
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.setItem(DAILY_CLAIM_STORAGE_KEY, today);
+        window.localStorage.setItem(userClaimKey, today);
         window.localStorage.setItem(
           DAILY_CLAIMED_DAYS_STORAGE_KEY,
+          JSON.stringify(nextClaimedDays),
+        );
+        window.localStorage.setItem(
+          `${DAILY_CLAIMED_DAYS_STORAGE_KEY}:${activeUserId}`,
           JSON.stringify(nextClaimedDays),
         );
       } catch {
@@ -992,7 +1044,9 @@ export const useEconomyStore = create<EconomyState>()(
     if (memDate === today) return true;
     if (typeof window !== 'undefined') {
       try {
-        const storedDate = window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
+        const id = get().userId || getInitialUserId();
+        const userClaim = id ? window.localStorage.getItem(`${DAILY_CLAIM_STORAGE_KEY}:${id}`) : null;
+        const storedDate = userClaim || window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
         if (storedDate === today) {
           if (memDate !== today) {
             set({ lastDailyClaimDate: today });

@@ -107,6 +107,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           if (mounted) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+            void useEconomyStore.getState().setUserId(ceriaUser.id);
             if (ceriaUser.gender) {
               const mascotGender = resolveMascotGender(ceriaUser.gender);
               void useEconomyStore.getState().setTilaGender(mascotGender);
@@ -121,6 +122,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
               const parsed = JSON.parse(cached);
               if (mounted) {
                 setUser(parsed);
+                void useEconomyStore.getState().setUserId(parsed.id || parsed.user_id || null);
                 if (parsed.gender) {
                   const mascotGender = resolveMascotGender(parsed.gender);
                   void useEconomyStore.getState().setTilaGender(mascotGender);
@@ -132,6 +134,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           } else if (!token && mounted) {
             setUser(null);
             localStorage.removeItem("tartila_cached_user");
+            void useEconomyStore.getState().setUserId(null);
           }
         }
       } catch (err) {
@@ -158,6 +161,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           if (mounted) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+            void useEconomyStore.getState().setUserId(ceriaUser.id);
             if (ceriaUser.gender) {
               const mascotGender = resolveMascotGender(ceriaUser.gender);
               void useEconomyStore.getState().setTilaGender(mascotGender);
@@ -170,6 +174,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             localStorage.removeItem("tartila_cached_user");
             clearToken();
+            void useEconomyStore.getState().setUserId(null);
             setLoading(false);
             setIsAuthLoading(false);
           }
@@ -255,6 +260,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem("tartila_cached_user");
       clearToken();
+      void useEconomyStore.getState().setUserId(null);
     }
   };
 
@@ -353,6 +359,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       };
       setUser(ceriaUser);
       localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+      void useEconomyStore.getState().setUserId(ceriaUser.id);
       if (ceriaUser.gender) {
         const mascotGender = resolveMascotGender(ceriaUser.gender);
         void useEconomyStore.getState().setTilaGender(mascotGender);
