@@ -14,18 +14,18 @@ interface TutorialStep {
 
 const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
   "harakat-rush": {
-    title: "Cara Bermain Harakat Rush",
+    title: "Cara Bermain Harakat Slasher",
     steps: [
       {
-        title: "Pindah Jalur & Lompat",
+        title: "Geser untuk Menebas",
         description:
-          "Ketuk layar kiri atau kanan untuk berpindah jalur, dan ketuk tombol Lompat saat ada rintangan batu.",
+          "Sentuh layar dan geser seperti memainkan pedang. Setiap geseran bisa menebas huruf yang dilempar ke udara.",
         image: <HarakatRushCoverSvg size={96} />,
       },
       {
-        title: "Ambil Tile Harakat",
+        title: "Tebas Target, Hindari Pengecoh",
         description:
-          "Tabrak tile harakat yang tepat untuk mengumpulkan skor dan menjaga combo tetap menyala!",
+          "Potong huruf berhias cincin kuning (target) untuk menambah skor dan combo. Salah tebas pengecoh atau membiarkan target jatuh akan mengurangi nyawa!",
         image: <HarakatRushCoverSvg size={96} />,
       },
     ],

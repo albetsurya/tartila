@@ -37,7 +37,7 @@ export function SceneView({
               speech="Assalamu'alaikum!"
             />
             <span className="text-[10px] font-black text-teal-200 mt-1">
-              Santri Tila
+              Santri Tito
             </span>
           </div>
 

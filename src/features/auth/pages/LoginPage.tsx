@@ -16,6 +16,7 @@ import {
   type TilaAnimation,
   type TilaDirection,
 } from "@/components/ui";
+import { MASCOT_NAME } from "@/constants/mascot";
 import {
   GamepadSvg,
   TrophySvg,
@@ -57,26 +58,26 @@ interface MascotDuoProps {
 
 const IDLE_DIALOGUES = [
   {
-    speaker: "Tila" as const,
+    speaker: MASCOT_NAME,
     text: "Assalamu'alaikum! Yuk segera masuk, kita mengaji bareng!",
     tilaMood: "greeting" as TilaMood,
     titoMood: "happy" as TilaMood,
   },
   {
-    speaker: "Tito" as const,
+    speaker: MASCOT_NAME,
     text: "Ayo masuk akunmu sekarang, kumpulkan koin & bintang hafalan!",
     tilaMood: "happy" as TilaMood,
     titoMood: "holding" as TilaMood,
   },
   {
-    speaker: "Tila" as const,
+    speaker: MASCOT_NAME,
     text: "Belajar Tilawati dan 23 mini games seru sudah menantimu!",
     tilaMood: "excited" as TilaMood,
     titoMood: "happy" as TilaMood,
   },
   {
-    speaker: "Tito" as const,
-    text: "Kami berdua sudah siap menemanimu, yuk segera masuk!",
+    speaker: MASCOT_NAME,
+    text: `${MASCOT_NAME} sudah siap menemanimu, yuk segera masuk!`,
     tilaMood: "happy" as TilaMood,
     titoMood: "greeting" as TilaMood,
   },
@@ -92,8 +93,9 @@ function MascotDuo({
   // Ukuran diperbesar secara signifikan agar lebih gagah dan menarik perhatian
   const size = isMobile ? 122 : 195;
   const [idleIndex, setIdleIndex] = useState(0);
+  const [activeTapSide, setActiveTapSide] = useState<"left" | "right" | null>(null);
   const [tapReaction, setTapReaction] = useState<{
-    speaker: "Tila" | "Tito";
+    speaker: string;
     text: string;
   } | null>(null);
 
@@ -115,7 +117,7 @@ function MascotDuo({
   }, [tapReaction]);
 
   // Tentukan speaker, ucapan, dan ekspresi aktif berdasarkan interaksi
-  let currentSpeaker: "Tila" | "Tito" | "Duo" = "Tila";
+  let currentSpeaker: string = MASCOT_NAME;
   let currentText = "";
   let tilaMood: TilaMood = "happy";
   let titoMood: TilaMood = "happy";
@@ -125,7 +127,7 @@ function MascotDuo({
   let tilaDir: TilaDirection = "right";
 
   if (isSuccess) {
-    currentSpeaker = "Duo";
+    currentSpeaker = MASCOT_NAME;
     currentText =
       "Alhamdulillah berhasil masuk! Ayo kita mulai petualangan mengaji!";
     tilaMood = "excited";
@@ -133,22 +135,22 @@ function MascotDuo({
     tilaAnim = "bounce";
     titoAnim = "bounce";
   } else if (isLoading) {
-    currentSpeaker = "Tito";
+    currentSpeaker = MASCOT_NAME;
     currentText = "Sedang memeriksa akun santrimu... Bismillah!";
     tilaMood = "happy";
     titoMood = "thinking";
     tilaAnim = "float";
     titoAnim = "float";
   } else if (hasError) {
-    currentSpeaker = "Tila";
+    currentSpeaker = MASCOT_NAME;
     currentText = "Ups! Coba periksa kembali email atau kata sandimu ya.";
     tilaMood = "shocked";
     titoMood = "thinking";
     tilaAnim = "bounce";
   } else if (isPasswordFocused) {
-    currentSpeaker = "Duo";
+    currentSpeaker = MASCOT_NAME;
     currentText =
-      "Tenang, kami berdua tutup mata dan tidak akan mengintip kata sandimu!";
+      "Tenang, kami tutup mata dan tidak akan mengintip kata sandimu!";
     tilaMood = "shy";
     titoMood = "thinking";
     titoDir = "back";
@@ -156,7 +158,7 @@ function MascotDuo({
   } else if (tapReaction) {
     currentSpeaker = tapReaction.speaker;
     currentText = tapReaction.text;
-    if (tapReaction.speaker === "Tila") {
+    if (activeTapSide === "left") {
       tilaMood = "excited";
       tilaAnim = "bounce";
     } else {
@@ -172,16 +174,18 @@ function MascotDuo({
   }
 
   const handleTapTila = () => {
+    setActiveTapSide("left");
     setTapReaction({
-      speaker: "Tila",
-      text: "Hai! Aku Tila! Siap menemani belajarmu dengan ceria!",
+      speaker: MASCOT_NAME,
+      text: `Hai! Aku ${MASCOT_NAME}! Siap menemani belajarmu dengan ceria!`,
     });
   };
 
   const handleTapTito = () => {
+    setActiveTapSide("right");
     setTapReaction({
-      speaker: "Tito",
-      text: "Halo! Aku Tito! Ayo rajin belajar dan taklukkan semua tantangan!",
+      speaker: MASCOT_NAME,
+      text: `Halo! Aku ${MASCOT_NAME}! Ayo rajin belajar dan taklukkan semua tantangan!`,
     });
   };
 
@@ -201,7 +205,7 @@ function MascotDuo({
             {/* Speaker Tag Badge */}
             <div className="absolute -top-3 left-4 flex items-center gap-1 px-2 py-0.5 rounded-full border-2 border-[#134E4A] text-[9px] font-black uppercase tracking-wider shadow-[1px_1px_0px_#134E4A] bg-[#FEF08A] text-[#134E4A]">
               <span>
-                {currentSpeaker === "Duo" ? "Tila & Tito" : currentSpeaker}
+                {currentSpeaker}
               </span>
             </div>
 
@@ -212,9 +216,9 @@ function MascotDuo({
             {/* Ekor Balon Menunjuk ke Maskot yang Berbicara */}
             <div
               className={`absolute -bottom-2 w-3.5 h-3.5 bg-white border-r-[3px] border-b-[3px] border-[#134E4A] rotate-45 transition-all duration-300 ${
-                currentSpeaker === "Tila"
+                activeTapSide === "left"
                   ? "left-1/4 -translate-x-1/2"
-                  : currentSpeaker === "Tito"
+                  : activeTapSide === "right"
                     ? "right-1/4 translate-x-1/2"
                     : "left-1/2 -translate-x-1/2"
               }`}
@@ -238,7 +242,7 @@ function MascotDuo({
         whileHover={{ scale: 1.08 }}
         className="relative flex items-end justify-center gap-4 sm:gap-7 pt-2 pointer-events-auto"
       >
-        {/* TILA (Girl Mascot) */}
+        {/* TILA (PUTRI) */}
         <div
           onClick={handleTapTila}
           className="flex flex-col items-center cursor-pointer group"
@@ -253,17 +257,18 @@ function MascotDuo({
             direction={tilaDir}
           />
           <span className="mt-1 inline-block rounded-full border-2 border-[#134E4A] bg-[#FEF08A] px-2.5 py-0.5 text-[10px] sm:text-xs font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] group-hover:scale-105 transition-transform">
-            Tila
+            Tila (Putri)
           </span>
         </div>
 
-        {/* TITO (Boy Mascot) */}
+        {/* TITO (PUTRA) */}
         <div
           onClick={handleTapTito}
           className="flex flex-col items-center cursor-pointer group"
           title="Ketuk Tito!"
         >
           <TitoMascot
+            gender="boy"
             accessory="peci"
             size={size}
             mood={titoMood}
@@ -271,7 +276,7 @@ function MascotDuo({
             direction={titoDir}
           />
           <span className="mt-1 inline-block rounded-full border-2 border-[#134E4A] bg-[#CCFBF1] px-2.5 py-0.5 text-[10px] sm:text-xs font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] group-hover:scale-105 transition-transform">
-            Tito
+            Tito (Putra)
           </span>
         </div>
       </motion.div>
@@ -349,7 +354,7 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F0FDF4] flex flex-col md:flex-row">
-      {/* SISI KIRI — Panel Maskot Interaktif Tito & Tila (Desktop 50%) */}
+      {/* SISI KIRI — Panel Maskot Interaktif Tito (Desktop 50%) */}
       <aside className="relative hidden md:flex md:w-1/2 flex-col items-center justify-center p-8 lg:p-12 bg-gradient-to-br from-[#0D9488] via-[#0F766E] to-[#134E4A] text-white overflow-hidden border-r-4 border-[#134E4A] shadow-[4px_0px_0px_#134E4A]">
         {/* Dekorasi Latar Neo-Brutalism */}
         <div className="pointer-events-none absolute -top-16 -left-16 h-64 w-64 rounded-full border-[8px] border-white/10" />
@@ -369,7 +374,7 @@ export function LoginPage() {
             Kumpulkan koin, taklukkan tilawati, dan raih bintang hafalan bersama kami.
           </p>
 
-          {/* Maskot Duo Tito & Tila */}
+          {/* Maskot Tito Tartila */}
           <div className="mt-8 w-full">
             <MascotDuo
               isPasswordFocused={hasPasswordInput}

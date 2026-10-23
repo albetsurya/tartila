@@ -1,252 +1,182 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { StartScreen } from "../_shared/StartScreen";
 import { GameOverModal } from "../_shared/GameOverModal";
-import { playLetterAudio } from "../_shared/gameAudio";
-import Harakat3DScene from "./components/Harakat3DScene";
-import { use3DRunnerGame } from "./hooks/use3DRunnerGame";
+import { HeartSvg } from "@/components/ui/CustomIcons";
+import { TilaMascot } from "@/components/ui/TilaMascot";
+import {
+  PapanKayuSkorSvg,
+  PlakatTargetHarakatSvg,
+} from "@/components/ui/Illustrations";
+import SlasherStage from "./components/SlasherStage";
+import { useSlasherGame } from "./hooks/useSlasherGame";
 import { HARAKAT_LIST } from "./data/harakat-list";
 import type { GamePhase } from "../_shared/types";
 
 function Game() {
-  const game = use3DRunnerGame();
+  const game = useSlasherGame();
   const navigate = useNavigate();
+  const [celebrate, setCelebrate] = useState(false);
+  const celebrateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     phase,
     score,
     combo,
-    lane,
     lives,
-    levelId,
+    currentTarget,
     best,
-    setPhase,
-    setLane,
-    gameOver,
-    hitTarget,
-    jump,
-    state,
-    setState,
+    onSliceResult,
     resetRun,
+    setPhase,
   } = game;
 
+  const targetHarakat = HARAKAT_LIST.find((h) => h.id === currentTarget);
+
+  // Maskot bereaksi setiap pemain berhasil menebas huruf target
   useEffect(() => {
-    if (phase === "playing" && state.currentTarget) {
-      const entry = HARAKAT_LIST.find((h) => h.id === state.currentTarget);
-      playLetterAudio(entry?.symbol ?? "");
-    }
-  }, [phase, state.currentTarget]);
-
-  useEffect(() => {
-    document.body.classList.toggle("game-active", phase !== "idle");
-    return () => document.body.classList.remove("game-active");
-  }, [phase]);
-
-  // ✅ INPUT HANDLER - Subway Surfers Style
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (phase !== "playing") return;
-
-      // Ganti lane
-      if (e.key === "ArrowLeft" || e.key === "a") {
-        setLane(Math.max(0, lane - 1) as 0 | 1 | 2);
-      }
-      if (e.key === "ArrowRight" || e.key === "d") {
-        setLane(Math.min(2, lane + 1) as 0 | 1 | 2);
-      }
-
-      // Loncat
-      if (e.key === " " || e.key === "ArrowUp" || e.key === "w") {
-        jump();
-      }
-
-      // Teclik harakat
-      if (e.key === "ArrowUp" || e.key === "w") {
-        const targetInLane = state.targets.find(
-          t => t.lane === lane && !t.hit
-        );
-        if (targetInLane) {
-          hitTarget(targetInLane.id, targetInLane.isCorrect);
-        }
-      }
-    };
-
-    const handleKeyUp = () => {};
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      if (celebrateTimeout.current) clearTimeout(celebrateTimeout.current);
     };
-  }, [phase, lane, state, setLane, hitTarget, jump]);
+  }, []);
 
-  // ✅ LISTEN EVENT dari 3D scene
-  useEffect(() => {
-    const handleHit = (e: Event) => {
-      const { symbol, lane: hitLane } = (e as CustomEvent).detail ?? {};
-      const target = state.targets.find(
-        (t) => t.symbol === symbol && t.lane === hitLane
-      );
-      if (target) {
-        hitTarget(target.id, target.isCorrect);
-      }
-    };
-    window.addEventListener("harakat-hit" as keyof WindowEventMap, handleHit);
-    return () =>
-      window.removeEventListener(
-        "harakat-hit" as keyof WindowEventMap,
-        handleHit
-      );
-  }, [state, hitTarget]);
-
-  // ✅ GAME OVER CHECK
-  useEffect(() => {
-    if (lives <= 0) {
-      gameOver();
+  const handleResult = (
+    kind: "correct" | "wrong" | "miss",
+    symbol?: string
+  ) => {
+    if (kind === "correct") {
+      setCelebrate(true);
+      if (celebrateTimeout.current) clearTimeout(celebrateTimeout.current);
+      celebrateTimeout.current = setTimeout(() => setCelebrate(false), 750);
     }
-  }, [lives, gameOver]);
-
-  // ✅ RESET GAME
-  const resetGame = () => {
-    resetRun();
+    onSliceResult(kind, symbol);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0a1e] to-[#1a1a2e] text-white">
+    <div className="relative h-[100dvh] w-full select-none overflow-hidden">
       <GameShell
-        title="Harakat Rush"
+        title="Harakat Slasher"
         phase={phase as GamePhase}
         accent="emerald"
+        tutorialGameId="harakat-rush"
         onPause={() => setPhase("paused")}
         onResume={() => setPhase("playing")}
       >
         <GameBoundary>
           {phase === "idle" || phase === "paused" ? (
-            <StartScreen
-              title="Harakat Rush"
-              tagline="Lari kejar harakat yang tepat"
-              description="Berlari di tiga lajur dan potong tepat harakat yang sesuai target. Jaga nyawa dan naikkan levelmu."
-              best={score}
-              onStart={() => {
-                resetGame();
-                setPhase("playing");
-              }}
-              onExit={() => {
-                resetGame();
-                navigate("/");
-              }}
-              accent="emerald"
-            />
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-[#1E1B4B] via-[#312E81] to-[#4C1D95]">
+              <StartScreen
+                title="Harakat Slasher"
+                tagline="Fruit Ninja Harakat"
+                description="Geser jari seperti pedang untuk menebas huruf harakat target, hindari pengecoh, dan jangan biarkan target jatuh!"
+                best={best}
+                onStart={() => {
+                  resetRun();
+                  setPhase("playing");
+                }}
+                onExit={() => navigate("/member/ngaji-ceria/games")}
+                accent="emerald"
+              />
+            </div>
           ) : (
-            <>
-              {/* 3D Scene */}
-              {phase === "playing" && (
-                <Harakat3DScene state={state} />
-              )}
+            <div className="relative h-full w-full overflow-hidden bg-gradient-to-b from-[#7DD3FC] via-[#BAE6FD] to-[#FEF9C3]">
+              {/* ARENA SLASHER (fisika + swipe + tebasan + dekor env) */}
+              <SlasherStage
+                isPlaying={phase === "playing"}
+                currentTarget={currentTarget}
+                onResult={handleResult}
+              />
 
-              {/* Topbar Info */}
-              {phase === "playing" && (
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
-              <div className="flex items-center gap-2">
-                <span className="text-white text-xs font-medium">Lane: </span>
-                <span 
-                  className={`px-2 py-1 rounded ${lane === 0 ? 'bg-blue-500' : lane === 1 ? 'bg-green-500' : 'bg-yellow-500'}`}
-                >
-                  {[ "Kiri", "Tengah", "Kanan"][lane]}
+              {/* PAPAN SKOR KAYU (kiri atas) */}
+              <div className="pointer-events-none absolute left-3 top-14 z-30 sm:left-4 sm:top-16">
+                <div className="relative h-28 w-28 sm:h-32 sm:w-32">
+                  <PapanKayuSkorSvg size={130} className="absolute inset-0" />
+                  <div className="absolute left-0 right-0 top-[22%] flex flex-col items-center gap-0.5">
+                    <span className="rounded-full border-2 border-[#134E4A] bg-[#FEF3C7] px-2 text-[8px] font-black uppercase tracking-widest text-[#7C2D12]">
+                      Skor
+                    </span>
+                    <span className="font-display text-xl font-black leading-none text-[#134E4A] drop-shadow-[1px_1px_0_rgba(255,255,255,0.8)]">
+                      {score}
+                    </span>
+                    {combo > 1 && (
+                      <span className="rounded-md border-2 border-[#134E4A] bg-[#FF6B6B] px-1.5 py-0.5 text-[9px] font-black text-white">
+                        x{combo}
+                      </span>
+                    )}
+                    <div className="mt-0.5 flex items-center gap-0.5 rounded-lg border-2 border-[#134E4A] bg-white/85 px-1 py-0.5">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <HeartSvg
+                          key={i}
+                          size={12}
+                          className={
+                            i < lives
+                              ? "text-[#FF6B6B] fill-[#FF6B6B]"
+                              : "text-gray-300 fill-gray-300"
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* PLAKAT TARGET HARAKAT (kanan atas) */}
+              <div className="pointer-events-none absolute right-3 top-14 z-30 sm:right-4 sm:top-16">
+                <div className="relative h-28 w-28 sm:h-32 sm:w-32">
+                  <PlakatTargetHarakatSvg size={130} className="absolute inset-0" />
+                  <div className="absolute inset-x-0 top-[46%] flex flex-col items-center gap-0.5 px-3">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-[#7C2D12]">
+                      Target
+                    </span>
+                    <span className="font-arabic text-2xl font-black leading-none text-[#7C2D12]">
+                      {targetHarakat?.symbol ?? "بَ"}
+                    </span>
+                    <span className="font-display text-[10px] font-black leading-tight text-[#7C2D12]">
+                      {targetHarakat?.name ?? "Fathah"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* MASKOT TILA (pojok kiri bawah di lantai dojo, melompat saat tebasan benar) */}
+              <motion.div
+                className="pointer-events-none absolute bottom-10 left-4 z-30 flex flex-col items-center"
+                animate={{
+                  y: celebrate ? [-10, -38, -4] : 0,
+                  rotate: celebrate ? [0, -6, 5, 0] : 0,
+                }}
+                transition={{ duration: celebrate ? 0.7 : 0.3 }}
+              >
+                <TilaMascot
+                  size={92}
+                  direction="front"
+                  animation="bounce"
+                  mood={celebrate ? "excited" : "happy"}
+                />
+                <span className="mt-1 rounded-lg border-2 border-[#134E4A] bg-white px-2 py-0.5 text-[9px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                  {combo > 1 ? `Combo x${combo}!` : "Tebas targetnya!"}
                 </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white text-xs font-medium">Score: </span>
-                <span className="text-2xl font-bold">{score}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white text-xs font-medium">Combo: </span>
-                <span className="text-orange-400 font-bold">{combo > 0 ? combo : 0}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white text-xs font-medium">Lives: </span>
-                <span className="text-red-400">{lives > 0 ? "♥".repeat(lives) : "0"}</span>
-              </div>
+              </motion.div>
             </div>
           )}
 
-          {/* Bottom Controls - Subway Surfers Style */}
-          {phase === "playing" && (
-            <div className="absolute bottom-4 left-1/2 right-1/2 flex justify-around pointer-events-none">
-              {/* Jump Button */}
-              <div onClick={jump} className="relative">
-                <svg 
-                  className="w-12 h-12 text-white opacity-80 hover:opacity-100 transition-opacity"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7.41 8.59L12 12.17l4.59 4.58L18 9l-6-6-6 6z" />
-                  <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
-                </svg>
-                <svg 
-                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 text-orange-400 opacity-0 hover:opacity-100 transition-opacity"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7.41 15.41L12 19.59l4.59 4.58L18 15l-6-6-6 6z" />
-                </svg>
-              </div>
-
-              {/* Lane Left */}
-              <div 
-                onClick={() => setLane(0)} 
-                className="relative w-14 h-14 rounded-full bg-blue-600/50 transition-colors cursor-pointer"
-              >
-                <svg 
-                  className="w-8 h-8 group-hover:text-blue-400 transition-colors"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path d="M15 19l-5-5 5-5" />
-                  <path d="M10 14l5-5 5 5" />
-                </svg>
-              </div>
-
-              {/* Lane Right */}
-              <div 
-                onClick={() => setLane(2)} 
-                className="relative w-14 h-14 rounded-full bg-blue-600/50 transition-colors cursor-pointer"
-              >
-                <svg 
-                  className="w-8 h-8 group-hover:text-blue-400 transition-colors"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path d="M9 5l5 5-5 5" />
-                  <path d="M14 10l-5 5-5-5" />
-                </svg>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-          {/* Game Over */}
           {phase === "gameover" && (
             <GameOverModal
               visible
-              title="Game Over"
               score={score}
               best={best}
               isNewRecord={score > 0 && score >= best}
               onRetry={() => {
-                resetGame();
+                resetRun();
                 setPhase("playing");
               }}
-              onExit={() => setPhase("idle")}
+              onExit={() => {
+                resetRun();
+                navigate("/member/ngaji-ceria/games");
+              }}
             />
           )}
         </GameBoundary>
@@ -255,12 +185,6 @@ function Game() {
   );
 }
 
-// ✅ EXPORT UTAMA
 export default function HarakatRushPage() {
-  return (
-    <div>
-      {/* Hubungkan ke GameModeHub jika ada, atau langsung render game */}
-      <Game />
-    </div>
-  );
+  return <Game />;
 }

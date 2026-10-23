@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { TilaMascot } from "@/components/ui/TilaMascot";
+import { TitoMascot } from "@/components/ui/TitoMascot";
 import { SparklesSvg } from "@/components/ui/CustomIcons";
 import { arenaApi } from "../../services/arenaApi";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,9 +50,9 @@ export default function JoinRoomPage() {
   return (
     <NgajiCeriaLayout title="Masuk Tartila Arena">
       <div className="max-w-md mx-auto px-4 py-8 space-y-6">
-        {/* Maskot Tila Menyapa Santri */}
+        {/* Maskot Tito Menyapa Santri */}
         <div className="flex flex-col items-center justify-center text-center">
-          <TilaMascot
+          <TitoMascot
             size={100}
             mood="excited"
             animation="bounce"

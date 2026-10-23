@@ -42,7 +42,7 @@ export function GameLockGuard({ gameId, title, children }: { gameId: string; tit
       <p className="max-w-xs text-sm leading-relaxed text-[#134e4a]/70">
         {isLoggedIn
           ? "Game ini belum tersedia untuk akunmu."
-          : "Masuk untuk membuka game ini. Tamu dapat memainkan Ritme Ngaji, Quiz Ngaji, Puzzle Huruf (Arabic Wordle), dan Hijaiyah Pop."}
+          : "Masuk untuk membuka game ini. Tamu hanya dapat memainkan game Hijaiyah Pop sebagai uji coba."}
       </p>
       {!isLoggedIn && <button type="button" onClick={() => setPromptOpen(true)} className="game-button mt-2 bg-[#0D9488]">Masuk untuk Akses Penuh</button>}
       <button type="button" onClick={() => navigate("/member/ngaji-ceria/games")} className="game-button mt-2 border border-gray-100 bg-white text-[#134e4a]">Pilih Game Lain</button>

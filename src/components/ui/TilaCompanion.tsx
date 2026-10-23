@@ -67,15 +67,6 @@ const HIDDEN_STORAGE_KEY = "tila-companion-hidden";
 // ─────────────────────────────────────────────
 // Pose & ekspresi baru yang bisa dipicu lewat event "tila-react"
 // ─────────────────────────────────────────────
-// Cara pakai dari mana saja di aplikasi:
-//   triggerTilaPose("quiz-complete");  // tertawa -> memegang bintang
-//   triggerTilaPose("laugh");          // tertawa terbahak
-//   triggerTilaPose("shock");          // terkejut super
-//   triggerTilaPose("shy");            // malu-malu
-//   triggerTilaPose("greet");          // menyapa / melambai
-//   triggerTilaPose("hold");           // memegang bintang
-//   triggerTilaPose("sleep");          // tidur (bangun saat di-tap / "wake")
-//   triggerTilaPose("spin");           // bola putar
 export type TilaPoseReaction =
   | "laugh"
   | "shock"
@@ -87,7 +78,24 @@ export type TilaPoseReaction =
   | "wake"
   | "quiz-complete"
   | "complete"
-  | "perfect";
+  | "perfect"
+  // ── Pose Tambahan Baru ──
+  | "pray"
+  | "read"
+  | "starry"
+  | "proud"
+  | "confused"
+  | "love"
+  | "wink"
+  | "dizzy"
+  | "cheer"
+  | "sing"
+  | "peek"
+  | "shiver"
+  | "peck"
+  | "roll"
+  | "cry"
+  | "angry";
 
 type CompanionReaction = TilaReactionType | TilaPoseReaction;
 
@@ -165,11 +173,10 @@ function buildPoseSteps(
     case "quiz-complete":
     case "complete":
     case "perfect":
-      // Kuis selesai: tertawa gembira, lalu memegang bintang hadiah
       return [
         {
-          mood: "laughing",
-          anim: "bounce",
+          mood: "excited",
+          anim: "cheer",
           speech: "Yeay! Kamu hebat sekali!",
           duration: 2600,
         },
@@ -181,12 +188,154 @@ function buildPoseSteps(
           duration: 3400,
         },
       ];
+
+    // ── Implementasi Pose Baru ──
+    case "pray":
+      return [
+        {
+          mood: "praying",
+          anim: "float",
+          speech: "Aamiin... Yuk berdoa dulu.",
+          duration: 4500,
+        },
+      ];
+    case "read":
+      return [
+        {
+          mood: "reading",
+          anim: "float",
+          speech: "Belajar itu seru, lho!",
+          duration: 4500,
+        },
+      ];
+    case "starry":
+      return [
+        {
+          mood: "starry",
+          anim: "bounce",
+          speech: "Waaah, indahnya!",
+          duration: 3500,
+        },
+      ];
+    case "proud":
+      return [
+        {
+          mood: "proud",
+          anim: "salute",
+          speech: "Siap! Semangat terus!",
+          duration: 3500,
+        },
+      ];
+    case "confused":
+      return [
+        {
+          mood: "confused",
+          anim: "float",
+          speech: "Hmm, apa ya maksudnya?",
+          duration: 3000,
+        },
+      ];
+    case "love":
+      return [
+        {
+          mood: "love",
+          anim: "float",
+          speech: "Aku sayang kamu!",
+          duration: 3200,
+        },
+      ];
+    case "wink":
+      return [
+        { mood: "winking", anim: "float", speech: "Ciaat! 😉", duration: 2200 },
+      ];
+    case "dizzy":
+      return [
+        {
+          mood: "dizzy",
+          anim: "float",
+          speech: "Aduh, pusing~ pelan-pelan ya.",
+          duration: 2800,
+        },
+      ];
+    case "cheer":
+      return [
+        {
+          mood: "excited",
+          anim: "cheer",
+          speech: "Horeee! Hebat!",
+          duration: 4000,
+        },
+      ];
+    case "sing":
+      return [
+        {
+          mood: "happy",
+          anim: "singing",
+          speech: "Lalala~ 🎵",
+          duration: 4500,
+        },
+      ];
+    case "peek":
+      return [
+        {
+          mood: "shy",
+          anim: "peek",
+          speech: "Halo... aku di sini.",
+          duration: 3500,
+        },
+      ];
+    case "shiver":
+      return [
+        {
+          mood: "sad",
+          anim: "shiver",
+          speech: "Hiiy... dingin!",
+          duration: 3000,
+        },
+      ];
+    case "peck":
+      return [
+        {
+          mood: "happy",
+          anim: "peckRight",
+          speech: "Tok tok tok!",
+          duration: 2200,
+        },
+      ];
+    case "roll":
+      return [
+        {
+          mood: "excited",
+          anim: "rolling",
+          speech: "Wush wush!",
+          duration: 2200,
+        },
+      ];
+    case "cry":
+      return [
+        {
+          mood: "crying",
+          anim: "float",
+          speech: "Hiks... jangan diulangin ya.",
+          duration: 3000,
+        },
+      ];
+    case "angry":
+      return [
+        {
+          mood: "angry",
+          anim: "float",
+          speech: "Hmph! Jangan nakal ya.",
+          duration: 2500,
+        },
+      ];
+
     default:
       return null;
   }
 }
 
-/** Picu pose maskot dari mana saja (tanpa perlu mengubah utils/tilaEvent). */
+/** Picu pose maskot dari mana saja */
 export function triggerTilaPose(pose: TilaPoseReaction): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("tila-react", { detail: pose }));
@@ -201,6 +350,17 @@ export function isBottomNavTab(pathname: string): boolean {
     clean === "/member/ngaji-ceria/profile"
   );
 }
+
+// Daftar pose "idle" yang menggemaskan & sopan (dipilih acak saat diam)
+const IDLE_POSES: TilaPoseReaction[] = [
+  "read",
+  "starry",
+  "wink",
+  "sing",
+  "peek",
+  "love",
+  "confused",
+];
 
 export function TilaCompanion({
   size = 110,
@@ -303,9 +463,8 @@ export function TilaCompanion({
 
   const hasAppearedRef = useRef(false);
 
-  // Refs untuk pose baru (laughing, shocked, shy, greeting, holding, sleeping, spinning)
+  // Refs untuk pose baru
   const poseTimersRef = useRef<number[]>([]);
-  // true selama pose sedang berjalan -> idle/scroll/boredom tidak menimpa mood
   const poseLockRef = useRef(false);
   const isHiddenRef = useRef(isHidden);
   isHiddenRef.current = isHidden;
@@ -320,7 +479,6 @@ export function TilaCompanion({
     poseTimersRef.current.push(id);
   }, []);
 
-  // Hentikan pose & kembalikan maskot ke kondisi normal
   const endPose = useCallback(() => {
     clearPoseTimers();
     poseLockRef.current = false;
@@ -330,7 +488,6 @@ export function TilaCompanion({
     setSpeech(undefined);
   }, [clearPoseTimers]);
 
-  // Jalankan satu atau beberapa pose berurutan
   const runPose = useCallback(
     (steps: PoseStep[]) => {
       if (isHiddenRef.current || steps.length === 0) return;
@@ -383,7 +540,6 @@ export function TilaCompanion({
     }
   }, [isHidden]);
 
-  // Cleanup timer transisi & timer pose saat komponen unmount
   useEffect(() => {
     return () => {
       if (transitionTimerRef.current !== null) {
@@ -404,8 +560,7 @@ export function TilaCompanion({
     if (tRect.width === 0 && tRect.height === 0) return;
 
     const targetCenterX = tRect.left + tRect.width / 2;
-    // Melayang DI ATAS tombol Panduan, bukan menimpanya, agar tombol tetap bisa diklik.
-    const targetCenterY = tRect.top - (mRect.height / 2) - 20;
+    const targetCenterY = tRect.top - mRect.height / 2 - 20;
     const dx = targetCenterX - (mRect.left + mRect.width / 2);
     const dy = targetCenterY - (mRect.top + mRect.height / 2);
 
@@ -440,13 +595,11 @@ export function TilaCompanion({
 
   // EFEK ANIMASI KEDATANGAN OTOMATIS (Halaman Baru)
   useEffect(() => {
-    // 0. Pindah halaman / toggle visibilitas: batalkan pose yang masih berjalan
     if (poseLockRef.current) {
       clearPoseTimers();
       poseLockRef.current = false;
     }
 
-    // 1. Baca posisi tersimpan dari localStorage
     const saved =
       localStorage.getItem("tila-companion-pos") ??
       localStorage.getItem("bibi-companion-pos");
@@ -458,13 +611,11 @@ export function TilaCompanion({
       } catch (e) {}
     }
 
-    // 2. Cegah double animasi jika baru saja memanggil via tombol
     if (skipVisibilityAnimationRef.current) {
       skipVisibilityAnimationRef.current = false;
       return;
     }
 
-    // 3. Jika disembunyikan ATAU berada di halaman bottom nav, langsung set posisi
     if (isHidden || isNavTab) {
       zigzagX.set(0);
       flyY.set(0);
@@ -477,7 +628,6 @@ export function TilaCompanion({
       return;
     }
 
-    // 4. Efek terbang masuk mengejar user saat halaman aktivitas baru dibuka
     const startX =
       (typeof window !== "undefined" ? window.innerWidth : 1000) + 100;
     const flyDuration = 1.4;
@@ -535,7 +685,6 @@ export function TilaCompanion({
       const customEvent = e as CustomEvent<CompanionReaction>;
       const type = customEvent.detail;
 
-      // ── Pose & ekspresi baru ──
       if (type === "wake") {
         endPose();
         return;
@@ -546,38 +695,46 @@ export function TilaCompanion({
         return;
       }
 
-      // ── Reaksi lama (tidak diubah) ──
       switch (type) {
         case "play":
-          setMood("excited");
-          setSpeech("Ayo semangat!");
-          setTalking(true);
-          setAnim("bounce");
-          setRotation((prev) => prev + 360);
-          animate(scale, 1.4, { duration: 0.3 });
-          setTimeout(() => animate(scale, 1, { duration: 0.3 }), 800);
+          runPose([
+            {
+              mood: "excited",
+              anim: "bounce",
+              speech: "Ayo semangat!",
+              duration: 2500,
+            },
+          ]);
           break;
         case "exit":
-          setMood("sad");
-          setSpeech("Hati-hati ya! Sampai jumpa");
-          setTalking(true);
-          setAnim("float");
-          setRotation((prev) => prev + 45);
-          setTimeout(() => setRotation((prev) => prev - 90), 500);
-          setTimeout(() => setRotation((prev) => prev + 45), 1000);
+          runPose([
+            {
+              mood: "sad",
+              anim: "float",
+              speech: "Hati-hati ya! Sampai jumpa",
+              duration: 3000,
+            },
+          ]);
           break;
         case "success":
-          setMood("excited");
-          setSpeech("Yeay! Hebat sekali!");
-          setTalking(true);
-          setAnim("bounce");
-          setRotation((prev) => prev + 360);
+          runPose([
+            {
+              mood: "excited",
+              anim: "bounce",
+              speech: "Yeay! Hebat sekali!",
+              duration: 3000,
+            },
+          ]);
           break;
         case "error":
-          setMood("sad");
-          setSpeech("Yah, coba lagi ya...");
-          setTalking(true);
-          setAnim("float");
+          runPose([
+            {
+              mood: "sad",
+              anim: "float",
+              speech: "Yah, coba lagi ya...",
+              duration: 3000,
+            },
+          ]);
           break;
         default:
           setMood("happy");
@@ -694,8 +851,11 @@ export function TilaCompanion({
     }, 220);
   };
 
+  // --- LOGIKA SCROLL & REAKSI CERDAS ---
   useEffect(() => {
     lastScrollY.current = window.scrollY;
+    let scrollTimeout: number | null = null;
+    let fastScrollTimeout: number | null = null;
 
     const onScroll = () => {
       const currentY = window.scrollY;
@@ -705,10 +865,26 @@ export function TilaCompanion({
       if (isHidden) return;
       if (boredomTimer.current) clearTimeout(boredomTimer.current);
 
-      // Saat pose berjalan (tidur, tertawa, dll), scroll tidak menimpa mood
+      // Jangan timpa pose yang sedang berjalan
       if (poseLockRef.current) return;
 
-      if (Math.abs(delta) > 15) {
+      // Deteksi scroll cepat
+      if (Math.abs(delta) > 100) {
+        if (fastScrollTimeout) clearTimeout(fastScrollTimeout);
+        fastScrollTimeout = window.setTimeout(() => {
+          if (!poseLockRef.current) {
+            // Pusing kalau scroll terlalu cepat
+            runPose([
+              {
+                mood: "dizzy",
+                anim: "float",
+                speech: "Aduh pusing~ pelan-pelan ya",
+                duration: 2500,
+              },
+            ]);
+          }
+        }, 150);
+      } else if (Math.abs(delta) > 15) {
         if (delta > 0) {
           animate(scale, 1.15, { duration: 0.5, ease: "easeOut" });
         } else {
@@ -726,57 +902,79 @@ export function TilaCompanion({
         walkTimer.current = window.setTimeout(() => setAnim("float"), 800);
       }
 
+      // Milestone Scroll (Pesan Motivasi)
       if (reactiveSpeech && milestoneIndex.current < scrollMessages.length) {
         if (currentY > milestoneIndex.current * 800 && currentY > 400) {
-          setSpeech(scrollMessages[milestoneIndex.current]);
+          const nextMilestone = milestoneIndex.current;
+          setSpeech(scrollMessages[nextMilestone]);
           setTalking(true);
-          setMood("excited");
-          setRotation((prev) => prev + 360);
 
-          animate(scale, 1.3, { duration: 0.4 });
-          setTimeout(() => animate(scale, 1, { duration: 0.4 }), 2000);
-          window.setTimeout(() => setTalking(false), 3000);
+          // Jika mencapai bawah (pesan terakhir), lakukan Cheer
+          if (nextMilestone === scrollMessages.length - 1) {
+            runPose([
+              {
+                mood: "excited",
+                anim: "cheer",
+                speech: scrollMessages[nextMilestone],
+                duration: 4000,
+              },
+            ]);
+          } else {
+            setMood("excited");
+            setRotation((prev) => prev + 360);
+            animate(scale, 1.3, { duration: 0.4 });
+            setTimeout(() => animate(scale, 1, { duration: 0.4 }), 2000);
+            window.setTimeout(() => setTalking(false), 3000);
+          }
           milestoneIndex.current += 1;
         }
       }
 
-      boredomTimer.current = window.setTimeout(() => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = window.setTimeout(() => {
         if (poseLockRef.current) return;
-        setRotation((prev) => prev + 180);
-        setMood("sad");
-        setSpeech(`Hmph, ${mascotName} bosan nih...`);
-        setTalking(true);
-        setTimeout(() => setTalking(false), 2500);
+        // Bosan jika diam lama
+        runPose([
+          {
+            mood: "confused",
+            anim: "float",
+            speech: `Hmph, ${mascotName} bosan nih...`,
+            duration: 2500,
+          },
+        ]);
       }, 15000);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [reactiveSpeech, isHidden, scale, mascotName, scrollMessages]);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      if (fastScrollTimeout) clearTimeout(fastScrollTimeout);
+    };
+  }, [reactiveSpeech, isHidden, scale, mascotName, scrollMessages, runPose]);
 
+  // --- LOGIKA IDLE (DIAM) MENGGUNAKAN POSE ACAK YANG MENGEMASKAN ---
   useEffect(() => {
     if (isHidden || isHelpOpen) return;
 
-    const startIdleTimer = () => {
-      if (idleTimer.current) clearInterval(idleTimer.current);
-      idleTimer.current = window.setInterval(() => {
-        // Jangan ganggu pose yang sedang berjalan
-        if (poseLockRef.current) return;
-        const direction = Math.random() > 0.5 ? 45 : -45;
-        setRotation((prev) => prev + direction);
-        setMood("thinking");
-        setTimeout(() => {
-          setRotation((prev) => prev - direction);
-          if (!poseLockRef.current) setMood("happy");
-        }, 1500);
-      }, 6000);
-    };
+    // Timer idle yang memicu pose acak (sopan)
+    idleTimer.current = window.setInterval(() => {
+      if (poseLockRef.current) return;
 
-    startIdleTimer();
+      // Pilih pose acak dari daftar IDLE_POSES
+      const randomPose =
+        IDLE_POSES[Math.floor(Math.random() * IDLE_POSES.length)];
+      const steps = buildPoseSteps(randomPose, mascotName);
+
+      if (steps) {
+        runPose(steps);
+      }
+    }, 25000); // Setiap 25 detik jika tidak ada aktivitas
+
     return () => {
       if (idleTimer.current) clearInterval(idleTimer.current);
     };
-  }, [isHidden, isHelpOpen]);
+  }, [isHidden, isHelpOpen, mascotName, runPose]);
 
   const handleDragEnd = () => {
     localStorage.setItem(
@@ -788,7 +986,6 @@ export function TilaCompanion({
   const handleTap = useCallback(() => {
     if (isHidden || isTransitioning) return;
 
-    // Tap membangunkan / menghentikan pose yang sedang berjalan
     if (poseLockRef.current) endPose();
 
     if (showTimerRef.current) {
@@ -804,7 +1001,6 @@ export function TilaCompanion({
     const nextAppeared = hasAppearedRef.current || hasTips;
 
     animate(scale, 1.8, { type: "spring", stiffness: 100, damping: 12 });
-    setMood("happy");
     setSpeech(`Hai! Ini yang bisa ${mascotName} bantu`);
     setTalking(true);
     setAnim("bounce");
@@ -854,7 +1050,6 @@ export function TilaCompanion({
       hideTimerRef.current = null;
     }
 
-    // Batalkan pose yang masih berjalan sebelum maskot pamit
     clearPoseTimers();
     poseLockRef.current = false;
 
@@ -986,9 +1181,6 @@ export function TilaCompanion({
     navigate(path);
   };
 
-  // Sembunyikan maskot sepenuhnya saat berada di dalam Kamar Maskot, Game dengan maskot
-  // utama sendiri (seperti Hijaiyah Pop), atau halaman kuis yang butuh fokus tinggi
-  // (Daftar Jilid & Halaman Play) — agar tombol "Mulai"/"Panduan" tidak tertutup.
   if (
     location.pathname === "/member/ngaji-ceria/kamar-tila" ||
     location.pathname === "/member/ngaji-ceria/kamar-tito" ||
@@ -1049,7 +1241,6 @@ export function TilaCompanion({
               exit={{ opacity: 0, scale: 0.5 }}
               className="flex items-center gap-2"
             >
-              {/* Ikon Loading Bintang Berputar */}
               <svg
                 width="22"
                 height="22"
@@ -1084,7 +1275,6 @@ export function TilaCompanion({
               exit={{ opacity: 0, y: -4 }}
               className="flex items-center gap-2"
             >
-              {/* Ikon Burung Melambai */}
               <svg
                 width="22"
                 height="22"
@@ -1132,7 +1322,6 @@ export function TilaCompanion({
               exit={{ opacity: 0, y: 4 }}
               className="flex items-center gap-2"
             >
-              {/* Ikon Burung Terbang Pergi */}
               <svg
                 width="22"
                 height="22"
@@ -1373,6 +1562,7 @@ export function TilaCompanion({
 }
 
 // Aliases for compatibility
+export const TitoCompanion = TilaCompanion;
 export const BibiCompanion = TilaCompanion;
 
 export function isMascotVisible(): boolean {

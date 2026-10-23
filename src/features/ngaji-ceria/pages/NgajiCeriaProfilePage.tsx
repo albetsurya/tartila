@@ -21,6 +21,7 @@ import { useEconomyStore, isUnlimitedUser, type TilaGender } from "../hooks/useE
 import "./games/_shared/games.css";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { getMascotName } from "@/utils/mascotHelper";
+import { isAdminRole, classroomRoleFor } from "@/lib/roles";
 
 import {
   PencilSvg,
@@ -87,11 +88,8 @@ export default function NgajiCeriaProfilePage() {
   const isVip = useEconomyStore((s) => s.isVip);
   const isUnlimited = isUnlimitedUser(user, isVip, user?.group_id);
 
-  const roleClean = (user?.role || "").toUpperCase();
-  const isSuperAdmin =
-    roleClean === "SUPER_ADMIN" ||
-    roleClean === "SUPERADMIN" ||
-    roleClean === "ADMIN";
+  const isSuperAdmin = isAdminRole(user?.role);
+  const classroomRole = classroomRoleFor(user?.role);
 
   const [genderDraft, setGenderDraft] = useState<TilaGender>(tilaGender);
 
@@ -175,10 +173,10 @@ export default function NgajiCeriaProfilePage() {
     setActiveModal(null);
   };
 
-  const handleSaveName = () => {
+  const handleSaveName = async () => {
     if (nameDraft.trim()) setNameOverride(nameDraft.trim());
     if (genderDraft) {
-      setTilaGender(genderDraft);
+      await setTilaGender(genderDraft);
     }
     setActiveModal(null);
   };
@@ -425,7 +423,6 @@ export default function NgajiCeriaProfilePage() {
                 <div className="transform scale-[0.65] translate-y-2">
                   <TilaMascot
                     size={80}
-                    gender={tilaGender === "girl" ? "girl" : "boy"}
                     accessory={equippedAccessory as any}
                     animation="bounce"
                   />
@@ -450,6 +447,43 @@ export default function NgajiCeriaProfilePage() {
               Masuk
             </div>
           </section>
+
+          {/* Kelas - Gabung Panel Ustadz */}
+          {classroomRole === "ustadz" || classroomRole === "monitor" ? (
+            <section
+              onClick={() => navigate("/ustadz")}
+              className="cursor-pointer rounded-[24px] border-[3px] border-[#134E4A] bg-[#ECFEFF] p-4 shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-between group"
+            >
+              <div>
+                <h3 className="font-display text-lg font-black text-[#134E4A]">
+                  Panel Ustadz
+                </h3>
+                <p className="text-[11px] font-bold text-[#134E4A]/70 max-w-[150px] leading-tight">
+                  Kelola kelas ngaji santri dan anggotanya
+                </p>
+              </div>
+              <div className="bg-[#0D9488] text-white px-3 py-2 rounded-xl border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] font-black text-xs group-active:translate-y-[1px]">
+                Buka
+              </div>
+            </section>
+          ) : (
+            <section
+              onClick={() => navigate("/member/ngaji-ceria/kelas")}
+              className="cursor-pointer rounded-[24px] border-[3px] border-[#134E4A] bg-[#ECFEFF] p-4 shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-between group"
+            >
+              <div>
+                <h3 className="font-display text-lg font-black text-[#134E4A]">
+                  Kelas Saya
+                </h3>
+                <p className="text-[11px] font-bold text-[#134E4A]/70 max-w-[150px] leading-tight">
+                  Gabung kelas ngaji lewat kode ustadz
+                </p>
+              </div>
+              <div className="bg-[#0D9488] text-white px-3 py-2 rounded-xl border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] font-black text-xs group-active:translate-y-[1px]">
+                Buka
+              </div>
+            </section>
+          )}
 
           {/* Lemari Lencana */}
           <section className="rounded-[24px] border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A]">
@@ -655,7 +689,7 @@ export default function NgajiCeriaProfilePage() {
                 }`}
               >
                 <UserSvg size={15} />
-                <span>Tito (Laki-laki)</span>
+                <span>Tito (Putra)</span>
               </button>
               <button
                 type="button"
@@ -667,7 +701,7 @@ export default function NgajiCeriaProfilePage() {
                 }`}
               >
                 <SparklesSvg size={15} />
-                <span>Tila (Perempuan)</span>
+                <span>Tila (Putri)</span>
               </button>
             </div>
           </div>

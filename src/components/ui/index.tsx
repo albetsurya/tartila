@@ -20,10 +20,15 @@ export { PageHero } from "./PageHero";
 export { SectionHeader } from "./SectionHeader";
 export { NotificationBell } from "./NotificationBell";
 
-// 4. Maskot
-export { TilaCompanion, BibiCompanion } from "./TilaCompanion";
-export { TilaMascot, TitoMascot, BibiMascot } from "./TilaMascot";
+// 4. Maskot Resmi: Tito (dengan alias backwards-compatibility)
+export { TilaCompanion, BibiCompanion, TilaCompanion as TitoCompanion } from "./TilaCompanion";
+export { TitoMascot, TilaMascot, BibiMascot } from "./TilaMascot";
 export type {
+  TitoMood,
+  TitoDirection,
+  TitoAnimation,
+  TitoAccessoryType,
+  TitoMascotProps,
   TilaMood,
   TilaDirection,
   TilaAnimation,
@@ -35,8 +40,11 @@ export type {
   BibiAccessoryType,
   BibiMascotProps,
 } from "./TilaMascot";
-export { BibiMascot2D, BibiWave } from "./BibiMascot2D";
+export { TitoMascot2D, TitoWave, BibiMascot2D, BibiWave } from "./BibiMascot2D";
 export type {
+  TitoMascot2DProps,
+  TitoMascotVariant,
+  TitoWaveProps,
   BibiMascot2DProps,
   BibiMascotVariant,
   BibiWaveProps,

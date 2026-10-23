@@ -69,7 +69,7 @@ const TAB_ITEMS: Array<{
   },
   {
     key: "kamar",
-    label: "Kamar Tila",
+    label: "Kamar Tito",
     icon: HomeSvg,
     activeColor: "bg-[#8B5CF6] text-white",
   },
@@ -212,7 +212,7 @@ const ACCESSORY_ITEMS = [
   {
     id: "sleepmask",
     name: "Sleep Mask",
-    desc: "Penutup mata biru pola zzz untuk istirahat Tila & Tito.",
+    desc: "Penutup mata biru pola zzz untuk istirahat Tito.",
     iconComponent: SleepMaskSvg,
     price: 100,
     accent: "sky",
@@ -859,11 +859,11 @@ export default function WarungSantriPage() {
                         </h3>
                         {item.category === "boy" ? (
                           <span className="text-[9px] font-extrabold bg-[#CCFBF1] text-[#0F766E] px-2 py-0.5 rounded-md border border-[#134E4A]">
-                            Khusus Tito
+                            Khusus Tito (Putra)
                           </span>
                         ) : item.category === "girl" ? (
                           <span className="text-[9px] font-extrabold bg-[#FCE7F3] text-[#BE185D] px-2 py-0.5 rounded-md border border-[#134E4A]">
-                            Khusus Tila
+                            Khusus Tila (Putri)
                           </span>
                         ) : (
                           <span className="text-[9px] font-extrabold bg-[#FEF08A] text-[#134E4A] px-2 py-0.5 rounded-md border border-[#134E4A]">

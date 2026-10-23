@@ -1,10 +1,8 @@
+import { useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import {
-  Pause,
-  Volume2,
-} from "../../../../components/ui/CustomIcons";
+import { Pause, Volume2 } from "../../../../components/ui/CustomIcons";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
@@ -53,7 +51,6 @@ const SpaceStarsSvg = ({ className = "" }: { className?: string }) => (
         strokeWidth="0"
       />
     ))}
-    {/* Bintang berkilau besar */}
     {[
       [200, 100],
       [80, 200],
@@ -70,16 +67,368 @@ const SpaceStarsSvg = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-/** Palet warna planet solid (tanpa gradient) */
-const PLANET_COLORS = [
-  { fill: "#FF6B6B", glow: "#FFB4B4" },
-  { fill: "#F59E0B", glow: "#FCD34D" },
-  { fill: "#38BDF8", glow: "#BAE6FD" },
-  { fill: "#A855F7", glow: "#D8B4FE" },
-  { fill: "#2DD4BF", glow: "#99F6E4" },
-  { fill: "#F472B6", glow: "#FBCFE8" },
+/** ── VARIAN PLANET ────────────────────────────────────────── */
+type PlanetVariant =
+  | "saturn"
+  | "earth"
+  | "mars"
+  | "jupiter"
+  | "venus"
+  | "neptune"
+  | "ice"
+  | "gasPurple";
+
+const PLANET_VARIANTS: PlanetVariant[] = [
+  "saturn",
+  "earth",
+  "mars",
+  "jupiter",
+  "venus",
+  "neptune",
+  "ice",
+  "gasPurple",
 ];
 
+/** Ukuran planet (px). Ubah satu konstanta ini untuk resize global. */
+const PLANET_SIZE = 128;
+
+function PlanetVisual({
+  variant,
+  size = PLANET_SIZE,
+}: {
+  variant: PlanetVariant;
+  size?: number;
+}) {
+  const uid = useId().replace(/:/g, "");
+  const stroke = "#134E4A";
+  const sw = 3;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 80 80"
+      className="absolute inset-0"
+      aria-hidden="true"
+    >
+      {/* SATURN — cincin dua lapis (belakang + depan) */}
+      {variant === "saturn" && (
+        <g>
+          <path
+            d="M 4 40 A 36 10 0 0 1 76 40"
+            transform="rotate(-15 40 40)"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 4 40 A 36 10 0 0 1 76 40"
+            transform="rotate(-15 40 40)"
+            fill="none"
+            stroke="#FCD34D"
+            strokeWidth="2"
+          />
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#F59E0B"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <path
+            d="M 22 34 Q 40 30 58 34"
+            stroke="#FBBF24"
+            strokeWidth="2"
+            fill="none"
+          />
+          <path
+            d="M 22 46 Q 40 42 58 46"
+            stroke="#FBBF24"
+            strokeWidth="2"
+            fill="none"
+          />
+          <path
+            d="M 4 40 A 36 10 0 0 0 76 40"
+            transform="rotate(-15 40 40)"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 4 40 A 36 10 0 0 0 76 40"
+            transform="rotate(-15 40 40)"
+            fill="none"
+            stroke="#FCD34D"
+            strokeWidth="2"
+          />
+        </g>
+      )}
+
+      {/* BUMI — biru + benua hijau + awan */}
+      {variant === "earth" && (
+        <g>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#38BDF8"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <path
+            d="M 26 32 Q 30 28 34 32 Q 36 38 32 40 Q 26 38 26 32 Z"
+            fill="#22C55E"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <path
+            d="M 44 42 Q 52 40 54 46 Q 52 52 46 50 Q 42 46 44 42 Z"
+            fill="#22C55E"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <path
+            d="M 34 48 Q 40 46 42 52 Q 38 56 34 52 Z"
+            fill="#22C55E"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <ellipse
+            cx="34"
+            cy="24"
+            rx="5"
+            ry="1.8"
+            fill="#FFFFFF"
+            opacity="0.85"
+          />
+          <ellipse
+            cx="50"
+            cy="34"
+            rx="4"
+            ry="1.5"
+            fill="#FFFFFF"
+            opacity="0.85"
+          />
+        </g>
+      )}
+
+      {/* MARS — merah + kawah gelap + kutub es */}
+      {variant === "mars" && (
+        <g>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#DC2626"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <ellipse cx="32" cy="36" rx="6" ry="4" fill="#991B1B" opacity="0.7" />
+          <ellipse cx="48" cy="46" rx="7" ry="4" fill="#991B1B" opacity="0.7" />
+          <ellipse cx="36" cy="50" rx="4" ry="3" fill="#991B1B" opacity="0.7" />
+          <ellipse
+            cx="40"
+            cy="24"
+            rx="5"
+            ry="2"
+            fill="#FEE2E2"
+            stroke={stroke}
+            strokeWidth="1"
+          />
+          <ellipse
+            cx="40"
+            cy="56"
+            rx="4"
+            ry="1.8"
+            fill="#FEE2E2"
+            stroke={stroke}
+            strokeWidth="1"
+          />
+        </g>
+      )}
+
+      {/* JUPITER — pita horizontal + bintik merah */}
+      {variant === "jupiter" && (
+        <g>
+          <defs>
+            <clipPath id={`jup-${uid}`}>
+              <circle cx="40" cy="40" r="20" />
+            </clipPath>
+          </defs>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#F97316"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <g clipPath={`url(#jup-${uid})`}>
+            <rect x="18" y="28" width="44" height="3" fill="#C2410C" />
+            <rect x="18" y="35" width="44" height="2" fill="#FBBF24" />
+            <rect x="18" y="41" width="44" height="3" fill="#C2410C" />
+            <rect x="18" y="48" width="44" height="2" fill="#FBBF24" />
+            <ellipse
+              cx="52"
+              cy="44"
+              rx="5"
+              ry="3.5"
+              fill="#DC2626"
+              stroke={stroke}
+              strokeWidth="1"
+            />
+          </g>
+        </g>
+      )}
+
+      {/* VENUS — kuning + gelombang awan */}
+      {variant === "venus" && (
+        <g>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#FDE047"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <path
+            d="M 24 30 Q 40 26 56 32"
+            stroke="#F59E0B"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 22 40 Q 40 36 58 42"
+            stroke="#F59E0B"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 26 50 Q 40 46 54 52"
+            stroke="#F59E0B"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </g>
+      )}
+
+      {/* NEPTUNUS — biru tua + pita + bintik gelap */}
+      {variant === "neptune" && (
+        <g>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#3B82F6"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <path
+            d="M 22 34 Q 40 30 58 34"
+            stroke="#1E40AF"
+            strokeWidth="2.5"
+            fill="none"
+          />
+          <path
+            d="M 22 46 Q 40 50 58 46"
+            stroke="#1E40AF"
+            strokeWidth="2.5"
+            fill="none"
+          />
+          <ellipse cx="46" cy="42" rx="6" ry="4" fill="#1E3A8A" opacity="0.8" />
+        </g>
+      )}
+
+      {/* PLANET ES — biru muda + kawah */}
+      {variant === "ice" && (
+        <g>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#7DD3FC"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <circle
+            cx="32"
+            cy="32"
+            r="4"
+            fill="#0EA5E9"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <circle
+            cx="48"
+            cy="44"
+            r="3"
+            fill="#0EA5E9"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <circle
+            cx="36"
+            cy="50"
+            r="5"
+            fill="#0EA5E9"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <circle
+            cx="50"
+            cy="28"
+            r="2.5"
+            fill="#0EA5E9"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+          <circle
+            cx="28"
+            cy="46"
+            r="2"
+            fill="#0EA5E9"
+            stroke={stroke}
+            strokeWidth="1.2"
+          />
+        </g>
+      )}
+
+      {/* GAS GIANT UNGU — pita + kilau bintang */}
+      {variant === "gasPurple" && (
+        <g>
+          <defs>
+            <clipPath id={`gp-${uid}`}>
+              <circle cx="40" cy="40" r="20" />
+            </clipPath>
+          </defs>
+          <circle
+            cx="40"
+            cy="40"
+            r="20"
+            fill="#A855F7"
+            stroke={stroke}
+            strokeWidth={sw}
+          />
+          <g clipPath={`url(#gp-${uid})`}>
+            <rect x="18" y="32" width="44" height="3" fill="#7E22CE" />
+            <rect x="18" y="42" width="44" height="3" fill="#7E22CE" />
+            <circle cx="50" cy="36" r="2" fill="#FEF08A" />
+            <circle cx="32" cy="48" r="1.5" fill="#FEF08A" />
+          </g>
+        </g>
+      )}
+    </svg>
+  );
+}
+
+/** ── HALAMAN ──────────────────────────────────────────────── */
 export default function JuzAmmaStarsPage() {
   const navigate = useNavigate();
   const { isPlaying, currentAudioUrl, toggle } = useAudioPlayer();
@@ -103,7 +452,6 @@ export default function JuzAmmaStarsPage() {
       <div className="min-h-[100dvh] w-full bg-[#1E1B4B] relative overflow-x-hidden pb-28">
         <SpaceStarsSvg />
 
-        {/* Header kustom: Kapsul Astronot */}
         <ThemedHeader
           title="Galaksi Juz 'Amma"
           onBack={() => navigate("/member/ngaji-ceria/map")}
@@ -113,7 +461,6 @@ export default function JuzAmmaStarsPage() {
           statBgClass="bg-[#312E81] text-[#FEF08A]"
           backClass="bg-[#FEF08A] text-[#134E4A]"
         >
-          {/* Bintang kecil di belakang tombol */}
           <svg
             className="absolute inset-0 h-full w-full"
             viewBox="0 0 400 64"
@@ -129,7 +476,15 @@ export default function JuzAmmaStarsPage() {
               [330, 46, 2.5],
               [380, 16, 1.5],
             ].map(([cx, cy, r], i) => (
-              <circle key={i} cx={cx} cy={cy} r={r} fill="#FEF08A" stroke="#FDE047" strokeWidth="0" />
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill="#FEF08A"
+                stroke="#FDE047"
+                strokeWidth="0"
+              />
             ))}
           </svg>
         </ThemedHeader>
@@ -137,13 +492,11 @@ export default function JuzAmmaStarsPage() {
         <div className="relative z-10 px-4 pt-4">
           {/* ── HERO MISI HAFALAN ── */}
           <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#FEF08A] bg-[#312E81] p-5 text-white shadow-[4px_4px_0px_#134E4A]">
-            {/* Dekorasi roket + alien ramah + teleskop */}
             <svg
               className="absolute -top-2 right-2 h-24 w-24"
               viewBox="0 0 96 96"
               aria-hidden="true"
             >
-              {/* Roket */}
               <g transform="rotate(20 48 48)">
                 <path
                   d="M 48 8 Q 64 26 58 52 L 38 52 Q 32 26 48 8 Z"
@@ -181,9 +534,22 @@ export default function JuzAmmaStarsPage() {
                   strokeWidth="2"
                 />
               </g>
-              {/* Bintang kecil */}
-              <circle cx="14" cy="70" r="2.5" fill="#FEF08A" stroke="#134E4A" strokeWidth="1.5" />
-              <circle cx="82" cy="62" r="2" fill="#FEF08A" stroke="#134E4A" strokeWidth="1.5" />
+              <circle
+                cx="14"
+                cy="70"
+                r="2.5"
+                fill="#FEF08A"
+                stroke="#134E4A"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="82"
+                cy="62"
+                r="2"
+                fill="#FEF08A"
+                stroke="#134E4A"
+                strokeWidth="1.5"
+              />
             </svg>
 
             <div className="relative z-10 max-w-[70%]">
@@ -205,18 +571,18 @@ export default function JuzAmmaStarsPage() {
           </section>
 
           {/* ── PETA PLANET ── */}
-          <section className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8">
+          <section className="mt-6 grid grid-cols-2 gap-x-3 gap-y-10">
             {JUZ_AMMA_SURAHS.map((surah, i) => {
               const isSurahPlaying =
                 isPlaying && currentAudioUrl === surah.audioUrl;
-              const color = PLANET_COLORS[i % PLANET_COLORS.length];
+              const variant = PLANET_VARIANTS[i % PLANET_VARIANTS.length];
 
               return (
                 <motion.div
                   key={surah.number}
                   onClick={() => handleSelect(surah.number)}
                   className="relative flex cursor-pointer flex-col items-center"
-                  animate={{ y: [0, -5, 0] }}
+                  animate={{ y: [0, -6, 0] }}
                   transition={{
                     y: {
                       repeat: Infinity,
@@ -225,59 +591,54 @@ export default function JuzAmmaStarsPage() {
                     },
                   }}
                 >
-                  {/* Planet + orbit ring */}
-                  <div className="relative h-20 w-20">
-                    {/* Orbit ring (garis lingkaran melayang) */}
-                    <div
-                      className="absolute -inset-2 rounded-full border-2 border-dashed border-[#FEF08A]/50"
-                      aria-hidden="true"
-                    />
-                    {/* Orbit bulan kecil */}
-                    <span
-                      className="absolute -inset-2"
-                      aria-hidden="true"
-                    >
+                  {/* Planet + orbit */}
+                  <div
+                    className="relative"
+                    style={{ width: PLANET_SIZE, height: PLANET_SIZE }}
+                  >
+                    {/* Garis orbit — disembunyikan untuk Saturnus agar tidak bertabrakan dengan cincinnya */}
+                    {variant !== "saturn" && (
+                      <div
+                        className="absolute -inset-3 rounded-full border-2 border-dashed border-[#FEF08A]/50"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {/* Bulan kecil di orbit */}
+                    <span className="absolute -inset-3" aria-hidden="true">
                       <span
-                        className={`absolute -top-1 ${i % 2 ? "left-0" : "right-0"} block h-2.5 w-2.5 rounded-full border-2 border-[#134E4A] bg-[#FBBF24] shadow-[1.5px_1.5px_0px_#134E4A]`}
+                        className={`absolute -top-1 ${i % 2 ? "left-0" : "right-0"} block h-3 w-3 rounded-full border-2 border-[#134E4A] bg-[#FBBF24] shadow-[1.5px_1.5px_0px_#134E4A]`}
                       />
                     </span>
-                    {/* Bola planet */}
+
+                    {/* Planet — drop-shadow blocky + glow saat playing */}
                     <div
-                      className={`absolute inset-0 flex items-center justify-center rounded-full border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] ${
-                        isSurahPlaying ? "bg-white" : ""
-                      }`}
-                      style={
-                        isSurahPlaying ? undefined : {
-                          backgroundColor: color.fill,
-                        }
-                      }
+                      className="absolute inset-0"
+                      style={{
+                        filter: isSurahPlaying
+                          ? "drop-shadow(4px 4px 0 #134E4A) drop-shadow(0 0 16px rgba(254,240,138,0.9))"
+                          : "drop-shadow(4px 4px 0 #134E4A)",
+                      }}
                     >
-                      {/* Kawah planet (pola solid sederhana) */}
-                      <span
-                        className="absolute left-2 top-4 h-3 w-3 rounded-full opacity-40"
-                        style={{ backgroundColor: color.glow }}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className="absolute bottom-3 right-2 h-4 w-4 rounded-full opacity-40"
-                        style={{ backgroundColor: color.glow }}
-                        aria-hidden="true"
-                      />
-                      <span className="relative z-10 font-display text-xl font-black text-white [text-shadow:1.5px_1.5px_0_#134E4A]">
+                      <PlanetVisual variant={variant} size={PLANET_SIZE} />
+                    </div>
+
+                    {/* Nomor surah di atas planet */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="font-display text-3xl font-black text-white [text-shadow:2px_2px_0_#134E4A]">
                         {surah.number}
                       </span>
                     </div>
                   </div>
 
                   {/* Nama planet */}
-                  <span className="mt-3 inline-block max-w-full truncate rounded-full border-2 border-[#134E4A] bg-[#FEF08A] px-3 py-1 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                  <span className="mt-3 inline-block max-w-full truncate rounded-full border-2 border-[#134E4A] bg-[#FEF08A] px-3 py-1 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                     {surah.name}
                   </span>
-                  <span className="mt-1 text-[9px] font-black uppercase tracking-wider text-[#FEF08A]">
+                  <span className="mt-1 text-[10px] font-black uppercase tracking-wider text-[#FEF08A]">
                     {surah.ayah} ayat
                   </span>
 
-                  {/* Tombol audio (transmisi) */}
+                  {/* Tombol audio */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -289,13 +650,17 @@ export default function JuzAmmaStarsPage() {
                         ? `Jeda ${surah.name}`
                         : `Putar ${surah.name}`
                     }
-                    className={`mt-2 flex items-center justify-center gap-1.5 rounded-lg border-2 border-[#134E4A] px-2.5 py-1 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-y-[1px] active:shadow-none ${
+                    className={`mt-2 flex items-center justify-center gap-1.5 rounded-lg border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-y-[1px] active:shadow-none ${
                       isSurahPlaying
                         ? "bg-[#FF6B6B] text-white"
                         : "bg-white text-[#134E4A]"
                     }`}
                   >
-                    {isSurahPlaying ? <Pause size={12} /> : <Volume2 size={12} />}
+                    {isSurahPlaying ? (
+                      <Pause size={14} />
+                    ) : (
+                      <Volume2 size={14} />
+                    )}
                     {isSurahPlaying ? "Jeda" : "Putar"}
                   </button>
                 </motion.div>

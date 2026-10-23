@@ -13,14 +13,12 @@ import {
   AdminUsersPage,
 } from "./lazyPages";
 
+import { normalizeRole } from "@/lib/roles";
+
 function SuperAdminGuard({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const roleClean = (user?.role || "").toLowerCase().replace(/[^a-z]/g, "");
-  const isSuperAdmin =
-    roleClean === "superadmin" ||
-    roleClean === "super_admin";
 
-  if (!isSuperAdmin) {
+  if (normalizeRole(user?.role) !== "superadmin") {
     return <Navigate to="/admin" replace />;
   }
   return <>{children}</>;

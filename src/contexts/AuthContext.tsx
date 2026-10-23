@@ -7,6 +7,11 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import { authApi } from "@/services/authApi";
+import { getToken, clearToken } from "@/services/api";
+import { isUstadzRole, isUstadzUser } from "@/lib/roles";
+import { resolveMascotGender } from "@/utils/mascotHelper";
+import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
+import { userApi } from "@/services/userApi";
 
 // Tipe user yang digunakan di aplikasi
 export type CeriaUser = {
@@ -26,6 +31,7 @@ export type CeriaUser = {
 interface AuthContextValue {
   user: CeriaUser | null;
   loading: boolean;
+  isAuthLoading: boolean; // Flag loading autentikasi awal untuk mencegah flicker ke guest
   loginWithGoogle: (credential?: string) => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
@@ -49,52 +55,131 @@ function createCeriaUser(sbUser: any, ustadzFlag: boolean = false): CeriaUser {
     role: role,
     group_id: sbUser.user_metadata?.group_id || null,
     is_vip: sbUser.user_metadata?.is_vip || false,
-    is_ustadz: ustadzFlag || role === 'ustadz' || role === 'ustadzah',
+    is_ustadz: ustadzFlag || isUstadzRole(role),
     photo_url: sbUser.user_metadata?.photo_url || null,
-    gender: sbUser.user_metadata?.gender || null,
+    gender: sbUser.user_metadata?.mascot_gender || sbUser.user_metadata?.gender || null,
   };
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CeriaUser | null>(null);
+  const [user, setUser] = useState<CeriaUser | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("tartila_cached_user");
+        if (cached) return JSON.parse(cached);
+      } catch {
+        // noop
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
-  const [initComplete, setInitComplete] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   // Initialize: cek session Supabase saat komponen mount
   useEffect(() => {
-    // Cek session yang ada
-    supabase.auth.getSession().then(({ data: { session} }) => {
-      if (session && session.user) {
-        // Determine if this user is an ustadz/ustadzah
-        const isUstadz = 
-          session.user.user_metadata?.role === 'ustadz' ||
-          session.user.user_metadata?.role === 'ustadzah' ||
-          session.user.user_metadata?.is_ustadz === true;
-        setUser(createCeriaUser(session.user, isUstadz));
-      }
-      setInitComplete(true);
-    });
+    let mounted = true;
 
-    // Listen untuk perubahan session (login/logout)
-    const { data: { subscription} } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    async function initAuth() {
+      try {
+        // Sinkronisasi data profil & maskot dari Backend Go (Single Source of Truth)
+        try {
+          const profileRes = await userApi.getUserProfile();
+          if (profileRes) {
+            const rawMascot = profileRes.mascot_gender || profileRes.user?.mascot_gender || profileRes.user?.gender;
+            if (rawMascot) {
+              const mascotGender = resolveMascotGender(rawMascot);
+              void useEconomyStore.getState().setTilaGender(mascotGender);
+            }
+          }
+        } catch {
+          // offline atau belum login
+        }
+        const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
-          // Set awal - kita akan cek lagi di setUstadzRole
           const isUstadz = 
             session.user.user_metadata?.role === 'ustadz' ||
             session.user.user_metadata?.role === 'ustadzah' ||
             session.user.user_metadata?.is_ustadz === true;
-          setUser(createCeriaUser(session.user, isUstadz));
+          const ceriaUser = createCeriaUser(session.user, isUstadz);
+          if (mounted) {
+            setUser(ceriaUser);
+            localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+            if (ceriaUser.gender) {
+              const mascotGender = resolveMascotGender(ceriaUser.gender);
+              void useEconomyStore.getState().setTilaGender(mascotGender);
+            }
+          }
         } else {
-          setUser(null);
+          // Fallback bila pengguna login via REST token legacy
+          const token = getToken();
+          const cached = localStorage.getItem("tartila_cached_user");
+          if (token && cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (mounted) {
+                setUser(parsed);
+                if (parsed.gender) {
+                  const mascotGender = resolveMascotGender(parsed.gender);
+                  void useEconomyStore.getState().setTilaGender(mascotGender);
+                }
+              }
+            } catch {
+              // noop
+            }
+          } else if (!token && mounted) {
+            setUser(null);
+            localStorage.removeItem("tartila_cached_user");
+          }
+        }
+      } catch (err) {
+        console.error("[AuthContext] Session init error:", err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          setIsAuthLoading(false);
+        }
+      }
+    }
+
+    void initAuth();
+
+    // Listen untuk perubahan session (login/logout/token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session && session.user) {
+          const isUstadz = 
+            session.user.user_metadata?.role === 'ustadz' ||
+            session.user.user_metadata?.role === 'ustadzah' ||
+            session.user.user_metadata?.is_ustadz === true;
+          const ceriaUser = createCeriaUser(session.user, isUstadz);
+          if (mounted) {
+            setUser(ceriaUser);
+            localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+            if (ceriaUser.gender) {
+              const mascotGender = resolveMascotGender(ceriaUser.gender);
+              void useEconomyStore.getState().setTilaGender(mascotGender);
+            }
+            setLoading(false);
+            setIsAuthLoading(false);
+          }
+        } else if (event === "SIGNED_OUT") {
+          if (mounted) {
+            setUser(null);
+            localStorage.removeItem("tartila_cached_user");
+            clearToken();
+            setLoading(false);
+            setIsAuthLoading(false);
+          }
         }
       }
     );
 
     // Cleanup subscription on unmount
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -154,21 +239,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
-      if (data.user) {
-        // Buat entri di tabel users dengan role yang sesuai
-        await supabase.from('users').insert({
-          id: data.user.id,
-          email: data.user.email,
-          role_ustadz: isUstadz ? 1 : 0, // 1 = ustadz, 0 = bukan
-          hearts: 5, // Default
-          tickets: 3, // Default
-          level: 1,
-          xp: 0,
-          role: isUstadz ? 'ustadz' : 'member',
-          group_id: null,
-          is_vip: false,
-        });
-      }
     } catch (err) {
       console.error('Register error:', err);
       throw err;
@@ -179,10 +249,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await supabase.auth.signOut();
-      setUser(null);
     } catch (err) {
       console.error('Logout error:', err);
-      throw err;
+    } finally {
+      setUser(null);
+      localStorage.removeItem("tartila_cached_user");
+      clearToken();
     }
   };
 
@@ -203,9 +275,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             is_ustadz: isUstadz,
           },
         });
-
-        // Update juga di tabel users
-        await supabase.from('users').update({ role_ustadz: isUstadz ? 1 : 0 }).eq('id', user.id);
       }
     } catch (err) {
       console.error('Failed to set ustadz role:', err);
@@ -215,21 +284,43 @@ function AuthProvider({ children }: { children: ReactNode }) {
   // Fungsi refresh user data dari server
   const refreshUser = async () => {
     try {
-      const { data: { user} } = await supabase.auth.getUser();
+      // 1. Ambil data user & maskot dari Backend Go (Single Source of Truth)
+      const profileRes = await userApi.getUserProfile().catch(() => null);
+      if (profileRes) {
+        const u = profileRes.user || profileRes.profile;
+        const rawMascot = profileRes.mascot_gender || u?.mascot_gender || u?.gender;
+        if (rawMascot) {
+          const mascotGender = resolveMascotGender(rawMascot);
+          void useEconomyStore.getState().setTilaGender(mascotGender);
+        }
+        if (u) {
+          setUser((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              name: u.name || prev.name,
+              role: u.role || prev.role,
+              group_id: u.group_id ?? prev.group_id,
+              gender: rawMascot || prev.gender,
+            };
+          });
+        }
+      }
+
+      // 2. Refresh metadata dari session Supabase jika ada
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Cek role dari metadata atau database
-        const { data: profileData } = await supabase
-          .from('users')
-          .select('role_ustadz')
-          .eq('id', user.id)
-          .single();
-        
-        const isUstadz = 
+        const isUstadz =
           user.user_metadata?.role === 'ustadz' ||
-          user.user_metadata?.role === 'ustadzah' ||
-          (profileData?.role_ustadz && profileData.role_ustadz === 1);
-        
-        setUser(createCeriaUser(user, isUstadz));
+          user.user_metadata?.role === 'ustadzah';
+        const ceriaUser = createCeriaUser(user, isUstadz);
+        setUser(ceriaUser);
+        localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+
+        if (ceriaUser.gender) {
+          const mascotGender = resolveMascotGender(ceriaUser.gender);
+          void useEconomyStore.getState().setTilaGender(mascotGender);
+        }
       }
     } catch (err) {
       console.error('Refresh user error:', err);
@@ -248,7 +339,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const legacyUser = await authApi.login(identifier, password);
-      setUser({
+      const ceriaUser: CeriaUser = {
         id: legacyUser.user_id || legacyUser.id || identifier,
         email: null,
         username: legacyUser.username || identifier,
@@ -256,13 +347,16 @@ function AuthProvider({ children }: { children: ReactNode }) {
         role: legacyUser.role || 'member',
         group_id: legacyUser.group_id || null,
         is_vip: false,
-        is_ustadz:
-          legacyUser.role === 'ustadz' ||
-          legacyUser.role === 'ustadzah' ||
-          legacyUser.role === 'tartila_admin',
+        is_ustadz: isUstadzUser(legacyUser),
         photo_url: legacyUser.photo_url || null,
         gender: legacyUser.gender || null,
-      });
+      };
+      setUser(ceriaUser);
+      localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+      if (ceriaUser.gender) {
+        const mascotGender = resolveMascotGender(ceriaUser.gender);
+        void useEconomyStore.getState().setTilaGender(mascotGender);
+      }
       await refreshUser();
     } catch (err) {
       console.error('Username login error:', err);
@@ -290,6 +384,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextValue = {
     user,
     loading,
+    isAuthLoading,
     loginWithGoogle,
     loginWithEmail,
     register,
@@ -301,6 +396,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
     isUstadz: user?.is_ustadz ?? false,
     setUstadzRole, // Ekspor fungsi baru
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F0FDF4] p-4 font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] flex items-center justify-center animate-bounce shadow-[3px_3px_0px_#134E4A]">
+            <span className="font-display font-black text-2xl text-[#134E4A]">T</span>
+          </div>
+          <p className="font-display font-black text-xs text-[#134E4A] tracking-widest uppercase">
+            Menyiapkan Tartila...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={value}>

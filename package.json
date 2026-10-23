@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "node scripts/run-tests.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "@supabase/supabase-js": "^2.118.0",
     "colyseus.js": "^0.16.22",
     "framer-motion": "^14.3.0",
+    "jspdf": "^4.2.1",
     "lottie-react": "^3.1.2",
     "phaser": "^3.90.0",
     "react": "^19.2.8",
@@ -39,6 +41,7 @@
     "autoprefixer": "^10.6.1",
     "oxlint": "^1.81.0",
     "postcss": "^8.5.30",
+    "supabase": "^2.121.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",

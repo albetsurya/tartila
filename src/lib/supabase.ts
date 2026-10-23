@@ -6,43 +6,13 @@ const supabaseUrl =
 const supabaseAnonKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY || "your-anon-key";
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-
-// Helper function untuk ambil user data lengkap
-export async function getUserProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-// Helper function untuk update user profile
-export async function updateUserProfile(userId: string, updates: any) {
-  const { data, error } = await supabase
-    .from('users')
-    .update(updates)
-    .eq('id', userId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-// Helper function untuk cek apakah user adalah VIP/Superadmin
-export async function isUserVIP(userId: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('is_vip, group_id, role')
-    .eq('id', userId)
-    .single();
-
-  if (error) throw error;
-  return data;
-}
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  },
+});
 
 export default supabase;

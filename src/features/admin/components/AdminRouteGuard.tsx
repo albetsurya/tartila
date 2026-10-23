@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-
-const ADMIN_ROLES = new Set(["admin", "superadmin"]);
+import { isAdminRole } from "@/lib/roles";
 
 export function AdminRouteGuard() {
   const { user, loading } = useAuth();
@@ -24,7 +23,7 @@ export function AdminRouteGuard() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!user.role || !ADMIN_ROLES.has(user.role)) {
+  if (!isAdminRole(user.role)) {
     return <Navigate to="/" replace />;
   }
 

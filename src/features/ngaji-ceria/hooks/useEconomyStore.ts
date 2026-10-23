@@ -1,7 +1,16 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase';
+import { callREST } from '@/services/api';
+import { userApi } from '@/services/userApi';
 import { spendCoins, grantCoins } from '@/features/ngaji-ceria/pages/games/_shared/progression';
-import { resolveMascotGender, isAccessoryAllowedForGender } from '@/utils/mascotHelper';
+import {
+  resolveMascotGender,
+  isAccessoryAllowedForGender,
+  getDefaultAccessoryForGender,
+} from '@/utils/mascotHelper';
+import { MASCOT_STORAGE_KEY } from '@/constants/mascot';
+import { normalizeRole, isUstadzRole } from '@/lib/roles';
 
 export const HEART_MAX = 5;
 export const TICKET_MAX = 3;
@@ -50,14 +59,10 @@ export function isUnlimitedUser(
 ): boolean {
   if (isVipStore) return true;
 
-  const roleClean = (user?.role || '').toUpperCase();
+  const normalizedRole = normalizeRole(user?.role);
 
   // Superadmin memiliki kuota tanpa batas
-  if (
-    roleClean === 'SUPER_ADMIN' ||
-    roleClean === 'SUPERADMIN' ||
-    roleClean === 'ADMIN'
-  ) {
+  if (normalizedRole === "superadmin" || normalizedRole === "admin") {
     return true;
   }
 
@@ -66,8 +71,8 @@ export function isUnlimitedUser(
     return true;
   }
 
-  // Ustadz/Ustadzah memiliki fitus khusus (room, soal, dll)
-  if (user?.is_ustadz === true || roleClean === 'USTADZ' || roleClean === 'USTADZAH') {
+  // Ustadz/Ustadzah memiliki fitur khusus (room, soal, dll)
+  if (isUstadzRole(user?.role) || user?.is_ustadz === true) {
     // Ustadz tetap memiliki batasan berdasarkan subscription
     if (subscriptionType === 'premium') {
       return true; // Premium: unlimited everything
@@ -132,7 +137,7 @@ interface EconomyState {
   streakMultiplier: number;
   dailyRewardsClaimed: number[];
   lastDailyClaimDate: string | null;
-  setTilaGender: (gender: TilaGender) => void;
+  setTilaGender: (gender: TilaGender) => Promise<void> | void;
   setBibiGender: (gender: BibiGender) => void;
   buyAccessory: (id: string, price: number) => Promise<boolean>;
   equipAccessory: (id: string) => void;
@@ -141,6 +146,7 @@ interface EconomyState {
   purchasedToday: (kind: EnergyKind) => number;
   activateVip: () => void;
   applyStreakMultiplier: (streakDays: number) => number;
+  addCoins: (amount: number, reason?: string) => boolean;
   claimDailyReward: (
     day: number,
     baseCoins: number,
@@ -179,42 +185,85 @@ interface EconomyState {
   };
 }
 
-const todayKey = () => new Date().toDateString();
+export const DAILY_CLAIM_STORAGE_KEY = 'tartila_last_daily_claim';
+export const DAILY_CLAIMED_DAYS_STORAGE_KEY = 'tartila_daily_rewards_claimed';
 
-export const useEconomyStore = create<EconomyState>((set, get) => ({
-  // Initial state
-  userId: null,
-  username: null,
-  role: null,
-  groupId: null,
-  isVip: false,
-  isUstadz: false,
-  subscriptionType: 'free', // Default free
-  hearts: HEART_MAX,
-  tickets: TICKET_MAX,
-  level: 1,
-  xp: 0,
-  lastSync: Date.now(),
-  activeBoosters: {},
-  ustadzRooms: [],
-  currentRoom: null,
-  roomParticipants: [],
-  roomLimit: 1, // Default free: 1 room
-  participantLimit: 5, // Default free: 5 peserta
-  roomsCreated: 0,
+export const getTodayDateKey = (): string => {
+  return new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+};
 
-  // Legacy compatible: mascots, daily shop & rewards
-  lastHeartRegen: Date.now(),
-  lastTicketRegen: Date.now(),
-  dailyPurchases: { hearts: 0, tickets: 0, date: todayKey() },
-  tilaGender: "girl",
-  bibiGender: "girl",
-  equippedAccessory: 'hairbow',
-  ownedAccessories: ['none', 'peci', 'hairbow'],
-  ownedRoomThemes: ['default'],
-  equippedRoomTheme: 'default',
-  ownedGameThemes: ['default'],
-  equippedGameTheme: 'default',
+const getStoredDailyClaimDate = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const getStoredDailyClaimedDays = (): number[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(DAILY_CLAIMED_DAYS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const todayKey = getTodayDateKey;
+
+const getInitialMascotGender = (): TilaGender => {
+  if (typeof window === "undefined") return "boy";
+  try {
+    const saved = window.localStorage.getItem(MASCOT_STORAGE_KEY);
+    if (saved) return resolveMascotGender(saved);
+  } catch {
+    // ignore
+  }
+  return "boy";
+};
+
+const initialMascotGender = getInitialMascotGender();
+
+export const useEconomyStore = create<EconomyState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      userId: null,
+      username: null,
+      role: null,
+      groupId: null,
+      isVip: false,
+      isUstadz: false,
+      subscriptionType: 'free', // Default free
+      hearts: HEART_MAX,
+      tickets: TICKET_MAX,
+      level: 1,
+      xp: 0,
+      lastSync: Date.now(),
+      activeBoosters: {},
+      ustadzRooms: [],
+      currentRoom: null,
+      roomParticipants: [],
+      roomLimit: 1, // Default free: 1 room
+      participantLimit: 5, // Default free: 5 peserta
+      roomsCreated: 0,
+
+      // Legacy compatible: mascots, daily shop & rewards
+      lastHeartRegen: Date.now(),
+      lastTicketRegen: Date.now(),
+      dailyPurchases: { hearts: 0, tickets: 0, date: todayKey() },
+      tilaGender: initialMascotGender,
+      bibiGender: initialMascotGender,
+      equippedAccessory: initialMascotGender === 'girl' ? 'hairbow' : 'peci',
+      ownedAccessories: ['none', 'peci', 'hairbow'],
+      ownedRoomThemes: ['default'],
+      equippedRoomTheme: 'default',
+      ownedGameThemes: ['default'],
+      equippedGameTheme: 'default',
   showMascot:
     typeof window !== "undefined"
       ? window.localStorage.getItem("tila-companion-hidden") !== "1" &&
@@ -238,86 +287,100 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     }
   },
   streakMultiplier: 1,
-  dailyRewardsClaimed: [],
-  lastDailyClaimDate: null,
+  dailyRewardsClaimed: getStoredDailyClaimedDays(),
+  lastDailyClaimDate: getStoredDailyClaimDate(),
 
-  // Initialize: ambil data dari Supabase dan cek subscription
+  // Initialize: ambil data profil & maskot dari Backend Go (Single Source of Truth)
   initialize: async () => {
     try {
-      const { data: { user} } = await supabase.auth.getUser();
-      if (user) {
-        set({ userId: user.id, username: user.email?.split('@')[0] || null });
+      // 1. Ambil data profil & maskot dari Backend Go
+      let backendSuccess = false;
+      try {
+        const profileRes = await userApi.getUserProfile();
+        if (profileRes) {
+          backendSuccess = true;
+          const u = profileRes.user || profileRes.profile;
+          const rawMascot = profileRes.mascot_gender || u?.mascot_gender || u?.gender;
+          if (rawMascot) {
+            const resolvedDbGender = resolveMascotGender(rawMascot);
+            const currentAccessory = get().equippedAccessory;
+            const nextAccessory = isAccessoryAllowedForGender(currentAccessory, resolvedDbGender)
+              ? currentAccessory
+              : getDefaultAccessoryForGender(resolvedDbGender);
 
-        // Ambil data user dari Supabase termasuk subscription
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('hearts, tickets, level, xp, group_id, is_vip, role, role_ustadz, subscription_type, rooms_created, max_rooms, max_participants')
-          .eq('id', user.id)
-          .single();
+            set({
+              tilaGender: resolvedDbGender,
+              bibiGender: resolvedDbGender,
+              equippedAccessory: nextAccessory,
+            });
 
-        if (userData && !error) {
-          const role = userData.role || 'member';
-          const subscription = userData.subscription_type || 'free';
-          
-          // Derived values dari database
-          const roomsCreated = userData.rooms_created || 0;
-          const maxRooms = userData.max_rooms ?? (subscription === 'premium' ? -1 : (subscription === 'vip' ? 5 : 1));
-          const maxParticipants = userData.max_participants ?? (subscription === 'premium' ? 50 : (subscription === 'vip' ? 10 : 5));
-
-          set({
-            role: role,
-            groupId: userData.group_id || null,
-            isVip: userData.is_vip || false,
-            isUstadz: 
-              userData.role_ustadz === 1 ||
-              role === 'ustadz' ||
-              role === 'ustadzah' ||
-              userData.is_vip,
-            subscriptionType: subscription,
-            hearts: userData.hearts ?? HEART_MAX,
-            tickets: userData.tickets ?? TICKET_MAX,
-            level: userData.level ?? 1,
-            xp: userData.xp ?? 0,
-            lastSync: Date.now(),
-            roomLimit: maxRooms,
-            participantLimit: maxParticipants,
-          });
-
-          // Jika ustadz, ambil daftar room yang dibuat
-          if (get().isUstadz) {
-            await get().fetchUstadzRooms();
+            if (typeof window !== "undefined") {
+              try {
+                window.localStorage.setItem(MASCOT_STORAGE_KEY, resolvedDbGender);
+              } catch {
+                // ignore
+              }
+            }
           }
-        } else {
-          // User baru - default free
-          await supabase.from('users').insert({
-            id: user.id,
-            hearts: HEART_MAX,
-            tickets: TICKET_MAX,
-            level: 1,
-            xp: 0,
-            group_id: null,
-            is_vip: false,
-            role: 'member',
-            role_ustadz: 0,
-            subscription_type: 'free',
-            rooms_created: 0,
-            max_rooms: 1,
-            max_participants: 5,
-          });
-          set({
-            role: 'member',
-            groupId: null,
-            isVip: false,
-            isUstadz: false,
-            subscriptionType: 'free',
-            roomLimit: 1,
-            participantLimit: 5,
-            hearts: HEART_MAX,
-            tickets: TICKET_MAX,
-            level: 1,
-            xp: 0,
-            lastSync: Date.now(),
-          });
+          if (u) {
+            set({
+              userId: u.user_id || u.id || get().userId,
+              username: u.username || get().username,
+              role: u.role || get().role || 'member',
+              groupId: u.group_id || get().groupId,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[useEconomyStore] Backend profile fetch offline/fallback:', err);
+      }
+
+      // 2. Fallback jika offline atau belum login via backend: gunakan Supabase auth metadata atau cache
+      if (!backendSuccess) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            set({ userId: user.id, username: user.email?.split('@')[0] || get().username });
+            const rawMetaGender = user.user_metadata?.mascot_gender || user.user_metadata?.gender;
+            if (rawMetaGender) {
+              const resolvedMeta = resolveMascotGender(rawMetaGender);
+              const currentAccessory = get().equippedAccessory;
+              const nextAccessory = isAccessoryAllowedForGender(currentAccessory, resolvedMeta)
+                ? currentAccessory
+                : getDefaultAccessoryForGender(resolvedMeta);
+              set({
+                tilaGender: resolvedMeta,
+                bibiGender: resolvedMeta,
+                equippedAccessory: nextAccessory,
+              });
+            }
+          }
+        } catch {
+          // ignore
+        }
+
+        if (typeof window !== "undefined") {
+          try {
+            const cachedUserStr = window.localStorage.getItem("tartila_cached_user");
+            if (cachedUserStr) {
+              const cachedUser = JSON.parse(cachedUserStr);
+              if (cachedUser?.gender) {
+                const resolvedGender = resolveMascotGender(cachedUser.gender);
+                const currentAccessory = get().equippedAccessory;
+                const nextAccessory = isAccessoryAllowedForGender(currentAccessory, resolvedGender)
+                  ? currentAccessory
+                  : getDefaultAccessoryForGender(resolvedGender);
+
+                set({
+                  tilaGender: resolvedGender,
+                  bibiGender: resolvedGender,
+                  equippedAccessory: nextAccessory,
+                });
+              }
+            }
+          } catch {
+            // ignore
+          }
         }
       }
     } catch (error) {
@@ -708,18 +771,19 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
 
   activateVip: () => set({ isVip: true }),
 
-  setTilaGender: (gender: TilaGender) => {
+  setTilaGender: async (gender: TilaGender) => {
+    const resolved = resolveMascotGender(gender);
     const currentEquipped = get().equippedAccessory;
     let nextAccessory = currentEquipped;
     const owned = get().ownedAccessories;
 
-    if (gender === 'boy') {
+    if (resolved === 'boy') {
       if (currentEquipped === 'hairbow' || currentEquipped === 'flowercrown') {
         nextAccessory = owned.includes('peci') ? 'peci' : 'none';
       } else if (currentEquipped === 'none' && owned.includes('peci')) {
         nextAccessory = 'peci';
       }
-    } else if (gender === 'girl') {
+    } else if (resolved === 'girl') {
       if (currentEquipped === 'peci') {
         nextAccessory = owned.includes('hairbow') ? 'hairbow' : 'none';
       } else if (currentEquipped === 'none' && owned.includes('hairbow')) {
@@ -728,14 +792,45 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     }
 
     set({
-      tilaGender: gender,
-      bibiGender: gender,
+      tilaGender: resolved,
+      bibiGender: resolved,
       equippedAccessory: nextAccessory,
     });
+
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(MASCOT_STORAGE_KEY, resolved);
+      } catch {
+        // ignore
+      }
+    }
+
+    // 1. Sync ke Backend Go (Single Source of Truth)
+    try {
+      await userApi.updateUserMascot(resolved);
+    } catch (err) {
+      console.warn('[useEconomyStore] Backend mascot update failed:', err);
+      throw err;
+    }
+
+    // 2. Sync metadata ke Supabase Auth jika session aktif
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.auth.updateUser({
+          data: {
+            mascot_gender: resolved,
+            gender: resolved === "girl" ? "P" : "L",
+          },
+        }).catch(() => null);
+      }
+    } catch {
+      // ignore
+    }
   },
 
   setBibiGender: (gender: BibiGender) => {
-    get().setTilaGender(gender);
+    void get().setTilaGender(gender);
   },
 
   buyAccessory: async (id: string, price: number) => {
@@ -824,14 +919,30 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     return mult;
   },
 
+  addCoins: (amount: number, reason?: string) => {
+    const state = get();
+    if (!state.userId) {
+      return false; // Ditolak jika pengguna adalah tamu (guest)
+    }
+    grantCoins(amount, reason || 'Tambah Koin');
+    return true;
+  },
+
   claimDailyReward: async (
     day: number,
     baseCoins: number,
     extra?: { hearts?: number; tickets?: number },
   ) => {
-    const today = todayKey();
     const state = get();
-    if (state.lastDailyClaimDate === today) {
+    if (!state.userId) {
+      return false; // Ditolak jika pengguna adalah tamu (guest)
+    }
+    const today = getTodayDateKey();
+    if (
+      state.lastDailyClaimDate === today ||
+      (typeof window !== 'undefined' &&
+        window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY) === today)
+    ) {
       return false;
     }
 
@@ -839,11 +950,17 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
     const totalCoins = Math.round(baseCoins * mult);
     grantCoins(totalCoins, `Hadiah Login Hari ke-${day}`);
 
+    let nextClaimedDays = state.dailyRewardsClaimed.includes(day)
+      ? state.dailyRewardsClaimed
+      : [...state.dailyRewardsClaimed, day];
+
+    if (nextClaimedDays.length >= 7) {
+      nextClaimedDays = [day];
+    }
+
     const updates: Partial<EconomyState> = {
       lastDailyClaimDate: today,
-      dailyRewardsClaimed: state.dailyRewardsClaimed.includes(day)
-        ? state.dailyRewardsClaimed
-        : [...state.dailyRewardsClaimed, day],
+      dailyRewardsClaimed: nextClaimedDays,
     };
 
     if (extra?.hearts) {
@@ -853,8 +970,16 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
       updates.tickets = Math.min(TICKET_MAX, state.tickets + extra.tickets);
     }
 
-    if (updates.dailyRewardsClaimed && updates.dailyRewardsClaimed.length >= 7) {
-      updates.dailyRewardsClaimed = [day];
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(DAILY_CLAIM_STORAGE_KEY, today);
+        window.localStorage.setItem(
+          DAILY_CLAIMED_DAYS_STORAGE_KEY,
+          JSON.stringify(nextClaimedDays),
+        );
+      } catch {
+        // ignore
+      }
     }
 
     set(updates as EconomyState);
@@ -862,7 +987,23 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
   },
 
   isRewardClaimedToday: () => {
-    return get().lastDailyClaimDate === todayKey();
+    const today = getTodayDateKey();
+    const memDate = get().lastDailyClaimDate;
+    if (memDate === today) return true;
+    if (typeof window !== 'undefined') {
+      try {
+        const storedDate = window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
+        if (storedDate === today) {
+          if (memDate !== today) {
+            set({ lastDailyClaimDate: today });
+          }
+          return true;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return false;
   },
 
   fetchUstadzRooms: async () => {
@@ -945,7 +1086,25 @@ export const useEconomyStore = create<EconomyState>((set, get) => ({
       // ignore
     }
   },
-}));
+    }),
+    {
+      name: "tartila_economy_store",
+      partialize: (state) => ({
+        tilaGender: state.tilaGender,
+        bibiGender: state.bibiGender,
+        equippedAccessory: state.equippedAccessory,
+        ownedAccessories: state.ownedAccessories,
+        ownedRoomThemes: state.ownedRoomThemes,
+        equippedRoomTheme: state.equippedRoomTheme,
+        ownedGameThemes: state.ownedGameThemes,
+        equippedGameTheme: state.equippedGameTheme,
+        showMascot: state.showMascot,
+        dailyRewardsClaimed: state.dailyRewardsClaimed,
+        lastDailyClaimDate: state.lastDailyClaimDate,
+      }),
+    }
+  )
+);
 
 // Helper functions for password hashing (client-side simplified)
 const hashPassword = async (password: string): Promise<string> => {

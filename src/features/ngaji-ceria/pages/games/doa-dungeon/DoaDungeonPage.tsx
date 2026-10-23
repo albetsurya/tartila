@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { DoaDungeonCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot, type TilaMood, type TilaAnimation } from "@/components/ui/TilaMascot";
+import { getMascotName } from "@/utils/mascotHelper";
+import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { GameShell } from "../_shared/GameShell";
@@ -28,6 +30,8 @@ function Game() {
   const navigate = useNavigate();
   const battle = useBattleSetup("cave");
   const room = game.room;
+  const mascotGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
+  const mascotName = getMascotName(mascotGender);
 
   const [tilaMood, setTilaMood] = useState<TilaMood>("idle");
   const [tilaAnimation, setTilaAnimation] = useState<TilaAnimation>("float");
@@ -90,7 +94,7 @@ function Game() {
               <div className="flex items-center justify-between gap-4 mb-3">
                 <div className="flex-1">
                   <div className="flex justify-between text-xs font-black text-teal-200 mb-1">
-                    <span>Tila (Hero)</span>
+                    <span>{mascotName} (Hero)</span>
                     <span>{game.playerHp}/100 HP</span>
                   </div>
                   <div className="h-3 w-full bg-black/40 rounded-full border border-teal-400/30 overflow-hidden">

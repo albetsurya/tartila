@@ -10,6 +10,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GameLockGuard } from "./features/ngaji-ceria/components/GameLockGuard";
+import { MemberGameRouteGuard } from "./features/ngaji-ceria/components/MemberGameRouteGuard";
 import { adminRouteElements } from "./features/admin";
 import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SessionExpiryHandler } from "./features/auth/components/SessionExpiryHandler";
@@ -24,6 +25,36 @@ import NgajiCeriaProfilePage from "./features/ngaji-ceria/pages/NgajiCeriaProfil
 
 const NgajiCeriaRegisterPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaRegisterPage"),
+);
+const MemberClassroomsPage = lazy(
+  () => import("./features/ngaji-ceria/pages/MemberClassroomsPage").then((m) => ({ default: m.MemberClassroomsPage })),
+);
+const MemberQuizPlayPage = lazy(
+  () => import("./features/ngaji-ceria/pages/MemberQuizPlayPage").then((m) => ({ default: m.MemberQuizPlayPage })),
+);
+const UstadzDashboardPage = lazy(
+  () => import("./features/ustadz/pages/UstadzDashboardPage").then((m) => ({ default: m.UstadzDashboardPage })),
+);
+const UstadzRoomsPage = lazy(
+  () => import("./features/ustadz/pages/UstadzRoomsPage").then((m) => ({ default: m.UstadzRoomsPage })),
+);
+const UstadzCreateRoomPage = lazy(
+  () => import("./features/ustadz/pages/UstadzCreateRoomPage").then((m) => ({ default: m.UstadzCreateRoomPage })),
+);
+const UstadzRoomDetailPage = lazy(
+  () => import("./features/ustadz/pages/UstadzRoomDetailPage").then((m) => ({ default: m.UstadzRoomDetailPage })),
+);
+const UstadzKurikulumPage = lazy(
+  () => import("./features/ustadz/pages/UstadzKurikulumPage").then((m) => ({ default: m.UstadzKurikulumPage })),
+);
+const UstadzQuizListPage = lazy(
+  () => import("./features/ustadz/pages/UstadzQuizListPage").then((m) => ({ default: m.UstadzQuizListPage })),
+);
+const UstadzQuizCreatePage = lazy(
+  () => import("./features/ustadz/pages/UstadzQuizCreatePage").then((m) => ({ default: m.UstadzQuizCreatePage })),
+);
+const UstadzRouteGuard = lazy(
+  () => import("./features/ustadz/components/UstadzRouteGuard").then((m) => ({ default: m.UstadzRouteGuard })),
 );
 const WarungSantriPage = lazy(
   () => import("./features/ngaji-ceria/pages/WarungSantriPage"),
@@ -362,6 +393,7 @@ const HUB_ROUTES: Array<{ hub: string; title: string }> = [
   { hub: "quiz-ngaji", title: "Quiz Ngaji" },
   { hub: "puzzle-huruf", title: "Puzzle Huruf" },
   { hub: "tajwid-lab", title: "Tajwid Lab" },
+  { hub: "petualangan-santri", title: "Petualangan Santri" },
 ];
 
 function RootRouteFallback() {
@@ -469,7 +501,11 @@ export default function App() {
           />
           <Route
             path="/member/ngaji-ceria/games"
-            element={<NgajiCeriaGamesPage />}
+            element={
+              <MemberGameRouteGuard>
+                <NgajiCeriaGamesPage />
+              </MemberGameRouteGuard>
+            }
           />
           <Route
             path="/member/ngaji-ceria/leaderboard"
@@ -596,7 +632,9 @@ export default function App() {
             <Route
               key={route.path}
               path={`/member/ngaji-ceria/games/${route.path}`}
-              element={route.element}
+              element={
+                <MemberGameRouteGuard>{route.element}</MemberGameRouteGuard>
+              }
             />
           ))}
 
@@ -605,12 +643,37 @@ export default function App() {
               key={hub}
               path={`/member/ngaji-ceria/games/${hub}`}
               element={
-                <GameLockGuard gameId={hub} title={title}>
-                  <GameModeHubPage hubOverride={hub} />
-                </GameLockGuard>
+                <MemberGameRouteGuard>
+                  <GameLockGuard gameId={hub} title={title}>
+                    <GameModeHubPage hubOverride={hub} />
+                  </GameLockGuard>
+                </MemberGameRouteGuard>
               }
             />
           ))}
+
+          {/* PANEL USTADZ (KELAS & SANTRI) */}
+          <Route
+            path="/member/ngaji-ceria/kelas"
+            element={<MemberClassroomsPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/kelas/kuis/:quizId"
+            element={
+              <MemberGameRouteGuard>
+                <MemberQuizPlayPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route path="/ustadz" element={<UstadzRouteGuard />}>
+            <Route index element={<UstadzDashboardPage />} />
+            <Route path="kelas" element={<UstadzRoomsPage />} />
+            <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
+            <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
+            <Route path="kurikulum" element={<UstadzKurikulumPage />} />
+            <Route path="kuis" element={<UstadzQuizListPage />} />
+            <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
+          </Route>
 
           {adminRouteElements}
 

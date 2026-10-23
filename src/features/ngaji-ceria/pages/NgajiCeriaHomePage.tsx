@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -8,7 +8,8 @@ import { CeriaGameLoading } from "../components/CeriaGameLoading";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
-import { useEconomyStore } from "../hooks/useEconomyStore";
+import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
+import { MASCOT_NAME } from "@/constants/mascot";
 import {
   GiftSvg,
   StarSvg,
@@ -101,15 +102,27 @@ export default function NgajiCeriaHomePage() {
 
   const { currentStreak } = useNgajiCeriaStreak();
   const isRewardClaimedToday = useEconomyStore((s) => s.isRewardClaimedToday);
+  const lastDailyClaimDate = useEconomyStore((s) => s.lastDailyClaimDate);
   const claimDailyReward = useEconomyStore((s) => s.claimDailyReward);
   const dailyRewardsClaimed = useEconomyStore((s) => s.dailyRewardsClaimed);
   const applyStreakMultiplier = useEconomyStore((s) => s.applyStreakMultiplier);
   const streakMultiplier = useEconomyStore((s) => s.streakMultiplier);
 
-  const [showDailyModal, setShowDailyModal] = useState(
-    () => !isRewardClaimedToday(),
-  );
-  const todayClaimed = isRewardClaimedToday();
+  const todayDateKey = getTodayDateKey();
+  const todayClaimed =
+    lastDailyClaimDate === todayDateKey || isRewardClaimedToday();
+  const [showDailyModal, setShowDailyModal] = useState(false);
+  const autoModalTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    // Hanya tampilkan modal hadiah secara otomatis jika user sudah login dan belum klaim
+    // Gunakan ref agar tidak terpicu ganda oleh React Strict Mode atau re-render
+    if (autoModalTriggeredRef.current) return;
+    if (user && !todayClaimed) {
+      autoModalTriggeredRef.current = true;
+      setShowDailyModal(true);
+    }
+  }, [user, todayClaimed]);
 
   useEffect(() => {
     applyStreakMultiplier(currentStreak);
@@ -125,6 +138,11 @@ export default function NgajiCeriaHomePage() {
   const currentReward = DAILY_REWARDS[activeDay - 1] || DAILY_REWARDS[0];
 
   const handleClaim = async () => {
+    if (!user) {
+      setShowDailyModal(false);
+      navigate("/login");
+      return;
+    }
     if (todayClaimed) return;
     const ok = await claimDailyReward(activeDay, currentReward.coins, {
       hearts: currentReward.hearts,
@@ -132,6 +150,9 @@ export default function NgajiCeriaHomePage() {
     });
     if (ok) {
       triggerBibiReaction("success");
+      setTimeout(() => {
+        setShowDailyModal(false);
+      }, 700);
     }
   };
 
@@ -178,17 +199,26 @@ export default function NgajiCeriaHomePage() {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowDailyModal(true)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 md:px-4 md:py-3 rounded-xl border-[3px] border-[#134E4A] text-xs md:text-sm font-black shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all shrink-0 ${
-                todayClaimed
-                  ? "bg-gray-100 text-gray-500"
-                  : "bg-[#FEF08A] text-[#134E4A]"
-              }`}
-            >
-              <GiftSvg size={16} />
-              {todayClaimed ? "Hadiah" : "Klaim!"}
-            </button>
+            {user ? (
+              <button
+                onClick={() => setShowDailyModal(true)}
+                className={`flex items-center gap-1.5 px-3 py-2.5 md:px-4 md:py-3 rounded-xl border-[3px] border-[#134E4A] text-xs md:text-sm font-black shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all shrink-0 ${
+                  todayClaimed
+                    ? "bg-gray-100 text-gray-500"
+                    : "bg-[#FEF08A] text-[#134E4A]"
+                }`}
+              >
+                <GiftSvg size={16} />
+                {todayClaimed ? "Hadiah" : "Klaim!"}
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-1.5 px-3 py-2.5 md:px-4 md:py-3 rounded-xl border-[3px] border-[#134E4A] bg-[#FEF08A] text-[#134E4A] text-xs md:text-sm font-black shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all shrink-0"
+              >
+                Masuk
+              </button>
+            )}
           </div>
 
           <div className="relative">
@@ -659,7 +689,7 @@ export default function NgajiCeriaHomePage() {
         </div>
 
         <AnimatePresence>
-          {showDailyModal && (
+          {showDailyModal && user && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -670,7 +700,10 @@ export default function NgajiCeriaHomePage() {
               >
                 <button
                   type="button"
-                  onClick={() => setShowDailyModal(false)}
+                  onClick={() => {
+                    autoModalTriggeredRef.current = true;
+                    setShowDailyModal(false);
+                  }}
                   className="absolute right-4 top-4 w-8 h-8 rounded-full border-2 border-[#134E4A] bg-white flex items-center justify-center text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-0.5 z-10"
                 >
                   <XSvg size={16} />

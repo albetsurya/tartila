@@ -854,16 +854,45 @@ export default function KamarTilaPage() {
   const isDirty =
     draftGender !== tilaGender || draftAccessory !== equippedAccessory;
 
-  const handleSaveSettings = () => {
-    setTilaGender(draftGender);
-    equipAccessory(draftAccessory);
-    triggerTilaReaction("success");
-    setPreviewMood("excited");
-    setPreviewAnimation("bounce");
-    const newName = getMascotName(draftGender);
-    triggerDialogue(
-      `Alhamdulillah, pengaturan tersimpan! Sekarang namaku ${newName}!`,
-    );
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (!isDirty) {
+      setDraftGender(tilaGender);
+      setDraftAccessory(equippedAccessory as TilaAccessoryType);
+    }
+  }, [tilaGender, equippedAccessory, isDirty]);
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    const previousGender = tilaGender;
+    const previousAccessory = equippedAccessory;
+    try {
+      await setTilaGender(draftGender);
+      equipAccessory(draftAccessory);
+      triggerTilaReaction("success");
+      setPreviewMood("excited");
+      setPreviewAnimation("bounce");
+      const newName = getMascotName(draftGender);
+      triggerDialogue(
+        `Alhamdulillah, pengaturan tersimpan! Sekarang namaku ${newName}!`,
+      );
+    } catch (err) {
+      console.error("Save mascot settings error:", err);
+      // Rollback optimistic update
+      setDraftGender(previousGender);
+      setDraftAccessory(previousAccessory as TilaAccessoryType);
+      try {
+        await setTilaGender(previousGender);
+      } catch {
+        // ignore
+      }
+      triggerTilaReaction("error");
+      setPreviewMood("sad");
+      triggerDialogue("Yah, gagal menyimpan ke server. Pilihan dikembalikan.");
+    } finally {
+      setSavingSettings(false);
+    }
   };
 
   const handleSelectExpression = (opt: ExpressionOption) => {
@@ -1116,7 +1145,7 @@ export default function KamarTilaPage() {
               }`}
             >
               <User size={12} />
-              <span>Tito (Laki-laki)</span>
+              <span>Tito (Putra)</span>
             </button>
 
             <button
@@ -1128,8 +1157,8 @@ export default function KamarTilaPage() {
                   : "bg-white text-[#134E4A] opacity-70"
               }`}
             >
-              <User size={12} />
-              <span>Tila (Perempuan)</span>
+              <Sparkles size={12} />
+              <span>Tila (Putri)</span>
             </button>
           </div>
         </div>
@@ -1239,9 +1268,9 @@ export default function KamarTilaPage() {
 
                   <span className="text-[9px] font-bold text-gray-500 mb-1.5">
                     {item.category === "boy"
-                      ? "Santri Putra"
+                      ? "Khusus Tito (Putra)"
                       : item.category === "girl"
-                        ? "Santri Putri"
+                        ? "Khusus Tila (Putri)"
                         : "Semua Karakter"}
                   </span>
 
@@ -1280,7 +1309,7 @@ export default function KamarTilaPage() {
             variant={isDirty ? "primary" : "secondary"}
             size="lg"
             fullWidth
-            disabled={!isDirty}
+            disabled={!isDirty || savingSettings}
             onClick={handleSaveSettings}
             className={
               isDirty
@@ -1290,7 +1319,11 @@ export default function KamarTilaPage() {
           >
             <Check size={18} />
             <span>
-              {isDirty ? "Simpan Pengaturan" : "Pengaturan Tersimpan"}
+              {savingSettings
+                ? "Menyimpan..."
+                : isDirty
+                ? "Simpan Pengaturan"
+                : "Pengaturan Tersimpan"}
             </span>
           </StickerButton>
         </div>

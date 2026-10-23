@@ -3129,3 +3129,109 @@ export const WizardHat = WizardHatSvg;
 export const Headphone = HeadphoneSvg;
 export const SleepMask = SleepMaskSvg;
 export const AlertCircle = AlertCircleSvg;
+
+// ── Tambahkan di bagian paling bawah CustomIcons.tsx ──
+
+export const RocketSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <path
+      d="M7 14L4 17L5 20L8.5 18.5M17 14L20 17L19 20L15.5 18.5"
+      fill="#FF6B6B"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 18.5L12 22.5L14 18.5"
+      fill="#FBBF24"
+      stroke="#134E4A"
+      strokeWidth="2.2"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 2.5C12 2.5 7.5 6.5 7.5 13.5C7.5 16.5 9 18.5 12 18.5C15 18.5 16.5 16.5 16.5 13.5C16.5 6.5 12 2.5 12 2.5Z"
+      fill="#FFFFFF"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="12"
+      cy="10.5"
+      r="2.5"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="2.2"
+    />
+  </svg>
+);
+
+export const DetectiveSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <path
+      d="M5 10L7 4.5C7.4 3.5 8.5 3 9.5 3.3L12 4L14.5 3.3C15.5 3 16.6 3.5 17 4.5L19 10H5Z"
+      fill="#FBBF24"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2.5 10H21.5"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <circle
+      cx="8"
+      cy="16.5"
+      r="3.5"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+    <circle
+      cx="16"
+      cy="16.5"
+      r="3.5"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+    <path
+      d="M11.5 16.5H12.5"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <circle cx="7" cy="15.5" r="1" fill="#FFFFFF" />
+    <circle cx="15" cy="15.5" r="1" fill="#FFFFFF" />
+  </svg>
+);
+
+export const Rocket = RocketSvg;
+export const Detective = DetectiveSvg;

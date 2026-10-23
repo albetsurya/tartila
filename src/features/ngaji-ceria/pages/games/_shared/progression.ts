@@ -77,6 +77,10 @@ export function subscribeRewards(listener: () => void): () => void {
 /** Hibah koin langsung (klaim misi, bonus streak) + masuk antrean peti. */
 export function grantCoins(coins: number, label: string): GameProgress {
   const current = getProgress();
+  const scope = getNgajiCeriaScope();
+  if (scope === "guest") {
+    return current; // Tamu (guest) tidak boleh mendapatkan Koin
+  }
   const amount = nonNegativeInteger(coins);
   const next: GameProgress = { ...current, coins: current.coins + amount };
   saveProgress(next);
@@ -397,6 +401,12 @@ export function awardProgress(
   score = nonNegativeInteger(score);
   baseXp = nonNegativeInteger(baseXp);
   const current = getProgress();
+
+  const scope = getNgajiCeriaScope();
+  if (scope === "guest") {
+    // Tamu (guest) tidak boleh mendapatkan Koin atau XP dari game
+    return current;
+  }
   const achievements = new Set(current.achievements);
   recordActivity();
   if (getNgajiActivity().currentStreak >= 5)

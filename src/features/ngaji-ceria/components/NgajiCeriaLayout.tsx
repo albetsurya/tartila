@@ -7,6 +7,7 @@ import { RewardChestModal } from "./RewardChestModal";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
 import { useEconomyStore, isUnlimitedUser } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { normalizeRole, isUstadzUser } from "@/lib/roles";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { getRank, useNgajiProgress } from "../pages/games/_shared/progression";
 import { ProgressionNotice } from "./ProgressionNotice";
@@ -83,13 +84,13 @@ export function NgajiCeriaLayout({
   }, [syncTime]);
 
   const isUnlimited = isUnlimitedUser(user, isVip, groupId);
+  const isUstadzAccount = user && isUstadzUser(user);
 
+  const tier = (user as { tier?: string } | null)?.tier;
   const userRole: NotificationRole =
-    (user?.role || "").toUpperCase() === "SUPER_ADMIN" ||
-    (user as any)?.tier === "superadmin"
+    normalizeRole(user?.role) === "superadmin" || tier === "superadmin"
       ? "superadmin"
-      : (user?.role || "").toUpperCase() === "ADMIN" ||
-        (user?.role || "").toLowerCase() === "tartila_admin"
+      : normalizeRole(user?.role) === "admin"
         ? "tartila_admin"
         : "member";
 
@@ -145,54 +146,58 @@ export function NgajiCeriaLayout({
 
             {/* KANAN: Stats (Neo-Brutalism dengan ukuran ikon seragam 16px) */}
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
-              {/* Nyawa */}
-              <div
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                title={isUnlimited ? "Hati Tanpa Batas (Superadmin/VIP)" : `Hati: ${hearts}/5`}
-              >
-                <HeartSvg size={16} />
-                <span className={isUnlimited ? "text-xs font-black" : ""}>
-                  {isUnlimited ? "∞" : `${hearts}/5`}
-                </span>
-              </div>
+              {!isUstadzAccount && (
+                <>
+                  {/* Nyawa */}
+                  <div
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                    title={isUnlimited ? "Hati Tanpa Batas (Superadmin/VIP)" : `Hati: ${hearts}/5`}
+                  >
+                    <HeartSvg size={16} />
+                    <span className={isUnlimited ? "text-xs font-black" : ""}>
+                      {isUnlimited ? "∞" : `${hearts}/5`}
+                    </span>
+                  </div>
 
-              {/* Ticket / Energy */}
-              <div
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                title={isUnlimited ? "Tiket Game Tanpa Batas (Superadmin/VIP)" : `Tiket: ${tickets}/3`}
-              >
-                <TicketSvg size={16} />
-                <span className={isUnlimited ? "text-xs font-black" : ""}>
-                  {isUnlimited ? "∞" : `${tickets}/3`}
-                </span>
-              </div>
+                  {/* Ticket / Energy */}
+                  <div
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                    title={isUnlimited ? "Tiket Game Tanpa Batas (Superadmin/VIP)" : `Tiket: ${tickets}/3`}
+                  >
+                    <TicketSvg size={16} />
+                    <span className={isUnlimited ? "text-xs font-black" : ""}>
+                      {isUnlimited ? "∞" : `${tickets}/3`}
+                    </span>
+                  </div>
 
-              {/* Streak */}
-              <div
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                title={`Streak: ${currentStreak} hari`}
-              >
-                <FireSvg size={16} />
-                <span>{currentStreak}d</span>
-              </div>
+                  {/* Streak */}
+                  <div
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                    title={`Streak: ${currentStreak} hari`}
+                  >
+                    <FireSvg size={16} />
+                    <span>{currentStreak}d</span>
+                  </div>
 
-              {/* XP */}
-              <div
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
-              >
-                <StarSvg size={16} />
-                <span>{progress.xp} XP</span>
-              </div>
+                  {/* XP */}
+                  <div
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                    title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
+                  >
+                    <StarSvg size={16} />
+                    <span>{progress.xp} XP</span>
+                  </div>
 
-              {/* Koin */}
-              <div
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                title={`Koin: ${progress.coins || 0}`}
-              >
-                <CoinSvg size={16} />
-                <span>{progress.coins || 0}</span>
-              </div>
+                  {/* Koin */}
+                  <div
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
+                    title={`Koin: ${progress.coins || 0}`}
+                  >
+                    <CoinSvg size={16} />
+                    <span>{progress.coins || 0}</span>
+                  </div>
+                </>
+              )}
 
               {rightAction}
 
@@ -229,8 +234,8 @@ export function NgajiCeriaLayout({
       </main>
 
       {!hideNav && isMainTab && <NgajiCeriaBottomNav />}
-      {!hideNav && <RewardChestModal />}
-      <ProgressionNotice />
+      {!hideNav && !isUstadzAccount && <RewardChestModal />}
+      {!hideNav && !isUstadzAccount && <ProgressionNotice />}
 
       <div data-tila-companion>
         <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />

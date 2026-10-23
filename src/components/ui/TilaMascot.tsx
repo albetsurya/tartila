@@ -18,7 +18,7 @@ import {
   getDefaultAccessoryForGender,
 } from "@/utils/mascotHelper";
 
-export type TilaMood =
+export type TitoMood =
   | "idle"
   | "happy"
   | "thinking"
@@ -44,9 +44,12 @@ export type TilaMood =
   | "proud" // bangga/keren: kacamata hitam cool + sayap berkacak pinggang
   | "confused"; // bingung: kepala miring + tanda tanya "?" melayang
 
-export type TilaDirection = "front" | "right" | "left" | "back";
+export type TilaMood = TitoMood;
 
-export type TilaAnimation =
+export type TitoDirection = "front" | "right" | "left" | "back";
+export type TilaDirection = TitoDirection;
+
+export type TitoAnimation =
   | "fly"
   | "float"
   | "bounce"
@@ -63,7 +66,9 @@ export type TilaAnimation =
   | "peek" // mengintip malu-malu dari bawah ke atas
   | "shiver"; // menggigil/gugup: bergetar cepat + garis getar samping
 
-export type TilaAccessoryType =
+export type TilaAnimation = TitoAnimation;
+
+export type TitoAccessoryType =
   | "none"
   | "peci"
   | "hairbow"
@@ -71,19 +76,21 @@ export type TilaAccessoryType =
   | "glasses"
   | "crown";
 
-export type TilaHoldItem = "star" | "ball" | "heart";
+export type TilaAccessoryType = TitoAccessoryType;
+export type TitoHoldItem = "star" | "ball" | "heart";
+export type TilaHoldItem = TitoHoldItem;
 
 // Backward compatibility aliases
-export type BibiMood = TilaMood;
-export type BibiDirection = TilaDirection;
-export type BibiAnimation = TilaAnimation;
-export type BibiAccessoryType = TilaAccessoryType | "hijab";
+export type BibiMood = TitoMood;
+export type BibiDirection = TitoDirection;
+export type BibiAnimation = TitoAnimation;
+export type BibiAccessoryType = TitoAccessoryType | "hijab";
 
-export interface TilaMascotProps {
+export interface TitoMascotProps {
   size?: number | string;
-  mood?: TilaMood;
-  direction?: TilaDirection;
-  animation?: TilaAnimation;
+  mood?: TitoMood;
+  direction?: TitoDirection;
+  animation?: TitoAnimation;
   talking?: boolean;
   speech?: string;
   followCursor?: boolean;
@@ -92,15 +99,16 @@ export interface TilaMascotProps {
   onTap?: () => void;
   rotation?: number;
   autoRotate?: boolean;
-  accessory?: TilaAccessoryType;
+  accessory?: TitoAccessoryType;
   gender?: "boy" | "girl";
   /** Objek yang dipegang saat mood="holding" (default: "star") */
-  holdItem?: TilaHoldItem;
+  holdItem?: TitoHoldItem;
 }
 
-export type BibiMascotProps = TilaMascotProps;
+export type TilaMascotProps = TitoMascotProps;
+export type BibiMascotProps = TitoMascotProps;
 
-export function TilaMascot({
+export function TitoMascot({
   size = 240,
   mood = "idle",
   direction = "right",
@@ -116,7 +124,7 @@ export function TilaMascot({
   accessory,
   gender,
   holdItem = "star",
-}: TilaMascotProps) {
+}: TitoMascotProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lookOffset, setLookOffset] = useState({ x: 0, y: 0 });
   const [dynamicDir, setDynamicDir] = useState<TilaDirection | null>(null);
@@ -129,26 +137,22 @@ export function TilaMascot({
   const storeGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const storeAccessory = useEconomyStore((s) => s.equippedAccessory);
 
-  // === LOGIKA GENDER & AKSESORIS KETAT ===
+  // === LOGIKA GENDER & AKSESORIS KETAT DINAMIS ===
+  // Mengambil gender dari props eksplisit jika ada, atau fallback dinamis ke state store
   const effectiveGender: "boy" | "girl" =
-    gender ?? resolveMascotGender(storeGender);
+    gender !== undefined
+      ? resolveMascotGender(gender)
+      : resolveMascotGender(storeGender);
   const isGirl = effectiveGender === "girl";
 
   let rawAccessory: TilaAccessoryType;
   if (accessory !== undefined) {
     rawAccessory = accessory;
-  } else if (gender !== undefined) {
-    if (
-      storeAccessory &&
-      isAccessoryAllowedForGender(storeAccessory, effectiveGender)
-    ) {
-      rawAccessory = storeAccessory as TilaAccessoryType;
-    } else {
-      rawAccessory = getDefaultAccessoryForGender(
-        effectiveGender,
-      ) as TilaAccessoryType;
-    }
-  } else if (storeAccessory && storeAccessory !== "none") {
+  } else if (
+    storeAccessory &&
+    storeAccessory !== "none" &&
+    isAccessoryAllowedForGender(storeAccessory, effectiveGender)
+  ) {
     rawAccessory = storeAccessory as TilaAccessoryType;
   } else {
     rawAccessory = getDefaultAccessoryForGender(
@@ -4560,8 +4564,7 @@ export function TilaMascot({
   );
 }
 
-// Aliases for compatibility
-export const BibiMascot = TilaMascot;
-export const TitoMascot = (props: TilaMascotProps) => (
-  <TilaMascot gender="boy" {...props} />
-);
+// Canonical mascot export & aliases for backwards compatibility
+export const TilaMascot = TitoMascot;
+export const BibiMascot = TitoMascot;
+export default TitoMascot;

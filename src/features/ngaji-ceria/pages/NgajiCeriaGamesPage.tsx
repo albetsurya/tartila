@@ -5,17 +5,15 @@ import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { TrophySvg, GamepadSvg } from "../../../components/ui/CustomIcons";
 import { useGameAccess } from "../components/GameLockGuard";
 import { LoginPromptModal } from "../components/LoginPromptModal";
-import { isGameOpenForGuest } from "../data/gameAccess";
+import { isGameOpen } from "../data/gameAccess";
 import { getBest } from "./games/_shared/storage";
 import { triggerTilaReaction } from "../../../utils/tilaEvent";
 import { GameCard } from "./games/_shared/GameCard";
 import {
-  HijaiyahPopCoverSvg,
   HarakatRushCoverSvg,
   QuranQuizRoyaleCoverSvg,
   AyatScrambleCoverSvg,
   TajwidArenaCoverSvg,
-  SantriIdleCoverSvg,
   AdabRpgCoverSvg,
 } from "@/components/ui/Illustrations";
 
@@ -28,36 +26,32 @@ interface GameEntry {
   best: number;
   path: string;
   isNew?: boolean;
+  bgColor?: string;
 }
 
 const GAMES: GameEntry[] = [
   {
-    id: "hijaiyah-pop",
-    title: "Hijaiyah Pop",
-    genre: "Balon Hijaiyah",
-    description: "Pecahkan balon huruf secepat kilat.",
-    cover: <HijaiyahPopCoverSvg size={76} />,
-    best: getBest("hijaiyah-pop"),
-    path: "/member/ngaji-ceria/games/hijaiyah-pop",
-  },
-  {
     id: "ritme-ngaji",
-    title: "Qirra Match",
-    genre: "Pasangan Huruf",
-    description: "Hub rhythm, harakat, bentuk huruf, dan makhraj.",
+    title: "Ritme Ngaji",
+    genre: "Hub · 6 Game",
+    description: "Rhythm, harakat, makhraj, dan aksi arkade hijaiyah.",
     cover: <HarakatRushCoverSvg size={76} />,
     best: Math.max(
       getBest("harakat-rush"),
       getBest("makhraj-master"),
       getBest("hijaiyah-beats"),
+      getBest("hijaiyah-pop"),
+      getBest("hijaiyah-rush"),
+      getBest("hijaiyah-match-arena"),
     ),
     path: "/member/ngaji-ceria/games/ritme-ngaji",
+    bgColor: "bg-[#F0FDF4]",
   },
   {
     id: "quiz-ngaji",
-    title: "Tebak Surah",
-    genre: "Cerita Juz Amma",
-    description: "Speedrun, royale, dan battle practice Juz Amma.",
+    title: "Quiz Ngaji",
+    genre: "Hub · 3 Game",
+    description: "Speedrun, saf royale, dan menara lentera Juz Amma.",
     cover: <QuranQuizRoyaleCoverSvg size={76} />,
     best: Math.max(
       getBest("juz-amma-speedrun"),
@@ -65,12 +59,13 @@ const GAMES: GameEntry[] = [
       getBest("nur-battle"),
     ),
     path: "/member/ngaji-ceria/games/quiz-ngaji",
+    bgColor: "bg-[#FAF5FF]",
   },
   {
     id: "puzzle-huruf",
     title: "Puzzle Huruf",
-    genre: "Hub · Puzzle",
-    description: "Wordle, scramble, 2048, dan berburu ayat.",
+    genre: "Hub · 4 Game",
+    description: "Wordle, susun ayat, 2048, dan perburuan ayat.",
     cover: <AyatScrambleCoverSvg size={76} />,
     best: Math.max(
       getBest("arabic-wordle:daily"),
@@ -79,12 +74,13 @@ const GAMES: GameEntry[] = [
       getBest("ayat-hunter"),
     ),
     path: "/member/ngaji-ceria/games/puzzle-huruf",
+    bgColor: "bg-[#F0F9FF]",
   },
   {
     id: "tajwid-lab",
     title: "Tajwid Lab",
-    genre: "Hub · Strategi",
-    description: "Duel kartu, pertahanan base, dan puzzle blok.",
+    genre: "Hub · 3 Game",
+    description: "Duel kartu, pertahanan base, dan tetris hukum tajwid.",
     cover: <TajwidArenaCoverSvg size={76} />,
     best: Math.max(
       getBest("tajwid-arena"),
@@ -92,24 +88,26 @@ const GAMES: GameEntry[] = [
       getBest("tajwid-tetris"),
     ),
     path: "/member/ngaji-ceria/games/tajwid-lab",
+    bgColor: "bg-[#F0FDFA]",
   },
   {
-    id: "santri-idle",
-    title: "Pesantren Life",
-    genre: "Simulasi · Idle",
-    description: "Bangun pesantren dan kumpulkan resource.",
-    cover: <SantriIdleCoverSvg size={76} />,
-    best: getBest("santri-idle"),
-    path: "/member/ngaji-ceria/games/santri-idle",
-  },
-  {
-    id: "adab-rpg",
-    title: "Jejak Santri",
-    genre: "RPG · Cerita",
-    description: "Jelajahi pesantren, selesaikan quest.",
+    id: "petualangan-santri",
+    title: "Petualangan Santri",
+    genre: "Hub · 7 Game",
+    description: "Jejak santri, doa dungeon, malaikat, nabi, & ibadah.",
     cover: <AdabRpgCoverSvg size={76} />,
-    best: getBest("adab-rpg"),
-    path: "/member/ngaji-ceria/games/adab-rpg",
+    best: Math.max(
+      getBest("adab-rpg"),
+      getBest("doa-dungeon"),
+      getBest("nabi-chronicles"),
+      getBest("malaikat-mission"),
+      getBest("santri-idle"),
+      getBest("sholat-hero"),
+      getBest("wudhu-flow"),
+    ),
+    path: "/member/ngaji-ceria/games/petualangan-santri",
+    isNew: true,
+    bgColor: "bg-[#FFFBEB]",
   },
 ];
 
@@ -123,10 +121,12 @@ export default function NgajiCeriaGamesPage() {
       setPromptOpen(true);
       return;
     }
-    // Memicu reaksi Tila saat game diklik
+    // Memicu reaksi Tito saat game diklik
     triggerTilaReaction("play");
     navigate(path);
   };
+
+  const playedCount = GAMES.filter((g) => g.best > 0).length;
 
   return (
     <NgajiCeriaLayout title="Mini Games" showBack>
@@ -135,7 +135,7 @@ export default function NgajiCeriaGamesPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-[#0D9488]">
-              Asah Kemampuan
+              5 Hub Pilihan · 23 Game
             </p>
             <h2 className="font-display text-2xl md:text-3xl font-black text-[#134E4A]">
               Mini Games
@@ -144,7 +144,7 @@ export default function NgajiCeriaGamesPage() {
           <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
             <TrophySvg size={16} />
             <span className="text-xs md:text-sm font-black text-[#134E4A]">
-              2/3
+              {playedCount}/{GAMES.length} Hub
             </span>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function NgajiCeriaGamesPage() {
         {/* Games Grid (Responsif: Mobile 2 cols, Tablet 3 cols, Desktop 4 cols) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
           {GAMES.map((game, index) => {
-            const locked = tier === "guest" && !isGameOpenForGuest(game.id);
+            const locked = tier === "guest" && !isGameOpen(game.id, tier);
             return (
               <motion.div
                 key={game.path}
@@ -166,8 +166,11 @@ export default function NgajiCeriaGamesPage() {
                 <GameCard
                   title={game.title}
                   genre={game.genre}
+                  description={game.description}
                   cover={game.cover}
                   best={game.best}
+                  badge={game.isNew ? "BARU" : undefined}
+                  bgColor={game.bgColor || "bg-white"}
                   locked={locked}
                   index={index}
                   onClick={() => openGame(game.path, locked)}

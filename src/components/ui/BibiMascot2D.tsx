@@ -1,50 +1,55 @@
-// 2.5D Bibi mascot variants — a thin, performance-aware layer over the
-// hand-crafted `BibiMascot` (layered SVG + Framer Motion).
+// 2.5D Tito mascot variants — a thin, performance-aware layer over the
+// hand-crafted `TitoMascot` (layered SVG + Framer Motion).
 //
 // - "animated": Framer Motion float + wing flaps (default).
 // - "static":   SVG only, no looping animations (cheap to render).
-//
-// `BibiMascot` itself is never modified; we only choose its `animation` prop.
 
 import { motion, useReducedMotion } from "framer-motion";
-import { BibiMascot, type BibiMascotProps } from "./BibiMascot";
+import { TitoMascot, type TitoMascotProps } from "./TitoMascot";
 
-export type BibiMascotVariant = "animated" | "static";
+export type TitoMascotVariant = "animated" | "static";
+export type BibiMascotVariant = TitoMascotVariant;
 
-export interface BibiMascot2DProps extends Omit<BibiMascotProps, "animation"> {
+export interface TitoMascot2DProps extends Omit<TitoMascotProps, "animation"> {
   /** Rendering mode. Defaults to "animated". */
-  variant?: BibiMascotVariant;
+  variant?: TitoMascotVariant;
   /** Force the static variant when the OS requests reduced motion. */
   respectReducedMotion?: boolean;
   /** Which animation to use in "animated" mode. Defaults to "float". */
-  animatedAnimation?: BibiMascotProps["animation"];
+  animatedAnimation?: TitoMascotProps["animation"];
 }
 
-export function BibiMascot2D({
+export type BibiMascot2DProps = TitoMascot2DProps;
+
+export function TitoMascot2D({
   variant = "animated",
   respectReducedMotion = true,
   animatedAnimation = "float",
   ...props
-}: BibiMascot2DProps) {
+}: TitoMascot2DProps) {
   const reducedMotion = useReducedMotion();
   const isStatic =
     variant === "static" || (respectReducedMotion && reducedMotion === true);
 
   return (
-    <BibiMascot {...props} animation={isStatic ? "none" : animatedAnimation} />
+    <TitoMascot {...props} animation={isStatic ? "none" : animatedAnimation} />
   );
 }
 
-export interface BibiWaveProps extends BibiMascot2DProps {
+export const BibiMascot2D = TitoMascot2D;
+
+export interface TitoWaveProps extends TitoMascot2DProps {
   size?: number;
 }
 
+export type BibiWaveProps = TitoWaveProps;
+
 /**
- * Bibi waving — used on the login hero / welcome overlay.
+ * Tito waving — used on the login hero / welcome overlay.
  * Adds a gentle side-to-side tilt on top of the animated variant so it reads
  * as a greeting; collapses to a still SVG in the static variant.
  */
-export function BibiWave({
+export function TitoWave({
   variant = "animated",
   respectReducedMotion = true,
   animatedAnimation = "float",
@@ -53,7 +58,7 @@ export function BibiWave({
   mood,
   direction,
   ...props
-}: BibiWaveProps) {
+}: TitoWaveProps) {
   const reducedMotion = useReducedMotion();
   const isStatic =
     variant === "static" || (respectReducedMotion && reducedMotion === true);
@@ -69,7 +74,7 @@ export function BibiWave({
           : { repeat: Infinity, duration: 1.6, ease: "easeInOut" }
       }
     >
-      <BibiMascot
+      <TitoMascot
         {...props}
         size={size}
         mood={mood ?? "happy"}
@@ -79,3 +84,5 @@ export function BibiWave({
     </motion.div>
   );
 }
+
+export const BibiWave = TitoWave;

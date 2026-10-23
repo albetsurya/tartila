@@ -29,11 +29,11 @@ const THEME_STYLE: Record<
       "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#134E4A] bg-white px-2 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
   },
   neon: {
-    root: "bg-[#111827]",
-    header: "bg-[#1F2937] border-b-[3px] border-[#38BDF8] shadow-[0px_2px_0px_#38BDF8]",
+    root: "bg-[#0F172A] text-white",
+    header: "bg-[#1E293B] border-b-[3px] border-[#38BDF8] shadow-[0px_2px_0px_#38BDF8]",
     title: "text-[#38BDF8]",
     controlBtn:
-      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#38BDF8] bg-[#0B1220] px-2 text-[11px] font-black text-[#38BDF8] shadow-[2px_2px_0px_#0EA5E9] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
+      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#38BDF8] bg-[#0F172A] px-2 text-[11px] font-black text-[#38BDF8] shadow-[2px_2px_0px_#0EA5E9] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
   },
   retro: {
     root: "bg-[#FFFBEB]",
@@ -72,11 +72,11 @@ export function GameShell({
   tutorialGameId?: string;
   children: ReactNode;
 }) {
-  const equippedGameTheme = useEconomyStore(
-    (s) => s.equippedGameTheme,
-  ) as GameShellTheme;
-  const styles =
-    THEME_STYLE[equippedGameTheme] ?? THEME_STYLE["default"];
+  const rawTheme = useEconomyStore((s) => s.equippedGameTheme);
+  const equippedGameTheme = (rawTheme && THEME_STYLE[rawTheme as GameShellTheme]
+    ? rawTheme
+    : "default") as GameShellTheme;
+  const styles = THEME_STYLE[equippedGameTheme] ?? THEME_STYLE["default"];
   const controlBtnStyle = styles.controlBtn;
   const exit = useGameExit();
   const { muted, toggle } = useGameAudio();

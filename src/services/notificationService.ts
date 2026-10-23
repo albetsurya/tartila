@@ -18,7 +18,7 @@ const DEFAULT_NOTIFICATIONS: Notification[] = [
     id: "notif_welcome",
     type: "reward",
     title: "Selamat Datang di Tartila!",
-    message: "Ayo mulai petualangan mengaji bersama Tito & Tila!",
+    message: "Ayo mulai petualangan mengaji bersama Tito!",
     targetRole: "all",
     read: false,
     timestamp: Date.now() - 3600000,

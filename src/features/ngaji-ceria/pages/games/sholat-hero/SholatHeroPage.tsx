@@ -70,7 +70,7 @@ function Game() {
               </motion.div>
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 block">
-                  Gerakan Sholat Tila
+                  Gerakan Sholat Tito
                 </span>
                 <span className="text-xs font-bold text-white">
                   {game.combo > 0 ? "Tertib & Khusyuk" : "Menunggu waktu sholat..."}

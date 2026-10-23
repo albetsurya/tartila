@@ -13,7 +13,9 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api";
-import { TilaMascot } from "@/components/ui/TilaMascot";
+import { userApi } from "@/services/userApi";
+import { TitoMascot } from "@/components/ui/TitoMascot";
+import { MASCOT_NAME, MASCOT_BOY_NAME, MASCOT_GIRL_NAME } from "@/constants/mascot";
 import { useEconomyStore, type TilaGender } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { NGAJI_CERIA_ASSETS } from "@/features/ngaji-ceria/data/assets";
 
@@ -54,13 +56,18 @@ export default function NgajiCeriaRegisterPage() {
     }
     setSubmitting(true);
     try {
-      setTilaGender(selectedGender);
+      await setTilaGender(selectedGender);
       if (selectedGender === "boy") {
         equipAccessory("peci");
       } else {
         equipAccessory("hairbow");
       }
       await registerCeria(name, username, password, confirmPassword);
+      try {
+        await userApi.updateUserMascot(selectedGender);
+      } catch {
+        // ignore
+      }
       sessionStorage.setItem("trigger_ngaji_ceria_splash", "true");
       navigate("/member/ngaji-ceria");
     } catch (err) {
@@ -91,10 +98,10 @@ export default function NgajiCeriaRegisterPage() {
         </div>
 
         {step === 1 ? (
-          /* Step 1: Pilih Teman Belajar (Tito / Tila Mascot) */
+          /* Step 1: Pilih Teman Belajar (Tito) */
           <StickerCard className="p-6 space-y-5 text-center">
             <div className="bg-[#FEF08A]/40 rounded-2xl border-[3px] border-[#134E4A] p-4 flex flex-col items-center justify-center relative shadow-[3px_3px_0px_#134E4A]">
-              <TilaMascot
+              <TitoMascot
                 size={170}
                 direction="front"
                 mood="excited"
@@ -103,13 +110,13 @@ export default function NgajiCeriaRegisterPage() {
                 accessory={selectedGender === "boy" ? "peci" : "hairbow"}
               />
               <span className="mt-2 inline-block rounded-full bg-[#134E4A] px-3 py-1 text-[11px] font-black text-white border-2 border-[#134E4A]">
-                {selectedGender === "boy" ? "Tito Santri Peci" : "Tila Sahabat Cantik"}
+                {selectedGender === "boy" ? `${MASCOT_BOY_NAME} (Putra)` : `${MASCOT_GIRL_NAME} (Putri)`}
               </span>
             </div>
 
             <div className="space-y-2 text-left">
               <label className="block text-xs font-black text-[#134e4a]">
-                Pilih Teman Belajarmu:
+                Pilih Gaya Teman Belajarmu:
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -121,9 +128,9 @@ export default function NgajiCeriaRegisterPage() {
                       : "bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] opacity-80"
                   }`}
                 >
-                  <img src={NGAJI_CERIA_ASSETS.peci} alt="Tito (Laki-laki)" className="w-8 h-8 object-contain" />
-                  <span>Tito (Laki-laki)</span>
-                  <span className="text-[10px] font-bold opacity-80">(Pakai Peci)</span>
+                  <img src={NGAJI_CERIA_ASSETS.peci} alt="Tito (Peci Santri)" className="w-8 h-8 object-contain" />
+                  <span>{MASCOT_BOY_NAME} (Putra)</span>
+                  <span className="text-[10px] font-bold opacity-80">(Santri Putra / Peci)</span>
                 </button>
 
                 <button
@@ -136,8 +143,8 @@ export default function NgajiCeriaRegisterPage() {
                   }`}
                 >
                   <Sparkles size={28} className={selectedGender === "girl" ? "text-white my-0.5" : "text-[#FF6B6B] my-0.5"} />
-                  <span>Tila (Perempuan)</span>
-                  <span className="text-[10px] font-bold opacity-80">(Pakai Pita)</span>
+                  <span>{MASCOT_GIRL_NAME} (Putri)</span>
+                  <span className="text-[10px] font-bold opacity-80">(Santri Putri / Pita)</span>
                 </button>
               </div>
             </div>
@@ -156,7 +163,7 @@ export default function NgajiCeriaRegisterPage() {
           /* Step 2: Form Card */
           <StickerCard className="p-6 space-y-4">
             <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#F0FDF4] border-2 border-[#134E4A]">
-              <TilaMascot
+              <TitoMascot
                 size={48}
                 direction="front"
                 animation="none"
@@ -165,7 +172,7 @@ export default function NgajiCeriaRegisterPage() {
               />
               <div className="text-left text-xs">
                 <p className="font-black text-[#134E4A]">
-                  {selectedGender === "boy" ? "Tito" : "Tila"} siap menemanimu!
+                  {selectedGender === "boy" ? MASCOT_BOY_NAME : MASCOT_GIRL_NAME} siap menemanimu!
                 </p>
                 <button
                   type="button"

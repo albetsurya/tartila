@@ -1,15 +1,17 @@
 // src/features/ngaji-ceria/data/bibiPageTips.ts
 
-export interface BibiTip {
+export interface TitoTip {
   mood: "thinking" | "happy" | "excited" | "sad";
   text: string;
 }
 
+export type BibiTip = TitoTip;
+
 /**
- * Kumpulan tips kontekstual dari Bibi.
+ * Kumpulan tips kontekstual dari Tito.
  * Format key: "jilid:halaman"
  */
-export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
+export const TITO_PAGE_TIPS: Record<string, TitoTip[]> = {
   // ==========================================
   // JILID 1: Pengenalan Makhraj & Huruf Hijaiyah
   // ==========================================
@@ -213,7 +215,9 @@ export const BIBI_PAGE_TIPS: Record<string, BibiTip[]> = {
  * Jika halaman spesifik belum didaftarkan, akan memberikan tips umum (fallback)
  * yang disesuaikan dengan tingkat kesulitan Jilid.
  */
-export function getBibiTips(jilid: number, hal: number): BibiTip[] {
+export const BIBI_PAGE_TIPS = TITO_PAGE_TIPS;
+
+export function getTitoTips(jilid: number, hal: number): TitoTip[] {
   const key = `${jilid}:${hal}`;
 
   // 1. Cek apakah ada tips spesifik untuk halaman ini
@@ -305,3 +309,5 @@ export function getBibiTips(jilid: number, hal: number): BibiTip[] {
       ];
   }
 }
+
+export const getBibiTips = getTitoTips;

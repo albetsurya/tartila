@@ -8,6 +8,8 @@
  * - Jilid 6 selalu "Segera Hadir" (lencana, bukan konten).
  */
 
+import { isAdminRole } from "@/lib/roles";
+
 /** Alias route -> id kanonis (beberapa route lama menunjuk game yang sama). */
 const GAME_ALIASES: Record<string, string> = {
   "hijaiyah-burst": "hijaiyah-pop",
@@ -23,24 +25,19 @@ export function canonicalGameId(routeId: string): string {
 export type AccessTier = "guest" | "member" | "superadmin";
 
 export function tierForRole(role: string | undefined | null): AccessTier {
-  if (role === "SUPER_ADMIN") return "superadmin";
+  if (isAdminRole(role)) return "superadmin";
   if (role) return "member";
   return "guest";
 }
 
-/** Id game/hub yang terbuka untuk tamu (selain itu perlu login). */
+/** Id game yang terbuka untuk tamu (hanya 1 game uji coba: Hijaiyah Pop; selain itu wajib login). */
 export const GUEST_OPEN_GAME_IDS: ReadonlySet<string> = new Set([
-  "ritme-ngaji", "harakat-rush", "makhraj-master", "hijaiyah-beats",
-  "quiz-ngaji", "juz-amma-speedrun", "quran-quiz-royale", "nur-battle",
   "hijaiyah-pop",
-  // Hub Puzzle Huruf terbuka sebagai rumah Arabic Wordle;
-  // 3 mode lain di dalamnya tetap terkunci untuk tamu (per-mode).
-  "puzzle-huruf", "arabic-wordle",
 ]);
 
-/** Daftar hub yang terbuka untuk tamu (cangkang hub, isi mengikuti per-mode). */
+/** Daftar hub yang terbuka untuk tamu (ritme-ngaji terbuka agar tamu dapat mencoba Hijaiyah Pop). */
 export const OPEN_HUB_IDS: ReadonlySet<string> = new Set([
-  "ritme-ngaji", "quiz-ngaji", "puzzle-huruf",
+  "ritme-ngaji",
 ]);
 
 export function isGameOpenForGuest(routeId: string): boolean {
@@ -55,7 +52,7 @@ export function isGameOpenForMember(routeId: string): boolean {
 
 export function isGameOpen(routeId: string, tier: AccessTier): boolean {
   if (tier !== "guest") return true;
-  return isGameOpenForGuest(routeId);
+  return isGameOpenForGuest(routeId) || OPEN_HUB_IDS.has(routeId);
 }
 
 /** Jilid maksimum berdasarkan tier (Jilid 6 selalu segera-hadir). */

@@ -179,7 +179,7 @@ export const ILLUSTRATIONS_LIST: IllustrationItem[] = [
     id: "HijaiyahPopCoverSvg",
     name: "HijaiyahPopCoverSvg",
     category: "Hijaiyah Pop",
-    desc: "Maskot Burung Tila dikelilingi 3 bintang hijaiyah",
+    desc: "Maskot Burung Tito dikelilingi 3 bintang hijaiyah",
     Component: HijaiyahPopCoverSvg,
     bg: "bg-[#CCFBF1]",
   },
