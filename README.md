@@ -77,7 +77,7 @@ Tartila memiliki dua karakter maskot ramah anak:
 ## Prasyarat
 
 - **Node.js 20+** (disarankan 22 LTS) dan **npm**.
-- **Backend Go Sambung Ngaji** berjalan di `http://127.0.0.1:8080` (opsional untuk pengembangan tampilan murni).
+- **Backend Go Sambung Ngaji** berjalan di `http://127.0.0.1:29001` (Docker Compose) atau `http://127.0.0.1:8080` (native Go run).
 
 ---
 
@@ -129,7 +129,7 @@ Semua variabel wajib diawali dengan `VITE_` agar dapat diakses di browser. **Jan
 
 | Variabel | Wajib | Deskripsi |
 | -------- | ----- | --------- |
-| `VITE_API_BASE_URL` | Ya (untuk API) | Base URL REST API Backend Go (contoh: `http://127.0.0.1:8080`). Kosong = fallback origin lokal. |
+| `VITE_API_BASE_URL` | Ya (untuk API) | Base URL REST API Backend Go (contoh: `http://127.0.0.1:29001` untuk Docker dev, atau `http://127.0.0.1:8080`). |
 | `VITE_SUPABASE_URL` | Ya | Endpoint project Supabase Tartila (untuk realtime game, arena, classroom). |
 | `VITE_SUPABASE_ANON_KEY` | Ya | Public Anonymous Key Supabase Tartila. |
 | `VITE_GOOGLE_CLIENT_ID` | Tidak | Web Client ID Google Cloud OAuth jika menggunakan login Google. |
