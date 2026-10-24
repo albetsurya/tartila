@@ -2,13 +2,11 @@ import React, { ReactNode, useEffect, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
-import { EconomyHUD } from "./EconomyHUD";
 import { RewardChestModal } from "./RewardChestModal";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
 import { useEconomyStore, isUnlimitedUser } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeRole, isUstadzUser } from "@/lib/roles";
-import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { getRank, useNgajiProgress } from "../pages/games/_shared/progression";
 import { ProgressionNotice } from "./ProgressionNotice";
 import { soundManager } from "../services/soundManager";
@@ -18,11 +16,11 @@ import {
 } from "../../../components/ui/TilaCompanion";
 import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
 import {
-  HeartSvg,
-  TicketSvg,
   FireSvg,
   StarSvg,
   CoinSvg,
+  HeartSvg,
+  TicketSvg,
   ChevronLeftSvg,
 } from "../../../components/ui/CustomIcons";
 import { NotificationBell } from "../../../components/ui/NotificationBell";
@@ -121,88 +119,105 @@ export function NgajiCeriaLayout({
       className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} bg-mint-cloud text-deep-teal flex flex-col justify-between selection:bg-teal-emerald/20 relative overflow-x-clip font-sans`}
     >
       {!hideHeader && !hideNav && (
-        <header className="sticky top-0 z-40 shrink-0 pt-safe bg-white border-b-2 border-[#134E4A] shadow-[0px_2px_0px_#134E4A] transition-all">
-          {/* Container utama header responsif (Mobile, Tablet, Desktop) */}
-          <div className="relative z-10 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
-            {/* KIRI: Tombol Back & Judul */}
-            <div className="flex items-center gap-1.5 shrink-0 min-w-0">
-              {showBackButton && (
-                <button
-                  onClick={handleBack}
-                  aria-label="Kembali ke halaman sebelumnya"
-                  title="Kembali"
-                  className="p-1.5 rounded-xl bg-white border-2 border-[#134E4A] text-[#134E4A] flex items-center justify-center hover:bg-[#FEF08A] transition-all active:translate-y-0.5 shadow-[1.5px_1.5px_0px_#134E4A]"
+        <header className="sticky top-0 z-[60] shrink-0 pt-safe bg-white border-b-2 border-[#134E4A] shadow-[0px_2px_0px_#134E4A] transition-all">
+          {/* Container utama header responsif jika dua baris (Mobile, Tablet, Desktop) */}
+          <div className="relative z-10 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-6">
+            {/* BARIS 1: Identitas (logo/judul) + lonceng notifikasi */}
+            <div className="flex h-11 items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+                {showBackButton && (
+                  <button
+                    onClick={handleBack}
+                    aria-label="Kembali ke halaman sebelumnya"
+                    title="Kembali"
+                    className="p-1.5 rounded-xl bg-white border-2 border-[#134E4A] text-[#134E4A] flex items-center justify-center hover:bg-[#FEF08A] transition-all active:translate-y-0.5 shadow-[1.5px_1.5px_0px_#134E4A]"
+                  >
+                    <ChevronLeftSvg size={16} />
+                  </button>
+                )}
+                {title === "Tartila" && (
+                  <TartilaFaviconSvg variant="sticker" size={44} />
+                )}
+                <span
+                  className={`font-display font-black text-xl md:text-2xl text-[#134E4A] tracking-tight truncate max-w-[160px] sm:max-w-[220px] md:max-w-none ${
+                    title === "Tartila" ? "max-sm:hidden" : ""
+                  }`}
                 >
-                  <ChevronLeftSvg size={16} />
-                </button>
-              )}
-              {title === "Tartila" && (
-                <TartilaFaviconSvg variant="sticker" size={38} />
-              )}
-              <span className="font-display font-black text-sm md:text-base text-[#134E4A] tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
-                {title}
-              </span>
+                  {title}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {rightAction}
+                <NotificationBell
+                  userRole={userRole}
+                  className="relative z-10 shrink-0"
+                />
+              </div>
             </div>
 
-            {/* KANAN: Stats (Neo-Brutalism dengan ukuran ikon seragam 16px) */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
-              {!isUstadzAccount && (
-                <>
-                  {/* Nyawa */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                    title={isUnlimited ? "Hati Tanpa Batas (Superadmin/VIP)" : `Hati: ${hearts}/5`}
-                  >
-                    <HeartSvg size={16} />
-                    <span className={isUnlimited ? "text-xs font-black" : ""}>
-                      {isUnlimited ? "∞" : `${hearts}/5`}
-                    </span>
-                  </div>
+            {/* BARIS 2: Deretan badge ringkas (Hati, Tiket, Streak, XP, Koin) */}
+            {!isUstadzAccount && (
+              <div className="mt-1 flex w-full flex-nowrap items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5">
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FFF0F0] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  title={
+                    isUnlimited
+                      ? "Hati Tanpa Batas (Superadmin/VIP)"
+                      : `Hati: ${hearts}/5`
+                  }
+                >
+                  <HeartSvg size={14} />
+                  <span className="min-w-[1.9rem] text-center tabular-nums">
+                    {isUnlimited ? "∞" : `${hearts}/5`}
+                  </span>
+                </div>
 
-                  {/* Ticket / Energy */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                    title={isUnlimited ? "Tiket Game Tanpa Batas (Superadmin/VIP)" : `Tiket: ${tickets}/3`}
-                  >
-                    <TicketSvg size={16} />
-                    <span className={isUnlimited ? "text-xs font-black" : ""}>
-                      {isUnlimited ? "∞" : `${tickets}/3`}
-                    </span>
-                  </div>
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FEF3C7] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  title={
+                    isUnlimited
+                      ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
+                      : `Tiket: ${tickets}/3`
+                  }
+                >
+                  <TicketSvg size={14} />
+                  <span className="min-w-[1.9rem] text-center tabular-nums">
+                    {isUnlimited ? "∞" : `${tickets}/3`}
+                  </span>
+                </div>
 
-                  {/* Streak */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                    title={`Streak: ${currentStreak} hari`}
-                  >
-                    <FireSvg size={16} />
-                    <span>{currentStreak}d</span>
-                  </div>
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FFF0F0] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  title={`Streak: ${currentStreak} hari`}
+                >
+                  <FireSvg size={14} />
+                  <span className="min-w-[2.1rem] text-center tabular-nums">
+                    {currentStreak}d
+                  </span>
+                </div>
 
-                  {/* XP */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                    title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
-                  >
-                    <StarSvg size={16} />
-                    <span>{progress.xp} XP</span>
-                  </div>
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#CCFBF1] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
+                >
+                  <StarSvg size={14} />
+                  <span className="min-w-[3rem] text-center tabular-nums">
+                    {progress.xp} XP
+                  </span>
+                </div>
 
-                  {/* Koin */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] font-black text-[11px] whitespace-nowrap select-none"
-                    title={`Koin: ${progress.coins || 0}`}
-                  >
-                    <CoinSvg size={16} />
-                    <span>{progress.coins || 0}</span>
-                  </div>
-                </>
-              )}
-
-              {rightAction}
-
-              <NotificationBell userRole={userRole} className="ml-0.5 shrink-0" />
-            </div>
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FEF08A] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  title={`Koin: ${progress.coins || 0}`}
+                >
+                  <CoinSvg size={14} />
+                  <span className="min-w-[2.1rem] text-center tabular-nums">
+                    {progress.coins || 0}
+                  </span>
+                </div>
+              </div>
+                        )}
           </div>
         </header>
       )}
@@ -237,9 +252,11 @@ export function NgajiCeriaLayout({
       {!hideNav && !isUstadzAccount && <RewardChestModal />}
       {!hideNav && !isUstadzAccount && <ProgressionNotice />}
 
-      <div data-tila-companion>
-        <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
-      </div>
+      {!location.pathname.startsWith("/ustadz") && (
+        <div data-tila-companion>
+          <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
+        </div>
+      )}
     </div>
   );
 }

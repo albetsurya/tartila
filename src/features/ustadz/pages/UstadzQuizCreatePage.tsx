@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NgajiCeriaLayout } from "@/features/ngaji-ceria/components/NgajiCeriaLayout";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
@@ -107,8 +106,8 @@ export function UstadzQuizCreatePage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Buat Kuis" hideNav>
-      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
+    <>
+      <div className="w-full max-w-3xl space-y-4">
         <StickerCard className="space-y-3 p-4">
           <div>
             <label className="text-xs font-black uppercase text-[#134E4A]/70">
@@ -264,6 +263,6 @@ export function UstadzQuizCreatePage() {
           )}
         </div>
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }

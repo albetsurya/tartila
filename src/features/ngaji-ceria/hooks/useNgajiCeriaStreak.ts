@@ -10,6 +10,8 @@ export function useNgajiCeriaStreak() {
   return {
     streakDays: active ? streakDays : Array<boolean>(7).fill(false),
     currentStreak: active ? currentStreak : 0,
+    lastPlayedAt,
+    isActive: active,
     isLoading: false,
   };
 }

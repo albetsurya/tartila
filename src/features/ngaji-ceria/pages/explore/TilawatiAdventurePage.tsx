@@ -557,8 +557,8 @@ export default function TilawatiAdventurePage() {
                 <BookOpenSvg size={24} />
               </div>
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-[#0284C7]">
-                  ✨ Fitur Baru
+                <p className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-[#0284C7]">
+                  <SparklesSvg size={12} /> Fitur Baru
                 </p>
                 <h4 className="font-display font-black text-[16px] text-[#134E4A]">
                   Galaksi Juz 'Amma

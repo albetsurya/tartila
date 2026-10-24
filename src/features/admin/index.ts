@@ -7,3 +7,19 @@ export { StatCard } from "./components/StatCard";
 export { useAdminNav, ADMIN_NAV } from "./hooks/useAdminNav";
 export type { AdminNavItem, AdminNavSection } from "./hooks/useAdminNav";
 export type { StatCardProps } from "./components/StatCard";
+export {
+  useAdminGameCatalog,
+  getAdminGameCatalog,
+  getAdminGameById,
+  saveGameOverride,
+  resetGameOverride,
+  resetAllGameOverrides,
+  filterAdminGames,
+  getGameCatalogStats,
+} from "./services/gameCatalogAdminService";
+export type {
+  AdminGameCatalogEntry,
+  AdminGameFilter,
+  GameCatalogOverride,
+  GameCatalogStats,
+} from "./services/gameCatalogAdminService";

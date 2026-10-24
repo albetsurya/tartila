@@ -1,24 +1,15 @@
 /**
  * Bank Kuis Ustadz — pembuatan kuis, penugasan ke kelas, dan penilaian.
  *
- * KONTRAK API / BACKEND (belum tersedia di Supabase):
- *
- * 1) Bank kuis:
- *    tabel `ustadz_quizzes`
- *      (id uuid, created_by text, title text, materi text, target_jilid int,
- *       room_id uuid null, created_at timestamptz)
- *    tabel `ustadz_quiz_questions`
- *      (id uuid, quiz_id uuid, prompt text, options jsonb, answer_index int,
- *       position int)
- *
- * 2) Pengerjaan santri:
- *    tabel `ustadz_quiz_attempts`
- *      (id uuid, quiz_id uuid, user_id text, score int, total int,
- *       answers jsonb, submitted_at timestamptz)
- *
- * Sampai backend siap: localStorage.
+ * Mode penyimpanan:
+ * - Backend Supabase: tabel `quizzes`, `quiz_questions`, `quiz_attempts`
+ *   (lihat migrasi 20261024120000_create_ustadz_panel_tables.sql) dipakai
+ *   saat env VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY terpasang.
+ * - Fallback localStorage saat Supabase belum dikonfigurasi
+ *   (dev baru / unit test / offline).
  */
 
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { JilidNumber, MateriPokok } from '@/data/learningCatalog';
 
 export const QUIZ_OPTION_COUNT = 4;
@@ -130,6 +121,77 @@ export function scoreQuiz(
   return { score, total, percent };
 }
 
+// ── Pemetaan Supabase ───────────────────────────────────────────
+
+interface QuizRow {
+  id: string;
+  created_by: string;
+  title: string;
+  materi: string;
+  target_jilid: number | null;
+  room_id: string | null;
+  created_at: string;
+  quiz_questions: {
+    id: string;
+    prompt: string;
+    options: string[];
+    answer_index: number;
+    position: number;
+  }[];
+}
+
+interface AttemptRow {
+  id: string;
+  quiz_id: string;
+  user_id: string;
+  score: number;
+  total: number;
+  answers: number[];
+  submitted_at: string;
+}
+
+function toQuiz(row: QuizRow): Quiz {
+  const questions = [...row.quiz_questions]
+    .sort((a, b) => a.position - b.position)
+    .map(bareQuestion);
+  return {
+    id: row.id,
+    createdBy: row.created_by,
+    title: row.title,
+    materi: row.materi as MateriPokok,
+    targetJilid: row.target_jilid as JilidNumber | null,
+    roomId: row.room_id,
+    questions,
+    createdAt: row.created_at,
+  };
+}
+
+function bareQuestion(row: QuizRow['quiz_questions'][number]): QuizQuestion {
+  return {
+    id: row.id,
+    prompt: row.prompt,
+    options: [...row.options],
+    answerIndex: row.answer_index,
+  };
+}
+
+function toAttempt(row: AttemptRow): QuizAttempt {
+  return {
+    id: row.id,
+    quizId: row.quiz_id,
+    userId: row.user_id,
+    score: row.score,
+    total: row.total,
+    answers: [...(row.answers ?? [])],
+    submittedAt: row.submitted_at,
+  };
+}
+
+function makeId(prefix: string): string {
+  const random = Math.random().toString(36).slice(2, 10);
+  return `${prefix}-${Date.now().toString(36)}-${random}`;
+}
+
 function safeStorage(): Storage | null {
   try {
     if (typeof window === 'undefined') return null;
@@ -153,10 +215,6 @@ function readJsonArray(key: string): unknown[] {
   }
 }
 
-export async function getQuiz(quizId: string): Promise<Quiz | undefined> {
-  return (await listQuizzes()).find((quiz) => quiz.id === quizId);
-}
-
 function isQuiz(value: unknown): value is Quiz {
   return (
     typeof value === 'object' &&
@@ -176,17 +234,42 @@ function isAttempt(value: unknown): value is QuizAttempt {
   );
 }
 
-function makeId(prefix: string): string {
-  const random = Math.random().toString(36).slice(2, 10);
-  return `${prefix}-${Date.now().toString(36)}-${random}`;
+export async function getQuiz(quizId: string): Promise<Quiz | undefined> {
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('quizzes')
+      .select('*, quiz_questions (*)')
+      .eq('id', quizId)
+      .maybeSingle<QuizRow>();
+    if (!data) return undefined;
+    return toQuiz(data);
+  }
+  return (await listQuizzes()).find((quiz) => quiz.id === quizId);
 }
 
 export async function listQuizzes(): Promise<Quiz[]> {
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('quizzes')
+      .select('*, quiz_questions (*)')
+      .order('created_at', { ascending: false });
+    if (!data) return [];
+    return (data as unknown as QuizRow[]).map(toQuiz);
+  }
   return readJsonArray(QUIZ_KEY).filter(isQuiz);
 }
 
 export async function listQuizzesForRoom(roomId: string): Promise<Quiz[]> {
-  const quizzes = await listQuizzes();
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('quizzes')
+      .select('*, quiz_questions (*)')
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: false });
+    if (!data) return [];
+    return (data as unknown as QuizRow[]).map(toQuiz);
+  }
+  const quizzes = await listQuizzesFallback();
   return quizzes.filter((quiz) => quiz.roomId === roomId);
 }
 
@@ -194,10 +277,25 @@ export async function listQuizzesForRoom(roomId: string): Promise<Quiz[]> {
 export async function listQuizzesForRooms(
   roomIds: readonly string[],
 ): Promise<Quiz[]> {
-  const quizzes = await listQuizzes();
+  if (roomIds.length === 0) return [];
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('quizzes')
+      .select('*, quiz_questions (*)')
+      .in('room_id', [...roomIds])
+      .order('created_at', { ascending: false });
+    if (!data) return [];
+    return (data as unknown as QuizRow[]).map(toQuiz);
+  }
+  const quizzes = await listQuizzesFallback();
   return quizzes.filter(
     (quiz) => quiz.roomId !== null && roomIds.includes(quiz.roomId),
   );
+}
+
+async function listQuizzesFallback(): Promise<Quiz[]> {
+  if (isSupabaseConfigured) return [];
+  return listQuizzes();
 }
 
 export interface CreateQuizResult {
@@ -213,6 +311,61 @@ export async function createQuiz(
   const errors = validateQuizDraft(draft);
   if (errors.length > 0) return { ok: false, errors };
 
+  const questions = draft.questions.map((question, questionIndex) => ({
+    id: makeId('q'),
+    prompt: question.prompt.trim(),
+    options: question.options.map((option) => option.trim()),
+    answerIndex: question.answerIndex,
+    position: questionIndex,
+  }));
+
+  if (isSupabaseConfigured) {
+    const { data: quizRow, error: quizError } = await supabase
+      .from('quizzes')
+      .insert({
+        created_by: createdBy,
+        title: draft.title.trim(),
+        materi: draft.materi,
+        target_jilid: draft.targetJilid,
+        room_id: draft.roomId,
+      })
+      .select('id, created_at')
+      .single<{ id: string; created_at: string }>();
+    if (quizError || !quizRow) {
+      return { ok: false, errors: ['Gagal menyimpan kuis ke server.'] };
+    }
+    const { error: questionsError } = await supabase
+      .from('quiz_questions')
+      .insert(
+        questions.map((question) => ({
+          quiz_id: quizRow.id,
+          prompt: question.prompt,
+          options: question.options,
+          answer_index: question.answerIndex,
+          position: question.position,
+        })),
+      );
+    if (questionsError) {
+      await supabase.from('quizzes').delete().eq('id', quizRow.id);
+      return { ok: false, errors: ['Gagal menyimpan soal kuis ke server.'] };
+    }
+    return {
+      ok: true,
+      quiz: {
+        id: quizRow.id,
+        createdBy,
+        title: draft.title.trim(),
+        materi: draft.materi,
+        targetJilid: draft.targetJilid,
+        roomId: draft.roomId,
+        questions,
+        createdAt: quizRow.created_at,
+      },
+      errors: [],
+    };
+  }
+
+  const storage = safeStorage();
   const quiz: Quiz = {
     id: makeId('quiz'),
     createdBy,
@@ -220,16 +373,9 @@ export async function createQuiz(
     materi: draft.materi,
     targetJilid: draft.targetJilid,
     roomId: draft.roomId,
-    questions: draft.questions.map((question) => ({
-      id: makeId('q'),
-      prompt: question.prompt.trim(),
-      options: question.options.map((option) => option.trim()),
-      answerIndex: question.answerIndex,
-    })),
+    questions,
     createdAt: new Date().toISOString(),
   };
-
-  const storage = safeStorage();
   if (storage) {
     storage.setItem(QUIZ_KEY, JSON.stringify([...(await listQuizzes()), quiz]));
   }
@@ -237,6 +383,10 @@ export async function createQuiz(
 }
 
 export async function deleteQuiz(quizId: string): Promise<void> {
+  if (isSupabaseConfigured) {
+    await supabase.from('quizzes').delete().eq('id', quizId);
+    return;
+  }
   const storage = safeStorage();
   if (!storage) return;
   const remaining = (await listQuizzes()).filter((quiz) => quiz.id !== quizId);
@@ -244,6 +394,18 @@ export async function deleteQuiz(quizId: string): Promise<void> {
 }
 
 export async function listAttempts(quizId?: string): Promise<QuizAttempt[]> {
+  if (isSupabaseConfigured) {
+    const builder = supabase
+      .from('quiz_attempts')
+      .select('id, quiz_id, user_id, score, total, answers, submitted_at')
+      .order('submitted_at', { ascending: true });
+    const { data } =
+      quizId === undefined
+        ? await builder
+        : await builder.eq('quiz_id', quizId);
+    if (!data) return [];
+    return (data as AttemptRow[]).map(toAttempt);
+  }
   const attempts = readJsonArray(ATTEMPT_KEY).filter(isAttempt);
   return quizId === undefined
     ? attempts
@@ -255,7 +417,7 @@ export async function submitQuizAttempt(
   userId: string,
   answers: readonly number[],
 ): Promise<QuizAttempt | null> {
-  const quiz = (await listQuizzes()).find((item) => item.id === quizId);
+  const quiz = await getQuiz(quizId);
   if (!quiz) return null;
   const { score, total } = scoreQuiz(quiz, answers);
   const attempt: QuizAttempt = {
@@ -267,6 +429,23 @@ export async function submitQuizAttempt(
     answers: [...answers],
     submittedAt: new Date().toISOString(),
   };
+
+  if (isSupabaseConfigured) {
+    const { data, error } = await supabase
+      .from('quiz_attempts')
+      .insert({
+        quiz_id: quizId,
+        user_id: userId,
+        score,
+        total,
+        answers: attempt.answers,
+      })
+      .select('id, quiz_id, user_id, score, total, answers, submitted_at')
+      .single<AttemptRow>();
+    if (error || !data) return null;
+    return toAttempt(data);
+  }
+
   const storage = safeStorage();
   if (storage) {
     storage.setItem(

@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NgajiCeriaLayout } from "@/features/ngaji-ceria/components/NgajiCeriaLayout";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  GraduationCap,
+  Trophy,
+  Users,
+  Check,
+} from "@/components/ui/CustomIcons";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
-import { TilaMascot } from "@/components/ui/TilaMascot";
 import {
   listOwnedClassrooms,
   getClassroomDetail,
@@ -13,10 +17,16 @@ import {
   type ClassroomRoom,
   type ClassroomParticipant,
 } from "@/services/classroomService";
-import { classroomRoleFor, isUstadzUser } from "@/lib/roles";
+import { classroomRoleForUser, isUstadzUser } from "@/lib/roles";
 import { normalizeJoinCode } from "@/services/classroomService";
-import { listClassroomActivities, getRoomFocusMateri, listMateriReadProgress } from "@/services/ustadzMonitoringService";
-import { listQuizzesForRoom, listAttempts, averagePercentByMateri } from "@/services/quizBankService";
+import {
+  listClassroomActivities,
+  getRoomFocusMateri,
+  listMateriReadProgress,
+  listTodayAlerts,
+  type TeacherAlert,
+} from "@/services/ustadzMonitoringService";
+import { listQuizzes, listQuizzesForRoom, listAttempts, averagePercentByMateri } from "@/services/quizBankService";
 import {
   coverageSummaryLine,
   coverageRecommendations,
@@ -32,12 +42,25 @@ export function UstadzDashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isTeacher = classroomRoleFor(user?.role) === "ustadz";
+  const isTeacher = classroomRoleForUser(user) === "ustadz";
   const greetName = user?.name || user?.username || "Ustadz";
 
   const [ownedRooms, setOwnedRooms] = useState<ClassroomRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+
+  const [quizCount, setQuizCount] = useState(0);
+
+  useEffect(() => {
+    if (!isTeacher) return;
+    let alive = true;
+    listQuizzes().then((quizzes) => {
+      if (alive) setQuizCount(quizzes.length);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isTeacher]);
 
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
@@ -62,6 +85,17 @@ export function UstadzDashboardPage() {
     0,
   );
 
+  // Onboarding checklist: langkah awal pengajar (tanpa gamifikasi santri).
+  const checklist: { label: string; done: boolean }[] = [
+    { label: "Buat Kelas Pertama", done: activeRooms.length > 0 },
+    { label: "Undang Santri dengan Kode Join", done: totalSantri > 0 },
+    { label: "Buat Bank Kuis", done: quizCount > 0 },
+  ];
+  const checklistDone = checklist.filter((step) => step.done).length;
+  const checklistPercent = Math.round(
+    (checklistDone / Math.max(checklist.length, 1)) * 100,
+  );
+
   const [coverage, setCoverage] = useState<MateriCoverageItem[]>([]);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [monitorRoomName, setMonitorRoomName] = useState<string>("");
@@ -69,6 +103,7 @@ export function UstadzDashboardPage() {
   const [quizAverages, setQuizAverages] = useState<
     ReturnType<typeof averagePercentByMateri>
   >([]);
+  const [alerts, setAlerts] = useState<TeacherAlert[]>([]);
 
   useEffect(() => {
     if (!isTeacher) return;
@@ -77,6 +112,10 @@ export function UstadzDashboardPage() {
     let alive = true;
     const target = active[0];
     setMonitorRoomName(target.name);
+    listTodayAlerts(target.id).then((todayAlerts) => {
+      if (!alive) return;
+      setAlerts(todayAlerts);
+    });
     getClassroomDetail(target.id).then(async (detail) => {
       if (!detail.ok || !alive) {
         if (alive) {
@@ -92,7 +131,7 @@ export function UstadzDashboardPage() {
       );
       const muridIds = murid.map((member) => member.userId);
       const activities = await listClassroomActivities(target.id, muridIds);
-      const focusMateri = getRoomFocusMateri(target.id);
+      const focusMateri = await getRoomFocusMateri(target.id);
       if (!alive) return;
       setCoverage(materiCoverage(activities, focusMateri));
       setRecommendations(coverageRecommendations(activities, focusMateri));
@@ -136,122 +175,207 @@ export function UstadzDashboardPage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Dashboard Ustadz" hideNav>
-      <div className="mx-auto w-full max-w-md px-4 py-6 space-y-5">
+    <>
+      <div className="w-full max-w-6xl space-y-5">
         <div className="flex items-center gap-3">
-          <TilaMascot
-            size={72}
-            mood="happy"
-            animation={isTeacher ? "bounce" : "float"}
-            direction="front"
-          />
+          <span className="ustadz-accent-soft flex h-14 w-14 shrink-0 items-center justify-center rounded-full">
+            <GraduationCap size={24} />
+          </span>
           <div>
             <h1 className="text-lg font-black text-[#134E4A]">
               Assalamu'alaikum, {greetName}!
             </h1>
             <p className="text-xs font-bold text-[#134E4A]/70">
               {isTeacher
-                ? "Panel pengajar — kelola kelas dan santri di sini."
-                : "Mode pemantau — lihat kelas tanpa mengubah data."}
+                ? "Panel pengajar: kelola kelas dan santri di sini."
+                : "Mode pemantau: lihat kelas tanpa mengubah data."}
             </p>
           </div>
         </div>
 
         {isTeacher && (
-          <div className="grid grid-cols-3 gap-3">
-            <StickerCard className="p-3 text-center">
-              <p className="text-2xl font-black text-[#0D9488]">
-                {activeRooms.length}
-              </p>
-              <p className="text-[10px] font-bold text-[#134E4A]/70">
-                Kelas Aktif
-              </p>
-            </StickerCard>
-            <StickerCard className="p-3 text-center">
-              <p className="text-2xl font-black text-[#0D9488]">{totalSantri}</p>
-              <p className="text-[10px] font-bold text-[#134E4A]/70">
-                Santri
-              </p>
-            </StickerCard>
-            <StickerCard className="p-3 text-center">
-              <p className="text-2xl font-black text-[#0D9488]">
-                {user?.is_vip ? "VIP" : "FREE"}
-              </p>
-              <p className="text-[10px] font-bold text-[#134E4A]/70">
-                Paket
-              </p>
-            </StickerCard>
-          </div>
+          <StickerCard className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-[#134E4A]">
+                  Checklist Awal Mengajar
+                </p>
+                <p className="text-xs font-semibold text-[#134E4A]/70">
+                  Selesaikan tiga langkah ini untuk memulai kelas digitalmu.
+                </p>
+              </div>
+              <span
+                className={`text-xl font-black ${
+                  checklistPercent === 100
+                    ? "text-[#0D9488]"
+                    : "text-[#0A2540]"
+                }`}
+              >
+                {checklistPercent}%
+              </span>
+            </div>
+            <div className="mt-2 h-4 w-full overflow-hidden rounded-full border-[2.5px] border-[#0A2540] bg-[#F4F1EA]">
+              <div
+                className="h-full rounded-full bg-[#0D9488] transition-all duration-300"
+                style={{ width: `${Math.max(checklistPercent, 2)}%` }}
+              />
+            </div>
+            <ul className="mt-3 space-y-2">
+              {checklist.map((step) => (
+                <li key={step.label} className="flex items-center gap-3">
+                  <span
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-[2.5px] border-[#0A2540] text-[11px] font-black ${
+                      step.done
+                        ? "bg-[#0D9488] text-white"
+                        : "bg-white text-transparent"
+                    }`}
+                    aria-label={step.done ? "selesai" : "belum"}
+                  >
+                    {step.done ? <Check size={14} /> : null}
+                  </span>
+                  <span
+                    className={`text-xs font-black ${
+                      step.done
+                        ? "text-[#134E4A] line-through decoration-[#0D9488] decoration-2"
+                        : "text-[#134E4A]"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </StickerCard>
         )}
 
-        <div>
-          <h2 className="mb-2 text-sm font-black text-[#134E4A]">Menu Cepat</h2>
-          <div className="space-y-3">
-            {isTeacher && (
-              <StickerCard
-                accent="deep-teal"
-                asButton
-                className="flex items-center justify-between p-4"
-                onClick={() => navigate("/ustadz/kelas/baru")}
-              >
-                <div>
-                  <p className="text-sm font-black text-[#134E4A]">
-                    Buat Kelas Baru
-                  </p>
-                  <p className="text-xs font-semibold text-[#134E4A]/70">
-                    Kelola kelas baru beserta kode join-nya
-                  </p>
-                </div>
-                <span className="text-lg font-black text-[#0D9488]">+</span>
-              </StickerCard>
-            )}
-            <StickerCard
-              asButton
-              className="flex items-center justify-between p-4"
-              onClick={() => navigate("/ustadz/kelas")}
-            >
-              <div>
-                <p className="text-sm font-black text-[#134E4A]">
-                  Kelola Daftar Kelas
-                </p>
-                <p className="text-xs font-semibold text-[#134E4A]/70">
-                  Lihat semua kelas dan anggotanya
-                </p>
-              </div>
-              <span className="text-lg font-black text-[#0D9488]">→</span>
-            </StickerCard>
-            <StickerCard
-              asButton
-              className="flex items-center justify-between p-4"
-              onClick={() => navigate("/ustadz/kurikulum")}
-            >
-              <div>
-                <p className="text-sm font-black text-[#134E4A]">
-                  Kurikulum & Kuis
-                </p>
-                <p className="text-xs font-semibold text-[#134E4A]/70">
-                  Materi, kuis, dan game pendukung selaras Jilid Tilawati
-                </p>
-              </div>
-              <span className="text-lg font-black text-[#0D9488]">→</span>
-            </StickerCard>
-            <StickerCard
-              asButton
-              className="flex items-center justify-between p-4"
-              onClick={() => navigate("/ustadz/kuis")}
-            >
-              <div>
-                <p className="text-sm font-black text-[#134E4A]">
-                  Bank Kuis
-                </p>
-                <p className="text-xs font-semibold text-[#134E4A]/70">
-                  Buat kuis & lihat rata-rata nilai santri
-                </p>
-              </div>
-              <span className="text-lg font-black text-[#0D9488]">→</span>
-            </StickerCard>
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="rounded-2xl border-[3px] border-[#0A2540] bg-[#BBF7D0] p-4 shadow-[5px_5px_0_#0A2540]">
+              <Users size={20} />
+              <p className="mt-1 text-3xl font-black text-[#0A2540]">
+                {activeRooms.length}
+              </p>
+              <p className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
+                Total Kelas
+              </p>
+            </div>
+            <div className="rounded-2xl border-[3px] border-[#0A2540] bg-[#FEF08A] p-4 shadow-[5px_5px_0_#0A2540]">
+              <GraduationCap size={20} />
+              <p className="mt-1 text-3xl font-black text-[#0A2540]">
+                {totalSantri}
+              </p>
+              <p className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
+                Total Santri
+              </p>
+            </div>
+            <div className="rounded-2xl border-[3px] border-[#0A2540] bg-[#BFDBFE] p-4 shadow-[5px_5px_0_#0A2540]">
+              <Trophy size={20} />
+              <p className="mt-1 text-3xl font-black text-[#0A2540]">{quizCount}</p>
+              <p className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
+                Total Kuis
+              </p>
+            </div>
           </div>
-        </div>
+
+        {isTeacher && activeRooms.length === 0 && (
+          <StickerCard className="p-5 text-center">
+            <svg
+              viewBox="0 0 96 64"
+              aria-hidden="true"
+              className="mx-auto h-24 w-auto"
+            >
+              <rect x="14" y="26" width="52" height="30" rx="4" fill="#BFDBFE" stroke="#0A2540" strokeWidth="3" />
+              <path d="M10 26l30-16 30 16" fill="#FEF08A" stroke="#0A2540" strokeWidth="3" strokeLinejoin="round" />
+              <rect x="34" y="38" width="12" height="18" fill="#0D9488" stroke="#0A2540" strokeWidth="2.5" />
+              <rect x="52" y="32" width="8" height="8" fill="#FFF7ED" stroke="#0A2540" strokeWidth="2" />
+              <rect x="20" y="32" width="8" height="8" fill="#FFF7ED" stroke="#0A2540" strokeWidth="2" />
+              <circle cx="80" cy="18" r="4" fill="#BBF7D0" stroke="#0A2540" strokeWidth="2" />
+              <circle cx="8" cy="46" r="3" fill="#FECACA" stroke="#0A2540" strokeWidth="2" />
+            </svg>
+            <p className="mt-2 text-sm font-black text-[#134E4A]">
+              Kamu belum punya kelas. Yuk buat kelas pertamamu!
+            </p>
+            <p className="mt-1 text-xs font-semibold text-[#134E4A]/70">
+              Atur santrimu, bagikan kode join, lalu mulai dari Kurikulum
+              Tilawati.
+            </p>
+            <StickerButton
+              variant="primary"
+              size="lg"
+              className="mt-4 w-full sm:w-auto"
+              onClick={() => navigate("/ustadz/kelas/baru")}
+            >
+              Buat Kelas Baru
+            </StickerButton>
+          </StickerCard>
+        )}
+
+        {isTeacher && (
+          <div>
+            <h2 className="mb-2 text-sm font-black text-[#134E4A]">
+              Perlu Perhatian Hari Ini
+            </h2>
+            <div className="space-y-3">
+              {alerts.length === 0 ? (
+                <div className="flex items-center gap-3 rounded-2xl border-[3px] border-[#0A2540] bg-[#BBF7D0] p-4 shadow-[4px_4px_0_#0A2540]">
+                  <svg
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                    className="h-12 w-12 shrink-0"
+                  >
+                    <circle cx="24" cy="26" r="16" fill="#FEF08A" stroke="#0A2540" strokeWidth="3" />
+                    <path
+                      d="M24 17l2.6 5.3 5.9.9-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.9z"
+                      fill="#0A2540"
+                    />
+                    <path d="M14 8l1.4 2.8L18 12l-2.6 1.2L14 16l-1.4-2.8L10 12l2.6-1.2z" fill="#0D9488" stroke="#0A2540" strokeWidth="1.5" />
+                    <path d="M36 6l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#0D9488" stroke="#0A2540" strokeWidth="1.5" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-black text-[#134E4A]">
+                      Semua tertangani. Bagus, tidak ada tugas tertunda!
+                    </p>
+                    <p className="text-xs font-semibold text-[#134E4A]/70">
+                      Semua santri terpantau aman dan aktif.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                alerts.map((alert) => (
+                  <StickerCard
+                    key={alert.id}
+                    accent={alert.kind === "apresiasi" ? "deep-teal" : "coral"}
+                    asButton
+                    className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between"
+                    onClick={() => {
+                      if (alert.kind === "kuis-belum-dikerjakan") {
+                        navigate("/ustadz/kuis");
+                      } else if (alert.kind === "kurang-latihan") {
+                        navigate("/ustadz/laporan");
+                      } else {
+                        navigate("/ustadz/laporan");
+                      }
+                    }}
+                  >
+                    <p className="text-sm font-bold text-[#134E4A]">
+                      {alert.title}
+                    </p>
+                    <span
+                      className={`shrink-0 self-start rounded-xl border-[3px] border-[#0A2540] px-3 py-1.5 text-xs font-black shadow-[3px_3px_0_#0A2540] transition-transform hover:-translate-y-[1px] ${
+                        alert.kind === "apresiasi"
+                          ? "bg-[#BBF7D0] text-[#134E4A]"
+                          : alert.kind === "kurang-latihan"
+                            ? "bg-[#FEF08A] text-[#134E4A]"
+                            : "bg-[#BFDBFE] text-[#134E4A]"
+                      }`}
+                    >
+                      {alert.actionLabel}
+                    </span>
+                  </StickerCard>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         {isTeacher && activeRooms.length > 0 && (
           <StickerCard className="p-4">
@@ -339,35 +463,6 @@ export function UstadzDashboardPage() {
           </StickerCard>
         )}
 
-        <StickerCard className="p-4">
-          <p className="text-sm font-black text-[#134E4A]">Gabung Kelas</p>
-          <p className="text-xs font-semibold text-[#134E4A]/70">
-            Punya kode dari pengajar lain? Masukkan di sini.
-          </p>
-          <form onSubmit={handleJoinByCode} className="mt-3 space-y-3">
-            <InputField
-              placeholder="Kode (6 karakter)"
-              maxLength={8}
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-              autoCapitalize="characters"
-            />
-            {joinError && (
-              <p className="text-xs font-bold text-[#FF6B6B]">{joinError}</p>
-            )}
-            <StickerButton
-              type="submit"
-              variant="primary"
-              size="sm"
-              loading={joining}
-              disabled={normalizeJoinCode(joinCode).length !== 6}
-              fullWidth
-            >
-              Gabung
-            </StickerButton>
-          </form>
-        </StickerCard>
-
         {isTeacher && activeRooms.length > 0 && (
           <div>
             <h2 className="mb-2 text-sm font-black text-[#134E4A]">
@@ -401,6 +496,35 @@ export function UstadzDashboardPage() {
           </div>
         )}
 
+        <StickerCard className="p-4">
+          <p className="text-sm font-black text-[#134E4A]">Gabung Kelas</p>
+          <p className="text-xs font-semibold text-[#134E4A]/70">
+            Punya kode dari pengajar lain? Masukkan di sini.
+          </p>
+          <form onSubmit={handleJoinByCode} className="mt-3 space-y-3">
+            <InputField
+              placeholder="Kode (6 karakter)"
+              maxLength={8}
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+              autoCapitalize="characters"
+            />
+            {joinError && (
+              <p className="text-xs font-bold text-[#FF6B6B]">{joinError}</p>
+            )}
+            <StickerButton
+              type="submit"
+              variant="primary"
+              size="sm"
+              loading={joining}
+              disabled={normalizeJoinCode(joinCode).length !== 6}
+              fullWidth
+            >
+              Gabung
+            </StickerButton>
+          </form>
+        </StickerCard>
+
         {loading && (
           <p className="text-center text-xs font-bold text-[#134E4A]/60">
             Memuat kelas…
@@ -418,6 +542,6 @@ export function UstadzDashboardPage() {
           </p>
         )}
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }

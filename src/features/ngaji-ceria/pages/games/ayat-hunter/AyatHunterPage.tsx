@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CheckSvg } from "@/components/ui/CustomIcons";
 import { AyatHunterCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot, type TilaDirection } from "@/components/ui/TilaMascot";
 import { preloadBattleModels } from "../_shared/battle/BattleScene";
@@ -158,7 +159,11 @@ function Game() {
                     dir="rtl"
                     className="game-arabic mt-0.5 text-3xl leading-relaxed text-[#134E4A]"
                   >
-                    {status === "cleared" ? "✓" : mission.words[game.collected]}
+                    {status === "cleared" ? (
+                      <CheckSvg size={28} className="inline text-[#0D9488]" />
+                    ) : (
+                      mission.words[game.collected]
+                    )}
                   </p>
                 </div>
               </div>

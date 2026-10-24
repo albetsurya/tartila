@@ -1,16 +1,19 @@
-/* Admin feature layer — clean/professional, neutral surfaces, emerald accent only.
-   Dark mode is driven by the app-wide `.dark` class on <html> (src/contexts/ThemeContext.tsx). */
+/* Admin feature layer — Neo-Brutalism Tartila.
+   Border tebal #134E4A, hard shadow, warna ceria (#FEF3C7, #FEF08A, #0D9488).
+   Dark mode digerakkan class `.dark` pada <html> (src/contexts/ThemeContext.tsx). */
 
 .admin-shell {
-  --admin-bg: #fafafa;
-  --admin-surface: #ffffff;
-  --admin-border: #e4e4e7;
-  --admin-accent: #059669;
-  --admin-accent-soft: #ecfdf5;
-  --admin-text: #18181b;
-  --admin-text-muted: #71717a;
-  --admin-danger: #dc2626;
-  --admin-skeleton: #e4e4e7;
+  --admin-bg: #fef3c7;
+  --admin-surface: #fffbeb;
+  --admin-border: #134e4a;
+  --admin-accent: #0d9488;
+  --admin-accent-soft: #fef08a;
+  --admin-text: #134e4a;
+  --admin-text-muted: #3f7f7a;
+  --admin-danger: #ff6b6b;
+  --admin-danger-soft: #fff0f0;
+  --admin-skeleton: #fde68a;
+  --admin-teal-soft: #ccfbf1;
 
   background-color: var(--admin-bg);
   color: var(--admin-text);
@@ -18,65 +21,109 @@
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
   font-size: 14px;
+  font-weight: 500;
   line-height: 1.5;
 }
 
 .dark .admin-shell {
-  --admin-bg: #09090b;
-  --admin-surface: #18181b;
-  --admin-border: #27272a;
-  --admin-accent: #10b981;
-  --admin-accent-soft: rgba(16, 185, 129, 0.12);
-  --admin-text: #f4f4f5;
-  --admin-text-muted: #a1a1aa;
-  --admin-danger: #f87171;
-  --admin-skeleton: #27272a;
+  --admin-bg: #0b1220;
+  --admin-surface: #101a2a;
+  --admin-border: #0d9488;
+  --admin-accent: #2dd4bf;
+  --admin-accent-soft: #123049;
+  --admin-text: #f0fdfa;
+  --admin-text-muted: #94b8b3;
+  --admin-danger: #ff6b6b;
+  --admin-danger-soft: #221015;
+  --admin-skeleton: #1c2b40;
+  --admin-teal-soft: #0f2f2c;
+}
+
+.admin-metro {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 22px,
+    color-mix(in srgb, var(--admin-accent-soft) 55%, transparent) 22px 24px
+  );
 }
 
 .admin-surface {
   background-color: var(--admin-surface);
+  border: 3px solid var(--admin-border) !important;
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--admin-border) !important;
 }
 
+/* Kartu tanpa border ganda saat pemanggilnya sudah menyediakan border. */
 .admin-border {
-  border-color: var(--admin-border);
+  border-color: var(--admin-border) !important;
 }
 
 .admin-muted {
   color: var(--admin-text-muted);
+  font-weight: 600;
 }
 
 .admin-accent-text {
   color: var(--admin-accent);
+  font-weight: 800;
 }
 
 .admin-accent-soft {
   background-color: var(--admin-accent-soft);
-  color: var(--admin-accent);
+  color: var(--admin-text);
+  border: 2.5px solid var(--admin-border);
+  font-weight: 800;
 }
 
 .admin-accent-bg {
   background-color: var(--admin-accent);
-  color: #ffffff;
+  color: var(--admin-text);
+  border: 3px solid var(--admin-border);
+  box-shadow: 3px 3px 0 var(--admin-border);
+  border-radius: 10px;
+  font-weight: 800;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.admin-accent-bg:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--admin-border);
+}
+
+.admin-accent-bg:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--admin-border);
 }
 
 .admin-header {
-  background-color: color-mix(in srgb, var(--admin-surface) 85%, transparent);
-  backdrop-filter: blur(8px);
+  background-color: var(--admin-bg);
   border-color: var(--admin-border);
+  font-weight: 700;
 }
 
 .admin-nav-item {
-  color: var(--admin-text-muted);
+  color: var(--admin-text);
+  font-weight: 700;
+  border: 2.5px solid transparent;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.12s ease;
 }
 
 .admin-nav-item:hover {
   background-color: var(--admin-accent-soft);
+  border-color: var(--admin-border);
   color: var(--admin-text);
 }
 
 .admin-nav-item[aria-current="page"] {
-  background-color: var(--admin-accent-soft);
-  color: var(--admin-accent);
+  background-color: var(--admin-accent);
+  border-color: var(--admin-border);
+  box-shadow: 3px 3px 0 var(--admin-border);
+  color: var(--admin-text);
 }
 
 .admin-scroll {

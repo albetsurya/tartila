@@ -246,7 +246,7 @@ function buildPoseSteps(
       ];
     case "wink":
       return [
-        { mood: "winking", anim: "float", speech: "Ciaat! 😉", duration: 2200 },
+        { mood: "winking", anim: "float", speech: "Ciaat!", duration: 2200 },
       ];
     case "dizzy":
       return [
@@ -271,7 +271,7 @@ function buildPoseSteps(
         {
           mood: "happy",
           anim: "singing",
-          speech: "Lalala~ 🎵",
+          speech: "Lalala~",
           duration: 4500,
         },
       ];
@@ -376,6 +376,7 @@ export function TilaCompanion({
   const isNavTab = isBottomNavTab(location.pathname);
 
   const showMascotStore = useEconomyStore((s) => s.showMascot);
+  const setShowMascot = useEconomyStore((s) => s.setShowMascot);
   const storeGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const effectiveGender = gender ?? (storeGender === "girl" ? "girl" : "boy");
   const mascotName = getMascotName(effectiveGender);
@@ -411,8 +412,13 @@ export function TilaCompanion({
   useEffect(() => {
     const handleToggle = (e: Event) => {
       const custom = e as CustomEvent<{ hidden: boolean }>;
-      if (typeof custom.detail?.hidden === "boolean") {
-        setIsHidden(custom.detail.hidden);
+      const next = custom.detail?.hidden;
+      if (
+        typeof next === "boolean" &&
+        next !== isHiddenRef.current &&
+        !isTransitioningRef.current
+      ) {
+        setIsHidden(next);
       }
     };
     window.addEventListener("tila:toggle-visibility", handleToggle);
@@ -468,6 +474,8 @@ export function TilaCompanion({
   const poseLockRef = useRef(false);
   const isHiddenRef = useRef(isHidden);
   isHiddenRef.current = isHidden;
+  const isTransitioningRef = useRef(isTransitioning);
+  isTransitioningRef.current = isTransitioning;
 
   const clearPoseTimers = useCallback(() => {
     poseTimersRef.current.forEach((id) => window.clearTimeout(id));
@@ -616,6 +624,9 @@ export function TilaCompanion({
       return;
     }
 
+    // PENTING: cabang ini hanya mereset animasi: JANGAN pernah
+    // memanggil setIsHidden(true) di sini, agar maskot tetap tampil
+    // saat pindah halaman (selama store menyatakan showMascot = true).
     if (isHidden || isNavTab) {
       zigzagX.set(0);
       flyY.set(0);
@@ -1100,6 +1111,7 @@ export function TilaCompanion({
       skipVisibilityAnimationRef.current = true;
 
       setIsHidden(true);
+      setShowMascot(false);
       setIsTransitioning(false);
       setTalking(false);
 
@@ -1126,6 +1138,7 @@ export function TilaCompanion({
 
     setIsTransitioning(true);
     setIsHidden(false);
+    setShowMascot(true);
 
     setSpeech(`Hai! ${mascotName} kembali!`);
     setMood("excited");

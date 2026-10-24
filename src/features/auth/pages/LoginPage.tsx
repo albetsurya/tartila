@@ -21,6 +21,7 @@ import {
   GamepadSvg,
   TrophySvg,
   BookOpenSvg,
+  SparklesSvg,
 } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import { TartilaLogo } from "@/features/ngaji-ceria/components/TartilaLogo";
@@ -354,7 +355,7 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F0FDF4] flex flex-col md:flex-row">
-      {/* SISI KIRI — Panel Maskot Interaktif Tito (Desktop 50%) */}
+      {/* SISI KIRI: Panel Maskot Interaktif Tito (Desktop 50%) */}
       <aside className="relative hidden md:flex md:w-1/2 flex-col items-center justify-center p-8 lg:p-12 bg-gradient-to-br from-[#0D9488] via-[#0F766E] to-[#134E4A] text-white overflow-hidden border-r-4 border-[#134E4A] shadow-[4px_0px_0px_#134E4A]">
         {/* Dekorasi Latar Neo-Brutalism */}
         <div className="pointer-events-none absolute -top-16 -left-16 h-64 w-64 rounded-full border-[8px] border-white/10" />
@@ -403,7 +404,7 @@ export function LoginPage() {
         </div>
       </aside>
 
-      {/* SISI KANAN — Form Login Neo-Brutalism (Desktop 50% / Mobile 100%) */}
+      {/* SISI KANAN: Form Login Neo-Brutalism (Desktop 50% / Mobile 100%) */}
       <main className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:px-6 md:p-12 w-full md:w-1/2 min-h-screen">
         <motion.div
           initial={false}
@@ -517,7 +518,13 @@ export function LoginPage() {
                 loading={isLoading}
                 className="mt-3 py-3.5 text-base shadow-[4px_4px_0px_#134E4A]"
               >
-                {isSuccess ? "Berhasil Masuk! ✨" : "Masuk Sekarang"}
+                {isSuccess ? (
+                  <span className="inline-flex items-center gap-1.5 justify-center">
+                    Berhasil Masuk! <SparklesSvg size={16} />
+                  </span>
+                ) : (
+                  "Masuk Sekarang"
+                )}
               </StickerButton>
             </form>
 
@@ -559,7 +566,7 @@ export function LoginPage() {
         </motion.div>
       </main>
 
-      {/* WELCOME OVERLAY — once per browser session */}
+      {/* WELCOME OVERLAY: once per browser session */}
       <AnimatePresence>
         {showWelcome ? (
           <motion.div

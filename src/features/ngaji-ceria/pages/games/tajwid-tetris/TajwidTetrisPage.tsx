@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { SparklesSvg } from "@/components/ui/CustomIcons";
 import { TajwidTetrisCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { playLetterAudio } from "../_shared/gameAudio";
@@ -180,8 +181,9 @@ function Game() {
               <span className="text-[10px] font-bold text-teal-700 block">
                 Baris Bersih
               </span>
-              <span className="text-base font-black text-amber-600">
-                {game.lines} ✨
+              <span className="text-base font-black text-amber-600 inline-flex items-center justify-end gap-1">
+                {game.lines}
+                <SparklesSvg size={14} className="text-amber-500" />
               </span>
             </div>
           </div>

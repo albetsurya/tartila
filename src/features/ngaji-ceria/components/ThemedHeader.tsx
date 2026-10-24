@@ -68,7 +68,7 @@ export function ThemedHeader({
         {children}
 
         <div className="relative z-10 flex items-center gap-2">
-          {/* Tombol Back gaya sticker — padding luas agar mudah diklik anak */}
+          {/* Tombol Back gaya sticker: padding luas agar mudah diklik anak */}
           <button
             type="button"
             onClick={onBack}

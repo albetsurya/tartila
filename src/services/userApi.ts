@@ -1,4 +1,7 @@
 import { callREST } from "./api";
+import { voucherApi, type RedeemVoucherResponse } from "./voucherApi";
+
+export type { RedeemVoucherResponse };
 
 export interface UserProfileResponse {
   user?: any;
@@ -75,5 +78,9 @@ export const userApi = {
     } catch {
       return await callREST<DailyRewardStatusResponse>("GET", "/api/user/daily-status");
     }
+  },
+
+  async redeemVoucher(code: string) {
+    return await voucherApi.redeemVoucher(code);
   },
 };

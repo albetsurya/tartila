@@ -52,7 +52,7 @@ const THEME_STYLE: Record<
 };
 
 /**
- * Cangkang game — layout fullscreen 100dvh: header (Back/Judul/Pause) shrink-0,
+ * Cangkang game: layout fullscreen 100dvh: header (Back/Judul/Pause) shrink-0,
  * dan <main> flex-1 memenuhi sisa layar sehingga HUD tidak menutupi arena.
  */
 export function GameShell({
@@ -183,7 +183,7 @@ export function GameShell({
         </div>
       </header>
 
-      {/* AREA KONTEN — memenuhi sisa layar, game live fullscreen */}
+      {/* AREA KONTEN: memenuhi sisa layar, game live fullscreen */}
       <main className="flex-1 w-full relative flex flex-col min-h-0">
         {children}
       </main>

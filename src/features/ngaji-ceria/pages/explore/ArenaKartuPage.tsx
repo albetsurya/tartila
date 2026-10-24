@@ -461,7 +461,7 @@ export default function ArenaKartuPage() {
       hideHeader={true}
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
-      {/* Meja kasino duel — fullscreen */}
+      {/* Meja kasino duel: fullscreen */}
       <div className="min-h-[100dvh] w-full bg-[#065F46] relative overflow-x-hidden pb-56">
         {/* Permukaan felt + bingkai kayu tepi */}
         <div

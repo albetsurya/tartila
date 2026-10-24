@@ -42,6 +42,22 @@ export interface ServerLeaderboardEntry {
   updatedAt: string;
 }
 
+/** Endpoint Warung Santri (bypass koin untuk role privileged — see handler_shop.go). */
+export interface ServerShopUnlockResult {
+  granted: boolean;
+  already: boolean;
+  coins: number;
+}
+
+export const shopApi = {
+  buyItem: (kind: string, itemId: string, price: number) =>
+    callREST<ServerShopUnlockResult>("POST", "/api/v1/shop/buy", {
+      kind,
+      itemId,
+      price,
+    }),
+};
+
 export interface ServerLeaderboardResponse {
   gameId: string;
   period: "daily" | "weekly";

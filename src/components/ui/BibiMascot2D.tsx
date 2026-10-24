@@ -1,4 +1,4 @@
-// 2.5D Tito mascot variants — a thin, performance-aware layer over the
+// 2.5D Tito mascot variants: a thin, performance-aware layer over the
 // hand-crafted `TitoMascot` (layered SVG + Framer Motion).
 //
 // - "animated": Framer Motion float + wing flaps (default).
@@ -45,7 +45,7 @@ export interface TitoWaveProps extends TitoMascot2DProps {
 export type BibiWaveProps = TitoWaveProps;
 
 /**
- * Tito waving — used on the login hero / welcome overlay.
+ * Tito waving: used on the login hero / welcome overlay.
  * Adds a gentle side-to-side tilt on top of the animated variant so it reads
  * as a greeting; collapses to a still SVG in the static variant.
  */

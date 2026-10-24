@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TilaMascot } from "@/components/ui/TilaMascot";
-import { SparklesSvg } from "@/components/ui/CustomIcons";
+import { SparklesSvg, CheckSvg, CopySvg, RocketSvg } from "@/components/ui/CustomIcons";
 import { ArenaSocket } from "../../services/arenaSocket";
 import { arenaApi } from "../../services/arenaApi";
 
@@ -94,9 +94,17 @@ export default function HostLobbyPage() {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="px-4 py-2 rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all"
             >
-              {copied ? "✓ Tautan Disalin!" : "📋 Salin Link Undangan"}
+              {copied ? (
+                <>
+                  <CheckSvg size={14} /> Tautan Disalin!
+                </>
+              ) : (
+                <>
+                  <CopySvg size={14} /> Salin Link Undangan
+                </>
+              )}
             </button>
             <span className="text-xs font-bold text-[#134E4A]/80">
               Total Soal: {roomInfo?.totalQuestions || 0}
@@ -150,7 +158,7 @@ export default function HostLobbyPage() {
             onClick={handleStartGame}
             className="w-full py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xl shadow-[6px_6px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Mulai Kuis Sekarang! 🚀
+            Mulai Kuis Sekarang! <RocketSvg size={24} />
           </button>
         </div>
       </div>

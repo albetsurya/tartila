@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NgajiCeriaLayout } from "@/features/ngaji-ceria/components/NgajiCeriaLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -40,8 +39,8 @@ export function UstadzRoomsPage() {
   );
 
   return (
-    <NgajiCeriaLayout title="Kelola Kelas" hideNav>
-      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
+    <>
+      <div className="w-full max-w-5xl space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex rounded-xl border-[3px] border-[#134E4A] bg-white p-1">
             {(["aktif", "arsip"] as const).map((key) => (
@@ -83,8 +82,77 @@ export function UstadzRoomsPage() {
 
         {!loading && !error && visible.length === 0 && (
           <StickerCard className="p-8 text-center">
-            <p className="text-sm font-black text-[#134E4A]">
-              Belum ada kelas {tab === "aktif" ? "aktif" : "di arsip"}.
+            {/* Ilustrasi kelas kosong bergaya Neo-Brutalism */}
+            <svg
+              viewBox="0 0 200 140"
+              className="mx-auto h-32 w-52"
+              role="img"
+              aria-label="Ilustrasi kelas kosong"
+            >
+              <rect
+                x="20"
+                y="30"
+                width="140"
+                height="90"
+                rx="14"
+                fill="#FEF08A"
+                stroke="#0A2540"
+                strokeWidth="5"
+              />
+              <rect
+                x="52"
+                y="52"
+                width="76"
+                height="46"
+                rx="8"
+                fill="#FFFFFF"
+                stroke="#0A2540"
+                strokeWidth="5"
+              />
+              <path
+                d="M52 52 L90 26 L128 52"
+                fill="#BBF7D0"
+                stroke="#0A2540"
+                strokeWidth="5"
+                strokeLinejoin="round"
+              />
+              <rect
+                x="66"
+                y="72"
+                width="48"
+                height="6"
+                rx="3"
+                fill="#0A2540"
+                opacity="0.35"
+              />
+              <rect
+                x="66"
+                y="84"
+                width="28"
+                height="6"
+                rx="3"
+                fill="#0A2540"
+                opacity="0.2"
+              />
+              <circle cx="172" cy="34" r="9" fill="#FF6B6B" stroke="#0A2540" strokeWidth="4" />
+              <path
+                d="M172 43 L172 62"
+                stroke="#0A2540"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+              <path
+                d="M168 40 L150 52 M176 40 L194 52"
+                stroke="#0A2540"
+                strokeWidth="4"
+                strokeLinecap="round"
+                transform="rotate(90 172 34)"
+              />
+            </svg>
+            <p className="mt-3 text-sm font-black text-[#134E4A]">
+              {tab === "aktif"
+                ? "Wah, kelasmu masih kosong. Yuk buat kelas pertamamu dan kumpulkan santri!"
+                : "Belum ada kelas di arsip. Kelas yang diarsipkan akan tampil di sini."}
             </p>
             {isTeacher && tab === "aktif" && (
               <StickerButton
@@ -126,6 +194,6 @@ export function UstadzRoomsPage() {
           ))}
         </div>
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }

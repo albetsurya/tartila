@@ -29,6 +29,9 @@ const NgajiCeriaRegisterPage = lazy(
 const MemberClassroomsPage = lazy(
   () => import("./features/ngaji-ceria/pages/MemberClassroomsPage").then((m) => ({ default: m.MemberClassroomsPage })),
 );
+const MemberRoomDetailPage = lazy(
+  () => import("./features/ngaji-ceria/pages/MemberRoomDetailPage").then((m) => ({ default: m.MemberRoomDetailPage })),
+);
 const MemberQuizPlayPage = lazy(
   () => import("./features/ngaji-ceria/pages/MemberQuizPlayPage").then((m) => ({ default: m.MemberQuizPlayPage })),
 );
@@ -52,6 +55,15 @@ const UstadzQuizListPage = lazy(
 );
 const UstadzQuizCreatePage = lazy(
   () => import("./features/ustadz/pages/UstadzQuizCreatePage").then((m) => ({ default: m.UstadzQuizCreatePage })),
+);
+const UstadzStudentReportPage = lazy(
+  () => import("./features/ustadz/pages/UstadzStudentReportPage").then((m) => ({ default: m.UstadzStudentReportPage })),
+);
+const UstadzProfilPage = lazy(
+  () => import("./features/ustadz/pages/UstadzProfilPage").then((m) => ({ default: m.UstadzProfilPage })),
+);
+const UstadzLayout = lazy(
+  () => import("./features/ustadz/layouts/UstadzLayout").then((m) => ({ default: m.UstadzLayout })),
 );
 const UstadzRouteGuard = lazy(
   () => import("./features/ustadz/components/UstadzRouteGuard").then((m) => ({ default: m.UstadzRouteGuard })),
@@ -605,6 +617,10 @@ export default function App() {
             path="/member/ngaji-ceria/notifications"
             element={<NotificationPage />}
           />
+          <Route
+            path="/member/ngaji-ceria/notifikasi"
+            element={<NotificationPage />}
+          />
 
           {/* TARTILA ARENA (REAL-TIME MULTIPLAYER QUIZ & EXAM) */}
           <Route path="/arena" element={<Navigate to="/arena/join" replace />} />
@@ -658,6 +674,10 @@ export default function App() {
             element={<MemberClassroomsPage />}
           />
           <Route
+            path="/member/ngaji-ceria/kelas/:roomId"
+            element={<MemberRoomDetailPage />}
+          />
+          <Route
             path="/member/ngaji-ceria/kelas/kuis/:quizId"
             element={
               <MemberGameRouteGuard>
@@ -666,13 +686,17 @@ export default function App() {
             }
           />
           <Route path="/ustadz" element={<UstadzRouteGuard />}>
-            <Route index element={<UstadzDashboardPage />} />
-            <Route path="kelas" element={<UstadzRoomsPage />} />
-            <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
-            <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
-            <Route path="kurikulum" element={<UstadzKurikulumPage />} />
-            <Route path="kuis" element={<UstadzQuizListPage />} />
-            <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
+            <Route element={<UstadzLayout />}>
+              <Route index element={<UstadzDashboardPage />} />
+              <Route path="kelas" element={<UstadzRoomsPage />} />
+              <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
+              <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
+              <Route path="kurikulum" element={<UstadzKurikulumPage />} />
+              <Route path="kuis" element={<UstadzQuizListPage />} />
+              <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
+              <Route path="laporan" element={<UstadzStudentReportPage />} />
+              <Route path="profil" element={<UstadzProfilPage />} />
+            </Route>
           </Route>
 
           {adminRouteElements}

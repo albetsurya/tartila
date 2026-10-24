@@ -43,7 +43,7 @@ export function MemoryGarden({ playerPairs, aiPairs, turn, mode }: { playerPairs
         ))}
       </div>
       <p className="mt-2 text-center text-[11px] font-bold text-teal-100">
-        {mode === "battle" ? `Milikmu ${playerPairs} — Kebun AI ${aiPairs}` : `${playerPairs}/${total} pasangan ditemukan`}
+        {mode === "battle" ? `Milikmu ${playerPairs} vs Kebun AI ${aiPairs}` : `${playerPairs}/${total} pasangan ditemukan`}
       </p>
     </motion.section>
   );

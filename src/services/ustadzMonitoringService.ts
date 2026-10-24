@@ -2,28 +2,16 @@
  * Adapter fitur tambahan panel ustadz: penugasan game, fokus materi kelas,
  * dan aktivitas monitoring.
  *
- * KONTRAK API / BACKEND (belum tersedia di Supabase):
- *
- * 1) Penugasan game ke kelas:
- *    tabel `ustadz_room_game_tasks`
- *      (room_id uuid, game_id text, assigned_by text, assigned_at timestamptz,
- *       UNIQUE(room_id, game_id))
- *    GET    /rest/v1/ustadz_room_game_tasks?room_id=eq.<id>
- *    POST   { room_id, game_id, assigned_by }
- *    DELETE ?room_id=eq.<id>&game_id=eq.<gid>
- *
- * 2) Fokus materi kelas:
- *    kolom `ustadz_rooms.focus_materi` (teks JSON array MateriPokok)
- *    PATCH { focus_materi: ["hijaiyah", "harakat"] }
- *
- * 3) Aktivitas monitoring santri:
- *    tabel `ustadz_room_activity_log`
- *      (room_id uuid, user_id text, game_id text, played_at timestamptz)
- *    GET ?room_id=eq.<id>&order=played_at.desc&limit=20
- *
- * Sampai backend siap: localStorage (1 & 2) dan generator mock deterministik (3).
+ * Mode penyimpanan:
+ * - Backend Supabase (tabel `ustadz_room_game_tasks`, `ustadz_room_focus`,
+ *   `activity_logs`, `materi_reads` — lihat migrasi
+ *   20261024120000_create_ustadz_panel_tables.sql) dipakai saat env
+ *   VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY terpasang.
+ * - Fallback localStorage + generator mock deterministik dipakai saat
+ *   Supabase belum dikonfigurasi (dev baru / unit test / offline).
  */
 
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { MateriPokok } from '@/data/learningCatalog';
 import type { MateriReadRecord } from '@/data/monitoring';
 
@@ -42,6 +30,13 @@ export interface ClassroomActivity {
   playedAt: string;
 }
 
+interface GameTaskRow {
+  room_id: string;
+  game_id: string;
+  assigned_by: string;
+  assigned_at: string;
+}
+
 function safeStorage(): Storage | null {
   try {
     if (typeof window === 'undefined') return null;
@@ -51,6 +46,15 @@ function safeStorage(): Storage | null {
   }
 }
 
+function toAssignment(row: GameTaskRow): GameAssignment {
+  return {
+    roomId: row.room_id,
+    gameId: row.game_id,
+    assignedBy: row.assigned_by,
+    assignedAt: row.assigned_at,
+  };
+}
+
 // ── Penugasan game ──────────────────────────────────────────────
 
 const ASSIGNMENT_KEY = 'tartila_ustadz_game_tasks';
@@ -58,6 +62,15 @@ const ASSIGNMENT_KEY = 'tartila_ustadz_game_tasks';
 export async function listGameAssignments(
   roomId: string,
 ): Promise<GameAssignment[]> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await supabase
+      .from('ustadz_room_game_tasks')
+      .select('room_id, game_id, assigned_by, assigned_at')
+      .eq('room_id', roomId)
+      .order('assigned_at', { ascending: true });
+    if (error || !data) return [];
+    return (data as GameTaskRow[]).map(toAssignment);
+  }
   const storage = safeStorage();
   if (!storage) return [];
   try {
@@ -80,14 +93,22 @@ export async function assignGameToRoom(
   gameId: string,
   ustadzId: string,
 ): Promise<GameAssignment> {
-  const storage = safeStorage();
-  const existing = await listGameAssignments(roomId);
   const assignment: GameAssignment = {
     roomId,
     gameId,
     assignedBy: ustadzId,
     assignedAt: new Date().toISOString(),
   };
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('ustadz_room_game_tasks')
+      .insert({ room_id: roomId, game_id: gameId, assigned_by: ustadzId });
+    if (!error) return assignment;
+    // Konflik unik (room_id, game_id): kelas sudah punya penugasan ini.
+    if ((error as { code?: string }).code === '23505') return assignment;
+  }
+  const storage = safeStorage();
+  const existing = await listGameAssignmentsFallback(roomId);
   if (storage && existing.every((item) => item.gameId !== gameId)) {
     storage.setItem(
       ASSIGNMENT_KEY,
@@ -101,20 +122,50 @@ export async function unassignGameFromRoom(
   roomId: string,
   gameId: string,
 ): Promise<void> {
+  if (isSupabaseConfigured) {
+    await supabase
+      .from('ustadz_room_game_tasks')
+      .delete()
+      .eq('room_id', roomId)
+      .eq('game_id', gameId);
+    return;
+  }
   const storage = safeStorage();
   if (!storage) return;
-  const existing = await listGameAssignments(roomId);
+  const existing = await listGameAssignmentsFallback(roomId);
   storage.setItem(
     ASSIGNMENT_KEY,
     JSON.stringify(existing.filter((item) => item.gameId !== gameId)),
   );
 }
 
+/** Sumber data fallback untuk mode localStorage. */
+async function listGameAssignmentsFallback(
+  roomId: string,
+): Promise<GameAssignment[]> {
+  if (isSupabaseConfigured) return [];
+  return listGameAssignments(roomId);
+}
+
 // ── Fokus materi kelas ──────────────────────────────────────────
 
 const FOCUS_KEY = 'tartila_ustadz_focus_materi';
 
-export function getRoomFocusMateri(roomId: string): MateriPokok[] {
+export async function getRoomFocusMateri(
+  roomId: string,
+): Promise<MateriPokok[]> {
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('ustadz_room_focus')
+      .select('materi')
+      .eq('room_id', roomId)
+      .maybeSingle<{ materi: unknown }>();
+    const parsed: unknown = data?.materi ?? null;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is MateriPokok => typeof item === 'string',
+    );
+  }
   const storage = safeStorage();
   if (!storage) return [];
   try {
@@ -129,33 +180,202 @@ export function getRoomFocusMateri(roomId: string): MateriPokok[] {
   }
 }
 
-export function setRoomFocusMateri(
+export async function setRoomFocusMateri(
   roomId: string,
   materi: readonly MateriPokok[],
-): void {
+): Promise<void> {
+  if (isSupabaseConfigured) {
+    await supabase
+      .from('ustadz_room_focus')
+      .upsert(
+        { room_id: roomId, materi: [...materi], updated_at: new Date().toISOString() },
+        { onConflict: 'room_id' },
+      );
+    return;
+  }
   const storage = safeStorage();
   if (!storage) return;
   storage.setItem(`${FOCUS_KEY}:${roomId}`, JSON.stringify(materi));
 }
 
-// ── Aktivitas monitoring (MOCK deterministik) ───────────────────
+// ── Laporan santri (MOCK pedagogis) ─────────────────────────────
 
-/** Generator angka pseudo-random deterministik dari seed. */
-function seededRandom(seed: string): () => number {
-  let state = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    state = (state * 31 + seed.charCodeAt(i)) >>> 0;
+/** Status pedagogis santri — bukan status online/offline ala chat. */
+export type StudentActivityStatus =
+  | "rajin"
+  | "hanya-quiz"
+  | "butuh-perhatian";
+
+export type StudentActivity = {
+  name: string;
+  /** Label manusiawi, mis. "2 jam lalu". */
+  lastActive: string;
+  /** Jam sejak aktivitas terakhir, untuk perhitungan status. */
+  lastActiveHours: number;
+  /** Total latihan (jelajah materi + game). */
+  practiceCount: number;
+  /** Total kuis yang dikerjakan. */
+  quizCount: number;
+  status: StudentActivityStatus;
+};
+
+/** Aksi kontekstual untuk guru, ditampilkan sebagai kartu alert dashboard. */
+export interface TeacherAlert {
+  id: string;
+  kind: "kuis-belum-dikerjakan" | "kurang-latihan" | "apresiasi";
+  title: string;
+  actionLabel: "Lihat" | "Beri Tugas" | "Beri Apresiasi";
+}
+
+export const STUDENT_STATUS_LABELS: Readonly<
+  Record<StudentActivityStatus, string>
+> = {
+  rajin: "Rajin",
+  "hanya-quiz": "Hanya Kuis",
+  "butuh-perhatian": "Butuh Perhatian",
+};
+
+/** GOLDEN RULE status: >72 jam hening = perlu perhatian; 0–1 latihan = hanya kuis. */
+export function studentActivityStatus(input: {
+  lastActiveHours: number;
+  practiceCount: number;
+  quizCount: number;
+}): StudentActivityStatus {
+  if (input.lastActiveHours > 72) return "butuh-perhatian";
+  if (input.practiceCount <= 1) return "hanya-quiz";
+  return "rajin";
+}
+
+function activityLabel(hours: number): string {
+  if (hours < 1) return "Baru saja";
+  if (hours < 24) return `${Math.round(hours)} jam lalu`;
+  return `${Math.round(hours / 24)} hari lalu`;
+}
+
+/**
+ * MOCK: profil aktivitas pedagogis tiap santri per kelas.
+ * Lapisan data nanti disambung ke tabel activity_logs (Supabase).
+ */
+export async function listStudentActivities(
+  roomId: string,
+): Promise<StudentActivity[]> {
+  const seedRoom: Omit<
+    StudentActivity,
+    "lastActive" | "status"
+  >[] = [
+    { name: "Aisyah", lastActiveHours: 2, practiceCount: 15, quizCount: 2 },
+    { name: "Budi", lastActiveHours: 1, practiceCount: 0, quizCount: 5 },
+    { name: "Citra", lastActiveHours: 120, practiceCount: 3, quizCount: 1 },
+    { name: "Dani", lastActiveHours: 6, practiceCount: 6, quizCount: 0 },
+  ];
+  void roomId;
+  return seedRoom.map((student) => ({
+    ...student,
+    lastActive: activityLabel(student.lastActiveHours),
+    status: studentActivityStatus(student),
+  }));
+}
+
+/** MOCK: riwayat aktivitas minggu ini untuk satu santri (modal detail). */
+export interface StudentWeekLog {
+  /** Nama hari, mis. "Senin". */
+  day: string;
+  activity: string;
+}
+
+export async function listStudentWeekActivity(
+  roomId: string,
+  name: string,
+): Promise<StudentWeekLog[]> {
+  const seed: Record<string, StudentWeekLog[]> = {
+    Aisyah: [
+      { day: "Senin", activity: "Latihan · Menara Tilawati" },
+      { day: "Selasa", activity: "Kuis · Tilawati Jilid 1" },
+      { day: "Rabu", activity: "Latihan · Tangkap Harakat" },
+      { day: "Jumat", activity: "Latihan · Tajwid Tetris" },
+    ],
+    Budi: [
+      { day: "Selasa", activity: "Kuis · Tilawati Jilid 1" },
+      { day: "Kamis", activity: "Kuis · Gelanggang Tahfidz" },
+    ],
+    Citra: [
+      { day: "Senin", activity: "Latihan · Makhraj Master" },
+    ],
+    Dani: [
+      { day: "Rabu", activity: "Latihan · Roda Hijaiyah" },
+      { day: "Jumat", activity: "Latihan · Hijaiyah Pop" },
+    ],
+  };
+  void roomId;
+  return seed[name] ?? [];
+}
+
+/** MOCK: alert aksi guru hari ini, diturunkan dari profil aktivitas santri. */
+export async function listTodayAlerts(
+  roomId: string,
+): Promise<TeacherAlert[]> {
+  const students = await listStudentActivities(roomId);
+  if (students.length === 0) return [];
+
+  const notDoneQuiz = students.filter((student) => student.quizCount === 0);
+  const quizOnly = students.filter(
+    (student) => student.status === "hanya-quiz",
+  );
+  const champion = [...students]
+    .filter((student) => student.status === "rajin")
+    .sort((a, b) => b.practiceCount - a.practiceCount)[0];
+
+  const alerts: TeacherAlert[] = [];
+  if (notDoneQuiz.length > 0) {
+    alerts.push({
+      id: "quiz-pending",
+      kind: "kuis-belum-dikerjakan",
+      title: `${notDoneQuiz.length} santri belum mengerjakan kuis kelas ini.`,
+      actionLabel: "Lihat",
+    });
   }
-  state = state === 0 ? 88675123 : state;
-  return () => {
-    state = (state * 1103515245 + 12345) >>> 0;
-    return state / 4294967296;
+  if (quizOnly.length > 0) {
+    alerts.push({
+      id: "quiz-only",
+      kind: "kurang-latihan",
+      title: `${quizOnly.length} santri hanya kerjakan kuis, belum pernah buka latihan/game.`,
+      actionLabel: "Beri Tugas",
+    });
+  }
+  if (champion) {
+    alerts.push({
+      id: "apresiasi",
+      kind: "apresiasi",
+      title: `Selamat! ${champion.name} paling sering berlatih minggu ini.`,
+      actionLabel: "Beri Apresiasi",
+    });
+  }
+  return alerts;
+}
+
+// ── Aktivitas monitoring ────────────────────────────────────────
+
+interface ActivityRow {
+  id: string;
+  room_id: string;
+  user_id: string;
+  game_id: string;
+  played_at: string;
+}
+
+function toActivity(row: ActivityRow): ClassroomActivity {
+  return {
+    id: row.id,
+    roomId: row.room_id,
+    userId: row.user_id,
+    gameId: row.game_id,
+    playedAt: row.played_at,
   };
 }
 
 /**
- * MOCK: menghasilkan feed aktivitas yang stabil per (roomId, userId).
- * Nanti diganti query `ustadz_room_activity_log` sesuai kontrak di atas.
+ * Mode Supabase: baca tabel `activity_logs`.
+ * Fallback: generator mock deterministik agar feed stabil per (roomId, userId).
  */
 export async function listClassroomActivities(
   roomId: string,
@@ -163,6 +383,16 @@ export async function listClassroomActivities(
   limit = 20,
 ): Promise<ClassroomActivity[]> {
   if (userIds.length === 0) return [];
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('activity_logs')
+      .select('id, room_id, user_id, game_id, played_at')
+      .eq('room_id', roomId)
+      .order('played_at', { ascending: false })
+      .limit(limit);
+    if (!data) return [];
+    return (data as ActivityRow[]).map(toActivity);
+  }
   const random = seededRandom(`${roomId}:${userIds.join(',')}`);
   const activities: ClassroomActivity[] = [];
   const total = Math.min(limit, 4 + Math.floor(random() * limit));
@@ -179,12 +409,29 @@ export async function listClassroomActivities(
   return activities;
 }
 
-// ── Progres baca materi (MOCK deterministik) ────────────────────
+/** Generator angka pseudo-random deterministik dari seed. */
+function seededRandom(seed: string): () => number {
+  let state = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    state = (state * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  state = state === 0 ? 88675123 : state;
+  return () => {
+    state = (state * 1103515245 + 12345) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+// ── Progres baca materi ─────────────────────────────────────────
+
+interface MateriReadRow {
+  user_id: string;
+  materi_id: string;
+}
 
 /**
- * MOCK: daftar santri yang sudah membuka tiap materi kurikulum.
- * Nanti diganti query tabel `ustadz_room_materi_reads`
- * (room_id uuid, user_id text, materi_id text, read_at timestamptz).
+ * Mode Supabase: baca tabel `materi_reads` untuk daftar santri & materi.
+ * Fallback: mock deterministik (akses acak stabil dari seed).
  */
 export async function listMateriReadProgress(
   roomId: string,
@@ -192,6 +439,19 @@ export async function listMateriReadProgress(
   materiIds: readonly string[],
 ): Promise<MateriReadRecord[]> {
   if (userIds.length === 0 || materiIds.length === 0) return [];
+  if (isSupabaseConfigured) {
+    const { data } = await supabase
+      .from('materi_reads')
+      .select('user_id, materi_id')
+      .eq('room_id', roomId)
+      .in('user_id', [...userIds])
+      .in('materi_id', [...materiIds]);
+    if (!data) return [];
+    return (data as MateriReadRow[]).map((row) => ({
+      userId: row.user_id,
+      materiId: row.materi_id,
+    }));
+  }
   const random = seededRandom(`${roomId}:reads:${userIds.join(',')}`);
   const records: MateriReadRecord[] = [];
   for (const userId of userIds) {

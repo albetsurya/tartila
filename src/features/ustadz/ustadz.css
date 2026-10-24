@@ -1,0 +1,116 @@
+/* Panel Ustadz — Neo-Brutalism versi profesional.
+   Dominasi Biru Dongker (#0A2540), Teal (#0D9488), dan Krem lembut.
+   Tanpa warna kekanak-kanakan. Font tetap tebal sesuai gaya Tartila. */
+
+.ustadz-shell {
+  --ustadz-bg: #f4f1ea;
+  --ustadz-surface: #ffffff;
+  --ustadz-border: #0a2540;
+  --ustadz-accent: #0d9488;
+  --ustadz-accent-soft: #e6f4f1;
+  --ustadz-text: #0a2540;
+  --ustadz-text-muted: #4a5a6b;
+  --ustadz-danger: #b91c1c;
+  --ustadz-danger-soft: #fdecec;
+  --ustadz-skeleton: #e3e0d8;
+
+  background-color: var(--ustadz-bg);
+  color: var(--ustadz-text);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.ustadz-surface {
+  background-color: var(--ustadz-surface);
+  border: 3px solid var(--ustadz-border) !important;
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--ustadz-border) !important;
+}
+
+.ustadz-border {
+  border-color: var(--ustadz-border) !important;
+}
+
+.ustadz-muted {
+  color: var(--ustadz-text-muted);
+  font-weight: 600;
+}
+
+.ustadz-accent-text {
+  color: var(--ustadz-accent);
+  font-weight: 800;
+}
+
+.ustadz-accent-soft {
+  background-color: var(--ustadz-accent-soft);
+  color: var(--ustadz-text);
+  border: 2.5px solid var(--ustadz-border);
+  font-weight: 800;
+}
+
+.ustadz-accent-bg {
+  background-color: var(--ustadz-accent);
+  color: #ffffff;
+  border: 3px solid var(--ustadz-border);
+  box-shadow: 3px 3px 0 var(--ustadz-border);
+  border-radius: 10px;
+  font-weight: 800;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ustadz-accent-bg:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ustadz-border);
+}
+
+.ustadz-accent-bg:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ustadz-border);
+}
+
+.ustadz-header {
+  background-color: var(--ustadz-bg);
+  border-color: var(--ustadz-border);
+  font-weight: 700;
+}
+
+.ustadz-nav-item {
+  color: var(--ustadz-text);
+  font-weight: 700;
+  border: 2.5px solid transparent;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.12s ease;
+}
+
+.ustadz-nav-item:hover {
+  background-color: var(--ustadz-accent-soft);
+  border-color: var(--ustadz-border);
+  color: var(--ustadz-text);
+}
+
+.ustadz-nav-item[aria-current="page"] {
+  background-color: var(--ustadz-accent);
+  border-color: var(--ustadz-border);
+  box-shadow: 3px 3px 0 var(--ustadz-border);
+  color: #ffffff;
+}
+
+.ustadz-scroll {
+  scrollbar-width: thin;
+}
+
+.ustadz-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ustadz-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--ustadz-border);
+  border-radius: 9999px;
+}

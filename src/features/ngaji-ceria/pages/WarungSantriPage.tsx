@@ -21,9 +21,14 @@ import {
   WizardHatSvg,
   HeadphoneSvg,
   SleepMaskSvg,
+  HairbowSvg,
+  PaletteSvg,
+  SunSvg,
 } from "@/components/ui/CustomIcons";
 import { ChevronLeft, Info } from "@/components/ui/CustomIcons";
 import { PetiHartaSvg } from "@/components/ui/Illustrations";
+import { playSfx } from "./games/_shared/audio";
+import { tapFeedback } from "@/lib/haptics";
 import {
   ENERGY_PRICES,
   HEART_MAX,
@@ -34,12 +39,16 @@ import {
   type EnergyKind,
 } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { normalizeRole } from "@/lib/roles";
+import { shopApi } from "../services/ngajiCeriaApi";
 import {
   getProgress,
   spendCoins,
   subscribeProgress,
 } from "./games/_shared/progression";
 import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
+import { TilaMascot } from "@/components/ui/TilaMascot";
+import { SKIN_ITEMS, type SkinItem } from "../data/shopData";
 
 function useCoinsBalance(): number {
   const [coins, setCoins] = useState(() => getProgress().coins);
@@ -47,7 +56,7 @@ function useCoinsBalance(): number {
   return coins;
 }
 
-type ShopTab = "energi" | "kostum" | "kamar" | "game" | "booster";
+type ShopTab = "energi" | "skin" | "kostum" | "kamar" | "game" | "app" | "booster";
 
 const TAB_ITEMS: Array<{
   key: ShopTab;
@@ -62,6 +71,12 @@ const TAB_ITEMS: Array<{
     activeColor: "bg-[#0D9488] text-white",
   },
   {
+    key: "skin",
+    label: "Skin",
+    icon: SparklesSvg,
+    activeColor: "bg-[#059669] text-white",
+  },
+  {
     key: "kostum",
     label: "Kostum",
     icon: ShirtSvg,
@@ -69,7 +84,7 @@ const TAB_ITEMS: Array<{
   },
   {
     key: "kamar",
-    label: "Kamar Tito",
+    label: "Tema Kamar",
     icon: HomeSvg,
     activeColor: "bg-[#8B5CF6] text-white",
   },
@@ -78,6 +93,12 @@ const TAB_ITEMS: Array<{
     label: "Tema Game",
     icon: GamepadSvg,
     activeColor: "bg-[#0284C7] text-white",
+  },
+  {
+    key: "app",
+    label: "Tema Aplikasi",
+    icon: PaletteSvg,
+    activeColor: "bg-[#0D9488] text-white",
   },
   {
     key: "booster",
@@ -102,7 +123,7 @@ const ROOM_THEMES: ThemeItem[] = [
   {
     id: "default",
     name: "Kamar Klasik",
-    desc: "Kamar hangat khas Tartila — gratis untuk semua santri.",
+    desc: "Kamar hangat khas Tartila: gratis untuk semua santri.",
     price: 0,
     iconComponent: HomeSvg,
     iconColor: "text-[#0D9488]",
@@ -184,6 +205,59 @@ const GAME_THEMES: ThemeItem[] = [
   },
 ];
 
+const APP_THEMES: ThemeItem[] = [
+  {
+    id: "default",
+    name: "Hijau Zamrud",
+    desc: "Tema orisinal Tartila yang segar, menyejukkan, dan ceria.",
+    price: 0,
+    iconComponent: SparklesSvg,
+    iconColor: "text-[#0D9488]",
+    badgeBg: "bg-[#DCFCE7]",
+    swatch: "#0D9488",
+  },
+  {
+    id: "sky",
+    name: "Langit Biru",
+    desc: "Nuansa biru samudra yang sejuk, lapang, dan menenangkan.",
+    price: 250,
+    iconComponent: SunSvg,
+    iconColor: "text-[#0284C7]",
+    badgeBg: "bg-[#E0F2FE]",
+    swatch: "#0284C7",
+  },
+  {
+    id: "rose",
+    name: "Sakura Manis",
+    desc: "Latar merah muda lembut yang hangat, ramah, dan memikat.",
+    price: 250,
+    iconComponent: HeartSvg,
+    iconColor: "text-[#E11D48]",
+    badgeBg: "bg-[#FFE4E6]",
+    swatch: "#E11D48",
+  },
+  {
+    id: "night",
+    name: "Malam Khusyuk",
+    desc: "Paduan slate modern dan indigo elegan untuk suasana fokus.",
+    price: 300,
+    iconComponent: MoonSvg,
+    iconColor: "text-[#4F46E5]",
+    badgeBg: "bg-[#E0E7FF]",
+    swatch: "#4F46E5",
+  },
+  {
+    id: "gold",
+    name: "Kemilau Emas",
+    desc: "Kemewahan emas bersahaja yang bercahaya dan bersemangat.",
+    price: 300,
+    iconComponent: StarSvg,
+    iconColor: "text-[#CA8A04]",
+    badgeBg: "bg-[#FEF9C3]",
+    swatch: "#CA8A04",
+  },
+];
+
 const ACCESSORY_ITEMS = [
   {
     id: "turban",
@@ -259,7 +333,7 @@ const COSTUME_ITEMS = [
     id: "hairbow",
     name: "Pita Rambut",
     desc: "Pita cantik berwarna merah muda yang manis dan anggun.",
-    iconComponent: SparklesSvg,
+    iconComponent: HairbowSvg,
     price: 200,
     accent: "coral",
     category: "girl" as const,
@@ -320,18 +394,20 @@ const BOOSTER_ITEMS = [
   },
 ];
 
-/** Daftar item tema (Kamar / Téma Game) — menyerupai UI Tab Kostum */
+/** Daftar item tema (Kamar / Téma Game): menyerupai UI Tab Kostum */
 function ThemeShopList({
   items,
   coinsBalance,
   ownedIds,
   equippedId,
+  isSuperAdmin = false,
   onToggle,
 }: {
   items: ThemeItem[];
   coinsBalance: number;
   ownedIds: string[];
   equippedId: string;
+  isSuperAdmin?: boolean;
   onToggle: (item: ThemeItem) => void;
 }) {
   return (
@@ -341,7 +417,7 @@ function ThemeShopList({
           const isOwned = ownedIds.includes(item.id) || item.id === "default";
           const isEquipped = equippedId === item.id;
           const Icon = item.iconComponent;
-          const affordable = coinsBalance >= item.price;
+          const affordable = isSuperAdmin || coinsBalance >= item.price;
 
           return (
             <StickerCard
@@ -398,11 +474,17 @@ function ThemeShopList({
                 <StickerButton
                   variant={affordable ? "primary" : "secondary"}
                   size="sm"
-                  className="shrink-0"
+                  className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
                   disabled={!affordable}
                   onClick={() => onToggle(item)}
                 >
-                  <CoinSvg size={14} /> {item.price}
+                  {isSuperAdmin ? (
+                    <span className="text-[#0D9488]">GRATIS · Ambil</span>
+                  ) : (
+                    <>
+                      <CoinSvg size={14} /> {item.price}
+                    </>
+                  )}
                 </StickerButton>
               )}
             </StickerCard>
@@ -419,9 +501,11 @@ export default function WarungSantriPage() {
   const initialTab = (searchParams.get("tab") as ShopTab) || "energi";
   const VALID_TABS: ShopTab[] = [
     "energi",
+    "skin",
     "kostum",
     "kamar",
     "game",
+    "app",
     "booster",
   ];
   const [activeTab, setActiveTab] = useState<ShopTab>(
@@ -459,10 +543,46 @@ export default function WarungSantriPage() {
   const buyGameTheme = useEconomyStore((s) => s.buyGameTheme);
   const equipGameTheme = useEconomyStore((s) => s.equipGameTheme);
 
+  // Kustomisasi Tema Aplikasi
+  const ownedAppThemes = useEconomyStore((s) => s.ownedAppThemes);
+  const equippedAppTheme = useEconomyStore((s) => s.equippedAppTheme);
+  const buyAppTheme = useEconomyStore((s) => s.buyAppTheme);
+  const equipAppTheme = useEconomyStore((s) => s.equipAppTheme);
+
+  // Kustomisasi Skin Maskot (Naga & Robot)
+  const equippedSkin = useEconomyStore((s) => s.equippedSkin);
+  const ownedSkins = useEconomyStore((s) => s.ownedSkins);
+  const buySkin = useEconomyStore((s) => s.buySkin);
+  const equipSkin = useEconomyStore((s) => s.equipSkin);
+
   const tilaGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotName = getMascotName(tilaGender);
 
   const [message, setMessage] = useState<string | null>(null);
+  const [purchasedThemeModal, setPurchasedThemeModal] = useState<{
+    item: ThemeItem;
+    scope: "kamar" | "game" | "app";
+  } | null>(null);
+
+  // Privilege Superadmin/Admin: semua item Warung gratis (backend bypass koin).
+  const isSuperAdmin =
+    normalizeRole(user?.role) === "admin" ||
+    normalizeRole(user?.role) === "superadmin";
+
+  // Optimistic unlock + catat ke backend (gratis untuk privileged role).
+  const unlockItem = (
+    kind: "accessory" | "room_theme" | "game_theme" | "app_theme" | "booster" | "skin",
+    itemId: string,
+    price: number,
+  ) => {
+    shopApi
+      .buyItem(kind as any, itemId, price)
+      .catch(() =>
+        setMessage(
+          "Item terbuka lokal; backend sedang tidak terjangkau, sinkron nanti.",
+        ),
+      );
+  };
 
   const stock: Record<EnergyKind, number> = { heart: hearts, ticket: tickets };
 
@@ -473,20 +593,28 @@ export default function WarungSantriPage() {
       setMessage("Kamu memiliki energi tak terbatas (Superadmin/VIP)!");
       return;
     }
-    if (purchasedToday(item.kind) >= SHOP_DAILY_LIMIT) {
-      setMessage(`Batas ${SHOP_DAILY_LIMIT}x penukaran harian sudah tercapai.`);
-      return;
+    if (!isSuperAdmin) {
+      if (purchasedToday(item.kind) >= SHOP_DAILY_LIMIT) {
+        setMessage(
+          `Batas ${SHOP_DAILY_LIMIT}x penukaran harian sudah tercapai.`,
+        );
+        return;
+      }
+      if (!spendCoins(price)) {
+        setMessage("Koin Hijaiyah-mu belum cukup.");
+        return;
+      }
     }
     if (stock[item.kind] >= item.max) {
       setMessage("Energimu sudah penuh, mainkan dulu ya.");
       return;
     }
-    if (!spendCoins(price)) {
-      setMessage("Koin Hijaiyah-mu belum cukup.");
-      return;
-    }
     grantEnergy(item.kind);
-    setMessage("Berhasil ditukar!");
+    setMessage(
+      isSuperAdmin
+        ? "GRATIS! Energi berhasil ditambahkan."
+        : "Berhasil ditukar!",
+    );
   };
 
   const handleBuyCostume = async (item: (typeof COSTUME_ITEMS)[number]) => {
@@ -508,13 +636,14 @@ export default function WarungSantriPage() {
       return;
     }
 
-    if (coins < item.price) {
+    if (!isSuperAdmin && coins < item.price) {
       setMessage("Koin Hijaiyah-mu belum cukup untuk kostum ini.");
       return;
     }
 
-    const success = await buyAccessory(item.id, item.price);
+    const success = await buyAccessory(item.id, item.price, isSuperAdmin);
     if (success) {
+      unlockItem("accessory", item.id, item.price);
       if (!isFit) {
         const targetGender = item.category === "boy" ? "boy" : "girl";
         setTilaGender(targetGender);
@@ -537,13 +666,18 @@ export default function WarungSantriPage() {
       setMessage("Hatimu sudah penuh maksimal!");
       return;
     }
-    if (coins < item.price) {
+    if (!isSuperAdmin && coins < item.price) {
       setMessage("Koin Hijaiyah-mu belum cukup untuk booster ini.");
       return;
     }
-    const success = await buyBooster(item.id, item.price);
+    const success = await buyBooster(item.id, item.price, isSuperAdmin);
     if (success) {
-      setMessage(`Alhamdulillah! ${item.name} berhasil diaktifkan!`);
+      unlockItem("booster", item.id, item.price);
+      setMessage(
+        isSuperAdmin
+          ? `GRATIS! ${item.name} langsung aktif.`
+          : `Alhamdulillah! ${item.name} berhasil diaktifkan!`,
+      );
     } else {
       setMessage("Koin Hijaiyah-mu belum cukup.");
     }
@@ -552,14 +686,17 @@ export default function WarungSantriPage() {
   const handleBuyAccessoryItem = async (
     item: (typeof ACCESSORY_ITEMS)[number],
   ): Promise<boolean> => {
-    if (coins < item.price) {
+    if (!isSuperAdmin && coins < item.price) {
       setMessage("Koin Hijaiyah-mu belum cukup untuk aksesoris ini.");
       return false;
     }
-    const success = await buyAccessory(item.id, item.price);
+    const success = await buyAccessory(item.id, item.price, isSuperAdmin);
     if (success) {
+      unlockItem("accessory", item.id, item.price);
       setMessage(
-        `Alhamdulillah! ${item.name} berhasil dibeli dan langsung dipakai!`,
+        isSuperAdmin
+          ? `GRATIS! ${item.name} terbuka dan dipakai!`
+          : `Alhamdulillah! ${item.name} berhasil dibeli dan langsung dipakai!`,
       );
       return true;
     }
@@ -580,34 +717,106 @@ export default function WarungSantriPage() {
     await handleBuyAccessoryItem(item);
   };
 
-  const handleToggleTheme = (item: ThemeItem, scope: "kamar" | "game") => {
-    const owned = scope === "kamar" ? ownedRoomThemes : ownedGameThemes;
-    const equipped = scope === "kamar" ? equippedRoomTheme : equippedGameTheme;
+  const handleToggleTheme = (
+    item: ThemeItem,
+    scope: "kamar" | "game" | "app",
+  ) => {
+    const owned =
+      scope === "kamar"
+        ? ownedRoomThemes
+        : scope === "game"
+          ? ownedGameThemes
+          : ownedAppThemes;
+    const equipped =
+      scope === "kamar"
+        ? equippedRoomTheme
+        : scope === "game"
+          ? equippedGameTheme
+          : equippedAppTheme;
 
     if (equipped === item.id) return;
 
     if (owned.includes(item.id)) {
       if (scope === "kamar") equipRoomTheme(item.id);
-      else equipGameTheme(item.id);
+      else if (scope === "game") equipGameTheme(item.id);
+      else equipAppTheme(item.id);
+      playSfx("correct");
+      tapFeedback();
       setMessage(`Tema ${item.name} berhasil dipakaikan!`);
       return;
     }
 
-    if (coins < item.price) {
+    if (!isSuperAdmin && coins < item.price) {
+      playSfx("wrong");
       setMessage("Koin Hijaiyah-mu belum cukup untuk tema ini.");
       return;
     }
 
     const success =
       scope === "kamar"
-        ? buyRoomTheme(item.id, item.price)
-        : buyGameTheme(item.id, item.price);
+        ? buyRoomTheme(item.id, item.price, isSuperAdmin, false)
+        : scope === "game"
+          ? buyGameTheme(item.id, item.price, isSuperAdmin, false)
+          : buyAppTheme(item.id, item.price, isSuperAdmin, false);
+
     if (success) {
+      unlockItem(
+        scope === "kamar"
+          ? "room_theme"
+          : scope === "game"
+            ? "game_theme"
+            : "app_theme",
+        item.id,
+        item.price,
+      );
+      playSfx("powerup");
+      tapFeedback();
+      setPurchasedThemeModal({ item, scope });
+    } else {
+      playSfx("wrong");
+      setMessage("Koin Hijaiyah-mu belum cukup.");
+    }
+  };
+
+  const handleBuySkin = (item: SkinItem) => {
+    const isOwned =
+      ownedSkins.includes(item.id) ||
+      ownedSkins.includes(item.skinKey) ||
+      item.id === "skin_default";
+
+    if (isOwned) {
+      equipSkin(item.id);
+      setMessage(`Skin ${item.name} berhasil dipakaikan!`);
+      return;
+    }
+
+    const isTicket = item.currency === "ticket";
+    if (!isSuperAdmin && !isUnlimited) {
+      if (isTicket) {
+        if (tickets < item.price) {
+          setMessage("Tiket Bermain-mu belum cukup untuk skin ini.");
+          return;
+        }
+      } else {
+        if (coins < item.price) {
+          setMessage("Koin Hijaiyah-mu belum cukup untuk skin ini.");
+          return;
+        }
+      }
+    }
+
+    const success = buySkin(item.id, item.price, item.currency || "coin");
+    if (success) {
+      unlockItem("skin", item.id, item.price);
       setMessage(
-        `Alhamdulillah! Tema ${item.name} berhasil dibeli dan langsung dipakaikan!`,
+        isSuperAdmin
+          ? `GRATIS! Skin ${item.name} berhasil dibuka dan dipakaikan!`
+          : `Alhamdulillah! Skin ${item.name} berhasil dibuka dan dipakaikan!`,
       );
     } else {
-      setMessage("Koin Hijaiyah-mu belum cukup.");
+      setMessage(
+        isTicket ? "Tiket Bermain-mu belum cukup." : "Koin Hijaiyah-mu belum cukup.",
+      );
     }
   };
 
@@ -629,6 +838,23 @@ export default function WarungSantriPage() {
 
       {/* KONTEN SCROLLABLE */}
       <div className="px-4 py-4 pb-20 flex-1 overflow-y-auto flex flex-col">
+        {/* BANNER PRIVILEGE SUPERADMIN */}
+        {isSuperAdmin && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border-[3px] border-[#F59E0B] bg-[#FEF08A] p-4 shadow-[4px_4px_0px_#134E4A]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#B45309]">
+              <CrownSvg size={22} />
+            </span>
+            <div>
+              <p className="text-sm font-black text-[#134E4A]">
+                Mode Superadmin: Semua item gratis &amp; otomatis terbuka!
+              </p>
+              <p className="text-[10px] font-bold text-[#134E4A]/70">
+                Ambil item tanpa memotong Koin Hati maupun Tiket.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* HEADER MASKOT & STATUS */}
         <div className="flex flex-col items-center justify-center text-center pt-2 pb-2">
           <PetiHartaSvg size={80} className="mb-2 drop-shadow-md" />
@@ -666,7 +892,7 @@ export default function WarungSantriPage() {
           </div>
         </div>
 
-        {/* TAB NAVIGATION — SCROLLABLE HORIZONTAL (STICKER STYLE) */}
+        {/* TAB NAVIGATION: SCROLLABLE HORIZONTAL (STICKER STYLE) */}
         <div className="mt-5 p-1.5 rounded-2xl bg-white border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
           <div className="flex gap-2 overflow-x-auto pb-1 pt-1 px-1 scrollbar-thin [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TAB_ITEMS.map((tab) => {
@@ -725,10 +951,14 @@ export default function WarungSantriPage() {
             <div className="space-y-3 pb-8">
               {ENERGY_ITEMS.map((item) => {
                 const price = ENERGY_PRICES[item.kind];
-                const soldOut = purchasedToday(item.kind) >= SHOP_DAILY_LIMIT;
+                const soldOut = isSuperAdmin
+                  ? false
+                  : purchasedToday(item.kind) >= SHOP_DAILY_LIMIT;
                 const full = stock[item.kind] >= item.max;
                 const affordable =
-                  coins >= price && !isVip && !soldOut && !full;
+                  (isSuperAdmin || (coins >= price && !isVip)) &&
+                  !soldOut &&
+                  !full;
 
                 return (
                   <StickerCard
@@ -767,13 +997,155 @@ export default function WarungSantriPage() {
                     <StickerButton
                       variant={affordable ? "primary" : "secondary"}
                       size="sm"
-                      className="shrink-0"
+                      className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
                       disabled={!affordable}
                       onClick={() => handleExchangeEnergy(item)}
                     >
-                      <CoinSvg size={14} /> {price}
+                      {isSuperAdmin ? (
+                        <span className="text-[#0D9488]">GRATIS · Ambil</span>
+                      ) : (
+                        <>
+                          <CoinSvg size={14} /> {price}
+                        </>
+                      )}
                     </StickerButton>
                   </StickerCard>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: SKIN MASKOT (NAGA & ROBOT) */}
+        {activeTab === "skin" && (
+          <div className="space-y-4 mt-4 pb-8">
+            <SectionHeader
+              title={`Skin Eksklusif ${mascotName}`}
+              icon={<SparklesSvg size={16} />}
+              accent="teal"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {SKIN_ITEMS.map((item) => {
+                const isOwned =
+                  ownedSkins.includes(item.id) ||
+                  ownedSkins.includes(item.skinKey) ||
+                  item.id === "skin_default";
+                const isEquipped =
+                  (equippedSkin || "default") === item.skinKey;
+                const isTicket = item.currency === "ticket";
+                const affordable =
+                  isSuperAdmin ||
+                  isUnlimited ||
+                  (isTicket ? tickets >= item.price : coins >= item.price);
+
+                const isMythic = item.rarity === "Mythic";
+                const isLegendary = item.rarity === "Legendary";
+
+                const badgeBgColor = isMythic
+                  ? "bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 text-amber-900 border-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] font-black"
+                  : isLegendary
+                    ? "bg-[#FEF3C7] text-[#B45309] border-[#F59E0B]"
+                    : item.skinKey === "naga"
+                      ? "bg-[#D1FAE5] text-[#065F46] border-[#059669]"
+                      : item.skinKey === "robot"
+                        ? "bg-[#CFFAFE] text-[#155E75] border-[#0891B2]"
+                        : "bg-[#FEF3C7] text-[#92400E] border-[#D97706]";
+
+                const cardBorderClass = isMythic
+                  ? "border-[3px] border-[#B45309] bg-gradient-to-b from-[#FFFDF5] to-white shadow-[4px_4px_0px_#B45309] ring-2 ring-amber-400/40 hover:shadow-[6px_6px_0px_#B45309]"
+                  : "border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A] hover:shadow-[6px_6px_0px_#134E4A]";
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all hover:translate-y-[-2px] ${cardBorderClass}`}
+                  >
+                    {/* Header Card: Name & Badges */}
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                        <span
+                          className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md border-2 ${badgeBgColor}`}
+                        >
+                          {item.rarity || item.badgeText || "KLASIK"}
+                        </span>
+                        {isEquipped ? (
+                          <span className="text-[10px] font-black bg-[#134E4A] text-white px-2.5 py-0.5 rounded-md border-2 border-[#134E4A] flex items-center gap-1 shadow-[1px_1px_0px_#134E4A]">
+                            <CheckSvg size={12} /> Dipakai
+                          </span>
+                        ) : isOwned ? (
+                          <span className="text-[10px] font-black bg-[#CCFBF1] text-[#0F766E] px-2.5 py-0.5 rounded-md border-2 border-[#0F766E]">
+                            Dimiliki
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <h3 className="font-display text-lg font-black text-[#134E4A]">
+                        {item.name}
+                      </h3>
+                      <p className="text-[11px] font-bold text-[#134E4A]/70 mt-0.5">
+                        {item.desc}
+                      </p>
+                    </div>
+
+                    {/* Mascot Interactive Preview */}
+                    <div className="relative my-4 flex h-40 w-full items-center justify-center rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] overflow-hidden shadow-[2px_2px_0px_#134E4A]">
+                      <div className="scale-95 transform">
+                        <TilaMascot
+                          size={110}
+                          skin={item.skinKey}
+                          mood={isEquipped ? "happy" : "idle"}
+                          direction="front"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Footer: Effect & Action Button */}
+                    <div className="pt-2 border-t-2 border-dashed border-[#134E4A]/20 space-y-3">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#134E4A]/80">
+                        <SparklesSvg size={14} className="text-[#059669] shrink-0" />
+                        <span>
+                          Efek: <span className="font-black text-[#134E4A]">{item.effect}</span>
+                        </span>
+                      </div>
+
+                      {isEquipped ? (
+                        <div className="w-full py-2.5 px-3 rounded-xl bg-[#134E4A] text-white text-xs font-black border-[2px] border-[#134E4A] flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#134E4A]">
+                          <CheckSvg size={14} /> Sedang Dipakai
+                        </div>
+                      ) : isOwned ? (
+                        <StickerButton
+                          variant="primary"
+                          size="md"
+                          className="w-full"
+                          onClick={() => handleBuySkin(item)}
+                        >
+                          Pakaikan
+                        </StickerButton>
+                      ) : (
+                        <StickerButton
+                          variant={affordable ? "primary" : "secondary"}
+                          size="md"
+                          className="w-full"
+                          disabled={!affordable}
+                          onClick={() => handleBuySkin(item)}
+                        >
+                          <div className="flex items-center justify-center gap-1.5">
+                            {isTicket ? (
+                              <TicketSvg size={16} />
+                            ) : (
+                              <CoinSvg size={16} />
+                            )}
+                            <span>
+                              {isSuperAdmin || isUnlimited
+                                ? "Buka Gratis (VIP)"
+                                : `${item.price} ${isTicket ? "Tiket" : "Koin"}`}
+                            </span>
+                          </div>
+                        </StickerButton>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -901,13 +1273,23 @@ export default function WarungSantriPage() {
                       </StickerButton>
                     ) : (
                       <StickerButton
-                        variant={affordable ? "primary" : "secondary"}
+                        variant={
+                          isSuperAdmin || affordable ? "primary" : "secondary"
+                        }
                         size="sm"
-                        className="shrink-0"
-                        disabled={!affordable}
+                        className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
+                        disabled={!isSuperAdmin && !affordable}
                         onClick={() => handleBuyCostume(item)}
                       >
-                        <CoinSvg size={14} /> {item.price}
+                        {isSuperAdmin ? (
+                          <span className="text-[#0D9488]">
+                            GRATIS · Ambil
+                          </span>
+                        ) : (
+                          <>
+                            <CoinSvg size={14} /> {item.price}
+                          </>
+                        )}
                       </StickerButton>
                     )}
                   </StickerCard>
@@ -980,17 +1362,21 @@ export default function WarungSantriPage() {
                     ) : (
                       <StickerButton
                         variant={
-                          isOwned || coins >= item.price
+                          isOwned || isSuperAdmin || coins >= item.price
                             ? "primary"
                             : "secondary"
                         }
                         size="sm"
-                        className="shrink-0"
-                        disabled={!isOwned && coins < item.price}
+                        className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
+                        disabled={!isOwned && !isSuperAdmin && coins < item.price}
                         onClick={() => handleToggleAccessoryItem(item)}
                       >
                         {isOwned ? (
                           "Pakai"
+                        ) : isSuperAdmin ? (
+                          <span className="text-[#0D9488]">
+                            GRATIS · Ambil
+                          </span>
                         ) : (
                           <>
                             <CoinSvg size={14} /> {item.price}
@@ -1012,6 +1398,7 @@ export default function WarungSantriPage() {
             coinsBalance={coins}
             ownedIds={ownedRoomThemes}
             equippedId={equippedRoomTheme}
+            isSuperAdmin={isSuperAdmin}
             onToggle={(item) => handleToggleTheme(item, "kamar")}
           />
         )}
@@ -1023,7 +1410,20 @@ export default function WarungSantriPage() {
             coinsBalance={coins}
             ownedIds={ownedGameThemes}
             equippedId={equippedGameTheme}
+            isSuperAdmin={isSuperAdmin}
             onToggle={(item) => handleToggleTheme(item, "game")}
+          />
+        )}
+
+        {/* TAB: KUSTOMISASI TEMA APLIKASI */}
+        {activeTab === "app" && (
+          <ThemeShopList
+            items={APP_THEMES}
+            coinsBalance={coins}
+            ownedIds={ownedAppThemes}
+            equippedId={equippedAppTheme}
+            isSuperAdmin={isSuperAdmin}
+            onToggle={(item) => handleToggleTheme(item, "app")}
           />
         )}
         {activeTab === "booster" && (
@@ -1075,13 +1475,21 @@ export default function WarungSantriPage() {
                     </div>
 
                     <StickerButton
-                      variant={affordable ? "primary" : "secondary"}
+                      variant={
+                        isSuperAdmin || affordable ? "primary" : "secondary"
+                      }
                       size="sm"
-                      className="shrink-0"
-                      disabled={!affordable}
+                      className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
+                      disabled={!isSuperAdmin && !affordable}
                       onClick={() => handleBuyBooster(item)}
                     >
-                      <CoinSvg size={14} /> {item.price}
+                      {isSuperAdmin ? (
+                        <span className="text-[#0D9488]">GRATIS · Ambil</span>
+                      ) : (
+                        <>
+                          <CoinSvg size={14} /> {item.price}
+                        </>
+                      )}
                     </StickerButton>
                   </StickerCard>
                 );
@@ -1090,6 +1498,64 @@ export default function WarungSantriPage() {
           </div>
         )}
       </div>
+
+      {/* Modal Sukses Pembelian Tema (Pakai Sekarang) */}
+      {purchasedThemeModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="relative w-full max-w-sm rounded-3xl border-4 border-[#134E4A] bg-[#F0FDF4] p-6 shadow-[6px_6px_0px_#134E4A] text-center">
+            <div
+              className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+              style={{ backgroundColor: purchasedThemeModal.item.swatch }}
+            >
+              <purchasedThemeModal.item.iconComponent
+                size={32}
+                className={purchasedThemeModal.item.iconColor}
+              />
+            </div>
+            <h3 className="font-display text-xl font-black text-[#134E4A]">
+              Alhamdulillah!
+            </h3>
+            <p className="mt-1 text-sm font-bold text-[#134E4A]/80">
+              Tema <strong>{purchasedThemeModal.item.name}</strong> berhasil kamu dapatkan! Mau langsung memakainya sekarang?
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <StickerButton
+                variant="primary"
+                size="md"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={() => {
+                  if (purchasedThemeModal.scope === "kamar") {
+                    equipRoomTheme(purchasedThemeModal.item.id);
+                  } else if (purchasedThemeModal.scope === "game") {
+                    equipGameTheme(purchasedThemeModal.item.id);
+                  } else {
+                    equipAppTheme(purchasedThemeModal.item.id);
+                  }
+                  playSfx("correct");
+                  tapFeedback();
+                  setMessage(
+                    `Tema ${purchasedThemeModal.item.name} berhasil dipakaikan!`,
+                  );
+                  setPurchasedThemeModal(null);
+                }}
+              >
+                <CheckSvg size={16} /> Pakai Sekarang
+              </StickerButton>
+              <button
+                type="button"
+                onClick={() => setPurchasedThemeModal(null)}
+                className="w-full py-2 text-xs font-bold text-[#134E4A]/70 hover:text-[#134E4A] cursor-pointer"
+              >
+                Nanti Saja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,7 +36,13 @@ interface AuthContextValue {
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
   login: (identifier: string, password: string) => Promise<void>; // email atau username
-  registerCeria: (name: string, username: string, password: string, confirmPassword: string) => Promise<void>;
+  registerCeria: (
+    name: string,
+    username: string,
+    password: string,
+    confirmPassword: string,
+    referralCode?: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   groupId: string | null;
@@ -300,16 +306,27 @@ function AuthProvider({ children }: { children: ReactNode }) {
           void useEconomyStore.getState().setTilaGender(mascotGender);
         }
         if (u) {
+          const isVipUser = Boolean(profileRes.is_vip ?? u.is_vip ?? (u.role === 'SUPER_ADMIN'));
           setUser((prev) => {
             if (!prev) return prev;
-            return {
+            const updated = {
               ...prev,
               name: u.name || prev.name,
               role: u.role || prev.role,
               group_id: u.group_id ?? prev.group_id,
               gender: rawMascot || prev.gender,
+              is_vip: isVipUser,
             };
+            try {
+              localStorage.setItem("tartila_cached_user", JSON.stringify(updated));
+            } catch {
+              // noop
+            }
+            return updated;
           });
+          if (isVipUser) {
+            useEconomyStore.getState().applyVipSuccess();
+          }
         }
       }
 
@@ -377,9 +394,16 @@ function AuthProvider({ children }: { children: ReactNode }) {
     username: string,
     password: string,
     confirmPassword: string,
+    referralCode?: string,
   ) => {
     try {
-      await authApi.registerCeria(name, username, password, confirmPassword);
+      await authApi.registerCeria(
+        name,
+        username,
+        password,
+        confirmPassword,
+        referralCode,
+      );
       await refreshUser();
     } catch (err) {
       console.error('Ceria register error:', err);

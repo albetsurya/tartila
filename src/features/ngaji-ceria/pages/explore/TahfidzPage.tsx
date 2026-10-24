@@ -175,7 +175,7 @@ function LanternVisual({
         strokeWidth="2"
       />
 
-      {/* 1. ROYAL GOLD — Lentera Kubah Emas Klasik */}
+      {/* 1. ROYAL GOLD: Lentera Kubah Emas Klasik */}
       {variant === "royalGold" && (
         <g>
           <path
@@ -223,7 +223,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 2. CRYSTAL GEM — Lentera Permata Biru Segi Enam */}
+      {/* 2. CRYSTAL GEM: Lentera Permata Biru Segi Enam */}
       {variant === "crystalGem" && (
         <g>
           <polygon
@@ -250,7 +250,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 3. EMERALD DOME — Lentera Masjid Zamrud */}
+      {/* 3. EMERALD DOME: Lentera Masjid Zamrud */}
       {variant === "emeraldDome" && (
         <g>
           <path
@@ -286,7 +286,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 4. CRESCENT MOON — Lentera Pelukan Bulan Sabit */}
+      {/* 4. CRESCENT MOON: Lentera Pelukan Bulan Sabit */}
       {variant === "crescentMoon" && (
         <g>
           <circle
@@ -322,7 +322,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 5. RUBY PALACE — Lentera Istana Merah Delima */}
+      {/* 5. RUBY PALACE: Lentera Istana Merah Delima */}
       {variant === "rubyPalace" && (
         <g>
           <path
@@ -369,7 +369,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 6. SKY TOWER — Lentera Menara Angkasa Biru */}
+      {/* 6. SKY TOWER: Lentera Menara Angkasa Biru */}
       {variant === "skyTower" && (
         <g>
           <path
@@ -405,7 +405,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 7. VIOLET STAR — Lentera Bintang Ungu Magis */}
+      {/* 7. VIOLET STAR: Lentera Bintang Ungu Magis */}
       {variant === "violetStar" && (
         <g>
           <path
@@ -453,7 +453,7 @@ function LanternVisual({
         </g>
       )}
 
-      {/* 8. SUNSET LOTUS — Lentera Teratai Senja */}
+      {/* 8. SUNSET LOTUS: Lentera Teratai Senja */}
       {variant === "sunsetLotus" && (
         <g>
           <path

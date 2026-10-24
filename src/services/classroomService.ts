@@ -32,6 +32,7 @@ export interface ClassroomRoom {
   archived: boolean;
   createdAt: string;
   participantCount: number;
+  duelEnabled: boolean;
   /** Terisi oleh listJoinedClassrooms (nama pengajar kelas). */
   ustadzName?: string | null;
 }
@@ -119,6 +120,7 @@ interface RoomRow {
   is_active: boolean | null;
   archived: boolean | null;
   created_at: string | null;
+  duel_enabled: boolean | null;
   ustadz_room_participants?: Array<{ count: number }>;
 }
 
@@ -137,11 +139,12 @@ function toRoom(row: RoomRow): ClassroomRoom {
     archived: row.archived ?? false,
     createdAt: row.created_at ?? new Date(0).toISOString(),
     participantCount: counts.length > 0 ? (counts[0].count ?? 0) : 0,
+    duelEnabled: row.duel_enabled ?? true,
   };
 }
 
 const ROOM_COLUMNS =
-  'id, ustadz_id, name, description, target_jilid, join_code, password_hash, max_participants, is_active, archived, created_at';
+  'id, ustadz_id, name, description, target_jilid, join_code, password_hash, max_participants, is_active, archived, created_at, duel_enabled';
 
 function mapDbError(error: { code?: string; message?: string }): ClassroomErrorCode {
   if (error.code === '23505') return 'conflict';

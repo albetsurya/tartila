@@ -1,3 +1,4 @@
+import { StarSvg } from "@/components/ui/CustomIcons";
 import type { LeaderboardEntry } from "./progression";
 
 export function LeaderboardPanel({
@@ -22,7 +23,7 @@ export function LeaderboardPanel({
           >
             <span>
               <b className="mr-2 text-[#FF6B6B]">#{index + 1}</b>
-              {index === 0 && <span className="mr-1 text-[#F59E0B]">★</span>}
+              {index === 0 && <StarSvg size={12} className="inline mr-1 text-[#F59E0B]" />}
               {entry.name}
             </span>
             <b className="font-black">{entry.score}</b>

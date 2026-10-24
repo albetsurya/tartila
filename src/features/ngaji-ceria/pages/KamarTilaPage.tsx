@@ -25,9 +25,13 @@ import {
   Music,
   Eye,
   Fire,
+  Home,
+  HairbowSvg,
 } from "@/components/ui/CustomIcons";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { useEconomyStore, type TilaGender } from "../hooks/useEconomyStore";
+import { useEconomyStore, isUnlimitedUser, type TilaGender } from "../hooks/useEconomyStore";
+import { useAuth } from "@/contexts/AuthContext";
+import { SKIN_ITEMS } from "../data/shopData";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import {
   TilaMascot,
@@ -81,7 +85,7 @@ const ACCESSORIES: AccessoryConfig[] = [
     name: "Pita Rambut",
     desc: "Pita cantik berwarna merah muda yang manis dan anggun.",
     category: "girl",
-    iconComponent: Sparkles,
+    iconComponent: HairbowSvg,
     price: 200,
   },
   {
@@ -409,19 +413,80 @@ const TAP_REACTIONS: Array<{
 
 type RoomThemeId = "default" | "galaksi" | "hutan" | "istana";
 
+const ROOM_THEMES_CONFIG = [
+  {
+    id: "default",
+    name: "Kamar Klasik",
+    desc: "Kamar hangat khas Tartila",
+    price: 0,
+    swatch: "#F0FDF4",
+    wallPreview: "bg-[#DBEAFE]",
+    floorPreview: "bg-[#CCFBF1]",
+  },
+  {
+    id: "galaksi",
+    name: "Galaksi Bima Sakti",
+    desc: "Planet & bintang berkilau",
+    price: 500,
+    swatch: "#1E1B4B",
+    wallPreview: "bg-[#1E1B4B]",
+    floorPreview: "bg-[#312E81]",
+  },
+  {
+    id: "hutan",
+    name: "Hutan Rimba",
+    desc: "Pohon & rumput menjuntai",
+    price: 500,
+    swatch: "#166534",
+    wallPreview: "bg-[#DCFCE7]",
+    floorPreview: "bg-[#BBF7D0]",
+  },
+  {
+    id: "istana",
+    name: "Istana Pasir",
+    desc: "Kastil mini & karpet merah",
+    price: 800,
+    swatch: "#E7C59E",
+    wallPreview: "bg-[#FEF3C7]",
+    floorPreview: "bg-[#E7C59E]",
+  },
+];
+
 function RoomDecor({
   gender,
   themeId,
+  time,
 }: {
   gender: TilaGender;
   themeId: string;
+  time: Date;
 }) {
   const isGirl = gender === "girl";
+  const normalizedId = (themeId === "theme_space" || themeId === "space")
+    ? "galaksi"
+    : (themeId === "theme_default" || themeId === "classic" || themeId === "theme_classic")
+    ? "default"
+    : (themeId === "theme_forest")
+    ? "hutan"
+    : (themeId === "theme_castle")
+    ? "istana"
+    : themeId;
   const theme: RoomThemeId = (
-    ["default", "galaksi", "hutan", "istana"].includes(themeId)
-      ? themeId
+    ["default", "galaksi", "hutan", "istana"].includes(normalizedId)
+      ? normalizedId
       : "default"
   ) as RoomThemeId;
+
+  // FASE 2: Jam Real-Time & Siklus Siang/Malam
+  const hours = time.getHours();
+  const minutes = time.getMinutes();
+  const seconds = time.getSeconds();
+  const isDay = hours >= 6 && hours < 18;
+  const timeStr = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+
+  const hourAngle = ((hours % 12) + minutes / 60) * 30;
+  const minuteAngle = (minutes + seconds / 60) * 6;
+  const secondAngle = seconds * 6;
 
   // Warna dasar sesuai tema (tetap neo-brutalism dengan garis tebal #134E4A)
   let wallColor = isGirl ? "bg-[#FCE7F3]" : "bg-[#DBEAFE]";
@@ -448,14 +513,20 @@ function RoomDecor({
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-[-1] overflow-hidden"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
       aria-hidden="true"
     >
       {/* Langit/dinding + lantai */}
       <div className={`absolute inset-x-0 top-0 h-[68%] ${wallColor}`} />
       <div className={`absolute inset-x-0 bottom-0 h-[32%] ${floorColor}`} />
 
+      {/* Garis pembatas lantai & dinding Neo-Brutalism */}
       <div className="absolute inset-x-0 top-[68%] h-[6px] bg-[#134E4A] z-10" />
+
+      {/* ── Redup malam (18:00 - 05:59): suasana kamar sedikit meredup ── */}
+      {!isDay && (
+        <div className="absolute inset-x-0 top-0 h-[68%] bg-[#0F172A]/25 z-[5] pointer-events-none transition-colors duration-700" />
+      )}
 
       {/* ── Tema GALAKSI: bintang & planet ── */}
       {theme === "galaksi" && (
@@ -613,112 +684,233 @@ function RoomDecor({
         </>
       )}
 
-      {/* Jendela */}
-      <div className="absolute left-[8%] top-[10%] w-24 h-28 sm:w-32 sm:h-36 border-[4px] border-[#134E4A] bg-white rounded-t-full shadow-[4px_4px_0px_#134E4A] p-1.5 flex flex-col items-center">
+      {/* ── 1. JENDELA (Terhubung Siklus Siang/Malam) ── */}
+      <div className="absolute left-[5%] top-[8%] w-24 h-32 sm:w-32 sm:h-40 border-[4px] border-[#134E4A] bg-[#FFFDF0] rounded-t-full shadow-[4px_4px_0px_#134E4A] p-1.5 flex flex-col items-center z-[6]">
         <div
-          className={`w-full h-full ${
+          className={`w-full h-full rounded-t-full border-[2.5px] border-[#134E4A] relative overflow-hidden transition-colors duration-700 ${
             theme === "galaksi"
               ? "bg-[#0F0A3C]"
-              : theme === "hutan"
-                ? "bg-[#86EFAC]"
-                : theme === "istana"
-                  ? "bg-[#FDE68A]"
-                  : "bg-[#38BDF8]"
-          } rounded-t-full border-[2.5px] border-[#134E4A] relative overflow-hidden`}
+              : isDay
+                ? "bg-[#38BDF8]"
+                : "bg-[#0F172A]"
+          }`}
         >
-          {theme !== "hutan" && (
+          {theme !== "galaksi" && isDay ? (
+            /* Siang: Langit Biru Cerah, Matahari & Awan */
             <>
-              <div className="absolute top-2 right-2 w-8 h-8 sm:w-10 sm:h-10 bg-[#FBBF24] border-[2.5px] border-[#134E4A] rounded-full" />
-              <div className="absolute top-8 left-1 w-12 h-6 bg-white border-[2.5px] border-[#134E4A] rounded-full" />
-              <div className="absolute top-10 left-6 w-8 h-5 bg-white border-[2.5px] border-[#134E4A] rounded-full" />
+              {/* Matahari */}
+              <div className="absolute top-2 right-2 w-7 h-7 sm:w-9 sm:h-9 bg-[#FBBF24] border-[2.5px] border-[#134E4A] rounded-full shadow-[1px_1px_0px_#134E4A]">
+                <div className="w-full h-full rounded-full bg-[#FDE047]/60" />
+              </div>
+              {/* Awan putih berjejer */}
+              <div className="absolute top-8 left-1 w-11 h-5 bg-white border-[2px] border-[#134E4A] rounded-full" />
+              <div className="absolute top-10 left-5 w-9 h-4 bg-white border-[2px] border-[#134E4A] rounded-full" />
+              <div className="absolute bottom-3 right-1 w-12 h-5 bg-white/90 border-[2px] border-[#134E4A] rounded-full" />
             </>
-          )}
-          {theme === "hutan" && (
+          ) : (
+            /* Malam: Langit Gelap, Bulan Sabit & Bintang */
             <>
-              <div className="absolute top-3 right-2 w-8 h-8 sm:w-10 sm:h-10 bg-[#16A34A] border-[2.5px] border-[#134E4A] rounded-[50%]" />
-              <div className="absolute top-9 left-1 w-12 h-6 bg-[#4ADE80] border-[2.5px] border-[#134E4A] rounded-full" />
-              <div className="absolute top-11 left-6 w-8 h-5 bg-[#22C55E] border-[2.5px] border-[#134E4A] rounded-full" />
+              {/* Bulan Sabit */}
+              <svg
+                className="absolute top-2 right-2 w-7 h-7 sm:w-9 sm:h-9"
+                viewBox="0 0 36 36"
+              >
+                <path
+                  d="M 24 4 A 14 14 0 1 0 24 32 A 11 11 0 1 1 24 4 Z"
+                  fill="#FEF08A"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+              </svg>
+              {/* Bintang berkelap-kelip */}
+              <div className="absolute top-4 left-3 w-1.5 h-1.5 bg-[#FEF08A] rounded-full animate-ping" />
+              <div className="absolute top-8 left-6 w-2 h-2 bg-white rounded-full" />
+              <div className="absolute top-14 left-2 w-1.5 h-1.5 bg-[#FEF08A] rounded-full" />
+              <div className="absolute bottom-6 right-3 w-2 h-2 bg-white rounded-full" />
+              <div className="absolute bottom-10 left-5 w-1 h-1 bg-white rounded-full" />
             </>
-          )}
-          {theme === "galaksi" && (
-            <div className="absolute inset-0">
-              <div className="absolute top-3 left-3 w-1.5 h-1.5 bg-white rounded-full" />
-              <div className="absolute top-9 left-9 w-1 bg-white rounded-full" />
-              <div className="absolute top-14 left-16 w-1.5 h-1.5 bg-[#FEF08A] rounded-full" />
-              <div className="absolute top-6 left-20 w-1 h-1 bg-white rounded-full" />
-            </div>
-          )}
-          {theme === "istana" && (
-            <div className="absolute bottom-2 left-1 w-14 h-8 bg-[#22C55E] border-[2.5px] border-[#134E4A] rounded-t-[50%]" />
           )}
         </div>
+        {/* Teralis Jendela Neo-Brutalism */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[3px] bg-[#134E4A]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[3px] h-[120%] bg-[#134E4A]" />
       </div>
 
-      {/* Rak buku */}
-      <div className="absolute right-[8%] top-[12%] w-24 sm:w-32 border-[3.5px] border-[#134E4A] bg-[#FBBF24] shadow-[4px_4px_0px_#134E4A] p-2 rounded-xl flex flex-col gap-2">
-        <div className="flex items-end justify-center gap-1 h-12">
-          <div className="w-4 h-10 bg-[#EF4444] border-[2px] border-[#134E4A] rounded-t-sm" />
-          <div className="w-4 h-12 bg-[#3B82F6] border-[2px] border-[#134E4A] rounded-t-sm" />
-          <div className="w-4 h-8 bg-[#10B981] border-[2px] border-[#134E4A] rounded-t-sm" />
-          <div className="w-4 h-11 bg-[#A855F7] border-[2px] border-[#134E4A] rounded-t-sm" />
+      {/* ── 2. POSTER DINDING (Ka'bah & Bintang Mini) ── */}
+      <div className="absolute left-[33%] top-[8%] w-13 sm:w-16 h-18 sm:h-22 border-[3px] border-[#134E4A] bg-[#FFFDF0] rounded-xl shadow-[3px_3px_0px_#134E4A] p-1 flex flex-col items-center justify-between z-[6]">
+        {/* Selotip poster */}
+        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-2 bg-[#FEF08A] border border-[#134E4A] -rotate-3" />
+        <div className="w-full h-full rounded-lg bg-[#ECFDF5] border-2 border-[#134E4A] flex flex-col items-center justify-center p-1 relative overflow-hidden">
+          {/* Bintang emas di atas Ka'bah */}
+          <div className="flex items-center gap-0.5 mb-1">
+            <span className="text-[9px] text-[#D97706] font-black">★</span>
+            <div className="w-1.5 h-1.5 rounded-full border border-[#134E4A] bg-[#FBBF24]" />
+          </div>
+          {/* Kubus Ka'bah */}
+          <div className="w-6 h-6 bg-[#18181B] border-2 border-[#134E4A] rounded-xs relative shadow-xs">
+            {/* Kiswah emas */}
+            <div className="absolute top-1 inset-x-0 h-[2px] bg-[#FBBF24]" />
+            {/* Pintu Ka'bah */}
+            <div className="absolute bottom-0 right-1 w-1.5 h-3 bg-[#FBBF24] border-[1px] border-[#134E4A]" />
+          </div>
+          <span className="text-[6px] font-black uppercase tracking-wider text-[#134E4A] mt-1">
+            Ka'bah
+          </span>
         </div>
-        <div className="w-full h-2 bg-[#134E4A] rounded-full" />
       </div>
 
-      {/* Jam dinding */}
+      {/* ── 3. JAM DINDING REAL-TIME (Analog + Digital) ── */}
+      <div className="absolute left-1/2 top-[5%] -translate-x-1/2 flex flex-col items-center gap-1 z-[6]">
+        <div
+          className={`relative w-15 h-15 sm:w-17 sm:h-17 border-[3.5px] border-[#134E4A] rounded-full shadow-[3px_3px_0px_#134E4A] flex items-center justify-center ${
+            theme === "galaksi" ? "bg-[#1E1B4B]" : "bg-white"
+          }`}
+        >
+          {/* Tanda jam 12, 3, 6, 9 */}
+          <div className="absolute top-1 w-1 h-1 rounded-full bg-[#134E4A]" />
+          <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#134E4A]" />
+          <div className="absolute left-1 w-1 h-1 rounded-full bg-[#134E4A]" />
+          <div className="absolute right-1 w-1 h-1 rounded-full bg-[#134E4A]" />
+
+          {/* Jarum Jam */}
+          <div
+            className="absolute top-1/2 left-1/2 w-1.5 h-4 bg-[#134E4A] rounded-full origin-bottom"
+            style={{ transform: `translate(-50%, -100%) rotate(${hourAngle}deg)` }}
+          />
+
+          {/* Jarum Menit */}
+          <div
+            className="absolute top-1/2 left-1/2 w-1 h-5.5 bg-[#0D9488] rounded-full origin-bottom"
+            style={{ transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)` }}
+          />
+
+          {/* Jarum Detik */}
+          <div
+            className="absolute top-1/2 left-1/2 w-0.5 h-6 bg-[#FF6B6B] rounded-full origin-bottom"
+            style={{ transform: `translate(-50%, -100%) rotate(${secondAngle}deg)` }}
+          />
+
+          {/* Poros Tengah */}
+          <div className="w-2.5 h-2.5 rounded-full border border-[#134E4A] bg-[#FEF08A] z-10" />
+        </div>
+
+        {/* Teks Digital Jam Format HH:MM */}
+        <span className="rounded-md border-2 border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-[9px] font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] tabular-nums">
+          {timeStr}
+        </span>
+      </div>
+
+      {/* ── 4. RAK BUKU (Buku Tegak: Iqro, Tilawati, Juz Amma) ── */}
+      <div className="absolute right-[5%] top-[8%] w-28 sm:w-36 border-[3.5px] border-[#134E4A] bg-[#F59E0B] shadow-[4px_4px_0px_#134E4A] p-2 rounded-2xl flex flex-col gap-1.5 z-[6]">
+        <div className="flex items-end justify-center gap-1 h-14">
+          {/* Buku 1: Iqro */}
+          <div className="w-6 h-12 bg-[#EF4444] border-[2px] border-[#134E4A] rounded-t-md shadow-[1px_1px_0px_#134E4A] flex items-center justify-center overflow-hidden">
+            <span className="text-[8px] font-black text-white [writing-mode:vertical-rl] rotate-180 tracking-tighter">
+              Iqro
+            </span>
+          </div>
+          {/* Buku 2: Tilawati */}
+          <div className="w-6 h-14 bg-[#0284C7] border-[2px] border-[#134E4A] rounded-t-md shadow-[1px_1px_0px_#134E4A] flex items-center justify-center overflow-hidden">
+            <span className="text-[7px] font-black text-white [writing-mode:vertical-rl] rotate-180 tracking-tighter">
+              Tilawati
+            </span>
+          </div>
+          {/* Buku 3: Juz Amma */}
+          <div className="w-7 h-13 bg-[#10B981] border-[2px] border-[#134E4A] rounded-t-md shadow-[1px_1px_0px_#134E4A] flex items-center justify-center overflow-hidden">
+            <span className="text-[7px] font-black text-white [writing-mode:vertical-rl] rotate-180 tracking-tighter">
+              Juz Amma
+            </span>
+          </div>
+          {/* Buku 4: Doa */}
+          <div className="w-5 h-11 bg-[#8B5CF6] border-[2px] border-[#134E4A] rounded-t-md shadow-[1px_1px_0px_#134E4A] flex items-center justify-center overflow-hidden">
+            <span className="text-[8px] font-black text-white [writing-mode:vertical-rl] rotate-180 tracking-tighter">
+              Doa
+            </span>
+          </div>
+        </div>
+        {/* Papan ambalan rak */}
+        <div className="w-full h-2.5 bg-[#B45309] border-[2px] border-[#134E4A] rounded-md" />
+      </div>
+
+      {/* ── 5. MEJA BELAJAR & LAMPU MEJA (MENYALA JIKA MALAM) ── */}
+      <div className="absolute left-[3%] bottom-[16%] flex flex-col items-center z-[6]">
+        {/* Lampu Meja */}
+        <div className="relative flex flex-col items-center mb-[-4px]">
+          {/* Tudung lampu */}
+          <div className="relative w-8 h-6 bg-[#0D9488] border-[2.5px] border-[#134E4A] rounded-t-full shadow-[2px_2px_0px_#134E4A] overflow-hidden">
+            {/* Cahaya bola lampu menyala jika malam */}
+            {!isDay && (
+              <div className="absolute bottom-0 inset-x-0 h-2 bg-[#FEF08A] animate-pulse" />
+            )}
+          </div>
+          {/* Tiang lampu */}
+          <div className="w-1.5 h-6 bg-[#134E4A]" />
+          {/* Dudukan lampu */}
+          <div className="w-6 h-2 bg-[#FBBF24] border-[2px] border-[#134E4A] rounded-full" />
+
+          {/* Sorot cahaya lampu meja menyala saat malam */}
+          {!isDay && (
+            <div
+              className="absolute top-5 left-1/2 -translate-x-1/2 w-24 h-24 bg-gradient-to-b from-[#FEF08A]/40 to-transparent pointer-events-none rounded-full blur-[2px]"
+              style={{ clipPath: "polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%)" }}
+            />
+          )}
+        </div>
+
+        {/* Buku Terbuka di atas Meja */}
+        <div className="relative z-10 -mb-2 flex items-center justify-center">
+          <div className="w-12 h-6 bg-[#FFFDF0] border-[2px] border-[#134E4A] rounded-sm shadow-[1.5px_1.5px_0px_#134E4A] flex divide-x-2 divide-[#134E4A] p-0.5">
+            <div className="flex-1 flex flex-col justify-around py-0.5 px-0.5">
+              <div className="h-0.5 bg-[#134E4A]/60 rounded-full" />
+              <div className="h-0.5 bg-[#134E4A]/60 rounded-full" />
+            </div>
+            <div className="flex-1 flex flex-col justify-around py-0.5 px-0.5">
+              <div className="h-0.5 bg-[#134E4A]/60 rounded-full" />
+              <div className="h-0.5 bg-[#134E4A]/60 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Meja Belajar Kayu */}
+        <div className="w-20 sm:w-24 h-4 bg-[#D97706] border-[3px] border-[#134E4A] rounded-md shadow-[3px_3px_0px_#134E4A]" />
+        <div className="w-16 sm:w-20 flex justify-between px-1">
+          <div className="w-2.5 h-10 bg-[#B45309] border-[2px] border-[#134E4A]" />
+          <div className="w-2.5 h-10 bg-[#B45309] border-[2px] border-[#134E4A]" />
+        </div>
+      </div>
+
+      {/* ── 6. SAJADAH GULUNG DI SUDUT LANTAI ── */}
+      <div className="absolute right-[4%] bottom-[16%] flex flex-col items-center z-[6]">
+        <div className="relative flex items-center">
+          {/* Ujung gulungan sajadah */}
+          <div className="w-4 h-7 rounded-full bg-[#059669] border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center justify-center">
+            <div className="w-2 h-4 rounded-full bg-[#F59E0B] border border-[#134E4A]" />
+          </div>
+          {/* Badan gulungan */}
+          <div className="w-12 h-6 bg-[#047857] border-[2.5px] border-l-0 border-[#134E4A] rounded-r-md shadow-[2px_2px_0px_#134E4A] flex flex-col justify-between py-0.5 px-1">
+            <div className="h-0.5 bg-[#FBBF24] rounded-full" />
+            <div className="h-0.5 bg-[#FBBF24] rounded-full" />
+          </div>
+          {/* Rumbai benang emas */}
+          <div className="flex flex-col gap-0.5 ml-0.5">
+            <div className="w-2 h-0.5 bg-[#FDE68A]" />
+            <div className="w-2.5 h-0.5 bg-[#FDE68A]" />
+            <div className="w-2 h-0.5 bg-[#FDE68A]" />
+          </div>
+        </div>
+        <span className="text-[7px] font-black uppercase tracking-wider text-[#065F46] mt-0.5">
+          Sajadah
+        </span>
+      </div>
+
+      {/* ── 7. KARPET BULAT TENGAH (TEMPAT MASKOT BERDIRI) ── */}
       <div
-        className={`absolute left-1/2 top-[6%] -translate-x-1/2 w-16 h-16 border-[3.5px] border-[#134E4A] rounded-full shadow-[3px_3px_0px_#134E4A] flex items-center justify-center ${
-          theme === "galaksi" ? "bg-[#1E1B4B]" : "bg-white"
-        }`}
+        className={`absolute bottom-[10%] left-1/2 -translate-x-1/2 w-[82%] max-w-[420px] h-22 sm:h-26 ${rugColor} border-[4px] border-[#134E4A] rounded-[50%] shadow-[5px_5px_0px_#134E4A] flex items-center justify-center z-0`}
       >
         <div
-          className={`w-2 h-2 rounded-full z-10 ${
-            theme === "galaksi" ? "bg-[#FBBF24]" : "bg-[#134E4A]"
-          }`}
-        />
-        <div
-          className={`absolute top-2 left-1/2 w-1.5 h-5 border-[1px] rounded-full origin-bottom -translate-x-1/2 ${
-            theme === "galaksi"
-              ? "bg-[#FBBF24] border-[#134E4A]"
-              : "bg-[#FF6B6B] border-[#134E4A]"
-          }`}
-          style={{ transform: "rotate(45deg) translateY(2px)" }}
-        />
-        <div
-          className={`absolute top-3 left-1/2 w-1 h-4 rounded-full origin-bottom -translate-x-1/2 ${
-            theme === "galaksi" ? "bg-[#FBBF24]" : "bg-[#134E4A]"
-          }`}
-        />
-      </div>
-
-      {/* Karpet */}
-      <div
-        className={`absolute bottom-[12%] left-1/2 -translate-x-1/2 w-[80%] max-w-[400px] h-20 sm:h-24 ${rugColor} border-[4px] border-[#134E4A] rounded-[50%] shadow-[4px_4px_0px_#134E4A] flex items-center justify-center z-0`}
-      >
-        <div
-          className={`w-[85%] h-[70%] ${rugInner} border-[3px] border-dashed border-[#134E4A]/50 rounded-[50%]`}
-        />
-      </div>
-
-      {/* Tanaman pot */}
-      <div className="absolute bottom-[22%] left-[5%] flex flex-col items-center">
-        <div className="relative w-16 h-16 mb-[-10px]">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-12 bg-[#22C55E] border-[2.5px] border-[#134E4A] rounded-[50%_50%_0_0] -rotate-12" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-12 bg-[#4ADE80] border-[2.5px] border-[#134E4A] rounded-[50%_50%_0_0] rotate-12" />
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-8 h-14 bg-[#10B981] border-[2.5px] border-[#134E4A] rounded-[50%_50%_0_0]" />
-        </div>
-        <div className="w-14 h-12 bg-[#F97316] border-[3.5px] border-[#134E4A] rounded-b-2xl shadow-[2px_2px_0px_#134E4A] flex justify-center items-start pt-1">
-          <div className="w-10 h-2 bg-[#134E4A] rounded-full" />
-        </div>
-      </div>
-
-      {/* Lemari kecil */}
-      <div className="absolute bottom-[22%] right-[6%] w-16 h-14 bg-[#0D9488] border-[3.5px] border-[#134E4A] rounded-lg shadow-[3px_3px_0px_#134E4A] flex flex-col justify-between p-1">
-        <div className="w-full h-4 bg-[#134E4A] rounded-sm" />
-        <div className="w-full h-6 bg-[#CCFBF1] border-[2px] border-[#134E4A] rounded-sm flex items-center justify-center">
-          <Star size={12} className="text-[#FBBF24] fill-[#FBBF24]" />
+          className={`w-[85%] h-[72%] ${rugInner} border-[3px] border-dashed border-[#134E4A]/60 rounded-[50%] flex items-center justify-center`}
+        >
+          <div className="w-[60%] h-[55%] border-2 border-dotted border-[#134E4A]/30 rounded-[50%]" />
         </div>
       </div>
     </div>
@@ -727,19 +919,45 @@ function RoomDecor({
 
 export default function KamarTilaPage() {
   const navigate = useNavigate();
+  const { user, groupId } = useAuth();
+  const isVip = useEconomyStore((s) => s.isVip);
+  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
 
   const tilaGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const setTilaGender = useEconomyStore((s) => s.setTilaGender);
   const equippedAccessory = useEconomyStore((s) => s.equippedAccessory);
   const equippedRoomTheme = useEconomyStore((s) => s.equippedRoomTheme);
   const equipAccessory = useEconomyStore((s) => s.equipAccessory);
-  const ownedAccessories = useEconomyStore((s) => s.ownedAccessories);
+  const ownedAccessories = useEconomyStore((s) => s.ownedAccessories || []);
+  const inventory = useEconomyStore((s) => s.inventory || []);
+  const ownedRoomThemes = useEconomyStore((s) => s.ownedRoomThemes || []);
+  const setEquippedTheme = useEconomyStore((s) => s.setEquippedTheme);
+  const equippedSkin = useEconomyStore((s) => s.equippedSkin || "default");
+  const ownedSkins = useEconomyStore((s) => s.ownedSkins || []);
+  const setEquippedSkin = useEconomyStore((s) => s.setEquippedSkin);
+  const equipSkin = useEconomyStore((s) => s.equipSkin);
   const coins = useCoinsBalance();
+
+  // FASE 2: Jam Real-Time & Siklus Siang/Malam (diperbarui setiap detik)
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const [wardrobeTab, setWardrobeTab] = useState<"skin" | "accessory" | "room">("accessory");
 
   const [draftGender, setDraftGender] = useState<TilaGender>(tilaGender);
   const [draftAccessory, setDraftAccessory] = useState<TilaAccessoryType>(
     equippedAccessory as TilaAccessoryType,
   );
+
+  // Sinkronkan draftAccessory jika equippedAccessory berubah
+  useEffect(() => {
+    if (equippedAccessory) {
+      setDraftAccessory(equippedAccessory as TilaAccessoryType);
+    }
+  }, [equippedAccessory]);
 
   const [direction, setDirection] = useState<TilaDirection>("front");
   const [previewMood, setPreviewMood] = useState<TilaMood>("happy");
@@ -764,6 +982,34 @@ export default function KamarTilaPage() {
       setSpeech(null);
       speechTimerRef.current = null;
     }, 3800);
+  };
+
+  const isAccessoryOwned = (id: string) => {
+    if (id === "none") return true;
+    if (isUnlimited) return true;
+    return inventory.includes(id) || ownedAccessories.includes(id);
+  };
+
+  const isSkinOwned = (skinKey: string, id: string) => {
+    if (skinKey === "default") return true;
+    if (isUnlimited) return true;
+    return (
+      inventory.includes(id) ||
+      inventory.includes(skinKey) ||
+      ownedSkins.includes(id) ||
+      ownedSkins.includes(skinKey)
+    );
+  };
+
+  const isRoomThemeOwned = (id: string) => {
+    if (id === "default") return true;
+    if (isUnlimited) return true;
+    const aliases = id === "galaksi" ? ["galaksi", "theme_space", "space"]
+      : id === "default" ? ["default", "theme_default", "classic", "theme_classic"]
+      : [id, `theme_${id}`];
+    return aliases.some(
+      (alias) => inventory.includes(alias) || ownedRoomThemes.includes(alias)
+    );
   };
 
   useEffect(() => {
@@ -806,27 +1052,33 @@ export default function KamarTilaPage() {
     }
   };
 
-  const handleToggleDraftGender = (newGender: "boy" | "girl") => {
+  const handleToggleDraftGender = async (newGender: "boy" | "girl") => {
     triggerTilaReaction("play");
     setDraftGender(newGender);
     setPreviewMood("excited");
 
+    try {
+      await setTilaGender(newGender);
+    } catch {
+      // offline / fallback
+    }
+
     if (newGender === "boy") {
+      let nextAcc = draftAccessory;
       if (draftAccessory === "hairbow" || draftAccessory === "flowercrown") {
-        setDraftAccessory(ownedAccessories.includes("peci") ? "peci" : "none");
+        nextAcc = ownedAccessories.includes("peci") ? "peci" : "none";
+        setDraftAccessory(nextAcc);
+        equipAccessory(nextAcc);
       }
-      triggerDialogue(
-        "Kamar Tito! Keren dengan peci santri. Klik 'Simpan Pengaturan' untuk menyimpan!",
-      );
+      triggerDialogue("Kamar Tito! Keren dengan peci santri.");
     } else {
+      let nextAcc = draftAccessory;
       if (draftAccessory === "peci") {
-        setDraftAccessory(
-          ownedAccessories.includes("hairbow") ? "hairbow" : "none",
-        );
+        nextAcc = ownedAccessories.includes("hairbow") ? "hairbow" : "none";
+        setDraftAccessory(nextAcc);
+        equipAccessory(nextAcc);
       }
-      triggerDialogue(
-        "Kamar Tila! Anggun dengan pita rambut. Klik 'Simpan Pengaturan' untuk menyimpan!",
-      );
+      triggerDialogue("Kamar Tila! Anggun dengan pita rambut.");
     }
   };
 
@@ -837,13 +1089,14 @@ export default function KamarTilaPage() {
   });
 
   const handleSelectAccessory = (item: AccessoryConfig) => {
-    const isOwned = item.id === "none" || ownedAccessories.includes(item.id);
+    const isOwned = isAccessoryOwned(item.id);
     if (!isOwned) {
       navigate("/member/ngaji-ceria/warung-santri?tab=kostum");
       return;
     }
 
     setDraftAccessory(item.id);
+    equipAccessory(item.id);
     triggerTilaReaction("success");
     setPreviewMood("excited");
     triggerDialogue(
@@ -973,7 +1226,7 @@ export default function KamarTilaPage() {
       </header>
 
       <main className="relative isolate flex-1 flex flex-col items-center justify-center px-4 py-2 min-h-0 overflow-y-auto">
-        <RoomDecor gender={draftGender} themeId={equippedRoomTheme} />
+        <RoomDecor gender={draftGender} themeId={equippedRoomTheme} time={time} />
 
         <div className="absolute top-4 left-6 pointer-events-none opacity-90 hidden sm:block">
           <div className="px-3 py-1.5 rounded-xl border-[2px] border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] text-[10px] font-black text-[#134E4A] flex items-center gap-1">
@@ -1023,12 +1276,13 @@ export default function KamarTilaPage() {
             className="relative cursor-pointer group"
           >
             <TilaMascot
-              size={260}
+              size={240}
               direction={direction}
               mood={previewMood}
               animation={previewAnimation}
               gender={draftGender === "girl" ? "girl" : "boy"}
-              accessory={draftAccessory}
+              accessory={(draftAccessory || (equippedAccessory as TilaAccessoryType) || "none") as TilaAccessoryType}
+              skin={equippedSkin}
               holdItem={previewHoldItem}
             />
 
@@ -1127,7 +1381,48 @@ export default function KamarTilaPage() {
       </main>
 
       <footer className="relative z-30 rounded-t-[32px] border-t-[3.5px] border-x-[3.5px] border-[#134E4A] bg-white p-5 shadow-[0px_-6px_0px_#134E4A] space-y-4">
-        <div className="flex items-center justify-between gap-3">
+        {/* Wardrobe Tab Switcher */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-gray-100">
+          <button
+            type="button"
+            onClick={() => setWardrobeTab("skin")}
+            className={`px-3.5 py-1.5 rounded-xl border-2 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+              wardrobeTab === "skin"
+                ? "bg-[#134E4A] text-white border-[#134E4A] shadow-[2px_2px_0px_#0D9488]"
+                : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+            }`}
+          >
+            <Sparkles size={13} />
+            <span>Skin Maskot</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setWardrobeTab("accessory")}
+            className={`px-3.5 py-1.5 rounded-xl border-2 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+              wardrobeTab === "accessory"
+                ? "bg-[#134E4A] text-white border-[#134E4A] shadow-[2px_2px_0px_#0D9488]"
+                : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+            }`}
+          >
+            <Glasses size={13} />
+            <span>Aksesoris</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setWardrobeTab("room")}
+            className={`px-3.5 py-1.5 rounded-xl border-2 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+              wardrobeTab === "room"
+                ? "bg-[#134E4A] text-white border-[#134E4A] shadow-[2px_2px_0px_#0D9488]"
+                : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+            }`}
+          >
+            <Home size={13} />
+            <span>Tema Kamar</span>
+          </button>
+        </div>
+
+        {/* Global Character Toggle: PILIH KARAKTER (Tito / Tila) */}
+        <div className="flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-[#F0FDF4] border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-black uppercase tracking-wider text-[#134E4A]">
               Pilih Karakter:
@@ -1141,10 +1436,10 @@ export default function KamarTilaPage() {
               className={`px-3 py-1.5 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
                 draftGender === "boy"
                   ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A] -translate-y-0.5"
-                  : "bg-white text-[#134E4A] opacity-70"
+                  : "bg-white text-[#134E4A] opacity-70 hover:opacity-100"
               }`}
             >
-              <User size={12} />
+              <User size={13} />
               <span>Tito (Putra)</span>
             </button>
 
@@ -1154,179 +1449,383 @@ export default function KamarTilaPage() {
               className={`px-3 py-1.5 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
                 draftGender === "girl"
                   ? "bg-[#FF6B6B] text-white shadow-[2px_2px_0px_#134E4A] -translate-y-0.5"
-                  : "bg-white text-[#134E4A] opacity-70"
+                  : "bg-white text-[#134E4A] opacity-70 hover:opacity-100"
               }`}
             >
-              <Sparkles size={12} />
+              <Sparkles size={13} />
               <span>Tila (Putri)</span>
             </button>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        {/* Tab 1: Skin Maskot */}
+        {wardrobeTab === "skin" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <span className="text-[11px] font-black uppercase tracking-wider text-[#134E4A]/80">
-                Koleksi Busana {getMascotName(draftGender)}
+                Pilihan Wujud & Skin Maskot
               </span>
-              <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-[#134E4A]/20">
-                <button
-                  type="button"
-                  onClick={() => setFilterMode("matched")}
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all cursor-pointer ${
-                    filterMode === "matched"
-                      ? "bg-white text-[#134E4A] border border-[#134E4A] shadow-[1px_1px_0px_#134E4A]"
-                      : "text-gray-500 hover:text-[#134E4A]"
-                  }`}
-                >
-                  Khusus {getMascotName(draftGender)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterMode("all")}
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all cursor-pointer ${
-                    filterMode === "all"
-                      ? "bg-white text-[#134E4A] border border-[#134E4A] shadow-[1px_1px_0px_#134E4A]"
-                      : "text-gray-500 hover:text-[#134E4A]"
-                  }`}
-                >
-                  Semua ({ACCESSORIES.length})
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=skin")}
+                className="text-[10px] font-black text-[#0D9488] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Warung Santri</span>
+                <Store size={10} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                navigate("/member/ngaji-ceria/warung-santri?tab=kostum")
-              }
-              className="text-[10px] font-black text-[#0D9488] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <span>Warung Santri</span>
-              <Store size={10} />
-            </button>
-          </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x touch-pan-x">
-            {filteredAccessories.map((item) => {
-              const isOwned =
-                item.id === "none" || ownedAccessories.includes(item.id);
-              const isDraftSelected = draftAccessory === item.id;
-              const isMascotFit =
-                item.category === "all" || item.category === draftGender;
+            <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x touch-pan-x">
+              {SKIN_ITEMS.map((item) => {
+                const isOwned = isSkinOwned(item.skinKey, item.id);
+                const isEquipped = equippedSkin === item.skinKey;
 
-              return (
-                <div
-                  key={item.id}
-                  className={`snap-start shrink-0 w-[124px] rounded-2xl border-[3px] p-3 text-center flex flex-col items-center justify-between transition-all relative ${
-                    isDraftSelected
-                      ? "border-[#134E4A] bg-[#CCFBF1] shadow-[3px_3px_0px_#134E4A]"
-                      : isOwned
+                return (
+                  <div
+                    key={item.id}
+                    className={`snap-start shrink-0 w-[136px] rounded-2xl border-[3px] p-3 text-center flex flex-col items-center justify-between transition-all relative ${
+                      isEquipped
+                        ? "border-[#134E4A] bg-[#FEF08A]/30 shadow-[3px_3px_0px_#134E4A]"
+                        : isOwned
                         ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
-                        : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-80"
-                  }`}
-                >
-                  <div className="absolute top-2 right-2">
-                    {item.category === "boy" ? (
-                      <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-[#CCFBF1] text-[#0F766E] border border-[#134E4A]">
-                        Tito
+                        : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-60 grayscale"
+                    }`}
+                  >
+                    <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border ${item.badgeBg}`}>
+                        {item.badgeText || item.rarity}
                       </span>
-                    ) : item.category === "girl" ? (
-                      <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-[#FCE7F3] text-[#BE185D] border border-[#134E4A]">
-                        Tila
+                      {item.exclusiveGender === "boy" && (
+                        <span className="text-[7.5px] font-black px-1 py-0.5 rounded bg-[#0D9488] text-white border border-[#134E4A]">
+                          Khusus Tito
+                        </span>
+                      )}
+                      {item.exclusiveGender === "girl" && (
+                        <span className="text-[7.5px] font-black px-1 py-0.5 rounded bg-[#FF6B6B] text-white border border-[#134E4A]">
+                          Khusus Tila
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="h-12 w-12 flex items-center justify-center mb-1 mt-2 rounded-xl border-2 border-[#134E4A]/20 bg-[#FFFDF0] relative overflow-hidden shadow-inner">
+                      <div className="transform scale-[0.4] translate-y-1">
+                        <TilaMascot
+                          size={95}
+                          skin={item.skinKey}
+                          gender={draftGender === "girl" ? "girl" : "boy"}
+                          accessory="none"
+                          animation="bounce"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] font-black text-[#134E4A] truncate w-full mb-0.5">
+                      {item.name}
+                    </p>
+
+                    <span className="text-[9px] font-bold text-gray-500 mb-1.5 truncate w-full">
+                      {item.effect}
+                    </span>
+
+                    {isEquipped ? (
+                      <span className="flex items-center justify-center gap-1 w-full py-1.5 rounded-xl bg-[#134E4A] text-white text-[10px] font-black tracking-wide border border-[#134E4A]">
+                        <Check size={10} /> Sedang Dipakai
                       </span>
+                    ) : isOwned ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEquippedSkin(item.skinKey);
+                          equipSkin(item.id);
+                          triggerTilaReaction("success");
+                          setPreviewMood("excited");
+                          triggerDialogue(`Keren! Sekarang aku memakai wujud ${item.name}!`);
+                        }}
+                        className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                      >
+                        Pakai
+                      </button>
                     ) : (
-                      <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-[#FEF08A] text-[#134E4A] border border-[#134E4A]">
-                        Unisex
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=skin")}
+                        className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <Lock size={10} className="shrink-0" />
+                        <span>Beli di Warung</span>
+                      </button>
                     )}
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-                  <div className="h-10 w-10 flex items-center justify-center mb-1.5 mt-2 rounded-xl border-2 border-[#134E4A]/20 bg-[#FFFDF0]">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-8 w-8 object-contain"
-                      />
-                    ) : item.iconComponent ? (
-                      <item.iconComponent
-                        size={22}
-                        className={
-                          item.category === "girl"
-                            ? "text-[#FB7185]"
-                            : item.category === "boy"
-                              ? "text-[#0D9488]"
-                              : "text-[#D97706]"
-                        }
-                      />
-                    ) : null}
-                  </div>
-
-                  <p className="text-[11px] font-black text-[#134E4A] truncate w-full mb-0.5">
-                    {item.name}
-                  </p>
-
-                  <span className="text-[9px] font-bold text-gray-500 mb-1.5">
-                    {item.category === "boy"
-                      ? "Khusus Tito (Putra)"
-                      : item.category === "girl"
-                        ? "Khusus Tila (Putri)"
-                        : "Semua Karakter"}
+        {/* Tab 2: Aksesoris */}
+        {wardrobeTab === "accessory" && (
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[#134E4A]/80">
+                    Koleksi Busana {getMascotName(draftGender)}
                   </span>
-
-                  {isDraftSelected ? (
-                    <span className="flex items-center justify-center gap-1 w-full py-1.5 rounded-xl bg-[#134E4A] text-white text-[10px] font-black tracking-wide border border-[#134E4A]">
-                      <Check size={10} /> Terpilih
-                    </span>
-                  ) : isOwned ? (
+                  <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-[#134E4A]/20">
                     <button
                       type="button"
-                      onClick={() => handleSelectAccessory(item)}
-                      className={`w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer ${
-                        isMascotFit ? "bg-[#0D9488]" : "bg-gray-400"
+                      onClick={() => setFilterMode("matched")}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all cursor-pointer ${
+                        filterMode === "matched"
+                          ? "bg-white text-[#134E4A] border border-[#134E4A] shadow-[1px_1px_0px_#134E4A]"
+                          : "text-gray-500 hover:text-[#134E4A]"
                       }`}
                     >
-                      Pilih
+                      Khusus {getMascotName(draftGender)}
                     </button>
-                  ) : (
                     <button
                       type="button"
-                      onClick={() => handleSelectAccessory(item)}
-                      className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                      onClick={() => setFilterMode("all")}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all cursor-pointer ${
+                        filterMode === "all"
+                          ? "bg-white text-[#134E4A] border border-[#134E4A] shadow-[1px_1px_0px_#134E4A]"
+                          : "text-gray-500 hover:text-[#134E4A]"
+                      }`}
                     >
-                      <Lock size={10} className="shrink-0" />
-                      <span>{item.price}</span>
+                      Semua ({ACCESSORIES.length})
                     </button>
-                  )}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/member/ngaji-ceria/warung-santri?tab=kostum")
+                  }
+                  className="text-[10px] font-black text-[#0D9488] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Warung Santri</span>
+                  <Store size={10} />
+                </button>
+              </div>
 
-        <div className="pt-2">
-          <StickerButton
-            variant={isDirty ? "primary" : "secondary"}
-            size="lg"
-            fullWidth
-            disabled={!isDirty || savingSettings}
-            onClick={handleSaveSettings}
-            className={
-              isDirty
-                ? "ring-2 ring-[#FEF08A] shadow-[4px_4px_0px_#134E4A]"
-                : "opacity-100 bg-gray-200 text-gray-500 border-gray-400 shadow-none"
-            }
-          >
-            <Check size={18} />
-            <span>
-              {savingSettings
-                ? "Menyimpan..."
-                : isDirty
-                ? "Simpan Pengaturan"
-                : "Pengaturan Tersimpan"}
-            </span>
-          </StickerButton>
-        </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x touch-pan-x">
+                {filteredAccessories.map((item) => {
+                  const isOwned = isAccessoryOwned(item.id);
+                  const isDraftSelected = draftAccessory === item.id;
+                  const isMascotFit =
+                    item.category === "all" || item.category === draftGender;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`snap-start shrink-0 w-[124px] rounded-2xl border-[3px] p-3 text-center flex flex-col items-center justify-between transition-all relative ${
+                        isDraftSelected
+                          ? "border-[#134E4A] bg-[#CCFBF1] shadow-[3px_3px_0px_#134E4A]"
+                          : isOwned
+                            ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
+                            : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-60 grayscale"
+                      }`}
+                    >
+                      <div className="absolute top-2 right-2">
+                        {item.category === "boy" ? (
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-[#CCFBF1] text-[#0F766E] border border-[#134E4A]">
+                            Tito
+                          </span>
+                        ) : item.category === "girl" ? (
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-[#FCE7F3] text-[#BE185D] border border-[#134E4A]">
+                            Tila
+                          </span>
+                        ) : (
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-[#FEF08A] text-[#134E4A] border border-[#134E4A]">
+                            Unisex
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="h-10 w-10 flex items-center justify-center mb-1.5 mt-2 rounded-xl border-2 border-[#134E4A]/20 bg-[#FFFDF0]">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="h-8 w-8 object-contain"
+                          />
+                        ) : item.iconComponent ? (
+                          <item.iconComponent
+                            size={22}
+                            className={
+                              item.category === "girl"
+                                ? "text-[#FB7185]"
+                                : item.category === "boy"
+                                  ? "text-[#0D9488]"
+                                  : "text-[#D97706]"
+                            }
+                          />
+                        ) : null}
+                      </div>
+
+                      <p className="text-[11px] font-black text-[#134E4A] truncate w-full mb-0.5">
+                        {item.name}
+                      </p>
+
+                      <span className="text-[9px] font-bold text-gray-500 mb-1.5">
+                        {item.category === "boy"
+                          ? "Khusus Tito (Putra)"
+                          : item.category === "girl"
+                            ? "Khusus Tila (Putri)"
+                            : "Semua Karakter"}
+                      </span>
+
+                      {isDraftSelected ? (
+                        <span className="flex items-center justify-center gap-1 w-full py-1.5 rounded-xl bg-[#134E4A] text-white text-[10px] font-black tracking-wide border border-[#134E4A]">
+                          <Check size={10} /> Sedang Dipakai
+                        </span>
+                      ) : !isMascotFit ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full py-1.5 rounded-xl bg-gray-200 text-gray-400 text-[10px] font-black tracking-wide border border-gray-300 shadow-none cursor-not-allowed flex items-center justify-center gap-1 opacity-70"
+                        >
+                          <Lock size={10} className="shrink-0" />
+                          <span>Tidak Cocok</span>
+                        </button>
+                      ) : isOwned ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectAccessory(item)}
+                          className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer bg-[#0D9488] hover:bg-[#0F766E]"
+                        >
+                          Pakai
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=kostum")}
+                          className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <Lock size={10} className="shrink-0" />
+                          <span>Beli di Warung</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <StickerButton
+                variant={isDirty ? "primary" : "secondary"}
+                size="lg"
+                fullWidth
+                disabled={!isDirty || savingSettings}
+                onClick={handleSaveSettings}
+                className={
+                  isDirty
+                    ? "ring-2 ring-[#FEF08A] shadow-[4px_4px_0px_#134E4A]"
+                    : "opacity-100 bg-gray-200 text-gray-500 border-gray-400 shadow-none"
+                }
+              >
+                <Check size={18} />
+                <span>
+                  {savingSettings
+                    ? "Menyimpan..."
+                    : isDirty
+                    ? "Simpan Pengaturan"
+                    : "Pengaturan Tersimpan"}
+                </span>
+              </StickerButton>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Tema Kamar */}
+        {wardrobeTab === "room" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#134E4A]/80">
+                Pilihan Dekorasi Kamar {getMascotName(draftGender)}
+              </span>
+              <button
+                type="button"
+                onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=kamar")}
+                className="text-[10px] font-black text-[#0D9488] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Warung Santri</span>
+                <Store size={10} />
+              </button>
+            </div>
+
+            <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x touch-pan-x">
+              {ROOM_THEMES_CONFIG.map((item) => {
+                const isOwned = isRoomThemeOwned(item.id);
+                const currentNormalized = (equippedRoomTheme === "theme_space" || equippedRoomTheme === "space")
+                  ? "galaksi"
+                  : (equippedRoomTheme === "theme_default" || equippedRoomTheme === "classic" || equippedRoomTheme === "theme_classic")
+                  ? "default"
+                  : (equippedRoomTheme === "theme_forest")
+                  ? "hutan"
+                  : (equippedRoomTheme === "theme_castle")
+                  ? "istana"
+                  : equippedRoomTheme;
+                const isEquipped = currentNormalized === item.id;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`snap-start shrink-0 w-[140px] rounded-2xl border-[3px] p-3 text-center flex flex-col items-center justify-between transition-all relative ${
+                      isEquipped
+                        ? "border-[#134E4A] bg-[#FEF08A]/30 shadow-[3px_3px_0px_#134E4A]"
+                        : isOwned
+                        ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
+                        : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-60 grayscale"
+                    }`}
+                  >
+                    <div className="h-10 w-16 flex flex-col mb-1.5 mt-1 rounded-lg border-2 border-[#134E4A] overflow-hidden shadow-sm">
+                      <div className={`h-[65%] w-full ${item.wallPreview}`} />
+                      <div className={`h-[35%] w-full ${item.floorPreview} border-t border-[#134E4A]`} />
+                    </div>
+
+                    <p className="text-[11px] font-black text-[#134E4A] truncate w-full mb-0.5">
+                      {item.name}
+                    </p>
+
+                    <span className="text-[9px] font-bold text-gray-500 mb-1.5 truncate w-full">
+                      {item.desc}
+                    </span>
+
+                    {isEquipped ? (
+                      <span className="flex items-center justify-center gap-1 w-full py-1.5 rounded-xl bg-[#134E4A] text-white text-[10px] font-black tracking-wide border border-[#134E4A]">
+                        <Check size={10} /> Sedang Dipakai
+                      </span>
+                    ) : isOwned ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEquippedTheme(item.id);
+                          triggerTilaReaction("success");
+                          setPreviewMood("excited");
+                          triggerDialogue(`Suasana kamar berubah menjadi ${item.name}! Nyaman sekali.`);
+                        }}
+                        className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                      >
+                        Pakai
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=kamar")}
+                        className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <Lock size={10} className="shrink-0" />
+                        <span>Beli di Warung</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </footer>
     </div>
   );

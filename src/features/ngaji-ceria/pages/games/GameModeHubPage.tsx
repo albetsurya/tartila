@@ -3,9 +3,14 @@ import React, { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { useGameAccess } from "../../components/GameLockGuard";
+import { useActiveGames } from "../../hooks/useActiveGames";
+import { isAdminRole } from "@/lib/roles";
 import { LoginPromptModal } from "../../components/LoginPromptModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
 import { useEconomyStore, isUnlimitedUser } from "../../hooks/useEconomyStore";
+import { useGameTheme } from "../../hooks/useGameTheme";
+import { GameThemeSheet } from "../../components/GameThemeSheet";
+import { PaletteSvg } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import { canonicalGameId, isGameOpenForGuest } from "../../data/gameAccess";
 import { triggerTilaReaction } from "@/utils/tilaEvent";
@@ -293,16 +298,24 @@ export default function GameModeHubPage({
   const { tier } = useGameAccess(hub ?? "");
   const [promptOpen, setPromptOpen] = useState(false);
   const [energyEmpty, setEnergyEmpty] = useState(false);
+  const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const { user, groupId } = useAuth();
+  const { isGameActive, hasLoaded } = useActiveGames();
+  const isAdmin = isAdminRole(user?.role);
+  const [maintenanceToast, setMaintenanceToast] = useState<string | null>(null);
   const isVip = useEconomyStore((s) => s.isVip);
   const isUnlimited = isUnlimitedUser(user, isVip, groupId);
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
-  const equippedGameTheme = useEconomyStore((s) => s.equippedGameTheme) || "default";
-  const isDarkTheme = equippedGameTheme === "neon";
+  const theme = useGameTheme();
 
   if (!config) return <Navigate to="/member/ngaji-ceria/games" replace />;
 
-  const openMode = (path: string, locked: boolean) => {
+  const openMode = (path: string, locked: boolean, isMaintenance: boolean, modeTitle: string) => {
+    if (isMaintenance) {
+      setMaintenanceToast(`Game "${modeTitle}" sedang dalam pemeliharaan ustadz. Coba game lain ya!`);
+      setTimeout(() => setMaintenanceToast(null), 3000);
+      return;
+    }
     if (locked && tier === "guest") {
       setPromptOpen(true);
       return;
@@ -321,27 +334,35 @@ export default function GameModeHubPage({
       showBack
       onBack={() => navigate("/member/ngaji-ceria/games")}
     >
-      <div className={`min-h-full ${isDarkTheme ? "bg-[#0F172A] text-white" : "bg-[#F0FDF4] text-[#134E4A]"} px-4 py-4 pb-32`}>
+      <div className={`min-h-full ${theme.bgClass} ${theme.textClass} px-4 py-4 pb-32 transition-colors duration-200`}>
         {/* Hero Section (Sticker Style) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className={`relative overflow-hidden rounded-[24px] border-[3px] ${
-            isDarkTheme
-              ? "border-[#38BDF8] bg-[#1E293B] text-white shadow-[4px_4px_0px_#38BDF8]"
-              : "border-[#134E4A] bg-[#134E4A] text-white shadow-[4px_4px_0px_#FF6B6B]"
-          } p-5`}
+          className={`relative overflow-hidden rounded-[24px] border-[3px] ${theme.heroBorderClass} ${theme.heroBgClass} ${theme.heroShadowClass} p-5`}
         >
           {/* Ornamen Latar Tebal */}
           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full border-[8px] border-white/10" />
 
-          <p className="relative text-[10px] font-black uppercase tracking-widest text-[#FEF08A]">
-            {config.tagline}
-          </p>
-          <h2 className="relative mt-1 font-display text-2xl font-black leading-tight">
-            {config.title}
-          </h2>
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#FEF08A]">
+                {config.tagline}
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-black leading-tight">
+                {config.title}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setThemeSheetOpen(true)}
+              className="p-2 rounded-xl bg-white/20 hover:bg-white/30 border-2 border-white/40 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.2)] active:translate-y-[1px] transition-all cursor-pointer shrink-0"
+              title="Ganti Tema Game"
+            >
+              <PaletteSvg size={18} />
+            </button>
+          </div>
           <p className="relative mt-2 max-w-xs text-xs font-medium leading-relaxed text-white/80">
             {config.description}
           </p>
@@ -361,12 +382,21 @@ export default function GameModeHubPage({
           </div>
         </motion.div>
 
+        {/* Toast Notifikasi Pemeliharaan */}
+        {maintenanceToast && (
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-amber-500 text-white px-4 py-2.5 text-xs font-bold shadow-lg border border-amber-600 animate-in fade-in slide-in-from-top-2">
+            {maintenanceToast}
+          </div>
+        )}
+
         {/* Mode List (Sticker Card Layout dengan GameCard) */}
         <div className="mt-6 flex flex-col gap-4">
           {config.modes.map((mode, index) => {
             const best = getBest(mode.bestKey);
             const modeId = canonicalGameId(mode.path.split("/").pop() ?? "");
-            const locked = tier === "guest" && !isGameOpenForGuest(modeId);
+            const isInactive = hasLoaded && !isGameActive(modeId);
+            const isMaintenance = isInactive && !isAdmin;
+            const locked = (tier === "guest" && !isGameOpenForGuest(modeId)) || isMaintenance;
 
             return (
               <motion.div
@@ -381,13 +411,14 @@ export default function GameModeHubPage({
                 <GameCard
                   layout="horizontal"
                   title={mode.title}
-                  description={mode.description}
+                  description={isMaintenance ? "Sedang dalam pemeliharaan ustadz." : mode.description}
                   cover={mode.cover}
                   index={index}
                   best={best}
                   locked={locked}
-                  bgColor={isDarkTheme ? "bg-[#1E293B] text-white border-white/20" : mode.bgColor}
-                  onClick={() => openMode(mode.path, locked)}
+                  badge={isMaintenance ? "PEMELIHARAAN" : undefined}
+                  bgColor={mode.bgColor}
+                  onClick={() => openMode(mode.path, locked, isMaintenance, mode.title)}
                 />
               </motion.div>
             );
@@ -403,6 +434,11 @@ export default function GameModeHubPage({
           visible={energyEmpty}
           type="ticket"
           onClose={() => setEnergyEmpty(false)}
+        />
+
+        <GameThemeSheet
+          isOpen={themeSheetOpen}
+          onClose={() => setThemeSheetOpen(false)}
         />
       </div>
     </NgajiCeriaLayout>

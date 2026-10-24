@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -8,6 +8,7 @@ import { CeriaGameLoading } from "../components/CeriaGameLoading";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
+import { activityDate, yesterdayActivityDate } from "../utils/activityDate";
 import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
 import { MASCOT_NAME } from "@/constants/mascot";
 import {
@@ -17,6 +18,7 @@ import {
   FireSvg,
   StoreSvg,
   CrownSvg,
+  GamepadSvg,
   HandsPrayingSvg,
   CoinSvg,
   HeartSvg,
@@ -90,8 +92,15 @@ const DAILY_REWARDS: DailyRewardItem[] = [
   },
 ];
 
-const WEEK_DAYS = ["S", "S", "R", "K", "J", "S", "M"];
-const MOCK_STREAK_HISTORY = [true, true, true, true, true, false, false];
+const WEEK_DAYS = [
+  { short: "Sen", full: "Senin" },
+  { short: "Sel", full: "Selasa" },
+  { short: "Rab", full: "Rabu" },
+  { short: "Kam", full: "Kamis" },
+  { short: "Jum", full: "Jumat" },
+  { short: "Sab", full: "Sabtu" },
+  { short: "Min", full: "Minggu" },
+];
 
 export default function NgajiCeriaHomePage() {
   const navigate = useNavigate();
@@ -100,7 +109,7 @@ export default function NgajiCeriaHomePage() {
     return sessionStorage.getItem("trigger_ngaji_ceria_splash") === "true";
   });
 
-  const { currentStreak } = useNgajiCeriaStreak();
+  const { currentStreak, lastPlayedAt } = useNgajiCeriaStreak();
   const isRewardClaimedToday = useEconomyStore((s) => s.isRewardClaimedToday);
   const lastDailyClaimDate = useEconomyStore((s) => s.lastDailyClaimDate);
   const claimDailyReward = useEconomyStore((s) => s.claimDailyReward);
@@ -114,6 +123,29 @@ export default function NgajiCeriaHomePage() {
   const [showDailyModal, setShowDailyModal] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const autoModalTriggeredRef = useRef(false);
+
+  // Perhitungan kalender mingguan streak (Senin - Minggu)
+  const now = new Date();
+  const todayDayIdx = (now.getDay() + 6) % 7; // 0 = Senin, 1 = Selasa, ..., 6 = Minggu
+  const todayStr = activityDate(now);
+  const yesterdayStr = yesterdayActivityDate(now);
+
+  const streakHistory = useMemo(() => {
+    const history = Array<boolean>(7).fill(false);
+    if (!currentStreak || currentStreak <= 0) return history;
+    if (lastPlayedAt !== todayStr && lastPlayedAt !== yesterdayStr) return history;
+
+    // Jika sudah mengaji hari ini, titik tumpu adalah hari ini.
+    // Jika belum mengaji hari ini tapi streak masih aktif dari kemarin, titik tumpu adalah kemarin.
+    const anchorIdx =
+      lastPlayedAt === todayStr ? todayDayIdx : (todayDayIdx - 1 + 7) % 7;
+
+    for (let i = 0; i < Math.min(7, currentStreak); i++) {
+      const idx = (anchorIdx - i + 7) % 7;
+      history[idx] = true;
+    }
+    return history;
+  }, [currentStreak, lastPlayedAt, todayStr, yesterdayStr, todayDayIdx]);
 
   useEffect(() => {
     // Hanya tampilkan modal hadiah secara otomatis jika user sudah login dan belum klaim
@@ -347,32 +379,59 @@ export default function NgajiCeriaHomePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-1 mt-2">
+            {/* Barisan Ikon Api 7 Hari (Senin - Minggu) */}
+            <div className="flex items-center justify-between gap-1 px-1 mt-2">
               {WEEK_DAYS.map((day, idx) => {
-                const isDone = MOCK_STREAK_HISTORY[idx];
-                const isToday = idx === new Date().getDay();
+                const isDone = Boolean(streakHistory[idx]);
+                const isToday = idx === todayDayIdx;
 
                 return (
-                  <div key={idx} className="flex flex-col items-center gap-1.5">
+                  <div
+                    key={idx}
+                    className="flex flex-1 flex-col items-center gap-1.5 min-w-0"
+                  >
+                    {/* Lingkaran Ikon Api */}
                     <div
-                      className={`w-8 h-8 rounded-full border-[3px] border-[#134E4A] flex items-center justify-center transition-all ${
+                      title={`${day.full}${isDone ? ": Streak Aktif" : isToday ? ": Hari Ini" : ""}`}
+                      className={`relative w-9 h-9 rounded-full border-[3px] border-[#134E4A] flex items-center justify-center transition-all ${
                         isDone
-                          ? "bg-[#EA580C] shadow-[2px_2px_0px_#134E4A]"
+                          ? "bg-[#FEF08A] shadow-[2px_2px_0px_#134E4A]"
                           : isToday
-                            ? "bg-white ring-2 ring-[#EA580C] ring-offset-2"
-                            : "bg-white"
+                            ? "bg-white ring-2 ring-[#EA580C] ring-offset-2 ring-offset-[#FEF3C7]"
+                            : "bg-white/80"
                       }`}
                     >
-                      {isDone ? (
-                        <FireSvg size={18} />
-                      ) : (
-                        <span className="text-[10px] font-black text-gray-400">
-                          {day}
-                        </span>
-                      )}
+                      <img
+                        src={
+                          isDone
+                            ? NGAJI_CERIA_ASSETS.apiStreak
+                            : NGAJI_CERIA_ASSETS.apiStreakMati
+                        }
+                        alt={isDone ? `Streak ${day.full} Aktif` : `${day.full} Belum Aktif`}
+                        className={`w-5 h-5 object-contain transition-transform ${
+                          isDone
+                            ? "scale-110 drop-shadow-[0_2px_3px_rgba(234,88,12,0.35)]"
+                            : "opacity-35 grayscale"
+                        }`}
+                      />
                     </div>
+
+                    {/* Label Nama Hari (Selalu tampil konsisten di bawah lingkaran) */}
+                    <span
+                      className={`text-[10px] font-black transition-colors ${
+                        isToday
+                          ? "text-[#EA580C]"
+                          : isDone
+                            ? "text-[#134E4A]"
+                            : "text-[#134E4A]/40"
+                      }`}
+                    >
+                      {day.short}
+                    </span>
+
+                    {/* Indikator Titik Hari Ini */}
                     {isToday && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA580C]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA580C] -mt-0.5" />
                     )}
                   </div>
                 );
@@ -399,16 +458,16 @@ export default function NgajiCeriaHomePage() {
                 <button
                   type="button"
                   onClick={() => navigate("/arena/join")}
-                  className="px-4 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs md:text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-[#0F766E]"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs md:text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-[#0F766E]"
                 >
-                  🎮 Gabung PIN
+                  <GamepadSvg size={16} /> Gabung PIN
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/arena/host/create")}
-                  className="px-4 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-white text-[#134E4A] font-black text-xs md:text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-gray-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-white text-[#134E4A] font-black text-xs md:text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-gray-50"
                 >
-                  👑 Buat Room
+                  <CrownSvg size={16} /> Buat Room
                 </button>
               </div>
             </div>

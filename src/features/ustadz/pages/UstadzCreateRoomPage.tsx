@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NgajiCeriaLayout } from "@/features/ngaji-ceria/components/NgajiCeriaLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
-import { TilaMascot } from "@/components/ui/TilaMascot";
+import { Users } from "@/components/ui/CustomIcons";
 import { createClassroom } from "@/services/classroomService";
 import { setRoomFocusMateri } from "@/services/ustadzMonitoringService";
 import {
@@ -54,22 +53,19 @@ export function UstadzCreateRoomPage() {
       setError(result.message);
       return;
     }
-    setRoomFocusMateri(result.data.id, focusMateri);
+    await setRoomFocusMateri(result.data.id, focusMateri);
     navigate(`/ustadz/kelas/${result.data.id}`);
   };
 
   return (
-    <NgajiCeriaLayout title="Buat Kelas Baru" hideNav>
-      <div className="mx-auto w-full max-w-md px-4 py-6">
+    <>
+      <div className="w-full max-w-3xl">
         <StickerCard className="p-5">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-center gap-3">
-              <TilaMascot
-                size={64}
-                mood="excited"
-                animation="bounce"
-                direction="front"
-              />
+              <span className="ustadz-accent-soft flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                <Users size={20} />
+              </span>
               <p className="text-sm font-bold text-[#134E4A]">
                 Sedang menyiapkan kelas{" "}
                 <span className="font-black">barunya</span>?
@@ -192,6 +188,6 @@ export function UstadzCreateRoomPage() {
           </form>
         </StickerCard>
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }

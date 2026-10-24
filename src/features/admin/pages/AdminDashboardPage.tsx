@@ -368,7 +368,7 @@ export default function AdminDashboardPage() {
                     detailBadges.push(`Jilid ${details.jilid} Hal ${details.hal}`);
                   }
                   if (details.stars !== undefined) {
-                    detailBadges.push(`⭐ ${details.stars}`);
+                    detailBadges.push(`${details.stars} Bintang`);
                   }
                   if (details.xpGained !== undefined) {
                     detailBadges.push(`+${details.xpGained} XP`);

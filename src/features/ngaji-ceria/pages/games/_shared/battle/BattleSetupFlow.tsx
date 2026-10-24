@@ -12,6 +12,7 @@ import {
   type BattleSetup,
 } from "./models";
 import { NGAJI_CERIA_ASSETS } from "@/features/ngaji-ceria/data/assets";
+import { SwordsSvg } from "@/components/ui/CustomIcons";
 
 type Step = "character" | "arena" | "versus";
 
@@ -235,9 +236,9 @@ export function BattleSetupFlow({
             <button
               type="button"
               onClick={() => setStep("versus")}
-              className={`game-button mt-3 w-full ${ACCENTS[accent].button}`}
+              className={`game-button inline-flex items-center justify-center gap-2 mt-3 w-full ${ACCENTS[accent].button}`}
             >
-              Masuk Arena ⚔
+              Masuk Arena <SwordsSvg size={18} />
             </button>
           </motion.section>
         )}
@@ -326,9 +327,9 @@ export function BattleSetupFlow({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className={`game-button mt-4 w-full animate-pulse ${ACCENTS[accent].button}`}
+              className={`game-button inline-flex items-center justify-center gap-2 mt-4 w-full animate-pulse ${ACCENTS[accent].button}`}
             >
-              ⚔ Mulai Bertarung!
+              <SwordsSvg size={18} /> Mulai Bertarung!
             </motion.button>
             <button
               type="button"

@@ -515,14 +515,23 @@ function probePort(port: number, host = "127.0.0.1", timeoutMs = 250): Promise<b
   });
 }
 
+function sanitizeProxyTarget(target: string): string {
+  try {
+    const u = new URL(target.trim());
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return target.trim().replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "");
+  }
+}
+
 async function resolveProxyTarget(preferred?: string): Promise<string> {
   if (preferred && preferred.trim()) {
-    const trimmed = preferred.trim();
+    const sanitized = sanitizeProxyTarget(preferred);
     try {
-      const u = new URL(trimmed);
+      const u = new URL(sanitized);
       const port = Number(u.port) || (u.protocol === "https:" ? 443 : 80);
       if (await probePort(port, u.hostname || "127.0.0.1")) {
-        return trimmed;
+        return sanitized;
       }
     } catch {
       // ignore parsing error
@@ -537,7 +546,7 @@ async function resolveProxyTarget(preferred?: string): Promise<string> {
     return "http://127.0.0.1:29001";
   }
 
-  return preferred?.trim() || "http://127.0.0.1:8080";
+  return preferred ? sanitizeProxyTarget(preferred) : "http://127.0.0.1:8080";
 }
 
 export default defineConfig(async ({ mode }): Promise<UserConfig> => {

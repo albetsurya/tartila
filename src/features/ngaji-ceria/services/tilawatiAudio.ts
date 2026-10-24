@@ -7,6 +7,7 @@ import { visibleSegments, type AudioSegment, type PublishedTimeline } from "../u
 import { isNgajiCeriaServerAvailable } from "./ngajiCeriaApi";
 import { getPublishedTimeline } from "./tilawatiEditorApi";
 import { soundManager } from "./soundManager";
+import { getAudioUrl } from "../utils/audioUrl";
 
 const EDITS = timelineEdits as Record<string, { published?: PublishedTimeline }>;
 export interface TilawatiAudioRequest {
@@ -79,8 +80,9 @@ soundManager.subscribe(() => { if (soundManager.muted) stopTilawatiAudio(); });
 /** Pemutar URL umum tetap tersedia untuk audio pembuka dan pemeriksaan manual. */
 export function playTilawatiAudio(url: string | null, onEnded?: () => void): HTMLAudioElement | null {
   stopTilawatiAudio();
-  if (!url || soundManager.muted) { onEnded?.(); return null; }
-  const audio = new Audio(url);
+  const resolvedUrl = getAudioUrl(url);
+  if (!resolvedUrl || soundManager.muted) { onEnded?.(); return null; }
+  const audio = new Audio(resolvedUrl);
   activeAudio = audio;
   audio.volume = 0.9;
   soundManager.duckBgm(true);
@@ -97,15 +99,16 @@ async function playCandidate(candidate: AudioCandidate, token: number): Promise<
     const ctx = context;
     await ctx.resume();
     const decoded = await Promise.all(candidate.segments.map((segment) => {
-      if (!buffers.has(segment.sourceUrl)) {
-        const job = fetch(segment.sourceUrl).then(async (response) => {
+      const sourceUrl = getAudioUrl(segment.sourceUrl) ?? segment.sourceUrl;
+      if (!buffers.has(sourceUrl)) {
+        const job = fetch(sourceUrl).then(async (response) => {
           if (!response.ok) throw new Error("Audio sumber tidak tersedia.");
           return ctx.decodeAudioData(await response.arrayBuffer());
         });
-        buffers.set(segment.sourceUrl, job);
-        void job.catch(() => buffers.delete(segment.sourceUrl));
+        buffers.set(sourceUrl, job);
+        void job.catch(() => buffers.delete(sourceUrl));
       }
-      return buffers.get(segment.sourceUrl)!;
+      return buffers.get(sourceUrl)!;
     }));
     if (token !== generation) return false;
     return new Promise((resolve) => {
@@ -129,7 +132,8 @@ async function playCandidate(candidate: AudioCandidate, token: number): Promise<
     });
   }
   return new Promise((resolve, reject) => {
-    const audio = new Audio(candidate.url);
+    const resolvedUrl = getAudioUrl(candidate.url) ?? candidate.url;
+    const audio = new Audio(resolvedUrl);
     activeAudio = audio;
     audio.volume = 0.9;
     cancelPlayback = () => resolve(false);

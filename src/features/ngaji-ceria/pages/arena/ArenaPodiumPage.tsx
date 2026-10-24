@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { TrophySvg, SparklesSvg } from "@/components/ui/CustomIcons";
+import { TrophySvg, SparklesSvg, CrownSvg, ChartBarSvg } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 
 export default function ArenaPodiumPage() {
@@ -73,8 +73,8 @@ export default function ArenaPodiumPage() {
               <div className="mb-1">
                 <TilaMascot size={64} mood="excited" animation="bounce" direction="front" />
               </div>
-              <span className="text-sm font-black text-[#134E4A] mb-1 truncate max-w-[120px] text-center">
-                👑 {firstPlace.nickname}
+              <span className="text-sm font-black text-[#134E4A] mb-1 truncate max-w-[120px] text-center inline-flex items-center justify-center gap-1">
+                <CrownSvg size={16} /> {firstPlace.nickname}
               </span>
               <span className="text-sm font-black text-[#D97706] mb-2">
                 {firstPlace.score} pts
@@ -168,9 +168,9 @@ export default function ArenaPodiumPage() {
             <button
               type="button"
               onClick={() => navigate(`/arena/report/${pin}`)}
-              className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center"
+              className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center inline-flex items-center justify-center gap-1.5"
             >
-              📊 Lihat Laporan Kompetensi & Rapor
+              <ChartBarSvg size={18} /> Lihat Laporan Kompetensi & Rapor
             </button>
           )}
 

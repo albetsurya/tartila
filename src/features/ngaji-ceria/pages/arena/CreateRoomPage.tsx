@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { SparklesSvg, PlusSvg, CheckSvg, Volume2 } from "@/components/ui/CustomIcons";
+import {
+  SparklesSvg,
+  PlusSvg,
+  CheckSvg,
+  XSvg,
+  Volume2,
+  SettingsSvg,
+  AlertTriangleSvg,
+  RocketSvg,
+} from "@/components/ui/CustomIcons";
 import { SOAL_TILAWATI, SOAL_TAJWID, SOAL_NABI } from "../../data/quiz";
 import type { UniversalQuestion, QuestionCategory } from "../../data/quiz/types";
 import { arenaApi } from "../../services/arenaApi";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 type TabType = "bank" | "manual" | "audio";
 type TierType = "free" | "vip" | "premium";
@@ -211,7 +221,7 @@ export default function CreateRoomPage() {
         {/* Pengaturan Kuis & Ujian */}
         <div className="rounded-3xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A] space-y-4">
           <h2 className="text-lg font-black text-[#134E4A] flex items-center gap-2">
-            ⚙️ Pengaturan Room
+            <SettingsSvg size={20} /> Pengaturan Room
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Tipe Room */}
@@ -275,7 +285,15 @@ export default function CreateRoomPage() {
                   isRandomized ? "bg-[#CCFBF1] text-[#134E4A]" : "bg-gray-100 text-gray-600"
                 }`}
               >
-                {isRandomized ? "✓ Urutan Diacak" : "✕ Urutan Berurutan"}
+                {isRandomized ? (
+                  <>
+                    <CheckSvg size={14} /> Urutan Diacak
+                  </>
+                ) : (
+                  <>
+                    <XSvg size={14} /> Urutan Berurutan
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -496,7 +514,7 @@ export default function CreateRoomPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      const audio = new Audio(audioUrl);
+                      const audio = new Audio(getAudioUrl(audioUrl) ?? audioUrl);
                       audio.play();
                     }}
                     className="px-3 py-2 rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A]"
@@ -546,8 +564,8 @@ export default function CreateRoomPage() {
 
         {/* Error Notification */}
         {errorMsg && (
-          <div className="p-3 rounded-2xl border-2 border-[#134E4A] bg-[#FEE2E2] text-red-800 text-xs font-black shadow-[2px_2px_0px_#134E4A]">
-            ⚠️ {errorMsg}
+          <div className="flex items-center gap-1.5 p-3 rounded-2xl border-2 border-[#134E4A] bg-[#FEE2E2] text-red-800 text-xs font-black shadow-[2px_2px_0px_#134E4A]">
+            <AlertTriangleSvg size={14} className="shrink-0" /> {errorMsg}
           </div>
         )}
 
@@ -557,9 +575,15 @@ export default function CreateRoomPage() {
             type="button"
             disabled={loading || selectedQuestions.length === 0}
             onClick={handleCreateRoom}
-            className="w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg shadow-[6px_6px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg shadow-[6px_6px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all disabled:opacity-50"
           >
-            {loading ? "Membuat Room Arena..." : `🚀 Buka Room Kuis (${selectedQuestions.length} Soal)`}
+            {loading ? (
+              "Membuat Room Arena..."
+            ) : (
+              <>
+                <RocketSvg size={22} /> Buka Room Kuis ({selectedQuestions.length} Soal)
+              </>
+            )}
           </button>
         </div>
       </div>

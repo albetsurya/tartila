@@ -7,6 +7,7 @@ import type {
   QuizModelBaseProps,
   ShapeVariant,
 } from "./types";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 export interface ModelAudioMatchingProps extends QuizModelBaseProps {
   question: AudioMatchingQuestion;
@@ -56,7 +57,7 @@ export function ModelAudioMatching({ question }: ModelAudioMatchingProps) {
       audioRef.current = new Audio();
     }
     const audio = audioRef.current;
-    audio.src = option.audioUrl;
+    audio.src = getAudioUrl(option.audioUrl) ?? option.audioUrl;
     audio.currentTime = 0;
     void audio.play();
   };

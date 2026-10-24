@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Volume2, AlertCircle } from "@/components/ui/CustomIcons";
+import { Volume2, AlertCircle, CheckSvg, XSvg } from "@/components/ui/CustomIcons";
 import { ArenaSocket } from "../../services/arenaSocket";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 const BUTTON_COLORS = [
   { id: "A", bg: "bg-[#EF4444]", hover: "hover:bg-red-600", shape: "▲" },
@@ -215,7 +216,7 @@ export default function PlayerGamePage() {
               <button
                 type="button"
                 onClick={() => {
-                  const audio = new Audio(question.audioUrl);
+                  const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
                   audio.play();
                 }}
                 className="px-4 py-2 rounded-xl border-2 border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A] inline-flex items-center gap-1.5 active:scale-95"
@@ -232,8 +233,8 @@ export default function PlayerGamePage() {
             {result ? (
               result.isCorrect ? (
                 <>
-                  <div className="w-16 h-16 rounded-full bg-[#10B981] border-[3px] border-[#134E4A] text-white flex items-center justify-center text-3xl font-black mx-auto shadow-[2px_2px_0px_#134E4A]">
-                    ✓
+                  <div className="w-16 h-16 rounded-full bg-[#10B981] border-[3px] border-[#134E4A] text-white flex items-center justify-center mx-auto shadow-[2px_2px_0px_#134E4A]">
+                    <CheckSvg size={32} />
                   </div>
                   <h2 className="font-display text-2xl font-black text-[#0D9488]">
                     Luar Biasa! Benar!
@@ -244,8 +245,8 @@ export default function PlayerGamePage() {
                 </>
               ) : (
                 <>
-                  <div className="w-16 h-16 rounded-full bg-[#EF4444] border-[3px] border-[#134E4A] text-white flex items-center justify-center text-3xl font-black mx-auto shadow-[2px_2px_0px_#134E4A]">
-                    ✕
+                  <div className="w-16 h-16 rounded-full bg-[#EF4444] border-[3px] border-[#134E4A] text-white flex items-center justify-center mx-auto shadow-[2px_2px_0px_#134E4A]">
+                    <XSvg size={32} />
                   </div>
                   <h2 className="font-display text-2xl font-black text-[#EF4444]">
                     Belum Tepat

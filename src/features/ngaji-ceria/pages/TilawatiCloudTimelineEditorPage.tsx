@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { ScissorsSvg, SettingsSvg } from "@/components/ui/CustomIcons";
 import { latinToArabic } from "../utils/translit";
 import { TILAWATI_PAGE_DATASETS } from "../data/tilawatiPageDatasets";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
@@ -57,7 +58,11 @@ import {
   type GhostInfo,
 } from "../components/timeline-editor/dragGhost";
 
-export default function TilawatiCloudTimelineEditorPage() {
+export default function TilawatiCloudTimelineEditorPage({
+  backHref = "/member/ngaji-ceria/cek-audio",
+}: {
+  backHref?: string;
+}) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const jilid = Math.min(5, Math.max(1, Number(params.get("jilid")) || 1));
@@ -853,7 +858,7 @@ export default function TilawatiCloudTimelineEditorPage() {
         <button
           className="te-btn"
           onClick={() =>
-            leave(`/member/ngaji-ceria/cek-audio?jilid=${jilid}&hal=${hal}`)
+            leave(`${backHref}?jilid=${jilid}&hal=${hal}`)
           }
         >
           ← Cek Audio Manual
@@ -1049,7 +1054,9 @@ export default function TilawatiCloudTimelineEditorPage() {
                   aria-label="Gunting"
                   title="Gunting"
                 >
-                  <span className="te-action-icon">✂</span>
+                  <span className="te-action-icon">
+                    <ScissorsSvg size={14} />
+                  </span>
                   <span className="te-action-label">Gunting</span>
                 </button>
                 <button
@@ -1200,7 +1207,9 @@ export default function TilawatiCloudTimelineEditorPage() {
                                 handlePointer(event, clip, "cut")
                               }
                             >
-                              <span>✂</span>
+                              <span>
+                                <ScissorsSvg size={14} />
+                              </span>
                             </button>
                           </>
                         )}
@@ -1527,7 +1536,7 @@ export default function TilawatiCloudTimelineEditorPage() {
                         left: `${Math.min(cutAt / clipDuration(selectedClip), 1) * 100}%`,
                       }}
                     >
-                      ✂
+                      <ScissorsSvg size={12} />
                     </div>
                     <div
                       className="te-detail-play"
@@ -1555,7 +1564,7 @@ export default function TilawatiCloudTimelineEditorPage() {
                       ▶ Preview klip
                     </button>
                     <button
-                      className="te-btn"
+                      className="te-btn inline-flex items-center gap-1"
                       disabled={
                         cutAt <= 0 || cutAt >= clipDuration(selectedClip)
                       }
@@ -1566,7 +1575,7 @@ export default function TilawatiCloudTimelineEditorPage() {
                         setCutAt(0);
                       }}
                     >
-                      ✂ Gunting
+                      <ScissorsSvg size={12} /> Gunting
                     </button>
                     <button
                       className="te-btn"
@@ -1730,7 +1739,10 @@ export default function TilawatiCloudTimelineEditorPage() {
                 onClick={() => setMobilePanel("inspector")}
                 title="Pengaturan"
               >
-                <span>⚙</span>Pengaturan
+                <span>
+                  <SettingsSvg size={14} />
+                </span>
+                Pengaturan
               </button>
               <button
                 aria-label={playing ? "Stop preview" : "Preview dari playhead"}

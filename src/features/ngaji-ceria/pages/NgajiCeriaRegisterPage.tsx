@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   User,
   Lock,
@@ -21,6 +21,8 @@ import { NGAJI_CERIA_ASSETS } from "@/features/ngaji-ceria/data/assets";
 
 export default function NgajiCeriaRegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialRef = searchParams.get("ref") || "";
   const { registerCeria } = useAuth();
   const setTilaGender = useEconomyStore((s) => s.setTilaGender);
   const equipAccessory = useEconomyStore((s) => s.equipAccessory);
@@ -30,6 +32,7 @@ export default function NgajiCeriaRegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [referralCode, setReferralCode] = useState(initialRef.toUpperCase());
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +65,13 @@ export default function NgajiCeriaRegisterPage() {
       } else {
         equipAccessory("hairbow");
       }
-      await registerCeria(name, username, password, confirmPassword);
+      await registerCeria(
+        name,
+        username,
+        password,
+        confirmPassword,
+        referralCode.trim() || undefined,
+      );
       try {
         await userApi.updateUserMascot(selectedGender);
       } catch {
@@ -252,6 +261,28 @@ export default function NgajiCeriaRegisterPage() {
                   maxLength={128}
                   autoComplete="new-password"
                   className="w-full px-4 py-2.5 rounded-2xl border-2 border-[#134E4A]/30 text-sm font-bold text-[#134e4a] focus:outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="ceria-referral-code" className="block text-xs font-black text-[#134e4a]">
+                    Punya kode referral? (Opsional)
+                  </label>
+                  <span className="text-[10px] font-black text-[#0D9488] bg-[#CCFBF1] px-2 py-0.5 rounded-md border border-[#134E4A]">
+                    Hadiah VIP 1 Bulan
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  id="ceria-referral-code"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="Misal: TITO-ABCD"
+                  maxLength={20}
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  className="w-full px-4 py-2.5 rounded-2xl border-2 border-[#134E4A]/30 text-sm font-black text-[#134e4a] tracking-wider uppercase placeholder:tracking-normal placeholder:font-normal focus:outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
                 />
               </div>
 

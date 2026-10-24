@@ -60,7 +60,7 @@ export function PodiumSaf({ players, round }: { players: PodiumPlayer[]; round: 
         </div>
       )}
       <p className="mt-2 text-center text-[10px] text-teal-200/80">
-        Pemain tersisa: {alive.map((p) => p.name).join(", ") || "—"}
+        Pemain tersisa: {alive.map((p) => p.name).join(", ") || "-"}
       </p>
     </motion.section>
   );

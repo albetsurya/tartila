@@ -80,3 +80,20 @@ export function classroomRoleFor(
   if (normalized === "admin" || normalized === "superadmin") return "monitor";
   return "murid";
 }
+
+/**
+ * Peran kelas dari objek pengguna utuh (role ATAU flag is_ustadz).
+ * Ustadz dengan role "member" tetap dihitung pengajar selama flag
+ * is_ustadz = true; admin tetap pemantau meski flag terpasang.
+ */
+export function classroomRoleForUser(
+  user: { role?: string | null; is_ustadz?: boolean | null } | null
+    | undefined,
+): ClassroomRole | null {
+  if (user?.is_ustadz === true) {
+    const role = normalizeRole(user.role);
+    if (role === "admin" || role === "superadmin") return "monitor";
+    return "ustadz";
+  }
+  return classroomRoleFor(user?.role);
+}

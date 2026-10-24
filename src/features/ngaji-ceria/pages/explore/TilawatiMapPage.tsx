@@ -469,7 +469,7 @@ export default function TilawatiMapPage() {
           ))}
         </div>
 
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2 flex-wrap relative z-50">
+        <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2 flex-wrap relative z-20">
           <button
             type="button"
             onClick={() => navigate("/member/ngaji-ceria/explore/tilawati")}

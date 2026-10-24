@@ -9,6 +9,7 @@ import {
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceAudioQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 export interface ModelMultipleChoiceAudioProps extends QuizModelBaseProps {
   question: MultipleChoiceAudioQuestion;
@@ -52,7 +53,7 @@ export function ModelMultipleChoiceAudio({
       return;
     }
     if (!question.audioUrl) return;
-    // Audio dibuat ulang setiap ganti soal/URL — elemen lama di-pause & dibuang
+    // Audio dibuat ulang setiap ganti soal/URL: elemen lama di-pause & dibuang
     // agar tidak memutar sisa suara dari soal sebelumnya (anti-caching).
     if (audioRef.current) {
       const sameUrl =
@@ -65,7 +66,7 @@ export function ModelMultipleChoiceAudio({
       }
     }
     if (!audioRef.current) {
-      const audio = new Audio(question.audioUrl);
+      const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
       audio.crossOrigin = "anonymous";
       audio.preload = "auto";
       audio.onloadstart = () => setIsAudioLoading(true);

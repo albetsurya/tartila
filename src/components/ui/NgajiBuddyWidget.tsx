@@ -27,6 +27,7 @@ import {
   HelpCircle,
   Home,
   Lightbulb,
+  User,
 } from ".";
 import { BibiReactionType } from "@/utils/bibiEvent";
 
@@ -52,12 +53,12 @@ interface NgajiBuddyWidgetProps {
 const HIDDEN_STORAGE_KEY = "ngaji-buddy-widget-hidden";
 
 const SCROLL_MESSAGES = [
-  "Assalamualaikum! Yuk ngaji bareng 👋",
-  "Yuk scroll pelan-pelan 👇",
-  "Banyak ilmu seru di bawah! ✨",
-  "Aku temani kamu belajar terus 🚶",
-  "MasyaAllah, rajin sekali! ⭐",
-  "Sampai bawah nih, hebat! 🎉",
+  "Assalamualaikum! Yuk ngaji bareng",
+  "Yuk scroll pelan-pelan",
+  "Banyak ilmu seru di bawah!",
+  "Aku temani kamu belajar terus",
+  "MasyaAllah, rajin sekali!",
+  "Sampai bawah nih, hebat!",
 ];
 
 export function NgajiBuddyWidget({
@@ -81,7 +82,7 @@ export function NgajiBuddyWidget({
   const [mood, setMood] = useState<BibiMood>("excited");
   const [anim, setAnim] = useState<BibiAnimation>("fly");
   const [speech, setSpeech] = useState<string | undefined>(
-    "Assalamualaikum! Siap ngaji? 📖",
+    "Assalamualaikum! Siap ngaji?",
   );
   const [talking, setTalking] = useState(true);
   const [rotation, setRotation] = useState(0);
@@ -146,7 +147,7 @@ export function NgajiBuddyWidget({
 
     setAnim("fly");
     setMood("excited");
-    setSpeech("Panduannya di sini ya! 👆");
+    setSpeech("Panduannya di sini ya!");
     setTalking(true);
     setRotation((prev) => prev + 360);
 
@@ -205,7 +206,7 @@ export function NgajiBuddyWidget({
       switch (type) {
         case "play":
           setMood("excited");
-          setSpeech("Bismillah, ayo semangat! 🚀");
+          setSpeech("Bismillah, ayo semangat!");
           setTalking(true);
           setAnim("bounce");
           setRotation((prev) => prev + 360);
@@ -214,7 +215,7 @@ export function NgajiBuddyWidget({
           break;
         case "exit":
           setMood("sad");
-          setSpeech("Hati-hati ya! Sampai jumpa 👋");
+          setSpeech("Hati-hati ya! Sampai jumpa");
           setTalking(true);
           setAnim("float");
           setRotation((prev) => prev + 45);
@@ -223,20 +224,20 @@ export function NgajiBuddyWidget({
           break;
         case "success":
           setMood("excited");
-          setSpeech("Alhamdulillah! Hebat sekali! 🌟");
+          setSpeech("Alhamdulillah! Hebat sekali!");
           setTalking(true);
           setAnim("bounce");
           setRotation((prev) => prev + 360);
           break;
         case "error":
           setMood("sad");
-          setSpeech("Belum tepat, yuk coba lagi! 💪");
+          setSpeech("Belum tepat, yuk coba lagi!");
           setTalking(true);
           setAnim("float");
           break;
         default:
           setMood("happy");
-          setSpeech("Assalamualaikum! 👋");
+          setSpeech("Assalamualaikum!");
           setTalking(true);
           break;
       }
@@ -392,7 +393,7 @@ export function NgajiBuddyWidget({
       boredomTimer.current = window.setTimeout(() => {
         setRotation((prev) => prev + 180);
         setMood("sleepy");
-        setSpeech("Hmm, yuk lanjut belajarnya... 📖");
+        setSpeech("Hmm, yuk lanjut belajarnya...");
         setTalking(true);
         setTimeout(() => setTalking(false), 2500);
       }, 15000);
@@ -448,7 +449,7 @@ export function NgajiBuddyWidget({
 
     animate(scale, 1.6, { type: "spring", stiffness: 100, damping: 12 });
     setMood("happy");
-    setSpeech("Hai! Ada yang mau dipelajari? 📖");
+    setSpeech("Hai! Ada yang mau dipelajari?");
     setTalking(true);
     setAnim("bounce");
     setRotation((prev) => prev + 360);
@@ -493,7 +494,7 @@ export function NgajiBuddyWidget({
     hasAppearedRef.current = nextAppeared;
     notifyTipChange(false, nextAppeared);
 
-    setSpeech("Sampai jumpa! Panggil aku lagi ya 👋");
+    setSpeech("Sampai jumpa! Panggil aku lagi ya");
     setMood("sad");
     setTalking(true);
     setAnim("fly");
@@ -527,7 +528,7 @@ export function NgajiBuddyWidget({
     }
 
     setIsHidden(false);
-    setSpeech("Assalamualaikum! Aku kembali! ✨");
+    setSpeech("Assalamualaikum! Aku kembali!");
     setMood("excited");
     setTalking(true);
     setAnim("fly");
@@ -573,7 +574,11 @@ export function NgajiBuddyWidget({
         }`}
         title={isHidden ? "Panggil Teman Ngaji" : "Sembunyikan Teman Ngaji"}
       >
-        {isHidden ? "👦" : "👋"}
+        {isHidden ? (
+          <User size={22} className="text-white" />
+        ) : (
+          <HandsPraying size={22} className="text-[#134E4A]" />
+        )}
       </motion.button>
 
       <AnimatePresence>
@@ -689,7 +694,7 @@ export function NgajiBuddyWidget({
                         onClick={handleDismissTip}
                         className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#FF6B6B] text-white border-2 border-[#134E4A] flex items-center justify-center text-xs font-black active:scale-90"
                       >
-                        ✕
+                        <X size={12} />
                       </button>
 
                       <div className="flex items-center gap-1.5 mb-1.5">

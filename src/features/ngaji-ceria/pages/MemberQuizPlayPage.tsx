@@ -144,7 +144,7 @@ export function MemberQuizPlayPage() {
                     {index + 1}. {question.prompt}
                   </p>
                   <p className="mt-0.5 text-[11px] font-semibold text-[#134E4A]/80">
-                    Jawabanmu: {chosen >= 0 ? question.options[chosen] : "—"}
+                    Jawabanmu: {chosen >= 0 ? question.options[chosen] : "-"}
                     {!correct && (
                       <>
                         {" · "}

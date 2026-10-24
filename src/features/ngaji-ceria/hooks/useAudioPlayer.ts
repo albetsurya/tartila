@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getAudioUrl } from "../utils/audioUrl";
 
 export interface AudioPlayerController {
   isPlaying: boolean;
@@ -73,6 +74,7 @@ export function useAudioPlayer(): AudioPlayerController {
   const play = useCallback((url: string) => {
     const audio = audioRef.current;
     if (!audio) return;
+    url = getAudioUrl(url) ?? url;
 
     // Normalisasi ke URL absolut agar perbandingan konsisten (audio.src selalu absolut).
     const targetUrl = new URL(url, window.location.href).href;
@@ -103,6 +105,7 @@ export function useAudioPlayer(): AudioPlayerController {
     (url: string) => {
       const audio = audioRef.current;
       if (!audio) return;
+      url = getAudioUrl(url) ?? url;
 
       const targetUrl = new URL(url, window.location.href).href;
       if (isPlaying && audio.src === targetUrl) {

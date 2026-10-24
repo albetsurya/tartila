@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { ScissorsSvg, SettingsSvg } from "@/components/ui/CustomIcons";
 import { latinToArabic } from "../utils/translit";
 import { TILAWATI_PAGE_DATASETS } from "../data/tilawatiPageDatasets";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
@@ -95,7 +96,11 @@ const EDGE_MIN_SPEED = 3;
 const SNAP_PX = 14;
 const SNAP_EPSILON = 0.001;
 
-export default function TilawatiTimelineEditorPage() {
+export default function TilawatiTimelineEditorPage({
+  backHref = "/member/ngaji-ceria/cek-audio",
+}: {
+  backHref?: string;
+}) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const jilid = Math.min(5, Math.max(1, Number(params.get("jilid")) || 1));
@@ -1720,7 +1725,7 @@ export default function TilawatiTimelineEditorPage() {
         <button
           className="te-btn"
           onClick={() =>
-            leave(`/member/ngaji-ceria/cek-audio?jilid=${jilid}&hal=${hal}`)
+            leave(`${backHref}?jilid=${jilid}&hal=${hal}`)
           }
         >
           ← Cek Audio Manual
@@ -1761,7 +1766,7 @@ export default function TilawatiTimelineEditorPage() {
             title={`${inspectorOpen ? "Sembunyikan" : "Tampilkan"} panel pengaturan ( ] )`}
           >
             <span className="te-tool-icon" aria-hidden="true">
-              ⚙
+              <SettingsSvg size={14} />
             </span>
             <span className="te-tool-label">Pengaturan</span>
           </button>
@@ -1982,7 +1987,9 @@ export default function TilawatiTimelineEditorPage() {
                   aria-label="Gunting"
                   title="Gunting"
                 >
-                  <span className="te-action-icon">✂</span>
+                  <span className="te-action-icon">
+                    <ScissorsSvg size={14} />
+                  </span>
                   <span className="te-action-label">Gunting</span>
                 </button>
                 <button
@@ -2154,7 +2161,9 @@ export default function TilawatiTimelineEditorPage() {
                                 handlePointer(event, clip, "cut")
                               }
                             >
-                              <span>✂</span>
+                              <span>
+                                <ScissorsSvg size={14} />
+                              </span>
                             </button>
                           </>
                         )}
@@ -2497,7 +2506,7 @@ export default function TilawatiTimelineEditorPage() {
                         left: `${(selectedLocalCut / clipDuration(selectedClip)) * 100}%`,
                       }}
                     >
-                      ✂
+                      <ScissorsSvg size={12} />
                     </div>
                     <div
                       className="te-detail-play"
@@ -2509,7 +2518,9 @@ export default function TilawatiTimelineEditorPage() {
                   <div
                     className={`te-detail-delta ${selectedAligned ? "is-aligned" : ""}`}
                   >
-                    <span>✂ {seconds(selectedLocalCut)}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <ScissorsSvg size={12} /> {seconds(selectedLocalCut)}
+                    </span>
                     <span>▶ {seconds(selectedLocalPlay)}</span>
                     <span>
                       Δ {seconds(Math.abs(selectedDelta))}
@@ -2518,18 +2529,18 @@ export default function TilawatiTimelineEditorPage() {
                   </div>
                   <div className="te-align-actions">
                     <button
-                      className="te-btn"
+                      className="te-btn inline-flex items-center gap-1"
                       onClick={alignCutToPlayhead}
                       title="Pindahkan garis gunting ke posisi playhead"
                     >
-                      ✂ = ▶
+                      <ScissorsSvg size={12} /> = ▶
                     </button>
                     <button
-                      className="te-btn"
+                      className="te-btn inline-flex items-center gap-1"
                       onClick={alignPlayheadToCut}
                       title="Pindahkan playhead ke posisi garis gunting"
                     >
-                      ▶ = ✂
+                      ▶ = <ScissorsSvg size={12} />
                     </button>
                   </div>
                   <input
@@ -2558,7 +2569,7 @@ export default function TilawatiTimelineEditorPage() {
                       {previewingId === "clip" ? "■ Stop" : "▶ Preview klip"}
                     </button>
                     <button
-                      className="te-btn"
+                      className="te-btn inline-flex items-center gap-1"
                       disabled={
                         cutAt <= 0 || cutAt >= clipDuration(selectedClip)
                       }
@@ -2569,7 +2580,7 @@ export default function TilawatiTimelineEditorPage() {
                         setCutAt(0);
                       }}
                     >
-                      ✂ Gunting
+                      <ScissorsSvg size={12} /> Gunting
                     </button>
                     <button
                       className="te-btn"
@@ -2761,7 +2772,10 @@ export default function TilawatiTimelineEditorPage() {
                 onClick={() => setMobilePanel("inspector")}
                 title="Pengaturan"
               >
-                <span>⚙</span>Pengaturan
+                <span>
+                  <SettingsSvg size={14} />
+                </span>
+                Pengaturan
               </button>
               <button
                 aria-label={playing ? "Stop preview" : "Preview dari playhead"}

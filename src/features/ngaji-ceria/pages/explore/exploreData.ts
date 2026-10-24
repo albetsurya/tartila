@@ -425,11 +425,11 @@ export const DOA_LIST: DoaItem[] = [
     title: "Doa Saat Bersin & Menjawabnya",
     category: "Doa Keluarga",
     arabic:
-      "الْحَمْدُ لِلَّهِ — يَرْحَمُكَ اللَّهُ — يَهْدِيكُمُ اللَّهُ وَيُصْلِحُ بَالَكُمْ",
+      "الْحَمْدُ لِلَّهِ - يَرْحَمُكَ اللَّهُ - يَهْدِيكُمُ اللَّهُ وَيُصْلِحُ بَالَكُمْ",
     latin:
-      "Alhamdulillaah — Yarhamukallaah — Yahdiikumullaahu wa yushlihu baalakum",
+      "Alhamdulillaah - Yarhamukallaah - Yahdiikumullaahu wa yushlihu baalakum",
     translation:
-      "Segala puji bagi Allah — Semoga Allah merahmatimu — Semoga Allah memberimu petunjuk dan memperbaiki keadaanmu.",
+      "Segala puji bagi Allah - Semoga Allah merahmatimu - Semoga Allah memberimu petunjuk dan memperbaiki keadaanmu.",
     audioUrl: DOA_AUDIO_PLACEHOLDER,
   },
 ];

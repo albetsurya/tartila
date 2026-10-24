@@ -12,6 +12,7 @@ import {
   MASCOT_GIRL_NAME,
   MASCOT_NAME,
 } from '../src/constants/mascot.ts';
+import { SKIN_ITEMS } from '../src/features/ngaji-ceria/data/shopData.ts';
 
 export const tests = {
   'konstanta nama maskot resmi': () => {
@@ -86,5 +87,51 @@ export const tests = {
     // Aksesoris netral tetap utuh
     assert.equal(resolveAccessoryForGender('glasses', 'boy'), 'glasses');
     assert.equal(resolveAccessoryForGender('glasses', 'girl'), 'glasses');
+  },
+
+  'katalog skin maskot memuat skin default, naga, robot, dan 3 varian phoenix': () => {
+    assert.equal(SKIN_ITEMS.length, 6);
+    const naga = SKIN_ITEMS.find((s) => s.skinKey === 'naga');
+    const robot = SKIN_ITEMS.find((s) => s.skinKey === 'robot');
+    const def = SKIN_ITEMS.find((s) => s.skinKey === 'default');
+    const phoenixIce = SKIN_ITEMS.find((s) => s.skinKey === 'phoenix_ice');
+    const phoenixGold = SKIN_ITEMS.find((s) => s.skinKey === 'phoenix_gold');
+    const phoenixDark = SKIN_ITEMS.find((s) => s.skinKey === 'phoenix_dark');
+
+    assert.ok(naga, 'skin naga harus terdefinisi');
+    assert.equal(naga.price, 800);
+    assert.equal(naga.previewColors.body, '#059669');
+    assert.equal(naga.previewColors.accent, '#FBBF24');
+    assert.equal(naga.previewColors.belly, '#FDE68A');
+
+    assert.ok(robot, 'skin robot harus terdefinisi');
+    assert.equal(robot.price, 800);
+    assert.equal(robot.previewColors.body, '#94A3B8');
+    assert.equal(robot.previewColors.accent, '#06B6D4');
+    assert.equal(robot.previewColors.belly, '#CBD5E1');
+
+    assert.ok(def, 'skin default harus terdefinisi');
+    assert.equal(def.price, 0);
+
+    assert.ok(phoenixIce, 'skin phoenix ice harus terdefinisi');
+    assert.equal(phoenixIce.price, 1500);
+    assert.equal(phoenixIce.currency, 'coin');
+    assert.equal(phoenixIce.rarity, 'Legendary');
+    assert.equal(phoenixIce.previewColors.body, '#38BDF8');
+    assert.equal(phoenixIce.previewColors.accent, '#F8FAFC');
+
+    assert.ok(phoenixGold, 'skin phoenix gold harus terdefinisi');
+    assert.equal(phoenixGold.price, 50);
+    assert.equal(phoenixGold.currency, 'ticket');
+    assert.equal(phoenixGold.rarity, 'Mythic');
+    assert.equal(phoenixGold.previewColors.body, '#FBBF24');
+    assert.equal(phoenixGold.previewColors.accent, '#D97706');
+
+    assert.ok(phoenixDark, 'skin phoenix dark harus terdefinisi');
+    assert.equal(phoenixDark.price, 2000);
+    assert.equal(phoenixDark.currency, 'coin');
+    assert.equal(phoenixDark.rarity, 'Legendary');
+    assert.equal(phoenixDark.previewColors.body, '#4C1D95');
+    assert.equal(phoenixDark.previewColors.accent, '#111827');
   },
 };

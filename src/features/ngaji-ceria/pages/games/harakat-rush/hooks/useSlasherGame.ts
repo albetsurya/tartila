@@ -1,5 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { HARAKAT_LIST, type HarakatId } from "../data/harakat-list";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  HARAKAT_LIST,
+  getSlasherItems,
+  type SlasherMode,
+  type SlasherTargetItem,
+} from "../data/harakat-list";
 import { playLetterAudio } from "../../_shared/gameAudio";
 import { playSfx } from "../../_shared/audio";
 import { getBest, setBest } from "../../_shared/storage";
@@ -10,15 +15,25 @@ export type SlashResultKind = "correct" | "wrong" | "miss";
 
 export function useSlasherGame() {
   const [phase, setPhase] = useState<SlasherPhase>("idle");
+  const [mode, setMode] = useState<SlasherMode>("harakat");
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [lives, setLives] = useState(3);
-  const [currentTarget, setCurrentTarget] = useState<HarakatId>(
-    HARAKAT_LIST[0].id
-  );
+
+  const activePool = useMemo(() => getSlasherItems(mode), [mode]);
+
+  const [currentTarget, setCurrentTarget] = useState<string>(() => activePool[0]?.id || "fathah");
   const [best, setBestState] = useState(() => getBest("harakat-rush"));
 
   const scoreRef = useRef(0);
+
+  // Saat mode berganti, reset target ke item pertama dari mode tersebut
+  useEffect(() => {
+    const items = getSlasherItems(mode);
+    if (items.length > 0) {
+      setCurrentTarget(items[0].id);
+    }
+  }, [mode]);
 
   const bumpScore = useCallback((next: number) => {
     scoreRef.current = next;
@@ -62,33 +77,47 @@ export function useSlasherGame() {
     [bumpScore, loseLife]
   );
 
-  // Target harakat berganti berkala agar variasi
+  // Target berganti berkala agar variasi sesuai mode yang dipilih
   useEffect(() => {
     if (phase !== "playing") return;
     const interval = setInterval(() => {
-      setCurrentTarget(
-        HARAKAT_LIST[Math.floor(Math.random() * HARAKAT_LIST.length)].id
-      );
+      const items = getSlasherItems(mode);
+      if (items.length > 0) {
+        const nextTarget = items[Math.floor(Math.random() * items.length)];
+        setCurrentTarget(nextTarget.id);
+      }
     }, 12000);
     return () => clearInterval(interval);
-  }, [phase]);
+  }, [phase, mode]);
 
   const resetRun = useCallback(() => {
     scoreRef.current = 0;
     setScore(0);
     setCombo(0);
     setLives(3);
-    setCurrentTarget(HARAKAT_LIST[0].id);
+    const items = getSlasherItems(mode);
+    setCurrentTarget(items[0]?.id || HARAKAT_LIST[0].id);
     setPhase("idle");
-  }, []);
+  }, [mode]);
+
+  const currentTargetItem: SlasherTargetItem = useMemo(() => {
+    return (
+      activePool.find((item) => item.id === currentTarget) ??
+      activePool[0] ??
+      HARAKAT_LIST[0]
+    );
+  }, [activePool, currentTarget]);
 
   return {
     phase,
     setPhase,
+    mode,
+    setMode,
     score,
     combo,
     lives,
     currentTarget,
+    currentTargetItem,
     best,
     onSliceResult,
     resetRun,

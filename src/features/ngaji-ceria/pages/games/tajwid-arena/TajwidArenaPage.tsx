@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ZapSvg } from "@/components/ui/CustomIcons";
 import { TajwidArenaCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot, type TilaMood, type TilaAnimation } from "@/components/ui/TilaMascot";
 import { playLetterAudio } from "../_shared/gameAudio";
@@ -155,8 +156,9 @@ function Game() {
               <span className="text-[10px] font-bold text-teal-700 block">
                 Energi Majelis
               </span>
-              <span className="text-base font-black text-amber-600">
-                {game.energy}⚡
+              <span className="text-base font-black text-amber-600 inline-flex items-center justify-end gap-0.5">
+                {game.energy}
+                <ZapSvg size={14} className="text-amber-500" />
               </span>
             </div>
           </div>

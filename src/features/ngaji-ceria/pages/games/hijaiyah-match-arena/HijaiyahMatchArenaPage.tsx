@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { SparklesSvg } from "@/components/ui/CustomIcons";
 import { HijaiyahMatchArenaCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { GameBoundary } from "../_shared/GameBoundary";
@@ -131,7 +132,7 @@ function Game() {
                     transition={{ repeat: Infinity, duration: 1 }}
                     className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] text-[11px] font-black"
                   >
-                    <span>✨</span>
+                    <SparklesSvg size={12} />
                     <span>COMBO x{game.streak}!</span>
                   </motion.div>
                 )}
@@ -167,7 +168,7 @@ function Game() {
         accent="violet"
         description={
           game.mode === "battle"
-            ? `Pasangan kamu ${game.playerPairs} — AI ${game.aiPairs}. Skor AI: ${game.aiScore}.`
+            ? `Pasangan kamu ${game.playerPairs} vs AI ${game.aiPairs}. Skor AI: ${game.aiScore}.`
             : `${game.playerPairs}/8 pasangan ditemukan.`
         }
         onRetry={game.start}

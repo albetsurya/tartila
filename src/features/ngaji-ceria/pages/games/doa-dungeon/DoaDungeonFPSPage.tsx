@@ -246,7 +246,7 @@ function DoaDungeonFPS() {
   );
 }
 
-// ✅ EXPORT UTAMA
+// EXPORT UTAMA
 export default function DoaDungeonFPSPage() {
   return (
     <div>

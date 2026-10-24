@@ -31,10 +31,32 @@ function notifyUnauthorized() {
 
 export function getToken(): string | null {
   try {
-    const match = document.cookie.match(
-      /(?:^|;\s*)tartila_token=([^;]*)/,
-    );
-    return match ? decodeURIComponent(match[1]) : null;
+    // 1. Cek localStorage (kompatibilitas dengan auth token dan localStorage.getItem("token"))
+    if (typeof window !== "undefined" && window.localStorage) {
+      const lsToken =
+        window.localStorage.getItem("token") ||
+        window.localStorage.getItem("tartila_token") ||
+        window.localStorage.getItem("auth_token");
+      if (lsToken) return lsToken.replace(/^Bearer\s+/i, "").trim();
+    }
+
+    // 2. Cek document.cookie (tartila_token, pengajian_token, token)
+    if (typeof document !== "undefined" && document.cookie) {
+      const match = document.cookie.match(
+        /(?:^|;\s*)(?:tartila_token|pengajian_token|token)=([^;]*)/,
+      );
+      if (match) return decodeURIComponent(match[1]).replace(/^Bearer\s+/i, "").trim();
+    }
+
+    // 3. Cek sessionStorage
+    if (typeof window !== "undefined" && window.sessionStorage) {
+      const ssToken =
+        window.sessionStorage.getItem("token") ||
+        window.sessionStorage.getItem("tartila_token");
+      if (ssToken) return ssToken.replace(/^Bearer\s+/i, "").trim();
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -42,13 +64,39 @@ export function getToken(): string | null {
 
 export function setToken(token: string) {
   sessionExpiryNotified = false;
-  document.cookie = `${TOKEN_COOKIE}=${encodeURIComponent(
-    token,
-  )}; path=/; SameSite=Strict`;
+  const clean = token.replace(/^Bearer\s+/i, "").trim();
+  if (typeof document !== "undefined") {
+    document.cookie = `${TOKEN_COOKIE}=${encodeURIComponent(
+      clean,
+    )}; path=/; SameSite=Strict`;
+    document.cookie = `token=${encodeURIComponent(
+      clean,
+    )}; path=/; SameSite=Strict`;
+  }
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.setItem("token", clean);
+      window.localStorage.setItem("tartila_token", clean);
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function clearToken() {
-  document.cookie = `${TOKEN_COOKIE}=; path=/; SameSite=Strict; Max-Age=-1`;
+  if (typeof document !== "undefined") {
+    document.cookie = `${TOKEN_COOKIE}=; path=/; SameSite=Strict; Max-Age=-1`;
+    document.cookie = `token=; path=/; SameSite=Strict; Max-Age=-1`;
+  }
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("tartila_token");
+      window.localStorage.removeItem("auth_token");
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function setGroupId(groupId: string | null) {
@@ -86,7 +134,7 @@ export async function callREST<T>(
   queryParams?: Record<string, any>,
 ): Promise<T> {
   const baseUrl = API_BASE_URL
-    ? API_BASE_URL.replace(/\/api\/?$/, "").replace(/\/$/, "")
+    ? API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "")
     : "";
   let url = `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   if (queryParams) {

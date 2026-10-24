@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TitoMascot } from "@/components/ui/TitoMascot";
-import { SparklesSvg } from "@/components/ui/CustomIcons";
+import { SparklesSvg, AlertTriangleSvg, GamepadSvg } from "@/components/ui/CustomIcons";
 import { arenaApi } from "../../services/arenaApi";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -100,17 +100,21 @@ export default function JoinRoomPage() {
             </div>
 
             {errorMsg && (
-              <div className="p-3 rounded-xl border-2 border-[#134E4A] bg-rose-100 text-rose-800 text-xs font-black shadow-[2px_2px_0px_#134E4A]">
-                ⚠️ {errorMsg}
+              <div className="flex items-center gap-1.5 p-3 rounded-xl border-2 border-[#134E4A] bg-rose-100 text-rose-800 text-xs font-black shadow-[2px_2px_0px_#134E4A]">
+                <AlertTriangleSvg size={14} className="shrink-0" /> {errorMsg}
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading || pin.length !== 6 || !nickname.trim()}
-              className="w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[1px_1px_0px_#134E4A] transition-all disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[1px_1px_0px_#134E4A] transition-all disabled:opacity-50"
             >
-              {loading ? "Memeriksa Room..." : "Masuk Kuis 🎮"}
+              {loading ? "Memeriksa Room..." : (
+                <>
+                  Masuk Kuis <GamepadSvg size={22} />
+                </>
+              )}
             </button>
           </form>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Info, Volume2 } from "../../../../components/ui/CustomIcons";
 import { StickerButton, StickerCard } from "../../../../components/ui";
 import type { MaterialItem, QuizModelBaseProps } from "./types";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 export interface ModelMaterialCardProps extends QuizModelBaseProps {
   material: MaterialItem;
@@ -27,7 +28,7 @@ export function ModelMaterialCard({
     }
     if (!material.audioUrl) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(material.audioUrl);
+      audioRef.current = new Audio(getAudioUrl(material.audioUrl) ?? material.audioUrl);
     }
     const audio = audioRef.current;
     audio.currentTime = 0;

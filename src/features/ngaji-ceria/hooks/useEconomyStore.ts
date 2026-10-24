@@ -11,6 +11,9 @@ import {
 } from '@/utils/mascotHelper';
 import { MASCOT_STORAGE_KEY } from '@/constants/mascot';
 import { normalizeRole, isUstadzRole } from '@/lib/roles';
+import type { MascotSkin } from '../data/shopData';
+
+export type { MascotSkin };
 
 export const HEART_MAX = 5;
 export const TICKET_MAX = 3;
@@ -57,7 +60,7 @@ export function isUnlimitedUser(
   groupId?: string | null,
   subscriptionType?: string | null,
 ): boolean {
-  if (isVipStore) return true;
+  if (isVipStore || user?.is_vip) return true;
 
   const normalizedRole = normalizeRole(user?.role);
 
@@ -66,8 +69,17 @@ export function isUnlimitedUser(
     return true;
   }
 
-  // VIP (dari isVipStore atau group_id)
-  if (isVipStore || groupId === 'vip') {
+  // VIP (dari isVipStore, user.is_vip, group_id, atau subscriptionType)
+  if (
+    isVipStore ||
+    user?.is_vip ||
+    groupId === 'vip' ||
+    user?.group_id === 'vip' ||
+    subscriptionType === 'vip' ||
+    subscriptionType === 'premium' ||
+    user?.subscription_type === 'vip' ||
+    user?.subscription_type === 'premium'
+  ) {
     return true;
   }
 
@@ -126,25 +138,39 @@ interface EconomyState {
   ownedAccessories: string[];
   showMascot: boolean;
   setShowMascot: (show: boolean) => void;
+  inventory: string[];
+  equippedTheme: string;
+  setEquippedSkin: (skin: MascotSkin | string) => void;
+  setEquippedAccessory: (id: string) => void;
+  setEquippedTheme: (id: string) => void;
   ownedRoomThemes: string[];
   equippedRoomTheme: string;
-  buyRoomTheme: (id: string, price: number) => boolean;
+  buyRoomTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
   equipRoomTheme: (id: string) => void;
   ownedGameThemes: string[];
   equippedGameTheme: string;
-  buyGameTheme: (id: string, price: number) => boolean;
+  buyGameTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
   equipGameTheme: (id: string) => void;
+  ownedAppThemes: string[];
+  equippedAppTheme: string;
+  buyAppTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
+  equipAppTheme: (id: string) => void;
+  ownedSkins: string[];
+  equippedSkin: MascotSkin;
+  buySkin: (id: string, price: number, currency?: 'coin' | 'ticket') => boolean;
+  equipSkin: (id: string) => void;
   streakMultiplier: number;
   dailyRewardsClaimed: number[];
   lastDailyClaimDate: string | null;
   setTilaGender: (gender: TilaGender) => Promise<void> | void;
   setBibiGender: (gender: BibiGender) => void;
-  buyAccessory: (id: string, price: number) => Promise<boolean>;
+  buyAccessory: (id: string, price: number, free?: boolean) => Promise<boolean>;
   equipAccessory: (id: string) => void;
   syncTime: () => void;
   grantEnergy: (kind: EnergyKind) => boolean;
   purchasedToday: (kind: EnergyKind) => number;
   activateVip: () => void;
+  applyVipSuccess: (durationDays?: number, expiresAt?: string) => void;
   applyStreakMultiplier: (streakDays: number) => number;
   addCoins: (amount: number, reason?: string) => boolean;
   setUserId: (userId: string | null) => void;
@@ -162,7 +188,7 @@ interface EconomyState {
   consumeTicket: () => Promise<boolean>;
   restoreHeart: () => Promise<boolean>;
   restoreTicket: () => Promise<boolean>;
-  buyBooster: (boosterId: string, price: number) => Promise<boolean>;
+  buyBooster: (boosterId: string, price: number, free?: boolean) => Promise<boolean>;
   setVip: (isVip: boolean) => Promise<void>;
   setGroupId: (groupId: string | null) => Promise<void>;
   setSubscription: (subType: 'free' | 'vip' | 'premium') => Promise<void>;
@@ -298,13 +324,27 @@ export const useEconomyStore = create<EconomyState>()(
       ownedAccessories: ['none', 'peci', 'hairbow'],
       ownedRoomThemes: ['default'],
       equippedRoomTheme: 'default',
+      equippedTheme: 'default',
+      inventory: ['default', 'skin_default', 'none', 'peci', 'hairbow', 'theme_default'],
+      setEquippedSkin: (id: MascotSkin | string) => {
+        const skinKey = (typeof id === 'string' ? id.replace(/^skin_/, '') : id) as MascotSkin;
+        set({ equippedSkin: skinKey });
+      },
+      setEquippedAccessory: (id: string) => {
+        get().equipAccessory(id);
+      },
+      setEquippedTheme: (id: string) => {
+        get().equipRoomTheme(id);
+      },
       ownedGameThemes: ['default'],
       equippedGameTheme: 'default',
-  showMascot:
-    typeof window !== "undefined"
-      ? window.localStorage.getItem("tila-companion-hidden") !== "1" &&
-        window.localStorage.getItem("bibi-companion-hidden") !== "1"
-      : true,
+      ownedAppThemes: ['default'],
+      equippedAppTheme: 'default',
+      ownedSkins: ['default', 'skin_default'],
+      equippedSkin: 'default' as MascotSkin,
+  // Sumber kebenaran: rehidrasi persist ("tartila_economy_store"). Kunci
+  // legacy HANYA mirror agar util lama (isMascotVisible) tetap sinkron.
+  showMascot: true,
   setShowMascot: (show: boolean) => {
     set({ showMascot: show });
     if (typeof window !== "undefined") {
@@ -359,11 +399,15 @@ export const useEconomyStore = create<EconomyState>()(
             }
           }
           if (u) {
+            const isVipUser = Boolean(profileRes.is_vip ?? u.is_vip ?? (u.role === 'SUPER_ADMIN'));
+            const subTier = (profileRes.subscription_tier || u.subscription_tier || (isVipUser ? 'vip' : 'free')) as 'free' | 'vip' | 'premium';
             set({
               userId: u.user_id || u.id || get().userId,
               username: u.username || get().username,
               role: u.role || get().role || 'member',
               groupId: u.group_id || get().groupId,
+              isVip: isVipUser,
+              subscriptionType: subTier === 'vip' ? 'vip' : subTier === 'premium' ? 'premium' : isVipUser ? 'vip' : 'free',
             });
           }
         }
@@ -417,6 +461,14 @@ export const useEconomyStore = create<EconomyState>()(
           } catch {
             // ignore
           }
+        }
+      }
+      if (typeof window !== "undefined") {
+        try {
+          const savedTheme = window.localStorage.getItem("tartila_app_theme") || get().equippedAppTheme || "default";
+          document.documentElement.setAttribute("data-app-theme", savedTheme);
+        } catch {
+          // ignore
         }
       }
     } catch (error) {
@@ -805,7 +857,15 @@ export const useEconomyStore = create<EconomyState>()(
     return true;
   },
 
-  activateVip: () => set({ isVip: true }),
+  activateVip: () => set({ isVip: true, subscriptionType: 'vip' }),
+  applyVipSuccess: (_durationDays?: number, _expiresAt?: string) => {
+    set({
+      isVip: true,
+      subscriptionType: 'vip',
+      hearts: Infinity,
+      tickets: Infinity,
+    });
+  },
 
   setTilaGender: async (gender: TilaGender) => {
     const resolved = resolveMascotGender(gender);
@@ -869,22 +929,23 @@ export const useEconomyStore = create<EconomyState>()(
     void get().setTilaGender(gender);
   },
 
-  buyAccessory: async (id: string, price: number) => {
-    const { ownedAccessories, tilaGender } = get();
+  buyAccessory: async (id: string, price: number, free = false) => {
+    const { ownedAccessories, tilaGender, inventory } = get();
     const currentGender = resolveMascotGender(tilaGender);
 
-    if (ownedAccessories.includes(id)) {
+    if (ownedAccessories.includes(id) || inventory?.includes(id)) {
       if (isAccessoryAllowedForGender(id, currentGender)) {
         set({ equippedAccessory: id });
       }
       return true;
     }
 
-    if (!spendCoins(price)) {
+    if (!free && !spendCoins(price)) {
       return false;
     }
 
     const nextOwned = [...ownedAccessories, id];
+    const nextInventory = Array.from(new Set([...(inventory || []), id]));
     const nextEquipped = isAccessoryAllowedForGender(id, currentGender)
       ? id
       : get().equippedAccessory;
@@ -892,56 +953,197 @@ export const useEconomyStore = create<EconomyState>()(
     set({
       ownedAccessories: nextOwned,
       equippedAccessory: nextEquipped,
+      inventory: nextInventory,
     });
     return true;
   },
 
   equipAccessory: (id: string) => {
-    const { ownedAccessories, tilaGender } = get();
+    const { ownedAccessories, tilaGender, inventory } = get();
     const currentGender = resolveMascotGender(tilaGender);
     if (id !== 'none' && !isAccessoryAllowedForGender(id, currentGender)) {
       return;
     }
-    if (id === 'none' || ownedAccessories.includes(id)) {
+    if (id === 'none' || ownedAccessories.includes(id) || inventory?.includes(id)) {
       set({ equippedAccessory: id });
     }
   },
 
-  buyRoomTheme: (id: string, price: number) => {
-    if (get().ownedRoomThemes.includes(id)) {
-      set({ equippedRoomTheme: id });
+  buyRoomTheme: (id: string, price: number, free = false, autoEquip = true) => {
+    const normalized = (id === 'theme_space' || id === 'space') ? 'galaksi'
+      : (id === 'theme_default' || id === 'classic' || id === 'theme_classic') ? 'default'
+      : (id === 'theme_forest') ? 'hutan'
+      : (id === 'theme_castle') ? 'istana'
+      : id;
+
+    if (get().ownedRoomThemes.includes(normalized) || get().inventory?.includes(normalized) || get().inventory?.includes(id)) {
+      if (autoEquip) set({ equippedRoomTheme: normalized, equippedTheme: normalized });
       return true;
     }
-    if (!spendCoins(price)) return false;
+    if (!free && !spendCoins(price)) return false;
+
+    const nextOwned = Array.from(new Set([...get().ownedRoomThemes, normalized]));
+    const nextInventory = Array.from(new Set([...(get().inventory || []), id, normalized]));
     set({
-      ownedRoomThemes: [...get().ownedRoomThemes, id],
-      equippedRoomTheme: id,
+      ownedRoomThemes: nextOwned,
+      ...(autoEquip ? { equippedRoomTheme: normalized, equippedTheme: normalized } : {}),
+      inventory: nextInventory,
     });
     return true;
   },
 
   equipRoomTheme: (id: string) => {
-    if (id === 'default' || get().ownedRoomThemes.includes(id)) {
-      set({ equippedRoomTheme: id });
+    const normalized = (id === 'theme_space' || id === 'space') ? 'galaksi'
+      : (id === 'theme_default' || id === 'classic' || id === 'theme_classic') ? 'default'
+      : (id === 'theme_forest') ? 'hutan'
+      : (id === 'theme_castle') ? 'istana'
+      : id;
+
+    if (
+      normalized === 'default' ||
+      get().ownedRoomThemes.includes(normalized) ||
+      get().ownedRoomThemes.includes(id) ||
+      get().inventory?.includes(normalized) ||
+      get().inventory?.includes(id)
+    ) {
+      set({ equippedRoomTheme: normalized, equippedTheme: normalized });
     }
   },
 
-  buyGameTheme: (id: string, price: number) => {
-    if (get().ownedGameThemes.includes(id)) {
-      set({ equippedGameTheme: id });
+  buyGameTheme: (id: string, price: number, free = false, autoEquip = true) => {
+    if (get().ownedGameThemes.includes(id) || get().inventory?.includes(id)) {
+      if (autoEquip) set({ equippedGameTheme: id });
       return true;
     }
-    if (!spendCoins(price)) return false;
+    if (!free && !spendCoins(price)) return false;
+
+    const nextOwned = Array.from(new Set([...get().ownedGameThemes, id]));
+    const nextInventory = Array.from(new Set([...(get().inventory || []), id]));
     set({
-      ownedGameThemes: [...get().ownedGameThemes, id],
-      equippedGameTheme: id,
+      ownedGameThemes: nextOwned,
+      ...(autoEquip ? { equippedGameTheme: id } : {}),
+      inventory: nextInventory,
     });
     return true;
   },
 
   equipGameTheme: (id: string) => {
-    if (id === 'default' || get().ownedGameThemes.includes(id)) {
+    if (id === 'default' || get().ownedGameThemes.includes(id) || get().inventory?.includes(id)) {
       set({ equippedGameTheme: id });
+    }
+  },
+
+  buyAppTheme: (id: string, price: number, free = false, autoEquip = true) => {
+    const isUnlimited = isUnlimitedUser(
+      { role: get().role ?? undefined },
+      get().isVip,
+      get().groupId,
+      get().subscriptionType,
+    );
+    if (get().ownedAppThemes.includes(id) || get().inventory?.includes(id)) {
+      if (autoEquip) get().equipAppTheme(id);
+      return true;
+    }
+    if (!free && !isUnlimited && !spendCoins(price)) {
+      return false;
+    }
+    const nextOwned = Array.from(new Set([...get().ownedAppThemes, id]));
+    const nextInventory = Array.from(new Set([...(get().inventory || []), id]));
+    set({
+      ownedAppThemes: nextOwned,
+      ...(autoEquip ? { equippedAppTheme: id } : {}),
+      inventory: nextInventory,
+    });
+    if (autoEquip) {
+      get().equipAppTheme(id);
+    }
+    return true;
+  },
+
+  equipAppTheme: (id: string) => {
+    if (id === 'default' || get().ownedAppThemes.includes(id) || get().inventory?.includes(id)) {
+      set({ equippedAppTheme: id });
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem('tartila_app_theme', id);
+          document.documentElement.setAttribute('data-app-theme', id);
+        } catch {
+          // ignore
+        }
+      }
+    }
+  },
+
+  buySkin: (id: string, price: number, currency: 'coin' | 'ticket' = 'coin') => {
+    const skinKey = (id.replace(/^skin_/, '') || 'default') as MascotSkin;
+    if (
+      get().ownedSkins.includes(id) ||
+      get().ownedSkins.includes(skinKey) ||
+      get().inventory?.includes(id) ||
+      get().inventory?.includes(skinKey)
+    ) {
+      get().equipSkin(id);
+      return true;
+    }
+
+    const state = get();
+    const isUnlimited = isUnlimitedUser(
+      {
+        role: state.role ?? undefined,
+        group_id: state.groupId,
+        is_vip: state.isVip,
+        is_ustadz: state.isUstadz,
+      },
+      state.isVip,
+      state.groupId,
+    );
+
+    if (!isUnlimited) {
+      if (currency === 'ticket') {
+        if (state.tickets < price) {
+          return false;
+        }
+        set({ tickets: state.tickets - price });
+      } else {
+        if (!spendCoins(price)) {
+          return false;
+        }
+      }
+    }
+
+    const nextOwned = Array.from(new Set([...get().ownedSkins, id, skinKey]));
+    const nextInventory = Array.from(new Set([...(get().inventory || []), id, skinKey]));
+    set({
+      ownedSkins: nextOwned,
+      equippedSkin: skinKey,
+      inventory: nextInventory,
+    });
+    return true;
+  },
+
+  equipSkin: (id: string) => {
+    const skinKey = (id.replace(/^skin_/, '') || 'default') as MascotSkin;
+    const state = get();
+    const isUnlimited = isUnlimitedUser(
+      {
+        role: state.role ?? undefined,
+        group_id: state.groupId,
+        is_vip: state.isVip,
+        is_ustadz: state.isUstadz,
+        subscription_type: state.subscriptionType ?? undefined,
+      },
+      state.isVip,
+      state.groupId,
+    );
+    if (
+      skinKey === 'default' ||
+      isUnlimited ||
+      state.ownedSkins.includes(id) ||
+      state.ownedSkins.includes(skinKey) ||
+      state.inventory?.includes(id) ||
+      state.inventory?.includes(skinKey)
+    ) {
+      set({ equippedSkin: skinKey });
     }
   },
 
@@ -1134,8 +1336,8 @@ export const useEconomyStore = create<EconomyState>()(
     return true;
   },
 
-  buyBooster: async (boosterId: string, price: number) => {
-    if (!spendCoins(price)) return false;
+  buyBooster: async (boosterId: string, price: number, free = false) => {
+    if (!free && !spendCoins(price)) return false;
     set({ activeBoosters: { ...get().activeBoosters, [boosterId]: true } });
     return true;
   },
@@ -1166,7 +1368,44 @@ export const useEconomyStore = create<EconomyState>()(
     }),
     {
       name: "tartila_economy_store",
+      // Sinkronkan kunci legacy setelah rehidrasi agar tidak ada dua
+      // "kebenaran" yang saling bertabrakan saat halaman berpindah.
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const baseDefaults = ['default', 'skin_default', 'none', 'peci', 'hairbow', 'theme_default'];
+        const mergedInventory = Array.from(
+          new Set([
+            ...baseDefaults,
+            ...(state.inventory || []),
+            ...(state.ownedAccessories || []),
+            ...(state.ownedRoomThemes || []),
+            ...(state.ownedGameThemes || []),
+            ...(state.ownedSkins || []),
+          ])
+        );
+        state.inventory = mergedInventory;
+        if (!state.equippedTheme && state.equippedRoomTheme) {
+          state.equippedTheme = state.equippedRoomTheme;
+        }
+
+        if (typeof state.showMascot !== "boolean") return;
+        if (typeof window === "undefined") return;
+        try {
+          window.localStorage.setItem(
+            "tila-companion-hidden",
+            state.showMascot ? "0" : "1",
+          );
+          window.localStorage.setItem(
+            "bibi-companion-hidden",
+            state.showMascot ? "0" : "1",
+          );
+        } catch {
+          // ignore
+        }
+      },
       partialize: (state) => ({
+        inventory: state.inventory,
+        equippedTheme: state.equippedTheme,
         tilaGender: state.tilaGender,
         bibiGender: state.bibiGender,
         equippedAccessory: state.equippedAccessory,
@@ -1175,6 +1414,10 @@ export const useEconomyStore = create<EconomyState>()(
         equippedRoomTheme: state.equippedRoomTheme,
         ownedGameThemes: state.ownedGameThemes,
         equippedGameTheme: state.equippedGameTheme,
+        ownedAppThemes: state.ownedAppThemes,
+        equippedAppTheme: state.equippedAppTheme,
+        ownedSkins: state.ownedSkins,
+        equippedSkin: state.equippedSkin,
         showMascot: state.showMascot,
         dailyRewardsClaimed: state.dailyRewardsClaimed,
         lastDailyClaimDate: state.lastDailyClaimDate,

@@ -18,11 +18,17 @@ function storeSessionToken(token?: string) {
 }
 
 export const authApi = {
-  async login(username: string, password: string): Promise<User> {
+  async login(identifier: string, password: string): Promise<User> {
+    const cleanId = identifier.trim();
     const data = await callREST<{ token?: string; user: User }>(
       "POST",
       "/api/v1/auth/login",
-      { username, password }
+      {
+        username: cleanId,
+        email: cleanId,
+        identifier: cleanId,
+        password,
+      }
     );
     storeSessionToken(data.token);
     return data.user;
@@ -42,12 +48,19 @@ export const authApi = {
     name: string,
     username: string,
     password: string,
-    confirmPassword: string
+    confirmPassword: string,
+    referralCode?: string
   ): Promise<User> {
     const data = await callREST<{ token?: string; user: User }>(
       "POST",
       "/api/v1/auth/register/ceria",
-      { name, username, password, confirm_password: confirmPassword }
+      {
+        name,
+        username,
+        password,
+        confirm_password: confirmPassword,
+        referral_code: referralCode ? referralCode.trim().toUpperCase() : undefined,
+      }
     );
     storeSessionToken(data.token);
     return data.user;

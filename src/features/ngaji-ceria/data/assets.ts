@@ -10,6 +10,8 @@ export const NGAJI_CERIA_ASSETS = {
   koinHijaiyah: NEW.koinHijaiyah,
   mahkotaVip: NEW.mahkotaVip,
   peci: NEW.ornamenPeci,
+  apiStreak: NEW.apiStreak,
+  apiStreakMati: NEW.apiStreakMati,
 
   // Map / Path / Chests
   benderaCheckpoint: NEW.benderaCheckpoint,

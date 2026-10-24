@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../constants";
+import { getToken } from "./api";
 
 export type MissionEventType =
   | "login"
@@ -117,11 +118,16 @@ export function getRecentEvents(limit: number = 50): MissionEvent[] {
 
 /** Sinkronisasi satu event ke backend / API server */
 export async function syncEventToServer(event: MissionEvent): Promise<boolean> {
-  const url = `${API_BASE_URL || ""}/api/events`;
+  const baseUrl = API_BASE_URL ? API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "") : "";
+  const url = `${baseUrl}/api/events`;
+  const token = getToken();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(event),
     });
     return response.ok;
@@ -162,9 +168,14 @@ export function addEvent(input: CreateEventInput): MissionEvent {
 
 /** Tarik data riwayat event dari server dengan fallback ke localStorage */
 export async function fetchEventsFromServer(): Promise<MissionEvent[]> {
-  const url = `${API_BASE_URL || ""}/api/events`;
+  const baseUrl = API_BASE_URL ? API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "") : "";
+  const url = `${baseUrl}/api/events`;
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers });
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {

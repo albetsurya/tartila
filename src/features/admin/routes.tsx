@@ -5,11 +5,17 @@ import { AdminRouteGuard } from "./components/AdminRouteGuard";
 import { AdminLayout } from "./layouts/AdminLayout";
 import {
   AdminAnalyticsPage,
+  AdminAudioCheckPage,
   AdminContentPage,
   AdminDashboardPage,
+  AdminGameCatalogPage,
+  AdminMenuPage,
   AdminPreviewIllustrationsPage,
   AdminQuizzesPage,
   AdminSettingsPage,
+  AdminTimelineCloudPage,
+  AdminTimelineLocalPage,
+  AdminTimelineMenuPage,
   AdminUsersPage,
 } from "./lazyPages";
 
@@ -38,6 +44,57 @@ const ADMIN_PAGES: AdminPageDef[] = [
   { path: "books", key: "books", element: <AdminContentPage /> },
   { path: "quizzes", key: "quizzes", element: <AdminQuizzesPage /> },
   { path: "settings", key: "settings", element: <AdminSettingsPage /> },
+  { path: "menu", key: "menu", element: <AdminMenuPage /> },
+  {
+    path: "audio-check",
+    key: "audio-check",
+    element: <AdminAudioCheckPage />,
+  },
+  {
+    path: "timeline",
+    key: "timeline",
+    element: (
+      <SuperAdminGuard>
+        <AdminTimelineMenuPage />
+      </SuperAdminGuard>
+    ),
+  },
+  {
+    path: "timeline-local",
+    key: "timeline-local",
+    element: (
+      <SuperAdminGuard>
+        <AdminTimelineLocalPage />
+      </SuperAdminGuard>
+    ),
+  },
+  {
+    path: "timeline-cloud",
+    key: "timeline-cloud",
+    element: (
+      <SuperAdminGuard>
+        <AdminTimelineCloudPage />
+      </SuperAdminGuard>
+    ),
+  },
+  {
+    path: "games",
+    key: "games",
+    element: (
+      <SuperAdminGuard>
+        <AdminGameCatalogPage />
+      </SuperAdminGuard>
+    ),
+  },
+  {
+    path: "game-catalog",
+    key: "game-catalog",
+    element: (
+      <SuperAdminGuard>
+        <AdminGameCatalogPage />
+      </SuperAdminGuard>
+    ),
+  },
   {
     path: "preview-illustrations",
     key: "preview-illustrations",

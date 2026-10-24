@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { SparklesSvg, TrophySvg, CheckSvg, AlertCircle } from "@/components/ui/CustomIcons";
+import {
+  SparklesSvg,
+  TrophySvg,
+  CheckSvg,
+  AlertCircle,
+  TimerSvg,
+  FileTextSvg,
+  PrinterSvg,
+} from "@/components/ui/CustomIcons";
 import { arenaApi, type ExamReportResponse } from "../../services/arenaApi";
 import jsPDF from "jspdf";
 import { drawArabicText, drawOfficialSeal } from "@/utils/pdfArabicHelper";
@@ -117,7 +125,7 @@ export default function ExamReportPage() {
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "italic");
       doc.setTextColor(90, 90, 90);
-      doc.text('"Dan bacalah Al-Qur\'an itu dengan perlahan-lahan (tartil)" — QS. Al-Muzzammil: 4', 105, 59, { align: "center" });
+      doc.text('"Dan bacalah Al-Qur\'an itu dengan perlahan-lahan (tartil)": QS. Al-Muzzammil: 4', 105, 59, { align: "center" });
 
       // 4. IDENTITAS SANTRI
       doc.setFontSize(9.5);
@@ -305,9 +313,17 @@ export default function ExamReportPage() {
                 }
               }
             }}
-            className="px-5 py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all disabled:opacity-50"
           >
-            {generatingPdf ? "⏳ Merender Dokumen..." : "📄 Cetak Semua Rapor PDF"}
+            {generatingPdf ? (
+              <>
+                <TimerSvg size={16} /> Merender Dokumen...
+              </>
+            ) : (
+              <>
+                <FileTextSvg size={16} /> Cetak Semua Rapor PDF
+              </>
+            )}
           </button>
         </div>
 
@@ -415,9 +431,15 @@ export default function ExamReportPage() {
                           type="button"
                           disabled={generatingPdf}
                           onClick={() => generatePDFReport(p)}
-                          className="px-3 py-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A] active:scale-95 transition-all disabled:opacity-50"
                         >
-                          {generatingPdf ? "Rendering..." : "Cetak Rapor PDF 🖨️"}
+                          {generatingPdf ? (
+                            "Rendering..."
+                          ) : (
+                            <>
+                              <PrinterSvg size={14} /> Cetak Rapor PDF
+                            </>
+                          )}
                         </button>
                       </td>
                     </tr>

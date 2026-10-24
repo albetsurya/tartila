@@ -49,7 +49,7 @@ function toTimestamp(value: unknown): number {
 }
 
 function formatDate(timestamp: number): string {
-  if (!timestamp) return "—";
+  if (!timestamp) return "-";
   return new Date(timestamp).toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "short",

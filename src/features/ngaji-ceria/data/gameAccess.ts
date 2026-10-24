@@ -9,6 +9,7 @@
  */
 
 import { isAdminRole } from "@/lib/roles";
+import { getGameOverrides } from "@/features/admin/services/gameCatalogAdminService";
 
 /** Alias route -> id kanonis (beberapa route lama menunjuk game yang sama). */
 const GAME_ALIASES: Record<string, string> = {
@@ -41,7 +42,16 @@ export const OPEN_HUB_IDS: ReadonlySet<string> = new Set([
 ]);
 
 export function isGameOpenForGuest(routeId: string): boolean {
-  return GUEST_OPEN_GAME_IDS.has(canonicalGameId(routeId));
+  const canonical = canonicalGameId(routeId);
+  try {
+    const overrides = getGameOverrides();
+    if (overrides && overrides[canonical]?.access) {
+      return overrides[canonical].access === "guest-open";
+    }
+  } catch {
+    // fallback jika error membaca overrides
+  }
+  return GUEST_OPEN_GAME_IDS.has(canonical);
 }
 
 /** Kompat: nama lama — kini berarti "terbuka untuk tamu". */

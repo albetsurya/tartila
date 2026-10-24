@@ -81,7 +81,7 @@ const JILID_FILTERS: Array<{ value: number | "all"; label: string }> = [
   })),
 ];
 
-const TIMELINE_EDITOR_PATH = "/member/ngaji-ceria/cek-audio/timeline";
+const TIMELINE_EDITOR_PATH = "/admin/timeline-local";
 
 function StatusBadge({ status }: { status: MaterialStatus }) {
   const isPublished = status === "published";
@@ -338,7 +338,7 @@ export function AdminContentPage() {
         >
           <Info size={14} className="mt-0.5 shrink-0" />
           <span>
-            Data contoh ditampilkan — API materi belum mengembalikan data.
+            Data contoh ditampilkan: API materi belum mengembalikan data.
           </span>
         </div>
       ) : null}

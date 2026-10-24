@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { TrophySvg, SparklesSvg, MedalSvg } from "@/components/ui/CustomIcons";
+import { TrophySvg, SparklesSvg, MedalSvg, CrownSvg } from "@/components/ui/CustomIcons";
 import { arenaApi } from "../../services/arenaApi";
 
 interface LeaderboardItem {
@@ -117,7 +117,7 @@ export default function GlobalLeaderboardPage() {
                       <div>
                         <div className="font-black text-sm text-[#134E4A] flex items-center gap-1.5">
                           <span>{item.nickname}</span>
-                          {item.rank === 1 && <span>👑</span>}
+                          {item.rank === 1 && <CrownSvg size={16} />}
                         </div>
                         <span className="text-xs font-bold text-[#134E4A]/60">
                           {item.tpq}

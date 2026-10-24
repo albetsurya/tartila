@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { classroomRoleFor, type ClassroomRole } from "@/lib/roles";
+import { classroomRoleForUser, type ClassroomRole } from "@/lib/roles";
 
 export interface ClassroomAccess {
   classroomRole: ClassroomRole | null;
@@ -9,7 +9,7 @@ export interface ClassroomAccess {
 
 export function useClassroomAccess(): ClassroomAccess {
   const { user } = useAuth();
-  const classroomRole = classroomRoleFor(user?.role);
+  const classroomRole = classroomRoleForUser(user);
   return {
     classroomRole,
     isTeacher: classroomRole === "ustadz",

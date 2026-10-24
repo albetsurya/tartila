@@ -1,26 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { HARAKAT_LIST } from "../data/harakat-list";
-import type { HarakatId } from "../data/harakat-list";
+import {
+  HARAKAT_LIST,
+  getSlasherItems,
+  type SlasherMode,
+  type SlasherTargetItem,
+} from "../data/harakat-list";
 import { FRUIT_VARIANTS } from "../data/fruit-variants";
-import { CipratanJusSvg, SabetanPedangSvg, AwanPutihSvg, BatangBambuSvg, LantaiDojoSvg } from "@/components/ui/Illustrations";
+import {
+  CipratanJusSvg,
+  SabetanPedangSvg,
+  AwanPutihSvg,
+  BatangBambuSvg,
+  LantaiDojoSvg,
+} from "@/components/ui/Illustrations";
 import type { SlashResultKind } from "../hooks/useSlasherGame";
 
 export interface SlasherStageProps {
   isPlaying: boolean;
-  currentTarget: HarakatId;
+  currentTarget: string;
+  mode?: SlasherMode;
   onResult: (kind: SlashResultKind, symbol?: string) => void;
 }
 
 interface SlashItem {
   id: number;
   role: "correct" | "decoy";
-  harakat: (typeof HARAKAT_LIST)[number];
+  target: SlasherTargetItem;
   fruitIndex: number; // acak dari FRUIT_VARIANTS
   x: number; // px dari kiri container
   y: number; // px dari atas container
   vx: number;
   vy: number;
+  hitboxRadius: number;
   isSliced: boolean;
   sliceAngle: number;
 }
@@ -33,8 +45,8 @@ interface SlashFx {
 }
 
 const MAX_ITEMS = 14;
-const GRAVITY = 1500;
-const ITEM_RADIUS = 52;
+const GRAVITY = 1180; // Gravitasi disesuaikan agar buah melayang nyaman dan stabil di mata
+const BASE_ITEM_RADIUS = 52;
 
 // Jarak titik ke segmen untuk deteksi swipe memotong objek
 function distPointToSegment(
@@ -58,6 +70,7 @@ function distPointToSegment(
 export default function SlasherStage({
   isPlaying,
   currentTarget,
+  mode = "harakat",
   onResult,
 }: SlasherStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,8 +84,10 @@ export default function SlasherStage({
   const trailPathRef = useRef<SVGPathElement | null>(null);
   const trailGlowRef = useRef<SVGPathElement | null>(null);
   const targetRef = useRef(currentTarget);
+  const modeRef = useRef(mode);
   const onResultRef = useRef(onResult);
   targetRef.current = currentTarget;
+  modeRef.current = mode;
   onResultRef.current = onResult;
 
   const [slashFx, setSlashFx] = useState<SlashFx[]>([]);
@@ -93,27 +108,48 @@ export default function SlasherStage({
     const w = container.clientWidth;
     const h = container.clientHeight;
 
-    // Volé pertama selalu berpeluang besar menjadi target, sisanya campuran
+    const pool = getSlasherItems(modeRef.current);
     const isCorrect = Math.random() < 0.5;
-    const harakat = isCorrect
-      ? HARAKAT_LIST.find((h) => h.id === targetRef.current) ??
-        HARAKAT_LIST[Math.floor(Math.random() * HARAKAT_LIST.length)]
-      : HARAKAT_LIST[Math.floor(Math.random() * HARAKAT_LIST.length)];
+    const target = isCorrect
+      ? pool.find((item) => item.id === targetRef.current) ??
+        pool[Math.floor(Math.random() * pool.length)] ??
+        HARAKAT_LIST[0]
+      : pool[Math.floor(Math.random() * pool.length)] ?? HARAKAT_LIST[0];
 
-    const x = 70 + Math.random() * (w - 140);
-    const centerPull = ((w / 2 - x) / w) * 160;
-    const vx = (Math.random() * 2 - 1) * 110 + centerPull;
-    const vy = -(900 + Math.random() * 260);
+    // FASE 2: Perhitungan Fisika & Peluncuran Tepat Melewati Tengah Layar (Eye-Level)
+    // Titik puncak (apex) diatur di area tengah pandangan (34% - 46% tinggi layar)
+    const apexY = h * (0.34 + Math.random() * 0.12);
+    const spawnY = h + 70;
+    const deltaY = spawnY - apexY;
+    const vy = -Math.sqrt(2 * GRAVITY * deltaY);
+    const tApex = -vy / GRAVITY; // Waktu tempuh ke puncak parabola (~1.0s)
+
+    // Titik tengah X tujuan (antara 38% - 62% lebar layar)
+    const targetX = w * (0.38 + Math.random() * 0.24);
+
+    // Titik spawn dari sisi kiri (14% - 34%) atau sisi kanan (66% - 86%)
+    const spawnFromLeft = Math.random() < 0.5;
+    const x = spawnFromLeft
+      ? w * (0.14 + Math.random() * 0.2)
+      : w * (0.66 + Math.random() * 0.2);
+
+    // Kecepatan horizontal terukur agar melintas persis di titik tengah saat puncak
+    const vx = (targetX - x) / tApex;
+
+    // FASE 3: Penyesuaian Hitbox Berdasarkan Panjang Teks Arab
+    const textLen = target.symbol.length;
+    const hitboxRadius = textLen > 6 ? 68 : textLen > 2 ? 60 : BASE_ITEM_RADIUS;
 
     itemsRef.current.push({
       id: idSeq.current++,
       role: isCorrect ? "correct" : "decoy",
-      harakat,
+      target,
       fruitIndex: Math.floor(Math.random() * FRUIT_VARIANTS.length),
       x,
-      y: h + 70,
+      y: spawnY,
       vx,
       vy,
+      hitboxRadius,
       isSliced: false,
       sliceAngle: Math.random() * 90 - 45,
     });
@@ -129,34 +165,48 @@ export default function SlasherStage({
     );
   };
 
-  const sliceItem = (item: SlashItem, angle: number, fxX: number, fxY: number) => {
+  const sliceItem = (
+    item: SlashItem,
+    slashAngle: number,
+    hitX: number,
+    hitY: number
+  ) => {
+    if (item.isSliced) return;
     item.isSliced = true;
-    const kind: SlashResultKind = item.role === "correct" ? "correct" : "wrong";
-    onResultRef.current(kind, item.harakat.symbol);
-    addSlashFx(fxX, fxY, angle);
+    item.sliceAngle = (slashAngle * 180) / Math.PI;
+
+    addSlashFx(hitX, hitY, slashAngle);
+
+    if (item.role === "correct") {
+      onResultRef.current("correct", item.target.symbol);
+    } else {
+      onResultRef.current("wrong", item.target.symbol);
+    }
+
+    syncItems();
     setTimeout(() => {
       itemsRef.current = itemsRef.current.filter((it) => it.id !== item.id);
       domRefs.current.delete(item.id);
       syncItems();
-    }, 800);
+    }, 850);
   };
 
-  // Game loop: spawn volé, fisika gravitasi, marka swipe, dan daur ulang
+  // Game tick loop: fisika + render posisi lewat direct DOM transform
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying) {
+      clearItems();
+      return;
+    }
 
-    let animId: number;
-    let lastTime = performance.now();
+    let lastT = performance.now();
+    let animId = 0;
 
     const tick = (now: number) => {
-      const dt = Math.min((now - lastTime) / 1000, 0.06);
-      lastTime = now;
+      const dt = Math.min((now - lastT) / 1000, 0.05);
+      lastT = now;
+
       const container = containerRef.current;
-      if (!container) {
-        animId = requestAnimationFrame(tick);
-        return;
-      }
-      const w = container.clientWidth;
+      if (!container) return;
       const h = container.clientHeight;
 
       // 1. Spawn gelombang lemparan
@@ -171,7 +221,7 @@ export default function SlasherStage({
             i * (140 + Math.random() * 120)
           );
         }
-        spawnTimer.current = 1300 + Math.random() * 500;
+        spawnTimer.current = 1350 + Math.random() * 500;
       }
 
       // 2. Fisika parabola
@@ -193,7 +243,7 @@ export default function SlasherStage({
         // Melewati bawah layar tanpa ditebas
         if (item.y > h + 90 && item.vy > 0) {
           if (item.role === "correct") {
-            onResultRef.current("miss", item.harakat.symbol);
+            onResultRef.current("miss", item.target.symbol);
           }
           domRefs.current.delete(item.id);
           continue;
@@ -255,7 +305,8 @@ export default function SlasherStage({
       for (const item of itemsRef.current) {
         if (item.isSliced) continue;
         const d = distPointToSegment(item.x, item.y, prev.x, prev.y, p.x, p.y);
-        if (d < ITEM_RADIUS) {
+        // Menggunakan hitboxRadius dinamis sesuai panjang teks
+        if (d < item.hitboxRadius) {
           sliceItem(item, angle, item.x, item.y);
         }
       }
@@ -288,65 +339,48 @@ export default function SlasherStage({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-52 overflow-hidden">
         <motion.div
           className="absolute left-[-12%] top-4 w-32"
-          animate={{ x: ["0%", "125%"] }}
-          transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
+          animate={{ x: [0, 480] }}
+          transition={{ repeat: Infinity, duration: 28, ease: "linear" }}
         >
-          <AwanPutihSvg size={130} className="opacity-90" />
+          <AwanPutihSvg size={110} />
         </motion.div>
         <motion.div
-          className="absolute left-[-16%] top-24 w-24"
-          animate={{ x: ["0%", "170%"] }}
-          transition={{ repeat: Infinity, duration: 80, ease: "linear", delay: 14 }}
+          className="absolute right-[-10%] top-14 w-28 opacity-80"
+          animate={{ x: [0, -480] }}
+          transition={{ repeat: Infinity, duration: 34, ease: "linear" }}
         >
-          <AwanPutihSvg size={100} className="opacity-75" />
+          <AwanPutihSvg size={95} />
         </motion.div>
       </div>
 
-      {/* DEKORASI: bambu di tepi dasar + lantai dojo */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0">
-        <div className="absolute bottom-16 left-2 w-16 sm:w-20">
-          <motion.div
-            animate={{ rotate: [-3, 2, -3] }}
-            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-            style={{ transformOrigin: "bottom center" }}
-          >
-            <BatangBambuSvg size={170} className="opacity-90" />
-          </motion.div>
-        </div>
-        <div className="absolute bottom-16 right-2 w-16 sm:w-20">
-          <motion.div
-            animate={{ rotate: [2, -3, 2] }}
-            transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1.2 }}
-            style={{ transformOrigin: "bottom center" }}
-          >
-            <BatangBambuSvg size={170} className="opacity-90" />
-          </motion.div>
-        </div>
-        {/* Papan dojo di tengah + garis lantai penuh */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-          <LantaiDojoSvg size={190} />
-        </div>
-        <div
-          className="absolute inset-x-0 bottom-0 h-14 border-t-[4px] border-[#134E4A] bg-[#92400E]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, rgba(69,26,3,0.35) 0 3px, transparent 3px 46px)",
-          }}
-        />
+      {/* DEKORASI: bambu kiri & kanan gaya dojo */}
+      <div className="pointer-events-none absolute -bottom-6 -left-3 z-0 w-24 sm:w-28 opacity-90">
+        <BatangBambuSvg size={220} />
+      </div>
+      <div className="pointer-events-none absolute -bottom-6 -right-3 z-0 w-24 sm:w-28 opacity-90 scale-x-[-1]">
+        <BatangBambuSvg size={220} />
       </div>
 
-      {/* Objek buah (dipos via RAF, ref array aman melewati re-render) */}
+      {/* DEKORASI: lantai tatami dojo di bawah */}
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 z-0 h-16">
+        <LantaiDojoSvg size={180} className="w-full h-full object-cover" />
+      </div>
+
+      {/* RENDER ITEM BUAH YANG DITERBANGKAN */}
       {itemsRef.current.map((item) => {
-        const fruit = FRUIT_VARIANTS[item.fruitIndex];
-        const highlight = item.harakat.id === targetRef.current;
+        const fruit = FRUIT_VARIANTS[item.fruitIndex % FRUIT_VARIANTS.length];
+        const highlight = item.role === "correct";
+        const symbolText = item.target.symbol;
+        const textLen = symbolText.length;
+
         return (
           <div
             key={item.id}
-            ref={(el) => {
-              if (el) domRefs.current.set(item.id, el);
+            ref={(node) => {
+              if (node) domRefs.current.set(item.id, node);
               else domRefs.current.delete(item.id);
             }}
-            className="pointer-events-none absolute left-0 top-0 will-change-transform"
+            className="pointer-events-none absolute left-0 top-0 z-20 will-change-transform"
             style={{ transform: `translate(${item.x}px, ${item.y}px)` }}
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
@@ -418,21 +452,39 @@ export default function SlasherStage({
                     size={96}
                     className="drop-shadow-[4px_5px_0px_rgba(19,78,74,0.75)]"
                   />
-                  {/* OVERLAY HARAKAT: stiker putih di tengah buah, lapisan teratas */}
+                  {/* OVERLAY TEKS TARGET: Stiker putih dengan font Arab dinamis & responsif */}
                   <span
-                    className="absolute z-10 flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-[#134E4A] bg-white"
+                    className={`absolute z-10 flex items-center justify-center border-[3px] border-[#134E4A] bg-white transition-all ${
+                      textLen > 6
+                        ? "h-11 min-w-[76px] max-w-[104px] px-2.5 rounded-2xl"
+                        : textLen > 2
+                          ? "h-11 min-w-[58px] max-w-[84px] px-2 rounded-2xl"
+                          : "h-11 w-11 rounded-full"
+                    }`}
                     style={
                       highlight
-                        ? { boxShadow: "0 0 0 4px #FDE68A, 2px 3px 0px rgba(19,78,74,0.6)" }
+                        ? { boxShadow: "0 0 0 3px #FDE68A, 2px 3px 0px rgba(19,78,74,0.6)" }
                         : { boxShadow: "2px 3px 0px rgba(19,78,74,0.6)" }
                     }
                   >
-                    <span className="font-arabic text-2xl font-black leading-none text-[#134E4A]">
-                      {item.harakat.symbol}
+                    <span
+                      className={`font-arabic font-black leading-none text-[#134E4A] whitespace-nowrap text-center ${
+                        textLen > 8
+                          ? "text-[11px]"
+                          : textLen > 6
+                            ? "text-xs"
+                            : textLen > 2
+                              ? "text-base"
+                              : "text-2xl"
+                      }`}
+                    >
+                      {symbolText}
                     </span>
                   </span>
+
+                  {/* FASE 1: Label TARGET Lebih Kontras, Berpola Neo-Brutalism dengan Hard Shadow */}
                   {highlight && (
-                    <span className="absolute -top-2 z-10 rounded-md border-[2px] border-[#134E4A] bg-[#FDE68A] px-1.5 py-[1px] text-[8px] font-black text-[#134E4A]">
+                    <span className="absolute -top-3 z-20 whitespace-nowrap rounded-md border-2 border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                       TARGET
                     </span>
                   )}

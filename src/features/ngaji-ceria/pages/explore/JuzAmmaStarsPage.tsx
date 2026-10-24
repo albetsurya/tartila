@@ -2,7 +2,7 @@ import { useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { Pause, Volume2 } from "../../../../components/ui/CustomIcons";
+import { Pause, Volume2, UfoSvg } from "../../../../components/ui/CustomIcons";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
@@ -111,7 +111,7 @@ function PlanetVisual({
       className="absolute inset-0"
       aria-hidden="true"
     >
-      {/* SATURN — cincin dua lapis (belakang + depan) */}
+      {/* SATURN: cincin dua lapis (belakang + depan) */}
       {variant === "saturn" && (
         <g>
           <path
@@ -167,7 +167,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* BUMI — biru + benua hijau + awan */}
+      {/* BUMI: biru + benua hijau + awan */}
       {variant === "earth" && (
         <g>
           <circle
@@ -215,7 +215,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* MARS — merah + kawah gelap + kutub es */}
+      {/* MARS: merah + kawah gelap + kutub es */}
       {variant === "mars" && (
         <g>
           <circle
@@ -250,7 +250,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* JUPITER — pita horizontal + bintik merah */}
+      {/* JUPITER: pita horizontal + bintik merah */}
       {variant === "jupiter" && (
         <g>
           <defs>
@@ -284,7 +284,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* VENUS — kuning + gelombang awan */}
+      {/* VENUS: kuning + gelombang awan */}
       {variant === "venus" && (
         <g>
           <circle
@@ -319,7 +319,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* NEPTUNUS — biru tua + pita + bintik gelap */}
+      {/* NEPTUNUS: biru tua + pita + bintik gelap */}
       {variant === "neptune" && (
         <g>
           <circle
@@ -346,7 +346,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* PLANET ES — biru muda + kawah */}
+      {/* PLANET ES: biru muda + kawah */}
       {variant === "ice" && (
         <g>
           <circle
@@ -400,7 +400,7 @@ function PlanetVisual({
         </g>
       )}
 
-      {/* GAS GIANT UNGU — pita + kilau bintang */}
+      {/* GAS GIANT UNGU: pita + kilau bintang */}
       {variant === "gasPurple" && (
         <g>
           <defs>
@@ -554,7 +554,7 @@ export default function JuzAmmaStarsPage() {
 
             <div className="relative z-10 max-w-[70%]">
               <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[#FEF08A] bg-[#1E1B4B] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FEF08A]">
-                🛸 Misi Antariksa
+                <UfoSvg size={14} /> Misi Antariksa
               </span>
               <h2 className="mt-1 font-display text-xl font-black leading-tight text-white">
                 Terbang ke planet surah & kumpulkan bintangnya!
@@ -596,7 +596,7 @@ export default function JuzAmmaStarsPage() {
                     className="relative"
                     style={{ width: PLANET_SIZE, height: PLANET_SIZE }}
                   >
-                    {/* Garis orbit — disembunyikan untuk Saturnus agar tidak bertabrakan dengan cincinnya */}
+                    {/* Garis orbit: disembunyikan untuk Saturnus agar tidak bertabrakan dengan cincinnya */}
                     {variant !== "saturn" && (
                       <div
                         className="absolute -inset-3 rounded-full border-2 border-dashed border-[#FEF08A]/50"
@@ -610,7 +610,7 @@ export default function JuzAmmaStarsPage() {
                       />
                     </span>
 
-                    {/* Planet — drop-shadow blocky + glow saat playing */}
+                    {/* Planet: drop-shadow blocky + glow saat playing */}
                     <div
                       className="absolute inset-0"
                       style={{

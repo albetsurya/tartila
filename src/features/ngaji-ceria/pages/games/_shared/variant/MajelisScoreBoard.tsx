@@ -11,7 +11,7 @@ interface MajelisScoreBoardProps {
 
 /**
  * Konsep Tajwid Arena: Meja Majelis Ilmu (bukan fight).
- * Santri vs Dewan Ustadz — adu ketepatan hukum bacaan di meja musyawarah.
+ * Santri vs Dewan Ustadz: adu ketepatan hukum bacaan di meja musyawarah.
  * HP = "Fokus Santri" dan "Skor Majelis" (progress diskusi), tanpa monster/serangan.
  */
 export function MajelisScoreBoard({ playerHp, rivalHp, rivalMaxHp, rivalName, roundLabel, status }: MajelisScoreBoardProps) {

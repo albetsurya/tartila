@@ -2971,7 +2971,7 @@ export const BukuTilawatiSvg: React.FC<BukuTilawatiProps> = ({
  * Digunakan sebagai banner/ornamen latar kartu menu di NgajiCeriaMapPage.
  * ============================================================================ */
 
-/** LabTajwidBgSvg — tabung reaksi berisi huruf hijaiyah, dikelilingi asap warna-warni. */
+/** LabTajwidBgSvg: tabung reaksi berisi huruf hijaiyah, dikelilingi asap warna-warni. */
 export const LabTajwidBgSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -3111,7 +3111,7 @@ export const LabTajwidBgSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-/** GalaksiJuzAmmaBgSvg — tata surya berplanet-bercincin, bintang membentuk huruf Arab. */
+/** GalaksiJuzAmmaBgSvg: tata surya berplanet-bercincin, bintang membentuk huruf Arab. */
 export const GalaksiJuzAmmaBgSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -3267,7 +3267,7 @@ export const GalaksiJuzAmmaBgSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-/** GudangDoaSvg — peti harta terbuka berisi gulungan doa dan lentera. */
+/** GudangDoaSvg: peti harta terbuka berisi gulungan doa dan lentera. */
 export const GudangDoaSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -3446,7 +3446,7 @@ export const GudangDoaSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-/** TargetTahfidzSvg — papan bullseye besar dengan bendera kemenangan. */
+/** TargetTahfidzSvg: papan bullseye besar dengan bendera kemenangan. */
 export const TargetTahfidzSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -3551,7 +3551,7 @@ export const TargetTahfidzSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-/** JurnalIbadahSvg — jam pasir besar dengan buku checklist centang. */
+/** JurnalIbadahSvg: jam pasir besar dengan buku checklist centang. */
 export const JurnalIbadahSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -3697,7 +3697,7 @@ export const JurnalIbadahSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-/** ArenaKartuSvg — meja hijau duel dengan dua kartu besar berhadapan. */
+/** ArenaKartuSvg: meja hijau duel dengan dua kartu besar berhadapan. */
 export const ArenaKartuSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",

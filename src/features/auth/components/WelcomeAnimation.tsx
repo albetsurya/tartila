@@ -1,4 +1,4 @@
-// Auth welcome animation — Bibi (2.5D) waving with a soft fade-in.
+// Auth welcome animation: Bibi (2.5D) waving with a soft fade-in.
 //
 // The existing ngaji-ceria `WelcomeAnimation` is a looping "Fatih" Lottie, so
 // it does not fit a one-shot 2.5s greeting. This auth-scoped version renders

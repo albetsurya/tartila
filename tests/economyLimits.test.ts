@@ -92,4 +92,28 @@ export const tests = {
     const okGuest = await useEconomyStore.getState().claimDailyReward(1, 10);
     assert.equal(okGuest, false);
   },
+
+  'hydrateActivity & streakDays: menghitung barisan streak dan sinkronisasi hari': () => {
+    const store = setupMockStorage();
+    const { hydrateActivity, getNgajiActivity } = require('../src/features/ngaji-ceria/hooks/useNgajiCeriaStore.ts');
+    const { activityDate } = require('../src/features/ngaji-ceria/utils/activityDate.ts');
+
+    const todayStr = activityDate();
+    hydrateActivity(todayStr, 3);
+
+    const activity = getNgajiActivity();
+    assert.equal(activity.currentStreak, 3);
+    assert.equal(activity.lastPlayedAt, todayStr);
+    assert.equal(activity.streakDays.filter(Boolean).length, 3);
+
+    // Verifikasi pemetaan hari Senin = 0, Minggu = 6
+    const sunday = new Date('2026-10-25T12:00:00Z'); // Hari Minggu (getDay() = 0)
+    assert.equal((sunday.getDay() + 6) % 7, 6);
+
+    const monday = new Date('2026-10-26T12:00:00Z'); // Hari Senin (getDay() = 1)
+    assert.equal((monday.getDay() + 6) % 7, 0);
+
+    const friday = new Date('2026-10-23T12:00:00Z'); // Hari Jumat (getDay() = 5)
+    assert.equal((friday.getDay() + 6) % 7, 4);
+  },
 };

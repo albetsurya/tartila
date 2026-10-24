@@ -11,12 +11,17 @@ import {
   type TargetAndTransition,
 } from "framer-motion";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
+import { MascotAura } from "./MascotAura";
+import { HairbowSvg } from "./CustomIcons";
+import type { MascotSkin } from "@/features/ngaji-ceria/data/shopData";
 import {
   resolveMascotGender,
   resolveAccessoryForGender,
   isAccessoryAllowedForGender,
   getDefaultAccessoryForGender,
 } from "@/utils/mascotHelper";
+
+export type { MascotSkin };
 
 export type TitoMood =
   | "idle"
@@ -103,6 +108,7 @@ export interface TitoMascotProps {
   gender?: "boy" | "girl";
   /** Objek yang dipegang saat mood="holding" (default: "star") */
   holdItem?: TitoHoldItem;
+  skin?: MascotSkin;
 }
 
 export type TilaMascotProps = TitoMascotProps;
@@ -124,6 +130,7 @@ export function TitoMascot({
   accessory,
   gender,
   holdItem = "star",
+  skin,
 }: TitoMascotProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lookOffset, setLookOffset] = useState({ x: 0, y: 0 });
@@ -164,6 +171,395 @@ export function TitoMascot({
     rawAccessory,
     effectiveGender,
   ) as TilaAccessoryType;
+
+  // ── PALETTE SWAP & SKIN DINAMIS (NAGA & ROBOT) ──
+  const storeSkin = useEconomyStore((s) => s.equippedSkin);
+  const effectiveSkin: MascotSkin = (skin !== undefined ? skin : storeSkin || "default") as MascotSkin;
+
+  const skinPalette = {
+    default: {
+      body: "#FBBF24",
+      belly: "#EAA012",
+      accent1: "#00B894",
+      accent2: "#00937D",
+      tailTip: "#FF6B6B",
+      wingsBase: "#FFFFFF",
+      stroke: "#07473C",
+      shadow: "#CFD8B6",
+      leg: "#FF5E6C",
+      cheek: "#FF5E6C",
+    },
+    naga: {
+      body: "#059669",
+      belly: "#FDE68A",
+      accent1: "#FBBF24",
+      accent2: "#D97706",
+      tailTip: "#F59E0B",
+      wingsBase: "#D1FAE5",
+      stroke: "#064E3B",
+      shadow: "#064E3B",
+      leg: "#D97706",
+      cheek: "#10B981",
+    },
+    robot: {
+      body: "#94A3B8",
+      belly: "#CBD5E1",
+      accent1: "#06B6D4",
+      accent2: "#0284C7",
+      tailTip: "#22D3EE",
+      wingsBase: "#E2E8F0",
+      stroke: "#1E293B",
+      shadow: "#64748B",
+      leg: "#475569",
+      cheek: "#38BDF8",
+    },
+    phoenix_ice: {
+      body: "#38BDF8",
+      belly: "#BAE6FD",
+      accent1: "#F8FAFC",
+      accent2: "#0284C7",
+      tailTip: "#E0F2FE",
+      wingsBase: "#F0F9FF",
+      stroke: "#0C4A6E",
+      shadow: "#7DD3FC",
+      leg: "#0284C7",
+      cheek: "#7DD3FC",
+    },
+    phoenix_gold: {
+      body: "#FBBF24",
+      belly: "#FEF08A",
+      accent1: "#D97706",
+      accent2: "#B45309",
+      tailTip: "#F59E0B",
+      wingsBase: "#FEF3C7",
+      stroke: "#78350F",
+      shadow: "#F59E0B",
+      leg: "#B45309",
+      cheek: "#F59E0B",
+    },
+    phoenix_dark: {
+      body: "#4C1D95",
+      belly: "#2E1065",
+      accent1: "#111827",
+      accent2: "#581C87",
+      tailTip: "#A855F7",
+      wingsBase: "#1F2937",
+      stroke: "#0F172A",
+      shadow: "#1E1B4B",
+      leg: "#3B0764",
+      cheek: "#7C3AED",
+    },
+  }[effectiveSkin] || {
+    body: "#FBBF24",
+    belly: "#EAA012",
+    accent1: "#00B894",
+    accent2: "#00937D",
+    tailTip: "#FF6B6B",
+    wingsBase: "#FFFFFF",
+    stroke: "#07473C",
+    shadow: "#CFD8B6",
+    leg: "#FF5E6C",
+    cheek: "#FF5E6C",
+  };
+
+  const isPhoenix =
+    effectiveSkin === "phoenix_ice" ||
+    effectiveSkin === "phoenix_gold" ||
+    effectiveSkin === "phoenix_dark";
+  const showPlumes = isGirl || isPhoenix;
+
+  const renderNagaHorns = (view: "front" | "side" | "back") => {
+    if (effectiveSkin !== "naga") return null;
+    if (view === "front") {
+      return (
+        <g id="naga-horns">
+          {/* Tanduk Kiri */}
+          <path
+            d="M 218 142 C 192 118, 172 92, 178 62 C 188 82, 208 112, 228 132 Z"
+            fill="#FBBF24"
+            stroke="#064E3B"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 178 62 Q 184 82 204 108"
+            stroke="#F59E0B"
+            strokeWidth="2"
+            fill="none"
+          />
+          {/* Tanduk Kanan */}
+          <path
+            d="M 282 142 C 308 118, 328 92, 322 62 C 312 82, 292 112, 272 132 Z"
+            fill="#FBBF24"
+            stroke="#064E3B"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 322 62 Q 316 82 296 108"
+            stroke="#F59E0B"
+            strokeWidth="2"
+            fill="none"
+          />
+        </g>
+      );
+    }
+    if (view === "side") {
+      return (
+        <g id="naga-horns-side">
+          <path
+            d="M 245 138 C 220 108, 195 82, 185 58 C 205 82, 235 112, 255 132 Z"
+            fill="#FBBF24"
+            stroke="#064E3B"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 185 58 Q 195 82 225 108"
+            stroke="#F59E0B"
+            strokeWidth="2"
+            fill="none"
+          />
+        </g>
+      );
+    }
+    return (
+      <g id="naga-horns-back">
+        <path
+          d="M 218 142 C 192 118, 172 92, 178 62 C 188 82, 208 112, 228 132 Z"
+          fill="#FBBF24"
+          stroke="#064E3B"
+          strokeWidth="3.5"
+        />
+        <path
+          d="M 282 142 C 308 118, 328 92, 322 62 C 312 82, 292 112, 272 132 Z"
+          fill="#FBBF24"
+          stroke="#064E3B"
+          strokeWidth="3.5"
+        />
+      </g>
+    );
+  };
+
+  const renderNagaScales = (view: "front" | "side") => {
+    if (effectiveSkin !== "naga") return null;
+    if (view === "front") {
+      return (
+        <g id="naga-scales" opacity="0.85">
+          <path
+            d="M 235 262 Q 250 272 265 262"
+            fill="none"
+            stroke="#D97706"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 222 282 Q 237 292 252 282 Q 267 292 282 282"
+            fill="none"
+            stroke="#D97706"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 235 302 Q 250 312 265 302"
+            fill="none"
+            stroke="#D97706"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </g>
+      );
+    }
+    return (
+      <g id="naga-scales-side" opacity="0.85">
+        <path
+          d="M 245 262 Q 260 272 275 262"
+          fill="none"
+          stroke="#D97706"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 235 282 Q 250 292 265 282"
+          fill="none"
+          stroke="#D97706"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </g>
+    );
+  };
+
+  const renderRobotAntenna = (view: "front" | "side" | "back") => {
+    if (effectiveSkin !== "robot") return null;
+    const x = view === "side" ? 255 : 250;
+    return (
+      <g id={`robot-antenna-${view}`}>
+        <line
+          x1={x}
+          y1="135"
+          x2={x}
+          y2="76"
+          stroke="#475569"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <line
+          x1={x - 4}
+          y1="128"
+          x2={x + 4}
+          y2="128"
+          stroke="#06B6D4"
+          strokeWidth="3"
+        />
+        <circle
+          cx={x}
+          cy="70"
+          r="11"
+          fill="#0891B2"
+          stroke="#1E293B"
+          strokeWidth="3"
+        />
+        <circle
+          cx={x}
+          cy="70"
+          r="6"
+          fill="#22D3EE"
+          className="animate-pulse"
+        />
+        <circle
+          cx={x - 2}
+          cy="68"
+          r="2"
+          fill="#FFFFFF"
+          opacity="0.9"
+        />
+      </g>
+    );
+  };
+
+  const renderRobotPanels = (view: "front" | "side") => {
+    if (effectiveSkin !== "robot") return null;
+    if (view === "front") {
+      return (
+        <g id="robot-panels" opacity="0.9">
+          <line
+            x1="230"
+            y1="256"
+            x2="270"
+            y2="256"
+            stroke="#06B6D4"
+            strokeWidth="2.5"
+            strokeDasharray="4 2"
+          />
+          <circle
+            cx="250"
+            cy="276"
+            r="8"
+            fill="#0891B2"
+            stroke="#06B6D4"
+            strokeWidth="2"
+          />
+          <circle
+            cx="250"
+            cy="276"
+            r="4"
+            fill="#22D3EE"
+          />
+          <line
+            x1="120"
+            y1="202"
+            x2="155"
+            y2="242"
+            stroke="#06B6D4"
+            strokeWidth="2"
+          />
+          <line
+            x1="380"
+            y1="202"
+            x2="345"
+            y2="242"
+            stroke="#06B6D4"
+            strokeWidth="2"
+          />
+        </g>
+      );
+    }
+    return (
+      <g id="robot-panels-side" opacity="0.9">
+        <line
+          x1="238"
+          y1="256"
+          x2="278"
+          y2="256"
+          stroke="#06B6D4"
+          strokeWidth="2.5"
+          strokeDasharray="4 2"
+        />
+        <circle
+          cx="258"
+          cy="276"
+          r="7"
+          fill="#0891B2"
+          stroke="#06B6D4"
+          strokeWidth="2"
+        />
+        <circle
+          cx="258"
+          cy="276"
+          r="3.5"
+          fill="#22D3EE"
+        />
+        <line
+          x1="130"
+          y1="195"
+          x2="165"
+          y2="235"
+          stroke="#06B6D4"
+          strokeWidth="2"
+        />
+      </g>
+    );
+  };
+
+  const renderRobotEye = () => (
+    <g id="robot-led-eye">
+      <rect
+        x="-22"
+        y="-18"
+        width="44"
+        height="36"
+        rx="6"
+        fill="#0F172A"
+        stroke="#06B6D4"
+        strokeWidth="3.5"
+      />
+      <rect
+        x="-17"
+        y="-13"
+        width="34"
+        height="26"
+        rx="4"
+        fill="#22D3EE"
+      />
+      <rect
+        x="-8"
+        y="-8"
+        width="16"
+        height="16"
+        rx="2"
+        fill="#0891B2"
+      />
+      <rect
+        x="-4"
+        y="-4"
+        width="4"
+        height="4"
+        fill="#FFFFFF"
+        opacity="0.9"
+      />
+    </g>
+  );
 
   const renderAccessory = (view: "front" | "side" | "back") => {
     if (resolvedAccessory === "none") return null;
@@ -253,140 +649,21 @@ export function TitoMascot({
     if (resolvedAccessory === "hairbow") {
       if (view === "front") {
         return (
-          <g id="accessory-hairbow-front" transform="translate(286, 138)">
-            <path
-              d="M 0 0 C -22 -18, -32 4, -4 10 Z"
-              fill="#FF6B6B"
-              stroke="#07473C"
-              strokeWidth="4.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M -16 -6 C -18 2, -12 6, -6 6"
-              fill="none"
-              stroke="#FFFFFF"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              opacity="0.8"
-            />
-            <path
-              d="M 0 0 C 22 -18, 32 4, 4 10 Z"
-              fill="#FF6B6B"
-              stroke="#07473C"
-              strokeWidth="4.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M 16 -6 C 18 2, 12 6, 6 6"
-              fill="none"
-              stroke="#FFFFFF"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              opacity="0.8"
-            />
-            <path
-              d="M -4 8 L -14 30 L -4 24 L 0 10 Z"
-              fill="#FB7185"
-              stroke="#07473C"
-              strokeWidth="3.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M 4 8 L 14 30 L 4 24 L 0 10 Z"
-              fill="#FB7185"
-              stroke="#07473C"
-              strokeWidth="3.5"
-              strokeLinejoin="round"
-            />
-            <ellipse
-              cx="0"
-              cy="2"
-              rx="7"
-              ry="8"
-              fill="#F43F5E"
-              stroke="#07473C"
-              strokeWidth="4"
-            />
-            <circle cx="-2" cy="0" r="2" fill="#FFFFFF" opacity="0.9" />
+          <g id="accessory-hairbow-front">
+            <HairbowSvg x={251} y={103} size={70} />
           </g>
         );
       }
       if (view === "side") {
         return (
-          <g id="accessory-hairbow-side" transform="translate(268, 136)">
-            <path
-              d="M 0 0 C -20 -16, -28 4, -4 9 Z"
-              fill="#FF6B6B"
-              stroke="#07473C"
-              strokeWidth="4.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M 0 0 C 20 -16, 28 4, 4 9 Z"
-              fill="#FF6B6B"
-              stroke="#07473C"
-              strokeWidth="4.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M -2 7 L -10 28 L -2 22 L 2 9 Z"
-              fill="#FB7185"
-              stroke="#07473C"
-              strokeWidth="3.5"
-              strokeLinejoin="round"
-            />
-            <ellipse
-              cx="0"
-              cy="2"
-              rx="7"
-              ry="7.5"
-              fill="#F43F5E"
-              stroke="#07473C"
-              strokeWidth="4"
-            />
-            <circle cx="-2" cy="0" r="2" fill="#FFFFFF" opacity="0.9" />
+          <g id="accessory-hairbow-side">
+            <HairbowSvg x={233} y={101} size={70} />
           </g>
         );
       }
       return (
-        <g id="accessory-hairbow-back" transform="translate(286, 138)">
-          <path
-            d="M 0 0 C -22 -18, -32 4, -4 10 Z"
-            fill="#FF6B6B"
-            stroke="#07473C"
-            strokeWidth="4.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M 0 0 C 22 -18, 32 4, 4 10 Z"
-            fill="#FF6B6B"
-            stroke="#07473C"
-            strokeWidth="4.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M -4 8 L -14 30 L -4 24 L 0 10 Z"
-            fill="#FB7185"
-            stroke="#07473C"
-            strokeWidth="3.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M 4 8 L 14 30 L 4 24 L 0 10 Z"
-            fill="#FB7185"
-            stroke="#07473C"
-            strokeWidth="3.5"
-            strokeLinejoin="round"
-          />
-          <ellipse
-            cx="0"
-            cy="2"
-            rx="7"
-            ry="8"
-            fill="#F43F5E"
-            stroke="#07473C"
-            strokeWidth="4"
-          />
+        <g id="accessory-hairbow-back">
+          <HairbowSvg x={251} y={103} size={70} />
         </g>
       );
     }
@@ -2600,16 +2877,17 @@ export function TitoMascot({
         </svg>
       )}
 
-      <motion.div
-        style={{
-          width: "100%",
-          height: "100%",
-          scaleX: isRotationActive ? scaleX : 1,
-          rotateY: isRotationActive ? rotateY : 0,
-          opacity: isRotationActive ? opacity : 1,
-          transformStyle: "preserve-3d",
-        }}
-      >
+      <MascotAura skin={effectiveSkin} className="w-full h-full">
+        <motion.div
+          style={{
+            width: "100%",
+            height: "100%",
+            scaleX: isRotationActive ? scaleX : 1,
+            rotateY: isRotationActive ? rotateY : 0,
+            opacity: isRotationActive ? opacity : 1,
+            transformStyle: "preserve-3d",
+          }}
+        >
         <motion.svg
           viewBox="0 0 500 500"
           width="100%"
@@ -2743,19 +3021,19 @@ export function TitoMascot({
                     animate={tailAnimate}
                     style={{ transformOrigin: "165px 295px" }}
                   >
-                    {isGirl ? (
+                    {showPlumes ? (
                       <g id="cendrawasih-tail-side">
                         <path
                           d="M 155 278 C 105 255, 45 270, 32 310 C 22 340, 52 368, 92 355 C 122 345, 155 315, 175 305 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 135 285 C 95 270, 55 285, 45 318 C 38 338, 62 355, 92 342 C 118 330, 145 308, 160 300 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
@@ -2763,14 +3041,14 @@ export function TitoMascot({
                           cx="38"
                           cy="326"
                           r="6"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                         />
                         <path
                           d="M 148 290 C 95 280, 25 320, 15 365 C 10 385, 28 395, 38 385 C 48 375, 75 340, 125 320"
                           fill="none"
-                          stroke="#07473C"
+                          stroke={skinPalette.stroke}
                           strokeWidth="3.5"
                           strokeLinecap="round"
                         />
@@ -2778,8 +3056,8 @@ export function TitoMascot({
                           cx="20"
                           cy="380"
                           r="5"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                         />
                         <path
@@ -2795,28 +3073,28 @@ export function TitoMascot({
                       <>
                         <path
                           d="M 155 278 C 120 266, 82 242, 71 254 C 62 264, 76 286, 105 293 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 95 288 C 68 281, 61 295, 71 307 C 81 317, 108 318, 130 315 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 83 313 C 68 315, 68 331, 86 335 C 112 338, 146 328, 175 313 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 155 278 C 132 271, 112 263, 106 272 C 101 279, 114 290, 136 294 C 112 290, 102 295, 105 304 C 107 312, 124 314, 142 313 C 118 315, 108 320, 112 329 C 116 334, 148 326, 175 313 Z"
-                          fill="#FFFFFF"
+                          fill={skinPalette.wingsBase}
                           stroke="#07473C"
                           strokeWidth="4.5"
                           strokeLinejoin="round"
@@ -2849,26 +3127,30 @@ export function TitoMascot({
                     >
                       <path
                         d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
-                        fill="#00B894"
-                        stroke="#07473C"
+                        fill={skinPalette.accent1}
+                        stroke={skinPalette.stroke}
                         strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
                     </motion.g>
                   )}
 
+                  {/* Overlays Kepala: Tanduk Naga & Antena Robot */}
+                  {renderNagaHorns("side")}
+                  {renderRobotAntenna("side")}
+
                   <ellipse
                     cx="255"
                     cy="240"
                     rx="106"
                     ry="105"
-                    fill="#FBBF24"
-                    stroke="#07473C"
+                    fill={skinPalette.body}
+                    stroke={skinPalette.stroke}
                     strokeWidth="4.5"
                   />
                   <path
                     d="M 153 268 C 175 305, 225 335, 305 332 C 262 352, 185 342, 153 268 Z"
-                    fill="#EAA012"
+                    fill={skinPalette.belly}
                   />
                   <ellipse
                     cx="255"
@@ -2876,9 +3158,13 @@ export function TitoMascot({
                     rx="106"
                     ry="105"
                     fill="none"
-                    stroke="#07473C"
+                    stroke={skinPalette.stroke}
                     strokeWidth="4.5"
                   />
+
+                  {/* Overlays Badan: Sisik Naga & Panel Robot */}
+                  {renderNagaScales("side")}
+                  {renderRobotPanels("side")}
 
                   <motion.g
                     animate={legAnimate}
@@ -2913,38 +3199,38 @@ export function TitoMascot({
                     />
                     <path
                       d="M 131 158 C 158 178, 188 198, 201 220 C 206 229, 206 239, 196 241 C 174 244, 144 228, 130 202 C 125 186, 126 170, 131 158 Z"
-                      fill="#00937D"
-                      stroke="#07473C"
+                      fill={skinPalette.accent2}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 131 158 C 110 143, 90 124, 80 130 C 68 136, 77 167, 98 185 C 109 194, 120 199, 130 202 C 125 186, 126 170, 131 158 Z"
-                      fill="#00B894"
-                      stroke="#07473C"
+                      fill={skinPalette.accent1}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
-                    {isGirl && (
+                    {showPlumes && (
                       <g id="cendrawasih-side-wing-plumes">
                         <path
                           d="M 145 240 C 115 270, 92 315, 106 328 C 118 338, 138 318, 155 285 C 168 262, 178 245, 185 238 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 100 322 C 102 334, 114 338, 122 330 C 118 322, 110 318, 100 322 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 165 248 Q 135 285 116 320"
                           fill="none"
-                          stroke="#07473C"
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                           strokeLinecap="round"
                         />
@@ -2979,56 +3265,62 @@ export function TitoMascot({
                     <g
                       transform={`translate(255, 190) rotate(-10) scale(${eyeScale})`}
                     >
-                      <ellipse
-                        cx="0"
-                        cy="0"
-                        rx="25"
-                        ry="27"
-                        fill={eyeHidden ? "#FBBF24" : "#FFFFFF"}
-                        stroke={eyeHidden ? "none" : "#07473C"}
-                        strokeWidth="4"
-                      />
-                      {eyeShape === "laugh" ? (
-                        renderLaughEye(18)
-                      ) : eyeShape === "sleep" ? (
-                        <path
-                          d="M -18 2 Q 0 14 18 2"
-                          fill="none"
-                          stroke="#07473C"
-                          strokeWidth="4.5"
-                          strokeLinecap="round"
-                        />
+                      {effectiveSkin === "robot" ? (
+                        renderRobotEye()
                       ) : (
-                        <motion.g
-                          animate={
-                            isReading
-                              ? { x: [-5, 5, -5], y: 6 }
-                              : isPeeking
-                                ? { x: [-6, 6, -6], y: -3 }
-                                : {
-                                    x: eyeOffsetX,
-                                    y: eyeOffsetY,
-                                    scale: pupilScale,
-                                  }
-                          }
-                          transition={
-                            isReading || isPeeking
-                              ? {
-                                  repeat: Infinity,
-                                  duration: 1.4,
-                                  ease: "easeInOut",
-                                }
-                              : undefined
-                          }
-                        >
-                          <circle cx="2" cy="0" r="19.5" fill="#008F7A" />
-                          <circle cx="3" cy="0" r="15.5" fill="#053B33" />
-                          <circle cx="11" cy="-8" r="6.5" fill="#FFFFFF" />
-                          <path
-                            d="M -5 1 Q -5 6 0 6 Q -5 6 -5 11 Q -5 6 -10 6 Q -5 6 -5 1 Z"
-                            fill="#FFFFFF"
+                        <>
+                          <ellipse
+                            cx="0"
+                            cy="0"
+                            rx="25"
+                            ry="27"
+                            fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
+                            stroke={eyeHidden ? "none" : skinPalette.stroke}
+                            strokeWidth="4"
                           />
-                        </motion.g>
+                          {eyeShape === "laugh" ? (
+                            renderLaughEye(18)
+                          ) : eyeShape === "sleep" ? (
+                            <path
+                              d="M -18 2 Q 0 14 18 2"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                              strokeLinecap="round"
+                            />
+                          ) : (
+                            <motion.g
+                              animate={
+                                isReading
+                                  ? { x: [-5, 5, -5], y: 6 }
+                                  : isPeeking
+                                    ? { x: [-6, 6, -6], y: -3 }
+                                    : {
+                                        x: eyeOffsetX,
+                                        y: eyeOffsetY,
+                                        scale: pupilScale,
+                                      }
+                              }
+                              transition={
+                                isReading || isPeeking
+                                  ? {
+                                      repeat: Infinity,
+                                      duration: 1.4,
+                                      ease: "easeInOut",
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <circle cx="2" cy="0" r="19.5" fill="#008F7A" />
+                              <circle cx="3" cy="0" r="15.5" fill="#053B33" />
+                              <circle cx="11" cy="-8" r="6.5" fill="#FFFFFF" />
+                              <path
+                                d="M -5 1 Q -5 6 0 6 Q -5 6 -5 11 Q -5 6 -10 6 Q -5 6 -5 1 Z"
+                                fill="#FFFFFF"
+                              />
+                            </motion.g>
+                          )}
+                        </>
                       )}
                       {isGirl && (
                         <g id="eyelashes-side-main">
@@ -3274,33 +3566,33 @@ export function TitoMascot({
                     animate={tailAnimate}
                     style={{ transformOrigin: "250px 330px" }}
                   >
-                    {isGirl ? (
+                    {showPlumes ? (
                       <g id="cendrawasih-tail-front">
                         <path
                           d="M 216 330 C 190 365, 185 415, 218 435 C 235 444, 265 444, 282 435 C 315 415, 310 365, 284 330 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 228 330 C 210 360, 208 398, 232 418 C 242 426, 258 426, 268 418 C 292 398, 290 360, 272 330 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 228 412 Q 250 436 272 412 Q 250 422 228 412 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 250 334 L 250 422"
                           fill="none"
-                          stroke="#07473C"
+                          stroke={skinPalette.stroke}
                           strokeWidth="3.5"
                           strokeLinecap="round"
                         />
@@ -3314,8 +3606,8 @@ export function TitoMascot({
                         />
                         <path
                           d="M 232 350 C 190 390, 165 435, 178 450 C 188 460, 202 452, 206 438 C 210 422, 222 392, 238 362"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
@@ -3323,14 +3615,14 @@ export function TitoMascot({
                           cx="184"
                           cy="452"
                           r="5"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                         />
                         <path
                           d="M 268 350 C 310 390, 335 435, 322 450 C 312 460, 298 452, 294 438 C 290 422, 278 392, 262 362"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
@@ -3338,8 +3630,8 @@ export function TitoMascot({
                           cx="316"
                           cy="452"
                           r="5"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                         />
                       </g>
@@ -3347,15 +3639,15 @@ export function TitoMascot({
                       <>
                         <path
                           d="M 225 330 C 215 358, 222 374, 235 370 C 238 382, 262 382, 265 370 C 278 374, 285 358, 275 330 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 232 330 C 226 348, 232 356, 240 353 C 243 362, 257 362, 260 353 C 268 356, 274 348, 268 330 Z"
-                          fill="#FFFFFF"
-                          stroke="#07473C"
+                          fill={skinPalette.wingsBase}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
@@ -3390,38 +3682,38 @@ export function TitoMascot({
                     />
                     <path
                       d="M 102 162 C 86 147, 69 130, 59 135 C 50 140, 57 168, 76 187 C 89 199, 104 208, 118 216 C 101 200, 96 180, 102 162 Z"
-                      fill="#00B894"
-                      stroke="#07473C"
+                      fill={skinPalette.accent1}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
-                    {isGirl && (
+                    {showPlumes && (
                       <g id="cendrawasih-left-wing-plumes">
                         <path
                           d="M 120 248 C 95 285, 78 330, 92 342 C 104 352, 122 332, 138 300 C 148 280, 158 262, 164 252 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 132 250 C 114 282, 102 318, 112 328 C 120 334, 132 320, 145 292 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 86 336 C 88 348, 100 352, 108 344 C 104 336, 96 332, 86 336 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 150 262 Q 120 300 102 336"
                           fill="none"
-                          stroke="#07473C"
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                           strokeLinecap="round"
                         />
@@ -3435,52 +3727,52 @@ export function TitoMascot({
                   >
                     <path
                       d="M 335 208 L 434 158 C 446 168, 439 195, 416 210 C 431 218, 426 242, 396 249 C 400 262, 382 274, 335 268 Z"
-                      fill="#FFFFFF"
-                      stroke="#07473C"
+                      fill={skinPalette.wingsBase}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 416 210 C 408 215, 400 219, 393 221 M 396 249 C 388 251, 381 251, 375 251"
                       fill="none"
-                      stroke="#07473C"
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinecap="round"
                     />
                     <path
                       d="M 335 202 C 358 187, 380 172, 398 162 C 404 180, 399 200, 382 216 C 368 228, 352 234, 337 236 Z"
-                      fill="#00937D"
-                      stroke="#07473C"
+                      fill={skinPalette.accent2}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 398 162 C 414 147, 431 130, 441 135 C 450 140, 443 168, 424 187 C 411 199, 396 208, 382 216 C 399 200, 404 180, 398 162 Z"
-                      fill="#00B894"
-                      stroke="#07473C"
+                      fill={skinPalette.accent1}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
-                    {isGirl && (
+                    {showPlumes && (
                       <g id="cendrawasih-right-wing-plumes">
                         <path
                           d="M 380 248 C 405 285, 422 330, 408 342 C 396 352, 378 332, 362 300 C 352 280, 342 262, 336 252 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 368 250 C 386 282, 398 318, 388 328 C 380 334, 368 320, 355 292 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 414 336 C 412 348, 400 352, 392 344 C 396 336, 404 332, 414 336 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
@@ -3502,26 +3794,30 @@ export function TitoMascot({
                     >
                       <path
                         d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
-                        fill="#00B894"
-                        stroke="#07473C"
+                        fill={skinPalette.accent1}
+                        stroke={skinPalette.stroke}
                         strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
                     </motion.g>
                   )}
 
+                  {/* Overlays Kepala: Tanduk Naga & Antena Robot */}
+                  {renderNagaHorns("front")}
+                  {renderRobotAntenna("front")}
+
                   <ellipse
                     cx="250"
                     cy="240"
                     rx="105"
                     ry="105"
-                    fill="#FBBF24"
-                    stroke="#07473C"
+                    fill={skinPalette.body}
+                    stroke={skinPalette.stroke}
                     strokeWidth="4.5"
                   />
                   <path
                     d="M 152 275 C 180 322, 320 322, 348 275 C 325 342, 175 342, 152 275 Z"
-                    fill="#EAA012"
+                    fill={skinPalette.belly}
                   />
                   <ellipse
                     cx="250"
@@ -3529,9 +3825,13 @@ export function TitoMascot({
                     rx="105"
                     ry="105"
                     fill="none"
-                    stroke="#07473C"
+                    stroke={skinPalette.stroke}
                     strokeWidth="4.5"
                   />
+
+                  {/* Overlays Badan: Sisik Naga & Panel Robot */}
+                  {renderNagaScales("front")}
+                  {renderRobotPanels("front")}
 
                   <motion.g
                     animate={legAnimate}
@@ -3539,8 +3839,8 @@ export function TitoMascot({
                   >
                     <path
                       d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z"
-                      fill="#FF5E6C"
-                      stroke="#07473C"
+                      fill={skinPalette.leg}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
@@ -3551,8 +3851,8 @@ export function TitoMascot({
                   >
                     <path
                       d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z"
-                      fill="#FF5E6C"
-                      stroke="#07473C"
+                      fill={skinPalette.leg}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
@@ -3562,18 +3862,18 @@ export function TitoMascot({
                     animate={{ x: eyeOffsetX * 0.8, y: eyeOffsetY * 0.8 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   >
-                    <path d="M 234 228 L 266 228 L 250 256 Z" fill="#EAA012" />
+                    <path d="M 234 228 L 266 228 L 250 256 Z" fill={skinPalette.belly} />
                     <circle
                       cx="182"
                       cy="226"
                       r={13.5 + cheekExtra}
-                      fill="#FF5E6C"
+                      fill={skinPalette.cheek}
                     />
                     <circle
                       cx="318"
                       cy="226"
                       r={13.5 + cheekExtra}
-                      fill="#FF5E6C"
+                      fill={skinPalette.cheek}
                     />
                     {isShy && (
                       <>
@@ -3583,56 +3883,62 @@ export function TitoMascot({
                     )}
 
                     <g transform={`translate(206, 192) scale(${eyeScale})`}>
-                      <ellipse
-                        cx="0"
-                        cy="0"
-                        rx="25"
-                        ry="27"
-                        fill={eyeHidden ? "#FBBF24" : "#FFFFFF"}
-                        stroke={eyeHidden ? "none" : "#07473C"}
-                        strokeWidth="4"
-                      />
-                      {eyeShape === "laugh" ? (
-                        renderLaughEye(18)
-                      ) : eyeShape === "sleep" ? (
-                        <path
-                          d="M -18 2 Q 0 14 18 2"
-                          fill="none"
-                          stroke="#07473C"
-                          strokeWidth="4.5"
-                          strokeLinecap="round"
-                        />
+                      {effectiveSkin === "robot" ? (
+                        renderRobotEye()
                       ) : (
-                        <motion.g
-                          animate={
-                            isReading
-                              ? { x: [-6, 6, -6], y: 6 }
-                              : isPeeking
-                                ? { x: [-7, 7, -7], y: -3 }
-                                : {
-                                    x: eyeOffsetX,
-                                    y: eyeOffsetY,
-                                    scale: pupilScale,
-                                  }
-                          }
-                          transition={
-                            isReading || isPeeking
-                              ? {
-                                  repeat: Infinity,
-                                  duration: 1.4,
-                                  ease: "easeInOut",
-                                }
-                              : undefined
-                          }
-                        >
-                          <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
-                          <circle cx="0" cy="0" r="15.5" fill="#053B33" />
-                          <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
-                          <path
-                            d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
-                            fill="#FFFFFF"
+                        <>
+                          <ellipse
+                            cx="0"
+                            cy="0"
+                            rx="25"
+                            ry="27"
+                            fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
+                            stroke={eyeHidden ? "none" : skinPalette.stroke}
+                            strokeWidth="4"
                           />
-                        </motion.g>
+                          {eyeShape === "laugh" ? (
+                            renderLaughEye(18)
+                          ) : eyeShape === "sleep" ? (
+                            <path
+                              d="M -18 2 Q 0 14 18 2"
+                              fill="none"
+                              stroke={skinPalette.stroke}
+                              strokeWidth="4.5"
+                              strokeLinecap="round"
+                            />
+                          ) : (
+                            <motion.g
+                              animate={
+                                isReading
+                                  ? { x: [-6, 6, -6], y: 6 }
+                                  : isPeeking
+                                    ? { x: [-7, 7, -7], y: -3 }
+                                    : {
+                                        x: eyeOffsetX,
+                                        y: eyeOffsetY,
+                                        scale: pupilScale,
+                                      }
+                              }
+                              transition={
+                                isReading || isPeeking
+                                  ? {
+                                      repeat: Infinity,
+                                      duration: 1.4,
+                                      ease: "easeInOut",
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
+                              <circle cx="0" cy="0" r="15.5" fill="#053B33" />
+                              <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
+                              <path
+                                d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
+                                fill="#FFFFFF"
+                              />
+                            </motion.g>
+                          )}
+                        </>
                       )}
                       {isGirl && (
                         <g id="eyelashes-front-left">
@@ -3662,56 +3968,62 @@ export function TitoMascot({
                     </g>
 
                     <g transform={`translate(294, 192) scale(${eyeScale})`}>
-                      <ellipse
-                        cx="0"
-                        cy="0"
-                        rx="25"
-                        ry="27"
-                        fill={eyeHidden ? "#FBBF24" : "#FFFFFF"}
-                        stroke={eyeHidden ? "none" : "#07473C"}
-                        strokeWidth="4"
-                      />
-                      {eyeShape === "laugh" ? (
-                        renderLaughEye(18)
-                      ) : eyeShape === "sleep" ? (
-                        <path
-                          d="M -18 2 Q 0 14 18 2"
-                          fill="none"
-                          stroke="#07473C"
-                          strokeWidth="4.5"
-                          strokeLinecap="round"
-                        />
+                      {effectiveSkin === "robot" ? (
+                        renderRobotEye()
                       ) : (
-                        <motion.g
-                          animate={
-                            isReading
-                              ? { x: [-6, 6, -6], y: 6 }
-                              : isPeeking
-                                ? { x: [-7, 7, -7], y: -3 }
-                                : {
-                                    x: eyeOffsetX,
-                                    y: eyeOffsetY,
-                                    scale: pupilScale,
-                                  }
-                          }
-                          transition={
-                            isReading || isPeeking
-                              ? {
-                                  repeat: Infinity,
-                                  duration: 1.4,
-                                  ease: "easeInOut",
-                                }
-                              : undefined
-                          }
-                        >
-                          <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
-                          <circle cx="0" cy="0" r="15.5" fill="#053B33" />
-                          <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
-                          <path
-                            d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
-                            fill="#FFFFFF"
+                        <>
+                          <ellipse
+                            cx="0"
+                            cy="0"
+                            rx="25"
+                            ry="27"
+                            fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
+                            stroke={eyeHidden ? "none" : skinPalette.stroke}
+                            strokeWidth="4"
                           />
-                        </motion.g>
+                          {eyeShape === "laugh" ? (
+                            renderLaughEye(18)
+                          ) : eyeShape === "sleep" ? (
+                            <path
+                              d="M -18 2 Q 0 14 18 2"
+                              fill="none"
+                              stroke={skinPalette.stroke}
+                              strokeWidth="4.5"
+                              strokeLinecap="round"
+                            />
+                          ) : (
+                            <motion.g
+                              animate={
+                                isReading
+                                  ? { x: [-6, 6, -6], y: 6 }
+                                  : isPeeking
+                                    ? { x: [-7, 7, -7], y: -3 }
+                                    : {
+                                        x: eyeOffsetX,
+                                        y: eyeOffsetY,
+                                        scale: pupilScale,
+                                      }
+                              }
+                              transition={
+                                isReading || isPeeking
+                                  ? {
+                                      repeat: Infinity,
+                                      duration: 1.4,
+                                      ease: "easeInOut",
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
+                              <circle cx="0" cy="0" r="15.5" fill="#053B33" />
+                              <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
+                              <path
+                                d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
+                                fill="#FFFFFF"
+                              />
+                            </motion.g>
+                          )}
+                        </>
                       )}
                       {isGirl && (
                         <g id="eyelashes-front-right">
@@ -3921,8 +4233,8 @@ export function TitoMascot({
                   >
                     <path
                       d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z"
-                      fill="#FF5E6C"
-                      stroke="#07473C"
+                      fill={skinPalette.leg}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
@@ -3933,12 +4245,15 @@ export function TitoMascot({
                   >
                     <path
                       d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z"
-                      fill="#FF5E6C"
-                      stroke="#07473C"
+                      fill={skinPalette.leg}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                   </motion.g>
+
+                  {renderNagaHorns("back")}
+                  {renderRobotAntenna("back")}
 
                   {resolvedAccessory !== "peci" && (
                     <motion.g
@@ -3947,8 +4262,8 @@ export function TitoMascot({
                     >
                       <path
                         d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
-                        fill="#00B894"
-                        stroke="#07473C"
+                        fill={skinPalette.accent1}
+                        stroke={skinPalette.stroke}
                         strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
@@ -3960,13 +4275,13 @@ export function TitoMascot({
                     cy="240"
                     rx="105"
                     ry="105"
-                    fill="#FBBF24"
-                    stroke="#07473C"
+                    fill={skinPalette.body}
+                    stroke={skinPalette.stroke}
                     strokeWidth="4.5"
                   />
                   <path
                     d="M 148 265 C 175 325, 325 325, 352 265 C 332 342, 168 342, 148 265 Z"
-                    fill="#EAA012"
+                    fill={skinPalette.belly}
                   />
                   <ellipse
                     cx="250"
@@ -3974,7 +4289,7 @@ export function TitoMascot({
                     rx="105"
                     ry="105"
                     fill="none"
-                    stroke="#07473C"
+                    stroke={skinPalette.stroke}
                     strokeWidth="4.5"
                   />
 
@@ -3984,38 +4299,38 @@ export function TitoMascot({
                   >
                     <path
                       d="M 165 208 L 66 158 C 54 168, 61 195, 84 210 C 69 218, 74 242, 104 249 C 100 262, 118 274, 165 268 Z"
-                      fill="#FFFFFF"
-                      stroke="#07473C"
+                      fill={skinPalette.wingsBase}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 168 200 C 142 185, 120 170, 102 162 C 96 180, 101 200, 118 216 C 134 230, 155 238, 172 238 Z"
-                      fill="#00937D"
-                      stroke="#07473C"
+                      fill={skinPalette.accent2}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 102 162 C 86 147, 69 130, 59 135 C 50 140, 57 168, 76 187 C 89 199, 104 208, 118 216 C 101 200, 96 180, 102 162 Z"
-                      fill="#00B894"
-                      stroke="#07473C"
+                      fill={skinPalette.accent1}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
-                    {isGirl && (
+                    {showPlumes && (
                       <g id="cendrawasih-left-wing-plumes-back">
                         <path
                           d="M 120 248 C 95 285, 78 330, 92 342 C 104 352, 122 332, 138 300 C 148 280, 158 262, 164 252 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 86 336 C 88 348, 100 352, 108 344 C 104 336, 96 332, 86 336 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
@@ -4029,38 +4344,38 @@ export function TitoMascot({
                   >
                     <path
                       d="M 335 208 L 434 158 C 446 168, 439 195, 416 210 C 431 218, 426 242, 396 249 C 400 262, 382 274, 335 268 Z"
-                      fill="#FFFFFF"
-                      stroke="#07473C"
+                      fill={skinPalette.wingsBase}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 332 200 C 358 185, 380 170, 398 162 C 404 180, 399 200, 382 216 C 366 230, 345 238, 328 238 Z"
-                      fill="#00937D"
-                      stroke="#07473C"
+                      fill={skinPalette.accent2}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M 398 162 C 414 147, 431 130, 441 135 C 450 140, 443 168, 424 187 C 411 199, 396 208, 382 216 C 399 200, 404 180, 398 162 Z"
-                      fill="#00B894"
-                      stroke="#07473C"
+                      fill={skinPalette.accent1}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
                       strokeLinejoin="round"
                     />
-                    {isGirl && (
+                    {showPlumes && (
                       <g id="cendrawasih-right-wing-plumes-back">
                         <path
                           d="M 380 248 C 405 285, 422 330, 408 342 C 396 352, 378 332, 362 300 C 352 280, 342 262, 336 252 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 414 336 C 412 348, 400 352, 392 344 C 396 336, 404 332, 414 336 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
@@ -4072,33 +4387,33 @@ export function TitoMascot({
                     animate={tailAnimate}
                     style={{ transformOrigin: "250px 305px" }}
                   >
-                    {isGirl ? (
+                    {showPlumes ? (
                       <g id="cendrawasih-tail-back">
                         <path
                           d="M 216 305 C 190 345, 185 395, 218 425 C 235 436, 265 436, 282 425 C 315 395, 310 345, 284 305 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 228 305 C 210 340, 208 380, 232 405 C 242 415, 258 415, 268 405 C 292 380, 290 340, 272 305 Z"
-                          fill="#00B894"
-                          stroke="#07473C"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 228 398 Q 250 422 272 398 Q 250 410 228 398 Z"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="3"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 232 325 C 190 365, 165 410, 178 425 C 188 435, 202 427, 206 413 C 210 397, 222 367, 238 337"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
@@ -4106,14 +4421,14 @@ export function TitoMascot({
                           cx="184"
                           cy="427"
                           r="5"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                         />
                         <path
                           d="M 268 325 C 310 365, 335 410, 322 425 C 312 435, 298 427, 294 413 C 290 397, 278 367, 262 337"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4"
                           strokeLinejoin="round"
                         />
@@ -4121,8 +4436,8 @@ export function TitoMascot({
                           cx="316"
                           cy="427"
                           r="5"
-                          fill="#FF6B6B"
-                          stroke="#07473C"
+                          fill={skinPalette.tailTip}
+                          stroke={skinPalette.stroke}
                           strokeWidth="2.5"
                         />
                       </g>
@@ -4130,29 +4445,29 @@ export function TitoMascot({
                       <>
                         <path
                           d="M 235 305 C 205 325, 185 355, 198 368 C 208 378, 228 362, 242 342 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 265 305 C 295 325, 315 355, 302 368 C 292 378, 272 362, 258 342 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 238 310 C 232 348, 236 378, 250 380 C 264 378, 268 348, 262 310 Z"
-                          fill="#00937D"
-                          stroke="#07473C"
+                          fill={skinPalette.accent2}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
                         <path
                           d="M 232 300 C 214 316, 206 335, 214 342 C 222 348, 234 338, 240 328 C 238 345, 242 356, 250 356 C 258 356, 262 345, 260 328 C 266 338, 278 348, 286 342 C 294 335, 286 316, 268 300 Q 250 292 232 300 Z"
-                          fill="#FFFFFF"
-                          stroke="#07473C"
+                          fill={skinPalette.wingsBase}
+                          stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
@@ -4560,8 +4875,9 @@ export function TitoMascot({
           )}
         </motion.svg>
       </motion.div>
-    </div>
-  );
+    </MascotAura>
+  </div>
+);
 }
 
 // Canonical mascot export & aliases for backwards compatibility

@@ -18,10 +18,15 @@ import { Avatar } from "../../../components/ui/Avatar";
 import { AvatarWithBadge } from "../../../components/ui/AvatarWithBadge";
 import { normalizeGender } from "../../../utils/format";
 import { useEconomyStore, isUnlimitedUser, type TilaGender } from "../hooks/useEconomyStore";
+import { VoucherRedeemModal } from "../components/VoucherRedeemModal";
+import { AppThemeSettingsModal } from "../components/AppThemeSettingsModal";
+import { ReferralSection } from "../components/ReferralSection";
 import "./games/_shared/games.css";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { getMascotName } from "@/utils/mascotHelper";
-import { isAdminRole, classroomRoleFor } from "@/lib/roles";
+import { isAdminRole, classroomRoleForUser } from "@/lib/roles";
+import { useAudioStore } from "@/hooks/useAudioStore";
+import { stopAllAudio } from "../utils/audioPlayer";
 
 import {
   PencilSvg,
@@ -38,10 +43,12 @@ import {
   DownloadSvg,
   ChevronRightSvg,
   LogOutSvg,
+  ShieldSvg,
   TrashSvg,
   UserSvg,
   EyeSvg,
   EyeSlashSvg,
+  Volume2Svg,
   type SvgProps,
 } from "@/components/ui/CustomIcons";
 
@@ -81,6 +88,8 @@ export default function NgajiCeriaProfilePage() {
   const mascotName = getMascotName(tilaGender);
 
   const showMascot = useEconomyStore((s) => s.showMascot);
+  const useModifiedAudio = useAudioStore((s) => s.useModifiedAudio);
+  const toggleModifiedAudio = useAudioStore((s) => s.toggleModifiedAudio);
   const setShowMascot = useEconomyStore((s) => s.setShowMascot);
 
   const hearts = useEconomyStore((s) => s.hearts);
@@ -89,9 +98,11 @@ export default function NgajiCeriaProfilePage() {
   const isUnlimited = isUnlimitedUser(user, isVip, user?.group_id);
 
   const isSuperAdmin = isAdminRole(user?.role);
-  const classroomRole = classroomRoleFor(user?.role);
+  const classroomRole = classroomRoleForUser(user);
 
   const [genderDraft, setGenderDraft] = useState<TilaGender>(tilaGender);
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   const earnedStars = useMemo(
     () => Object.values(stars).reduce((sum, value) => sum + (value || 0), 0),
@@ -182,6 +193,20 @@ export default function NgajiCeriaProfilePage() {
   };
 
   const settingsItems = [
+    {
+      key: "theme",
+      icon: SparklesSvg,
+      title: "Pengaturan Tampilan",
+      subtitle: "Ubah tema & warna aplikasi Tartila",
+      action: () => setIsThemeModalOpen(true),
+    },
+    {
+      key: "voucher",
+      icon: TicketSvg,
+      title: "Tukar Voucher VIP",
+      subtitle: "Aktivasi atau perpanjang VIP santri",
+      action: () => setIsVoucherModalOpen(true),
+    },
     {
       key: "password",
       icon: KeyRoundSvg,
@@ -409,6 +434,33 @@ export default function NgajiCeriaProfilePage() {
             </div>
           </section>
 
+          {/* Tombol Tukar Voucher VIP */}
+          <section className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] p-3.5 shadow-[3px_3px_0px_#134E4A] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#134E4A] flex items-center justify-center shadow-[1px_1px_0px_#134E4A] shrink-0">
+                <TicketSvg size={22} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-display font-black text-xs text-[#134E4A] uppercase tracking-wider">
+                  Voucher VIP Santri
+                </p>
+                <p className="text-[10px] font-bold text-[#134E4A]/70 truncate">
+                  {isVip ? "Perpanjang masa aktif VIP" : "Punya kode dari TPQ? Tukar di sini"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsVoucherModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-[#0D9488] text-white font-black text-xs border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all hover:bg-[#0F766E] shrink-0"
+            >
+              Tukar Kode
+            </button>
+          </section>
+
+          {/* Section Ajak Teman (Referral) */}
+          <ReferralSection />
+
           {/* Kamar Maskot - Eye-Catching Card */}
           <section
             onClick={() => navigate("/member/ngaji-ceria/kamar-tila")}
@@ -579,6 +631,55 @@ export default function NgajiCeriaProfilePage() {
               </div>
             </div>
 
+            {/* Toggle Variasi Suara (Pitch & Reverb) */}
+            <div
+              onClick={() => {
+                toggleModifiedAudio();
+                stopAllAudio();
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  toggleModifiedAudio();
+                  stopAllAudio();
+                }
+              }}
+              className="flex w-full items-center justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all text-left cursor-pointer select-none"
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <span className="rounded-xl bg-[#FEF3C7] p-2 shrink-0 border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                  <Volume2Svg size={20} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="block font-black text-sm text-[#134E4A]">
+                    Gunakan Variasi Suara (Pitch &amp; Reverb)
+                  </span>
+                  <span className="block truncate text-[10px] font-bold text-[#134E4A]/60 mt-0.5 tracking-wide">
+                    Nyalakan untuk mencegah hafalan trek audio.
+                  </span>
+                </div>
+              </div>
+
+              {/* Neo-Brutalism Switch */}
+              <div
+                className={`relative w-12 h-7 rounded-full border-2 border-[#134E4A] p-0.5 transition-colors shadow-[2px_2px_0px_#134E4A] ${
+                  useModifiedAudio ? "bg-[#0D9488]" : "bg-gray-200"
+                }`}
+                aria-label="Toggle Variasi Suara"
+                role="switch"
+                aria-checked={useModifiedAudio}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full border-2 border-[#134E4A] transition-transform ${
+                    useModifiedAudio
+                      ? "translate-x-5 bg-[#FEF08A]"
+                      : "translate-x-0 bg-white"
+                  }`}
+                />
+              </div>
+            </div>
+
             {settingsItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -608,6 +709,17 @@ export default function NgajiCeriaProfilePage() {
 
           {/* Danger Zone */}
           <section className="pt-4 space-y-3">
+            {isAdminRole(user?.role) && (
+              <button
+                type="button"
+                onClick={() => navigate("/admin")}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] py-3.5 font-black text-sm text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all hover:bg-[#FDE047]"
+              >
+                <ShieldSvg size={20} />
+                Kembali ke Panel Admin
+              </button>
+            )}
+
             {user ? (
               <button
                 onClick={() => openModal("logout")}
@@ -908,6 +1020,16 @@ export default function NgajiCeriaProfilePage() {
           </div>
         </ModalPanel>
       )}
+
+      <VoucherRedeemModal
+        isOpen={isVoucherModalOpen}
+        onClose={() => setIsVoucherModalOpen(false)}
+      />
+
+      <AppThemeSettingsModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+      />
     </NgajiCeriaLayout>
   );
 }

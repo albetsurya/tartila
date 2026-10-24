@@ -13,8 +13,13 @@ import {
 } from "@/components/ui/Illustrations";
 import SlasherStage from "./components/SlasherStage";
 import { useSlasherGame } from "./hooks/useSlasherGame";
-import { HARAKAT_LIST } from "./data/harakat-list";
+import {
+  SLASHER_MODE_LABELS,
+  type SlasherMode,
+} from "./data/harakat-list";
 import type { GamePhase } from "../_shared/types";
+
+const MODES: SlasherMode[] = ["harakat", "huruf", "kata", "ayat"];
 
 function Game() {
   const game = useSlasherGame();
@@ -24,17 +29,18 @@ function Game() {
 
   const {
     phase,
+    mode,
+    setMode,
     score,
     combo,
     lives,
     currentTarget,
+    currentTargetItem,
     best,
     onSliceResult,
     resetRun,
     setPhase,
   } = game;
-
-  const targetHarakat = HARAKAT_LIST.find((h) => h.id === currentTarget);
 
   // Maskot bereaksi setiap pemain berhasil menebas huruf target
   useEffect(() => {
@@ -67,11 +73,11 @@ function Game() {
       >
         <GameBoundary>
           {phase === "idle" || phase === "paused" ? (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-[#1E1B4B] via-[#312E81] to-[#4C1D95]">
+            <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#1E1B4B] via-[#312E81] to-[#4C1D95] p-4">
               <StartScreen
                 title="Harakat Slasher"
-                tagline="Fruit Ninja Harakat"
-                description="Geser jari seperti pedang untuk menebas huruf harakat target, hindari pengecoh, dan jangan biarkan target jatuh!"
+                tagline="Pedang Harakat & Hijaiyah"
+                description="Tebas buah berisi huruf, kata, atau potongan ayat target! Hindari pengecoh dan jangan biarkan target lolos."
                 best={best}
                 onStart={() => {
                   resetRun();
@@ -80,13 +86,46 @@ function Game() {
                 onExit={() => navigate("/member/ngaji-ceria/games")}
                 accent="emerald"
               />
+
+              {/* FASE 3: PILIHAN MODE / LEVEL SLASHER */}
+              <div className="mt-4 w-full max-w-sm rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFDF0] p-3 text-center shadow-[4px_4px_0px_#134E4A]">
+                <p className="text-[11px] font-black uppercase tracking-wider text-[#134E4A] mb-2">
+                  Pilih Mode Latihan:
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {MODES.map((m) => {
+                    const isSelected = mode === m;
+                    const meta = SLASHER_MODE_LABELS[m];
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMode(m)}
+                        className={`flex flex-col items-center justify-center rounded-xl border-2 border-[#134E4A] p-2 text-center transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[#FEF08A] shadow-[2px_2px_0px_#134E4A] scale-[1.02]"
+                            : "bg-white hover:bg-[#F0FDF4] opacity-80"
+                        }`}
+                      >
+                        <span className="text-xs font-black text-[#134E4A]">
+                          {meta.title}
+                        </span>
+                        <span className="text-[9px] font-bold text-[#134E4A]/70">
+                          {meta.subtitle}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="relative h-full w-full overflow-hidden bg-gradient-to-b from-[#7DD3FC] via-[#BAE6FD] to-[#FEF9C3]">
-              {/* ARENA SLASHER (fisika + swipe + tebasan + dekor env) */}
+              {/* ARENA SLASHER (fisika terpusat + deteksi swipe + dynamic hitbox) */}
               <SlasherStage
                 isPlaying={phase === "playing"}
                 currentTarget={currentTarget}
+                mode={mode}
                 onResult={handleResult}
               />
 
@@ -123,19 +162,34 @@ function Game() {
                 </div>
               </div>
 
-              {/* PLAKAT TARGET HARAKAT (kanan atas) */}
+              {/* FASE 1: PLAKAT TARGET KONTRAK TINGGI (kanan atas) */}
               <div className="pointer-events-none absolute right-3 top-14 z-30 sm:right-4 sm:top-16">
                 <div className="relative h-28 w-28 sm:h-32 sm:w-32">
                   <PlakatTargetHarakatSvg size={130} className="absolute inset-0" />
-                  <div className="absolute inset-x-0 top-[46%] flex flex-col items-center gap-0.5 px-3">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-[#7C2D12]">
-                      Target
+                  <div className="absolute inset-x-0 top-[40%] flex flex-col items-center gap-1 px-2.5">
+                    {/* Label TARGET Kontras Tinggi Neo-Brutalism */}
+                    <span className="rounded-full border-2 border-[#134E4A] bg-[#0D9488] px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-[1.5px_1.5px_0px_#134E4A]">
+                      TARGET
                     </span>
-                    <span className="font-arabic text-2xl font-black leading-none text-[#7C2D12]">
-                      {targetHarakat?.symbol ?? "بَ"}
+
+                    {/* Simbol Arab Dinamis & Terbaca dengan font-arabic */}
+                    <span
+                      className={`font-arabic font-black leading-none text-[#7C2D12] text-center max-w-full truncate px-1 ${
+                        currentTargetItem.symbol.length > 8
+                          ? "text-sm"
+                          : currentTargetItem.symbol.length > 5
+                            ? "text-base"
+                            : currentTargetItem.symbol.length > 2
+                              ? "text-xl"
+                              : "text-2xl"
+                      }`}
+                    >
+                      {currentTargetItem.symbol}
                     </span>
-                    <span className="font-display text-[10px] font-black leading-tight text-[#7C2D12]">
-                      {targetHarakat?.name ?? "Fathah"}
+
+                    {/* Keterangan Nama Target */}
+                    <span className="font-display text-[9px] font-black leading-tight text-[#7C2D12] text-center max-w-full truncate px-1">
+                      {currentTargetItem.name}
                     </span>
                   </div>
                 </div>

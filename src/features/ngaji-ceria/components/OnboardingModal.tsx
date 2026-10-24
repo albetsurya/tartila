@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { TilaMascot } from "@/components/ui/TilaMascot";
-import { SparklesSvg, CheckSvg, ArrowRight } from "@/components/ui/CustomIcons";
+import {
+  SparklesSvg,
+  CheckSvg,
+  ArrowRight,
+  BackpackSvg,
+  GraduationCapSvg,
+  RocketSvg,
+} from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type ArenaRole = "santri" | "ustadz";
@@ -121,8 +128,8 @@ export function OnboardingModal({ isOpen, onClose, initialRole }: OnboardingModa
                 className="p-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#CCFBF1] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[1px_1px_0px_#134E4A] transition-all text-left group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl border-2 border-[#134E4A] bg-white flex items-center justify-center text-2xl mb-3 shadow-[2px_2px_0px_#134E4A]">
-                    🎒
+                  <div className="w-12 h-12 rounded-xl border-2 border-[#134E4A] bg-white flex items-center justify-center mb-3 shadow-[2px_2px_0px_#134E4A]">
+                    <BackpackSvg size={28} />
                   </div>
                   <h3 className="font-display text-lg font-black text-[#134E4A]">
                     Santri Cilik
@@ -142,8 +149,8 @@ export function OnboardingModal({ isOpen, onClose, initialRole }: OnboardingModa
                 className="p-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[1px_1px_0px_#134E4A] transition-all text-left group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl border-2 border-[#134E4A] bg-white flex items-center justify-center text-2xl mb-3 shadow-[2px_2px_0px_#134E4A]">
-                    👨‍🏫
+                  <div className="w-12 h-12 rounded-xl border-2 border-[#134E4A] bg-white flex items-center justify-center mb-3 shadow-[2px_2px_0px_#134E4A]">
+                    <GraduationCapSvg size={28} />
                   </div>
                   <h3 className="font-display text-lg font-black text-[#134E4A]">
                     Ustadz / Guru
@@ -221,7 +228,7 @@ export function OnboardingModal({ isOpen, onClose, initialRole }: OnboardingModa
                   onClick={handleFinish}
                   className="w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FACC15] text-[#134E4A] font-black text-lg shadow-[5px_5px_0px_#134E4A] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
-                  Mulai Petualangan! 🚀
+                  Mulai Petualangan! <RocketSvg size={20} />
                 </button>
               )}
             </div>

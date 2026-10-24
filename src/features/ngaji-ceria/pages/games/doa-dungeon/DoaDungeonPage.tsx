@@ -23,7 +23,7 @@ import { NGAJI_CERIA_ASSETS } from "../../../data/assets";
 // KONSEP EKSKLUSIF: Doa Dungeon adalah satu-satunya game yang memakai
 // konsep 3D fight (QuizBattleArena + BattleSetupFlow). Game quiz lain
 // memakai konsep tematik masing-masing (majelis, pos langit, lentera,
-// podium, taman) — jangan pakai komponen battle di luar file ini.
+// podium, taman): jangan pakai komponen battle di luar file ini.
 
 function Game() {
   const game = useDoaDungeon();

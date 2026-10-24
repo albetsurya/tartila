@@ -73,6 +73,49 @@
   color-scheme: dark;
 }
 
+/* ============================================================
+   App Themes (Runtime Palette Overrides)
+   ============================================================ */
+:root[data-app-theme="sky"], body[data-app-theme="sky"] {
+  --c-bg: 240 249 255; /* #F0F9FF */
+  --c-card2: 224 242 254; /* #E0F2FE */
+  --c-border: 186 230 253; /* #BAE6FD */
+  --c-text: 12 74 96; /* #0C4A60 */
+  --c-accent: 2 132 199; /* #0284C7 */
+  --c-accent-dark: 3 105 161; /* #0369A1 */
+  --c-accent-light: 224 242 254; /* #E0F2FE */
+}
+
+:root[data-app-theme="rose"], body[data-app-theme="rose"] {
+  --c-bg: 255 241 242; /* #FFF1F2 */
+  --c-card2: 255 228 230; /* #FFE4E6 */
+  --c-border: 254 205 211; /* #FECDD3 */
+  --c-text: 136 19 55; /* #881337 */
+  --c-accent: 225 29 72; /* #E11D48 */
+  --c-accent-dark: 190 18 60; /* #BE123C */
+  --c-accent-light: 255 228 230; /* #FFE4E6 */
+}
+
+:root[data-app-theme="night"], body[data-app-theme="night"] {
+  --c-bg: 241 245 249; /* #F1F5F9 */
+  --c-card2: 226 232 240; /* #E2E8F0 */
+  --c-border: 203 213 225; /* #CBD5E1 */
+  --c-text: 30 41 59; /* #1E293B */
+  --c-accent: 79 70 229; /* #4F46E5 */
+  --c-accent-dark: 67 56 202; /* #4338CA */
+  --c-accent-light: 224 231 255; /* #E0E7FF */
+}
+
+:root[data-app-theme="gold"], body[data-app-theme="gold"] {
+  --c-bg: 254 252 232; /* #FEFCE8 */
+  --c-card2: 254 249 195; /* #FEF9C3 */
+  --c-border: 253 230 138; /* #FDE68A */
+  --c-text: 113 63 18; /* #713F12 */
+  --c-accent: 202 138 4; /* #CA8A04 */
+  --c-accent-dark: 161 98 7; /* #A16207 */
+  --c-accent-light: 254 240 138; /* #FEF08A */
+}
+
 /* ------------------------------------------------------------
    Tailwind v4 design tokens
    ------------------------------------------------------------ */

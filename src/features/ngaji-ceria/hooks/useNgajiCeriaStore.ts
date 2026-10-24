@@ -133,10 +133,25 @@ export function recordActivity() {
 
 export function hydrateActivity(lastPlayedAt: string | null, currentStreak: number) {
   ensureScope();
+  const validStreak = Math.max(0, Math.floor(currentStreak));
+  const newStreakDays = Array<boolean>(7).fill(false);
+  if (lastPlayedAt && validStreak > 0) {
+    const now = new Date();
+    const today = activityDate(now);
+    const yesterday = yesterdayActivityDate(now);
+    if (lastPlayedAt === today || lastPlayedAt === yesterday) {
+      const anchorDay = lastPlayedAt === today ? now.getDay() : (now.getDay() - 1 + 7) % 7;
+      for (let daysAgo = 0; daysAgo < Math.min(7, validStreak); daysAgo++) {
+        newStreakDays[(anchorDay - daysAgo + 7) % 7] = true;
+      }
+    }
+  }
+
   currentState = {
     ...currentState,
     lastPlayedAt,
-    currentStreak: Math.max(0, Math.floor(currentStreak)),
+    currentStreak: validStreak,
+    streakDays: newStreakDays,
   };
   emitChange();
 }

@@ -1,9 +1,18 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { Volume2, TrophySvg, AlertCircle } from "@/components/ui/CustomIcons";
+import {
+  Volume2,
+  TrophySvg,
+  AlertCircle,
+  CheckSvg,
+  LightbulbSvg,
+  KeyRoundSvg,
+  ArrowRightSvg,
+} from "@/components/ui/CustomIcons";
 import { ArenaSocket } from "../../services/arenaSocket";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 const OPTION_COLORS = [
   "bg-[#EF4444] text-white", // Red
@@ -202,7 +211,7 @@ export default function HostGamePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const audio = new Audio(question.audioUrl);
+                    const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
                     audio.play();
                   }}
                   className="px-6 py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] font-black text-sm shadow-[3px_3px_0px_#134E4A] inline-flex items-center gap-2 active:scale-95"
@@ -227,7 +236,7 @@ export default function HostGamePage() {
                       {OPTION_LABELS[idx]}
                     </span>
                     <span className="flex-1 text-left">{opt.text}</span>
-                    {isThisCorrect && <span className="text-2xl">✓</span>}
+                    {isThisCorrect && <CheckSvg size={24} className="text-[#0D9488]" />}
                   </div>
                 );
               })}
@@ -235,8 +244,11 @@ export default function HostGamePage() {
 
             {/* Penjelasan Saat Reveal */}
             {revealed && explanation && (
-              <div className="p-4 rounded-2xl border-2 border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] text-left text-sm font-bold shadow-[2px_2px_0px_#134E4A]">
-                💡 <span className="font-black">Penjelasan:</span> {explanation}
+              <div className="flex items-start gap-2 p-4 rounded-2xl border-2 border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] text-left text-sm font-bold shadow-[2px_2px_0px_#134E4A]">
+                <LightbulbSvg size={18} className="shrink-0 text-[#F59E0B] mt-0.5" />
+                <div>
+                  <span className="font-black">Penjelasan:</span> {explanation}
+                </div>
               </div>
             )}
           </div>
@@ -281,17 +293,25 @@ export default function HostGamePage() {
               <button
                 type="button"
                 onClick={handleReveal}
-                className="w-full py-4 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all"
+                className="inline-flex items-center justify-center gap-1.5 w-full py-4 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all"
               >
-                Kunci & Buka Jawaban 🔑
+                Kunci & Buka Jawaban <KeyRoundSvg size={16} />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleNext}
-                className="w-full py-4 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all"
+                className="inline-flex items-center justify-center gap-1.5 w-full py-4 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all"
               >
-                {questionIndex + 1 >= totalQuestions ? "Lihat Podium Juara 🏆" : "Soal Berikutnya ➡️"}
+                {questionIndex + 1 >= totalQuestions ? (
+                  <>
+                    Lihat Podium Juara <TrophySvg size={16} />
+                  </>
+                ) : (
+                  <>
+                    Soal Berikutnya <ArrowRightSvg size={16} />
+                  </>
+                )}
               </button>
             )}
           </div>

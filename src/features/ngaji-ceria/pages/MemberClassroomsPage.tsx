@@ -189,14 +189,26 @@ export function MemberClassroomsPage() {
                   </p>
                 </div>
                 <StickerButton
+                  variant="primary"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/member/ngaji-ceria/kelas/${room.id}`)
+                  }
+                >
+                  Buka Kelas
+                </StickerButton>
+              </div>
+              <div className="mt-3">
+                <StickerButton
                   variant="coral-outline"
                   size="sm"
                   loading={leavingId === room.id}
                   onClick={() => handleLeave(room.id)}
                 >
-                  Keluar
+                  Keluar Kelas
                 </StickerButton>
               </div>
+
               {(assignedByRoom.get(room.id)?.length ?? 0) > 0 && (
                 <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A] bg-[#F0FDF4] p-2">
                   <p className="text-[10px] font-black uppercase text-[#134E4A]/70">

@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { AlertCircleSvg } from "./ui/CustomIcons";
 
 function isChunkLoadError(error: Error): boolean {
   return /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|ChunkLoadError|Loading chunk \d+ failed/i.test(
@@ -53,7 +54,7 @@ export class ErrorBoundary extends Component<
       <div className="flex min-h-dvh flex-col items-center justify-center bg-[#F0FDF4] px-6 text-center">
         <div className="w-full max-w-sm rounded-3xl border-[3px] border-[#134E4A] bg-white p-6 shadow-[4px_4px_0px_#134E4A]">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-[#FFF0F0] text-2xl">
-            😅
+            <AlertCircleSvg size={28} className="text-[#FF6B6B]" />
           </div>
           <h1 className="font-black text-lg text-[#134E4A]">
             {chunk ? "Gagal memuat halaman" : "Terjadi kesalahan"}

@@ -14,6 +14,7 @@ import {
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { FillInTheBlankQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 export interface ModelFillInTheBlankProps extends QuizModelBaseProps {
   question: FillInTheBlankQuestion;
@@ -95,7 +96,7 @@ export function ModelFillInTheBlank({
     }
     if (!question.audioUrl) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(question.audioUrl);
+      audioRef.current = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
     }
     const audio = audioRef.current;
     audio.currentTime = 0;

@@ -9,6 +9,7 @@ import {
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceTextQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
+import { getAudioUrl } from "../../utils/audioUrl";
 
 export interface ModelMultipleChoiceTextProps extends QuizModelBaseProps {
   question: MultipleChoiceTextQuestion;
@@ -54,7 +55,7 @@ export function ModelMultipleChoiceText({
             variant="secondary"
             size="sm"
             onClick={() => {
-              const audio = new Audio(question.audioUrl);
+              const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
               void audio.play();
             }}
             className="absolute top-3 right-3 !w-10 !h-10 !p-0 !rounded-full"

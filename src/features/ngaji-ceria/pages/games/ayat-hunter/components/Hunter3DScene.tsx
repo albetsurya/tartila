@@ -104,7 +104,7 @@ function groundProp(object: THREE.Object3D, targetHeight: number) {
     if (child instanceof THREE.Mesh) child.castShadow = true;
   });
 }
-/** Pohon prosedural — cadangan bila GLB nature gagal dimuat. */
+/** Pohon prosedural: cadangan bila GLB nature gagal dimuat. */
 function makeTree(): THREE.Group {
   const group = new THREE.Group();
   const trunk = new THREE.Mesh(
@@ -122,7 +122,7 @@ function makeTree(): THREE.Group {
   return group;
 }
 
-/** Batu prosedural — cadangan bila GLB nature gagal dimuat. */
+/** Batu prosedural: cadangan bila GLB nature gagal dimuat. */
 function makeRock(): THREE.Group {
   const group = new THREE.Group();
   const rock = new THREE.Mesh(
@@ -139,7 +139,7 @@ function makeRock(): THREE.Group {
 interface Hunter3DSceneProps {
   tokens: HunterToken[];
   playerCell: number;
-  /** Kata target saat ini — tablet yang cocok berdenyut emas. */
+  /** Kata target saat ini: tablet yang cocok berdenyut emas. */
   targetWord: string;
   collected: number;
   disabled: boolean;

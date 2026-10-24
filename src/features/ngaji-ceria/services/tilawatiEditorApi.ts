@@ -4,7 +4,7 @@ import type { AudioAsset, PageTimeline, PublishedTimeline } from "../utils/pageT
 import { timelineQuestions } from "../utils/pageTimeline";
 import { isNgajiCeriaServerAvailable } from "./ngajiCeriaApi";
 
-const root = API_BASE_URL.replace(/\/$/, "").replace(/\/api$/, "");
+const root = API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "");
 export interface TimelineDraft { timeline: PageTimeline; updatedAt: number; revision: string }
 export interface EditorPage { clips: AudioAsset[]; published?: PublishedTimeline; revision: string }
 

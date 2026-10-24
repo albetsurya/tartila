@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { NgajiCeriaLayout } from "@/features/ngaji-ceria/components/NgajiCeriaLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -46,6 +45,7 @@ import {
   type Quiz,
   type MateriQuizAverage,
 } from "@/services/quizBankService";
+import { duelService } from "@/services/duelService";
 
 function initials(name: string | null, username: string | null): string {
   const base = name || username || "?";
@@ -98,6 +98,8 @@ export function UstadzRoomDetailPage() {
   const [coverage, setCoverage] = useState<MateriCoverageItem[]>([]);
   const [roomQuizzes, setRoomQuizzes] = useState<Quiz[]>([]);
   const [quizAverages, setQuizAverages] = useState<MateriQuizAverage[]>([]);
+  const [duelEnabled, setDuelEnabled] = useState(true);
+  const [savingDuel, setSavingDuel] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,7 +118,7 @@ export function UstadzRoomDetailPage() {
     setEditName(room.name);
     setEditTarget(room.targetJilid);
 
-    const focusMateri = getRoomFocusMateri(roomId);
+    const focusMateri = await getRoomFocusMateri(roomId);
     setEditFocusMateri(focusMateri);
     const targetJilid = Math.min(
       Math.max(room.targetJilid, 1),
@@ -126,6 +128,10 @@ export function UstadzRoomDetailPage() {
       recommendGamesForClassroom({ focusMateri, targetJilid }),
     );
     setAssignments(await listGameAssignments(roomId));
+    duelService
+      .getDuelSetting(roomId)
+      .then((res) => setDuelEnabled(res.enabled))
+      .catch(() => setDuelEnabled(true));
     const activityList = await listClassroomActivities(
       roomId,
       murid.map((member) => member.userId),
@@ -182,6 +188,15 @@ export function UstadzRoomDetailPage() {
     setAssignments(await listGameAssignments(room.id));
   };
 
+  const handleToggleDuel = async () => {
+    if (!room) return;
+    setSavingDuel(true);
+    const next = !duelEnabled;
+    await duelService.setDuelSetting(room.id, next);
+    setDuelEnabled(next);
+    setSavingDuel(false);
+  };
+
   const handleArchive = async () => {
     if (!room) return;
     setArchiving(true);
@@ -201,8 +216,8 @@ export function UstadzRoomDetailPage() {
     participants.filter((p: ClassroomParticipant) => p.roleInRoom === "murid");
 
   return (
-    <NgajiCeriaLayout title="Detail Kelas" hideNav>
-      <div className="mx-auto w-full max-w-md px-4 py-6 space-y-4">
+    <>
+      <div className="w-full max-w-5xl space-y-4">
         {loading && (
           <p className="py-10 text-center text-xs font-bold text-[#134E4A]/60">
             Memuat kelas…
@@ -345,6 +360,39 @@ export function UstadzRoomDetailPage() {
               </p>
             </StickerCard>
 
+            {isTeacher && (
+              <StickerCard className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-[#134E4A]">
+                      Izinkan Tantangan Antar Santri
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-semibold text-[#134E4A]/60">
+                      {duelEnabled
+                        ? "Santri bisa saling mengajak duel di kelas ini."
+                        : "Tombol \"Tantang Duel\" disembunyikan dari santri."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={duelEnabled}
+                    disabled={savingDuel}
+                    onClick={handleToggleDuel}
+                    className={`relative h-8 w-14 shrink-0 rounded-full border-[3px] border-[#0A2540] transition-colors ${
+                      duelEnabled ? "bg-[#0D9488]" : "bg-[#D1D5DB]"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-5 w-5 rounded-full border-2 border-[#0A2540] bg-white transition-all ${
+                        duelEnabled ? "left-[calc(100%-1.5rem)]" : "left-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </StickerCard>
+            )}
+
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-sm font-black text-[#134E4A]">
@@ -448,7 +496,7 @@ export function UstadzRoomDetailPage() {
               </p>
               {coverageRecommendations(
                 activities,
-                getRoomFocusMateri(roomId),
+                editFocusMateri,
               ).map((rec) => (
                 <p
                   key={rec}
@@ -552,6 +600,6 @@ export function UstadzRoomDetailPage() {
           </>
         )}
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }

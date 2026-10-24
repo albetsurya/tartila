@@ -88,7 +88,7 @@ function normalizeStatus(value: unknown, isActive: unknown): AdminUserStatus {
 
 function formatJoinedAt(value: unknown): string {
   const raw = asString(value);
-  if (!raw) return "—";
+  if (!raw) return "-";
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return raw;
   return date.toLocaleDateString("id-ID", {
@@ -105,8 +105,8 @@ function normalizeUser(raw: unknown, index: number): AdminUser {
   return {
     id: asString(row.id ?? row.user_id ?? row.member_id) || `user-${index}`,
     name,
-    email: asString(row.email) || "—",
-    username: asString(row.username) || "—",
+    email: asString(row.email) || "-",
+    username: asString(row.username) || "-",
     role: normalizeRole(row.role ?? row.role_name),
     status: normalizeStatus(row.status ?? row.account_status, row.is_active),
     joinedAt: formatJoinedAt(

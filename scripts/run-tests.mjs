@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const jiti = createJiti(import.meta.url, {
+  jsx: true,
   alias: {
     '@': `${root}/src/`,
     '@/lib/roles': `${root}/src/lib/roles.ts`,
@@ -23,9 +24,13 @@ const defaultTests = [
   'tests/gameAccess.test.ts',
   'tests/economyLimits.test.ts',
   'tests/learningCatalog.test.ts',
+  'tests/gameCatalogAdmin.test.ts',
   'tests/monitoring.test.ts',
   'tests/quizBank.test.ts',
   'tests/mascot.test.ts',
+  'tests/voucher.test.ts',
+  'tests/appTheme.test.ts',
+  'tests/referral.test.ts',
 ];
 const requested = process.argv.slice(2);
 const entries = requested.length > 0 ? requested : defaultTests;

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NgajiCeriaLayout } from "@/features/ngaji-ceria/components/NgajiCeriaLayout";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
@@ -25,9 +24,44 @@ const TYPE_BADGE_STYLES: Record<CatalogType, string> = {
   game: "bg-[#FCE7F3] text-[#831843]",
 };
 
-function MateriChip({ label }: { label: string }) {
+// Pastel berbeda per kategori materi agar peta kurikulum terasa hidup.
+const MATERI_CHIP_STYLES: Record<MateriPokok, string> = {
+  tilawati: "bg-[#FEF08A] text-[#134E4A]",
+  hijaiyah: "bg-[#BBF7D0] text-[#134E4A]",
+  harakat: "bg-[#BFDBFE] text-[#134E4A]",
+  makhraj: "bg-[#E9D5FF] text-[#134E4A]",
+  tajwid: "bg-[#DDF2F1] text-[#134E4A]",
+  mad: "bg-[#FDE8CF] text-[#134E4A]",
+  waqaf: "bg-[#FDE8CF] text-[#134E4A]",
+  gharib: "bg-[#E0E7FF] text-[#134E4A]",
+  tulisan: "bg-[#FFE4E6] text-[#134E4A]",
+  hafalan: "bg-[#E9D5FF] text-[#134E4A]",
+  "juz-amma": "bg-[#D9F99D] text-[#134E4A]",
+  doa: "bg-[#FEF08A] text-[#134E4A]",
+  ibadah: "bg-[#BBF7D0] text-[#134E4A]",
+  adab: "bg-[#BFDBFE] text-[#134E4A]",
+  "kisah-islami": "bg-[#FDE68A] text-[#134E4A]",
+};
+
+const CARD_TINT_STYLES: Record<CatalogType, string> = {
+  materi: "bg-[#DBEAFE]",
+  quiz: "bg-[#EDE9FE]",
+  game: "bg-[#FCE7F3]",
+};
+
+function MateriChip({
+  label,
+  materi,
+}: {
+  label: string;
+  materi: MateriPokok;
+}) {
   return (
-    <span className="rounded-lg border-2 border-[#134E4A] bg-[#ECFEFF] px-2 py-0.5 text-[10px] font-black text-[#134E4A]">
+    <span
+      className={`rounded-lg border-2 border-[#134E4A] px-2 py-0.5 text-[10px] font-black ${
+        MATERI_CHIP_STYLES[materi] ?? "bg-[#ECFEFF]"
+      }`}
+    >
       {label}
     </span>
   );
@@ -74,7 +108,7 @@ function CatalogDetailModal({ entry, onClose, onOpen }: CatalogDetailModalProps)
                 </span>
               )}
               {entry.materiPokok.map((materi) => (
-                <MateriChip key={materi} label={MATERI_LABELS[materi]} />
+                <MateriChip key={materi} label={MATERI_LABELS[materi]} materi={materi} />
               ))}
             </div>
           </div>
@@ -109,7 +143,7 @@ function CatalogDetailModal({ entry, onClose, onOpen }: CatalogDetailModalProps)
             </div>
           ) : (
             <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
-              Materi pengayaan — tidak terikat jilid Tilawati.
+              Materi pengayaan: tidak terikat jilid Tilawati.
             </p>
           )}
         </div>
@@ -138,7 +172,7 @@ function CatalogDetailModal({ entry, onClose, onOpen }: CatalogDetailModalProps)
 
         {entry.needsContentValidation && (
           <p className="mt-3 rounded-xl border-2 border-dashed border-[#FF6B6B] bg-[#FFF0F0] p-2 text-[10px] font-bold text-[#7C2D12]">
-            Metadata ini masih draf — perlu validasi konten oleh tim kurikulum.
+            Metadata ini masih draf: perlu validasi konten oleh tim kurikulum.
           </p>
         )}
       </StickerCard>
@@ -182,10 +216,10 @@ export function UstadzKurikulumPage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Kurikulum" hideNav>
-      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
+    <>
+      <div className="w-full max-w-6xl space-y-4">
         <p className="text-xs font-semibold text-[#134E4A]/70">
-          Peta kurikulum: materi Jelajah, kuis evaluasi, dan game pendukung —
+          Peta kurikulum: materi Jelajah, kuis evaluasi, dan game pendukung:
           selaras Tilawati Jilid 1–5.
         </p>
 
@@ -286,10 +320,13 @@ export function UstadzKurikulumPage() {
             <StickerCard
               key={entry.id}
               asButton
-              className="p-4"
+              className={`p-0 overflow-hidden transition-all hover:-translate-y-[2px] hover:shadow-[6px_6px_0_#134E4A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#134E4A]`}
+              accent="none"
               onClick={() => setDetailEntry(entry)}
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className={`flex h-2 w-full border-b-[3px] border-[#134E4A] ${CARD_TINT_STYLES[entry.type]}`} />
+              <div className="flex flex-col p-4">
+                <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-black text-[#134E4A]">
                     {entry.title}
@@ -297,11 +334,12 @@ export function UstadzKurikulumPage() {
                   <div className="mt-1 flex flex-wrap gap-1">
                     <TypeBadge type={entry.type} />
                     {entry.materiPokok.map((materi) => (
-                      <MateriChip
-                        key={materi}
-                        label={MATERI_LABELS[materi]}
-                      />
-                    ))}
+                    <MateriChip
+                      key={materi}
+                      label={MATERI_LABELS[materi]}
+                      materi={materi}
+                    />
+                  ))}
                   </div>
                   <p className="mt-1.5 text-[11px] font-semibold text-[#134E4A]/70">
                     {entry.jilidRelevan.length > 0
@@ -310,6 +348,7 @@ export function UstadzKurikulumPage() {
                     {" · "}
                     {entry.learningObjective}
                   </p>
+                </div>
                 </div>
               </div>
             </StickerCard>
@@ -327,6 +366,6 @@ export function UstadzKurikulumPage() {
           />
         )}
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }
