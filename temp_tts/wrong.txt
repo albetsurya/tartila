@@ -1,0 +1,5 @@
+"Maaf, jawaban tersebut salah. Coba lagi!"
+"Yah, jawaban tersebut kurang tepat. Coba perhatian lagi."
+"Tidak ada, jawaban tersebut salah. Coba perhatian soal."
+"Wajar, jawaban tersebut kurang tepat. Coba perhatian soal."
+"Maaf, pilihan tersebut salah. Coba jawaban lain."

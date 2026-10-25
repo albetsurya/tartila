@@ -1,0 +1,5 @@
+"Jawaban Anda benar! Bagus sekali."
+"Sempurna! Anda menjawab dengan benar."
+"Wajar! Jawaban Anda benar."
+"Luar biasa! Solusi Anda tepat."
+"Bagus! Jawaban Anda benar."

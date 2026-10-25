@@ -1,0 +1,5 @@
+"Selesai! Anda mengerjakan semua soal."
+"Sampai! Anda telah menyelesaikan semua tantangan."
+"Selesai! Tantangan ini telah Anda selesaikan."
+"Sampai! Anda mengerjakan semua soal dengan baik."
+"Selesai! Semua soal telah dijawab."

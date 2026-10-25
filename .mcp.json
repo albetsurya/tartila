@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "token-saver": {
+      "command": "token-saver",
+      "args": [
+        "serve",
+        "/home/albet-surya-kembara/Documents/productivity/projects/sabil/tartila"
+      ]
+    }
+  }
+}

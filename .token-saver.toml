@@ -1,0 +1,68 @@
+version = 1
+
+[hooks]
+guard = true
+read_max_lines = 220
+reread = false
+delta = false
+min_lines = 40
+keep_tail = 15
+allow = []
+
+[output]
+enabled = true
+mode = "normal"
+task = "auto"
+adaptive = true
+calibration_file = ".token-saver.output-calibration.json"
+telemetry = true
+
+[model_routing]
+enabled = false
+mode = "advisory"
+current_model = ""
+allowed_models = ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-5"]
+min_savings = 0.05
+conservative = true
+calibration_file = ".token-saver.routing-calibration.json"
+
+[efficiency]
+enabled = true
+continuity = true
+dedup = true
+waste_detection = true
+knowledge_read_avoidance = false
+cache_economics = false
+cache_expected_reuses = 2
+cache_write_factor = 1.25
+cache_read_factor = 0.10
+cache_min_relative_savings = 0.05
+
+[ingress]
+enabled = false
+threshold_tokens = 12000
+packet_tokens = 1600
+
+[retrieval]
+cache = true
+cache_max_entries = 64
+
+[mcp]
+profile = "full"
+adaptive_max_tools = 12
+compress_schemas = false
+
+[provider]
+prefix_tracking = true
+
+[tool_proxy]
+enabled = false
+provider = "ollama"
+model = "qwen2.5-coder:7b"
+endpoint = "http://127.0.0.1:11434"
+min_tokens = 2500
+target_tokens = 1800
+model_input_tokens = 12000
+timeout_seconds = 6.0
+max_ranges = 4
+max_range_lines = 80

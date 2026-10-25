@@ -1,0 +1,29 @@
+{
+  "name": "tartila-promo-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "dev:watch": "remotion dev src/index.ts",
+    "build": "remotion render src/index.ts TartiflarePromo out/promo.mp4",
+    "render": "remotion render src/index.ts TartiflarePromo out/promo.mp4",
+    "still": "remotion still src/index.ts TartiflarePromo",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.484",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.484"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.7",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "6.0.3",
+    "vite": "^6.0.2"
+  }
+}
