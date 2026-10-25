@@ -464,6 +464,7 @@ export default function JurnalIbadahPage() {
     <NgajiCeriaLayout
       title="Benteng Istiqomah"
       hideHeader={true}
+      themeScope="jurnal-ibadah"
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
       <div
@@ -507,7 +508,9 @@ export default function JurnalIbadahPage() {
         {/* Header kustom: Kastil batu bata + tombol perisai */}
         <ThemedHeader
           title="Benteng Istiqomah"
-          onBack={() => navigate("/member/ngaji-ceria/map")}
+          onBack={() => {
+            navigate("/member/ngaji-ceria/map");
+          }}
           themeColorClass="bg-[#64748B]"
           textColorClass="text-[#FEF08A]"
           statVariant="wood"

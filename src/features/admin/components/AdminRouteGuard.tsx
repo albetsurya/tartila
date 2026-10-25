@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { isAdminRole } from "@/lib/roles";
+import { isTartilaAdmin } from "@/lib/roles";
 
 export function AdminRouteGuard() {
   const { user, loading } = useAuth();
@@ -23,7 +23,9 @@ export function AdminRouteGuard() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isAdminRole(user.role)) {
+  // HANYA tartila_admin dan superadmin yang boleh masuk ke /admin Tartila.
+  // Admin Sambung Ngaji (role 'admin') ditendang ke '/' (Unauthorized).
+  if (!isTartilaAdmin(user.role)) {
     return <Navigate to="/" replace />;
   }
 

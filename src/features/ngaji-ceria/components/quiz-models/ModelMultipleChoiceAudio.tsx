@@ -1,18 +1,78 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Check, Volume2, X } from "../../../../components/ui/CustomIcons";
-import {
-  StickerButton,
-  StickerCard,
-  TilaMascot,
-} from "../../../../components/ui";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceAudioQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
+import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
 export interface ModelMultipleChoiceAudioProps extends QuizModelBaseProps {
   question: MultipleChoiceAudioQuestion;
+}
+
+/** Ikon garis-garis Soundwave / Equalizer berwarna putih */
+function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
+  return (
+    <svg
+      width="48"
+      height="48"
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="text-white"
+    >
+      <motion.rect
+        x="6"
+        y="16"
+        width="4.5"
+        height="16"
+        rx="2.25"
+        fill="currentColor"
+        animate={isPlaying ? { height: [16, 26, 12, 16], y: [16, 11, 18, 16] } : {}}
+        transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+      />
+      <motion.rect
+        x="14"
+        y="10"
+        width="4.5"
+        height="28"
+        rx="2.25"
+        fill="currentColor"
+        animate={isPlaying ? { height: [28, 14, 34, 28], y: [10, 17, 7, 10] } : {}}
+        transition={{ repeat: Infinity, duration: 0.7, delay: 0.1, ease: "easeInOut" }}
+      />
+      <motion.rect
+        x="22"
+        y="6"
+        width="4.5"
+        height="36"
+        rx="2.25"
+        fill="currentColor"
+        animate={isPlaying ? { height: [36, 18, 38, 36], y: [6, 15, 5, 6] } : {}}
+        transition={{ repeat: Infinity, duration: 0.6, delay: 0.2, ease: "easeInOut" }}
+      />
+      <motion.rect
+        x="30"
+        y="12"
+        width="4.5"
+        height="24"
+        rx="2.25"
+        fill="currentColor"
+        animate={isPlaying ? { height: [24, 32, 14, 24], y: [12, 8, 17, 12] } : {}}
+        transition={{ repeat: Infinity, duration: 0.75, delay: 0.15, ease: "easeInOut" }}
+      />
+      <motion.rect
+        x="38"
+        y="18"
+        width="4.5"
+        height="12"
+        rx="2.25"
+        fill="currentColor"
+        animate={isPlaying ? { height: [12, 22, 10, 12], y: [18, 13, 19, 18] } : {}}
+        transition={{ repeat: Infinity, duration: 0.85, delay: 0.05, ease: "easeInOut" }}
+      />
+    </svg>
+  );
 }
 
 export function ModelMultipleChoiceAudio({
@@ -25,9 +85,6 @@ export function ModelMultipleChoiceAudio({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
-  // User wajib menekan tombol Play dulu sebelum opsi jawaban aktif,
-  // agar tidak menebak tanpa mendengar bacaannya.
-  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const reducedMotion = useReducedMotion();
@@ -47,14 +104,12 @@ export function ModelMultipleChoiceAudio({
   }, [question.id, question.audioUrl, onPlayAudio]);
 
   const handlePlay = () => {
-    setHasPlayedOnce(true);
     if (onPlayAudio) {
       onPlayAudio();
       return;
     }
     if (!question.audioUrl) return;
-    // Audio dibuat ulang setiap ganti soal/URL: elemen lama di-pause & dibuang
-    // agar tidak memutar sisa suara dari soal sebelumnya (anti-caching).
+
     if (audioRef.current) {
       const sameUrl =
         question.audioUrl &&
@@ -92,8 +147,6 @@ export function ModelMultipleChoiceAudio({
   };
 
   const playing = onPlayAudio ? Boolean(isAudioPlaying) : isPlaying;
-  // Opsi jawaban terkunci sampai user memutar audio (Anti-Asal-Tebak).
-  const optionsLocked = status !== "idle" || !hasPlayedOnce;
 
   const handlePick = (option: string) => {
     if (status !== "idle") return;
@@ -121,32 +174,37 @@ export function ModelMultipleChoiceAudio({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-[#F0FDF4]">
+    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
+      {/* Tombol Audio Utama (Lingkaran Luar Mint + Lingkaran Dalam Olive + Equalizer Bars) */}
       <div className="flex flex-col items-center mb-6">
-        <button
+        <motion.button
           type="button"
           onClick={handlePlay}
-          className={`relative w-28 h-28 rounded-full flex items-center justify-center transition-all border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
-            playing ? "bg-[#0D9488] text-white" : "bg-white text-[#0D9488]"
-          }`}
+          animate={{ scale: playing ? [1, 1.08, 1] : [1, 1.05, 1] }}
+          transition={{ repeat: Infinity, duration: playing ? 1 : 2, ease: "easeInOut" }}
+          className="relative w-32 h-32 rounded-full flex items-center justify-center p-3 bg-[#DCFCE7] border-[3px] border-[#4D7C0F]/40 shadow-[4px_4px_0px_#4D7C0F]/30 active:scale-95 transition-transform cursor-pointer"
+          aria-label="Putar Suara"
         >
           {playing && (
-            <span className="absolute inset-0 rounded-full bg-[#0D9488]/30 animate-ping" />
+            <span className="absolute inset-0 rounded-full bg-[#4D7C0F]/20 animate-ping" />
           )}
-          {isAudioLoading && !playing ? (
-            <span
-              aria-label="Memuat audio"
-              className="relative z-10 block h-8 w-8 animate-spin rounded-full border-[3px] border-[#134E4A]/20 border-t-[#134E4A]"
-            />
-          ) : (
-            <Volume2 size={44} className="relative z-10" />
-          )}
-        </button>
-        <p className="mt-3 text-xs font-black text-[#134E4A]/70 tracking-wide">
+          <div className="w-full h-full rounded-full flex items-center justify-center bg-[#4D7C0F] shadow-inner">
+            {isAudioLoading && !playing ? (
+              <span
+                aria-label="Memuat audio"
+                className="block h-8 w-8 animate-spin rounded-full border-[3px] border-white/30 border-t-white"
+              />
+            ) : (
+              <SoundwaveBars isPlaying={playing} />
+            )}
+          </div>
+        </motion.button>
+        <p className="mt-3 text-xs font-black text-[#134E4A] tracking-wide">
           {isAudioLoading && !playing ? "Memuat Audio…" : "Sentuh untuk Putar Suara"}
         </p>
       </div>
 
+      {/* Grid Opsi Pilihan Jawaban (Teks Arab, bebas diklik kapan saja tanpa lock) */}
       <div className="flex flex-col gap-3">
         {question.options.map((option) => {
           const isSelected = selected === option;
@@ -158,25 +216,21 @@ export function ModelMultipleChoiceAudio({
             <motion.button
               key={option}
               type="button"
-              disabled={optionsLocked}
               onClick={() => handlePick(option)}
               animate={answerFeedbackAnimation(
                 showCorrect ? "correct" : showWrong ? "wrong" : "none",
                 reducedMotion ?? false,
               )}
-              className={`min-h-[68px] rounded-xl border-[3px] p-4 text-2xl font-arabic font-bold leading-snug text-[#134E4A] break-words transition-all shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
-                optionsLocked && !showCorrect && !showWrong
-                  ? "opacity-60"
-                  : ""
-              } ${
+              className={`min-h-[68px] rounded-2xl border-[3px] p-4 text-3xl font-arabic font-bold text-center leading-relaxed break-words transition-all shadow-[3px_3px_0px_var(--border-color,#0284C7)] active:translate-y-[2px] active:shadow-none cursor-pointer ${
                 showCorrect
-                  ? "border-[#0D9488] bg-[#F0FDF4]"
+                  ? "border-[#0D9488] bg-[#F0FDF4] text-[#0D9488]"
                   : showWrong
-                    ? "border-[#FF6B6B] bg-[#FFF0F0]"
+                    ? "border-[#FF6B6B] bg-[#FFF0F0] text-[#FF6B6B]"
                     : isSelected
-                      ? "border-[#0D9488] bg-white"
-                      : "border-[#134E4A] bg-white"
+                      ? "border-[var(--border-color,#0284C7)] bg-sky-100/70 text-[var(--text-main,#0369A1)] ring-2 ring-[var(--border-color,#0284C7)]"
+                      : "border-[var(--border-color,#0284C7)] bg-white text-[var(--text-main,#0369A1)] hover:bg-sky-50"
               }`}
+              dir="rtl"
             >
               {option}
             </motion.button>
@@ -184,67 +238,30 @@ export function ModelMultipleChoiceAudio({
         })}
       </div>
 
-      {status === "idle" && (
-        <StickerButton
-          variant="primary"
-          fullWidth
-          disabled={selected === null}
+      {/* Tombol Periksa Jawaban */}
+      <div className="w-full mt-6">
+        <button
+          type="button"
+          disabled={selected === null || status !== "idle"}
           onClick={handleCheck}
-          className="mt-6"
+          className={`w-full py-4 px-6 rounded-2xl font-display font-black text-base border-[3px] transition-all flex items-center justify-center ${
+            selected === null || status !== "idle"
+              ? "bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed shadow-none"
+              : "bg-[var(--border-color,#0284C7)] hover:bg-[#0284C7]/90 text-white border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] cursor-pointer"
+          }`}
         >
           Periksa Jawaban
-        </StickerButton>
-      )}
+        </button>
+      </div>
 
-      {status !== "idle" && (
-        <div className="fixed bottom-0 left-0 w-full bg-transparent px-4 pb-6 pt-2 z-50">
-          <div className="max-w-md mx-auto relative">
-            <div className="absolute -top-14 right-6 z-10">
-              <TilaMascot
-                size={90}
-                mood={status === "correct" ? "excited" : "sad"}
-                animation="bounce"
-              />
-            </div>
-            <StickerCard
-              accent={status === "correct" ? "deep-teal" : "coral"}
-              className={`p-6 !rounded-[24px] ${
-                status === "correct" ? "bg-[#F0FDF4]" : "bg-[#FFF0F0]"
-              }`}
-            >
-              <div className="flex items-center gap-3 pr-20">
-                <span
-                  className={`w-10 h-10 rounded-full text-white flex items-center justify-center shrink-0 border-2 border-[#134E4A] ${
-                    status === "correct" ? "bg-[#0D9488]" : "bg-[#FF6B6B]"
-                  }`}
-                >
-                  {status === "correct" ? <Check size={20} /> : <X size={20} />}
-                </span>
-                <div>
-                  <p
-                    className={`text-base font-black leading-none ${status === "correct" ? "text-[#0D9488]" : "text-[#FF6B6B]"}`}
-                  >
-                    {status === "correct" ? "Masya Allah!" : "Hampir Tepat!"}
-                  </p>
-                  <p className="text-xs font-bold text-[#134E4A]/70 mt-1">
-                    {status === "correct"
-                      ? "Jawabanmu sudah benar."
-                      : "Dengarkan lagi lalu coba ulangi."}
-                  </p>
-                </div>
-              </div>
-              <StickerButton
-                variant={status === "correct" ? "primary" : "danger"}
-                fullWidth
-                onClick={status === "correct" ? onNext : handleRetry}
-                className="mt-5"
-              >
-                {status === "correct" ? "Lanjut →" : "Coba Lagi"}
-              </StickerButton>
-            </StickerCard>
-          </div>
-        </div>
-      )}
+      {/* Bottom Sheet Notifikasi Jawaban Benar / Salah */}
+      <AnswerFeedbackSheet
+        isOpen={status !== "idle"}
+        isCorrect={status === "correct"}
+        onNext={onNext}
+        onRetry={handleRetry}
+        onReset={handleRetry}
+      />
     </div>
   );
 }

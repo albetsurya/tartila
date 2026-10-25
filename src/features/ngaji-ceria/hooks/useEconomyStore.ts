@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase';
 import { callREST } from '@/services/api';
 import { userApi } from '@/services/userApi';
-import { spendCoins, grantCoins } from '@/features/ngaji-ceria/pages/games/_shared/progression';
+import { spendCoins, grantCoins, getProgress, saveProgress } from '@/features/ngaji-ceria/pages/games/_shared/progression';
 import {
   resolveMascotGender,
   isAccessoryAllowedForGender,
@@ -11,6 +11,8 @@ import {
 } from '@/utils/mascotHelper';
 import { MASCOT_STORAGE_KEY } from '@/constants/mascot';
 import { normalizeRole, isUstadzRole } from '@/lib/roles';
+import { activityDate } from '../utils/activityDate';
+import { hydrateActivity } from './useNgajiCeriaStore';
 import type { MascotSkin } from '../data/shopData';
 
 export type { MascotSkin };
@@ -60,12 +62,15 @@ export function isUnlimitedUser(
   groupId?: string | null,
   subscriptionType?: string | null,
 ): boolean {
-  if (isVipStore || user?.is_vip) return true;
-
   const normalizedRole = normalizeRole(user?.role);
 
-  // Superadmin memiliki kuota tanpa batas
-  if (normalizedRole === "superadmin" || normalizedRole === "admin") {
+  // Guard: Role ADMIN (Sambung Ngaji) TIDAK BOLEH menjadi VIP/unlimited di Tartila
+  if (normalizedRole === "admin") {
+    return false;
+  }
+
+  // Superadmin & Tartila Admin memiliki kuota tanpa batas di Tartila (Admin Sambung Ngaji tidak bypass)
+  if (normalizedRole === "superadmin" || normalizedRole === "tartila_admin") {
     return true;
   }
 
@@ -147,10 +152,6 @@ interface EconomyState {
   equippedRoomTheme: string;
   buyRoomTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
   equipRoomTheme: (id: string) => void;
-  ownedGameThemes: string[];
-  equippedGameTheme: string;
-  buyGameTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
-  equipGameTheme: (id: string) => void;
   ownedAppThemes: string[];
   equippedAppTheme: string;
   buyAppTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
@@ -160,8 +161,14 @@ interface EconomyState {
   buySkin: (id: string, price: number, currency?: 'coin' | 'ticket') => boolean;
   equipSkin: (id: string) => void;
   streakMultiplier: number;
+  loginStreak: number;
+  dailyClaimed: boolean;
+  isLoadingProfile: boolean;
   dailyRewardsClaimed: number[];
   lastDailyClaimDate: string | null;
+  lastClaimDate: string | null;
+  coins: number;
+  syncDailyRewardFromProfile: (profileData: any) => void;
   setTilaGender: (gender: TilaGender) => Promise<void> | void;
   setBibiGender: (gender: BibiGender) => void;
   buyAccessory: (id: string, price: number, free?: boolean) => Promise<boolean>;
@@ -210,13 +217,17 @@ interface EconomyState {
     heartDisplay: string;
     ticketDisplay: string;
   };
+
+  // Arena Kartu Progress (Papan Progres per Jilid)
+  completedArenaCards: Record<number, string[]>;
+  markCardAsCompleted: (jilid: number, cardId: string) => void;
 }
 
 export const DAILY_CLAIM_STORAGE_KEY = 'tartila_last_daily_claim';
 export const DAILY_CLAIMED_DAYS_STORAGE_KEY = 'tartila_daily_rewards_claimed';
 
 export const getTodayDateKey = (): string => {
-  return new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+  return activityDate();
 };
 
 export const getInitialUserId = (): string | null => {
@@ -336,8 +347,6 @@ export const useEconomyStore = create<EconomyState>()(
       setEquippedTheme: (id: string) => {
         get().equipRoomTheme(id);
       },
-      ownedGameThemes: ['default'],
-      equippedGameTheme: 'default',
       ownedAppThemes: ['default'],
       equippedAppTheme: 'default',
       ownedSkins: ['default', 'skin_default'],
@@ -363,11 +372,93 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
   streakMultiplier: 1,
+  loginStreak: 0,
+  dailyClaimed: false,
+  isLoadingProfile: false,
   dailyRewardsClaimed: getStoredDailyClaimedDays(),
   lastDailyClaimDate: getStoredDailyClaimDate(),
+  lastClaimDate: getStoredDailyClaimDate(),
+  coins: typeof window !== 'undefined' ? (getProgress().coins || 0) : 0,
+
+  // Arena Kartu Progress (Papan Progres per Jilid)
+  completedArenaCards: { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+  markCardAsCompleted: (jilid: number, cardId: string) => {
+    const current = get().completedArenaCards || { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+    const jilidCards = current[jilid] || [];
+    if (!jilidCards.includes(cardId)) {
+      const updated = {
+        ...current,
+        [jilid]: [...jilidCards, cardId],
+      };
+      set({ completedArenaCards: updated });
+    }
+  },
+
+  syncDailyRewardFromProfile: (profileData: any) => {
+    if (!profileData) return;
+    const u = profileData.user || profileData.profile || profileData;
+    const rawStreak = Number(
+      profileData.login_streak ??
+      profileData.current_streak ??
+      u?.login_streak ??
+      0
+    );
+    const streak = Math.max(0, isNaN(rawStreak) ? 0 : rawStreak);
+    const claimDate =
+      profileData.last_claim_date ||
+      profileData.last_daily_claim_date ||
+      u?.last_claim_date ||
+      u?.last_daily_claim_date ||
+      null;
+    const today = getTodayDateKey();
+    const isClaimedToday = Boolean(
+      profileData.daily_claimed === true ||
+      u?.daily_claimed === true ||
+      (claimDate && claimDate.slice(0, 10) === today)
+    );
+
+    let claimedDays: number[] = [];
+    if (isClaimedToday && streak > 0) {
+      const dayInCycle = ((streak - 1) % 7) + 1;
+      claimedDays = Array.from({ length: dayInCycle }, (_, i) => i + 1);
+    } else if (streak > 0) {
+      const dayInCycle = streak % 7;
+      if (dayInCycle > 0) {
+        claimedDays = Array.from({ length: dayInCycle }, (_, i) => i + 1);
+      }
+    }
+
+    if (typeof profileData.coins === 'number' && typeof window !== 'undefined') {
+      try {
+        const cur = getProgress();
+        saveProgress({ ...cur, coins: profileData.coins });
+      } catch {
+        // ignore
+      }
+    }
+
+    const currentProgressCoins = typeof window !== 'undefined' ? (getProgress().coins || 0) : 0;
+    const finalCoins = typeof profileData.coins === 'number' ? profileData.coins : currentProgressCoins;
+    const finalClaimDate = isClaimedToday ? today : (claimDate ? claimDate.slice(0, 10) : null);
+
+    set({
+      loginStreak: streak,
+      dailyClaimed: isClaimedToday,
+      isLoadingProfile: false,
+      lastDailyClaimDate: finalClaimDate,
+      lastClaimDate: finalClaimDate,
+      coins: finalCoins,
+      dailyRewardsClaimed: claimedDays,
+    });
+
+    if (streak > 0) {
+      hydrateActivity(finalClaimDate, streak);
+    }
+  },
 
   // Initialize: ambil data profil & maskot dari Backend Go (Single Source of Truth)
   initialize: async () => {
+    set({ isLoadingProfile: true });
     try {
       // 1. Ambil data profil & maskot dari Backend Go
       let backendSuccess = false;
@@ -375,6 +466,7 @@ export const useEconomyStore = create<EconomyState>()(
         const profileRes = await userApi.getUserProfile();
         if (profileRes) {
           backendSuccess = true;
+          get().syncDailyRewardFromProfile(profileRes);
           const u = profileRes.user || profileRes.profile;
           const rawMascot = profileRes.mascot_gender || u?.mascot_gender || u?.gender;
           if (rawMascot) {
@@ -482,6 +574,8 @@ export const useEconomyStore = create<EconomyState>()(
         roomLimit: 1,
         participantLimit: 5,
       });
+    } finally {
+      set({ isLoadingProfile: false });
     }
   },
 
@@ -1010,29 +1104,6 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  buyGameTheme: (id: string, price: number, free = false, autoEquip = true) => {
-    if (get().ownedGameThemes.includes(id) || get().inventory?.includes(id)) {
-      if (autoEquip) set({ equippedGameTheme: id });
-      return true;
-    }
-    if (!free && !spendCoins(price)) return false;
-
-    const nextOwned = Array.from(new Set([...get().ownedGameThemes, id]));
-    const nextInventory = Array.from(new Set([...(get().inventory || []), id]));
-    set({
-      ownedGameThemes: nextOwned,
-      ...(autoEquip ? { equippedGameTheme: id } : {}),
-      inventory: nextInventory,
-    });
-    return true;
-  },
-
-  equipGameTheme: (id: string) => {
-    if (id === 'default' || get().ownedGameThemes.includes(id) || get().inventory?.includes(id)) {
-      set({ equippedGameTheme: id });
-    }
-  },
-
   buyAppTheme: (id: string, price: number, free = false, autoEquip = true) => {
     const isUnlimited = isUnlimitedUser(
       { role: get().role ?? undefined },
@@ -1186,22 +1257,38 @@ export const useEconomyStore = create<EconomyState>()(
 
     const mult = state.streakMultiplier || 1;
     const totalCoins = Math.round(baseCoins * mult);
+    const optimisticDate = getTodayDateKey();
+    const optimisticStreak = state.loginStreak > 0 ? state.loginStreak + 1 : 1;
+    const currentCoins = state.coins || (typeof window !== 'undefined' ? (getProgress().coins || 0) : 0);
+    const optimisticCoins = currentCoins + totalCoins;
 
     // Hubungi Backend Go (Single Source of Truth untuk Koin & Hadiah)
-    let serverDate = "";
+    let serverDate = optimisticDate;
     let serverCoinsAwarded = totalCoins;
+    let serverStreak = optimisticStreak;
+    let serverTotalCoins = optimisticCoins;
     try {
       const res = await userApi.claimDailyReward(day, totalCoins);
       if (res) {
-        if (res.date) serverDate = res.date;
+        if (res.lastClaimDate || res.date) serverDate = res.lastClaimDate || res.date;
         if (res.coinsAwarded) serverCoinsAwarded = res.coinsAwarded;
+        if (typeof res.coins === 'number') {
+          serverTotalCoins = res.coins;
+        } else if (typeof res.totalCoins === 'number') {
+          serverTotalCoins = res.totalCoins;
+        }
+        if (typeof res.streak === 'number' && res.streak > 0) {
+          serverStreak = res.streak;
+        } else if (typeof res.loginStreak === 'number' && res.loginStreak > 0) {
+          serverStreak = res.loginStreak;
+        }
       }
     } catch (err: any) {
       const msg = String(err?.message || "").toLowerCase();
       // Jika server menyatakan sudah klaim hari ini, sinkronkan dan tolak
-      if (msg.includes("sudah diklaim") || msg.includes("already claimed")) {
+      if (msg.includes("sudah diklaim") || msg.includes("already claimed") || msg.includes("sudah klaim")) {
         const today = getTodayDateKey();
-        set({ lastDailyClaimDate: today });
+        set({ dailyClaimed: true, lastDailyClaimDate: today, lastClaimDate: today });
         return false;
       }
       if (msg.includes("unauthorized") || err?.status === 401) {
@@ -1212,6 +1299,7 @@ export const useEconomyStore = create<EconomyState>()(
     const today = serverDate || getTodayDateKey();
     const userClaimKey = `${DAILY_CLAIM_STORAGE_KEY}:${activeUserId}`;
     if (
+      state.dailyClaimed ||
       state.lastDailyClaimDate === today ||
       (typeof window !== 'undefined' &&
         (window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY) === today ||
@@ -1221,17 +1309,20 @@ export const useEconomyStore = create<EconomyState>()(
     }
 
     grantCoins(serverCoinsAwarded, `Hadiah Login Hari ke-${day}`);
+    const finalCoins = serverTotalCoins || (typeof window !== 'undefined' ? (getProgress().coins || 0) : 0);
 
-    let nextClaimedDays = state.dailyRewardsClaimed.includes(day)
-      ? state.dailyRewardsClaimed
-      : [...state.dailyRewardsClaimed, day];
+    const dayInCycle = Math.max(1, ((serverStreak - 1) % 7) + 1);
+    const nextClaimedDays = Array.from({ length: dayInCycle }, (_, i) => i + 1);
 
-    if (nextClaimedDays.length >= 7) {
-      nextClaimedDays = [day];
-    }
+    // Sinkronkan ke store aktivitas agar streak dan kalender di seluruh aplikasi langsung aktif instan
+    hydrateActivity(today, serverStreak);
 
     const updates: Partial<EconomyState> = {
+      dailyClaimed: true,
+      loginStreak: serverStreak,
       lastDailyClaimDate: today,
+      lastClaimDate: today,
+      coins: finalCoins,
       dailyRewardsClaimed: nextClaimedDays,
     };
 
@@ -1265,23 +1356,9 @@ export const useEconomyStore = create<EconomyState>()(
 
   isRewardClaimedToday: () => {
     const today = getTodayDateKey();
-    const memDate = get().lastDailyClaimDate;
-    if (memDate === today) return true;
-    if (typeof window !== 'undefined') {
-      try {
-        const id = get().userId || getInitialUserId();
-        const userClaim = id ? window.localStorage.getItem(`${DAILY_CLAIM_STORAGE_KEY}:${id}`) : null;
-        const storedDate = userClaim || window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
-        if (storedDate === today) {
-          if (memDate !== today) {
-            set({ lastDailyClaimDate: today });
-          }
-          return true;
-        }
-      } catch {
-        // ignore
-      }
-    }
+    const state = get();
+    if (state.dailyClaimed) return true;
+    if (state.lastDailyClaimDate === today) return true;
     return false;
   },
 
@@ -1379,13 +1456,24 @@ export const useEconomyStore = create<EconomyState>()(
             ...(state.inventory || []),
             ...(state.ownedAccessories || []),
             ...(state.ownedRoomThemes || []),
-            ...(state.ownedGameThemes || []),
+            ...((state as any).ownedGameThemes || []),
+            ...(state.ownedAppThemes || []),
             ...(state.ownedSkins || []),
           ])
         );
         state.inventory = mergedInventory;
         if (!state.equippedTheme && state.equippedRoomTheme) {
           state.equippedTheme = state.equippedRoomTheme;
+        }
+
+        // Migrasi single-theme: jika ada tema game lama yang terpasang/dimiliki, pindahkan ke tema aplikasi
+        const legacyGameTheme = (state as any).equippedGameTheme;
+        if (legacyGameTheme && legacyGameTheme !== 'default' && (!state.equippedAppTheme || state.equippedAppTheme === 'default')) {
+          state.equippedAppTheme = legacyGameTheme;
+        }
+        const legacyOwnedGameThemes = (state as any).ownedGameThemes;
+        if (Array.isArray(legacyOwnedGameThemes) && legacyOwnedGameThemes.length > 0) {
+          state.ownedAppThemes = Array.from(new Set([...(state.ownedAppThemes || ['default']), ...legacyOwnedGameThemes]));
         }
 
         if (typeof state.showMascot !== "boolean") return;
@@ -1412,8 +1500,6 @@ export const useEconomyStore = create<EconomyState>()(
         ownedAccessories: state.ownedAccessories,
         ownedRoomThemes: state.ownedRoomThemes,
         equippedRoomTheme: state.equippedRoomTheme,
-        ownedGameThemes: state.ownedGameThemes,
-        equippedGameTheme: state.equippedGameTheme,
         ownedAppThemes: state.ownedAppThemes,
         equippedAppTheme: state.equippedAppTheme,
         ownedSkins: state.ownedSkins,
@@ -1421,6 +1507,10 @@ export const useEconomyStore = create<EconomyState>()(
         showMascot: state.showMascot,
         dailyRewardsClaimed: state.dailyRewardsClaimed,
         lastDailyClaimDate: state.lastDailyClaimDate,
+        lastClaimDate: state.lastClaimDate,
+        loginStreak: state.loginStreak,
+        dailyClaimed: state.dailyClaimed,
+        coins: state.coins,
       }),
     }
   )

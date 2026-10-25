@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
+import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
 import {
   LabTajwidBgSvg,
   GalaksiJuzAmmaBgSvg,
@@ -10,6 +11,7 @@ import {
   TargetTahfidzSvg,
   JurnalIbadahSvg,
   ArenaKartuSvg,
+  MetronomeArtSvg,
 } from "../../../components/ui/Illustrations";
 import {
   TilawatiSvg,
@@ -25,6 +27,8 @@ import {
   SunSvg,
   UtensilsSvg,
   ArrowRightSvg,
+  MusicSvg,
+  MetronomeSvg,
   type SvgProps,
 } from "../../../components/ui/CustomIcons";
 
@@ -62,6 +66,18 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     isMain: true,
   },
   {
+    key: "training",
+    title: "Pusat Training",
+    desc: "Tartila Rhythm Memory, Lab Irama, & Arena Kartu.",
+    badge: "Hub 3-in-1",
+    to: "/member/ngaji-ceria/training",
+    bgClass: "bg-[#F0FDF4]",
+    borderClass: "border-[#10B981]",
+    iconBg: "bg-[#D1FAE5]",
+    icon: CardsSvg,
+    art: ArenaKartuSvg,
+  },
+  {
     key: "tajwid",
     title: "Lab Tajwid",
     desc: "Rahasia bacaan indah & benar.",
@@ -69,8 +85,8 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     to: "/member/ngaji-ceria/explore/tajwid",
     bgClass: "bg-[#EAF5EA]",
     borderClass: "border-[#15803D]",
-    iconBg: "bg-[#BBF7D0]",
-    icon: TajwidKeySvg,
+    iconBg: "bg-[#CCFBF1]",
+    icon: SearchSvg,
     art: LabTajwidBgSvg,
   },
   {
@@ -93,7 +109,7 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     to: "/member/ngaji-ceria/explore/doa",
     bgClass: "bg-[#F3E8FF]",
     borderClass: "border-[#9333EA]",
-    iconBg: "bg-[#E9D5FF]",
+    iconBg: "bg-[#F3E8FF]",
     icon: DoaChestSvg,
     art: GudangDoaSvg,
   },
@@ -105,7 +121,7 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     to: "/member/ngaji-ceria/explore/tahfidz",
     bgClass: "bg-[#FEF3C7]",
     borderClass: "border-[#D97706]",
-    iconBg: "bg-[#FDE68A]",
+    iconBg: "bg-[#FEF08A]",
     icon: QuranSvg,
     art: TargetTahfidzSvg,
   },
@@ -117,21 +133,9 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     to: "/member/ngaji-ceria/explore/jurnal-ibadah",
     bgClass: "bg-[#CCFBF1]",
     borderClass: "border-[#0D9488]",
-    iconBg: "bg-[#99F6E4]",
+    iconBg: "bg-[#CCFBF1]",
     icon: JurnalCalendarSvg,
     art: JurnalIbadahSvg,
-  },
-  {
-    key: "practice",
-    title: "Arena Kartu",
-    desc: "Latihan acak kartu ajaib.",
-    badge: "Main",
-    to: "/member/ngaji-ceria/explore/practice",
-    bgClass: "bg-[#FFE4E6]",
-    borderClass: "border-[#E11D48]",
-    iconBg: "bg-[#FECDD3]",
-    icon: CardsSvg,
-    art: ArenaKartuSvg,
   },
 ];
 
@@ -152,9 +156,9 @@ export default function NgajiCeriaMapPage() {
 
   return (
     <NgajiCeriaLayout title="Jelajah">
-      <div className="min-h-full bg-[#F0FDF4] pb-32">
+      <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] pb-32 transition-colors duration-200">
         {/* Hero Banner */}
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg">
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[var(--border-color,#134E4A)]">
           {/* Dekorasi */}
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[8px] border-white/5" />
           <div className="absolute top-10 right-16 rotate-12">
@@ -180,17 +184,17 @@ export default function NgajiCeriaMapPage() {
 
         {/* Search & Chips */}
         <section className="relative z-20 -mt-8 px-4">
-          <div className="flex items-center gap-2.5 rounded-2xl border-[3px] border-[#134E4A] bg-white px-4 py-3 shadow-[4px_4px_0px_#134E4A]">
-            <SearchSvg size={22} />
+          <div className="flex items-center gap-2.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
+            <SearchSvg size={22} className="text-[var(--text-main,#134E4A)]" />
             <input
               type="text"
               placeholder="Cari doa, surah, atau materi..."
-              className="w-full bg-transparent text-sm font-bold text-[#134E4A] placeholder:text-[#134E4A]/40 focus:outline-none"
+              className="w-full bg-transparent text-sm font-bold text-[var(--text-main,#134E4A)] placeholder:text-[var(--text-main,#134E4A)]/40 focus:outline-none"
             />
           </div>
 
           <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="whitespace-nowrap text-[11px] font-black text-[#D97706]">
+            <span className="whitespace-nowrap text-[11px] font-black text-[#D97706] dark:text-[#FDE047]">
               Rekomendasi:
             </span>
             {RECOMMENDATIONS.map((rec) => {
@@ -202,7 +206,7 @@ export default function NgajiCeriaMapPage() {
                   onClick={() =>
                     handleNavigate(`/member/ngaji-ceria/explore/doa/${rec.id}`)
                   }
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border-2 border-[#134E4A] bg-white px-3 py-1.5 text-[11px] font-bold text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                 >
                   <RecIcon size={15} />
                   <span>{rec.label}</span>
@@ -214,51 +218,65 @@ export default function NgajiCeriaMapPage() {
 
         {/* Bento Grid Menu Responsif (Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols) */}
         <section className="mt-6 px-4 md:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+          <motion.div
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5"
+          >
             {EXPLORE_MENU.map((item) => {
               const Icon = item.icon;
               const Art = item.art;
               return (
                 <motion.button
                   key={item.key}
+                  variants={staggerItemVariants}
                   onClick={() => handleNavigate(item.to)}
-                  whileTap={{ scale: 0.96 }}
-                  className={`relative flex flex-col justify-between overflow-hidden rounded-[24px] border-[3px] p-4 text-left shadow-[4px_4px_0px_#134E4A] transition-all ${item.bgClass} ${item.borderClass} ${
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.96, y: 2 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className={`relative flex flex-col justify-between overflow-hidden rounded-[24px] border-[3px] p-4 text-left shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all cursor-pointer ${item.bgClass} dark:bg-[var(--bg-card)] ${item.borderClass} dark:border-[var(--border-color)] ${
                     item.isMain
                       ? "col-span-2 md:col-span-3 lg:col-span-4 flex-row items-center"
                       : "col-span-1"
                   }`}
                 >
-                  {/* Ilustrasi latar Neo-Brutalism */}
+                  {/* Ilustrasi latar Neo-Brutalism dengan Sticker Aura & Pop-Out Dark Mode */}
                   {Art && (
-                    <Art
-                      size={item.isMain ? 116 : 104}
-                      className="absolute -right-3 -bottom-3 opacity-45 pointer-events-none select-none"
-                    />
+                    <div className="absolute -right-3 -bottom-3 pointer-events-none select-none">
+                      <div className="absolute inset-0 rounded-full bg-white/20 dark:bg-white/15 blur-md scale-95" />
+                      <Art
+                        size={item.isMain ? 116 : 104}
+                        className="relative z-0 opacity-95 dark:opacity-100 drop-shadow-[2px_2px_0px_#134E4A] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
                   )}
                   {/* Ikon Kiri (Jika Main) atau Atas */}
                   <div className={`${item.isMain ? "mr-4" : "mb-3"}`}>
                     <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] ${item.iconBg}`}
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shrink-0`}
                     >
-                      <Icon size={26} />
+                      <Icon size={26} className="text-[#134E4A]" stroke="#134E4A" />
                     </div>
                   </div>
 
                   {/* Teks */}
                   <div className="relative z-10 flex-1">
-                    <h4 className="font-display text-[15px] font-black leading-tight text-[#134E4A]">
+                    <h4 className="font-display text-[15px] font-black leading-tight text-[var(--text-main,#134E4A)]">
                       {item.title}
                     </h4>
-                    <p className="mt-1 text-[10px] font-semibold text-[#134E4A]/70 leading-snug line-clamp-2">
+                    <p className="mt-1 text-[10px] font-semibold text-gray-600 dark:text-gray-300 leading-snug line-clamp-2">
                       {item.desc}
                     </p>
 
-                    <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-[#134E4A] bg-white px-2 py-1 shadow-sm">
-                      <span className="text-[10px] font-black text-[#134E4A] uppercase tracking-wide">
+                    <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] px-2 py-1 shadow-sm">
+                      <span className="text-[10px] font-black uppercase tracking-wide">
                         {item.badge}
                       </span>
-                      <ArrowRightSvg size={12} className="text-[#134E4A]" />
+                      <ArrowRightSvg
+                        size={12}
+                        className="text-[var(--text-main,#134E4A)]"
+                      />
                     </div>
                   </div>
 
@@ -269,7 +287,7 @@ export default function NgajiCeriaMapPage() {
                 </motion.button>
               );
             })}
-          </div>
+          </motion.div>
         </section>
 
         {/* Doa Cepat (Bottom) */}

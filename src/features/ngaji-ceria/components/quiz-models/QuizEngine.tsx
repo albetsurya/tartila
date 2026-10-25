@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { ModelAudioMatching } from "./ModelAudioMatching";
+import { ModelArrangeLetters } from "./ModelArrangeLetters";
 import { ModelFillInTheBlank } from "./ModelFillInTheBlank";
 import { ModelMaterialCard } from "./ModelMaterialCard";
 import { ModelMultipleChoiceAudio } from "./ModelMultipleChoiceAudio";
 import { ModelMultipleChoiceText } from "./ModelMultipleChoiceText";
-import { getRandomQuizModel } from "./quizModelRandomizer";
+import { ModelWordScramble } from "./ModelWordScramble";
+import { getRandomQuizModel, generateAvailableLetters } from "./quizModelRandomizer";
 import type { QuizModelBaseProps, QuestionData } from "./types";
 
 export interface QuizEngineProps extends QuizModelBaseProps {
@@ -23,8 +25,9 @@ export function QuizEngine({
 }: QuizEngineProps) {
   // Model diacak sekali per pertanyaan (stabil antar re-render).
   // `material` tidak diacak karena merupakan langkah belajar, bukan soal.
-  // Key sengaja memakai identitas soal, bukan objek `question` yang selalu baru.
-  const modelKey = `${questionIndex ?? -1}:${question.id}:${question.type}`;
+  // Sertakan status audio agar jika audio selesai di-resolve, model audio dapat ikut dipilih.
+  const hasAudio = Boolean(question.audioUrl);
+  const modelKey = `${questionIndex ?? -1}:${question.id}:${question.type}:${hasAudio ? "audio" : "noaudio"}`;
   const assignedModel = useMemo(
     () => (question.type === "material" ? "material" : getRandomQuizModel(question)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -33,7 +36,6 @@ export function QuizEngine({
 
   const arabic = question.arabicTemplate ?? question.arabicText ?? "";
   const options = question.options ?? [];
-  const letters = question.availableLetters ?? question.options ?? [];
   const shapes = question.audioShapes ?? [];
   const correctArray = Array.isArray(question.correctAnswer)
     ? question.correctAnswer
@@ -42,12 +44,33 @@ export function QuizEngine({
     ? question.correctAnswer.join(" ")
     : question.correctAnswer;
 
+  const arrangeCorrect =
+    question.correctLetters ??
+    (arabic.trim().length > 0 ? arabic.split(/\s+/).filter(Boolean) : correctArray);
+  const arrangeBank =
+    question.bankLetters && question.bankLetters.length >= arrangeCorrect.length
+      ? question.bankLetters
+      : generateAvailableLetters(arrangeCorrect, []);
+
+  const scrambleCorrect =
+    question.correctWords ??
+    (arabic.trim().length > 0 ? arabic.split(/\s+/).filter(Boolean) : correctArray);
+  const scrambleBank =
+    question.bankWords && question.bankWords.length >= scrambleCorrect.length
+      ? question.bankWords
+      : [...scrambleCorrect].sort(() => Math.random() - 0.5);
+
+  const fillAvailable =
+    question.availableLetters && question.availableLetters.length >= correctArray.length
+      ? question.availableLetters
+      : generateAvailableLetters(correctArray, options);
+
   const shared = { onAnswerSubmit, onNext, onPlayAudio, isAudioPlaying };
 
   return (
     <div
       key={modelKey}
-      className="w-full bg-[#F0FDF4] selection:bg-[#0D9488]/20"
+      className="w-full bg-transparent selection:bg-[var(--border-color,#0284C7)]/20"
     >
       {(() => {
         switch (assignedModel) {
@@ -59,7 +82,7 @@ export function QuizEngine({
                   id: question.id,
                   type: "fill-in-the-blank",
                   arabicTemplate: arabic,
-                  availableLetters: letters,
+                  availableLetters: fillAvailable,
                   correctAnswer: correctArray,
                   audioUrl: question.audioUrl,
                 }}
@@ -77,6 +100,8 @@ export function QuizEngine({
                   options,
                   correctAnswer: correctText,
                   audioUrl: question.audioUrl,
+                  prompt: question.prompt,
+                  illustration: question.illustration,
                 }}
                 {...shared}
               />
@@ -89,8 +114,8 @@ export function QuizEngine({
                   id: question.id,
                   type: "multiple-choice-audio",
                   audioUrl: question.audioUrl ?? "",
-                  options,
-                  correctAnswer: correctText,
+                  options: question.arabicOptions ?? options,
+                  correctAnswer: question.arabicText ?? correctText,
                 }}
                 {...shared}
               />
@@ -104,6 +129,38 @@ export function QuizEngine({
                   type: "audio-matching",
                   arabicText: arabic,
                   options: shapes,
+                  correctAnswer: question.correctAudioId || question.audioUrl || "",
+                }}
+                {...shared}
+              />
+            );
+          case "arrange-letters":
+            return (
+              <ModelArrangeLetters
+                key={question.id}
+                question={{
+                  id: question.id,
+                  type: "arrange-letters",
+                  audioUrl: question.audioUrl ?? "",
+                  correctLetters: arrangeCorrect,
+                  bankLetters: arrangeBank,
+                }}
+                {...shared}
+              />
+            );
+          case "word-scramble":
+            return (
+              <ModelWordScramble
+                key={question.id}
+                question={{
+                  id: question.id,
+                  type: "word-scramble",
+                  instruction: question.instruction,
+                  prompt: question.prompt,
+                  illustration: question.illustration,
+                  audioUrl: question.audioUrl,
+                  correctWords: scrambleCorrect,
+                  bankWords: scrambleBank,
                 }}
                 {...shared}
               />

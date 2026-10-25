@@ -1,20 +1,14 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  Check,
   RefreshCw,
   Volume2,
-  X,
 } from "../../../../components/ui/CustomIcons";
-import {
-  StickerButton,
-  StickerCard,
-  TilaMascot,
-} from "../../../../components/ui";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { FillInTheBlankQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
+import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
 export interface ModelFillInTheBlankProps extends QuizModelBaseProps {
   question: FillInTheBlankQuestion;
@@ -32,25 +26,21 @@ export function ModelFillInTheBlank({
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const reducedMotion = useReducedMotion();
 
+  useEffect(() => {
+    setSelected([]);
+    setStatus("idle");
+  }, [question.id, question.availableLetters]);
+
   const selectedLetters = selected.map(
     (index) => question.availableLetters[index],
   );
 
-  const usedCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const index of selected) {
-      const letter = question.availableLetters[index];
-      counts[letter] = (counts[letter] ?? 0) + 1;
-    }
-    return counts;
-  }, [selected, question.availableLetters]);
+  const isArabicLetters = question.availableLetters.some((l) => /[\u0600-\u06FF]/.test(l));
+  const letterFontClass = isArabicLetters ? "font-arabic text-2xl font-bold" : "font-display text-xl font-black";
 
-  const isLetterUsed = (letter: string, index: number) => {
-    if (selected.includes(index) || status !== "idle") return true;
-    const total = question.availableLetters.filter(
-      (item) => item === letter,
-    ).length;
-    return (usedCounts[letter] ?? 0) >= total;
+  // Tombol dianggap digunakan jika indeks spesifiknya sedang terpilih di slot susunan
+  const isLetterUsed = (_letter: string, index: number) => {
+    return selected.includes(index) || status !== "idle";
   };
 
   const handlePick = (index: number) => {
@@ -106,24 +96,30 @@ export function ModelFillInTheBlank({
   const playing = Boolean(isAudioPlaying);
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-[#F0FDF4]">
-      <StickerCard className="relative p-8 text-center mb-6">
-        <StickerButton
-          variant="secondary"
-          size="sm"
+    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
+      {/* Kartu Teks Arab */}
+      <div className="relative p-8 text-center mb-6 rounded-3xl bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#0284C7)] shadow-[4px_4px_0px_var(--border-color,#0284C7)]">
+        <button
+          type="button"
           onClick={handlePlay}
-          className={`absolute top-3 right-3 !w-10 !h-10 !p-0 !rounded-full ${playing ? "!bg-[#0D9488] !text-white animate-pulse" : ""}`}
+          aria-label="Putar Audio"
+          className={`absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-[var(--border-color,#0284C7)] flex items-center justify-center transition-all ${
+            playing
+              ? "bg-[var(--border-color,#0284C7)] text-white animate-pulse"
+              : "bg-white text-[var(--text-main,#0369A1)] hover:bg-sky-50 shadow-[2px_2px_0px_var(--border-color,#0284C7)]"
+          }`}
         >
           <Volume2 size={18} />
-        </StickerButton>
+        </button>
         <p
-          className="text-4xl sm:text-5xl font-arabic text-[#134E4A] leading-loose break-words"
+          className="text-4xl sm:text-5xl font-arabic text-[var(--text-main,#0369A1)] leading-loose break-words"
           dir="rtl"
         >
           {question.arabicTemplate}
         </p>
-      </StickerCard>
+      </div>
 
+      {/* Area Slot Rumpang Terpilih */}
       <motion.div
         animate={answerFeedbackAnimation(
           status === "idle" ? "none" : status,
@@ -134,40 +130,43 @@ export function ModelFillInTheBlank({
             ? "border-[#0D9488]"
             : status === "wrong"
               ? "border-[#FF6B6B]"
-              : "border-[#0D9488]"
+              : "border-[var(--border-color,#0284C7)]"
         }`}
       >
         {selectedLetters.length === 0 ? (
-          <span className="text-sm font-bold text-[#134E4A]/50 text-center">
+          <span className="text-sm font-bold text-[var(--text-main,#0369A1)]/50 text-center">
             Pilih kepingan huruf di bawah
           </span>
         ) : (
           selectedLetters.map((letter, slot) => (
-            <StickerButton
+            <button
               key={`${letter}-${slot}`}
-              variant="primary"
+              type="button"
               onClick={() => handleRemove(slot)}
-              className="!min-h-0 !h-12 !px-4 !py-0 !text-2xl !font-arabic"
+              className={`min-h-0 h-12 px-4 py-0 ${letterFontClass} rounded-xl bg-white border-2 border-[var(--border-color,#0284C7)] text-[var(--text-main,#0369A1)] shadow-[2px_2px_0px_var(--border-color,#0284C7)] active:translate-y-[1px]`}
             >
               {letter}
-            </StickerButton>
+            </button>
           ))
         )}
       </motion.div>
 
+      {/* Bagian Keyboard Pilihan Huruf */}
       <div className="w-full mt-6">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#134E4A]/70">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main,#0369A1)]">
             Pilihan Huruf
           </span>
           <button
             type="button"
             onClick={handleClear}
-            className="text-[#FF6B6B] flex items-center gap-1 text-xs font-black tracking-wide"
+            className="text-[#FF6B6B] flex items-center gap-1 text-xs font-black tracking-wide hover:underline cursor-pointer"
           >
             <RefreshCw size={14} /> Hapus
           </button>
         </div>
+
+        {/* Keyboard Huruf: Putih Bersih dengan Border Tebal Teal */}
         <div className="grid grid-cols-4 gap-2.5">
           {question.availableLetters.map((letter, index) => {
             const used = isLetterUsed(letter, index);
@@ -177,10 +176,10 @@ export function ModelFillInTheBlank({
                 type="button"
                 disabled={used}
                 onClick={() => handlePick(index)}
-                className={`h-16 rounded-xl border-[3px] font-arabic text-2xl font-bold transition-all ${
+                className={`h-16 rounded-xl border-[3px] ${letterFontClass} transition-all ${
                   used
-                    ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none"
+                    ? "border-sky-200 bg-sky-50/60 text-sky-300 cursor-not-allowed opacity-40 shadow-none"
+                    : "border-[var(--border-color,#0284C7)] bg-white text-[var(--text-main,#0369A1)] shadow-[2px_2px_0px_var(--border-color,#0284C7)] active:translate-y-[2px] active:shadow-none hover:bg-sky-50"
                 }`}
               >
                 {letter}
@@ -190,54 +189,30 @@ export function ModelFillInTheBlank({
         </div>
       </div>
 
-      {status !== "idle" && (
-        <div className="w-full mt-6">
-          <StickerCard
-            accent={status === "correct" ? "deep-teal" : "coral"}
-            className={`flex items-center gap-4 p-4 ${
-              status === "correct" ? "bg-[#F0FDF4]" : "bg-[#FFF0F0]"
-            }`}
-          >
-            <div className="shrink-0 -mt-8 -ml-2">
-              <TilaMascot
-                size={72}
-                mood={status === "correct" ? "excited" : "sad"}
-                animation="bounce"
-              />
-            </div>
-            <div className="flex-1">
-              <p
-                className={`text-sm font-black ${status === "correct" ? "text-[#0D9488]" : "text-[#FF6B6B]"}`}
-              >
-                {status === "correct"
-                  ? "Masya Allah, tepat!"
-                  : "Hampir tepat, coba lagi ya."}
-              </p>
-            </div>
-          </StickerCard>
-        </div>
-      )}
-
+      {/* Tombol Periksa Jawaban */}
       <div className="w-full mt-6">
-        {status === "idle" ? (
-          <StickerButton
-            variant="primary"
-            fullWidth
-            disabled={selected.length === 0}
-            onClick={handleCheck}
-          >
-            Periksa Jawaban
-          </StickerButton>
-        ) : (
-          <StickerButton
-            variant={status === "correct" ? "primary" : "danger"}
-            fullWidth
-            onClick={status === "correct" ? onNext : handleRetry}
-          >
-            {status === "correct" ? "Lanjut →" : "Coba Lagi"}
-          </StickerButton>
-        )}
+        <button
+          type="button"
+          disabled={selected.length === 0 || status !== "idle"}
+          onClick={handleCheck}
+          className={`w-full py-4 px-6 rounded-2xl font-display font-black text-base border-[3px] transition-all flex items-center justify-center ${
+            selected.length === 0 || status !== "idle"
+              ? "bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed shadow-none"
+              : "bg-[var(--border-color,#0284C7)] hover:bg-[#0284C7]/90 text-white border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] cursor-pointer"
+          }`}
+        >
+          Periksa Jawaban
+        </button>
       </div>
+
+      {/* Bottom Sheet Notifikasi Jawaban Benar / Salah */}
+      <AnswerFeedbackSheet
+        isOpen={status !== "idle"}
+        isCorrect={status === "correct"}
+        onNext={onNext}
+        onRetry={handleRetry}
+        onReset={handleClear}
+      />
     </div>
   );
 }

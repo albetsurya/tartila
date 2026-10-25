@@ -29,7 +29,7 @@ interface AyahData {
 
 export default function TahfidzDetailPage() {
   const navigate = useNavigate();
-  const { surah } = useParams<{ surah: string }>();
+  const { surah, surahId } = useParams<{ surah?: string; surahId?: string }>();
   const [selectedSurah, setSelectedSurah] = useState<TahfidzTarget | null>(
     null,
   );
@@ -41,13 +41,14 @@ export default function TahfidzDetailPage() {
   const { data, isHafal, toggleHafal } = useTahfidz();
   const { isPlaying, currentAudioUrl, toggle } = useAudioPlayer();
 
-  // Resolve target dari route param
+  // Resolve target dari route param (:surahId atau :surah)
   useEffect(() => {
-    const target = surah ? getTargetBySurah(Number(surah)) : undefined;
+    const paramVal = surahId || surah;
+    const target = paramVal ? getTargetBySurah(Number(paramVal)) : undefined;
     if (target) {
       setSelectedSurah(target);
     }
-  }, [surah]);
+  }, [surah, surahId]);
 
   // Load ayat saat surah ini terpilih
   useEffect(() => {
@@ -132,17 +133,18 @@ export default function TahfidzDetailPage() {
       <NgajiCeriaLayout
         title="Target Tahfidz"
         showBack
+        themeScope="tahfidz"
         onBack={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
       >
         <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-3 px-6 text-center">
           <LenteraIcon size={48} lit={false} className="opacity-60 mb-2" />
-          <p className="font-display text-lg font-black text-[#134E4A]">
+          <p className="font-display text-lg font-black text-[#FEF08A]">
             Surah tidak ditemukan
           </p>
           <button
             type="button"
             onClick={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
-            className="rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-4 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-[#FDE047]"
+            className="rounded-xl border-2 border-[#FEF08A] bg-[#065F46] px-4 py-2 text-xs font-black text-[#FEF08A] shadow-[2px_2px_0px_#02201F] hover:bg-[#042F2E]"
           >
             Kembali ke Menara Tahfidz
           </button>
@@ -158,43 +160,45 @@ export default function TahfidzDetailPage() {
       title={`Tahfidz ${selectedSurah.namaLatin}`}
       hideHeader={true}
       showBack
+      themeScope="tahfidz"
       onBack={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
     >
-      <div className="min-h-[100dvh] w-full relative overflow-x-hidden bg-[#FEF9EF] pb-32">
-        {/* Background Pattern */}
+      <div className="min-h-[100dvh] w-full relative overflow-x-hidden bg-[var(--bg-app,#042F2E)] text-[#F0FDF4] pb-32">
+        {/* Background Pattern: Gemerlap lentera malam */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-15"
+          className="pointer-events-none absolute inset-0 opacity-20"
           style={{
             backgroundImage:
-              "radial-gradient(#134E4A 1.5px, transparent 1.5px)",
-            backgroundSize: "20px 20px",
+              "radial-gradient(#10B981 1.5px, transparent 1.5px)",
+            backgroundSize: "24px 24px",
           }}
         />
 
+        {/* Custom Header Zamrud Gelap dengan Teks Emas */}
         <ThemedHeader
           title={`Tahfidz ${selectedSurah.namaLatin}`}
           onBack={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
-          themeColorClass="bg-[#134E4A]"
+          themeColorClass="bg-[#042F2E] border-b-[3px] border-[#065F46]"
           textColorClass="text-[#FEF08A]"
           statVariant="capsule"
-          statBgClass="bg-[#0f3d3a] border-2 border-[#FEF08A]/30"
+          statBgClass="bg-[#064E3B] border-2 border-[#FEF08A]/30"
           statTextClass="text-[#FEF08A]"
-          backClass="bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#062E2C] hover:bg-[#FDE047]"
+          backClass="bg-[#FEF08A] text-[#042F2E] shadow-[2px_2px_0px_#02201F] hover:bg-[#FDE047]"
         />
 
         <div className="relative z-10">
           {/* Header Panel Surah: Lentera Menara Noor */}
-          <div className="relative overflow-hidden border-b-[3px] border-[#134E4A] bg-[#134E4A] p-4 text-white">
+          <div className="relative overflow-hidden border-b-[3px] border-[#065F46] bg-[#064E3B] p-4 text-white">
             <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-[#134E4A] bg-[#FEF08A] font-display text-base font-black text-[#134E4A] shadow-[2px_2px_0px_#062E2C]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-[#FEF08A] bg-[#FEF08A] font-display text-base font-black text-[#042F2E] shadow-[2px_2px_0px_#02201F]">
                   {selectedSurah.surah}
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-black leading-tight text-[#FEF08A]">
                     {selectedSurah.namaLatin}
                   </h3>
-                  <p className="text-[11px] font-semibold text-white/90">
+                  <p className="text-[11px] font-semibold text-[#D1FAE5]/90">
                     {selectedSurah.arti} • {selectedProgress.hafal}/
                     {selectedSurah.jumlahAyat} Pelita Terang (
                     {selectedProgress.percentage}%)
@@ -205,7 +209,7 @@ export default function TahfidzDetailPage() {
 
             {/* Saf Lentera Progress Bar */}
             <div className="mx-auto mt-3 flex items-center gap-2 max-w-3xl">
-              <div className="relative h-3.5 flex-1 rounded-full border-2 border-[#FEF08A]/40 bg-[#062E2C] overflow-hidden">
+              <div className="relative h-3.5 flex-1 rounded-full border-2 border-[#FEF08A]/40 bg-[#02201F] overflow-hidden">
                 <div
                   className={`h-full rounded-r-full transition-all duration-300 ${
                     selectedProgress.complete
@@ -228,16 +232,16 @@ export default function TahfidzDetailPage() {
             </div>
           </div>
 
-          {/* Mode Switcher (Sticky Neo-Brutalism) */}
-          <div className="sticky top-14 z-20 flex items-center justify-between gap-2 border-b-[3px] border-[#134E4A]/15 bg-white px-4 py-3">
+          {/* Mode Switcher (Sticky Zamrud) */}
+          <div className="sticky top-14 z-20 flex items-center justify-between gap-2 border-b-[3px] border-[#065F46] bg-[#064E3B] px-4 py-3">
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setMode("baca")}
-                className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-black transition-all ${
                   mode === "baca"
-                    ? "bg-[#134E4A] text-[#FEF08A] shadow-[2px_2px_0px_#062E2C]"
-                    : "bg-white text-[#134E4A] shadow-none hover:bg-[#FEF9EF]"
+                    ? "bg-[#10B981] text-[#042F2E] border-[#FEF08A] shadow-[2px_2px_0px_#02201F]"
+                    : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 hover:bg-[#064E3B]"
                 }`}
               >
                 <BookOpen size={13} /> Dengar & Baca
@@ -245,27 +249,27 @@ export default function TahfidzDetailPage() {
               <button
                 type="button"
                 onClick={() => setMode("uji")}
-                className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-black transition-all ${
                   mode === "uji"
-                    ? "bg-[#EA580C] text-white shadow-[2px_2px_0px_#134E4A]"
-                    : "bg-white text-[#134E4A] shadow-none hover:bg-[#FEF9EF]"
+                    ? "bg-[#F59E0B] text-[#042F2E] border-[#FEF08A] shadow-[2px_2px_0px_#02201F]"
+                    : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 hover:bg-[#064E3B]"
                 }`}
               >
                 <EyeOff size={13} /> Tutup Kitab (Uji Diri)
               </button>
             </div>
 
-            <span className="text-[11px] font-black text-[#134E4A]/70">
+            <span className="text-[11px] font-black text-[#FEF08A]/80">
               {mode === "uji" ? "Uji Ingatan" : "Hafalkan"}
             </span>
           </div>
 
-          {/* Ayat List */}
+          {/* Ayat List: Hijau Agak Terang dengan Border Emas */}
           <div className="space-y-4 p-4 max-w-3xl mx-auto">
             {isLoadingAyat ? (
               <div className="py-16 text-center">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#134E4A]/30 border-t-[#134E4A]" />
-                <p className="mt-2 text-xs font-black text-[#134E4A]">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#FEF08A]/30 border-t-[#FEF08A]" />
+                <p className="mt-2 text-xs font-black text-[#FEF08A]">
                   Memuat pelita ayat...
                 </p>
               </div>
@@ -279,25 +283,25 @@ export default function TahfidzDetailPage() {
                 return (
                   <div
                     key={ayah.nomorAyat}
-                    className={`rounded-2xl border-[3px] border-[#134E4A] p-4 transition-all ${
+                    className={`rounded-2xl border-[3px] p-4 transition-all ${
                       hafalStatus
-                        ? "bg-[#F0FDF4] shadow-[3.5px_3.5px_0px_#10B981]"
-                        : "bg-white shadow-[3.5px_3.5px_0px_#134E4A]"
+                        ? "bg-[#065F46] border-[#FDE047] shadow-[3.5px_3.5px_0px_#F59E0B]"
+                        : "bg-[#064E3B] border-[#10B981]/50 shadow-[3.5px_3.5px_0px_#02201F]"
                     }`}
                   >
                     {/* Baris Kontrol Atas Ayat */}
-                    <div className="mb-3 flex items-center justify-between border-b border-[#134E4A]/10 pb-2">
+                    <div className="mb-3 flex items-center justify-between border-b border-[#10B981]/20 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#FEF08A] text-xs font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A]">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#FEF08A] bg-[#FEF08A] text-xs font-black text-[#042F2E] shadow-[1.5px_1.5px_0px_#02201F]">
                           {ayah.nomorAyat}
                         </span>
                         <button
                           type="button"
                           onClick={() => toggle(ayah.audioUrl)}
-                          className={`flex h-7 items-center gap-1.5 rounded-lg border-2 border-[#134E4A] px-2.5 text-[11px] font-black transition-all active:scale-95 shadow-[1.5px_1.5px_0px_#134E4A] ${
+                          className={`flex h-7 items-center gap-1.5 rounded-lg border-2 px-2.5 text-[11px] font-black transition-all active:scale-95 shadow-[1.5px_1.5px_0px_#02201F] ${
                             isAyahAudioActive
-                              ? "bg-[#0D9488] text-white"
-                              : "bg-[#FEF9EF] text-[#134E4A] hover:bg-[#FEF08A]"
+                              ? "bg-[#10B981] text-[#042F2E] border-[#FEF08A]"
+                              : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 hover:bg-[#065F46]"
                           }`}
                         >
                           {isAyahAudioActive ? (
@@ -318,10 +322,10 @@ export default function TahfidzDetailPage() {
                             ayah.nomorAyat,
                           )
                         }
-                        className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1 text-xs font-black transition-all active:scale-95 ${
+                        className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1 text-xs font-black transition-all active:scale-95 ${
                           hafalStatus
-                            ? "bg-[#10B981] text-white shadow-[2px_2px_0px_#134E4A]"
-                            : "bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-[#FEF9EF]"
+                            ? "bg-[#10B981] text-[#042F2E] border-[#FEF08A] shadow-[2px_2px_0px_#02201F]"
+                            : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 shadow-[2px_2px_0px_#02201F] hover:bg-[#065F46]"
                         }`}
                       >
                         <LenteraIcon size={13} lit={hafalStatus} />
@@ -332,15 +336,15 @@ export default function TahfidzDetailPage() {
                     {/* Teks Arab (Bisa ditutup pelita pada mode uji) */}
                     <div className="relative py-2">
                       {mode === "uji" && !isRevealed ? (
-                        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#134E4A]/40 bg-[#FEF9EF] py-6 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#FDE047]/40 bg-[#042F2E] py-6 px-4 text-center">
                           <LenteraIcon size={28} lit={false} className="mb-2 opacity-70" />
-                          <p className="mb-2 text-xs font-bold text-[#134E4A]/70">
+                          <p className="mb-2 text-xs font-bold text-[#FEF08A]/80">
                             Pelita ditutup agar kamu menguji ingatan hafalanmu
                           </p>
                           <button
                             type="button"
                             onClick={() => toggleReveal(ayah.nomorAyat)}
-                            className="flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-3.5 py-1.5 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-[#FDE047] active:translate-y-[1px]"
+                            className="flex items-center gap-1.5 rounded-xl border-2 border-[#FEF08A] bg-[#FEF08A] px-3.5 py-1.5 text-xs font-black text-[#042F2E] shadow-[2px_2px_0px_#02201F] hover:bg-[#FDE047] active:translate-y-[1px]"
                           >
                             <Eye size={13} /> Intip Ayat
                           </button>
@@ -348,7 +352,7 @@ export default function TahfidzDetailPage() {
                       ) : (
                         <div>
                           <p
-                            className="font-arabic text-[26px] sm:text-[30px] text-right leading-[2.2] text-[#134E4A]"
+                            className="font-arabic text-[28px] sm:text-[32px] text-right leading-[2.3] text-[#FEF08A]"
                             dir="rtl"
                           >
                             {ayah.teksArab}
@@ -359,7 +363,7 @@ export default function TahfidzDetailPage() {
                               <button
                                 type="button"
                                 onClick={() => toggleReveal(ayah.nomorAyat)}
-                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#EA580C] hover:underline"
+                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#F59E0B] hover:underline"
                               >
                                 <EyeOff size={11} /> Tutup Pelita Kembali
                               </button>
@@ -371,14 +375,14 @@ export default function TahfidzDetailPage() {
 
                     {/* Teks Latin & Arti */}
                     {(mode === "baca" || isRevealed) && (
-                      <div className="mt-2 space-y-1.5 border-t border-[#134E4A]/10 pt-2 text-left">
+                      <div className="mt-2 space-y-1.5 border-t border-[#10B981]/20 pt-2 text-left">
                         {ayah.teksLatin && (
-                          <p className="text-xs font-bold text-[#0D9488] italic">
+                          <p className="text-xs font-bold text-[#34D399] italic">
                             {ayah.teksLatin}
                           </p>
                         )}
                         {ayah.teksIndonesia && (
-                          <p className="text-xs font-medium leading-relaxed text-[#134E4A]/90">
+                          <p className="text-xs font-medium leading-relaxed text-[#D1FAE5]">
                             {ayah.teksIndonesia}
                           </p>
                         )}

@@ -1,5 +1,6 @@
-import { useEffect, type ReactNode } from "react";
-import { ChevronLeftSvg, Pause, Volume2, VolumeX } from "@/components/ui/CustomIcons";
+import { useEffect, useState, type ReactNode } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeftSvg, Pause, Volume2, VolumeX, TrophySvg, XSvg } from "@/components/ui/CustomIcons";
 import { PauseOverlay } from "./PauseOverlay";
 import { useGameAudio } from "./audio";
 import { useGameExit } from "./hooks";
@@ -7,54 +8,11 @@ import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { stopGameAudio } from "./gameAudio";
 import { soundManager, type BgmTrack } from "../../../services/soundManager";
 import { GameTutorialModal } from "../../../components/GameTutorialModal";
+import { canonicalGameId } from "../../../data/gameAccess";
+import { LeaderboardList } from "@/components/ui/LeaderboardList";
 import "./games.css";
 import type { GameAccent, GamePhase } from "./types";
 
-export type GameShellTheme = "default" | "neon" | "retro" | "pastel";
-
-const THEME_STYLE: Record<
-  GameShellTheme,
-  {
-    root: string;
-    header: string;
-    title: string;
-    controlBtn: string;
-  }
-> = {
-  default: {
-    root: "bg-[#F0FDF4]",
-    header: "bg-white border-b-[3px] border-[#134E4A] shadow-[0px_2px_0px_#134E4A]",
-    title: "text-[#134E4A]",
-    controlBtn:
-      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#134E4A] bg-white px-2 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
-  },
-  neon: {
-    root: "bg-[#0F172A] text-white",
-    header: "bg-[#1E293B] border-b-[3px] border-[#38BDF8] shadow-[0px_2px_0px_#38BDF8]",
-    title: "text-[#38BDF8]",
-    controlBtn:
-      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-xl border-2 border-[#38BDF8] bg-[#0F172A] px-2 text-[11px] font-black text-[#38BDF8] shadow-[2px_2px_0px_#0EA5E9] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
-  },
-  retro: {
-    root: "bg-[#FFFBEB]",
-    header: "bg-[#FEF3C7] border-b-[4px] border-[#B45309]",
-    title: "text-[#92400E]",
-    controlBtn:
-      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-md border-[3px] border-[#B45309] bg-[#FFFBEB] px-2 text-[11px] font-black text-[#92400E] shadow-[2px_2px_0px_#B45309] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
-  },
-  pastel: {
-    root: "bg-[#FDF2F8]",
-    header: "bg-white border-b-[3px] border-[#EC4899] shadow-[0px_2px_0px_#F9A8D4]",
-    title: "text-[#9D174D]",
-    controlBtn:
-      "pointer-events-auto flex items-center justify-center gap-1 h-9 w-9 rounded-full border-2 border-[#EC4899] bg-white px-2 text-[11px] font-black text-[#9D174D] shadow-[2px_2px_0px_#F9A8D4] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50",
-  },
-};
-
-/**
- * Cangkang game: layout fullscreen 100dvh: header (Back/Judul/Pause) shrink-0,
- * dan <main> flex-1 memenuhi sisa layar sehingga HUD tidak menutupi arena.
- */
 export function GameShell({
   title,
   phase,
@@ -72,14 +30,19 @@ export function GameShell({
   tutorialGameId?: string;
   children: ReactNode;
 }) {
-  const rawTheme = useEconomyStore((s) => s.equippedGameTheme);
-  const equippedGameTheme = (rawTheme && THEME_STYLE[rawTheme as GameShellTheme]
-    ? rawTheme
-    : "default") as GameShellTheme;
-  const styles = THEME_STYLE[equippedGameTheme] ?? THEME_STYLE["default"];
-  const controlBtnStyle = styles.controlBtn;
+  const controlBtnStyle =
+    "pointer-events-auto flex items-center justify-center gap-1 h-10 w-10 min-h-[40px] min-w-[40px] rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer";
   const exit = useGameExit();
   const { muted, toggle } = useGameAudio();
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+
+  const currentGameId =
+    tutorialGameId ||
+    canonicalGameId(
+      typeof window !== "undefined"
+        ? window.location.pathname.split("/").pop() || "game"
+        : "game",
+    );
 
   useEffect(() => {
     const track: BgmTrack =
@@ -141,11 +104,11 @@ export function GameShell({
 
   return (
     <div
-      className={`h-[100dvh] w-full flex flex-col ${styles.root} overflow-hidden pt-safe pb-safe`}
+      className="h-[100dvh] w-full flex flex-col bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] overflow-hidden pt-safe pb-safe"
     >
       {/* HEADER GAME (Back, Judul, Pause) */}
       <header
-        className={`shrink-0 z-40 flex items-center justify-between gap-2 px-3 pt-2 pb-2 ${styles.header}`}
+        className="shrink-0 sticky top-0 z-50 flex items-center justify-between gap-2 px-3 pt-2 pb-2 bg-[var(--bg-card,#FFFFFF)] border-b-[3px] border-[var(--border-color,#134E4A)] shadow-[0px_2px_0px_var(--shadow-color,#134E4A)] text-[var(--text-main,#134E4A)]"
       >
         <div className="flex min-w-0 items-center gap-2">
           <button
@@ -154,14 +117,26 @@ export function GameShell({
             aria-label="Keluar dari game"
             className={controlBtnStyle}
           >
-            <ChevronLeftSvg size={14} />
+            <ChevronLeftSvg size={18} />
           </button>
-          <span className={`font-display truncate text-sm font-black ${styles.title}`}>
+          <span className="font-display truncate text-sm font-black text-[var(--text-main,#134E4A)]">
             {title}
           </span>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (phase === "playing") onPause();
+              setIsLeaderboardOpen(true);
+            }}
+            aria-label="Lihat Papan Skor"
+            className={controlBtnStyle}
+            title="Papan Skor"
+          >
+            <TrophySvg size={14} className="text-[#D97706]" />
+          </button>
           <button
             type="button"
             onClick={toggle}
@@ -195,6 +170,61 @@ export function GameShell({
         onResume={onResume}
         onExit={exit}
       />
+
+      <AnimatePresence>
+        {isLeaderboardOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+            <motion.div
+              initial={{ opacity: 0, y: "100%" }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 280 }}
+              className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-4 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] sm:rounded-2xl text-[var(--text-main,#134E4A)]"
+            >
+              <div className="flex items-center justify-between border-b-2 border-[var(--border-color,#134E4A)]/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
+                    <TrophySvg size={18} className="text-[#B45309]" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-sm font-black text-[var(--text-main,#134E4A)]">
+                      Papan Skor {title}
+                    </h3>
+                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/60">
+                      Peringkat Pemain Terbaik
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsLeaderboardOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px]"
+                  title="Tutup"
+                >
+                  <XSvg size={16} />
+                </button>
+              </div>
+
+              <div className="mt-3">
+                <LeaderboardList
+                  gameId={currentGameId}
+                  title={`Papan Skor ${title}`}
+                />
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsLeaderboardOpen(false)}
+                  className="rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-2 text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px]"
+                >
+                  Tutup
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

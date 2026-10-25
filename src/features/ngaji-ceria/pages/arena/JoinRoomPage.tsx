@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TitoMascot } from "@/components/ui/TitoMascot";
 import { SparklesSvg, AlertTriangleSvg, GamepadSvg } from "@/components/ui/CustomIcons";
-import { arenaApi } from "../../services/arenaApi";
+import { arenaRoomService } from "@/services/arenaRoomService";
+import { normalizeJoinCode } from "@/lib/joinCode";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function JoinRoomPage() {
@@ -11,16 +12,16 @@ export default function JoinRoomPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
-  const [pin, setPin] = useState(searchParams.get("pin") || "");
+  const [pin, setPin] = useState(normalizeJoinCode(searchParams.get("pin") || ""));
   const [nickname, setNickname] = useState(user?.name || user?.username || "");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPin = pin.trim().replace(/\D/g, "");
+    const cleanPin = normalizeJoinCode(pin);
     if (cleanPin.length !== 6) {
-      setErrorMsg("PIN harus berupa 6 angka unik.");
+      setErrorMsg("PIN harus berupa 6 karakter unik (Huruf & Angka).");
       return;
     }
     if (!nickname.trim()) {
@@ -32,14 +33,18 @@ export default function JoinRoomPage() {
     setErrorMsg("");
 
     try {
-      const res = await arenaApi.joinRoom(cleanPin, nickname.trim(), user?.id);
+      const { room, player } = await arenaRoomService.joinRoom(cleanPin, nickname.trim(), user?.id);
       // Simpan session peserta di sessionStorage
-      sessionStorage.setItem("arena_player_id", res.playerId);
-      sessionStorage.setItem("arena_player_name", res.nickname);
+      sessionStorage.setItem("arena_player_id", player.id);
+      sessionStorage.setItem("arena_player_name", player.nickname);
       sessionStorage.setItem("arena_room_pin", cleanPin);
 
-      // Redirect ke layar kuis santri
-      navigate(`/arena/play/${cleanPin}`);
+      // Arahkan ke Lobby jika status room masih 'waiting'
+      if (room.status === "waiting") {
+        navigate(`/arena/lobby/${cleanPin}`);
+      } else {
+        navigate(`/arena/play/${cleanPin}`);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || "PIN tidak ditemukan atau kuis sudah dimulai.");
     } finally {
@@ -63,7 +68,7 @@ export default function JoinRoomPage() {
             Tartila Arena
           </h1>
           <p className="mt-1 text-xs font-bold text-[#134E4A]/70">
-            Masukkan PIN 6-digit yang diberikan oleh Ustadz / Host kuis
+            Masukkan PIN 6-karakter yang diberikan oleh Host atau temanmu
           </p>
         </div>
 
@@ -72,15 +77,15 @@ export default function JoinRoomPage() {
           <form onSubmit={handleJoin} className="space-y-4">
             <div>
               <label className="block text-xs font-black uppercase tracking-wider text-[#134E4A] mb-1.5 text-center">
-                GAME PIN
+                GAME PIN (6 Karakter)
               </label>
               <input
                 type="text"
                 maxLength={6}
-                placeholder="000000"
+                placeholder="CONTOH: 7K9X2M"
                 value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                className="w-full text-center font-display text-3xl tracking-widest font-black py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] focus:outline-none"
+                onChange={(e) => setPin(normalizeJoinCode(e.target.value))}
+                className="w-full text-center font-display text-3xl tracking-widest font-black py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] focus:outline-none uppercase"
                 autoFocus
               />
             </div>

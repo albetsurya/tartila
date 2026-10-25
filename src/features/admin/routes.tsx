@@ -19,12 +19,12 @@ import {
   AdminUsersPage,
 } from "./lazyPages";
 
-import { normalizeRole } from "@/lib/roles";
+import { isTartilaAdmin } from "@/lib/roles";
 
 function SuperAdminGuard({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
-  if (normalizeRole(user?.role) !== "superadmin") {
+  if (!isTartilaAdmin(user?.role)) {
     return <Navigate to="/admin" replace />;
   }
   return <>{children}</>;

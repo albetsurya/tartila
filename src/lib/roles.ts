@@ -3,9 +3,12 @@
  *
  * Peran disimpan di beberapa tempat dengan format berbeda
  * (metadata Supabase, tabel users, localStorage): "member",
- * "tartila_admin", "superadmin", "SUPER_ADMIN", "ustadz", "ustadzah".
- * Semua pemeriksaan peran WAJIB lewat normalizeRole agar tidak ada
- * format yang lolos/keliru.
+ * "tartila_admin", "superadmin", "SUPER_ADMIN", "admin", "ustadz", "ustadzah".
+ *
+ * Pemisahan Kritis:
+ * - 'admin': Admin Sambung Ngaji (TIDAK BERHAK masuk /admin Tartila).
+ * - 'tartila_admin': Admin Tartila (Berhak mengelola Tartila).
+ * - 'superadmin': Pemilik aplikasi (Akses penuh ke semua platform).
  */
 
 export type AppRole =
@@ -13,6 +16,7 @@ export type AppRole =
   | "ustadz"
   | "ustadzah"
   | "admin"
+  | "tartila_admin"
   | "superadmin";
 
 const ROLE_ALIASES: Record<string, AppRole> = {
@@ -24,7 +28,8 @@ const ROLE_ALIASES: Record<string, AppRole> = {
   ustadzah: "ustadzah",
   ustazah: "ustadzah",
   admin: "admin",
-  tartila_admin: "admin",
+  sambung_ngaji_admin: "admin",
+  tartila_admin: "tartila_admin",
   superadmin: "superadmin",
   super_admin: "superadmin",
   superadmin1: "superadmin",
@@ -50,9 +55,24 @@ export function isUstadzRole(role: string | null | undefined): boolean {
   return normalized === "ustadz" || normalized === "ustadzah";
 }
 
-/** Admin panel: admin & superadmin (termasuk alias tartila_admin/SUPER_ADMIN). */
+/** Cek apakah role adalah admin Tartila (tartila_admin atau superadmin). */
+export function isTartilaAdmin(role: string | null | undefined): boolean {
+  const normalized = normalizeRole(role);
+  return normalized === "tartila_admin" || normalized === "superadmin";
+}
+
+/** Cek apakah role adalah admin Sambung Ngaji (admin atau superadmin). */
+export function isSambungNgajiAdmin(role: string | null | undefined): boolean {
+  const normalized = normalizeRole(role);
+  return normalized === "admin" || normalized === "superadmin";
+}
+
+/**
+ * Admin panel Tartila: HANYA 'tartila_admin' & 'superadmin'.
+ * Role 'admin' adalah Admin Sambung Ngaji dan TIDAK BERHAK mengakses panel Tartila.
+ */
 export function isAdminRole(role: string | null | undefined): boolean {
-  return normalizeRole(role) === "admin" || normalizeRole(role) === "superadmin";
+  return isTartilaAdmin(role);
 }
 
 /** Ustadz berdasarkan peran ATAU flag is_ustadz (legacy users.role_ustadz = 1). */
@@ -68,8 +88,8 @@ export type ClassroomRole = "ustadz" | "murid" | "monitor";
 /**
  * Peran dalam kelas:
  * - ustadz/ustadzah -> pengajar (buat & kelola kelas)
- * - admin/superadmin -> pemantau (lihat dashboard, tanpa aksi mengubah)
- * - member/lainnya -> murid (gabung lewat kode join)
+ * - tartila_admin/superadmin -> pemantau (lihat dashboard, tanpa aksi mengubah)
+ * - member/admin Sambung Ngaji/lainnya -> murid (gabung lewat kode join)
  */
 export function classroomRoleFor(
   role: string | null | undefined,
@@ -77,14 +97,14 @@ export function classroomRoleFor(
   const normalized = normalizeRole(role);
   if (normalized === null) return null;
   if (normalized === "ustadz" || normalized === "ustadzah") return "ustadz";
-  if (normalized === "admin" || normalized === "superadmin") return "monitor";
+  if (normalized === "tartila_admin" || normalized === "superadmin") return "monitor";
   return "murid";
 }
 
 /**
  * Peran kelas dari objek pengguna utuh (role ATAU flag is_ustadz).
  * Ustadz dengan role "member" tetap dihitung pengajar selama flag
- * is_ustadz = true; admin tetap pemantau meski flag terpasang.
+ * is_ustadz = true; tartila_admin & superadmin tetap pemantau meski flag terpasang.
  */
 export function classroomRoleForUser(
   user: { role?: string | null; is_ustadz?: boolean | null } | null
@@ -92,7 +112,7 @@ export function classroomRoleForUser(
 ): ClassroomRole | null {
   if (user?.is_ustadz === true) {
     const role = normalizeRole(user.role);
-    if (role === "admin" || role === "superadmin") return "monitor";
+    if (role === "tartila_admin" || role === "superadmin") return "monitor";
     return "ustadz";
   }
   return classroomRoleFor(user?.role);

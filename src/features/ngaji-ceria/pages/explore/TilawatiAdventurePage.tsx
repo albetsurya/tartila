@@ -1,48 +1,163 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
+import { ExploreHeader, ExploreStatBadge } from "../../components/ExploreHeader";
+import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
 /* ============================================================================
- * NEO-BRUTALISM CUSTOM SVG ILLUSTRATIONS
- * Style: stroke="#134E4A", strokeWidth="2.5", round joins, playful flat colors
+ * VINTAGE ADVENTURE CARTOGRAPHY SVGS (Map Scrolls & Explorer Desk)
+ * Palette: Parchment (#FEF3C7, #FFFBEB), Sepia Ink (#78350F, #451A03, #B45309),
+ * Wax Red Stamp (#B91C1C), Explorer Desk Teal (#0F766E, #134E4A)
  * ============================================================================ */
 
 interface SvgProps {
   size?: number;
   className?: string;
   fill?: string;
+  stroke?: string;
 }
 
-const BookOpenSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+/** Paku Payung 3D (Push Pin) bergaya petualang */
+const PushPinSvg: React.FC<{ isLocked?: boolean; className?: string }> = ({
+  isLocked = false,
+  className = "",
+}) => (
+  <svg
+    width={26}
+    height={30}
+    viewBox="0 0 26 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    {/* Bayangan jatuh ke kertas */}
+    <ellipse cx="17" cy="26" rx="5" ry="2.5" fill="#000000" opacity="0.3" />
+    {/* Ujung jarum paku logam */}
+    <path
+      d="M13 18L14.5 26.5L12 26.5Z"
+      fill="#475569"
+      stroke="#1E293B"
+      strokeWidth="0.8"
+    />
+    {/* Kepala paku payung merah / kuningan kusam jika terkunci */}
+    <circle
+      cx="13"
+      cy="11"
+      r="8"
+      fill={isLocked ? "#78716C" : "#DC2626"}
+      stroke={isLocked ? "#44403C" : "#7F1D1D"}
+      strokeWidth="2"
+    />
+    <circle
+      cx="13"
+      cy="8"
+      r="4.5"
+      fill={isLocked ? "#A8A29E" : "#EF4444"}
+    />
+    {/* Kilau glossy highlight */}
+    <ellipse
+      cx="10.5"
+      cy="8"
+      rx="2"
+      ry="1.2"
+      fill="#FFFFFF"
+      opacity="0.85"
+      transform="rotate(-25 10.5 8)"
+    />
+    <circle cx="10" cy="6.5" r="1" fill="#FFFFFF" />
+  </svg>
+);
+
+/** Ikon Kompas Bahari Emas & Sepia */
+const CompassSvg: React.FC<SvgProps> = ({ size = 26, className = "" }) => (
   <svg
     width={size}
     height={size}
-    viewBox="0 0 24 24"
+    viewBox="0 0 28 28"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
   >
-    <path
-      d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6Z"
-      fill="#2DD4BF"
-      stroke="#134E4A"
+    <circle
+      cx="14"
+      cy="14"
+      r="12"
+      fill="#FEF08A"
+      stroke="#78350F"
       strokeWidth="2.5"
-      strokeLinejoin="round"
+    />
+    <circle
+      cx="14"
+      cy="14"
+      r="9.5"
+      fill="#FFFBEB"
+      stroke="#B45309"
+      strokeWidth="1.5"
+      strokeDasharray="2 2"
+    />
+    {/* Jarum Kompas (Utara Merah, Selatan Sepia) */}
+    <path
+      d="M14 6L17 14L14 13L11 14Z"
+      fill="#DC2626"
+      stroke="#7F1D1D"
+      strokeWidth="1.2"
     />
     <path
-      d="M12 5C9 3.5 5 3.5 5 6V17C5 17 9 15 12 17C15 15 19 17 19 17V6C19 3.5 15 3.5 12 5Z"
-      fill="#FFFFFF"
-      stroke="#134E4A"
-      strokeWidth="2.5"
+      d="M14 22L17 14L14 15L11 14Z"
+      fill="#78350F"
+      stroke="#451A03"
+      strokeWidth="1.2"
+    />
+    <circle cx="14" cy="14" r="2" fill="#FEF08A" stroke="#78350F" strokeWidth="1.5" />
+  </svg>
+);
+
+/** Ikon Gulungan Peta Kuno (Map Scroll) */
+const MapScrollSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 28 28"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    {/* Gulungan Kertas Peta Utama */}
+    <path
+      d="M6 5.5C6 4 7.5 3 9.5 3H18.5C20.5 3 22 4 22 5.5V21C22 22.5 20.5 23.5 18.5 23.5H9.5C7.5 23.5 6 22.5 6 21V5.5Z"
+      fill="#FEF3C7"
+      stroke="#78350F"
+      strokeWidth="2"
       strokeLinejoin="round"
     />
+    {/* Batang rol gulungan kayu */}
     <path
-      d="M12 5V17"
-      stroke="#134E4A"
-      strokeWidth="2.5"
+      d="M5 5C5 3.5 6.5 2.5 8 2.5V24C6.5 24 5 23 5 21.5V5Z"
+      fill="#FDE68A"
+      stroke="#78350F"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M20 2.5C21.5 2.5 23 3.5 23 5V21.5C23 23 21.5 24 20 24V2.5Z"
+      fill="#FDE68A"
+      stroke="#78350F"
+      strokeWidth="1.8"
+    />
+    {/* Rute ekspedisi bertitik merah */}
+    <path
+      d="M10 9C12 8 13 12 15 11C17 10 17 14 18 16"
+      stroke="#B45309"
+      strokeWidth="1.8"
       strokeLinecap="round"
+      strokeDasharray="2 2"
     />
+    <circle cx="10" cy="9" r="1.5" fill="#DC2626" />
+    <path d="M17 15L19 17L17 19" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
@@ -50,6 +165,7 @@ const StarSvg: React.FC<SvgProps> = ({
   size = 14,
   className = "",
   fill = "#FBBF24",
+  stroke = "#78350F",
 }) => (
   <svg
     width={size}
@@ -62,7 +178,7 @@ const StarSvg: React.FC<SvgProps> = ({
     <path
       d="M12 2.5L14.8 8.2L21 9.1L16.5 13.5L17.6 19.7L12 16.8L6.4 19.7L7.5 13.5L3 9.1L9.2 8.2L12 2.5Z"
       fill={fill}
-      stroke="#134E4A"
+      stroke={stroke}
       strokeWidth="2.5"
       strokeLinejoin="round"
     />
@@ -81,15 +197,16 @@ const SparklesSvg: React.FC<SvgProps> = ({ size = 14, className = "" }) => (
     <path
       d="M12 2L14.2 8.8L21 11L14.2 13.2L12 20L9.8 13.2L3 11L9.8 8.8L12 2Z"
       fill="#FBBF24"
-      stroke="#134E4A"
-      strokeWidth="2.5"
+      stroke="#78350F"
+      strokeWidth="2.2"
       strokeLinejoin="round"
     />
-    <circle cx="19" cy="5" r="2" fill="#FF6B6B" />
+    <circle cx="19" cy="5" r="2" fill="#DC2626" />
   </svg>
 );
 
-const LockSvg: React.FC<SvgProps> = ({ size = 16, className = "" }) => (
+/** Gembok Kayu / Kuno untuk Jilid Terkunci */
+const WoodLockSvg: React.FC<SvgProps> = ({ size = 20, className = "" }) => (
   <svg
     width={size}
     height={size}
@@ -99,22 +216,24 @@ const LockSvg: React.FC<SvgProps> = ({ size = 16, className = "" }) => (
     className={className}
   >
     <path
-      d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10"
-      stroke="#134E4A"
+      d="M7 10V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V10"
+      stroke="#78350F"
       strokeWidth="2.5"
       strokeLinecap="round"
     />
     <rect
-      x="5"
+      x="4"
       y="10"
-      width="14"
-      height="11"
-      rx="2.5"
-      fill="#CBD5E1"
-      stroke="#134E4A"
+      width="16"
+      height="12"
+      rx="3"
+      fill="#92400E"
+      stroke="#451A03"
       strokeWidth="2.5"
     />
-    <circle cx="12" cy="15.5" r="1.5" fill="#134E4A" />
+    {/* Pelat besi & lubang kunci */}
+    <circle cx="12" cy="15" r="2" fill="#FEF3C7" stroke="#451A03" strokeWidth="1.2" />
+    <path d="M12 17V19" stroke="#451A03" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
@@ -128,39 +247,218 @@ const ArrowRightSvg: React.FC<SvgProps> = ({ size = 14, className = "" }) => (
     className={className}
   >
     <path
-      d="M4 12H15"
+      d="M4 12H18M18 12L12 6M18 12L12 18"
       stroke="currentColor"
       strokeWidth="3"
       strokeLinecap="round"
-    />
-    <path
-      d="M13 6L20 12L13 18V6Z"
-      fill="#FBBF24"
-      stroke="#134E4A"
-      strokeWidth="2.5"
       strokeLinejoin="round"
     />
   </svg>
 );
 
-const PlaySvg: React.FC<SvgProps> = ({ size = 16, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M7 5V19L19 12L7 5Z"
-      fill="#134E4A"
-      stroke="#134E4A"
-      strokeWidth="2"
-      strokeLinejoin="round"
-    />
-  </svg>
+/** Latar Belakang Meja Kerja Petualang (Adventurer's Desk with Navigational Charts) */
+const AdventurerDeskDecor = () => (
+  <div className="pointer-events-none absolute inset-0 overflow-hidden select-none z-0 opacity-20">
+    <svg
+      className="absolute inset-0 h-full w-full"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <pattern
+          id="desk-grid-pattern"
+          width="60"
+          height="60"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 60 0 L 0 0 0 60"
+            fill="none"
+            stroke="#FEF3C7"
+            strokeWidth="0.8"
+            strokeDasharray="3 3"
+          />
+          <circle cx="0" cy="0" r="1.5" fill="#FDE68A" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#desk-grid-pattern)" />
+
+      {/* Garis Lintang & Bujur (Latitude / Longitude Rhumb Lines) */}
+      <line
+        x1="-50"
+        y1="120"
+        x2="900"
+        y2="380"
+        stroke="#FDE68A"
+        strokeWidth="1.5"
+        strokeDasharray="6 4"
+      />
+      <line
+        x1="200"
+        y1="-50"
+        x2="350"
+        y2="1200"
+        stroke="#FDE68A"
+        strokeWidth="1.2"
+        strokeDasharray="8 6"
+      />
+      <line
+        x1="700"
+        y1="-50"
+        x2="100"
+        y2="1100"
+        stroke="#FDE68A"
+        strokeWidth="1.2"
+        strokeDasharray="6 4"
+      />
+
+      {/* Mawar Kompas Navigasi (Nautical Compass Rose) di sudut kanan */}
+      <g transform="translate(680, 160) scale(1.4)" opacity="0.6">
+        <circle cx="0" cy="0" r="70" fill="none" stroke="#FDE68A" strokeWidth="1.5" />
+        <circle cx="0" cy="0" r="50" fill="none" stroke="#FDE68A" strokeWidth="1" strokeDasharray="3 3" />
+        <path d="M 0 -70 L 10 -20 L 0 0 L -10 -20 Z" fill="#FDE68A" />
+        <path d="M 0 70 L 10 20 L 0 0 L -10 20 Z" fill="#FDE68A" />
+        <path d="M 70 0 L 20 10 L 0 0 L 20 -10 Z" fill="#FDE68A" />
+        <path d="M -70 0 L -20 10 L 0 0 L -20 -10 Z" fill="#FDE68A" />
+        <text x="-4" y="-76" fill="#FDE68A" fontSize="12" fontWeight="bold">N</text>
+        <text x="-4" y="88" fill="#FDE68A" fontSize="12" fontWeight="bold">S</text>
+        <text x="76" y="4" fill="#FDE68A" fontSize="12" fontWeight="bold">E</text>
+        <text x="-88" y="4" fill="#FDE68A" fontSize="12" fontWeight="bold">W</text>
+      </g>
+    </svg>
+  </div>
 );
+
+/** Sketsa Kartografi Sepia Monokromatik di atas Kertas Kuno */
+const CardIllustration = ({ jilid }: { jilid: number }) => {
+  switch (jilid) {
+    case 1:
+      // Pulau Kepulauan Huruf Hijaiyah
+      return (
+        <svg
+          viewBox="0 0 160 120"
+          preserveAspectRatio="none"
+          className="w-full h-full text-[#78350F]"
+        >
+          <path
+            d="M 10 90 Q 40 50 80 85 T 150 75 L 160 120 L 0 120 Z"
+            fill="#B45309"
+            opacity="0.18"
+          />
+          <path
+            d="M 0 95 Q 50 65 100 95 T 160 85 L 160 120 L 0 120 Z"
+            fill="#78350F"
+            opacity="0.12"
+          />
+          {/* Garis kontur pantai bertinta sepia */}
+          <path
+            d="M 15 88 Q 45 48 85 83 T 155 73"
+            stroke="#78350F"
+            strokeWidth="1.5"
+            strokeDasharray="4 2"
+            fill="none"
+            opacity="0.4"
+          />
+          {/* Riak gelombang laut */}
+          <path d="M 20 105 Q 30 102 40 105" stroke="#92400E" strokeWidth="1.2" fill="none" opacity="0.35" />
+          <path d="M 70 108 Q 80 105 90 108" stroke="#92400E" strokeWidth="1.2" fill="none" opacity="0.35" />
+          <circle cx="130" cy="35" r="14" stroke="#B45309" strokeWidth="1.5" strokeDasharray="3 2" fill="none" opacity="0.3" />
+        </svg>
+      );
+    case 2:
+      // Gurun Pasir Huruf Bersambung
+      return (
+        <svg
+          viewBox="0 0 160 120"
+          preserveAspectRatio="none"
+          className="w-full h-full text-[#78350F]"
+        >
+          <path
+            d="M -10 80 Q 30 40 75 75 T 170 65 L 170 120 L -10 120 Z"
+            fill="#92400E"
+            opacity="0.16"
+          />
+          <path
+            d="M 10 95 Q 60 70 110 95 T 170 85 L 170 120 L 0 120 Z"
+            fill="#78350F"
+            opacity="0.12"
+          />
+          {/* Garis puncak bukit pasir */}
+          <path
+            d="M -5 78 Q 32 38 77 73 T 170 63"
+            stroke="#92400E"
+            strokeWidth="1.5"
+            fill="none"
+            opacity="0.4"
+          />
+          <path d="M 15 50 Q 25 46 35 50" stroke="#78350F" strokeWidth="1.2" fill="none" opacity="0.3" />
+        </svg>
+      );
+    case 3:
+      // Pegunungan Mad & Lembah Hijaiyah
+      return (
+        <svg
+          viewBox="0 0 160 120"
+          preserveAspectRatio="none"
+          className="w-full h-full text-[#78350F]"
+        >
+          {/* Puncak pegunungan kartografi dengan arsiran (hatching) */}
+          <polygon points="10,120 45,45 80,120" fill="#78350F" opacity="0.15" />
+          <path d="M 45 45 L 45 120" stroke="#78350F" strokeWidth="1.2" opacity="0.3" />
+          <polygon points="65,120 105,30 145,120" fill="#92400E" opacity="0.18" />
+          <path d="M 105 30 L 105 120" stroke="#78350F" strokeWidth="1.2" opacity="0.35" />
+          <polygon points="120,120 145,60 170,120" fill="#78350F" opacity="0.12" />
+        </svg>
+      );
+    case 4:
+      // Pesisir Salju & Samudera Waqaf
+      return (
+        <svg
+          viewBox="0 0 160 120"
+          preserveAspectRatio="none"
+          className="w-full h-full text-[#78350F]"
+        >
+          <polygon points="0,120 40,35 85,120" fill="#78350F" opacity="0.14" />
+          <polygon points="60,120 110,25 155,120" fill="#92400E" opacity="0.17" />
+          <path d="M 40 35 L 30 65 L 50 65 Z" fill="#FFFBEB" opacity="0.4" />
+          <path d="M 110 25 L 98 55 L 122 55 Z" fill="#FFFBEB" opacity="0.4" />
+          <circle cx="30" cy="25" r="2" fill="#78350F" opacity="0.3" />
+          <circle cx="130" cy="20" r="2.5" fill="#78350F" opacity="0.3" />
+        </svg>
+      );
+    case 5:
+      // Cagar Tajwid Lembah Api & Batu Bara
+      return (
+        <svg
+          viewBox="0 0 160 120"
+          preserveAspectRatio="none"
+          className="w-full h-full text-[#78350F]"
+        >
+          <polygon points="15,120 80,35 145,120" fill="#78350F" opacity="0.2" />
+          <polygon points="80,35 65,70 95,70" fill="#92400E" opacity="0.25" />
+          <path d="M 75 30 Q 80 15 90 10 Q 85 22 80 35" stroke="#78350F" strokeWidth="1.5" fill="none" opacity="0.35" />
+          <circle cx="95" cy="18" r="7" stroke="#78350F" strokeWidth="1" strokeDasharray="2 2" fill="none" opacity="0.3" />
+        </svg>
+      );
+    case 6:
+      // Benteng Kelulusan Khatam & Observatorium Langit
+      return (
+        <svg
+          viewBox="0 0 160 120"
+          preserveAspectRatio="none"
+          className="w-full h-full text-[#78350F]"
+        >
+          <circle cx="120" cy="45" r="35" stroke="#78350F" strokeWidth="1.5" strokeDasharray="3 2" fill="none" opacity="0.25" />
+          <circle cx="120" cy="45" r="25" fill="#92400E" opacity="0.12" />
+          <polygon points="10,120 35,65 60,120" fill="#78350F" opacity="0.15" />
+          <polygon points="50,120 75,55 100,120" fill="#78350F" opacity="0.18" />
+          <circle cx="50" cy="35" r="1.5" fill="#78350F" opacity="0.4" />
+          <circle cx="75" cy="25" r="2" fill="#78350F" opacity="0.4" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
 
 interface TilawatiLevel {
   jilid: number;
@@ -172,159 +470,11 @@ interface TilawatiLevel {
   earnedStars: number;
 }
 
-const JILID_THEMES: Record<
-  number,
-  { bg: string; text: string; iconColor: string }
-> = {
-  1: {
-    bg: "bg-[#F0F9FF]",
-    text: "text-[#0284C7]",
-    iconColor: "text-[#0EA5E9]",
-  },
-  2: {
-    bg: "bg-[#FFFBEB]",
-    text: "text-[#B45309]",
-    iconColor: "text-[#D97706]",
-  },
-  3: {
-    bg: "bg-[#F0FDF4]",
-    text: "text-[#15803D]",
-    iconColor: "text-[#16A34A]",
-  },
-  4: {
-    bg: "bg-[#F8FAFC]",
-    text: "text-[#1E40AF]",
-    iconColor: "text-[#2563EB]",
-  },
-  5: {
-    bg: "bg-[#FEF2F2]",
-    text: "text-[#991B1B]",
-    iconColor: "text-[#DC2626]",
-  },
-  6: {
-    bg: "bg-[#FAF5FF]",
-    text: "text-[#6B21A8]",
-    iconColor: "text-[#7E22CE]",
-  },
-};
-
-const CardIllustration = ({ jilid }: { jilid: number }) => {
-  switch (jilid) {
-    case 1:
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <circle cx="75" cy="25" r="15" fill="#0EA5E9" />
-          <path
-            d="M0,60 Q25,40 50,60 T100,60 L100,100 L0,100 Z"
-            fill="#38BDF8"
-          />
-          <path
-            d="M0,75 Q30,55 60,75 T100,70 L100,100 L0,100 Z"
-            fill="#0284C7"
-          />
-          <path
-            d="M0,90 Q20,80 40,90 T80,90 T100,85 L100,100 L0,100 Z"
-            fill="#075985"
-          />
-        </svg>
-      );
-    case 2:
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <circle cx="50" cy="25" r="18" fill="#F59E0B" />
-          <path
-            d="M-10,60 Q25,30 60,60 T120,50 L120,100 L-10,100 Z"
-            fill="#D97706"
-          />
-          <path
-            d="M-20,75 Q20,50 70,80 T120,70 L120,100 L-20,100 Z"
-            fill="#B45309"
-          />
-          <path
-            d="M-10,90 Q30,70 80,95 T110,85 L110,100 L-10,100 Z"
-            fill="#78350F"
-          />
-        </svg>
-      );
-    case 3:
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <path d="M0,100 L20,40 L40,100 Z" fill="#22C55E" />
-          <path d="M25,100 L50,20 L75,100 Z" fill="#16A34A" />
-          <path d="M60,100 L85,45 L110,100 Z" fill="#15803D" />
-          <path d="M-10,100 L10,60 L30,100 Z" fill="#4ADE80" />
-        </svg>
-      );
-    case 4:
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <path d="M-10,100 L25,30 L60,100 Z" fill="#94A3B8" />
-          <path d="M25,30 L15,60 L35,60 Z" fill="#F8FAFC" />
-          <path d="M40,100 L70,20 L100,100 Z" fill="#CBD5E1" />
-          <path d="M70,20 L60,50 L80,50 Z" fill="#F8FAFC" />
-          <circle cx="20" cy="20" r="2" fill="#E2E8F0" />
-          <circle cx="85" cy="15" r="3" fill="#E2E8F0" />
-          <circle cx="50" cy="10" r="1.5" fill="#E2E8F0" />
-        </svg>
-      );
-    case 5:
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <path d="M0,100 L50,30 L100,100 Z" fill="#450A0A" />
-          <path d="M50,30 L35,65 L65,65 Z" fill="#DC2626" />
-          <path d="M50,30 L45,50 L55,50 Z" fill="#F97316" />
-          <circle cx="55" cy="15" r="10" fill="#525252" />
-          <circle cx="70" cy="10" r="6" fill="#525252" />
-          <circle cx="40" cy="8" r="4" fill="#525252" />
-        </svg>
-      );
-    case 6:
-      return (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <circle cx="20" cy="70" r="30" fill="#4C1D95" />
-          <circle cx="85" cy="30" r="40" fill="#6B21A8" />
-          <circle cx="85" cy="30" r="30" fill="#7E22CE" />
-          <circle cx="50" cy="50" r="2" fill="#E9D5FF" />
-          <circle cx="70" cy="80" r="1.5" fill="#E9D5FF" />
-          <circle cx="15" cy="20" r="1" fill="#E9D5FF" />
-          <circle cx="40" cy="15" r="2" fill="#E9D5FF" />
-          <circle cx="80" cy="85" r="1.5" fill="#E9D5FF" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-};
-
 const TILAWATI_LEVELS: TilawatiLevel[] = [
   {
     jilid: 1,
     title: "Tilawati 1",
-    desc: "Pengenalan Makhraj & Huruf Hijaiyah",
+    desc: "Mengenal Huruf Hijaiyah & Bunyi Fathah",
     unlocked: true,
     progress: 15,
     totalStars: 93,
@@ -333,7 +483,7 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
   {
     jilid: 2,
     title: "Tilawati 2",
-    desc: "Huruf Bersambung & Panjang Pendek",
+    desc: "Huruf Bersambung & Harokat Kasrah/Dhammah",
     unlocked: false,
     progress: 0,
     totalStars: 90,
@@ -342,7 +492,7 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
   {
     jilid: 3,
     title: "Tilawati 3",
-    desc: "Mad, Tasydid & Ghunnah",
+    desc: "Panjang Pendek (Mad Asli) & Ketukan Irama",
     unlocked: false,
     progress: 0,
     totalStars: 90,
@@ -351,7 +501,7 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
   {
     jilid: 4,
     title: "Tilawati 4",
-    desc: "Waqaf & Ibtida' (Tanda Baca)",
+    desc: "Tanwin, Sukun & Aturan Waqaf (Berhenti)",
     unlocked: false,
     progress: 0,
     totalStars: 90,
@@ -360,7 +510,7 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
   {
     jilid: 5,
     title: "Tilawati 5",
-    desc: "Tajwid Lanjutan & Kelancaran",
+    desc: "Tasydid, Idgham, Ikhfa & Dengung Ghunnah",
     unlocked: false,
     progress: 0,
     totalStars: 90,
@@ -369,7 +519,7 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
   {
     jilid: 6,
     title: "Tilawati 6",
-    desc: "Tahap Akhir & Kelulusan",
+    desc: "Gharib, Fawatihussuwar & Khatam Al-Qur'an",
     unlocked: false,
     progress: 0,
     totalStars: 90,
@@ -377,8 +527,30 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
   },
 ];
 
+/** Sudut putaran acak realistis untuk tumpukan kertas peta di meja */
+const ROTATION_CLASSES = [
+  "-rotate-[1.5deg]",
+  "rotate-[2deg]",
+  "-rotate-[2deg]",
+  "rotate-[1.5deg]",
+  "-rotate-[1.2deg]",
+  "rotate-[2.2deg]",
+];
+
+/** Variasi letak paku payung pada kertas peta */
+const PIN_POSITIONS = [
+  "left-8",
+  "left-1/2 -translate-x-1/2",
+  "right-8",
+  "left-10",
+  "left-1/2 -translate-x-1/2",
+  "right-10",
+];
+
 export default function TilawatiAdventurePage() {
   const navigate = useNavigate();
+  const stars = useNgajiCeriaStore((s) => s.stars);
+  const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
 
   const handleLevelClick = (level: TilawatiLevel) => {
     if (!level.unlocked) return;
@@ -389,190 +561,264 @@ export default function TilawatiAdventurePage() {
   return (
     <NgajiCeriaLayout
       title="Pilih Jilid"
-      onBack={() => navigate("/member/ngaji-ceria/map")}
+      hideHeader={true}
+      themeScope="tilawati"
     >
-      <div className="absolute right-4 top-3 z-50">
-        <div className="flex items-center gap-1.5 rounded-xl border-[3px] border-[#134E4A] bg-white px-3 py-1.5 shadow-[2px_2px_0px_#134E4A]">
-          <StarSvg size={14} fill="#F59E0B" />
-          <span className="text-xs font-black text-[#134E4A]">0</span>
-        </div>
-      </div>
+      {/* Header Terstandarisasi Petualangan Tilawati [Hati] [Koin] [Bintang] */}
+      <ExploreHeader
+        title="Meja Petualangan"
+        subtitle="Pilih Gulungan Peta Tilawati"
+        onBack={() => navigate("/member/ngaji-ceria/map")}
+        themeScope="tilawati"
+        themeColorClass="bg-[#0D4D47]"
+        borderColorClass="border-[#F59E0B]"
+        shadowClass="shadow-[0_4px_0px_#042F2E]"
+        textColorClass="text-[#FEF3C7]"
+        backClass="bg-[#FEF3C7] text-[#451A03] border-[#78350F] shadow-[2px_2px_0px_#451A03] hover:bg-[#FDE68A]"
+        extraBadge={
+          <ExploreStatBadge
+            icon={<StarSvg size={18} fill="#F59E0B" className="shrink-0" />}
+            value={`${totalStars}/93`}
+            title={`Total Bintang: ${totalStars}/93`}
+            className="bg-[#FEF3C7] text-[#451A03] border-[#78350F] shadow-[2px_2px_0px_#451A03]"
+          />
+        }
+      />
 
-      <div className="min-h-full bg-[#F0FDF4] pb-24">
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 text-white rounded-b-[40px] shadow-lg">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[8px] border-white/5" />
-          <div className="absolute top-8 right-12 text-[#FF6B6B] rotate-12">
-            <BookOpenSvg size={48} />
-          </div>
+      {/* SUASANA MEJA PETUALANGAN (Adventurer's Desk Canvas) */}
+      <div className="relative min-h-[100dvh] w-full bg-[#0F766E] pb-32 overflow-x-hidden">
+        {/* Ornamen Peta & Garis Bujur/Lintang Samudra */}
+        <AdventurerDeskDecor />
 
-          <div className="relative z-10 max-w-[80%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FF6B6B] mb-3">
-              <SparklesSvg size={12} /> Petualangan Tilawati
-            </span>
-            <h2 className="font-display text-[26px] font-black leading-tight mb-2">
-              Mulai Perjalanan <br />
-              <span className="text-[#FF6B6B]">Ilmu-Mu!</span>
-            </h2>
-            <p className="text-[12px] leading-relaxed text-white/80">
-              Selesaikan setiap langkah untuk membuka gerbang ilmu selanjutnya.
-              Kumpulkan bintangmu!
-            </p>
+        {/* 1. HERO MISSION DISPATCH: Papan Rencana Ekspedisi */}
+        <section className="relative z-10 px-4 pt-6 max-w-4xl mx-auto">
+          <div className="relative overflow-hidden rounded-xl bg-[#134E4A] border-[3px] border-[#F59E0B] p-4 sm:p-5 text-[#FEF3C7] shadow-[4px_4px_0px_#042F2E]">
+            {/* Paku sudut kuningan */}
+            <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#F59E0B] border border-[#78350F]" />
+            <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#F59E0B] border border-[#78350F]" />
+
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-[#FEF3C7] border-2 border-[#78350F] text-[#78350F] shadow-[2px_2px_0px_#78350F]">
+                <CompassSvg size={32} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F59E0B] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#451A03] mb-1">
+                  <SparklesSvg size={11} /> Ekspedisi Tilawati
+                </span>
+                <h1 className="font-display font-black text-lg sm:text-2xl text-[#FEF3C7] leading-tight">
+                  Peta Pulau Mengaji
+                </h1>
+                <p className="text-xs sm:text-sm font-semibold text-teal-100/90 leading-snug mt-0.5">
+                  Buka gulungan peta untuk memulai belajar setiap jilid. Kumpulkan seluruh bintang perjalananmu!
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="relative px-4 pt-8">
-          <div className="relative flex flex-col items-center">
-            <div className="absolute left-1/2 top-10 bottom-10 w-1 -translate-x-1/2 border-l-4 border-dashed border-[#0D9488]/40 z-0" />
-
+        {/* 2. GRID KERTAS PETA (Map Scroll Cards) */}
+        <section className="relative z-10 px-4 pt-8 pb-4 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
             {TILAWATI_LEVELS.map((level, index) => {
-              const isLeft = index % 2 === 0;
-              const stepNumber = String(index + 1).padStart(2, "0");
-              const theme = JILID_THEMES[level.jilid] || JILID_THEMES[1];
+              const rotationClass = ROTATION_CLASSES[index % ROTATION_CLASSES.length];
+              const pinPos = PIN_POSITIONS[index % PIN_POSITIONS.length];
+              const stepFormatted = String(level.jilid).padStart(2, "0");
 
               return (
-                <div
+                <motion.div
                   key={level.jilid}
-                  className={`relative w-full flex ${isLeft ? "justify-start" : "justify-end"} mb-10 z-10`}
+                  initial={{
+                    opacity: 0,
+                    y: -25,
+                    scale: 0.92,
+                    rotate: index % 2 === 0 ? -5 : 5,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 24,
+                      delay: index * 0.04,
+                    },
+                  }}
+                  className="relative pt-3"
                 >
+                  {/* Ornamen Paku Payung (Push Pin) Menempel di Meja */}
                   <div
-                    className={`absolute left-1/2 top-8 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-full border-[4px] border-[#F0FDF4] shadow-sm z-20 ${
-                      level.unlocked ? "bg-[#0D9488]" : "bg-gray-300"
-                    }`}
+                    className={`absolute -top-1.5 ${pinPos} z-20 pointer-events-none drop-shadow-md`}
                   >
-                    <span className="text-[11px] font-black text-white">
-                      {stepNumber}
-                    </span>
+                    <PushPinSvg isLocked={!level.unlocked} />
                   </div>
 
-                  <div
-                    className={`w-[46%] ${isLeft ? "mr-auto pr-3" : "ml-auto pl-3"}`}
-                  >
-                    {level.unlocked ? (
-                      <motion.button
-                        type="button"
-                        onClick={() => handleLevelClick(level)}
-                        whileTap={{
-                          scale: 0.95,
-                          y: 2,
-                          boxShadow: "0px 0px 0px #134E4A",
-                        }}
-                        className={`relative w-full flex flex-col rounded-[24px] ${theme.bg} border-[3px] border-[#134E4A] p-4 text-left shadow-[4px_4px_0px_#134E4A] overflow-hidden`}
-                      >
-                        <div className="absolute inset-0 opacity-25 pointer-events-none">
-                          <CardIllustration jilid={level.jilid} />
-                        </div>
+                  {/* KERTAS PETA KUNING (PARCHMENT MAP SCROLL) */}
+                  {level.unlocked ? (
+                    <motion.div
+                      whileHover={{ scale: 1.025, y: -4, rotate: 0 }}
+                      whileTap={{ scale: 0.96, y: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      onClick={() => handleLevelClick(level)}
+                      className={`group relative flex flex-col justify-between rounded-md bg-[#FEF3C7] border-[3px] border-[#78350F] p-4 sm:p-5 shadow-[5px_5px_0px_#451A03] hover:shadow-[7px_7px_0px_#451A03] transition-all cursor-pointer overflow-hidden ${rotationClass}`}
+                    >
+                      {/* Garis Tepi Ganda Khas Peta Navigasi Kuno */}
+                      <div className="absolute inset-1.5 sm:inset-2 border border-[#B45309]/30 rounded-xs pointer-events-none" />
+                      <div className="absolute inset-2 sm:inset-2.5 border border-dashed border-[#B45309]/20 rounded-xs pointer-events-none" />
 
-                        <div className="relative z-10 flex items-center justify-between mb-2">
-                          <div
-                            className={`flex h-8 w-8 items-center justify-center rounded-xl bg-white border-2 border-[#134E4A] ${theme.iconColor} shadow-sm`}
-                          >
-                            <BookOpenSvg size={16} />
+                      {/* Lipatan Sudut Kertas (Parchment Corner Fold) */}
+                      <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#FDE68A] border-t border-l border-[#B45309]/50 [clip-path:polygon(0_100%,100%_0,100%_100%)] pointer-events-none" />
+
+                      {/* Sketsa Kartografi Sepia Latar Belakang */}
+                      <div className="absolute inset-0 opacity-25 pointer-events-none">
+                        <CardIllustration jilid={level.jilid} />
+                      </div>
+
+                      {/* Baris Atas: Ikon Peta Gulungan + Tag Stempel & Bintang */}
+                      <div className="relative z-10 flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FDE68A] border-2 border-[#78350F] text-[#78350F] shadow-xs">
+                            <MapScrollSvg size={20} />
                           </div>
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-[#D97706] bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded-md border-2 border-[#134E4A]">
-                            <StarSvg size={10} fill="currentColor" />{" "}
-                            {level.earnedStars}/{level.totalStars}
+                          <span className="font-display text-[10px] font-black uppercase tracking-widest text-[#92400E]">
+                            Peta #{stepFormatted}
                           </span>
                         </div>
 
-                        <div className="relative z-10">
-                          <h4 className="font-display font-black text-[15px] text-[#134E4A] mb-1 drop-shadow-sm">
-                            {level.title}
-                          </h4>
-                          <p
-                            className={`text-[10px] font-bold ${theme.text} mb-3 leading-tight line-clamp-2 drop-shadow-sm`}
-                          >
-                            {level.desc}
-                          </p>
+                        {/* Badge Bintang Kertas */}
+                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-[#78350F] bg-[#FDE68A] border-2 border-[#78350F] px-2 py-0.5 rounded-md shadow-xs">
+                          <StarSvg size={11} fill="#B45309" stroke="#78350F" />
+                          <span>
+                            {level.earnedStars}/{level.totalStars}
+                          </span>
+                        </span>
+                      </div>
+
+                      {/* Teks Informasi: Judul Bergaya Tinta Cokelat & Deskripsi */}
+                      <div className="relative z-10 my-1">
+                        <h2 className="font-display font-black text-lg sm:text-xl text-[#451A03] tracking-wide leading-tight">
+                          {level.title}
+                        </h2>
+                        <p className="text-xs font-bold text-[#78350F]/90 leading-snug mt-1 line-clamp-2">
+                          {level.desc}
+                        </p>
+                      </div>
+
+                      {/* Baris Bawah: Tracker Jalur + Stempel Merah "BUKA PETA" */}
+                      <div className="relative z-10 mt-3 pt-2.5 border-t border-[#B45309]/30 flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1 pr-2">
+                          <div className="flex items-center justify-between text-[10px] font-black text-[#78350F]/80 mb-1">
+                            <span>Jalur Petualangan</span>
+                            <span><AnimatedCounter value={level.progress} />%</span>
+                          </div>
+                          <AnimatedProgressBar
+                            value={Math.max(level.progress, 8)}
+                            height="h-2"
+                            className="bg-[#78350F]/15 border-[#78350F]/30"
+                            barClassName="bg-[#B91C1C]"
+                          />
                         </div>
 
-                        <div className="relative z-10 mt-auto w-full">
-                          <div className="h-2 w-full rounded-full bg-white/70 backdrop-blur-sm border border-[#134E4A] overflow-hidden mb-2">
-                            <div
-                              className="h-full bg-[#FF6B6B]"
-                              style={{ width: `${level.progress}%` }}
-                            />
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black text-[#134E4A] drop-shadow-sm">
-                              Mulai
+                        {/* Tombol Stempel Merah (Red Ink Stamp) */}
+                        <div className="shrink-0">
+                          <div className="flex items-center gap-1.5 rounded-lg border-[2.5px] border-[#B91C1C] bg-[#FEF2F2] px-2.5 py-1 shadow-[2px_2px_0px_#7F1D1D] group-hover:bg-[#DC2626] group-hover:text-white transition-all rotate-[-2deg]">
+                            <span className="font-display font-black text-[11px] uppercase tracking-wider text-[#B91C1C] group-hover:text-white">
+                              BUKA PETA
                             </span>
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FF6B6B] border-2 border-[#134E4A] text-white">
-                              <ArrowRightSvg size={14} />
-                            </span>
+                            <ArrowRightSvg size={12} className="text-[#B91C1C] group-hover:text-white shrink-0" />
                           </div>
                         </div>
-                      </motion.button>
-                    ) : (
-                      <div
-                        className={`relative w-full flex flex-col rounded-[24px] ${theme.bg} border-[3px] border-[#134E4A]/40 border-dashed p-4 text-left opacity-80 overflow-hidden shadow-[4px_4px_0px_#D1D5DB] grayscale-[50%]`}
-                      >
-                        <div className="absolute inset-0 opacity-15 pointer-events-none">
-                          <CardIllustration jilid={level.jilid} />
-                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    /* KERTAS PETA TERKUNCI (Weathered / Grayscale Parchment with Wood Lock) */
+                    <div
+                      className={`relative flex flex-col justify-between rounded-md bg-[#E5E7EB]/90 border-[3px] border-[#6B7280] p-4 sm:p-5 shadow-[4px_4px_0px_#1F2937] overflow-hidden grayscale-[60%] opacity-90 select-none ${rotationClass}`}
+                    >
+                      {/* Garis Tepi Putus-putus Kertas Kusam */}
+                      <div className="absolute inset-1.5 sm:inset-2 border border-dashed border-[#6B7280]/40 rounded-xs pointer-events-none" />
 
-                        <div className="relative z-10 flex items-center justify-between mb-2">
-                          <div
-                            className={`flex h-8 w-8 items-center justify-center rounded-xl bg-gray-200 border-2 border-gray-400 text-gray-500`}
-                          >
-                            <LockSvg size={16} />
+                      {/* Sketsa Latar Belakang Pudar */}
+                      <div className="absolute inset-0 opacity-10 pointer-events-none">
+                        <CardIllustration jilid={level.jilid} />
+                      </div>
+
+                      {/* Baris Atas */}
+                      <div className="relative z-10 flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-300 border-2 border-gray-500 text-gray-600 shadow-xs">
+                            <WoodLockSvg size={18} />
                           </div>
+                          <span className="font-display text-[10px] font-black uppercase tracking-widest text-gray-600">
+                            Peta #{stepFormatted}
+                          </span>
                         </div>
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">
+                          Terkunci
+                        </span>
+                      </div>
 
-                        <div className="relative z-10">
-                          <h4 className="font-display font-black text-[15px] text-[#134E4A]/70 mb-1">
-                            {level.title}
-                          </h4>
-                          <p className="text-[10px] font-semibold text-[#134E4A]/50 mb-4 leading-tight italic line-clamp-2">
-                            Selesaikan level sebelumnya.
-                          </p>
-                        </div>
+                      {/* Teks Judul */}
+                      <div className="relative z-10 my-1">
+                        <h2 className="font-display font-black text-lg sm:text-xl text-gray-700 leading-tight">
+                          {level.title}
+                        </h2>
+                        <p className="text-xs font-semibold text-gray-500 leading-snug mt-1 italic line-clamp-2">
+                          Selesaikan Jilid {level.jilid - 1} untuk membuka segel peta ini.
+                        </p>
+                      </div>
 
-                        <div className="relative z-10 mt-auto flex items-center gap-1.5 bg-white/50 backdrop-blur-sm w-max px-2 py-1 rounded-md border border-[#134E4A]/20">
-                          <LockSvg size={10} />
-                          <span className="text-[9px] font-bold text-[#134E4A]/50">
-                            Terkunci
+                      {/* Gembok Kayu di Bawah */}
+                      <div className="relative z-10 mt-3 pt-2.5 border-t border-gray-400/40 flex items-center justify-center">
+                        <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#78350F] border-2 border-[#451A03] px-3 py-1 shadow-[2px_2px_0px_#1F2937] text-[#FEF3C7]">
+                          <WoodLockSvg size={14} />
+                          <span className="font-display font-black text-[10px] uppercase tracking-wider">
+                            Segel Terkunci
                           </span>
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  )}
+                </motion.div>
               );
             })}
           </div>
         </section>
 
-        <section className="px-4 mt-8">
+        {/* 3. PETA RAHASIA TAMBAHAN: Galaksi Juz 'Amma (Celestial Star Map Scroll) */}
+        <section className="relative z-10 px-4 mt-6 max-w-4xl mx-auto">
           <motion.div
+            whileHover={{ scale: 1.015, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => {
               triggerBibiReaction("play");
               navigate("/member/ngaji-ceria/explore/juz-amma");
             }}
-            className="relative overflow-hidden rounded-[24px] bg-[#E0F2FE] border-[3px] border-[#134E4A] p-4 flex items-center justify-between shadow-[4px_4px_0px_#134E4A] cursor-pointer"
+            className="relative overflow-hidden rounded-xl bg-[#1E1B4B] border-[3px] border-[#FEF08A] p-4 sm:p-5 flex items-center justify-between shadow-[5px_5px_0px_#042F2E] cursor-pointer"
           >
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0284C7] border-2 border-[#134E4A] text-white shadow-sm">
-                <BookOpenSvg size={24} />
+            {/* Paku sudut peta bintang */}
+            <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#FEF08A] border border-[#78350F]" />
+            <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FEF08A] border border-[#78350F]" />
+
+            <div className="relative z-10 flex items-center gap-3.5">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-[#312E81] border-2 border-[#FEF08A] text-[#FEF08A] shadow-sm text-2xl">
+                🔭
               </div>
-              <div>
-                <p className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-[#0284C7]">
-                  <SparklesSvg size={12} /> Fitur Baru
-                </p>
-                <h4 className="font-display font-black text-[16px] text-[#134E4A]">
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-[#FEF08A]">
+                  <SparklesSvg size={11} /> Peta Rahasia Bintang
+                </span>
+                <h3 className="font-display font-black text-base sm:text-xl text-white leading-tight">
                   Galaksi Juz 'Amma
-                </h4>
-                <p className="text-[10px] font-semibold text-[#134E4A]/70 leading-tight mt-0.5 max-w-[180px]">
-                  Hafalkan surat pendek dengan audio interaktif.
+                </h3>
+                <p className="text-xs font-semibold text-indigo-200/90 leading-tight mt-0.5 max-w-md">
+                  Jelajahi peta antariksa untuk menghafal surat-surat pendek dengan audio interaktif!
                 </p>
               </div>
             </div>
-            <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white border-2 border-[#134E4A] text-[#134E4A] shadow-sm">
-              <PlaySvg size={16} />
-            </div>
-            <div className="absolute -right-2 -bottom-4 opacity-10 pointer-events-none">
-              <BookOpenSvg size={80} />
+
+            <div className="relative z-10 hidden xs:flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF08A] border-2 border-[#1E1B4B] text-[#1E1B4B] shadow-sm font-black text-xs">
+              <ArrowRightSvg size={16} />
             </div>
           </motion.div>
         </section>

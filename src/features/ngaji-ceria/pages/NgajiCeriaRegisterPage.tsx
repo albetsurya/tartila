@@ -278,7 +278,7 @@ export default function NgajiCeriaRegisterPage() {
                   id="ceria-referral-code"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  placeholder="Misal: TITO-ABCD"
+                  placeholder="Misal: TARTILA-ABCD"
                   maxLength={20}
                   autoCapitalize="characters"
                   spellCheck={false}

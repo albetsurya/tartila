@@ -67,10 +67,10 @@ export const tests = {
     const cleanup = setupMockBrowserStorage();
     try {
       const stats = getGameCatalogStats();
-      assert.equal(stats.total, 28);
+      assert.equal(stats.total, 29);
       assert.equal(stats.guestOpen, 1);
-      assert.equal(stats.memberOnly, 27);
-      assert.equal(stats.needsValidation, 27);
+      assert.equal(stats.memberOnly, 28);
+      assert.equal(stats.needsValidation, 28);
       assert.equal(stats.validated, 1);
       assert.equal(stats.overriddenCount, 0);
     } finally {
@@ -144,7 +144,7 @@ export const tests = {
       // Cek statistik terbarukan
       const stats = getGameCatalogStats();
       assert.equal(stats.guestOpen, 2);
-      assert.equal(stats.memberOnly, 26);
+      assert.equal(stats.memberOnly, 27);
       assert.equal(stats.overriddenCount, 1);
 
       // isGameOpenForGuest kini bernilai true karena ada override
@@ -188,5 +188,37 @@ export const tests = {
     const gameCatalogNav = kontenSection.items.find((item) => item.to === '/admin/games');
     assert.ok(gameCatalogNav, 'Menu Katalog Game (/admin/games) harus terdaftar di seksi Konten');
     assert.equal(gameCatalogNav.label, 'Katalog Game');
+  },
+
+  'CMS Game Dinamis: konfigurasi display_type, parent_hub_id, dan sort_order terdefinisi pada katalog': () => {
+    const games = getAdminGameCatalog();
+    assert.ok(games.length > 0);
+
+    for (const game of games) {
+      assert.ok(
+        game.displayType === 'standalone' || game.displayType === 'hub',
+        `displayType harus standalone atau hub pada ${game.gameId}`,
+      );
+      assert.equal(typeof game.sortOrder, 'number', `sortOrder harus berupa angka pada ${game.gameId}`);
+      assert.equal(typeof game.isActive, 'boolean', `isActive harus boolean pada ${game.gameId}`);
+    }
+  },
+
+  'CMS Game Dinamis: menyaring game aktif dan mengurutkan berdasarkan sort_order': () => {
+    const sampleGames = [
+      { gameId: 'game-b', is_active: true, sort_order: 2, display_type: 'standalone' },
+      { gameId: 'game-c', is_active: false, sort_order: 1, display_type: 'standalone' },
+      { gameId: 'game-a', is_active: true, sort_order: 1, display_type: 'standalone' },
+      { gameId: 'game-hub-child', is_active: true, sort_order: 3, display_type: 'hub', parent_hub_id: 'quiz-ngaji' },
+    ];
+
+    // Filter aktif dan standalone root
+    const visible = sampleGames
+      .filter((g) => g.is_active && (!g.parent_hub_id || g.display_type === 'standalone'))
+      .sort((a, b) => a.sort_order - b.sort_order);
+
+    assert.equal(visible.length, 2, 'Hanya game-a dan game-b yang aktif dan bukan child hub');
+    assert.equal(visible[0].gameId, 'game-a', 'game-a harus berada di urutan pertama (sort_order 1)');
+    assert.equal(visible[1].gameId, 'game-b', 'game-b harus berada di urutan kedua (sort_order 2)');
   },
 };

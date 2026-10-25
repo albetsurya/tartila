@@ -8,6 +8,35 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
+  /* Standard App Theme Variables (Neo-Brutalism Standard) */
+  --bg-app: #F0FDF4;
+  --bg-card: #FFFFFF;
+  --text-main: #134E4A;
+  --border-color: #134E4A;
+  --shadow-color: #134E4A;
+  --nav-bg: #FFFFFF;
+
+  /* Dynamic SVG Theming Variables (Neo-Brutalism) */
+  --svg-primary: #134E4A;    /* Warna outline/garis utama */
+  --svg-secondary: #0D9488;  /* Warna aksen */
+  --svg-accent: #FEF08A;     /* Warna kuning/cerah */
+  --svg-bg-element: #FFFFFF; /* Warna isi (fill) dasar */
+
+  /* Aliases for backwards compatibility */
+  --app-bg: var(--bg-app);
+  --app-text: var(--text-main);
+  --card-bg: var(--bg-card);
+  --card-border: var(--border-color);
+  --card-shadow: var(--shadow-color);
+  --btn-primary-bg: #0D9488;
+
+  /* Fallback aliases if any leftover styles reference game vars */
+  --game-bg: var(--bg-app);
+  --game-card-bg: var(--bg-card);
+  --game-text: var(--text-main);
+  --game-border: var(--border-color);
+  --game-shadow: var(--shadow-color);
+
   /* Neutral surfaces */
   --c-bg: 240 253 244; /* #F0FDF4 — emerald oasis */
   --c-card: 255 255 255; /* #FFFFFF */
@@ -44,6 +73,19 @@
 }
 
 .dark {
+  /* Standard App Theme Variables (Dark Mode Default) */
+  --bg-app: #1E1B4B;
+  --bg-card: #312E81;
+  --text-main: #F8FAFC;
+  --border-color: #FDE047;
+  --shadow-color: #0F172A;
+  --nav-bg: #0F172A;
+
+  --svg-primary: #F8FAFC;    /* Garis jadi putih/terang */
+  --svg-secondary: #38BDF8;  /* Aksen jadi biru neon */
+  --svg-accent: #FDE047;     /* Kuning tetap terang */
+  --svg-bg-element: #1E293B; /* Isi jadi abu-abu gelap */
+
   --c-bg: 6 32 30;
   --c-card: 13 47 45;
   --c-card2: 10 39 37;
@@ -76,7 +118,44 @@
 /* ============================================================
    App Themes (Runtime Palette Overrides)
    ============================================================ */
-:root[data-app-theme="sky"], body[data-app-theme="sky"] {
+:root[data-app-theme="default"], body[data-app-theme="default"], [data-app-theme="default"] {
+  --bg-app: #F0FDF4;
+  --bg-card: #FFFFFF;
+  --text-main: #134E4A;
+  --border-color: #134E4A;
+  --shadow-color: #134E4A;
+  --nav-bg: #FFFFFF;
+
+  --svg-primary: #134E4A;
+  --svg-secondary: #0D9488;
+  --svg-accent: #FEF08A;
+  --svg-bg-element: #FFFFFF;
+
+  --app-bg: #F0FDF4;
+  --app-text: #134E4A;
+  --card-bg: #FFFFFF;
+  --card-border: #134E4A;
+  --card-shadow: #134E4A;
+}
+
+:root[data-app-theme="sky"], body[data-app-theme="sky"], [data-app-theme="sky"] {
+  --bg-app: #F0F9FF;
+  --bg-card: #FFFFFF;
+  --text-main: #0C4A60;
+  --border-color: #0369A1;
+  --shadow-color: #0284C7;
+  --nav-bg: #FFFFFF;
+
+  --svg-primary: #0C4A60;
+  --svg-secondary: #0284C7;
+  --svg-accent: #BAE6FD;
+  --svg-bg-element: #FFFFFF;
+
+  --app-bg: #F0F9FF;
+  --app-text: #0C4A60;
+  --card-bg: #FFFFFF;
+  --card-border: #0369A1;
+  --card-shadow: #0284C7;
   --c-bg: 240 249 255; /* #F0F9FF */
   --c-card2: 224 242 254; /* #E0F2FE */
   --c-border: 186 230 253; /* #BAE6FD */
@@ -86,7 +165,24 @@
   --c-accent-light: 224 242 254; /* #E0F2FE */
 }
 
-:root[data-app-theme="rose"], body[data-app-theme="rose"] {
+:root[data-app-theme="rose"], body[data-app-theme="rose"], [data-app-theme="rose"] {
+  --bg-app: #FFF1F2;
+  --bg-card: #FFFFFF;
+  --text-main: #881337;
+  --border-color: #BE123C;
+  --shadow-color: #E11D48;
+  --nav-bg: #FFFFFF;
+
+  --svg-primary: #881337;
+  --svg-secondary: #E11D48;
+  --svg-accent: #FECDD3;
+  --svg-bg-element: #FFFFFF;
+
+  --app-bg: #FFF1F2;
+  --app-text: #881337;
+  --card-bg: #FFFFFF;
+  --card-border: #BE123C;
+  --card-shadow: #E11D48;
   --c-bg: 255 241 242; /* #FFF1F2 */
   --c-card2: 255 228 230; /* #FFE4E6 */
   --c-border: 254 205 211; /* #FECDD3 */
@@ -96,17 +192,53 @@
   --c-accent-light: 255 228 230; /* #FFE4E6 */
 }
 
-:root[data-app-theme="night"], body[data-app-theme="night"] {
-  --c-bg: 241 245 249; /* #F1F5F9 */
-  --c-card2: 226 232 240; /* #E2E8F0 */
-  --c-border: 203 213 225; /* #CBD5E1 */
-  --c-text: 30 41 59; /* #1E293B */
-  --c-accent: 79 70 229; /* #4F46E5 */
-  --c-accent-dark: 67 56 202; /* #4338CA */
-  --c-accent-light: 224 231 255; /* #E0E7FF */
+:root[data-app-theme="night"], body[data-app-theme="night"], [data-app-theme="night"] {
+  --bg-app: #1E1B4B; /* Dark indigo */
+  --bg-card: #312E81;
+  --text-main: #F8FAFC;
+  --border-color: #FDE047; /* Kuning terang agar border tetap kontras */
+  --shadow-color: #FDE047;
+  --nav-bg: #0F172A;
+
+  --svg-primary: #F8FAFC;    /* Garis jadi putih/terang */
+  --svg-secondary: #38BDF8;  /* Aksen jadi biru neon */
+  --svg-accent: #FDE047;     /* Kuning tetap terang */
+  --svg-bg-element: #1E293B; /* Isi jadi abu-abu gelap */
+
+  --app-bg: #1E1B4B;
+  --app-text: #F8FAFC;
+  --card-bg: #312E81;
+  --card-border: #FDE047;
+  --card-shadow: #FDE047;
+  --c-bg: 30 27 75; /* #1E1B4B */
+  --c-card: 49 46 129; /* #312E81 */
+  --c-card2: 67 56 202; /* #4338CA */
+  --c-border: 253 224 71; /* #FDE047 */
+  --c-text: 248 250 252; /* #F8FAFC */
+  --c-accent: 253 224 71; /* #FDE047 */
+  --c-accent-dark: 234 179 8; /* #EAB308 */
+  --c-accent-light: 49 46 129; /* #312E81 */
+  color-scheme: dark;
 }
 
-:root[data-app-theme="gold"], body[data-app-theme="gold"] {
+:root[data-app-theme="gold"], body[data-app-theme="gold"], [data-app-theme="gold"] {
+  --bg-app: #FEFCE8;
+  --bg-card: #FFFFFF;
+  --text-main: #713F12;
+  --border-color: #A16207;
+  --shadow-color: #CA8A04;
+  --nav-bg: #FFFFFF;
+
+  --svg-primary: #713F12;
+  --svg-secondary: #CA8A04;
+  --svg-accent: #FEF08A;
+  --svg-bg-element: #FFFFFF;
+
+  --app-bg: #FEFCE8;
+  --app-text: #713F12;
+  --card-bg: #FFFFFF;
+  --card-border: #A16207;
+  --card-shadow: #CA8A04;
   --c-bg: 254 252 232; /* #FEFCE8 */
   --c-card2: 254 249 195; /* #FEF9C3 */
   --c-border: 253 230 138; /* #FDE68A */
@@ -116,10 +248,284 @@
   --c-accent-light: 254 240 138; /* #FEF08A */
 }
 
+:root[data-app-theme="neon"], body[data-app-theme="neon"], [data-app-theme="neon"] {
+  --bg-app: #111827;
+  --bg-card: #1F2937;
+  --text-main: #38BDF8;
+  --border-color: #38BDF8;
+  --shadow-color: #0EA5E9;
+  --nav-bg: #111827;
+
+  --svg-primary: #F8FAFC;
+  --svg-secondary: #38BDF8;
+  --svg-accent: #0EA5E9;
+  --svg-bg-element: #1F2937;
+
+  --app-bg: #111827;
+  --app-text: #38BDF8;
+  --card-bg: #1F2937;
+  --card-border: #38BDF8;
+  --card-shadow: #0EA5E9;
+  --c-bg: 17 24 39;
+  --c-card: 31 41 55;
+  --c-card2: 55 65 81;
+  --c-border: 56 189 248;
+  --c-text: 56 189 248;
+  --c-accent: 56 189 248;
+  --c-accent-dark: 14 165 233;
+  --c-accent-light: 31 41 55;
+  color-scheme: dark;
+}
+
+:root[data-app-theme="retro"], body[data-app-theme="retro"], [data-app-theme="retro"] {
+  --bg-app: #FFFBEB;
+  --bg-card: #FEF3C7;
+  --text-main: #B45309;
+  --border-color: #B45309;
+  --shadow-color: #92400E;
+  --nav-bg: #FEF3C7;
+
+  --svg-primary: #B45309;
+  --svg-secondary: #D97706;
+  --svg-accent: #FEF08A;
+  --svg-bg-element: #FEF3C7;
+
+  --app-bg: #FFFBEB;
+  --app-text: #B45309;
+  --card-bg: #FEF3C7;
+  --card-border: #B45309;
+  --card-shadow: #92400E;
+  --c-bg: 255 251 235;
+  --c-card: 254 243 199;
+  --c-card2: 253 230 138;
+  --c-border: 180 83 9;
+  --c-text: 180 83 9;
+  --c-accent: 180 83 9;
+  --c-accent-dark: 146 64 14;
+  --c-accent-light: 254 243 199;
+}
+
+:root[data-app-theme="pastel"], body[data-app-theme="pastel"], [data-app-theme="pastel"] {
+  --bg-app: #FCE7F3;
+  --bg-card: #FFFFFF;
+  --text-main: #EC4899;
+  --border-color: #EC4899;
+  --shadow-color: #BE185D;
+  --nav-bg: #FFFFFF;
+
+  --svg-primary: #EC4899;
+  --svg-secondary: #F472B6;
+  --svg-accent: #FCE7F3;
+  --svg-bg-element: #FFFFFF;
+
+  --app-bg: #FCE7F3;
+  --app-text: #EC4899;
+  --card-bg: #FFFFFF;
+  --card-border: #EC4899;
+  --card-shadow: #BE185D;
+  --card-shadow: #BE185D;
+  --c-bg: 252 231 243;
+  --c-card: 255 255 255;
+  --c-card2: 251 207 232;
+  --c-border: 236 72 153;
+  --c-text: 236 72 153;
+  --c-accent: 236 72 153;
+  --c-accent-dark: 190 24 93;
+  --c-accent-light: 252 231 243;
+}
+
 /* ------------------------------------------------------------
-   Tailwind v4 design tokens
+   Tailwind v4 design tokens & Scoped Immersive Theming
    ------------------------------------------------------------ */
+@custom-variant dark (&:where([data-app-theme="night"], [data-app-theme="night"] *, [data-app-theme="neon"], [data-app-theme="neon"] *, .dark, .dark *):not(.theme-isolated, .theme-isolated *));
+
+/* ============================================================
+   Immersive Scoped Theming (Explore Realms Isolation)
+   ============================================================ */
+[data-theme-scope="immersive"],
+[data-theme-scope="tahfidz"],
+[data-theme-scope="tajwid"],
+[data-theme-scope="doa"],
+[data-theme-scope="tilawati"],
+[data-theme-scope="juz-amma"],
+[data-theme-scope="arena-kartu"],
+[data-theme-scope="jurnal-ibadah"],
+[data-theme-scope="lab-irama"] {
+  --bg-app: var(--realm-bg-app, var(--app-bg));
+  --bg-card: var(--realm-bg-card, var(--card-bg));
+  --text-main: var(--realm-text-main, var(--app-text));
+  --border-color: var(--realm-border-color, var(--card-border));
+  --shadow-color: var(--realm-shadow-color, var(--card-shadow));
+  --nav-bg: var(--realm-nav-bg, var(--bg-card));
+  --svg-primary: var(--realm-svg-primary, #134E4A);
+  --svg-secondary: var(--realm-svg-secondary, #0D9488);
+  --svg-accent: var(--realm-svg-accent, #FEF08A);
+  --svg-bg-element: var(--realm-svg-bg-element, #FFFFFF);
+}
+
+/* Realm Presets */
+[data-realm="juz-amma"],
+[data-theme-scope="juz-amma"] {
+  --bg-app: #1E1B4B;
+  --bg-card: #312E81;
+  --text-main: #FEF08A;
+  --border-color: #FEF08A;
+  --shadow-color: #134E4A;
+  --nav-bg: #1E1B4B;
+  --realm-bg-app: #1E1B4B;
+  --realm-bg-card: #312E81;
+  --realm-text-main: #FEF08A;
+  --realm-border-color: #FEF08A;
+  --realm-shadow-color: #134E4A;
+  --realm-nav-bg: #1E1B4B;
+  --realm-svg-primary: #FEF08A;
+  --realm-svg-secondary: #38BDF8;
+  --realm-svg-accent: #FDE047;
+  --realm-svg-bg-element: #312E81;
+}
+
+[data-realm="tajwid"],
+[data-theme-scope="tajwid"] {
+  --bg-app: #FEF9C3;
+  --bg-card: #FFFFFF;
+  --text-main: #854D0E;
+  --border-color: #CA8A04;
+  --shadow-color: #78350F;
+  --nav-bg: #FEF9C3;
+  --realm-bg-app: #FEF9C3;
+  --realm-bg-card: #FFFFFF;
+  --realm-text-main: #854D0E;
+  --realm-border-color: #CA8A04;
+  --realm-shadow-color: #78350F;
+  --realm-nav-bg: #FEF9C3;
+  --realm-svg-primary: #854D0E;
+  --realm-svg-secondary: #B45309;
+  --realm-svg-accent: #FEF08A;
+  --realm-svg-bg-element: #FFFFFF;
+}
+
+[data-realm="doa"],
+[data-theme-scope="doa"] {
+  --bg-app: #FFFBEB;
+  --bg-card: #FEF3C7;
+  --text-main: #78350F;
+  --border-color: #B45309;
+  --shadow-color: #451A03;
+  --nav-bg: #7C2D12;
+  --realm-bg-app: #FFFBEB;
+  --realm-bg-card: #FEF3C7;
+  --realm-text-main: #78350F;
+  --realm-border-color: #B45309;
+  --realm-shadow-color: #451A03;
+  --realm-nav-bg: #7C2D12;
+  --realm-svg-primary: #FDE68A;
+  --realm-svg-secondary: #F59E0B;
+  --realm-svg-accent: #FEF08A;
+  --realm-svg-bg-element: #7C2D12;
+}
+
+[data-realm="tahfidz"],
+[data-theme-scope="tahfidz"] {
+  --bg-app: #042F2E;
+  --bg-card: #065F46;
+  --text-main: #F0FDF4;
+  --border-color: #FDE047;
+  --shadow-color: #02201F;
+  --nav-bg: #042F2E;
+  --realm-bg-app: #042F2E;
+  --realm-bg-card: #065F46;
+  --realm-text-main: #F0FDF4;
+  --realm-border-color: #FDE047;
+  --realm-shadow-color: #02201F;
+  --realm-nav-bg: #042F2E;
+  --realm-svg-primary: #FEF08A;
+  --realm-svg-secondary: #2DD4BF;
+  --realm-svg-accent: #FDE047;
+  --realm-svg-bg-element: #065F46;
+}
+
+[data-realm="arena-kartu"],
+[data-theme-scope="arena-kartu"] {
+  --bg-app: #065F46;
+  --bg-card: #FEF3C7;
+  --text-main: #7C2D12;
+  --border-color: #B45309;
+  --shadow-color: #78350F;
+  --nav-bg: #065F46;
+  --realm-bg-app: #065F46;
+  --realm-bg-card: #FEF3C7;
+  --realm-text-main: #7C2D12;
+  --realm-border-color: #B45309;
+  --realm-shadow-color: #78350F;
+  --realm-nav-bg: #065F46;
+  --realm-svg-primary: #134E4A;
+  --realm-svg-secondary: #0D9488;
+  --realm-svg-accent: #FEF08A;
+  --realm-svg-bg-element: #FFFFFF;
+}
+
+[data-realm="tilawati"],
+[data-theme-scope="tilawati"] {
+  --bg-app: #E0F2FE;
+  --bg-card: #FFFFFF;
+  --text-main: #0369A1;
+  --border-color: #0284C7;
+  --shadow-color: #0369A1;
+  --nav-bg: #E0F2FE;
+  --realm-bg-app: #E0F2FE;
+  --realm-bg-card: #FFFFFF;
+  --realm-text-main: #0369A1;
+  --realm-border-color: #0284C7;
+  --realm-shadow-color: #0369A1;
+  --realm-nav-bg: #E0F2FE;
+  --realm-svg-primary: #0369A1;
+  --realm-svg-secondary: #0284C7;
+  --realm-svg-accent: #FEF08A;
+  --realm-svg-bg-element: #FFFFFF;
+}
+
+[data-realm="jurnal-ibadah"],
+[data-theme-scope="jurnal-ibadah"] {
+  --bg-app: #D1FAE5;
+  --bg-card: #FFFFFF;
+  --text-main: #065F46;
+  --border-color: #059669;
+  --shadow-color: #047857;
+  --nav-bg: #D1FAE5;
+  --realm-bg-app: #D1FAE5;
+  --realm-bg-card: #FFFFFF;
+  --realm-text-main: #065F46;
+  --realm-border-color: #059669;
+  --realm-shadow-color: #047857;
+  --realm-nav-bg: #D1FAE5;
+  --realm-svg-primary: #059669;
+  --realm-svg-secondary: #10B981;
+  --realm-svg-accent: #FEF08A;
+  --realm-svg-bg-element: #FFFFFF;
+}
+
+[data-realm="lab-irama"],
+[data-theme-scope="lab-irama"] {
+  --bg-app: #111827;
+  --bg-card: #1F2937;
+  --text-main: #F8FAFC;
+  --border-color: #F59E0B;
+  --shadow-color: #F59E0B;
+  --nav-bg: #111827;
+  --realm-bg-app: #111827;
+  --realm-bg-card: #1F2937;
+  --realm-text-main: #F8FAFC;
+  --realm-border-color: #F59E0B;
+  --realm-shadow-color: #F59E0B;
+  --realm-nav-bg: #111827;
+  --realm-svg-primary: #F59E0B;
+  --realm-svg-secondary: #FBBF24;
+  --realm-svg-accent: #FEF08A;
+  --realm-svg-bg-element: #1F2937;
+}
+
 @theme inline {
+  --color-surface-bg: rgb(var(--c-bg));
   --color-surface-bg: rgb(var(--c-bg));
   --color-surface-card: rgb(var(--c-card));
   --color-surface-card2: rgb(var(--c-card2));

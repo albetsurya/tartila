@@ -74,15 +74,15 @@ const ACCESSORIES: AccessoryConfig[] = [
   },
   {
     id: "peci",
-    name: "Peci Santri",
-    desc: "Songkok hitam berhias sulam emas khas santri cilik.",
+    name: "Sacred Cap",
+    desc: "Songkok hitam berhias sulam emas khas santri berjiwa luhur.",
     category: "boy",
     image: NGAJI_CERIA_ASSETS.peci,
     price: 200,
   },
   {
     id: "hairbow",
-    name: "Pita Rambut",
+    name: "Grace Ribbon",
     desc: "Pita cantik berwarna merah muda yang manis dan anggun.",
     category: "girl",
     iconComponent: HairbowSvg,
@@ -90,7 +90,7 @@ const ACCESSORIES: AccessoryConfig[] = [
   },
   {
     id: "flowercrown",
-    name: "Mahkota Bunga",
+    name: "Floral Crown",
     desc: "Karangan bunga aneka warna yang segar, ceria, dan mempesona.",
     category: "girl",
     iconComponent: Crown,
@@ -98,7 +98,7 @@ const ACCESSORIES: AccessoryConfig[] = [
   },
   {
     id: "glasses",
-    name: "Kacamata Pintar",
+    name: "Smart Glasses",
     desc: "Kacamata bulat stylish pembawa semangat belajar tekun.",
     category: "all",
     iconComponent: Glasses,
@@ -106,7 +106,7 @@ const ACCESSORIES: AccessoryConfig[] = [
   },
   {
     id: "crown",
-    name: "Mahkota Juara",
+    name: "Champion's Crown",
     desc: "Mahkota emas gemerlap tanda santri istiqomah berprestasi.",
     category: "all",
     image: NGAJI_CERIA_ASSETS.mahkotaVip,
@@ -1188,13 +1188,13 @@ export default function KamarTilaPage() {
 
   return (
     <div className="min-h-screen bg-[#FFFDF0] flex flex-col justify-between overflow-x-hidden">
-      <header className="relative z-30 px-4 pt-4 pb-2 flex items-center justify-between">
+      <header className="sticky top-0 z-40 pt-safe px-4 py-3 flex items-center justify-between bg-[#FFFDF0]/95 backdrop-blur-md border-b-2 border-[#134E4A]/10 shadow-sm">
         <button
           type="button"
           onClick={() => navigate("/member/ngaji-ceria/profile")}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-2xl border-[3px] border-[#134E4A] bg-white font-black text-xs text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+          className="flex h-10 min-h-[40px] items-center gap-1.5 px-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-white font-black text-xs text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={18} />
           <span>Kembali</span>
         </button>
 
@@ -1483,32 +1483,32 @@ export default function KamarTilaPage() {
                 return (
                   <div
                     key={item.id}
-                    className={`snap-start shrink-0 w-[136px] rounded-2xl border-[3px] p-3 text-center flex flex-col items-center justify-between transition-all relative ${
+                    className={`snap-start shrink-0 w-[140px] rounded-2xl border-[3px] p-3 text-center flex flex-col items-center justify-between transition-all relative ${
                       isEquipped
-                        ? "border-[#134E4A] bg-[#FEF08A]/30 shadow-[3px_3px_0px_#134E4A]"
+                        ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] ring-2 ring-emerald-500"
                         : isOwned
-                        ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
-                        : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-60 grayscale"
+                        ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                        : "border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)]/50 opacity-60 grayscale"
                     }`}
                   >
                     <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border ${item.badgeBg}`}>
-                        {item.badgeText || item.rarity}
+                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border uppercase tracking-wider ${item.badgeBg}`}>
+                        {item.rarity || item.badgeText}
                       </span>
                       {item.exclusiveGender === "boy" && (
-                        <span className="text-[7.5px] font-black px-1 py-0.5 rounded bg-[#0D9488] text-white border border-[#134E4A]">
+                        <span className="text-[7.5px] font-black px-1 py-0.5 rounded bg-[#0D9488] text-white border border-[var(--border-color,#134E4A)]">
                           Khusus Tito
                         </span>
                       )}
                       {item.exclusiveGender === "girl" && (
-                        <span className="text-[7.5px] font-black px-1 py-0.5 rounded bg-[#FF6B6B] text-white border border-[#134E4A]">
+                        <span className="text-[7.5px] font-black px-1 py-0.5 rounded bg-[#FF6B6B] text-white border border-[var(--border-color,#134E4A)]">
                           Khusus Tila
                         </span>
                       )}
                     </div>
 
-                    <div className="h-12 w-12 flex items-center justify-center mb-1 mt-2 rounded-xl border-2 border-[#134E4A]/20 bg-[#FFFDF0] relative overflow-hidden shadow-inner">
-                      <div className="transform scale-[0.4] translate-y-1">
+                    <div className="h-16 w-16 flex items-center justify-center mb-1 mt-3 rounded-xl border-2 border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-app,#F0FDF4)] relative overflow-hidden shadow-inner">
+                      <div className="transform scale-[0.55] translate-y-1">
                         <TilaMascot
                           size={95}
                           skin={item.skinKey}
@@ -1519,16 +1519,16 @@ export default function KamarTilaPage() {
                       </div>
                     </div>
 
-                    <p className="text-[11px] font-black text-[#134E4A] truncate w-full mb-0.5">
+                    <p className="text-[11px] font-black text-[var(--text-main,#134E4A)] truncate w-full mb-0.5">
                       {item.name}
                     </p>
 
-                    <span className="text-[9px] font-bold text-gray-500 mb-1.5 truncate w-full">
+                    <span className="text-[9px] font-bold text-[var(--text-main,#134E4A)]/70 mb-1.5 truncate w-full">
                       {item.effect}
                     </span>
 
                     {isEquipped ? (
-                      <span className="flex items-center justify-center gap-1 w-full py-1.5 rounded-xl bg-[#134E4A] text-white text-[10px] font-black tracking-wide border border-[#134E4A]">
+                      <span className="flex items-center justify-center gap-1 w-full py-1.5 rounded-xl bg-[#134E4A] text-white text-[10px] font-black tracking-wide border border-[var(--border-color,#134E4A)]">
                         <Check size={10} /> Sedang Dipakai
                       </span>
                     ) : isOwned ? (
@@ -1539,9 +1539,9 @@ export default function KamarTilaPage() {
                           equipSkin(item.id);
                           triggerTilaReaction("success");
                           setPreviewMood("excited");
-                          triggerDialogue(`Keren! Sekarang aku memakai wujud ${item.name}!`);
+                          triggerDialogue(`Keren! Sekarang aku memakai skin ${item.name}!`);
                         }}
-                        className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                        className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                       >
                         Pakai
                       </button>
@@ -1549,7 +1549,7 @@ export default function KamarTilaPage() {
                       <button
                         type="button"
                         onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=skin")}
-                        className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                        className="w-full py-1.5 rounded-xl bg-[#FEF3C7] dark:bg-[#78350F]/60 text-[#B45309] dark:text-[#FDE047] text-[10px] font-black tracking-wide border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Lock size={10} className="shrink-0" />
                         <span>Beli di Warung</span>

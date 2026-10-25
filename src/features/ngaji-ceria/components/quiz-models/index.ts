@@ -5,4 +5,6 @@ export * from "./ModelFillInTheBlank";
 export * from "./ModelMultipleChoiceText";
 export * from "./ModelMultipleChoiceAudio";
 export * from "./ModelAudioMatching";
+export * from "./ModelArrangeLetters";
+export * from "./ModelWordScramble";
 export * from "./ModelMaterialCard";

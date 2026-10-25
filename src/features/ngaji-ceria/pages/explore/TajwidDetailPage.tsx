@@ -2,6 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ThemedHeader } from "../../components/ThemedHeader";
 import {
   ArrowRight,
   ChevronLeft,
@@ -164,41 +165,67 @@ export default function TajwidDetailPage() {
     toggle(url);
   };
 
+  const handleBack = () => {
+    navigate("/member/ngaji-ceria/explore/tajwid");
+  };
+
   return (
     <NgajiCeriaLayout
-      title="Detail Tajwid"
-      onBack={() => navigate("/member/ngaji-ceria/explore/tajwid")}
+      title={rule.title}
+      hideHeader={true}
+      themeScope="tajwid"
+      onBack={handleBack}
     >
-      <div className="min-h-full bg-[#F0FDF4] pb-32">
-        <div className="px-4 py-4 space-y-4">
-          {/* 1. Header Banner (Sticker Style) */}
-          <section className="relative overflow-hidden rounded-[24px] bg-[#134E4A] p-5 text-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#15803D]">
-            <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full border-[6px] border-white/5" />
-            <div className="absolute right-4 top-4 text-[#86EFAC] rotate-12 opacity-80">
+      <ThemedHeader
+        title={rule.title}
+        onBack={handleBack}
+        themeColorClass="bg-[#FDE68A] border-b-[3px] border-[#B45309]"
+        textColorClass="text-[#854D0E]"
+        statVariant="stamp"
+        statBgClass="bg-[#FEF9C3]"
+        statTextClass="text-[#854D0E]"
+        backClass="bg-[#EAB308] text-[#78350F] border-2 border-[#B45309] shadow-[2px_2px_0px_#B45309]"
+      />
+      <div className="min-h-full bg-[#FEF9C3] relative pb-32">
+        {/* Pola kertas buku tulis manila */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, #B4530915, #B4530915 1px, transparent 1px, transparent 28px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+
+        <div className="relative z-10 px-4 py-4 space-y-4">
+          {/* 1. Header Banner: Folder Berkas Manila */}
+          <section className="relative overflow-hidden rounded-[24px] bg-[#FDE68A] p-5 text-[#78350F] border-[3px] border-[#B45309] shadow-[4px_4px_0px_#B45309]">
+            <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full border-[6px] border-[#B45309]/10" />
+            <div className="absolute right-4 top-4 text-[#B45309] rotate-12 opacity-80">
               <Key size={44} />
             </div>
 
             <div className="relative z-10 max-w-[80%]">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#86EFAC] border border-[#86EFAC]/30 mb-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF3C7] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#B45309] border border-[#B45309]/30 mb-2">
                 <Sparkles size={12} /> {rule.kaidah}
               </span>
-              <h1 className="font-display text-2xl font-black leading-tight text-white">
+              <h1 className="font-display text-2xl font-black leading-tight text-[#78350F]">
                 {rule.title}
               </h1>
-              <p className="mt-1 text-xs font-semibold text-white/80">
+              <p className="mt-1 text-xs font-semibold text-[#92400E]">
                 {rule.subtitle || "Hukum Nun Mati, Tanwin & Ghunnah"}
               </p>
             </div>
           </section>
 
-          {/* 2. Kartu Contoh Bacaan & Karaoke (Sticker Style) */}
-          <section className="rounded-[28px] border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A] space-y-4">
+          {/* 2. Kartu Contoh Bacaan & Karaoke (Kertas Putih Manila) */}
+          <section className="rounded-[28px] border-[3px] border-[#B45309] bg-white p-5 shadow-[4px_4px_0px_#B45309] space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <span className="inline-block rounded-md bg-[#0284C7]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-[#0284C7] border border-[#0284C7]/20">
                   Latihan Interaktif
                 </span>
-                <h3 className="font-display font-black text-lg text-[#134E4A] mt-0.5">
+                <h3 className="font-display font-black text-lg text-[#78350F] mt-0.5">
                   Contoh Bacaan ({rule.examples?.length || 5} Ayat)
                 </h3>
               </div>
@@ -207,7 +234,7 @@ export default function TajwidDetailPage() {
                 <button
                   type="button"
                   onClick={() => handlePlayExample(firstExample.audioUrl)}
-                  className="flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#0284C7] px-3.5 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all"
+                  className="flex items-center gap-1.5 rounded-xl border-2 border-[#B45309] bg-[#0284C7] px-3.5 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#B45309] active:translate-y-[1px] active:shadow-none transition-all"
                 >
                   {isActive(firstExample.audioUrl) ? (
                     <Pause size={13} />
@@ -231,15 +258,15 @@ export default function TajwidDetailPage() {
                   <motion.div
                     key={i}
                     layout
-                    className={`rounded-2xl border-[3px] border-[#134E4A] p-4 transition-all ${
+                    className={`rounded-2xl border-[3px] p-4 transition-all ${
                       isExActive
-                        ? "bg-[#F0F9FF] shadow-[4px_4px_0px_#0284C7] ring-2 ring-[#0284C7]/20"
-                        : "bg-[#FAFAFA] shadow-[3px_3px_0px_#134E4A]"
+                        ? "bg-[#F0F9FF] border-[#0284C7] shadow-[4px_4px_0px_#0284C7] ring-2 ring-[#0284C7]/20"
+                        : "bg-[#FEF9C3]/50 border-[#B45309] shadow-[3px_3px_0px_#B45309]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] font-display text-xs font-black text-[#134E4A] shadow-sm">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border-2 border-[#B45309] bg-[#FDE68A] font-display text-xs font-black text-[#854D0E] shadow-sm">
                           {ex.number || `0${i + 1}`}
                         </span>
                         {isExActive && (
@@ -253,10 +280,10 @@ export default function TajwidDetailPage() {
                         type="button"
                         onClick={() => handlePlayExample(ex.audioUrl)}
                         aria-label={`Putar contoh ${ex.number || i + 1}`}
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all ${
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 shadow-[2px_2px_0px_#B45309] active:translate-y-[1px] active:shadow-none transition-all ${
                           isExActive
-                            ? "bg-[#0284C7] text-white"
-                            : "bg-white text-[#134E4A] hover:bg-[#E0F2FE]"
+                            ? "bg-[#0284C7] text-white border-[#0284C7]"
+                            : "bg-white text-[#854D0E] border-[#B45309] hover:bg-[#FEF9C3]"
                         }`}
                       >
                         {isExActive ? <Pause size={14} /> : <Play size={14} />}
@@ -266,7 +293,7 @@ export default function TajwidDetailPage() {
                     {/* Teks Arab dengan sinkronisasi karaoke */}
                     <div className="py-2">
                       <p
-                        className={`font-arabic text-right text-[#134E4A] ${
+                        className={`font-arabic text-right text-[#78350F] ${
                           isExActive
                             ? "text-[24px] sm:text-[28px] leading-[2.4]"
                             : "text-[28px] sm:text-[32px] leading-relaxed"
@@ -285,7 +312,7 @@ export default function TajwidDetailPage() {
 
                     {/* Petunjuk tajwid saat tidak aktif */}
                     {!isExActive && (
-                      <div className="flex items-center justify-between border-t border-[#134E4A]/10 pt-2 text-[11px] font-bold text-[#134E4A]/60">
+                      <div className="flex items-center justify-between border-t border-[#B45309]/15 pt-2 text-[11px] font-bold text-[#854D0E]/80">
                         <span>Sorotan tajwid: <span className="text-[#0284C7] font-black">{ex.highlight}</span></span>
                         <span className="text-[10px] text-[#0284C7]">Klik dengar untuk 1 ayat penuh</span>
                       </div>
@@ -296,33 +323,33 @@ export default function TajwidDetailPage() {
             </div>
           </section>
 
-          {/* 3. Kotak Cara Baca (Sticker Style) */}
-          <section className="flex items-center gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] p-3.5 shadow-[3px_3px_0px_#134E4A]">
-            <span className="rounded-xl border-2 border-[#134E4A] bg-[#0284C7] px-3 py-1.5 text-[10px] font-black uppercase text-white shadow-sm whitespace-nowrap">
+          {/* 3. Kotak Cara Baca: Folder Manila */}
+          <section className="flex items-center gap-3 rounded-2xl border-[3px] border-[#B45309] bg-[#FDE68A] p-3.5 shadow-[3px_3px_0px_#B45309]">
+            <span className="rounded-xl border-2 border-[#0284C7] bg-[#0284C7] px-3 py-1.5 text-[10px] font-black uppercase text-white shadow-sm whitespace-nowrap">
               CARA BACA
             </span>
-            <p className="flex-1 text-xs font-black text-[#134E4A] italic leading-snug">
+            <p className="flex-1 text-xs font-black text-[#78350F] italic leading-snug">
               "{rule.caraBaca || "Jelas dan tenang tanpa dengung"}"
             </p>
-            <ChartLine size={18} className="text-[#0284C7] mr-1 shrink-0" />
+            <ChartLine size={18} className="text-[#B45309] mr-1 shrink-0" />
           </section>
 
-          {/* 4. Kotak Ingat Kaidahnya (Sticker Style) */}
-          <section className="rounded-[24px] border-[3px] border-[#134E4A] bg-[#FEF3C7] p-4 shadow-[4px_4px_0px_#134E4A]">
+          {/* 4. Kotak Ingat Kaidahnya: Kertas Post-it Manila */}
+          <section className="rounded-[24px] border-[3px] border-[#B45309] bg-[#FEF3C7] p-4 shadow-[4px_4px_0px_#B45309]">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-sm">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border-2 border-[#B45309] bg-white shadow-sm">
                 <Info size={16} className="text-[#0284C7]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#B45309] mb-1">
                   INGAT KAIDAHNYA
                 </p>
-                <p className="text-xs font-bold text-[#134E4A] leading-relaxed mb-3">
+                <p className="text-xs font-bold text-[#78350F] leading-relaxed mb-3">
                   {rule.note}
                 </p>
-                <div className="rounded-xl border-2 border-[#134E4A] bg-white p-2.5 text-center shadow-sm">
+                <div className="rounded-xl border-2 border-[#B45309] bg-white p-2.5 text-center shadow-sm">
                   <p
-                    className="font-arabic text-[26px] font-bold text-[#134E4A]"
+                    className="font-arabic text-[26px] font-bold text-[#78350F]"
                     dir="rtl"
                   >
                     {rule.huruf || "(ء ه ع ح غ خ)"}
@@ -334,20 +361,20 @@ export default function TajwidDetailPage() {
         </div>
       </div>
 
-      {/* 5. Tombol Navigasi Bawah Fixed (Sticker Style) */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 border-t-[3px] border-[#134E4A] flex gap-3 z-50 shadow-lg">
+      {/* 5. Tombol Navigasi Bawah Fixed Manila */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#FEF9C3]/95 border-t-[3px] border-[#B45309] flex gap-3 z-50 shadow-lg">
         <button
           type="button"
           onClick={handlePrev}
           aria-label="Kaidah sebelumnya"
-          className="flex h-12 w-12 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-white text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
+          className="flex h-12 w-12 items-center justify-center rounded-xl border-[3px] border-[#B45309] bg-white text-[#78350F] shadow-[3px_3px_0px_#B45309] active:translate-y-[2px] active:shadow-none transition-all"
         >
           <ChevronLeft size={20} />
         </button>
         <button
           type="button"
           onClick={handleNext}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl border-[3px] border-[#134E4A] bg-[#134E4A] text-white font-display text-sm font-black py-3 px-6 shadow-[3px_3px_0px_#0284C7] active:translate-y-[2px] active:shadow-none transition-all hover:bg-[#0f3f3c]"
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl border-[3px] border-[#B45309] bg-[#B45309] text-white font-display text-sm font-black py-3 px-6 shadow-[3px_3px_0px_#78350F] active:translate-y-[2px] active:shadow-none transition-all hover:bg-[#92400E]"
         >
           {index < total - 1 ? "Materi Berikutnya" : "Kembali ke Lab Tajwid"}
           <ArrowRight size={16} />

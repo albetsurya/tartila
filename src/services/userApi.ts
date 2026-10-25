@@ -7,6 +7,12 @@ export interface UserProfileResponse {
   user?: any;
   profile?: any;
   mascot_gender?: "boy" | "girl" | string;
+  coins?: number;
+  current_streak?: number;
+  login_streak?: number;
+  daily_claimed?: boolean;
+  last_daily_claim_date?: string | null;
+  last_claim_date?: string | null;
   [key: string]: any;
 }
 
@@ -21,16 +27,21 @@ export interface ClaimDailyRewardResponse {
   claimed: boolean;
   coinsAwarded: number;
   totalCoins: number;
+  coins?: number;
   streak: number;
+  loginStreak?: number;
   date: string;
+  lastClaimDate?: string;
   message?: string;
 }
 
 export interface DailyRewardStatusResponse {
   claimedToday: boolean;
   lastDailyClaimDate?: string;
+  lastClaimDate?: string;
   todayDate: string;
   currentStreak: number;
+  loginStreak?: number;
   coins: number;
 }
 

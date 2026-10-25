@@ -13,6 +13,7 @@ import {
   MASCOT_NAME,
 } from '../src/constants/mascot.ts';
 import { SKIN_ITEMS } from '../src/features/ngaji-ceria/data/shopData.ts';
+import { isTilaCompanionExcluded } from '../src/components/ui/TilaCompanion.tsx';
 
 export const tests = {
   'konstanta nama maskot resmi': () => {
@@ -90,7 +91,7 @@ export const tests = {
   },
 
   'katalog skin maskot memuat skin default, naga, robot, dan 3 varian phoenix': () => {
-    assert.equal(SKIN_ITEMS.length, 6);
+    assert.equal(SKIN_ITEMS.length, 16);
     const naga = SKIN_ITEMS.find((s) => s.skinKey === 'naga');
     const robot = SKIN_ITEMS.find((s) => s.skinKey === 'robot');
     const def = SKIN_ITEMS.find((s) => s.skinKey === 'default');
@@ -99,12 +100,14 @@ export const tests = {
     const phoenixDark = SKIN_ITEMS.find((s) => s.skinKey === 'phoenix_dark');
 
     assert.ok(naga, 'skin naga harus terdefinisi');
+    assert.equal(naga.name, 'Inferno Dragon');
     assert.equal(naga.price, 800);
     assert.equal(naga.previewColors.body, '#059669');
     assert.equal(naga.previewColors.accent, '#FBBF24');
     assert.equal(naga.previewColors.belly, '#FDE68A');
 
     assert.ok(robot, 'skin robot harus terdefinisi');
+    assert.equal(robot.name, 'Cyber Vanguard');
     assert.equal(robot.price, 800);
     assert.equal(robot.previewColors.body, '#94A3B8');
     assert.equal(robot.previewColors.accent, '#06B6D4');
@@ -114,6 +117,7 @@ export const tests = {
     assert.equal(def.price, 0);
 
     assert.ok(phoenixIce, 'skin phoenix ice harus terdefinisi');
+    assert.equal(phoenixIce.name, 'Frost Phoenix');
     assert.equal(phoenixIce.price, 1500);
     assert.equal(phoenixIce.currency, 'coin');
     assert.equal(phoenixIce.rarity, 'Legendary');
@@ -121,6 +125,7 @@ export const tests = {
     assert.equal(phoenixIce.previewColors.accent, '#F8FAFC');
 
     assert.ok(phoenixGold, 'skin phoenix gold harus terdefinisi');
+    assert.equal(phoenixGold.name, 'Celestial Phoenix');
     assert.equal(phoenixGold.price, 50);
     assert.equal(phoenixGold.currency, 'ticket');
     assert.equal(phoenixGold.rarity, 'Mythic');
@@ -128,10 +133,64 @@ export const tests = {
     assert.equal(phoenixGold.previewColors.accent, '#D97706');
 
     assert.ok(phoenixDark, 'skin phoenix dark harus terdefinisi');
+    assert.equal(phoenixDark.name, 'Abyssal Phoenix');
     assert.equal(phoenixDark.price, 2000);
     assert.equal(phoenixDark.currency, 'coin');
     assert.equal(phoenixDark.rarity, 'Legendary');
     assert.equal(phoenixDark.previewColors.body, '#4C1D95');
     assert.equal(phoenixDark.previewColors.accent, '#111827');
+
+    const expectedEpicSkins: Record<string, string> = {
+      santri_teladan: 'Sacred Novice',
+      penjaga_hutan: 'Emerald Ranger',
+      ninja_bayangan: 'Shadow Assassin',
+      ksatria_baja: 'Iron Paladin',
+      sultan_arabia: 'Desert Sultan',
+      penjelajah_angkasa: 'Cosmic Voyager',
+      raja_samudra: 'Abyssal Lord',
+      api_membara: 'Blazing Inferno',
+      pelangi_kristal: 'Prismatic Gem',
+      malaikat_cahaya: 'Seraphim Light',
+    };
+
+    for (const [skinKey, expectedName] of Object.entries(expectedEpicSkins)) {
+      const skin = SKIN_ITEMS.find((s) => s.skinKey === skinKey);
+      assert.ok(skin, `skin ${skinKey} harus terdefinisi`);
+      assert.equal(skin.name, expectedName, `nama skin ${skinKey} harus ${expectedName}`);
+    }
+  },
+
+  'isTilaCompanionExcluded: memastikan maskot muncul di halaman umum dan hanya sembunyi di rute khusus': () => {
+    // Halaman umum: Maskot HARUS muncul (returns false)
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria'), false, 'Beranda');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/'), false, 'Beranda trailing slash');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/map'), false, 'Jelajah / Peta');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/profile'), false, 'Profil');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/games'), false, 'Game Hub / Daftar Game');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/games/'), false, 'Game Hub trailing slash');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/explore/tilawati'), false, 'Katalog Tilawati');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/explore/tilawati/1'), false, 'Peta Tilawati Jilid 1');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/explore/doa'), false, 'Gudang Doa');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/explore/tajwid'), false, 'Lab Tajwid');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/explore/juz-amma'), false, 'Galaksi Juz Amma');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/explore/tahfidz'), false, 'Taman Tahfidz');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/quiz'), false, 'Daftar Kuis');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/leaderboard'), false, 'Papan Peringkat');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/arena-kartu'), false, 'Papan Progres Arena Kartu');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/arena-kartu/1'), false, 'Papan Progres Arena Kartu Jilid 1');
+
+    // Rute terisolasi: Maskot HARUS disembunyikan (returns true)
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/kamar-tila'), true, 'Kamar Tila');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/kamar-tito'), true, 'Kamar Tito');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/kamar-bibi'), true, 'Kamar Bibi');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/games/hijaiyah-pop'), true, 'Hijaiyah Pop');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/games/harakat-rush'), true, 'Harakat Rush');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/quiz/play'), true, 'Quiz Play');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/arena-kartu/1/practice/j1-c1'), true, 'Latihan Kartu Practice');
+    assert.equal(isTilaCompanionExcluded('/member/ngaji-ceria/lab-irama'), true, 'Lab Irama');
+    assert.equal(isTilaCompanionExcluded('/admin'), true, 'Admin Panel');
+    assert.equal(isTilaCompanionExcluded('/admin/users'), true, 'Admin Users');
+    assert.equal(isTilaCompanionExcluded('/ustadz'), true, 'Ustadz Panel');
+    assert.equal(isTilaCompanionExcluded('/ustadz/kurikulum'), true, 'Ustadz Kurikulum');
   },
 };

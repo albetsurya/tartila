@@ -15,6 +15,9 @@ export const EVENT_GAME_CATALOG_UPDATED = "tartila:game-catalog-updated";
 export interface BackendGameConfig {
   game_id: string;
   is_active: boolean;
+  display_type?: "standalone" | "hub";
+  parent_hub_id?: string | null;
+  sort_order?: number;
   updated_at?: string;
 }
 
@@ -34,6 +37,9 @@ export type GameOverridesMap = Record<string, GameCatalogOverride>;
 
 export interface AdminGameCatalogEntry extends GameCatalogEntry {
   isActive: boolean;
+  displayType: "standalone" | "hub";
+  parentHubId?: string | null;
+  sortOrder: number;
   isOverridden?: boolean;
   updatedAt?: string;
   routeAliases?: readonly string[];
@@ -74,24 +80,64 @@ export async function fetchAdminGames(): Promise<BackendGameConfig[]> {
   }
 }
 
+/** Update game display and active configuration in Go Backend via PATCH /api/admin/games/:game_id */
+export async function patchAdminGameConfig(
+  gameId: string,
+  updates: Partial<BackendGameConfig>,
+): Promise<BackendGameConfig> {
+  const payload: Partial<BackendGameConfig> = {};
+  if (updates.is_active !== undefined) payload.is_active = updates.is_active;
+  if (updates.display_type !== undefined) payload.display_type = updates.display_type;
+  if (updates.parent_hub_id !== undefined) payload.parent_hub_id = updates.parent_hub_id;
+  if (updates.sort_order !== undefined) payload.sort_order = updates.sort_order;
+
+  let res: BackendGameConfig;
+  try {
+    res = await callREST<BackendGameConfig>(
+      "PATCH",
+      `/api/admin/games/${encodeURIComponent(gameId)}`,
+      payload,
+    );
+  } catch {
+    res = await callREST<BackendGameConfig>(
+      "PATCH",
+      `/api/v1/admin/games/${encodeURIComponent(gameId)}`,
+      payload,
+    );
+  }
+
+  const existing = cachedConfigs.get(gameId);
+  const merged: BackendGameConfig = {
+    game_id: gameId,
+    is_active: res?.is_active ?? updates.is_active ?? existing?.is_active ?? true,
+    display_type: res?.display_type ?? updates.display_type ?? existing?.display_type ?? "standalone",
+    parent_hub_id:
+      res?.parent_hub_id !== undefined
+        ? res.parent_hub_id
+        : updates.parent_hub_id !== undefined
+        ? updates.parent_hub_id
+        : existing?.parent_hub_id ?? null,
+    sort_order: res?.sort_order ?? updates.sort_order ?? existing?.sort_order ?? 0,
+    updated_at: res?.updated_at ?? new Date().toISOString(),
+  };
+
+  cachedConfigs.set(gameId, merged);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(EVENT_GAME_CATALOG_UPDATED, {
+        detail: { gameId, config: merged },
+      }),
+    );
+  }
+  return merged;
+}
+
 /** Update game active status in Go Backend via PATCH /api/admin/games/:game_id */
 export async function patchAdminGameStatus(
   gameId: string,
   isActive: boolean,
 ): Promise<BackendGameConfig> {
-  try {
-    return await callREST<BackendGameConfig>(
-      "PATCH",
-      `/api/admin/games/${encodeURIComponent(gameId)}`,
-      { is_active: isActive },
-    );
-  } catch {
-    return await callREST<BackendGameConfig>(
-      "PATCH",
-      `/api/v1/admin/games/${encodeURIComponent(gameId)}`,
-      { is_active: isActive },
-    );
-  }
+  return patchAdminGameConfig(gameId, { is_active: isActive });
 }
 
 /** Membaca seluruh map override in-memory */
@@ -101,14 +147,24 @@ export function getGameOverrides(): GameOverridesMap {
 
 /** Mengambil katalog game gabungan (data dasar + status Go Backend + kustomisasi in-memory) */
 export function getAdminGameCatalog(): AdminGameCatalogEntry[] {
-  return GAME_CATALOG.map((base) => {
-    const backendConfig = cachedConfigs.get(base.gameId);
+  const entries = GAME_CATALOG.map((base) => {
+    const backendConfig =
+      cachedConfigs.get(base.gameId) ||
+      (base.routeAliases &&
+        base.routeAliases.map((a) => cachedConfigs.get(a)).find(Boolean));
     const override = inMemoryOverrides[base.gameId];
     const isActive = backendConfig ? backendConfig.is_active : true;
+    const displayType =
+      (backendConfig?.display_type as "standalone" | "hub") || "standalone";
+    const parentHubId = backendConfig?.parent_hub_id || null;
+    const sortOrder = backendConfig?.sort_order ?? 0;
 
     return {
       ...base,
       isActive,
+      displayType,
+      parentHubId,
+      sortOrder,
       title: override?.title ?? base.title,
       access: override?.access ?? base.access,
       needsContentValidation:
@@ -120,10 +176,16 @@ export function getAdminGameCatalog(): AdminGameCatalogEntry[] {
       tipsUstadz: override?.tipsUstadz ? [...override.tipsUstadz] : base.tipsUstadz,
       materiPokok: override?.materiPokok ? [...override.materiPokok] : base.materiPokok,
       jilidRelevan: override?.jilidRelevan ? [...override.jilidRelevan] : base.jilidRelevan,
-      isOverridden: !isActive || Boolean(override),
+      isOverridden:
+        !isActive ||
+        Boolean(override) ||
+        displayType !== "standalone" ||
+        sortOrder !== 0,
       updatedAt: backendConfig?.updated_at ?? override?.updatedAt,
     };
   });
+
+  return entries.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 }
 
 /** Mengambil satu entri game berdasarkan gameId */
@@ -350,6 +412,41 @@ export function useAdminGameCatalog() {
     setGames(getAdminGameCatalog());
   };
 
+  const updateGameConfig = async (
+    gameId: string,
+    updates: Partial<BackendGameConfig>,
+  ): Promise<BackendGameConfig> => {
+    setGames((prev) =>
+      prev.map((g) => {
+        if (g.gameId !== gameId) return g;
+        return {
+          ...g,
+          isActive: updates.is_active !== undefined ? updates.is_active : g.isActive,
+          displayType:
+            updates.display_type !== undefined
+              ? updates.display_type
+              : g.displayType,
+          parentHubId:
+            updates.parent_hub_id !== undefined
+              ? updates.parent_hub_id
+              : g.parentHubId,
+          sortOrder:
+            updates.sort_order !== undefined ? updates.sort_order : g.sortOrder,
+          updatedAt: new Date().toISOString(),
+        };
+      }),
+    );
+
+    try {
+      const updated = await patchAdminGameConfig(gameId, updates);
+      setGames(getAdminGameCatalog());
+      return updated;
+    } catch (err) {
+      setGames(getAdminGameCatalog());
+      throw err;
+    }
+  };
+
   const resetGame = (gameId: string) => {
     resetGameOverride(gameId);
     setGames(getAdminGameCatalog());
@@ -366,6 +463,7 @@ export function useAdminGameCatalog() {
     loading,
     error,
     toggleActive,
+    updateGameConfig,
     toggleAccess,
     toggleValidation,
     updateGame,

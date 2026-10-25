@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
-import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
 import {
@@ -14,18 +13,21 @@ import { ModalPanel } from "./games/_shared/ModalPanel";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
-import { Avatar } from "../../../components/ui/Avatar";
 import { AvatarWithBadge } from "../../../components/ui/AvatarWithBadge";
 import { normalizeGender } from "../../../utils/format";
-import { useEconomyStore, isUnlimitedUser, type TilaGender } from "../hooks/useEconomyStore";
+import {
+  useEconomyStore,
+  isUnlimitedUser,
+  type TilaGender,
+} from "../hooks/useEconomyStore";
 import { VoucherRedeemModal } from "../components/VoucherRedeemModal";
 import { AppThemeSettingsModal } from "../components/AppThemeSettingsModal";
 import { ReferralSection } from "../components/ReferralSection";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import "./games/_shared/games.css";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { getMascotName } from "@/utils/mascotHelper";
 import { isAdminRole, classroomRoleForUser } from "@/lib/roles";
-import { useAudioStore } from "@/hooks/useAudioStore";
 import { stopAllAudio } from "../utils/audioPlayer";
 
 import {
@@ -45,16 +47,13 @@ import {
   LogOutSvg,
   ShieldSvg,
   TrashSvg,
-  UserSvg,
   EyeSvg,
   EyeSlashSvg,
   Volume2Svg,
-  type SvgProps,
+  StoreSvg,
+  TrophySvg,
+  UsersSvg,
 } from "@/components/ui/CustomIcons";
-
-/* ============================================================================
- * MAIN COMPONENT
- * ============================================================================ */
 
 const TOTAL_STARS = 654;
 
@@ -76,6 +75,8 @@ export default function NgajiCeriaProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { currentStreak } = useNgajiCeriaStreak();
+  const loginStreak = useEconomyStore((s) => s.loginStreak);
+  const effectiveStreak = Math.max(loginStreak, currentStreak);
   const progress = useNgajiProgress();
   const rank = getRank(progress.xp);
   const { currentJilid } = useNgajiCeriaProgress();
@@ -88,8 +89,6 @@ export default function NgajiCeriaProfilePage() {
   const mascotName = getMascotName(tilaGender);
 
   const showMascot = useEconomyStore((s) => s.showMascot);
-  const useModifiedAudio = useAudioStore((s) => s.useModifiedAudio);
-  const toggleModifiedAudio = useAudioStore((s) => s.toggleModifiedAudio);
   const setShowMascot = useEconomyStore((s) => s.setShowMascot);
 
   const hearts = useEconomyStore((s) => s.hearts);
@@ -192,10 +191,24 @@ export default function NgajiCeriaProfilePage() {
     setActiveModal(null);
   };
 
-  const settingsItems = [
+  // Settings Items for the unified card list
+  const settingsList = [
+    {
+      key: "mascot-toggle",
+      icon: showMascot ? EyeSvg : EyeSlashSvg,
+      iconBg: "bg-[#FEF08A]",
+      title: "Tampilkan Maskot",
+      subtitle: showMascot
+        ? `${mascotName} menemani belajar`
+        : "Maskot disembunyikan",
+      isToggle: true,
+      toggleValue: showMascot,
+      onToggle: () => setShowMascot(!showMascot),
+    },
     {
       key: "theme",
       icon: SparklesSvg,
+      iconBg: "bg-[#FCE7F3]",
       title: "Pengaturan Tampilan",
       subtitle: "Ubah tema & warna aplikasi Tartila",
       action: () => setIsThemeModalOpen(true),
@@ -203,13 +216,15 @@ export default function NgajiCeriaProfilePage() {
     {
       key: "voucher",
       icon: TicketSvg,
+      iconBg: "bg-[#FEF08A]",
       title: "Tukar Voucher VIP",
-      subtitle: "Aktivasi atau perpanjang VIP santri",
+      subtitle: "Aktivasi atau perpanjang lisensi VIP",
       action: () => setIsVoucherModalOpen(true),
     },
     {
       key: "password",
       icon: KeyRoundSvg,
+      iconBg: "bg-[#BAE6FD]",
       title: "Ganti Kata Sandi",
       subtitle: "Perbarui keamanan akunmu",
       action: () => openModal("password"),
@@ -217,27 +232,29 @@ export default function NgajiCeriaProfilePage() {
     {
       key: "history",
       icon: ClipboardListSvg,
+      iconBg: "bg-[#E9D5FF]",
       title: "Riwayat & Laporan",
-      subtitle: "Lihat progress dan capaianmu",
+      subtitle: "Lihat progres belajar dan setoran",
       action: () => navigate("/member/ngaji-ceria/profile/history"),
     },
     {
       key: "feedback",
       icon: SparklesSvg,
+      iconBg: "bg-[#FECDD3]",
       title: "Kritik & Saran",
-      subtitle: "Bantu kami jadi lebih baik",
+      subtitle: "Bantu kami mengembangkan Tartila",
       action: () => openModal("feedback"),
     },
     {
       key: "install",
       icon: DownloadSvg,
+      iconBg: "bg-[#BBF7D0]",
       title: "Install Aplikasi",
-      subtitle: "Pasang di layar utama",
+      subtitle: "Pasang shortcut di layar utama",
       action: () => openModal("install"),
     },
   ];
 
-  // Style Constants (Sticker Style)
   const inputStyle =
     "w-full rounded-xl border-[3px] border-[#134E4A] bg-white px-4 py-3 text-sm font-bold text-[#134E4A] placeholder:text-[#134E4A]/40 focus:outline-none focus:border-[#0D9488] shadow-[2px_2px_0px_#134E4A] focus:shadow-[2px_2px_0px_#0D9488] transition-all";
   const btnCancelStyle =
@@ -249,105 +266,50 @@ export default function NgajiCeriaProfilePage() {
 
   return (
     <NgajiCeriaLayout hideHeader>
-      <div className="min-h-full bg-[#F0FDF4] pb-24">
-        {/* Header dengan Ilustrasi Stiker */}
-        <header className="rounded-b-[32px] bg-[#134E4A] px-5 pb-16 pt-safe text-white relative overflow-hidden border-b-[3px] border-[#134E4A]">
-          {/* LAYER ILUSTRASI */}
-          <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-            {/* Ilustrasi Bulan & Bintang (Kanan Atas) */}
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="absolute -right-6 -top-6 h-44 w-44"
-            >
-              <svg
-                viewBox="0 0 100 100"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M70 10 A 40 40 0 1 0 90 70 A 30 30 0 1 1 70 10 Z"
-                  fill="#FF6B6B"
-                  stroke="#F0FDF4"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M80 20 L82 25 L87 27 L82 29 L80 34 L78 29 L73 27 L78 25 Z"
-                  fill="#F0FDF4"
-                />
-                <circle cx="65" cy="15" r="2.5" fill="#F0FDF4" />
-                <circle cx="85" cy="40" r="2" fill="#F0FDF4" />
-                <circle cx="55" cy="30" r="1.5" fill="#F0FDF4" opacity="0.6" />
-              </svg>
-            </motion.div>
-
-            {/* Ilustrasi Buku/Pola (Kiri Bawah) */}
-            <div className="absolute -left-4 bottom-2 h-28 w-28 opacity-40 rotate-12">
-              <svg
-                viewBox="0 0 100 100"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="20"
-                  y="20"
-                  width="60"
-                  height="70"
-                  rx="8"
-                  fill="#F0FDF4"
-                  stroke="#0D9488"
-                  strokeWidth="3"
-                />
-                <rect x="30" y="20" width="10" height="70" fill="#0D9488" />
-                <path
-                  d="M45 40 L70 40 M45 55 L70 55 M45 70 L60 70"
-                  stroke="#134E4A"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
+      <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] pb-24 transition-colors duration-200">
+        {/* 1. Header Banner Profil */}
+        <header className="rounded-b-[28px] bg-[#134E4A] px-5 pb-12 pt-safe text-white relative overflow-hidden border-b-[3px] border-[var(--border-color,#134E4A)]">
+          <div className="pt-4 relative z-10 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF6B6B]">
+                Ruang Santri
+              </span>
+              <h1 className="font-display text-xl font-black">
+                Profil Belajarku
+              </h1>
             </div>
-            <div className="absolute left-1/2 top-0 bottom-0 w-px border-l-2 border-dashed border-[#F0FDF4]/10" />
-          </div>
-
-          <div className="pt-6 relative z-10">
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF6B6B]">
-              Ruang Santri
-            </span>
-            <h1 className="mt-1 font-display text-2xl font-black">
-              Profil Belajarku
-            </h1>
-            <p className="text-xs font-medium text-white/70 mt-2 max-w-[180px] leading-relaxed">
-              Teruslah belajar dan raih bintang sebanyak mungkin!
-            </p>
+            <div className="rounded-xl border-2 border-white/20 bg-white/10 px-2.5 py-1 text-right">
+              <p className="text-[9px] font-black uppercase tracking-wider text-white/70">
+                Streak
+              </p>
+              <p className="text-xs font-black text-[#FBBF24]">
+                🔥 {effectiveStreak} Hari
+              </p>
+            </div>
           </div>
         </header>
 
-        <div className="space-y-5 px-4">
-          {/* Avatar Card - Satu-satunya tempat edit profil */}
-          <section className="-mt-10 relative z-20 rounded-[24px] border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A]">
-            <div className="flex items-start gap-3">
+        <div className="space-y-4 px-4">
+          {/* 1. Avatar Card */}
+          <section className="-mt-8 relative z-20 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3.5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
+            <div className="flex items-center gap-3">
               <AvatarWithBadge
                 src={user?.photo_url}
                 name={displayName}
-                size={72}
+                size={58}
                 shape="circle"
                 role={user?.role}
                 groupId={user?.group_id}
                 gender={normalizeGender(user?.gender)}
-                borderClassName="border-[3px] border-[#FF6B6B] bg-white"
+                borderClassName="border-2 border-[#FF6B6B] bg-white"
               />
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-lg font-black text-[#134E4A]">
-                  {displayName}
-                </h2>
-                <p className="truncate text-xs font-bold text-[#134E4A]/60 mt-0.5">
-                  {email}
-                </p>
-                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h2 className="truncate text-base font-black text-[var(--text-main,#134E4A)]">
+                    {displayName}
+                  </h2>
                   <span
-                    className={`inline-block rounded-md px-2 py-0.5 text-[9px] font-black tracking-wider text-white border-2 border-[#134E4A] ${
+                    className={`inline-block rounded-md px-1.5 py-0.5 text-[8px] font-black tracking-wider text-white border border-[#134E4A] ${
                       isSuperAdmin
                         ? "bg-[#FF6B6B]"
                         : isVip
@@ -362,375 +324,413 @@ export default function NgajiCeriaProfilePage() {
                         : "SANTRI AKTIF"}
                   </span>
                   {isUnlimited && (
-                    <span className="inline-block rounded-md bg-[#FEF08A] text-[#134E4A] px-1.5 py-0.5 text-[9px] font-black border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
+                    <span className="inline-block rounded-md bg-[#FEF08A] text-[#134E4A] px-1 py-0.5 text-[8px] font-black border border-[#134E4A]">
                       ∞ UNLIMITED
                     </span>
                   )}
                 </div>
+                <p className="truncate text-[11px] font-bold text-[var(--text-main,#134E4A)]/60 mt-0.5">
+                  {email}
+                </p>
               </div>
               <button
+                type="button"
                 onClick={() => openModal("edit")}
-                className="shrink-0 rounded-xl p-2 bg-[#F0FDF4] border-2 border-[#134E4A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
+                className="shrink-0 rounded-xl p-2 bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                title="Edit Profil"
               >
-                <PencilSvg size={18} />
+                <PencilSvg size={16} />
               </button>
             </div>
           </section>
 
-          {/* Statistics Cards */}
-          <section className="grid grid-cols-3 gap-3">
-            <div className="rounded-2xl border-[2px] border-[#134E4A] bg-white p-3 text-center shadow-[2px_2px_0px_#134E4A]">
-              <GraduationCapSvg size={26} className="mx-auto" />
-              <p className="mt-1 text-[11px] font-black text-[#134E4A]">
-                Level
-              </p>
-              <p className="text-[10px] font-bold text-[#134E4A]/60 tracking-wide">
-                Tilawati {currentJilidNumber}
-              </p>
-            </div>
-            <div className="rounded-2xl border-[2px] border-[#134E4A] bg-white p-3 text-center shadow-[2px_2px_0px_#134E4A]">
-              <StarSvg size={26} className="mx-auto" />
-              <p className="mt-1 text-[11px] font-black text-[#134E4A]">
-                Bintang
-              </p>
-              <p className="text-[10px] font-bold text-[#134E4A]/60 tracking-wide">
-                {earnedStars}/{TOTAL_STARS}
-              </p>
-            </div>
-            <div className="rounded-2xl border-[2px] border-[#134E4A] bg-white p-3 text-center shadow-[2px_2px_0px_#134E4A]">
-              <CoinsSvg size={26} className="mx-auto" />
-              <p className="mt-1 text-[11px] font-black text-[#134E4A]">
-                Koin
-              </p>
-              <p className="text-[10px] font-bold text-[#134E4A]/60 tracking-wide">
-                {progress.coins || 0}
-              </p>
-            </div>
-          </section>
-
-          {/* Kuota Energi (Hati & Tiket) */}
-          <section className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border-[2px] border-[#134E4A] bg-[#FFF1F2] p-3 flex items-center gap-3 shadow-[2px_2px_0px_#134E4A]">
-              <div className="p-2 rounded-xl bg-white border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] shrink-0">
-                <HeartSvg size={20} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase text-[#134E4A]/70">Kuota Hati</p>
-                <p className="text-base font-black text-[#134E4A] leading-tight truncate">
-                  {isUnlimited ? "∞ (Unlimited)" : `${hearts}/5`}
-                </p>
-              </div>
-            </div>
-            <div className="rounded-2xl border-[2px] border-[#134E4A] bg-[#FEF3C7] p-3 flex items-center gap-3 shadow-[2px_2px_0px_#134E4A]">
-              <div className="p-2 rounded-xl bg-white border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] shrink-0">
-                <TicketSvg size={20} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase text-[#134E4A]/70">Tiket Game</p>
-                <p className="text-base font-black text-[#134E4A] leading-tight truncate">
-                  {isUnlimited ? "∞ (Unlimited)" : `${tickets}/3`}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Tombol Tukar Voucher VIP */}
-          <section className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] p-3.5 shadow-[3px_3px_0px_#134E4A] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#134E4A] flex items-center justify-center shadow-[1px_1px_0px_#134E4A] shrink-0">
-                <TicketSvg size={22} />
-              </div>
-              <div className="min-w-0">
-                <p className="font-display font-black text-xs text-[#134E4A] uppercase tracking-wider">
-                  Voucher VIP Santri
-                </p>
-                <p className="text-[10px] font-bold text-[#134E4A]/70 truncate">
-                  {isVip ? "Perpanjang masa aktif VIP" : "Punya kode dari TPQ? Tukar di sini"}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsVoucherModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-[#0D9488] text-white font-black text-xs border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all hover:bg-[#0F766E] shrink-0"
-            >
-              Tukar Kode
-            </button>
-          </section>
-
-          {/* Section Ajak Teman (Referral) */}
-          <ReferralSection />
-
-          {/* Kamar Maskot - Eye-Catching Card */}
-          <section
-            onClick={() => navigate("/member/ngaji-ceria/kamar-tila")}
-            className="relative overflow-hidden cursor-pointer rounded-[24px] border-[3px] border-[#134E4A] bg-[#FEF08A] p-4 shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-between group"
-          >
-            {/* Dekorasi Latar */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/30 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#FF6B6B]/10 rounded-full blur-xl -ml-10 -mb-10 pointer-events-none" />
-
-            <div className="flex items-center gap-4 z-10">
-              <div className="w-16 h-16 rounded-2xl border-[3px] border-[#134E4A] bg-white flex items-center justify-center shadow-[2px_2px_0px_#134E4A] overflow-hidden shrink-0">
-                <div className="transform scale-[0.65] translate-y-2">
-                  <TilaMascot
-                    size={80}
-                    accessory={equippedAccessory as any}
-                    animation="bounce"
-                  />
-                </div>
-              </div>
+          {/* 2. Quick Stats: 1 Baris Horizontal Scrollable */}
+          <section className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {/* Level */}
+            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+              <GraduationCapSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
               <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-display text-lg font-black text-[#134E4A]">
+                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                  Level
+                </p>
+                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                  Tilawati {currentJilidNumber}
+                </p>
+              </div>
+            </div>
+
+            {/* Bintang */}
+            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+              <StarSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                  Bintang
+                </p>
+                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                  <AnimatedCounter value={earnedStars} />/{TOTAL_STARS}
+                </p>
+              </div>
+            </div>
+
+            {/* Koin */}
+            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+              <CoinsSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                  Koin
+                </p>
+                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                  <AnimatedCounter value={progress.coins || 0} />
+                </p>
+              </div>
+            </div>
+
+            {/* Kuota Hati */}
+            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+              <HeartSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                  Hati
+                </p>
+                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                  {isUnlimited ? "∞ (VIP)" : `${hearts}/5`}
+                </p>
+              </div>
+            </div>
+
+            {/* Tiket Game */}
+            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+              <TicketSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                  Tiket
+                </p>
+                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                  {isUnlimited ? "∞ (VIP)" : `${tickets}/3`}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 3. Menu Utama (Grid 2x2) */}
+          <section className="grid grid-cols-2 gap-3">
+            {/* Card 1: Kamar Maskot */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate("/member/ngaji-ceria/kamar-tila")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  navigate("/member/ngaji-ceria/kamar-tila");
+                }
+              }}
+              className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                  <div className="transform scale-[0.55] translate-y-1.5">
+                    <TilaMascot
+                      size={64}
+                      accessory={equippedAccessory as any}
+                      animation="bounce"
+                    />
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
                     Kamar {mascotName}
                   </h3>
-                  <span className="text-[9px] font-black uppercase tracking-wider bg-[#FF6B6B] text-white px-2 py-0.5 rounded-md border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
-                    Baru!
-                  </span>
+                  <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                    Skin &amp; Aksesoris
+                  </p>
                 </div>
-                <p className="text-[11px] font-bold text-[#134E4A]/70 max-w-[150px] leading-tight">
-                  Kustomisasi {mascotName} & koleksi aksesorismu!
-                </p>
               </div>
             </div>
 
-            <div className="z-10 bg-[#0D9488] text-white px-3 py-2 rounded-xl border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] font-black text-xs animate-bounce group-active:animate-none">
-              Masuk
+            {/* Card 2: Warung Santri */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate("/member/ngaji-ceria/warung-santri")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  navigate("/member/ngaji-ceria/warung-santri");
+                }
+              }}
+              className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#DCFCE7] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                  <StoreSvg size={20} className="text-[#166534] dark:text-[#4ade80]" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                    Warung Santri
+                  </h3>
+                  <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                    Beli Item &amp; Kostum
+                  </p>
+                </div>
+              </div>
             </div>
+
+            {/* Card 3: Panel Ustadz atau Kelas Saya */}
+            {classroomRole === "ustadz" || classroomRole === "monitor" ? (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/ustadz")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") navigate("/ustadz");
+                }}
+                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#ECFEFF] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                    <GraduationCapSvg size={20} className="text-[#0891B2] dark:text-[#38bdf8]" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                      Panel Ustadz
+                    </h3>
+                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                      Kelola Kelas &amp; Nilai
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/member/ngaji-ceria/kelas")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    navigate("/member/ngaji-ceria/kelas");
+                  }
+                }}
+                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#ECFEFF] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                    <UsersSvg size={20} className="text-[#0891B2] dark:text-[#38bdf8]" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                      Kelas Saya
+                    </h3>
+                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                      Gabung Kelas Ngaji
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Card 4: Panel Admin atau Leaderboard */}
+            {isSuperAdmin ? (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/admin")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") navigate("/admin");
+                }}
+                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FFE4E6] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                    <ShieldSvg size={20} className="text-[#E11D48]" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                      Panel Admin
+                    </h3>
+                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                      Kelola Aplikasi
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/member/ngaji-ceria/leaderboard")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    navigate("/member/ngaji-ceria/leaderboard");
+                  }
+                }}
+                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF3C7] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                    <TrophySvg size={20} className="text-[#D97706]" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                      Peringkat
+                    </h3>
+                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                      Leaderboard Santri
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
-          {/* Kelas - Gabung Panel Ustadz */}
-          {classroomRole === "ustadz" || classroomRole === "monitor" ? (
-            <section
-              onClick={() => navigate("/ustadz")}
-              className="cursor-pointer rounded-[24px] border-[3px] border-[#134E4A] bg-[#ECFEFF] p-4 shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-between group"
-            >
-              <div>
-                <h3 className="font-display text-lg font-black text-[#134E4A]">
-                  Panel Ustadz
-                </h3>
-                <p className="text-[11px] font-bold text-[#134E4A]/70 max-w-[150px] leading-tight">
-                  Kelola kelas ngaji santri dan anggotanya
-                </p>
-              </div>
-              <div className="bg-[#0D9488] text-white px-3 py-2 rounded-xl border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] font-black text-xs group-active:translate-y-[1px]">
-                Buka
-              </div>
-            </section>
-          ) : (
-            <section
-              onClick={() => navigate("/member/ngaji-ceria/kelas")}
-              className="cursor-pointer rounded-[24px] border-[3px] border-[#134E4A] bg-[#ECFEFF] p-4 shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-between group"
-            >
-              <div>
-                <h3 className="font-display text-lg font-black text-[#134E4A]">
-                  Kelas Saya
-                </h3>
-                <p className="text-[11px] font-bold text-[#134E4A]/70 max-w-[150px] leading-tight">
-                  Gabung kelas ngaji lewat kode ustadz
-                </p>
-              </div>
-              <div className="bg-[#0D9488] text-white px-3 py-2 rounded-xl border-[2px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] font-black text-xs group-active:translate-y-[1px]">
-                Buka
-              </div>
-            </section>
-          )}
+          {/* 4. Referral Card (Ringkas) */}
+          <ReferralSection />
 
-          {/* Lemari Lencana */}
-          <section className="rounded-[24px] border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display text-sm font-black text-[#134E4A]">
+          {/* Lemari Lencana (Ringkas & Horizontal) */}
+          <section className="rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3.5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-display text-xs font-black uppercase text-[var(--text-main,#134E4A)] tracking-wider">
                 Lemari Lencana
               </h3>
-              <span className="text-[9px] font-extrabold tracking-wide text-[#134E4A]/70 bg-[#F0FDF4] px-2 py-1 rounded-md border-2 border-[#134E4A]/20">
+              <span className="text-[10px] font-black text-[var(--text-main,#134E4A)]/70 bg-[#CCFBF1] dark:bg-[#1E293B] px-2 py-0.5 rounded-md border border-[var(--border-color,#134E4A)]/30">
                 {earned.size}/{Object.keys(ACHIEVEMENT_LABELS).length} Terbuka
               </span>
             </div>
-
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {Object.entries(ACHIEVEMENT_LABELS).map(([id, badge]) => {
                 const has = earned.has(id);
                 return (
                   <div
                     key={id}
-                    className={`snap-start shrink-0 w-[100px] rounded-xl border-[2px] p-2.5 text-center flex flex-col items-center justify-center transition-all ${
+                    title={badge.title}
+                    className={`shrink-0 flex items-center gap-1.5 rounded-xl border-2 px-2.5 py-1 text-xs font-black transition-all ${
                       has
-                        ? "border-[#134E4A] bg-[#FFF0F0] shadow-[2px_2px_0px_#134E4A]"
-                        : "border-gray-300 bg-gray-50 opacity-60"
+                        ? "border-[#134E4A] bg-[#FFF0F0] text-[#134E4A] shadow-[1px_1px_0px_#134E4A]"
+                        : "border-gray-200 bg-gray-50 text-gray-400 opacity-60"
                     }`}
                   >
-                    <div className="h-8 flex items-center justify-center mb-1">
-                      {has ? (
-                        id.startsWith("jilid-") ? (
-                          <GraduationCapSvg size={28} />
-                        ) : (
-                          <MedalSvg size={28} />
-                        )
+                    {has ? (
+                      id.startsWith("jilid-") ? (
+                        <GraduationCapSvg size={16} />
                       ) : (
-                        <LockSvg size={22} className="opacity-70" />
-                      )}
-                    </div>
-                    <p className="text-[9px] font-extrabold leading-tight text-[#134E4A] line-clamp-2">
+                        <MedalSvg size={16} />
+                      )
+                    ) : (
+                      <LockSvg size={14} />
+                    )}
+                    <span className="truncate max-w-[120px] text-[10px]">
                       {badge.title}
-                    </p>
+                    </span>
                   </div>
                 );
               })}
             </div>
           </section>
 
-          {/* Settings List */}
-          <section className="space-y-3">
-            <h3 className="font-display text-[11px] font-black uppercase tracking-widest text-[#134E4A]/60 px-1">
-              Pengaturan & Aktivitas
-            </h3>
-
-            {/* Toggle Tampilkan Maskot */}
-            <div
-              onClick={() => setShowMascot(!showMascot)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  setShowMascot(!showMascot);
-                }
-              }}
-              className="flex w-full items-center justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all text-left cursor-pointer select-none"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <span className="rounded-xl bg-[#F0FDF4] p-2 shrink-0 border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-                  {showMascot ? <EyeSvg size={20} /> : <EyeSlashSvg size={20} />}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <span className="block font-black text-sm text-[#134E4A]">
-                    Tampilkan Maskot
-                  </span>
-                  <span className="block truncate text-[10px] font-bold text-[#134E4A]/60 mt-0.5 tracking-wide">
-                    {showMascot
-                      ? `${mascotName} aktif menemani belajarmu`
-                      : "Maskot disembunyikan dari layar"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Neo-Brutalism Switch */}
-              <div
-                className={`relative w-12 h-7 rounded-full border-2 border-[#134E4A] p-0.5 transition-colors shadow-[2px_2px_0px_#134E4A] ${
-                  showMascot ? "bg-[#0D9488]" : "bg-gray-200"
-                }`}
-                aria-label="Toggle Tampilkan Maskot"
-              >
-                <div
-                  className={`w-5 h-5 rounded-full border-2 border-[#134E4A] transition-transform ${
-                    showMascot
-                      ? "translate-x-5 bg-[#FEF08A]"
-                      : "translate-x-0 bg-white"
-                  }`}
-                />
-              </div>
+          {/* 5. Pengaturan & Menu Terpadu (SATU Card List Besar - Neo-Brutalism Solid) */}
+          <section className="rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] overflow-hidden transition-colors duration-200">
+            <div className="bg-[#134E4A] px-4 py-2.5 text-white border-b-2 border-[var(--border-color,#134E4A)]">
+              <h3 className="font-display text-xs font-black uppercase tracking-wider">
+                Pengaturan &amp; Aktivitas
+              </h3>
             </div>
 
-            {/* Toggle Variasi Suara (Pitch & Reverb) */}
-            <div
-              onClick={() => {
-                toggleModifiedAudio();
-                stopAllAudio();
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  toggleModifiedAudio();
-                  stopAllAudio();
-                }
-              }}
-              className="flex w-full items-center justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all text-left cursor-pointer select-none"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <span className="rounded-xl bg-[#FEF3C7] p-2 shrink-0 border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-                  <Volume2Svg size={20} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <span className="block font-black text-sm text-[#134E4A]">
-                    Gunakan Variasi Suara (Pitch &amp; Reverb)
-                  </span>
-                  <span className="block truncate text-[10px] font-bold text-[#134E4A]/60 mt-0.5 tracking-wide">
-                    Nyalakan untuk mencegah hafalan trek audio.
-                  </span>
-                </div>
-              </div>
+            <div className="divide-y-2 divide-[var(--border-color,#134E4A)]/15">
+              {settingsList.map((item) => {
+                const Icon = item.icon;
 
-              {/* Neo-Brutalism Switch */}
-              <div
-                className={`relative w-12 h-7 rounded-full border-2 border-[#134E4A] p-0.5 transition-colors shadow-[2px_2px_0px_#134E4A] ${
-                  useModifiedAudio ? "bg-[#0D9488]" : "bg-gray-200"
-                }`}
-                aria-label="Toggle Variasi Suara"
-                role="switch"
-                aria-checked={useModifiedAudio}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full border-2 border-[#134E4A] transition-transform ${
-                    useModifiedAudio
-                      ? "translate-x-5 bg-[#FEF08A]"
-                      : "translate-x-0 bg-white"
-                  }`}
-                />
-              </div>
-            </div>
+                if (item.isToggle) {
+                  return (
+                    <div
+                      key={item.key}
+                      role="button"
+                      tabIndex={0}
+                      onClick={item.onToggle}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          item.onToggle();
+                        }
+                      }}
+                      className="flex w-full items-center justify-between p-3.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer select-none text-left"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] shrink-0`}
+                        >
+                          <Icon size={22} className="text-[#134E4A]" stroke="#134E4A" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="block font-black text-xs text-[var(--text-main,#134E4A)]">
+                            {item.title}
+                          </span>
+                          <span className="block truncate text-[10px] font-bold text-gray-500 dark:text-gray-400 mt-0.5">
+                            {item.subtitle}
+                          </span>
+                        </div>
+                      </div>
 
-            {settingsItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.key}
-                  onClick={item.action}
-                  className="flex w-full items-center justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all text-left"
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="rounded-xl bg-[#F0FDF4] p-2 shrink-0 border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-                      <Icon size={20} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <span className="block font-black text-sm text-[#134E4A]">
-                        {item.title}
-                      </span>
-                      <span className="block truncate text-[10px] font-bold text-[#134E4A]/60 mt-0.5 tracking-wide">
-                        {item.subtitle}
-                      </span>
+                      <div
+                        className={`relative w-11 h-6 rounded-full border-2 border-[var(--border-color,#134E4A)] p-0.5 transition-colors shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] ${
+                          item.toggleValue ? "bg-[#0D9488]" : "bg-gray-200 dark:bg-gray-700"
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full border border-[var(--border-color,#134E4A)] transition-transform ${
+                            item.toggleValue
+                              ? "translate-x-5 bg-[#FEF08A]"
+                              : "translate-x-0 bg-white"
+                          }`}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <ChevronRightSvg size={18} className="shrink-0 opacity-60" />
-                </button>
-              );
-            })}
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={item.action}
+                    className="flex w-full items-center justify-between p-3.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                      <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] shrink-0`}
+                      >
+                        <Icon size={22} className="text-[#134E4A]" stroke="#134E4A" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="block font-black text-xs text-[var(--text-main,#134E4A)]">
+                          {item.title}
+                        </span>
+                        <span className="block truncate text-[10px] font-bold text-gray-500 dark:text-gray-400 mt-0.5">
+                          {item.subtitle}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRightSvg
+                      size={18}
+                      className="shrink-0 text-[var(--text-main,#134E4A)]/60"
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </section>
 
-          {/* Danger Zone */}
-          <section className="pt-4 space-y-3">
-            {isAdminRole(user?.role) && (
-              <button
-                type="button"
-                onClick={() => navigate("/admin")}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] py-3.5 font-black text-sm text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all hover:bg-[#FDE047]"
-              >
-                <ShieldSvg size={20} />
-                Kembali ke Panel Admin
-              </button>
-            )}
-
+          {/* 6. Logout & Akun (Paling Bawah) */}
+          <section className="pt-2 space-y-2.5">
             {user ? (
               <button
+                type="button"
                 onClick={() => openModal("logout")}
                 disabled={loggingOut}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-white py-3.5 font-black text-sm text-[#FF6B6B] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#FF6B6B] hover:bg-[#fa5252] py-3.5 font-black text-sm text-white shadow-[3px_3px_0px_#134E4A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-60"
               >
-                <LogOutSvg size={20} />
-                Keluar dari Akun
+                <LogOutSvg size={18} />
+                <span>Keluar Akun</span>
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => navigate("/login")}
                 className="w-full rounded-2xl bg-[#0D9488] py-3.5 font-black text-sm text-white border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
               >
@@ -738,17 +738,19 @@ export default function NgajiCeriaProfilePage() {
               </button>
             )}
 
-            <button
-              onClick={() => openModal("delete")}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#FFF0F0] py-3.5 font-black text-sm text-[#FF6B6B] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
-            >
-              <TrashSvg size={20} />
-              Hapus Akun Saya
-            </button>
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => openModal("delete")}
+                className="text-[11px] font-bold text-[#FF6B6B] hover:underline"
+              >
+                Hapus Akun Saya
+              </button>
+            </div>
           </section>
 
-          <p className="pt-2 pb-6 text-center text-[10px] font-bold text-[#134E4A]/50 tracking-wider">
-            Streak {currentStreak} hari • Pangkat {rank.title}
+          <p className="pt-1 pb-4 text-center text-[10px] font-bold text-[#134E4A]/50 tracking-wider">
+            Streak {effectiveStreak} hari • Pangkat {rank.title}
           </p>
         </div>
       </div>
@@ -760,73 +762,77 @@ export default function NgajiCeriaProfilePage() {
           warm
           onClose={() => setActiveModal(null)}
         >
-          <div className="my-4 flex justify-center">
-            <AvatarWithBadge
-              src={user?.photo_url}
-              name={displayName}
-              size={88}
-              shape="circle"
-              role={user?.role}
-              groupId={user?.group_id}
-              gender={normalizeGender(user?.gender)}
-              borderClassName="border-[3px] border-[#FF6B6B] bg-white"
-            />
-          </div>
-          <label
-            className="block text-left text-xs font-black text-[#134E4A]"
-            htmlFor="profile-name"
-          >
-            Nama tampilan
-          </label>
-          <input
-            id="profile-name"
-            value={nameDraft}
-            onChange={(event) => setNameDraft(event.target.value)}
-            placeholder="Tulis namamu"
-            className={`mt-1.5 ${inputStyle}`}
-          />
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-[#134E4A]">
+                Nama Tampilan
+              </label>
+              <input
+                type="text"
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                maxLength={30}
+                className={inputStyle}
+                placeholder="Nama kamu..."
+              />
+            </div>
 
-          <div className="mt-4">
-            <label className="block text-left text-xs font-black text-[#134E4A] mb-1.5">
-              Pilihan Karakter Maskot
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-[#134E4A]">
+                Karakter Maskot
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setGenderDraft("boy")}
+                  className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all ${
+                    genderDraft === "boy"
+                      ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
+                      : "bg-white opacity-70"
+                  }`}
+                >
+                  <p className="font-display font-black text-sm text-[#134E4A]">
+                    Tito
+                  </p>
+                  <p className="text-[10px] font-bold text-[#134E4A]/70">
+                    Santri Putra
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenderDraft("girl")}
+                  className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all ${
+                    genderDraft === "girl"
+                      ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
+                      : "bg-white opacity-70"
+                  }`}
+                >
+                  <p className="font-display font-black text-sm text-[#134E4A]">
+                    Tila
+                  </p>
+                  <p className="text-[10px] font-bold text-[#134E4A]/70">
+                    Santri Putri
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setGenderDraft("boy")}
-                className={`py-2 px-2.5 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  genderDraft === "boy"
-                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                    : "bg-white text-[#134E4A] opacity-70"
-                }`}
+                onClick={() => setActiveModal(null)}
+                className={`flex-1 ${btnCancelStyle}`}
               >
-                <UserSvg size={15} />
-                <span>Tito (Putra)</span>
+                Batal
               </button>
               <button
                 type="button"
-                onClick={() => setGenderDraft("girl")}
-                className={`py-2 px-2.5 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  genderDraft === "girl"
-                    ? "bg-[#FF6B6B] text-white shadow-[2px_2px_0px_#134E4A]"
-                    : "bg-white text-[#134E4A] opacity-70"
-                }`}
+                onClick={handleSaveName}
+                className={`flex-1 ${btnPrimaryStyle}`}
               >
-                <SparklesSvg size={15} />
-                <span>Tila (Putri)</span>
+                Simpan
               </button>
             </div>
-          </div>
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            <button
-              className={btnCancelStyle}
-              onClick={() => setActiveModal(null)}
-            >
-              Batal
-            </button>
-            <button className={btnPrimaryStyle} onClick={handleSaveName}>
-              Simpan
-            </button>
           </div>
         </ModalPanel>
       )}
@@ -834,49 +840,65 @@ export default function NgajiCeriaProfilePage() {
       {activeModal === "password" && (
         <ModalPanel
           title="Ganti Kata Sandi"
-          warm
           onClose={() => setActiveModal(null)}
         >
           {submitted ? (
-            <>
-              <p className="my-5 text-sm font-bold text-[#134E4A]/70">
-                Kata sandi berhasil diperbarui. Gunakan sandi baru saat masuk
-                berikutnya.
+            <div className="space-y-3 text-center">
+              <p className="text-sm font-bold text-[#0D9488]">
+                Permintaan perubahan kata sandi terkirim!
               </p>
               <button
-                className={`w-full ${btnPrimaryStyle}`}
+                type="button"
                 onClick={() => setActiveModal(null)}
+                className={`w-full ${btnPrimaryStyle}`}
               >
-                Selesai
+                Tutup
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <input
-                type="password"
-                placeholder="Kata sandi baru"
-                className={`mt-4 ${inputStyle}`}
-              />
-              <input
-                type="password"
-                placeholder="Ulangi kata sandi baru"
-                className={`mt-2 ${inputStyle}`}
-              />
-              <div className="mt-5 grid grid-cols-2 gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSubmitted(true);
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="mb-1 block text-xs font-bold text-[#134E4A]">
+                  Kata Sandi Lama
+                </label>
+                <input
+                  type="password"
+                  required
+                  className={inputStyle}
+                  placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-[#134E4A]">
+                  Kata Sandi Baru
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  className={inputStyle}
+                  placeholder="Minimal 6 karakter"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
                 <button
-                  className={btnCancelStyle}
+                  type="button"
                   onClick={() => setActiveModal(null)}
+                  className={`flex-1 ${btnCancelStyle}`}
                 >
                   Batal
                 </button>
-                <button
-                  className={btnPrimaryStyle}
-                  onClick={() => setSubmitted(true)}
-                >
+                <button type="submit" className={`flex-1 ${btnPrimaryStyle}`}>
                   Simpan
                 </button>
               </div>
-            </>
+            </form>
           )}
         </ModalPanel>
       )}
@@ -888,71 +910,84 @@ export default function NgajiCeriaProfilePage() {
           onClose={() => setActiveModal(null)}
         >
           {submitted ? (
-            <>
-              <p className="my-5 text-sm font-bold text-[#134E4A]/70">
-                Terima kasih! Masukanmu sangat berarti untuk Tartila.
+            <div className="space-y-3 text-center">
+              <p className="text-sm font-bold text-[#0D9488]">
+                Jazakallahu khair! Masukanmu sangat berharga.
               </p>
               <button
-                className={`w-full ${btnPrimaryStyle}`}
+                type="button"
                 onClick={() => setActiveModal(null)}
+                className={`w-full ${btnPrimaryStyle}`}
               >
                 Tutup
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <textarea
-                rows={4}
-                placeholder="Tulis kritik atau saranmu..."
-                className={`mt-4 resize-none ${inputStyle}`}
-              />
-              <div className="mt-5 grid grid-cols-2 gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSubmitted(true);
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="mb-1 block text-xs font-bold text-[#134E4A]">
+                  Pesan Masukan
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Tulis kritik, saran, atau ide fitur baru di sini..."
+                  className={`${inputStyle} resize-none`}
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
                 <button
-                  className={btnCancelStyle}
+                  type="button"
                   onClick={() => setActiveModal(null)}
+                  className={`flex-1 ${btnCancelStyle}`}
                 >
                   Batal
                 </button>
-                <button
-                  className={btnPrimaryStyle}
-                  onClick={() => setSubmitted(true)}
-                >
+                <button type="submit" className={`flex-1 ${btnPrimaryStyle}`}>
                   Kirim
                 </button>
               </div>
-            </>
+            </form>
           )}
         </ModalPanel>
       )}
 
       {activeModal === "install" && (
         <ModalPanel
-          title="Install Aplikasi"
+          title="Install Tartila"
           warm
           onClose={() => setActiveModal(null)}
         >
-          <img
-            src={NGAJI_CERIA_ASSETS.avatarAnak}
-            alt=""
-            className="mx-auto my-3 h-20 w-20 object-contain drop-shadow-md"
-          />
-          <p className="mb-5 text-sm font-bold text-[#134E4A]/70">
-            Pasang Tartila di layar utama agar bisa dibuka lebih cepat dan
-            belajar tanpa koneksi.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-3 text-center">
+            <p className="text-xs font-semibold text-[#134E4A]/80 leading-relaxed">
+              Pasang aplikasi Tartila di layar utama agar kamu bisa belajar ngaji
+              dengan lebih cepat dan nyaman setiap hari!
+            </p>
+            {installPrompt ? (
+              <button
+                type="button"
+                onClick={handleInstall}
+                className={`w-full ${btnPrimaryStyle}`}
+              >
+                Pasang Sekarang
+              </button>
+            ) : (
+              <p className="text-[11px] font-bold text-[#134E4A]/60 bg-gray-50 p-3 rounded-xl border-2 border-dashed border-[#134E4A]/20">
+                Buka menu browser (titik tiga) lalu pilih "Tambahkan ke Layar Utama".
+              </p>
+            )}
             <button
-              className={btnCancelStyle}
+              type="button"
               onClick={() => setActiveModal(null)}
+              className={`w-full ${btnCancelStyle}`}
             >
-              Nanti
-            </button>
-            <button
-              className={`${btnPrimaryStyle} disabled:opacity-50 disabled:active:translate-y-0`}
-              disabled={!installPrompt}
-              onClick={handleInstall}
-            >
-              {installPrompt ? "Install" : "Tak tersedia"}
+              Tutup
             </button>
           </div>
         </ModalPanel>
@@ -960,72 +995,73 @@ export default function NgajiCeriaProfilePage() {
 
       {activeModal === "logout" && (
         <ModalPanel
-          title="Keluar dari akun?"
+          title="Keluar Akun?"
           warm
-          onClose={loggingOut ? undefined : () => setActiveModal(null)}
+          onClose={() => setActiveModal(null)}
         >
-          <img
-            src={NGAJI_CERIA_ASSETS.avatarAnak}
-            alt=""
-            className="mx-auto my-3 h-20 w-20 object-contain drop-shadow-md"
-          />
-          <p className="mb-5 text-sm font-bold text-[#134E4A]/70">
-            Sesi akunmu akan berakhir. Kamu bisa masuk kembali untuk melanjutkan
-            belajar.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              className={btnCancelStyle}
-              disabled={loggingOut}
-              onClick={() => setActiveModal(null)}
-            >
-              Batal
-            </button>
-            <button
-              className={btnDangerStyle}
-              disabled={loggingOut}
-              onClick={handleLogout}
-            >
-              {loggingOut ? "Keluar…" : "Ya, Keluar"}
-            </button>
+          <div className="space-y-3 text-center">
+            <p className="text-xs font-semibold text-[#134E4A]/80">
+              Apakah kamu yakin ingin keluar dari akun Tartila? Progress harianmu
+              tetap tersimpan aman.
+            </p>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className={`flex-1 ${btnCancelStyle}`}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className={`flex-1 ${btnDangerStyle}`}
+              >
+                {loggingOut ? "Keluar..." : "Ya, Keluar"}
+              </button>
+            </div>
           </div>
         </ModalPanel>
       )}
 
       {activeModal === "delete" && (
         <ModalPanel
-          title="Hapus akun?"
-          warm
-          onClose={loggingOut ? undefined : () => setActiveModal(null)}
+          title="Hapus Akun"
+          onClose={() => setActiveModal(null)}
         >
-          <p className="my-5 text-sm font-bold text-[#134E4A]/70">
-            Semua progress belajarmu akan hilang dan tidak bisa dikembalikan.
-            Yakin ingin menghapus akun?
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              className={btnCancelStyle}
-              disabled={loggingOut}
-              onClick={() => setActiveModal(null)}
-            >
-              Batal
-            </button>
-            <button
-              className={btnDangerStyle}
-              disabled={loggingOut}
-              onClick={handleLogout}
-            >
-              {loggingOut ? "Menghapus…" : "Ya, Hapus"}
-            </button>
+          <div className="space-y-3 text-center">
+            <p className="text-xs font-semibold text-[#991B1B]">
+              Tindakan ini permanen. Seluruh data koin, bintang, dan riwayat belajar
+              kamu akan dihapus.
+            </p>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className={`flex-1 ${btnCancelStyle}`}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={`flex-1 ${btnDangerStyle}`}
+              >
+                Hapus Akun
+              </button>
+            </div>
           </div>
         </ModalPanel>
       )}
 
+      {/* Voucher Modal */}
       <VoucherRedeemModal
         isOpen={isVoucherModalOpen}
         onClose={() => setIsVoucherModalOpen(false)}
       />
 
+      {/* Theme Modal */}
       <AppThemeSettingsModal
         isOpen={isThemeModalOpen}
         onClose={() => setIsThemeModalOpen(false)}

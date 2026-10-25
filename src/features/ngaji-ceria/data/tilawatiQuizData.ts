@@ -55,7 +55,14 @@ function mergeQuestions(questions: QuizQuestion[], mergedAudioUrl: string): Quiz
       .join("   "),
     transliterationParts,
     options: [...transliterationParts, ...distractors.slice(0, Math.max(8, transliterationParts.length))],
-    hintTone: tones.length > 1 ? `Rost: ${tones.join(" — ")}` : first.hintTone,
+    hintTone:
+      tones.length >= 3
+        ? (questions.some((q) => q.hintTone.includes("3x"))
+            ? "Rost: Datar — Naik — Turun (3x)"
+            : "Rost: Datar — Naik — Turun")
+        : tones.length === 2
+          ? "Rost: Datar — Turun"
+          : first.hintTone,
     audioUrl: mergedAudioUrl,
     audioMappingComplete: true,
   };
@@ -166,7 +173,6 @@ function groupJilid1Footers(pages: Record<number, PageQuizData>): Record<number,
 }
 
 function applyQuizEdits(jilid: number, pages: Record<number, PageQuizData>): Record<number, PageQuizData> {
-  if (isNgajiCeriaServerAvailable()) return pages;
   return Object.fromEntries(
     Object.entries(pages).map(([pageNumber, page]) => {
       const questions = page.questions
@@ -182,7 +188,6 @@ function applyQuizEdits(jilid: number, pages: Record<number, PageQuizData>): Rec
 }
 
 function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>): Record<number, PageQuizData> {
-  if (isNgajiCeriaServerAvailable()) return pages;
   return Object.fromEntries(
     Object.entries(pages).map(([pageNumber, page]) => {
       const edit = TIMELINE_EDITS[`${jilid}:${pageNumber}`];

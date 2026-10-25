@@ -51,19 +51,19 @@ export function AppThemeSettingsModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 320 }}
-          className="relative w-full max-w-md rounded-[28px] border-[3px] border-[#134E4A] bg-white p-5 shadow-[6px_6px_0px_#134E4A] z-10 max-h-[90vh] flex flex-col"
+          className="relative w-full max-w-md rounded-[28px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] p-5 shadow-[6px_6px_0px_var(--shadow-color,#134E4A)] z-10 max-h-[90vh] flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-start justify-between pb-3 border-b-2 border-gray-100">
+          <div className="flex items-start justify-between pb-3 border-b-2 border-[var(--border-color,#134E4A)]/10">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shadow-[2px_2px_0px_#134E4A] shrink-0">
-                <SparklesSvg size={22} />
+              <div className="w-11 h-11 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] shrink-0">
+                <SparklesSvg size={22} className="text-[#B45309]" />
               </div>
               <div>
-                <h2 className="font-display text-lg font-black text-[#134E4A] leading-tight">
+                <h2 className="font-display text-lg font-black text-[var(--text-main,#134E4A)] leading-tight">
                   Pengaturan Tampilan
                 </h2>
-                <p className="text-[11px] font-bold text-[#134E4A]/60 mt-0.5">
+                <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/60 mt-0.5">
                   Ubah warna tema utama aplikasi Tartila
                 </p>
               </div>
@@ -72,7 +72,7 @@ export function AppThemeSettingsModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border-2 border-[#134E4A] bg-[#FFF0F0] p-1.5 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all hover:bg-[#FFE0E0]"
+              className="rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFF0F0)] p-1.5 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all"
               aria-label="Tutup modal"
             >
               <XSvg size={18} />
@@ -93,36 +93,36 @@ export function AppThemeSettingsModal({
                   }}
                   className={`rounded-2xl border-[3px] p-3.5 flex items-center justify-between gap-3 transition-all ${
                     isEquipped
-                      ? "border-[#134E4A] bg-[#F0FDF4] shadow-[3px_3px_0px_#134E4A]"
+                      ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]"
                       : isOwned
-                      ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] hover:bg-gray-50 cursor-pointer"
-                      : "border-dashed border-gray-300 bg-gray-50 opacity-70"
+                      ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                      : "border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 opacity-70"
                   }`}
                 >
                   {/* Swatch & Info */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
-                      className="w-12 h-12 rounded-xl border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] shrink-0 flex items-center justify-center relative overflow-hidden"
+                      className="w-12 h-12 rounded-xl border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] shrink-0 flex items-center justify-center relative overflow-hidden"
                       style={{ backgroundColor: theme.bgHex }}
                     >
                       <div
-                        className="w-6 h-6 rounded-full border border-[#134E4A]/30 shadow-sm"
+                        className="w-6 h-6 rounded-full border border-black/20 shadow-sm"
                         style={{ backgroundColor: theme.accentColor }}
                       />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-[#134E4A] truncate">
+                        <h3 className="font-black text-sm text-[var(--text-main,#134E4A)] truncate">
                           {theme.name}
                         </h3>
                         {theme.id === "default" && (
-                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-300">
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600">
                             Bawaan
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] font-bold text-[#134E4A]/60 line-clamp-1 mt-0.5">
+                      <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/60 line-clamp-1 mt-0.5">
                         {theme.desc}
                       </p>
                     </div>
@@ -131,7 +131,7 @@ export function AppThemeSettingsModal({
                   {/* Actions */}
                   <div className="shrink-0">
                     {isEquipped ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#134E4A] text-white text-xs font-black border border-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0D9488] text-white text-xs font-black border-2 border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
                         <CheckSvg size={14} />
                         <span>Aktif</span>
                       </span>
@@ -142,7 +142,7 @@ export function AppThemeSettingsModal({
                           e.stopPropagation();
                           handleSelectTheme(theme.id);
                         }}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#0D9488] text-white text-xs font-black border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all hover:bg-[#0F766E]"
+                        className="px-3.5 py-1.5 rounded-xl bg-[#0D9488] text-white text-xs font-black border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all hover:bg-[#0F766E] cursor-pointer"
                       >
                         Pakai
                       </button>

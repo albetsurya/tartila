@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
-import { StartScreen } from "../_shared/StartScreen";
-import { GameOverModal } from "../_shared/GameOverModal";
+import { GameStartSheet } from "../_shared/GameStartSheet";
+import { GameHud } from "../_shared/GameHud";
+import { GameResultModal } from "../_shared/GameResultModal";
 import { HeartSvg } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import {
@@ -18,14 +19,41 @@ import {
   type SlasherMode,
 } from "./data/harakat-list";
 import type { GamePhase } from "../_shared/types";
+import { useGameStore } from "@/features/ngaji-ceria/hooks/useGameStore";
+import { soundManager } from "@/features/ngaji-ceria/services/soundManager";
 
 const MODES: SlasherMode[] = ["harakat", "huruf", "kata", "ayat"];
+
+interface SlasherLevelConfig {
+  level: number;
+  title: string;
+  targetScore: number;
+  durationSeconds: number;
+  description: string;
+}
+
+const SLASHER_LEVELS: SlasherLevelConfig[] = [
+  { level: 1, title: "Level 1: Pemula", targetScore: 100, durationSeconds: 60, description: "Capai target 100 poin dalam 60 detik." },
+  { level: 2, title: "Level 2: Terampil", targetScore: 250, durationSeconds: 60, description: "Capai target 250 poin dalam 60 detik." },
+  { level: 3, title: "Level 3: Mahir", targetScore: 500, durationSeconds: 60, description: "Capai target 500 poin dalam 60 detik." },
+  { level: 4, title: "Level 4: Pendekar", targetScore: 800, durationSeconds: 60, description: "Capai target 800 poin dalam 60 detik." },
+  { level: 5, title: "Level 5: Master", targetScore: 1200, durationSeconds: 60, description: "Capai target 1200 poin dalam 60 detik." },
+];
 
 function Game() {
   const game = useSlasherGame();
   const navigate = useNavigate();
   const [celebrate, setCelebrate] = useState(false);
   const celebrateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("harakat-rush"));
+  const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
+
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const currentLevelConfig = SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
+  const [timeLeft, setTimeLeft] = useState<number>(currentLevelConfig.durationSeconds);
+  const [isWin, setIsWin] = useState<boolean>(false);
+  const [isResultOpen, setIsResultOpen] = useState<boolean>(false);
 
   const {
     phase,
@@ -36,7 +64,6 @@ function Game() {
     lives,
     currentTarget,
     currentTargetItem,
-    best,
     onSliceResult,
     resetRun,
     setPhase,
@@ -49,6 +76,62 @@ function Game() {
     };
   }, []);
 
+  const handleStartLevel = (lvl: number) => {
+    setSelectedLevel(lvl);
+    const cfg = SLASHER_LEVELS[lvl - 1] || SLASHER_LEVELS[0];
+    setTimeLeft(cfg.durationSeconds);
+    setIsWin(false);
+    setIsResultOpen(false);
+    resetRun();
+    setPhase("playing");
+  };
+
+  const handleGameOver = (win: boolean) => {
+    setIsWin(win);
+    setPhase("gameover");
+    setIsResultOpen(true);
+    if (win) {
+      soundManager.playSfx("victory");
+      unlockNextLevel("harakat-rush", selectedLevel);
+    } else {
+      soundManager.playSfx("gameover");
+    }
+  };
+
+  // Timer hitung mundur saat bermain
+  useEffect(() => {
+    if (phase !== "playing") return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleGameOver(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [phase, selectedLevel]);
+
+  // Evaluasi win condition saat skor bertambah
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (score >= currentLevelConfig.targetScore) {
+      handleGameOver(true);
+    }
+  }, [score, phase, currentLevelConfig.targetScore]);
+
+  // Evaluasi game over jika nyawa habis
+  useEffect(() => {
+    if (phase === "gameover" && !isResultOpen && score < currentLevelConfig.targetScore) {
+      setIsWin(false);
+      setIsResultOpen(true);
+    }
+  }, [phase, isResultOpen, score, currentLevelConfig.targetScore]);
+
   const handleResult = (
     kind: "correct" | "wrong" | "miss",
     symbol?: string
@@ -60,6 +143,15 @@ function Game() {
     }
     onSliceResult(kind, symbol);
   };
+
+  // Hitung perolehan bintang
+  const calculatedStars = isWin
+    ? score >= currentLevelConfig.targetScore * 1.3 || lives === 3
+      ? 3
+      : score >= currentLevelConfig.targetScore
+        ? 2
+        : 1
+    : 0;
 
   return (
     <div className="relative h-[100dvh] w-full select-none overflow-hidden">
@@ -74,17 +166,23 @@ function Game() {
         <GameBoundary>
           {phase === "idle" || phase === "paused" ? (
             <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#1E1B4B] via-[#312E81] to-[#4C1D95] p-4">
-              <StartScreen
-                title="Harakat Slasher"
-                tagline="Pedang Harakat & Hijaiyah"
-                description="Tebas buah berisi huruf, kata, atau potongan ayat target! Hindari pengecoh dan jangan biarkan target lolos."
-                best={best}
-                onStart={() => {
-                  resetRun();
-                  setPhase("playing");
-                }}
-                onExit={() => navigate("/member/ngaji-ceria/games")}
-                accent="emerald"
+              <GameStartSheet
+                isOpen={phase === "idle"}
+                gameTitle="Harakat Slasher"
+                gameSubtitle="Pedang Harakat & Hijaiyah"
+                ruleDescription="Tebas buah berisi huruf, kata, atau potongan ayat target sebelum waktu habis! Capai target skor untuk membuka level berikutnya."
+                levels={SLASHER_LEVELS.map((l) => ({
+                  level: l.level,
+                  title: l.title,
+                  description: l.description,
+                  target: `${l.targetScore} Poin`,
+                  durationSeconds: l.durationSeconds,
+                }))}
+                unlockedLevels={unlockedLevel}
+                selectedLevel={selectedLevel}
+                onSelectLevel={(lvl) => setSelectedLevel(lvl)}
+                onStart={(lvl) => handleStartLevel(lvl)}
+                onClose={() => navigate("/member/ngaji-ceria/games")}
               />
 
               {/* FASE 3: PILIHAN MODE / LEVEL SLASHER */}
@@ -121,6 +219,17 @@ function Game() {
             </div>
           ) : (
             <div className="relative h-full w-full overflow-hidden bg-gradient-to-b from-[#7DD3FC] via-[#BAE6FD] to-[#FEF9C3]">
+              {/* UNIVERSAL GAME HUD (Header atas berisi Timer merah < 10s, Skor, Target & Lives) */}
+              <GameHud
+                level={selectedLevel}
+                timeLeft={timeLeft}
+                score={score}
+                targetScore={currentLevelConfig.targetScore}
+                lives={lives}
+                combo={combo}
+                onPause={() => setPhase("paused")}
+              />
+
               {/* ARENA SLASHER (fisika terpusat + deteksi swipe + dynamic hitbox) */}
               <SlasherStage
                 isPlaying={phase === "playing"}
@@ -217,22 +326,19 @@ function Game() {
             </div>
           )}
 
-          {phase === "gameover" && (
-            <GameOverModal
-              visible
-              score={score}
-              best={best}
-              isNewRecord={score > 0 && score >= best}
-              onRetry={() => {
-                resetRun();
-                setPhase("playing");
-              }}
-              onExit={() => {
-                resetRun();
-                navigate("/member/ngaji-ceria/games");
-              }}
-            />
-          )}
+          {/* UNIVERSAL GAME RESULT MODAL */}
+          <GameResultModal
+            isOpen={isResultOpen}
+            isWin={isWin}
+            score={score}
+            targetScore={currentLevelConfig.targetScore}
+            stars={calculatedStars}
+            level={selectedLevel}
+            hasNextLevel={selectedLevel < SLASHER_LEVELS.length}
+            onRetry={() => handleStartLevel(selectedLevel)}
+            onNextLevel={() => handleStartLevel(selectedLevel + 1)}
+            onBackToHub={() => navigate("/member/ngaji-ceria/games")}
+          />
         </GameBoundary>
       </GameShell>
     </div>

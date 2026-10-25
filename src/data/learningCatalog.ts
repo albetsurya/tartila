@@ -120,6 +120,25 @@ export const CATALOG_TYPE_LABELS: Readonly<Record<CatalogType, string>> = {
 
 export const GAME_CATALOG: readonly RawGameCatalogEntry[] = [
   {
+    gameId: 'quiz-hub',
+    id: 'quiz-hub',
+    type: 'game',
+    title: 'Pusat Kuis (Quiz Hub)',
+    materiPokok: ['tilawati', 'harakat', 'makhraj', 'juz-amma', 'doa'],
+    jilidRelevan: [1, 2, 3, 4, 5],
+    learningObjective:
+      'Pusat kuis komprehensif bergaya Duolingo/AMNA, susun kata Arab, dan tantang teman secara deterministik.',
+    caraMain:
+      'Santri memilih latihan soal pilihan ganda atau susun kata dalam topik Tilawati, Juz Amma, Doa/Kisah, atau Bahasa Arab.',
+    tipsUstadz: [
+      'Gunakan mode Tantang Teman untuk mini-turnamen antar santri.',
+      'Sangat efektif untuk menguji daya ingat susun kalimat dan mufradat harian.',
+    ],
+    access: 'member-only',
+    needsContentValidation: true,
+    routeAliases: ['quiz-hub-page'],
+  },
+  {
     gameId: 'hijaiyah-pop',
     id: 'hijaiyah-pop',
     type: 'game',
@@ -250,6 +269,7 @@ export const GAME_CATALOG: readonly RawGameCatalogEntry[] = [
     id: 'harakat-rush',
     type: 'game',
     title: 'Harakat Slasher',
+    routeAliases: ['harakat-slasher'],
     materiPokok: ['harakat'],
     jilidRelevan: [1, 2, 3],
     learningObjective:

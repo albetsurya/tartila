@@ -17,6 +17,8 @@ const GAME_ALIASES: Record<string, string> = {
   "hijaiyah-match": "hijaiyah-match-arena",
   "verse-quest": "juz-amma-speedrun",
   "word-builder": "ayat-scramble",
+  "harakat-slasher": "harakat-rush",
+  "memory-match": "tilawati-memory",
 };
 
 export function canonicalGameId(routeId: string): string {

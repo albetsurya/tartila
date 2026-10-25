@@ -1,6 +1,6 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { PlaySvg, LockSvg, StarSvg } from "@/components/ui/CustomIcons";
-import { useGameTheme } from "@/features/ngaji-ceria/hooks/useGameTheme";
 
 export interface GameCardProps {
   title: string;
@@ -30,21 +30,18 @@ export const GameCard: React.FC<GameCardProps> = ({
   badge,
   index,
   layout = "vertical",
-  bgColor = "bg-white",
+  bgColor = "bg-[var(--bg-card,#FFFFFF)]",
   className = "",
 }) => {
-  const theme = useGameTheme();
-  const isCustomTheme = !theme.isDefault;
-
-  const cardBorder = isCustomTheme ? theme.borderClass : "border-[#134E4A]";
-  const cardShadow = isCustomTheme ? theme.shadowClass : "shadow-[4px_4px_0px_#134E4A]";
-  const cardShadowHover = isCustomTheme ? theme.shadowHoverClass : "hover:shadow-[6px_6px_0px_#134E4A]";
-  const cardBg = isCustomTheme ? theme.cardBgClass : bgColor;
-  const titleText = isCustomTheme ? theme.textClass : "text-[#134E4A]";
-  const descText = isCustomTheme ? theme.subtextClass : "text-[#134E4A]/70";
-  const dropShadow = isCustomTheme
-    ? (theme.isNeon ? "drop-shadow-[2px_2px_0px_#38BDF8]" : theme.isRetro ? "drop-shadow-[2px_2px_0px_#B45309]" : "drop-shadow-[2px_2px_0px_#EC4899]")
-    : "drop-shadow-[2px_2px_0px_#134E4A]";
+  const cardBorder = "border-[3px] border-[var(--border-color,#134E4A)]";
+  const cardShadow = "shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]";
+  const cardBg =
+    !bgColor || bgColor === "bg-white" || bgColor === "bg-[var(--bg-card)]"
+      ? "bg-[var(--bg-card,#FFFFFF)]"
+      : `${bgColor} dark:bg-[var(--bg-card,#FFFFFF)]`;
+  const titleText = "text-[var(--text-main,#134E4A)]";
+  const descText = "text-[var(--text-main,#134E4A)]/70";
+  const dropShadow = "drop-shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]";
 
   const displayTag = tagline || genre || (index !== undefined ? `Mode ${index + 1}` : undefined);
 
@@ -75,17 +72,20 @@ export const GameCard: React.FC<GameCardProps> = ({
 
   if (layout === "horizontal") {
     return (
-      <button
+      <motion.button
         type="button"
         onClick={onClick}
-        className={`group relative flex w-full items-center justify-between overflow-hidden rounded-[24px] border-[3px] ${cardBorder} p-4 text-left ${cardShadow} transition-all duration-150 hover:-translate-x-1 hover:-translate-y-1 ${cardShadowHover} active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_currentColor] select-none ${cardBg} ${
+        whileHover={{ scale: 1.03, y: -4 }}
+        whileTap={{ scale: 0.95, y: 2 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`group relative flex w-full items-center justify-between overflow-hidden rounded-[24px] border-[3px] ${cardBorder} p-4 text-left ${cardShadow} select-none cursor-pointer ${cardBg} ${
           locked ? "opacity-85" : ""
         } ${className}`}
       >
         {/* Teks Kiri */}
         <div className="relative z-10 flex-1 pr-4">
           {displayTag && (
-            <span className={`mb-2 inline-flex items-center gap-1 rounded-md border-[2px] ${isCustomTheme ? theme.badgeClass : "border-[#134E4A] bg-white text-[#134E4A] shadow-[1px_1px_0px_#134E4A]"} px-2 py-0.5 text-[9px] font-black uppercase`}>
+            <span className={`mb-2 inline-flex items-center gap-1 rounded-md border-[2px] ${cardBorder} bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] px-2 py-0.5 text-[9px] font-black uppercase`}>
               {displayTag}
             </span>
           )}
@@ -102,12 +102,10 @@ export const GameCard: React.FC<GameCardProps> = ({
 
           <div className="mt-3 flex items-center gap-2">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-lg border-[2px] px-3 py-1.5 text-[11px] font-black text-white active:translate-y-[1px] active:shadow-none transition-all ${
+              className={`inline-flex items-center gap-1.5 rounded-xl border-[2.5px] px-3.5 py-1.5 text-[11px] font-black text-white ${
                 locked
-                  ? "bg-gray-400 border-gray-500 shadow-none"
-                  : isCustomTheme
-                  ? theme.btnPrimaryClass
-                  : "border-[#134E4A] bg-[#0D9488] shadow-[2px_2px_0px_#134E4A]"
+                  ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-[var(--border-color,#134E4A)]/50 shadow-none"
+                  : `border-[var(--border-color,#134E4A)] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2.5px_2.5px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none`
               }`}
             >
               {locked ? (
@@ -122,7 +120,7 @@ export const GameCard: React.FC<GameCardProps> = ({
             </span>
 
             {best > 0 && !locked && (
-              <span className={`inline-flex items-center gap-1 rounded-lg border-[2px] ${cardBorder} bg-white px-2 py-1.5 text-[10px] font-black ${titleText} ${isCustomTheme ? "shadow-[2px_2px_0px_currentColor]" : "shadow-[2px_2px_0px_#134E4A]"}`}>
+              <span className={`inline-flex items-center gap-1 rounded-lg border-[2px] ${cardBorder} bg-[var(--bg-card,#FFFFFF)] px-2 py-1.5 text-[10px] font-black ${titleText} shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]`}>
                 <StarSvg size={12} className="text-[#FF6B6B] fill-[#FF6B6B]" />{" "}
                 {best}
               </span>
@@ -132,45 +130,47 @@ export const GameCard: React.FC<GameCardProps> = ({
 
         {/* Gambar / Cover Kanan */}
         <div className="relative z-10 flex h-24 w-24 shrink-0 items-center justify-center">
-          {renderCover("h-24 w-24")}
+          <div className="absolute inset-0 m-auto h-20 w-20 rounded-full border-[2.5px] border-[#134E4A] dark:border-white/80 bg-white shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[0_0_12px_rgba(255,255,255,0.35)]" />
+          <div className="relative z-10 flex items-center justify-center text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+            {renderCover("h-20 w-20")}
+          </div>
         </div>
-      </button>
+      </motion.button>
     );
   }
 
   // Layout Vertical (Default untuk Grid Game)
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
-      className={`group relative flex flex-col items-center w-full rounded-[24px] border-[3px] ${cardBorder} p-3 text-center overflow-hidden ${cardShadow} transition-all duration-150 hover:-translate-x-1 hover:-translate-y-1 ${cardShadowHover} active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_currentColor] select-none ${cardBg} ${
+      whileHover={{ scale: 1.03, y: -4 }}
+      whileTap={{ scale: 0.95, y: 2 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={`group relative flex flex-col items-center w-full rounded-[24px] border-[3px] ${cardBorder} p-3 text-center overflow-hidden ${cardShadow} select-none cursor-pointer ${cardBg} ${
         locked ? "opacity-80 grayscale-[25%]" : ""
       } ${className}`}
     >
       {/* Badge Top Left */}
       {locked ? (
-        <div className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-md bg-gray-200 px-2 py-0.5 text-[9px] font-black text-gray-700 border-2 ${cardBorder} shadow-[1px_1px_0px_currentColor]`}>
+        <div className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-md bg-gray-200 dark:bg-gray-800 px-2 py-0.5 text-[9px] font-black text-gray-700 dark:text-gray-300 border-2 ${cardBorder} shadow-[1px_1px_0px_currentColor]`}>
           <LockSvg size={10} /> TERKUNCI
         </div>
       ) : best > 0 ? (
-        <div className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-md bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black text-[#D97706] border-2 ${cardBorder} shadow-[1px_1px_0px_currentColor]`}>
+        <div className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-md bg-[#FEF3C7] dark:bg-amber-950 px-2 py-0.5 text-[10px] font-black text-[#D97706] dark:text-amber-400 border-2 ${cardBorder} shadow-[1px_1px_0px_currentColor]`}>
           <StarSvg size={10} className="fill-[#F59E0B]" /> {best}
         </div>
       ) : badge ? (
-        <div className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-md ${isCustomTheme ? theme.badgeClass : "bg-[#DCFCE7] text-[#134E4A] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A]"} px-2 py-0.5 text-[9px] font-black`}>
+        <div className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-md bg-[#DCFCE7] dark:bg-emerald-950 text-[var(--text-main,#134E4A)] border-2 border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] px-2 py-0.5 text-[9px] font-black`}>
           {badge}
         </div>
       ) : null}
 
       {/* Stage Cover Tengah */}
       <div className="relative z-10 mt-4 flex h-24 w-full items-center justify-center">
-        {/* Lingkaran Ornamen Latar Belakang */}
-        <div className={`absolute inset-0 m-auto h-16 w-16 rounded-full border-2 ${
-          isCustomTheme
-            ? (theme.isNeon ? "bg-[#111827] border-[#38BDF8]/20" : theme.isRetro ? "bg-[#FFFBEB] border-[#B45309]/20" : "bg-[#FCE7F3] border-[#EC4899]/20")
-            : "bg-[#F0FDF4] border-[#134E4A]/15"
-        }`} />
-        <div className="relative z-10 flex items-center justify-center">
+        {/* Lingkaran Ornamen Latar Belakang - Sticker Backdrop */}
+        <div className="absolute inset-0 m-auto h-20 w-20 rounded-full border-[2.5px] border-[#134E4A] dark:border-white/80 bg-white shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[0_0_12px_rgba(255,255,255,0.35)]" />
+        <div className="relative z-10 flex items-center justify-center text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
           {renderCover("h-20 w-20")}
         </div>
       </div>
@@ -190,12 +190,10 @@ export const GameCard: React.FC<GameCardProps> = ({
       {/* Tombol Aksi di Bawah Kartu */}
       <div className="mt-3 w-full z-10">
         <span
-          className={`flex w-full items-center justify-center gap-1.5 rounded-xl border-2 py-2 text-xs font-black transition-all ${
+          className={`flex w-full items-center justify-center gap-1.5 rounded-xl border-[2.5px] py-2 text-xs font-black transition-all ${
             locked
-              ? "bg-gray-100 text-gray-500 border-gray-400"
-              : isCustomTheme
-              ? theme.btnPrimaryClass
-              : "bg-[#FF6B6B] hover:bg-[#EE5A5A] text-white border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+              ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-[var(--border-color,#134E4A)]/50 shadow-none"
+              : "bg-[#0D9488] hover:bg-[#0F766E] text-white border-[var(--border-color,#134E4A)] shadow-[2.5px_2.5px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none"
           }`}
         >
           {locked ? (
@@ -209,7 +207,7 @@ export const GameCard: React.FC<GameCardProps> = ({
           )}
         </span>
       </div>
-    </button>
+    </motion.button>
   );
 };
 

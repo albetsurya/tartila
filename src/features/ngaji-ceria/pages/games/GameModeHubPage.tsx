@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
-import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { useGameAccess } from "../../components/GameLockGuard";
 import { useActiveGames } from "../../hooks/useActiveGames";
@@ -8,9 +9,8 @@ import { isAdminRole } from "@/lib/roles";
 import { LoginPromptModal } from "../../components/LoginPromptModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
 import { useEconomyStore, isUnlimitedUser } from "../../hooks/useEconomyStore";
-import { useGameTheme } from "../../hooks/useGameTheme";
-import { GameThemeSheet } from "../../components/GameThemeSheet";
-import { PaletteSvg } from "@/components/ui/CustomIcons";
+import { TrophySvg, XSvg } from "@/components/ui/CustomIcons";
+import { LeaderboardList } from "@/components/ui/LeaderboardList";
 import { useAuth } from "@/contexts/AuthContext";
 import { canonicalGameId, isGameOpenForGuest } from "../../data/gameAccess";
 import { triggerTilaReaction } from "@/utils/tilaEvent";
@@ -298,7 +298,6 @@ export default function GameModeHubPage({
   const { tier } = useGameAccess(hub ?? "");
   const [promptOpen, setPromptOpen] = useState(false);
   const [energyEmpty, setEnergyEmpty] = useState(false);
-  const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const { user, groupId } = useAuth();
   const { isGameActive, hasLoaded } = useActiveGames();
   const isAdmin = isAdminRole(user?.role);
@@ -306,7 +305,40 @@ export default function GameModeHubPage({
   const isVip = useEconomyStore((s) => s.isVip);
   const isUnlimited = isUnlimitedUser(user, isVip, groupId);
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
-  const theme = useGameTheme();
+  const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
+  const [selectedLeaderboardGameId, setSelectedLeaderboardGameId] = useState<string>(
+    config?.modes[0]?.bestKey || ""
+  );
+  const [recentGameFinished, setRecentGameFinished] = useState<boolean>(() => {
+    try {
+      const last = sessionStorage.getItem("ngajiceria:recent-game-finished");
+      const ts = Number(sessionStorage.getItem("ngajiceria:recent-game-timestamp") || 0);
+      return Boolean(last && Date.now() - ts < 5 * 60 * 1000);
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const onGameFinished = () => {
+      setRecentGameFinished(true);
+    };
+    window.addEventListener("ngajiceria:game-finished", onGameFinished);
+    return () => window.removeEventListener("ngajiceria:game-finished", onGameFinished);
+  }, []);
+
+  const handleOpenLeaderboard = (gameId?: string) => {
+    if (gameId) {
+      setSelectedLeaderboardGameId(gameId);
+    } else {
+      const recent = sessionStorage.getItem("ngajiceria:recent-game-finished");
+      const matched = config?.modes.find((m) => m.bestKey === recent);
+      setSelectedLeaderboardGameId(
+        matched ? matched.bestKey : config?.modes[0]?.bestKey || ""
+      );
+    }
+    setLeaderboardModalOpen(true);
+  };
 
   if (!config) return <Navigate to="/member/ngaji-ceria/games" replace />;
 
@@ -334,13 +366,15 @@ export default function GameModeHubPage({
       showBack
       onBack={() => navigate("/member/ngaji-ceria/games")}
     >
-      <div className={`min-h-full ${theme.bgClass} ${theme.textClass} px-4 py-4 pb-32 transition-colors duration-200`}>
+      <div
+        className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] px-4 py-4 pb-32 transition-colors duration-200"
+      >
         {/* Hero Section (Sticker Style) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className={`relative overflow-hidden rounded-[24px] border-[3px] ${theme.heroBorderClass} ${theme.heroBgClass} ${theme.heroShadowClass} p-5`}
+          className="relative overflow-hidden rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[#0D9488] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] p-5 text-white"
         >
           {/* Ornamen Latar Tebal */}
           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full border-[8px] border-white/10" />
@@ -354,14 +388,31 @@ export default function GameModeHubPage({
                 {config.title}
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={() => setThemeSheetOpen(true)}
-              className="p-2 rounded-xl bg-white/20 hover:bg-white/30 border-2 border-white/40 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.2)] active:translate-y-[1px] transition-all cursor-pointer shrink-0"
-              title="Ganti Tema Game"
-            >
-              <PaletteSvg size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              <motion.button
+                type="button"
+                onClick={() => handleOpenLeaderboard()}
+                animate={
+                  recentGameFinished
+                    ? { scale: [1, 1.15, 1], rotate: [0, -6, 6, 0] }
+                    : undefined
+                }
+                transition={
+                  recentGameFinished
+                    ? { repeat: Infinity, duration: 1.2 }
+                    : undefined
+                }
+                className="relative p-2 rounded-xl bg-white/20 hover:bg-white/30 border-2 border-white/40 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.2)] active:translate-y-[1px] transition-all cursor-pointer shrink-0"
+                title="Lihat Papan Skor"
+              >
+                <TrophySvg size={18} className="text-[#FEF08A]" />
+                {recentGameFinished && (
+                  <span className="absolute -top-2 -right-1 bg-[#FF6B6B] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#134E4A] animate-pulse">
+                    Baru!
+                  </span>
+                )}
+              </motion.button>
+            </div>
           </div>
           <p className="relative mt-2 max-w-xs text-xs font-medium leading-relaxed text-white/80">
             {config.description}
@@ -390,7 +441,12 @@ export default function GameModeHubPage({
         )}
 
         {/* Mode List (Sticker Card Layout dengan GameCard) */}
-        <div className="mt-6 flex flex-col gap-4">
+        <motion.div
+          variants={staggerContainerVariants}
+          initial="hidden"
+          animate="show"
+          className="mt-6 flex flex-col gap-4"
+        >
           {config.modes.map((mode, index) => {
             const best = getBest(mode.bestKey);
             const modeId = canonicalGameId(mode.path.split("/").pop() ?? "");
@@ -401,12 +457,7 @@ export default function GameModeHubPage({
             return (
               <motion.div
                 key={mode.path}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.08 + Math.min(index * 0.05, 0.3),
-                  duration: 0.25,
-                }}
+                variants={staggerItemVariants}
               >
                 <GameCard
                   layout="horizontal"
@@ -423,7 +474,7 @@ export default function GameModeHubPage({
               </motion.div>
             );
           })}
-        </div>
+        </motion.div>
 
         <LoginPromptModal
           open={promptOpen}
@@ -436,10 +487,88 @@ export default function GameModeHubPage({
           onClose={() => setEnergyEmpty(false)}
         />
 
-        <GameThemeSheet
-          isOpen={themeSheetOpen}
-          onClose={() => setThemeSheetOpen(false)}
-        />
+        {/* MODAL BOTTOM SHEET PAPAN SKOR */}
+        <AnimatePresence>
+          {leaderboardModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+              <motion.div
+                initial={{ opacity: 0, y: "100%" }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 280 }}
+                className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-4 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] sm:rounded-2xl text-[var(--text-main,#134E4A)]"
+              >
+                {/* Header Modal */}
+                <div className="flex items-center justify-between border-b-2 border-[var(--border-color,#134E4A)]/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
+                      <TrophySvg size={18} className="text-[#B45309]" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-sm font-black text-[var(--text-main,#134E4A)]">
+                        Papan Skor Game
+                      </h3>
+                      <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/60">
+                        {config.title}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLeaderboardModalOpen(false)}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px]"
+                    title="Tutup"
+                  >
+                    <XSvg size={16} />
+                  </button>
+                </div>
+
+                {/* Mode Selector Tabs (jika hub punya lebih dari 1 mode) */}
+                {config.modes.length > 1 && (
+                  <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                    {config.modes.map((mode) => (
+                      <button
+                        key={mode.bestKey}
+                        type="button"
+                        onClick={() => setSelectedLeaderboardGameId(mode.bestKey)}
+                        className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-black transition-all ${
+                          selectedLeaderboardGameId === mode.bestKey
+                            ? "border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                            : "border border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)]/70 hover:opacity-90"
+                        }`}
+                      >
+                        {mode.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Konten Leaderboard */}
+                <div className="mt-3">
+                  <LeaderboardList
+                    gameId={selectedLeaderboardGameId}
+                    title={
+                      config.modes.find(
+                        (m) => m.bestKey === selectedLeaderboardGameId
+                      )?.title || config.title
+                    }
+                  />
+                </div>
+
+                {/* Tombol Tutup */}
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setLeaderboardModalOpen(false)}
+                    className="rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-2 text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px]"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </NgajiCeriaLayout>
   );

@@ -94,6 +94,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const profileRes = await userApi.getUserProfile();
           if (profileRes) {
+            useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
             const rawMascot = profileRes.mascot_gender || profileRes.user?.mascot_gender || profileRes.user?.gender;
             if (rawMascot) {
               const mascotGender = resolveMascotGender(rawMascot);
@@ -299,6 +300,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // 1. Ambil data user & maskot dari Backend Go (Single Source of Truth)
       const profileRes = await userApi.getUserProfile().catch(() => null);
       if (profileRes) {
+        useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
         const u = profileRes.user || profileRes.profile;
         const rawMascot = profileRes.mascot_gender || u?.mascot_gender || u?.gender;
         if (rawMascot) {

@@ -1,4 +1,5 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import { AnimatePresence } from "framer-motion";
 import {
   BrowserRouter,
   Routes,
@@ -16,6 +17,8 @@ import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SessionExpiryHandler } from "./features/auth/components/SessionExpiryHandler";
 import { NgajiCeriaBottomNav } from "./features/ngaji-ceria/components/NgajiCeriaBottomNav";
 import { CeriaGameLoading } from "./features/ngaji-ceria/components/CeriaGameLoading";
+import ScrollToTop from "./components/ScrollToTop";
+import { useEconomyStore } from "./features/ngaji-ceria/hooks/useEconomyStore";
 
 // Core primary tab pages imported statically for instant transitions & zero layout flashing
 import NgajiCeriaHomePage from "./features/ngaji-ceria/pages/NgajiCeriaHomePage";
@@ -50,6 +53,9 @@ const UstadzRoomDetailPage = lazy(
 const UstadzKurikulumPage = lazy(
   () => import("./features/ustadz/pages/UstadzKurikulumPage").then((m) => ({ default: m.UstadzKurikulumPage })),
 );
+const UstadzMaterialPreviewPage = lazy(
+  () => import("./features/ustadz/pages/UstadzMaterialPreviewPage").then((m) => ({ default: m.UstadzMaterialPreviewPage })),
+);
 const UstadzQuizListPage = lazy(
   () => import("./features/ustadz/pages/UstadzQuizListPage").then((m) => ({ default: m.UstadzQuizListPage })),
 );
@@ -83,6 +89,12 @@ const NgajiCeriaQuizListPage = lazy(
 const NgajiCeriaQuizPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaQuizPage"),
 );
+const QuizHubPage = lazy(
+  () => import("./features/ngaji-ceria/pages/QuizHubPage"),
+);
+const QuizHubPlayPage = lazy(
+  () => import("./features/ngaji-ceria/pages/QuizHubPlayPage"),
+);
 const NgajiCeriaLeaderboardPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaLeaderboardPage"),
 );
@@ -94,6 +106,9 @@ const KamarBibiPage = lazy(
 );
 const NgajiCeriaHistoryPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaHistoryPage"),
+);
+const LabIramaPage = lazy(
+  () => import("./features/ngaji-ceria/pages/LabIramaPage"),
 );
 const CekAudioManualPage = lazy(
   () => import("./features/ngaji-ceria/pages/CekAudioManualPage"),
@@ -128,6 +143,9 @@ const JuzAmmaDetailPage = lazy(
 const TahfidzPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/TahfidzPage"),
 );
+const TahfidzDetailPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/TahfidzDetailPage"),
+);
 const JurnalIbadahPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/JurnalIbadahPage"),
 );
@@ -137,8 +155,23 @@ const MagicCardsPage = lazy(
 const TilawatiMapPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/TilawatiMapPage"),
 );
+const ArenaKartuSelectPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/ArenaKartuSelectPage"),
+);
 const ArenaKartuPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/ArenaKartuPage"),
+);
+const KartuPracticePage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/KartuPracticePage"),
+);
+const TilawatiTrainingPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/TilawatiTrainingPage"),
+);
+const RhythmMemorySelectPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/RhythmMemorySelectPage"),
+);
+const RhythmMemoryPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/RhythmMemoryPage"),
 );
 const FlashcardGamePage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/FlashcardGamePage"),
@@ -245,6 +278,18 @@ const NabiChroniclesPage = lazy(
 const MalaikatMissionPage = lazy(
   () =>
     import("./features/ngaji-ceria/pages/games/malaikat-mission/MalaikatMissionPage"),
+);
+const TilawatiMemorySelectPage = lazy(
+  () =>
+    import(
+      "./features/ngaji-ceria/pages/games/tilawati-memory/TilawatiMemorySelectPage"
+    ),
+);
+const TilawatiMemoryPage = lazy(
+  () =>
+    import(
+      "./features/ngaji-ceria/pages/games/tilawati-memory/TilawatiMemoryPage"
+    ),
 );
 const NotificationPage = lazy(
   () => import("./features/ngaji-ceria/pages/NotificationPage"),
@@ -468,16 +513,31 @@ function RouteBoundary({ children }: { children: ReactNode }) {
   );
 }
 
-export default function App() {
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+function AppThemeSync() {
+  const equippedAppTheme = useEconomyStore((s) => s.equippedAppTheme) || "default";
 
-  const appContent = (
-    <AuthProvider>
-      <BrowserRouter>
-        <SessionExpiryHandler />
-        <RouteBoundary>
-          <Routes>
-          <Route path="/login" element={<LoginPage />} />
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-app-theme", equippedAppTheme);
+      document.body.setAttribute("data-app-theme", equippedAppTheme);
+      if (equippedAppTheme === "night" || equippedAppTheme === "neon") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, [equippedAppTheme]);
+
+  return null;
+}
+
+function AppRoutesContent() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={<LoginPage />} />
           <Route
             index
             element={<Navigate to="/member/ngaji-ceria" replace />}
@@ -510,6 +570,34 @@ export default function App() {
           <Route
             path="/member/ngaji-ceria/quiz/play"
             element={<NgajiCeriaQuizPage />}
+          />
+          <Route
+            path="/quiz-hub"
+            element={<QuizHubPage />}
+          />
+          <Route
+            path="/quiz-hub/play"
+            element={<QuizHubPlayPage />}
+          />
+          <Route
+            path="/quiz-hub/versus"
+            element={<QuizHubPlayPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/quiz-hub"
+            element={<QuizHubPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/quiz-hub/play"
+            element={<QuizHubPlayPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/quiz-hub/versus"
+            element={<QuizHubPlayPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/lab-irama"
+            element={<LabIramaPage />}
           />
           <Route
             path="/member/ngaji-ceria/games"
@@ -592,6 +680,14 @@ export default function App() {
             element={<TahfidzPage />}
           />
           <Route
+            path="/member/ngaji-ceria/explore/tahfidz/:surahId"
+            element={<TahfidzDetailPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/tahfidz/surah/:surahId"
+            element={<TahfidzDetailPage />}
+          />
+          <Route
             path="/member/ngaji-ceria/explore/jurnal-ibadah"
             element={<JurnalIbadahPage />}
           />
@@ -601,11 +697,60 @@ export default function App() {
           />
           <Route
             path="/member/ngaji-ceria/explore/practice"
+            element={<ArenaKartuSelectPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/arena-kartu"
+            element={<ArenaKartuSelectPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/arena-kartu/:jilid"
             element={<ArenaKartuPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/arena-kartu/:jilid/practice/:cardId"
+            element={<KartuPracticePage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/arena-kartu"
+            element={<ArenaKartuSelectPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/arena-kartu/:jilid"
+            element={<ArenaKartuPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/arena-kartu/:jilid/practice/:cardId"
+            element={<KartuPracticePage />}
           />
           <Route
             path="/member/ngaji-ceria/explore/practice/play/:jilid"
             element={<FlashcardGamePage />}
+          />
+          {/* PUSAT LATIHAN (TRAINING HUB) & RHYTHM MEMORY */}
+          <Route
+            path="/member/ngaji-ceria/training"
+            element={<TilawatiTrainingPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/training"
+            element={<TilawatiTrainingPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/rhythm-memory"
+            element={<RhythmMemorySelectPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/rhythm-memory/:jilid"
+            element={<RhythmMemoryPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/rhythm-memory"
+            element={<RhythmMemorySelectPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/explore/rhythm-memory/:jilid"
+            element={<RhythmMemoryPage />}
           />
 
           {/* NOTIFIKASI */}
@@ -626,6 +771,8 @@ export default function App() {
           <Route path="/arena" element={<Navigate to="/arena/join" replace />} />
           <Route path="/arena/join" element={<ArenaJoinRoomPage />} />
           <Route path="/arena/host/create" element={<ArenaCreateRoomPage />} />
+          <Route path="/arena/lobby/:pin" element={<ArenaHostLobbyPage />} />
+          <Route path="/room/lobby/:pin" element={<ArenaHostLobbyPage />} />
           <Route path="/arena/host/lobby/:pin" element={<ArenaHostLobbyPage />} />
           <Route path="/arena/host/game/:pin" element={<ArenaHostGamePage />} />
           <Route path="/arena/play/:pin" element={<ArenaPlayerGamePage />} />
@@ -637,6 +784,7 @@ export default function App() {
           <Route path="/member/ngaji-ceria/arena" element={<Navigate to="/arena/join" replace />} />
           <Route path="/member/ngaji-ceria/arena/join" element={<ArenaJoinRoomPage />} />
           <Route path="/member/ngaji-ceria/arena/host/create" element={<ArenaCreateRoomPage />} />
+          <Route path="/member/ngaji-ceria/arena/lobby/:pin" element={<ArenaHostLobbyPage />} />
           <Route path="/member/ngaji-ceria/arena/host/lobby/:pin" element={<ArenaHostLobbyPage />} />
           <Route path="/member/ngaji-ceria/arena/host/game/:pin" element={<ArenaHostGamePage />} />
           <Route path="/member/ngaji-ceria/arena/play/:pin" element={<ArenaPlayerGamePage />} />
@@ -668,6 +816,64 @@ export default function App() {
             />
           ))}
 
+          {/* TILAWATI MEMORY MATCH */}
+          <Route
+            path="/member/ngaji-ceria/games/memory/select"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemorySelectPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route
+            path="/member/ngaji-ceria/games/memory/:jilid"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemoryPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route
+            path="/member/ngaji-ceria/games/memory/:jilid/:level"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemoryPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route
+            path="/member/ngaji-ceria/games/tilawati-memory"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemorySelectPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route
+            path="/member/ngaji-ceria/games/tilawati-memory/select"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemorySelectPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route
+            path="/member/ngaji-ceria/games/tilawati-memory/:jilid"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemoryPage />
+              </MemberGameRouteGuard>
+            }
+          />
+          <Route
+            path="/member/ngaji-ceria/games/tilawati-memory/:jilid/:level"
+            element={
+              <MemberGameRouteGuard>
+                <TilawatiMemoryPage />
+              </MemberGameRouteGuard>
+            }
+          />
+
           {/* PANEL USTADZ (KELAS & SANTRI) */}
           <Route
             path="/member/ngaji-ceria/kelas"
@@ -692,6 +898,7 @@ export default function App() {
               <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
               <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
               <Route path="kurikulum" element={<UstadzKurikulumPage />} />
+              <Route path="preview/:materialId" element={<UstadzMaterialPreviewPage />} />
               <Route path="kuis" element={<UstadzQuizListPage />} />
               <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
               <Route path="laporan" element={<UstadzStudentReportPage />} />
@@ -706,6 +913,21 @@ export default function App() {
             element={<Navigate to="/member/ngaji-ceria" replace />}
           />
         </Routes>
+      </AnimatePresence>
+  );
+}
+
+export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+  const appContent = (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppThemeSync />
+        <ScrollToTop />
+        <SessionExpiryHandler />
+        <RouteBoundary>
+          <AppRoutesContent />
         </RouteBoundary>
       </BrowserRouter>
     </AuthProvider>

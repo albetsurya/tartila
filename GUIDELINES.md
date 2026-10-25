@@ -220,6 +220,9 @@ function scopedKey(base: string): string {
 
 ## 4. Audio & Feedback System
 
+> **PANDUAN LENGKAP ASET & INTEGRITAS AUDIO**: Lihat dokumen panduan audio resmi di [`docs/AUDIO_GUIDELINE.md`](./docs/AUDIO_GUIDELINE.md) atau [`AUDIO_GUIDELINE.md`](./AUDIO_GUIDELINE.md).
+> Sumber kebenaran mutlak (SSOT) aset audio Tilawati adalah repositori `sambung-ngaji`. Direktori `public/audio/tilawati_modified/` telah dihentikan secara permanen.
+
 Platform Tartila memiliki arsitektur audio 4 lapis yang bekerja secara harmonis tanpa saling tumpang tindih.
 
 ### 4.1 Lapisan Sistem Audio
@@ -325,6 +328,29 @@ Seluruh halaman utama berada di bawah namespace rute `/member/ngaji-ceria/`.
   import { Star, Check } from "@/components/ui/FontAwesomeIcons";
   ```
 - Gunakan relative path untuk modul internal dalam folder fitur yang sama (`./` atau `../`).
+
+---
+
+## 7. Aturan Kaku Otorisasi Role (Tartila & Sambung Ngaji)
+
+### 7.1 Definisi Role (Jangan Dicampur Aduk)
+- **`admin`**: Hanya untuk Admin Sambung Ngaji. **TIDAK BOLEH** masuk ke Panel Admin Tartila.
+- **`tartila_admin`**: Admin Tartila. Berhak mengakses fitur Tartila (Game, Audio, Timeline, Kuis).
+- **`superadmin` / `SUPER_ADMIN`**: Dewan Direksi / Pemilik. **WAJIB BISA MENGAKSES SEMUA FITUR** (Sambung Ngaji & Tartila).
+
+### 7.2 Aturan Penulisan Kode (Backend Go)
+- Setiap kali membuat endpoint dengan prefix `/api/admin/...` atau `/api/tartila-admin/...`, **WAJIB** menggunakan fungsi pengecekan role terpusat `IsTartilaAdmin(role)`.
+- Fungsi pengecekan `IsTartilaAdmin(role)` **HARUS** mengembalikan `true` HANYA untuk role: `"tartila_admin"`, `"SUPER_ADMIN"`, `"SUPERADMIN"`, `"superadmin"`, `"SUPERADMIN1"`.
+- JIKA string role adalah `"ADMIN"` (Sambung Ngaji), fungsi **HARUS** mengembalikan `false` dan menolak akses (403 Forbidden). DILARANG KERAS meloloskan role `"ADMIN"` ke fitur/endpoint Tartila!
+- Selalu gunakan `strings.ToUpper(strings.TrimSpace(role))` dan normalisasi spasi/tanda hubung (`strings.ReplaceAll(..., " ", "_")`) sebelum mengecek, agar tidak error karena variasi huruf/spasi tak sengaja (seperti `"SUPER ADMIN"`).
+
+### 7.3 Aturan Penulisan Kode (Frontend React)
+- Jangan pernah melakukan hardcode `if (role === 'admin')` untuk fitur Tartila. Gunakan helper `isTartilaAdmin(role)` dari `roles.ts`.
+- Pastikan helper `isTartilaAdmin` di `roles.ts` selalu menyertakan `superadmin` di dalamnya.
+
+### 7.4 Integritas Database (Migrasi)
+- Role default untuk user biasa adalah `member`.
+- Jangan pernah menyimpan role `admin` di tabel user Tartila, gunakan `tartila_admin`.
 
 ---
 *Dokumen ini diterbitkan sebagai panduan arsitektur resmi Tartila. Setiap kontribusi fitur baru wajib mengikuti ketentuan di atas.*

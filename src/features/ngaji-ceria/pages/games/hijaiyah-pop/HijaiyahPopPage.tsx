@@ -29,18 +29,18 @@ function Game() {
   const rawGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotGender = resolveMascotGender(rawGender);
 
-  // Tema game aktif (dari Warung Santri) → warna arena & HUD
-  const gameTheme = useEconomyStore((s) => s.equippedGameTheme) as
-    | "default"
-    | "neon"
-    | "retro"
-    | "pastel";
+  // Tema aplikasi aktif → warna arena & HUD
+  const appTheme = useEconomyStore((s) => s.equippedAppTheme);
   const arenaStyle = {
     default: { bg: "bg-[#0F766E]", dot: "#2DD4BF" },
     neon: { bg: "bg-[#0B1220]", dot: "#38BDF8" },
     retro: { bg: "bg-[#F59E0B]", dot: "#FDE68A" },
     pastel: { bg: "bg-[#F9A8D4]", dot: "#FDA4AF" },
-  }[gameTheme] ?? { bg: "bg-[#0F766E]", dot: "#2DD4BF" };
+    night: { bg: "bg-[#1E1B4B]", dot: "#818CF8" },
+    sky: { bg: "bg-[#0369A1]", dot: "#7DD3FC" },
+    rose: { bg: "bg-[#BE123C]", dot: "#FDA4AF" },
+    gold: { bg: "bg-[#854D0E]", dot: "#FDE047" },
+  }[appTheme] ?? { bg: "bg-[#0F766E]", dot: "#2DD4BF" };
 
   // Audio pelafalan otomatis setiap target huruf berganti (Web Speech, tanpa aset Tilawati)
   useEffect(() => {

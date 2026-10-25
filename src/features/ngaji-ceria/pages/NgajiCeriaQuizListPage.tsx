@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import {
@@ -13,7 +14,6 @@ import { LoginPromptModal } from "../components/LoginPromptModal";
 import { useJilidAccess } from "../components/GameLockGuard";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
-import { useGameTheme } from "../hooks/useGameTheme";
 
 interface QuizBookProps {
   id: string;
@@ -42,7 +42,6 @@ function StandaloneQuizBookCard({
   onLockedTap,
   onClick,
 }: QuizBookProps) {
-  const theme = useGameTheme();
   const isCompleted = totalQuestions > 0 && completedQuestions === totalQuestions;
   const progressPercent =
     totalQuestions > 0
@@ -51,16 +50,16 @@ function StandaloneQuizBookCard({
 
   return (
     <motion.div
-      whileTap={{ scale: 0.97, y: 2 }}
-      className={`relative flex gap-3 rounded-[24px] ${theme.cardBgClass} border-[3px] ${theme.borderClass} p-3 ${theme.shadowClass} overflow-hidden ${
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98, y: 2 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className={`relative flex gap-3 rounded-[24px] bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] text-[var(--text-main,#134E4A)] overflow-hidden cursor-pointer ${
         isLocked ? "opacity-80 grayscale-[30%]" : ""
       }`}
     >
       {/* Gambar Buku */}
       <div className="relative shrink-0 w-20 h-24 flex items-center justify-center">
-        <div className={`absolute inset-0 m-auto h-14 w-14 rounded-full ${
-          theme.isNeon ? "bg-[#111827] border-sky-400/20" : theme.isRetro ? "bg-amber-100 border-amber-600/20" : theme.isPastel ? "bg-pink-100 border-pink-400/20" : "bg-[#F0FDF4] border-[#0D9488]/20"
-        } border-2`} />
+        <div className="absolute inset-0 m-auto h-14 w-14 rounded-full bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)]/20" />
         <img
           src={coverImage}
           alt={title}
@@ -71,7 +70,7 @@ function StandaloneQuizBookCard({
             <LockSvg size={14} />
           </div>
         ) : (
-          <div className={`absolute z-20 top-1 right-1 w-6 h-6 rounded-full ${theme.isNeon ? "bg-sky-500" : "bg-[#FF6B6B]"} text-white flex items-center justify-center border-2 ${theme.borderClass} shadow-sm`}>
+          <div className="absolute z-20 top-1 right-1 w-6 h-6 rounded-full bg-[#FF6B6B] text-white flex items-center justify-center border-2 border-[var(--border-color,#134E4A)] shadow-sm">
             <PlaySvg size={12} className="ml-0.5" />
           </div>
         )}
@@ -81,7 +80,7 @@ function StandaloneQuizBookCard({
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-1.5 mb-1">
-            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${theme.isNeon ? "bg-[#111827] text-sky-400 border border-sky-400/40" : "bg-[#F0FDF4] text-[#0D9488] border-2 border-[#0D9488]/30"}`}>
+            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] border-2 border-[var(--border-color,#134E4A)]/30">
               {level}
             </span>
             {isCompleted && (
@@ -90,10 +89,10 @@ function StandaloneQuizBookCard({
               </span>
             )}
           </div>
-          <h3 className={`font-display font-black text-sm ${theme.textClass} line-clamp-1`}>
+          <h3 className="font-display font-black text-sm text-[var(--text-main,#134E4A)] line-clamp-1">
             {title}
           </h3>
-          <p className={`text-[10px] font-semibold ${theme.subtextClass} line-clamp-1 mt-0.5`}>
+          <p className="text-[10px] font-semibold text-[var(--text-main,#134E4A)]/70 line-clamp-1 mt-0.5">
             {subtitle}
           </p>
         </div>
@@ -256,17 +255,15 @@ export default function NgajiCeriaQuizListPage() {
     },
   ];
 
-  const theme = useGameTheme();
-
   return (
     <NgajiCeriaLayout
       title="Kuis Kartu"
       showBack
       onBack={() => navigate("/member/ngaji-ceria/explore/tilawati")}
     >
-      <div className={`px-4 py-4 space-y-5 ${theme.bgClass} min-h-full rounded-t-3xl pb-32 transition-colors duration-200`}>
+      <div className="px-4 py-4 space-y-5 bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] min-h-full rounded-t-3xl pb-32 transition-colors duration-200">
         {/* Hero Banner */}
-        <section className={`relative overflow-hidden ${theme.heroBgClass} px-5 pt-6 pb-12 rounded-[24px] border-[3px] ${theme.heroBorderClass} ${theme.heroShadowClass}`}>
+        <section className="relative overflow-hidden bg-[#0D9488] px-5 pt-6 pb-12 rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
           <div className="relative z-10 flex items-center gap-4">
             <div className="w-16 h-16 shrink-0 bg-white/10 rounded-2xl p-2 border-2 border-white/20 rotate-3">
               <img
@@ -290,45 +287,51 @@ export default function NgajiCeriaQuizListPage() {
         </section>
 
         {/* List */}
-        <section className="space-y-3">
+        <motion.section
+          variants={staggerContainerVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {quizBooks.map((book) => (
-            <QuizBookEntry
-              key={book.id}
-              {...book}
-              completedQuestions={
-                book.jilid > 0
-                  ? Math.min(
-                      book.totalQuestions,
-                      Object.entries(starsByPage).filter(
-                        ([k, s]) =>
-                          k.startsWith(`jilid-${book.jilid}-hal-`) && s > 0,
-                      ).length,
-                    )
-                  : 0
-              }
-              stars={
-                book.jilid > 0
-                  ? Math.max(
-                      0,
-                      ...Object.entries(starsByPage)
-                        .filter(
+            <motion.div key={book.id} variants={staggerItemVariants}>
+              <QuizBookEntry
+                {...book}
+                completedQuestions={
+                  book.jilid > 0
+                    ? Math.min(
+                        book.totalQuestions,
+                        Object.entries(starsByPage).filter(
                           ([k, s]) =>
                             k.startsWith(`jilid-${book.jilid}-hal-`) && s > 0,
-                        )
-                        .map(([, s]) => s),
-                    )
-                  : 0
-              }
-              onOpen={() => {
-                triggerBibiReaction("play");
-                navigate(
-                  `/member/ngaji-ceria/quiz/play?jilid=${book.jilid}&hal=1`,
-                );
-              }}
-              onLocked={() => setPromptOpen(true)}
-            />
+                        ).length,
+                      )
+                    : 0
+                }
+                stars={
+                  book.jilid > 0
+                    ? Math.max(
+                        0,
+                        ...Object.entries(starsByPage)
+                          .filter(
+                            ([k, s]) =>
+                              k.startsWith(`jilid-${book.jilid}-hal-`) && s > 0,
+                          )
+                          .map(([, s]) => s),
+                      )
+                    : 0
+                }
+                onOpen={() => {
+                  triggerBibiReaction("play");
+                  navigate(
+                    `/member/ngaji-ceria/quiz/play?jilid=${book.jilid}&hal=1`,
+                  );
+                }}
+                onLocked={() => setPromptOpen(true)}
+              />
+            </motion.div>
           ))}
-        </section>
+        </motion.section>
 
         <LoginPromptModal
           open={promptOpen}

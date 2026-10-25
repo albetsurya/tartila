@@ -86,6 +86,13 @@ export function GameOverModal({
     setXpGained(progress.xp - before);
     setCoinsGained(progress.coins - beforeCoins);
     recordLeaderboard(gameId, score);
+    try {
+      sessionStorage.setItem("ngajiceria:recent-game-finished", gameId);
+      sessionStorage.setItem("ngajiceria:recent-game-timestamp", String(Date.now()));
+      window.dispatchEvent(new CustomEvent("ngajiceria:game-finished", { detail: { gameId, score } }));
+    } catch {
+      // ignore
+    }
     soundManager.playSfx(victory ? "victory" : "defeat");
     addEvent({
       type: "game_completed",
@@ -199,7 +206,7 @@ export function GameOverModal({
       )}
 
       {description && (
-        <p className="mt-2 text-xs font-bold text-[#134E4A]/70 text-center">
+        <p className="mt-2 text-xs font-bold text-[var(--text-main,#134E4A)]/70 text-center">
           {description}
         </p>
       )}
@@ -214,20 +221,20 @@ export function GameOverModal({
 
       {children}
 
-      <div className="my-6 grid grid-cols-2 divide-x-[3px] divide-[#134E4A]/10">
+      <div className="my-6 grid grid-cols-2 divide-x-[3px] divide-[var(--border-color,#134E4A)]/10">
         <div>
-          <p className="text-[10px] font-black tracking-widest text-[#134E4A]/60 uppercase">
+          <p className="text-[10px] font-black tracking-widest text-[var(--text-main,#134E4A)]/60 uppercase">
             Skor kamu
           </p>
           <p
             data-testid="game-over-score"
-            className="font-display text-3xl font-black text-[#134E4A]"
+            className="font-display text-3xl font-black text-[var(--text-main,#134E4A)]"
           >
             {score}
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-black tracking-widest text-[#134E4A]/60 uppercase">
+          <p className="text-[10px] font-black tracking-widest text-[var(--text-main,#134E4A)]/60 uppercase">
             Terbaik
           </p>
           <p

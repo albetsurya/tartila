@@ -7,6 +7,7 @@ import { UstadzSidebar } from "../components/UstadzSidebar";
 import { UstadzBottomNav } from "../components/UstadzBottomNav";
 
 const PAGE_TITLES: { match: (pathname: string) => boolean; title: string }[] = [
+  { match: (p) => p.startsWith("/ustadz/preview"), title: "Preview Materi" },
   { match: (p) => p.startsWith("/ustadz/kuis/baru"), title: "Buat Kuis" },
   { match: (p) => p.startsWith("/ustadz/kuis"), title: "Bank Kuis" },
   { match: (p) => p.startsWith("/ustadz/laporan"), title: "Laporan Santri" },

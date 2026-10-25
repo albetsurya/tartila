@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import React from 'react';
 import {
   generateJoinCode,
   normalizeJoinCode,
@@ -8,7 +9,13 @@ import {
   tierForRole,
   isGameOpen,
   isJilidOpen,
+  canonicalGameId,
 } from '../src/features/ngaji-ceria/data/gameAccess.ts';
+import {
+  HarakatRushCoverSvg,
+  HarakatSlasherCoverSvg,
+} from '../src/components/ui/Illustrations.tsx';
+import { HarakatSlasherSvg } from '../src/components/ui/CustomIcons.tsx';
 
 export const tests = {
   'generateJoinCode: 6 karakter dari alfabet aman': () => {
@@ -36,6 +43,7 @@ export const tests = {
     assert.equal(tierForRole('SUPER_ADMIN'), 'superadmin');
     assert.equal(tierForRole('superadmin'), 'superadmin');
     assert.equal(tierForRole('tartila_admin'), 'superadmin');
+    assert.equal(tierForRole('admin'), 'member');
     assert.equal(tierForRole('ustadz'), 'member');
     assert.equal(tierForRole('member'), 'member');
     assert.equal(tierForRole(undefined), 'guest');
@@ -56,6 +64,23 @@ export const tests = {
     assert.equal(isJilidOpen(3, 'guest'), false);
     assert.equal(isJilidOpen(5, 'member'), true);
     assert.equal(isJilidOpen(6, 'member'), false);
+  },
+
+  'canonicalGameId: memetakan alias harakat-slasher dan memory-match': () => {
+    assert.equal(canonicalGameId('harakat-slasher'), 'harakat-rush');
+    assert.equal(canonicalGameId('memory-match'), 'tilawati-memory');
+    assert.equal(canonicalGameId('hijaiyah-burst'), 'hijaiyah-pop');
+    assert.equal(canonicalGameId('ayat-scramble'), 'ayat-scramble');
+  },
+
+  'Harakat Slasher: icon SVG baru terdefinisi dan merupakan komponen React valid': () => {
+    assert.equal(typeof HarakatRushCoverSvg, 'function');
+    assert.equal(typeof HarakatSlasherCoverSvg, 'function');
+    assert.equal(typeof HarakatSlasherSvg, 'function');
+
+    assert.ok(React.isValidElement(React.createElement(HarakatRushCoverSvg)));
+    assert.ok(React.isValidElement(React.createElement(HarakatSlasherCoverSvg)));
+    assert.ok(React.isValidElement(React.createElement(HarakatSlasherSvg)));
   },
 };
 

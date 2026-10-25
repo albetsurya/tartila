@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ThemedHeader } from "../../components/ThemedHeader";
 import { Volume2, Pause, ChevronLeftSvg } from "../../../../components/ui/CustomIcons";
 import { JUZ_AMMA_SURAHS, everyAyahAudio } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
@@ -92,21 +93,34 @@ export default function JuzAmmaDetailPage() {
     play(url);
   };
 
+  const handleBack = () => {
+    navigate("/member/ngaji-ceria/explore/juz-amma");
+  };
+
   if (!surahMeta) {
     return (
       <NgajiCeriaLayout
         title="Galaksi Juz 'Amma"
+        hideHeader={true}
         showBack
-        onBack={() => navigate("/member/ngaji-ceria/explore/juz-amma")}
+        themeScope="juz-amma"
+        onBack={handleBack}
       >
+        <ThemedHeader
+          title="Galaksi Juz 'Amma"
+          onBack={handleBack}
+          themeColorClass="bg-[#1E1B4B]"
+          textColorClass="text-[#FEF08A]"
+          statVariant="capsule"
+        />
         <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-3 px-6 text-center">
-          <p className="font-display text-xl font-black text-[#134E4A]">
+          <p className="font-display text-xl font-black text-[#FEF08A]">
             Surah tidak ditemukan
           </p>
           <button
             type="button"
-            onClick={() => navigate("/member/ngaji-ceria/explore/juz-amma")}
-            className="rounded-xl bg-[#0D9488] px-4 py-2 text-sm font-black text-white border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+            onClick={handleBack}
+            className="rounded-xl bg-[#0D9488] px-4 py-2 text-sm font-black text-white border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] cursor-pointer"
           >
             Kembali ke Peta Bintang
           </button>
@@ -118,9 +132,18 @@ export default function JuzAmmaDetailPage() {
   return (
     <NgajiCeriaLayout
       title={surahMeta.name}
+      hideHeader={true}
       showBack
-      onBack={() => navigate("/member/ngaji-ceria/explore/juz-amma")}
+      themeScope="juz-amma"
+      onBack={handleBack}
     >
+      <ThemedHeader
+        title={surahMeta.name}
+        onBack={handleBack}
+        themeColorClass="bg-[#1E1B4B]"
+        textColorClass="text-[#FEF08A]"
+        statVariant="capsule"
+      />
       <div className="bg-[#F0FDF4] px-4 py-4 min-h-full pb-24">
         {/* HERO SURAH */}
         <section className="relative overflow-hidden rounded-[24px] bg-[#134E4A] p-5 text-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#FF6B6B] mb-5">

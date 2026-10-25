@@ -1,13 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { ThemedHeader } from "../../components/ThemedHeader";
+import { ExploreHeader } from "../../components/ExploreHeader";
 import { ChevronRight, Key, Sparkles } from "../../../../components/ui/CustomIcons";
 import { TAJWID_RULES } from "./exploreData";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 
 export default function TajwidSecretPage() {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate("/member/ngaji-ceria/map");
+  };
 
   const handleNavigate = (id: string) => {
     triggerBibiReaction("click");
@@ -18,7 +22,8 @@ export default function TajwidSecretPage() {
     <NgajiCeriaLayout
       title="Kunci Rahasia Tajwid"
       hideHeader={true}
-      onBack={() => navigate("/member/ngaji-ceria/map")}
+      themeScope="tajwid"
+      onBack={handleBack}
     >
       <div className="min-h-[100dvh] w-full bg-[#FEF9C3] relative overflow-x-hidden pb-28">
         {/* Pola kertas buku tulis */}
@@ -32,20 +37,21 @@ export default function TajwidSecretPage() {
         />
 
         <div className="relative z-10">
-          {/* HEADER: Map Lipat (folder manila) */}
-          <ThemedHeader
+          {/* HEADER: Map Lipat (folder manila) Terstandarisasi [Hati] [Koin] */}
+          <ExploreHeader
             title="Kunci Rahasia Tajwid"
-            onBack={() => navigate("/member/ngaji-ceria/map")}
+            subtitle="Misteri Aturan & Cara Bacaan Al-Qur'an"
+            onBack={handleBack}
+            themeScope="tajwid"
             themeColorClass="bg-[#FDE68A]"
+            borderColorClass="border-[#CA8A04]"
+            shadowClass="shadow-[0_3px_0px_#78350F]"
             textColorClass="text-[#854D0E]"
-            statVariant="stamp"
-            statBgClass="bg-[#FEF9C3]"
-            statTextClass="text-[#854D0E]"
-            backClass="bg-[#EAB308]"
+            backClass="bg-[#EAB308] text-[#854D0E] border-[#CA8A04] shadow-[2px_2px_0px_#78350F]"
           >
             {/* Ornamen sudut: klip kertas & tab Nursal */}
             <svg
-              className="absolute right-24 top-3 w-8 h-8 text-[#B45309] rotate-12 opacity-70"
+              className="pointer-events-none absolute right-24 top-3 w-8 h-8 text-[#B45309] rotate-12 opacity-70"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -53,7 +59,7 @@ export default function TajwidSecretPage() {
             >
               <path d="M8 3v15a4 4 0 0 0 8 0V7a2.5 2.5 0 0 0-5 0v9" />
             </svg>
-          </ThemedHeader>
+          </ExploreHeader>
 
           {/* Hero: folder berkas RAHASIA */}
           <div className="px-4 pt-6">

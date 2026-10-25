@@ -63,7 +63,7 @@ export function AvatarWithBadge({
     effectiveTier === "superadmin" ||
     effectiveRole === "superadmin" ||
     effectiveRole === "super_admin" ||
-    effectiveRole === "admin";
+    effectiveRole === "tartila_admin";
 
   const isVip =
     !isSuperAdmin &&

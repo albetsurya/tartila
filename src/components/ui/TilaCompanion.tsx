@@ -362,6 +362,57 @@ const IDLE_POSES: TilaPoseReaction[] = [
   "confused",
 ];
 
+export function isTilaCompanionExcluded(pathname: string): boolean {
+  const normalized = pathname.replace(/\/$/, "");
+
+  // 1. Kamar Maskot
+  if (
+    normalized.includes("/kamar-tila") ||
+    normalized.includes("/kamar-tito") ||
+    normalized.includes("/kamar-bibi")
+  ) {
+    return true;
+  }
+
+  // 2. Panel Admin & Ustadz
+  if (normalized.startsWith("/admin") || normalized.startsWith("/ustadz")) {
+    return true;
+  }
+
+  // 3. Saat kuis sedang berjalan
+  if (normalized.includes("/quiz/play")) {
+    return true;
+  }
+
+  // 4. Lab Irama
+  if (normalized.includes("/lab-irama")) {
+    return true;
+  }
+
+  // 5. Latihan ketuk irama & Game Rhythm / Memory Match (sembunyikan agar tidak menutupi kartu & tap zone)
+  // Papan Progres Arena Kartu (/arena-kartu & /arena-kartu/:jilid) TETAP menampilkan maskot
+  if (
+    normalized.includes("/practice") ||
+    normalized.includes("/rhythm-memory") ||
+    normalized.includes("/tilawati-memory") ||
+    normalized.includes("/games/memory")
+  ) {
+    return true;
+  }
+
+  // 6. Game interaktif layar penuh (e.g. Hijaiyah Pop atau rute permainan di dalam /games/...)
+  // Halaman Daftar Game / Game Hub (/member/ngaji-ceria/games) TETAP memunculkan maskot!
+  if (
+    normalized.includes("/games/hijaiyah-pop") ||
+    (normalized.includes("/games/") && normalized !== "/member/ngaji-ceria/games") ||
+    (normalized.startsWith("/member/ngaji-ceria/games/") && normalized !== "/member/ngaji-ceria/games")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export function TilaCompanion({
   size = 110,
   autoRoam = true,
@@ -372,6 +423,15 @@ export function TilaCompanion({
 }: TilaCompanionProps) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  if (
+    location.pathname === "/member/ngaji-ceria/profile" ||
+    location.pathname.startsWith("/member/ngaji-ceria/leaderboard") ||
+    location.pathname.includes("/arena-kartu") ||
+    location.pathname.includes("/explore/practice")
+  ) {
+    return null;
+  }
 
   const isNavTab = isBottomNavTab(location.pathname);
 
@@ -1194,15 +1254,7 @@ export function TilaCompanion({
     navigate(path);
   };
 
-  if (
-    location.pathname === "/member/ngaji-ceria/kamar-tila" ||
-    location.pathname === "/member/ngaji-ceria/kamar-tito" ||
-    location.pathname === "/member/ngaji-ceria/kamar-bibi" ||
-    location.pathname.includes("/games/hijaiyah-pop") ||
-    location.pathname === "/member/ngaji-ceria/quiz" ||
-    location.pathname.startsWith("/member/ngaji-ceria/quiz/play") ||
-    location.pathname.startsWith("/member/ngaji-ceria/explore/juz-amma/")
-  ) {
+  if (isTilaCompanionExcluded(location.pathname)) {
     return null;
   }
 

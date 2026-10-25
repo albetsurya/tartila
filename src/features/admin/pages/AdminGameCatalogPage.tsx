@@ -42,6 +42,7 @@ export function AdminGameCatalogPage() {
     loading,
     error,
     toggleActive,
+    updateGameConfig,
     toggleAccess,
     toggleValidation,
     updateGame,
@@ -60,8 +61,8 @@ export function AdminGameCatalogPage() {
     "all" | "needs-validation" | "validated"
   >("all");
 
-  // UI State
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  // UI State: Default tabel sesuai spesifikasi FASE 2
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
   const [editingGame, setEditingGame] = useState<AdminGameCatalogEntry | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [confirmResetAll, setConfirmResetAll] = useState(false);
@@ -72,6 +73,48 @@ export function AdminGameCatalogPage() {
     setTimeout(() => {
       setToastMessage((cur) => (cur === message ? null : cur));
     }, 3200);
+  };
+
+  const handleDisplayTypeChange = async (
+    game: AdminGameCatalogEntry,
+    displayType: "standalone" | "hub",
+  ) => {
+    try {
+      await updateGameConfig(game.gameId, {
+        display_type: displayType,
+        parent_hub_id: displayType === "standalone" ? null : game.parentHubId,
+      });
+      showToast(`Tipe tampilan "${game.title}" diubah ke ${displayType}!`);
+    } catch {
+      showToast(`Gagal mengubah tipe tampilan "${game.title}".`);
+    }
+  };
+
+  const handleParentHubChange = async (
+    game: AdminGameCatalogEntry,
+    parentHubId: string,
+  ) => {
+    try {
+      await updateGameConfig(game.gameId, {
+        parent_hub_id: parentHubId || null,
+        display_type: parentHubId ? "hub" : "standalone",
+      });
+      showToast(`Hub untuk "${game.title}" diperbarui!`);
+    } catch {
+      showToast(`Gagal mengubah hub untuk "${game.title}".`);
+    }
+  };
+
+  const handleSortOrderChange = async (
+    game: AdminGameCatalogEntry,
+    sortOrder: number,
+  ) => {
+    try {
+      await updateGameConfig(game.gameId, { sort_order: sortOrder });
+      showToast(`Urutan #${sortOrder} untuk "${game.title}" disimpan!`);
+    } catch {
+      showToast(`Gagal mengubah urutan "${game.title}".`);
+    }
   };
 
   const isFiltered =
@@ -525,6 +568,9 @@ export function AdminGameCatalogPage() {
               game={game}
               isToggling={togglingGameId === game.gameId}
               onToggleActive={() => handleToggleActive(game)}
+              onDisplayTypeChange={(dt) => handleDisplayTypeChange(game, dt)}
+              onParentHubChange={(hub) => handleParentHubChange(game, hub)}
+              onSortOrderChange={(ord) => handleSortOrderChange(game, ord)}
               onToggleAccess={() => handleToggleAccess(game)}
               onToggleValidation={() => handleToggleValidation(game)}
               onEdit={() => setEditingGame(game)}
@@ -533,17 +579,18 @@ export function AdminGameCatalogPage() {
           ))}
         </div>
       ) : (
-        /* Tabel Tampilan List */
+        /* Tabel Tampilan List CMS Game Dinamis */
         <div className="admin-surface admin-border overflow-hidden rounded-xl border shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[840px] text-left text-sm">
               <thead>
-                <tr className="admin-border border-b text-xs uppercase tracking-wider admin-muted">
+                <tr className="admin-border border-b text-xs uppercase tracking-wider admin-muted bg-[var(--admin-accent-soft)]/30">
                   <th className="px-5 py-3 font-semibold">Game</th>
-                  <th className="px-4 py-3 font-semibold">Kurikulum</th>
-                  <th className="px-4 py-3 font-semibold">Status Game</th>
+                  <th className="px-4 py-3 font-semibold">Status (Tampil)</th>
+                  <th className="px-4 py-3 font-semibold">Tipe Tampilan</th>
+                  <th className="px-4 py-3 font-semibold">Pilih Hub</th>
+                  <th className="px-4 py-3 font-semibold text-center">Urutan</th>
                   <th className="px-4 py-3 font-semibold">Akses</th>
-                  <th className="px-4 py-3 font-semibold">Validasi</th>
                   <th className="px-4 py-3 text-right font-semibold">Aksi</th>
                 </tr>
               </thead>
@@ -554,6 +601,9 @@ export function AdminGameCatalogPage() {
                     game={game}
                     isToggling={togglingGameId === game.gameId}
                     onToggleActive={() => handleToggleActive(game)}
+                    onDisplayTypeChange={(dt) => handleDisplayTypeChange(game, dt)}
+                    onParentHubChange={(hub) => handleParentHubChange(game, hub)}
+                    onSortOrderChange={(ord) => handleSortOrderChange(game, ord)}
                     onToggleAccess={() => handleToggleAccess(game)}
                     onToggleValidation={() => handleToggleValidation(game)}
                     onEdit={() => setEditingGame(game)}
@@ -626,6 +676,9 @@ interface GameItemProps {
   game: AdminGameCatalogEntry;
   isToggling?: boolean;
   onToggleActive: () => void;
+  onDisplayTypeChange: (displayType: "standalone" | "hub") => void;
+  onParentHubChange: (parentHubId: string) => void;
+  onSortOrderChange: (sortOrder: number) => void;
   onToggleAccess: () => void;
   onToggleValidation: () => void;
   onEdit: () => void;
@@ -636,6 +689,9 @@ function GameCardItem({
   game,
   isToggling,
   onToggleActive,
+  onDisplayTypeChange,
+  onParentHubChange,
+  onSortOrderChange,
   onToggleAccess,
   onToggleValidation,
   onEdit,
@@ -837,6 +893,9 @@ function GameTableRow({
   game,
   isToggling,
   onToggleActive,
+  onDisplayTypeChange,
+  onParentHubChange,
+  onSortOrderChange,
   onToggleAccess,
   onToggleValidation,
   onEdit,
@@ -860,34 +919,18 @@ function GameTableRow({
                 </span>
               )}
             </div>
-            <p className="font-mono text-xs admin-muted">{game.gameId}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="font-mono text-xs admin-muted">{game.gameId}</span>
+              <span className="text-[10px] admin-muted">•</span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                {game.materiPokok.map((m) => MATERI_LABELS[m] || m).join(", ")}
+              </span>
+            </div>
           </div>
         </div>
       </td>
 
-      {/* Kolom Kurikulum (Materi & Jilid) */}
-      <td className="px-4 py-3.5">
-        <div className="flex flex-wrap gap-1">
-          {game.materiPokok.map((m) => (
-            <span
-              key={m}
-              className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-            >
-              {MATERI_LABELS[m] || m}
-            </span>
-          ))}
-          {game.jilidRelevan.map((j) => (
-            <span
-              key={j}
-              className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400"
-            >
-              J{j}
-            </span>
-          ))}
-        </div>
-      </td>
-
-      {/* Kolom Status Game (Toggle Aktif / Pemeliharaan) */}
+      {/* Kolom Status Game (Toggle Tampilkan / Sembunyikan) */}
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2">
           <button
@@ -896,11 +939,7 @@ function GameTableRow({
             aria-checked={game.isActive}
             disabled={isToggling}
             onClick={onToggleActive}
-            title={
-              game.isActive
-                ? "Klik untuk menonaktifkan"
-                : "Klik untuk mengaktifkan"
-            }
+            title={game.isActive ? "Klik untuk sembunyikan game" : "Klik untuk tampilkan game"}
             className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
               game.isActive ? "bg-emerald-600" : "bg-zinc-300 dark:bg-zinc-600"
             } ${isToggling ? "opacity-50 cursor-wait" : ""}`}
@@ -915,12 +954,60 @@ function GameTableRow({
             className={`text-xs font-semibold ${
               game.isActive
                 ? "text-emerald-700 dark:text-emerald-400"
-                : "text-red-600 dark:text-red-400"
+                : "text-zinc-500"
             }`}
           >
-            {game.isActive ? "Aktif" : "Non-aktif"}
+            {game.isActive ? "Tampil" : "Sembunyi"}
           </span>
         </div>
+      </td>
+
+      {/* Kolom Tipe Tampilan (Dropdown Standalone / Hub) */}
+      <td className="px-4 py-3.5">
+        <select
+          value={game.displayType || "standalone"}
+          onChange={(e) => onDisplayTypeChange(e.target.value as "standalone" | "hub")}
+          aria-label={`Tipe tampilan ${game.title}`}
+          className="admin-surface admin-border rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors focus:border-emerald-500 focus:outline-none"
+        >
+          <option value="standalone">Standalone</option>
+          <option value="hub">Hub</option>
+        </select>
+      </td>
+
+      {/* Kolom Pilih Hub (Dropdown Hub jika Tipe = Hub) */}
+      <td className="px-4 py-3.5">
+        <select
+          disabled={game.displayType !== "hub"}
+          value={game.parentHubId || ""}
+          onChange={(e) => onParentHubChange(e.target.value)}
+          aria-label={`Pilih hub untuk ${game.title}`}
+          className={`admin-surface admin-border rounded-lg border px-2 py-1 text-xs font-medium transition-colors focus:border-emerald-500 focus:outline-none ${
+            game.displayType !== "hub"
+              ? "opacity-30 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800"
+              : "text-[var(--admin-text)]"
+          }`}
+        >
+          <option value="">-- Tanpa Hub --</option>
+          <option value="ritme-ngaji">Ritme Ngaji</option>
+          <option value="quiz-ngaji">Quiz Ngaji</option>
+          <option value="puzzle-huruf">Puzzle Huruf</option>
+          <option value="tajwid-lab">Tajwid Lab</option>
+          <option value="petualangan-santri">Petualangan Santri</option>
+        </select>
+      </td>
+
+      {/* Kolom Urutan (Sort Order) */}
+      <td className="px-4 py-3.5 text-center">
+        <input
+          type="number"
+          min={0}
+          max={99}
+          value={game.sortOrder ?? 0}
+          onChange={(e) => onSortOrderChange(Number(e.target.value))}
+          aria-label={`Urutan tampil ${game.title}`}
+          className="admin-surface admin-border w-14 rounded-lg border py-1 text-center text-xs font-bold transition-colors focus:border-emerald-500 focus:outline-none"
+        />
       </td>
 
       {/* Kolom Akses */}

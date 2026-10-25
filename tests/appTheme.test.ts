@@ -3,9 +3,9 @@ import { APP_THEMES_LIST } from '../src/features/ngaji-ceria/hooks/useAppTheme.t
 import { useEconomyStore } from '../src/features/ngaji-ceria/hooks/useEconomyStore.ts';
 
 export const tests = {
-  'APP_THEMES_LIST memuat 5 varian tema lengkap': () => {
+  'APP_THEMES_LIST memuat varian tema aplikasi lengkap termasuk bekas tema game': () => {
     const ids = APP_THEMES_LIST.map((t) => t.id);
-    assert.deepEqual(ids, ['default', 'sky', 'rose', 'night', 'gold']);
+    assert.deepEqual(ids, ['default', 'sky', 'rose', 'night', 'gold', 'neon', 'retro', 'pastel']);
     assert.equal(APP_THEMES_LIST.find((t) => t.id === 'default')?.price, 0);
   },
 

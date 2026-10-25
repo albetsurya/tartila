@@ -16,6 +16,7 @@ import {
   Pause,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from "../../../components/ui/CustomIcons";
 
 export type CekAudioVariant = "member" | "admin";
@@ -52,11 +53,16 @@ type EditingQuestion = {
 };
 
 type TimelineClip = {
+  id?: string;
   sequence: number;
   filename: string;
-  type: "header" | "demo" | "footer" | "baris" | "isi";
+  type: "header" | "demo" | "footer" | "baris" | "isi" | string;
   duration: number;
+  durasi?: number;
   audioUrl: string;
+  teksArab?: string;
+  teksLatin?: string;
+  isPublished?: boolean;
 };
 
 export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
@@ -220,8 +226,13 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
       ? `${jilid}:${hal}:page`
       : `${jilid}:${hal}:${questionIndex}`;
 
-  const setAudioTested = (questionIndex: number, tested: boolean) => {
-    const key = getQuestionKey(questionIndex);
+  const setAudioTested = (keyOrIndex: number | string, tested: boolean) => {
+    const key =
+      typeof keyOrIndex === "number" && keyOrIndex === -1
+        ? `${jilid}:${hal}:page`
+        : typeof keyOrIndex === "string" && keyOrIndex.includes(":")
+          ? keyOrIndex
+          : `${jilid}:${hal}:${keyOrIndex}`;
     setTestedAudio((current) => {
       const next = { ...current, [key]: tested };
       try {
@@ -696,11 +707,73 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
           ({ questionIndex }) => !(isKelipatanEnam && questionIndex === 0),
         )
     : [];
-  const testableQuestionRows = questionRows.filter(({ audioUrl }) =>
-    Boolean(audioUrl),
-  );
-  const testedCount = testableQuestionRows.filter(
-    ({ questionIndex }) => testedAudio[getQuestionKey(questionIndex)],
+
+  const hasPublishedData = timelineClips.some((c) => c.isPublished);
+
+  // Jika di Timeline Editor sudah ada data published, jadikan sebagai Single Source of Truth
+  const audioItems = hasPublishedData
+    ? timelineClips.map((clip, index) => {
+        const questionKey = `${jilid}:${hal}:${clip.id || index}`;
+        const cleanClipArabic = (clip.teksArab || "").replace(/\s+/g, "");
+        const matchedQ = pageData?.questions.find(
+          (q) =>
+            (cleanClipArabic &&
+              q.arabic.replace(/\s+/g, "") === cleanClipArabic) ||
+            String(q.id) === String(clip.id),
+        );
+        return {
+          id: clip.id || `clip-${index + 1}`,
+          index,
+          sequence: clip.sequence || index + 1,
+          teksArab: clip.teksArab || matchedQ?.arabic || "",
+          teksLatin:
+            clip.teksLatin ||
+            matchedQ?.transliterationParts.join(" - ") ||
+            "",
+          durasi: clip.durasi ?? clip.duration ?? 0,
+          audioUrl: clip.audioUrl,
+          filename: clip.filename,
+          type: clip.type || "isi",
+          isPublished: true,
+          hintTone:
+            matchedQ?.hintTone ||
+            (clip.type === "header"
+              ? "Rost: Judul / Pembuka"
+              : `Rost: Baris ${index + 1}`),
+          rawQuestion: matchedQ,
+          questionKey,
+        };
+      })
+    : questionRows.map(({ q, questionIndex, audioUrl }, idx) => {
+        const questionKey = getQuestionKey(questionIndex);
+        const clipMatch = timelineClips.find(
+          (c) =>
+            c.audioUrl === audioUrl ||
+            String(c.sequence) === String(questionIndex + 1),
+        );
+        return {
+          id: q.id,
+          index: idx,
+          sequence: idx + 1,
+          teksArab: q.arabic,
+          teksLatin: q.transliterationParts.join(" - "),
+          durasi: clipMatch?.duration || 0,
+          audioUrl: audioUrl,
+          filename: audioUrl ? audioUrl.split("/").pop() || "" : "",
+          type: q.isOpening ? "header" : "isi",
+          isPublished: false,
+          hintTone: q.hintTone,
+          rawQuestion: q,
+          questionKey,
+        };
+      });
+
+  const testableAudioItems = audioItems.filter((item) => Boolean(item.audioUrl));
+  const testedCount = testableAudioItems.filter(
+    (item) =>
+      testedAudio[item.questionKey] ||
+      testedAudio[getQuestionKey(item.index)] ||
+      testedAudio[`${jilid}:${hal}:${item.id}`],
   ).length;
 
   return (
@@ -782,7 +855,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                 Tandai halaman ini jika seluruh audio dan teks sudah final.
               </div>
               <div className="mt-1 text-[10px] font-black text-[#0F766E]">
-                {testedCount}/{testableQuestionRows.length} item audio teruji
+                {testedCount}/{testableAudioItems.length} item audio teruji
               </div>
             </div>
             <label className="shrink-0 flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black text-[#0D9488] shadow-sm cursor-pointer hover:bg-[#F0FDF4] transition-colors">
@@ -805,11 +878,17 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
           }
         >
           <div className="min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-wider text-[#0F766E]">
-              Timeline halaman
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#0F766E]">
+              <span>Timeline halaman</span>
+              {hasPublishedData && (
+                <span className="inline-flex items-center gap-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-black text-white">
+                  <Check size={10} className="stroke-[3]" /> Terpublikasi
+                </span>
+              )}
             </div>
             <h3 className="truncate text-sm font-black text-[#0F766E]">
-              Audio Hal {hal} · {timelineClips.length} klip
+              Audio Hal {hal} · {audioItems.length} klip
+              {hasPublishedData && " (Sinkron Timeline Editor)"}
             </h3>
           </div>
           <button
@@ -1097,65 +1176,90 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         )}
 
         {/* Content List */}
-        {pageData ? (
+        {audioItems.length > 0 ? (
           <div className="space-y-3 pb-24">
-            {questionRows.map(({ q, questionIndex, audioUrl }) => {
-              const questionKey = getQuestionKey(questionIndex);
+            {audioItems.map((item) => {
+              const isPlaying = playingId === item.id;
+              const isTested = Boolean(
+                testedAudio[item.questionKey] ||
+                  testedAudio[getQuestionKey(item.index)] ||
+                  testedAudio[`${jilid}:${hal}:${item.id}`],
+              );
               return (
                 <div
-                  key={q.id}
+                  key={item.id}
                   className={`flex flex-col p-4 border-2 transition-colors ${
-                    playingId === q.id
+                    isPlaying
                       ? "border-[#0D9488] bg-[#F2FDF5]"
                       : "border-gray-100 bg-white"
                   } ${admin ? "admin-surface !shadow-[3px_3px_0_var(--admin-border)] rounded-xl" : "rounded-[20px] shadow-sm"}`}
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1">
-                      <div className="text-[10px] font-black text-[#134e4a]/40 uppercase tracking-wider mb-1">
-                        {isKelipatanEnam
-                          ? questionIndex === pageData.questions.length - 2
-                            ? "Baris Bawah"
-                            : `Baris ${questionIndex + 1}`
-                          : questionIndex === 0
-                            ? "Judul (3x Rost)"
-                            : questionIndex === 1
-                              ? "Judul (Evaluasi 1x)"
-                              : questionIndex === pageData.questions.length - 1
-                                ? "Baris Bawah"
-                                : `Baris ${questionIndex - 1}`}
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span className="text-[10px] font-black text-[#134e4a]/50 uppercase tracking-wider">
+                          #{item.sequence} · {item.type}
+                        </span>
+                        {item.isPublished && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[9px] font-black text-emerald-800 border border-emerald-300">
+                            <Check size={11} className="text-emerald-600 stroke-[3]" />
+                            Data Final Publish
+                          </span>
+                        )}
+                        {item.durasi > 0 && (
+                          <span className="inline-flex items-center gap-1 font-mono text-[9px] font-black text-[#0F766E] bg-[#CCFBF1]/70 px-1.5 py-0.5 rounded border border-[#0D9488]/30">
+                            ⏱️ {item.durasi.toFixed(2)}s
+                          </span>
+                        )}
                       </div>
                       <div className="font-arabic text-3xl mb-1 leading-normal text-right pr-2 text-teal-900">
-                        {q.arabic}
+                        {item.teksArab || "(Teks Arab belum terhubung)"}
                       </div>
-                      <div className="text-xs font-bold text-[#134e4a]/50">
-                        [{q.transliterationParts.join(" - ")}]
-                      </div>
+                      {item.teksLatin && (
+                        <div className="text-xs font-bold text-[#134e4a]/50">
+                          [{item.teksLatin}]
+                        </div>
+                      )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => openEditor(q, questionIndex, audioUrl)}
+                        onClick={() => {
+                          const questionObj: QuizQuestion = item.rawQuestion || {
+                            id: typeof item.id === "number" ? item.id : item.index,
+                            arabic: item.teksArab,
+                            transliterationParts: item.teksLatin
+                              ? item.teksLatin.split(" - ")
+                              : [],
+                            options: item.teksLatin
+                              ? item.teksLatin.split(" - ")
+                              : [],
+                            hintTone: item.hintTone || "Rost: Baris",
+                            audioUrl: item.audioUrl || "",
+                            audioMappingComplete: true,
+                          };
+                          openEditor(questionObj, item.index, item.audioUrl);
+                        }}
                         className="rounded-xl border border-[#0D9488]/30 bg-[#F0FDF4] px-2.5 py-2 text-[10px] font-black text-[#0F766E]"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => {
-                          if (playingId === q.id) {
+                          if (isPlaying) {
                             audioRef.current?.pause();
                             setPlayingId(null);
                           } else {
-                            playAudio(q.id, audioUrl);
+                            playAudio(item.id, item.audioUrl);
                           }
                         }}
                         className={`flex h-11 w-11 items-center justify-center rounded-full text-white transition-transform active:scale-90 ${
-                          playingId === q.id
+                          isPlaying
                             ? "bg-red-500 shadow-md"
                             : "bg-[#0D9488] shadow-md shadow-[#0D9488]/20"
                         }`}
                       >
-                        {playingId === q.id ? (
+                        {isPlaying ? (
                           <Pause size={16} />
                         ) : (
                           <Play size={16} />
@@ -1166,16 +1270,18 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                   <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[10px]">
                     <span
                       className="font-mono text-[#134e4a]/40 truncate pr-4 max-w-[200px]"
-                      title={audioUrl}
+                      title={item.audioUrl}
                     >
-                      {audioUrl
-                        ? audioUrl.split("/").pop()
+                      {item.audioUrl
+                        ? item.audioUrl.split("/").pop()
                         : "Audio belum tersedia"}
                     </span>
                     <span className="shrink-0 rounded bg-[#F0FDFA] px-2 py-0.5 font-bold text-[#134e4a]/70">
-                      {q.hintTone.includes("3x") ? "3x Rost" : "1x"}
+                      {item.hintTone.includes("3x")
+                        ? "3x Rost"
+                        : item.hintTone || "1x"}
                     </span>
-                    {!audioUrl ? (
+                    {!item.audioUrl ? (
                       <span
                         className={`shrink-0 rounded px-2 py-0.5 font-black ${
                           admin
@@ -1186,7 +1292,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                       >
                         404 · Audio Hilang
                       </span>
-                    ) : playErrorId === q.id ? (
+                    ) : playErrorId === item.id ? (
                       <span
                         className={`shrink-0 rounded px-2 py-0.5 font-black ${
                           admin
@@ -1200,21 +1306,25 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                     ) : null}
                     <label
                       className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 font-black transition-colors ${
-                        audioUrl
+                        item.audioUrl
                           ? "cursor-pointer text-[#0F766E] hover:bg-[#E2F5E8]"
                           : "cursor-not-allowed text-[#134e4a]/40"
                       }`}
                       title={
-                        audioUrl ? "Sudah ada audio" : "Audio belum tersedia"
+                        item.audioUrl
+                          ? "Tandai sudah diuji"
+                          : "Audio belum tersedia"
                       }
                     >
                       <input
                         type="checkbox"
-                        checked={Boolean(audioUrl)}
-                        readOnly
+                        checked={isTested}
+                        onChange={(e) =>
+                          setAudioTested(item.questionKey, e.target.checked)
+                        }
                         className="h-4 w-4 accent-[#0D9488]"
                       />
-                      <span>Ada Audio</span>
+                      <span>{isTested ? "Teruji" : "Uji"}</span>
                     </label>
                   </div>
                 </div>

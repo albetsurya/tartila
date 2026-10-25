@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { ThemedHeader } from "../../components/ThemedHeader";
+import { ExploreHeader } from "../../components/ExploreHeader";
 import {
   ChevronRight,
   Search,
@@ -13,7 +13,9 @@ import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 
 export default function DoaTreasurePage() {
   const navigate = useNavigate();
-  const back = () => navigate("/member/ngaji-ceria/map");
+  const back = () => {
+    navigate("/member/ngaji-ceria/map");
+  };
 
   const handleNavigate = (path: string) => {
     triggerBibiReaction("click");
@@ -21,7 +23,12 @@ export default function DoaTreasurePage() {
   };
 
   return (
-    <NgajiCeriaLayout title="Kumpulan Doa Harian" hideHeader={true} onBack={back}>
+    <NgajiCeriaLayout
+      title="Kumpulan Doa Harian"
+      hideHeader={true}
+      themeScope="doa"
+      onBack={back}
+    >
       <div className="min-h-[100dvh] w-full bg-[#B45309] relative overflow-x-hidden pb-28">
         {/* Pola papan kayu horizontal */}
         <div
@@ -42,25 +49,26 @@ export default function DoaTreasurePage() {
         />
 
         <div className="relative z-10">
-          {/* HEADER: Papan kayu dengan paku */}
-          <ThemedHeader
+          {/* HEADER: Papan kayu dengan paku Terstandarisasi [Hati] [Koin] */}
+          <ExploreHeader
             title="Gudang Doa"
+            subtitle="Peti Karun Doa Sehari-hari"
             onBack={back}
+            themeScope="doa"
             themeColorClass="bg-[#7C2D12]"
+            borderColorClass="border-[#B45309]"
+            shadowClass="shadow-[0_3px_0px_#451A03]"
             textColorClass="text-[#FDE68A]"
-            statVariant="wood"
-            statBgClass="bg-[#B45309]"
-            statTextClass="text-[#FBBF24]"
-            backClass="bg-[#92400E]"
+            backClass="bg-[#92400E] text-[#FDE68A] border-[#B45309] shadow-[2px_2px_0px_#451A03]"
           >
             {/* Paku besi di sudut papan */}
-            <div className="absolute left-3 right-3 top-1 h-2 flex justify-between z-20">
+            <div className="pointer-events-none absolute left-3 right-3 top-1 h-2 flex justify-between z-20">
               <span className="w-2 h-2 rounded-full bg-[#FCA5A5] border border-[#450A0A]" />
               <span className="w-2 h-2 rounded-full bg-[#FCA5A5] border border-[#450A0A]" />
             </div>
             {/* Kunci emas menempel */}
             <svg
-              className="absolute right-24 top-3.5 w-6 h-6 text-[#FBBF24] rotate-[18deg] opacity-90 z-20"
+              className="pointer-events-none absolute right-24 top-3.5 w-6 h-6 text-[#FBBF24] rotate-[18deg] opacity-90 z-20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -69,7 +77,7 @@ export default function DoaTreasurePage() {
               <circle cx="7" cy="7" r="3.5" />
               <path d="M9.5 9.5 17 17m0-2 2 2m-3 1 2 2m-8-7 1.5 1.5" />
             </svg>
-          </ThemedHeader>
+          </ExploreHeader>
 
           {/* HERO: Lentera + intro */}
           <div className="px-4 pt-6">

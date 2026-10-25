@@ -42,3 +42,23 @@ Setiap AI Agent (Cursor, Claude, GPT, Antigravity, Copilot, dll.) WAJIB membaca 
 - Di `tartila`: jalankan `npm run build && npm test`
 - Di `sambung-ngaji/frontend`: jalankan `npx tsc --noEmit && yarn build`
 - Di `sambung-ngaji/backend/go`: jalankan `go test ./... && go build ./...`
+
+## 6. ATURAN KAKU OTORISASI ROLE (TARTILA & SAMBUNG NGAJI)
+1. DEFINISI ROLE (JANGAN DICAMPUR ADUK):
+   - `admin`: Hanya untuk Admin Sambung Ngaji. TIDAK BOLEH masuk ke Panel Admin Tartila.
+   - `tartila_admin`: Admin Tartila. Hanya boleh mengakses fitur Tartila (Game, Audio, Timeline).
+   - `superadmin` / `SUPER_ADMIN`: Dewan Direksi / Pemilik. WAJIB BISA MENGAKSES SEMUA FITUR (Sambung Ngaji & Tartila).
+
+2. ATURAN PENULISAN KODE (BACKEND GO):
+   - Setiap kali membuat endpoint dengan prefix `/api/admin/...` atau `/api/tartila-admin/...`, WAJIB menggunakan fungsi pengecekan role terpusat `IsTartilaAdmin(role)`.
+   - Fungsi pengecekan (`IsTartilaAdmin(role)`) HARUS mengembalikan `true` HANYA untuk role: `"tartila_admin"`, `"SUPER_ADMIN"`, `"SUPERADMIN"`, `"superadmin"`, `"SUPERADMIN1"`.
+   - JIKA string role adalah `"ADMIN"` (Sambung Ngaji), fungsi HARUS mengembalikan `false` dan menolak akses (403 Forbidden). DILARANG KERAS meloloskan role `"ADMIN"` ke fitur/endpoint Tartila!
+   - Selalu gunakan `strings.ToUpper(strings.TrimSpace(role))` dan bersihkan spasi/tanda hubung (`strings.ReplaceAll(..., " ", "_")`) sebelum mengecek, agar tidak error karena variasi huruf/spasi (`"SUPER ADMIN"`).
+
+3. ATURAN PENULISAN KODE (FRONTEND REACT):
+   - Jangan pernah melakukan hardcode `if (role === 'admin')` untuk fitur Tartila. Gunakan helper `isTartilaAdmin(role)` dari `roles.ts`.
+   - Pastikan helper `isTartilaAdmin` di `roles.ts` selalu menyertakan `superadmin` di dalamnya.
+
+4. JIKA MENGUBAH DATABASE (MIGRASI):
+   - Role default untuk user biasa adalah `member`.
+   - Jangan pernah menyimpan role `admin` di tabel user Tartila, gunakan `tartila_admin`.

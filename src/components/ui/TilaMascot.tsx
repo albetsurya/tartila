@@ -174,7 +174,9 @@ export function TitoMascot({
 
   // ── PALETTE SWAP & SKIN DINAMIS (NAGA & ROBOT) ──
   const storeSkin = useEconomyStore((s) => s.equippedSkin);
-  const effectiveSkin: MascotSkin = (skin !== undefined ? skin : storeSkin || "default") as MascotSkin;
+  const effectiveSkin: MascotSkin = (
+    skin !== undefined ? skin : storeSkin || "default"
+  ) as MascotSkin;
 
   const skinPalette = {
     default: {
@@ -248,6 +250,128 @@ export function TitoMascot({
       shadow: "#1E1B4B",
       leg: "#3B0764",
       cheek: "#7C3AED",
+    },
+
+    // --- 10 PALET SKIN BARU ---
+    santri_teladan: {
+      body: "#F8FAFC",
+      belly: "#E2E8F0",
+      accent1: "#10B981",
+      accent2: "#059669",
+      tailTip: "#34D399",
+      wingsBase: "#ECFDF5",
+      stroke: "#064E3B",
+      shadow: "#CBD5E1",
+      leg: "#F59E0B",
+      cheek: "#FCA5A5",
+    },
+    penjaga_hutan: {
+      body: "#65A30D",
+      belly: "#BEF264",
+      accent1: "#78350F",
+      accent2: "#4D7C0F",
+      tailTip: "#FACC15",
+      wingsBase: "#ECFCCB",
+      stroke: "#365314",
+      shadow: "#3F6212",
+      leg: "#78350F",
+      cheek: "#A3E635",
+    },
+    ninja_bayangan: {
+      body: "#1E293B",
+      belly: "#475569",
+      accent1: "#EF4444",
+      accent2: "#B91C1C",
+      tailTip: "#F87171",
+      wingsBase: "#334155",
+      stroke: "#0F172A",
+      shadow: "#090D16",
+      leg: "#334155",
+      cheek: "#EF4444",
+    },
+    ksatria_baja: {
+      body: "#64748B",
+      belly: "#E2E8F0",
+      accent1: "#2563EB",
+      accent2: "#1D4ED8",
+      tailTip: "#60A5FA",
+      wingsBase: "#F1F5F9",
+      stroke: "#1E293B",
+      shadow: "#475569",
+      leg: "#334155",
+      cheek: "#93C5FD",
+    },
+    sultan_arabia: {
+      body: "#9F1239",
+      belly: "#FDE68A",
+      accent1: "#F59E0B",
+      accent2: "#B45309",
+      tailTip: "#38BDF8",
+      wingsBase: "#FFE4E6",
+      stroke: "#4C0519",
+      shadow: "#881337",
+      leg: "#D97706",
+      cheek: "#FB7185",
+    },
+    penjelajah_angkasa: {
+      body: "#F8FAFC",
+      belly: "#C7D2FE",
+      accent1: "#4F46E5",
+      accent2: "#3730A3",
+      tailTip: "#818CF8",
+      wingsBase: "#E0E7FF",
+      stroke: "#1E1B4B",
+      shadow: "#94A3B8",
+      leg: "#4338CA",
+      cheek: "#A5B4FC",
+    },
+    raja_samudra: {
+      body: "#0369A1",
+      belly: "#7DD3FC",
+      accent1: "#2DD4BF",
+      accent2: "#0D9488",
+      tailTip: "#5EEAD4",
+      wingsBase: "#E0F2FE",
+      stroke: "#082F49",
+      shadow: "#075985",
+      leg: "#0284C7",
+      cheek: "#2DD4BF",
+    },
+    api_membara: {
+      body: "#431407",
+      belly: "#FB923C",
+      accent1: "#EA580C",
+      accent2: "#C2410C",
+      tailTip: "#FACC15",
+      wingsBase: "#FED7AA",
+      stroke: "#270902",
+      shadow: "#1C0601",
+      leg: "#9A3412",
+      cheek: "#F97316",
+    },
+    pelangi_kristal: {
+      body: "#F472B6",
+      belly: "#FDE047",
+      accent1: "#38BDF8",
+      accent2: "#A855F7",
+      tailTip: "#4ADE80",
+      wingsBase: "#FDF4FF",
+      stroke: "#701A75",
+      shadow: "#F0ABFC",
+      leg: "#EC4899",
+      cheek: "#38BDF8",
+    },
+    malaikat_cahaya: {
+      body: "#FFFFFF",
+      belly: "#FEF08A",
+      accent1: "#FACC15",
+      accent2: "#EAB308",
+      tailTip: "#FDE047",
+      wingsBase: "#FEFCE8",
+      stroke: "#854D0E",
+      shadow: "#FEF9C3",
+      leg: "#EAB308",
+      cheek: "#FDE047",
     },
   }[effectiveSkin] || {
     body: "#FBBF24",
@@ -420,20 +544,8 @@ export function TitoMascot({
           stroke="#1E293B"
           strokeWidth="3"
         />
-        <circle
-          cx={x}
-          cy="70"
-          r="6"
-          fill="#22D3EE"
-          className="animate-pulse"
-        />
-        <circle
-          cx={x - 2}
-          cy="68"
-          r="2"
-          fill="#FFFFFF"
-          opacity="0.9"
-        />
+        <circle cx={x} cy="70" r="6" fill="#22D3EE" className="animate-pulse" />
+        <circle cx={x - 2} cy="68" r="2" fill="#FFFFFF" opacity="0.9" />
       </g>
     );
   };
@@ -460,12 +572,7 @@ export function TitoMascot({
             stroke="#06B6D4"
             strokeWidth="2"
           />
-          <circle
-            cx="250"
-            cy="276"
-            r="4"
-            fill="#22D3EE"
-          />
+          <circle cx="250" cy="276" r="4" fill="#22D3EE" />
           <line
             x1="120"
             y1="202"
@@ -504,12 +611,7 @@ export function TitoMascot({
           stroke="#06B6D4"
           strokeWidth="2"
         />
-        <circle
-          cx="258"
-          cy="276"
-          r="3.5"
-          fill="#22D3EE"
-        />
+        <circle cx="258" cy="276" r="3.5" fill="#22D3EE" />
         <line
           x1="130"
           y1="195"
@@ -523,40 +625,47 @@ export function TitoMascot({
   };
 
   const renderRobotEye = () => (
-    <g id="robot-led-eye">
-      <rect
-        x="-22"
-        y="-18"
-        width="44"
-        height="36"
-        rx="6"
+    <g id="robot-reticle-eye">
+      {/* Bingkai Luar (Lingkaran dengan garis tegas) */}
+      <circle
+        cx="0"
+        cy="0"
+        r="26"
         fill="#0F172A"
-        stroke="#06B6D4"
-        strokeWidth="3.5"
+        stroke="#134E4A"
+        strokeWidth="4"
       />
-      <rect
-        x="-17"
-        y="-13"
-        width="34"
-        height="26"
-        rx="4"
-        fill="#22D3EE"
+
+      {/* Cincin Dalam */}
+      <circle
+        cx="0"
+        cy="0"
+        r="20"
+        fill="#06B6D4"
+        stroke="#0F172A"
+        strokeWidth="3"
       />
-      <rect
-        x="-8"
-        y="-8"
-        width="16"
-        height="16"
-        rx="2"
-        fill="#0891B2"
+
+      {/* Lensa Mata (Glowing) */}
+      <circle cx="0" cy="0" r="12" fill="#22D3EE" />
+
+      {/* Titik Fokus */}
+      <circle cx="0" cy="0" r="5" fill="#FFFFFF" />
+
+      {/* Garis Crosshair (Bidikan) */}
+      <path
+        d="M -26 0 L -18 0 M 26 0 L 18 0 M 0 -26 L 0 -18 M 0 26 L 0 18"
+        stroke="#FFFFFF"
+        strokeWidth="3"
+        strokeLinecap="round"
       />
-      <rect
-        x="-4"
-        y="-4"
-        width="4"
-        height="4"
-        fill="#FFFFFF"
-        opacity="0.9"
+
+      {/* Target Lock (Kotak kecil di 4 sudut) */}
+      <path
+        d="M -16 -16 L -10 -16 M -16 -16 L -16 -10 M 16 16 L 10 16 M 16 16 L 16 10"
+        stroke="#FBBF24" // Aksen emas peringatan
+        strokeWidth="3"
+        strokeLinecap="round"
       />
     </g>
   );
@@ -2888,668 +2997,1353 @@ export function TitoMascot({
             transformStyle: "preserve-3d",
           }}
         >
-        <motion.svg
-          viewBox="0 0 500 500"
-          width="100%"
-          height="100%"
-          animate={
-            (isStatic
-              ? bodyAnimate
-              : (poseBodyAnimate ?? bodyAnimate)) as TargetAndTransition
-          }
-          style={
-            isPecking
-              ? { transformOrigin: "50% 66%" }
-              : isRolling
-                ? { transformOrigin: "250px 240px" }
-                : undefined
-          }
-          className="overflow-visible"
-        >
-          {/* Jika animasi "spinning", tampilkan SVG bola gasing */}
-          {isSpinning ? (
-            renderSpinningBall()
-          ) : (
-            <>
-              {isSideView && (
-                <motion.g
-                  initial={false}
-                  animate={{ scaleX: isFlippedLeft ? -1 : 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                  style={{ transformOrigin: "250px 250px" }}
-                >
-                  <g opacity="0.85">
-                    {!isStatic && !isPerching && !isRolling && (
+          <motion.svg
+            viewBox="0 0 500 500"
+            width="100%"
+            height="100%"
+            animate={
+              (isStatic
+                ? bodyAnimate
+                : (poseBodyAnimate ?? bodyAnimate)) as TargetAndTransition
+            }
+            style={
+              isPecking
+                ? { transformOrigin: "50% 66%" }
+                : isRolling
+                  ? { transformOrigin: "250px 240px" }
+                  : undefined
+            }
+            className="overflow-visible"
+          >
+            {/* Jika animasi "spinning", tampilkan SVG bola gasing */}
+            {isSpinning ? (
+              renderSpinningBall()
+            ) : (
+              <>
+                {isSideView && (
+                  <motion.g
+                    initial={false}
+                    animate={{ scaleX: isFlippedLeft ? -1 : 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                    style={{ transformOrigin: "250px 250px" }}
+                  >
+                    <g opacity="0.85">
+                      {!isStatic && !isPerching && !isRolling && (
+                        <motion.g
+                          animate={{
+                            opacity: [0.3, 0.9, 0.3],
+                            scale: [0.98, 1.02, 0.98],
+                          }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: flapDuration * 1.5,
+                          }}
+                        >
+                          <path
+                            d="M 65 170 C 52 135, 70 102, 112 126"
+                            fill="none"
+                            stroke="#C5D6A7"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M 56 268 C 48 250, 58 235, 72 238"
+                            fill="none"
+                            stroke="#C5D6A7"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M 405 142 C 425 118, 460 120, 456 160 C 454 172, 444 182, 448 196 C 452 210, 440 225, 432 228 C 440 238, 434 252, 420 256"
+                            fill="none"
+                            stroke="#C5D6A7"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </motion.g>
+                      )}
+
+                      {!isRolling && (
+                        <g transform="translate(-14, 14)" opacity="0.65">
+                          <path
+                            d="M 160 278 C 120 268, 82 242, 72 255 C 63 266, 78 286, 92 288 C 68 282, 62 296, 72 308 C 68 315, 68 332, 85 335 C 115 338, 150 325, 178 310 Z"
+                            fill="#CFD8B6"
+                          />
+                          <path
+                            d="M 80 130 C 68 136, 78 168, 82 162 C 70 172, 82 198, 102 212 C 85 216, 88 238, 125 250 C 118 262, 138 278, 165 274 L 204 238 Z"
+                            fill="#CFD8B6"
+                          />
+                          <ellipse
+                            cx="255"
+                            cy="240"
+                            rx="106"
+                            ry="105"
+                            fill="#CFD8B6"
+                          />
+                          <path
+                            d="M 218 324 C 202 348, 182 360, 162 363 C 152 365, 147 378, 149 392 C 151 404, 162 400, 167 385 C 170 377, 168 373, 176 371 C 198 365, 218 348, 230 330 Z"
+                            fill="#CFD8B6"
+                          />
+                          <path
+                            d="M 258 344 C 245 365, 225 375, 210 378 C 202 380, 198 392, 200 405 C 202 415, 212 412, 216 398 C 219 390, 218 386, 225 384 C 245 378, 262 365, 273 345 Z"
+                            fill="#CFD8B6"
+                          />
+                        </g>
+                      )}
+                    </g>
+
+                    <motion.g
+                      animate={rightWingAnimate}
+                      style={{ transformOrigin: "350px 235px" }}
+                    >
+                      <path
+                        d="M 350 212 L 434 162 C 446 172, 439 198, 416 213 C 431 221, 426 244, 396 251 C 400 264, 382 276, 350 272 Z"
+                        fill="#FFFFFF"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 416 213 C 409 218, 402 222, 395 224 M 396 251 C 388 253, 381 253, 375 253"
+                        fill="none"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 350 206 C 370 191, 388 176, 398 167 C 404 184, 399 204, 382 220 C 372 229, 361 235, 352 237 Z"
+                        fill="#00937D"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 398 167 C 414 152, 431 134, 441 139 C 450 144, 443 172, 424 191 C 411 203, 396 212, 382 220 C 399 204, 404 184, 398 167 Z"
+                        fill="#00B894"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                    </motion.g>
+
+                    <motion.g
+                      animate={tailAnimate}
+                      style={{ transformOrigin: "165px 295px" }}
+                    >
+                      {showPlumes ? (
+                        <g id="cendrawasih-tail-side">
+                          <path
+                            d="M 155 278 C 105 255, 45 270, 32 310 C 22 340, 52 368, 92 355 C 122 345, 155 315, 175 305 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 135 285 C 95 270, 55 285, 45 318 C 38 338, 62 355, 92 342 C 118 330, 145 308, 160 300 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="38"
+                            cy="326"
+                            r="6"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                          />
+                          <path
+                            d="M 148 290 C 95 280, 25 320, 15 365 C 10 385, 28 395, 38 385 C 48 375, 75 340, 125 320"
+                            fill="none"
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="20"
+                            cy="380"
+                            r="5"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                          />
+                          <path
+                            d="M 155 285 Q 95 305 48 335"
+                            fill="none"
+                            stroke="#FFFFFF"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            opacity="0.8"
+                          />
+                        </g>
+                      ) : (
+                        <>
+                          <path
+                            d="M 155 278 C 120 266, 82 242, 71 254 C 62 264, 76 286, 105 293 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 95 288 C 68 281, 61 295, 71 307 C 81 317, 108 318, 130 315 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 83 313 C 68 315, 68 331, 86 335 C 112 338, 146 328, 175 313 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 155 278 C 132 271, 112 263, 106 272 C 101 279, 114 290, 136 294 C 112 290, 102 295, 105 304 C 107 312, 124 314, 142 313 C 118 315, 108 320, 112 329 C 116 334, 148 326, 175 313 Z"
+                            fill={skinPalette.wingsBase}
+                            stroke="#07473C"
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                        </>
+                      )}
+                    </motion.g>
+
+                    <motion.g
+                      animate={legAnimate}
+                      style={{ transformOrigin: "265px 345px" }}
+                    >
+                      <path
+                        d="M 258 344 C 245 365, 225 375, 210 378 C 201 380, 197 392, 199 405 C 201 416, 212 412, 216 398 C 219 390, 218 386, 225 384 C 245 378, 262 365, 273 345 Z"
+                        fill="#FF5E6C"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 255 344 L 273 345 L 269 352 L 252 350 Z"
+                        fill="#07473C"
+                      />
+                    </motion.g>
+
+                    {resolvedAccessory !== "peci" && (
                       <motion.g
-                        animate={{
-                          opacity: [0.3, 0.9, 0.3],
-                          scale: [0.98, 1.02, 0.98],
-                        }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: flapDuration * 1.5,
-                        }}
+                        animate={crestAnimate}
+                        style={{ transformOrigin: "250px 133px" }}
                       >
                         <path
-                          d="M 65 170 C 52 135, 70 102, 112 126"
-                          fill="none"
-                          stroke="#C5D6A7"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M 56 268 C 48 250, 58 235, 72 238"
-                          fill="none"
-                          stroke="#C5D6A7"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M 405 142 C 425 118, 460 120, 456 160 C 454 172, 444 182, 448 196 C 452 210, 440 225, 432 228 C 440 238, 434 252, 420 256"
-                          fill="none"
-                          stroke="#C5D6A7"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
+                          d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
+                          strokeWidth="4.5"
+                          strokeLinejoin="round"
                         />
                       </motion.g>
                     )}
 
-                    {!isRolling && (
-                      <g transform="translate(-14, 14)" opacity="0.65">
-                        <path
-                          d="M 160 278 C 120 268, 82 242, 72 255 C 63 266, 78 286, 92 288 C 68 282, 62 296, 72 308 C 68 315, 68 332, 85 335 C 115 338, 150 325, 178 310 Z"
-                          fill="#CFD8B6"
-                        />
-                        <path
-                          d="M 80 130 C 68 136, 78 168, 82 162 C 70 172, 82 198, 102 212 C 85 216, 88 238, 125 250 C 118 262, 138 278, 165 274 L 204 238 Z"
-                          fill="#CFD8B6"
-                        />
-                        <ellipse
-                          cx="255"
-                          cy="240"
-                          rx="106"
-                          ry="105"
-                          fill="#CFD8B6"
-                        />
-                        <path
-                          d="M 218 324 C 202 348, 182 360, 162 363 C 152 365, 147 378, 149 392 C 151 404, 162 400, 167 385 C 170 377, 168 373, 176 371 C 198 365, 218 348, 230 330 Z"
-                          fill="#CFD8B6"
-                        />
-                        <path
-                          d="M 258 344 C 245 365, 225 375, 210 378 C 202 380, 198 392, 200 405 C 202 415, 212 412, 216 398 C 219 390, 218 386, 225 384 C 245 378, 262 365, 273 345 Z"
-                          fill="#CFD8B6"
-                        />
-                      </g>
-                    )}
-                  </g>
+                    {/* Overlays Kepala: Tanduk Naga & Antena Robot */}
+                    {renderNagaHorns("side")}
+                    {renderRobotAntenna("side")}
 
-                  <motion.g
-                    animate={rightWingAnimate}
-                    style={{ transformOrigin: "350px 235px" }}
-                  >
-                    <path
-                      d="M 350 212 L 434 162 C 446 172, 439 198, 416 213 C 431 221, 426 244, 396 251 C 400 264, 382 276, 350 272 Z"
-                      fill="#FFFFFF"
-                      stroke="#07473C"
+                    <ellipse
+                      cx="255"
+                      cy="240"
+                      rx="106"
+                      ry="105"
+                      fill={skinPalette.body}
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
-                      strokeLinejoin="round"
                     />
                     <path
-                      d="M 416 213 C 409 218, 402 222, 395 224 M 396 251 C 388 253, 381 253, 375 253"
+                      d="M 153 268 C 175 305, 225 335, 305 332 C 262 352, 185 342, 153 268 Z"
+                      fill={skinPalette.belly}
+                    />
+                    <ellipse
+                      cx="255"
+                      cy="240"
+                      rx="106"
+                      ry="105"
                       fill="none"
-                      stroke="#07473C"
+                      stroke={skinPalette.stroke}
                       strokeWidth="4.5"
-                      strokeLinecap="round"
                     />
-                    <path
-                      d="M 350 206 C 370 191, 388 176, 398 167 C 404 184, 399 204, 382 220 C 372 229, 361 235, 352 237 Z"
-                      fill="#00937D"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 398 167 C 414 152, 431 134, 441 139 C 450 144, 443 172, 424 191 C 411 203, 396 212, 382 220 C 399 204, 404 184, 398 167 Z"
-                      fill="#00B894"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                  </motion.g>
 
-                  <motion.g
-                    animate={tailAnimate}
-                    style={{ transformOrigin: "165px 295px" }}
-                  >
-                    {showPlumes ? (
-                      <g id="cendrawasih-tail-side">
-                        <path
-                          d="M 155 278 C 105 255, 45 270, 32 310 C 22 340, 52 368, 92 355 C 122 345, 155 315, 175 305 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 135 285 C 95 270, 55 285, 45 318 C 38 338, 62 355, 92 342 C 118 330, 145 308, 160 300 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="38"
-                          cy="326"
-                          r="6"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                        />
-                        <path
-                          d="M 148 290 C 95 280, 25 320, 15 365 C 10 385, 28 395, 38 385 C 48 375, 75 340, 125 320"
-                          fill="none"
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3.5"
-                          strokeLinecap="round"
-                        />
-                        <circle
-                          cx="20"
-                          cy="380"
-                          r="5"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                        />
-                        <path
-                          d="M 155 285 Q 95 305 48 335"
-                          fill="none"
-                          stroke="#FFFFFF"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          opacity="0.8"
-                        />
-                      </g>
-                    ) : (
-                      <>
-                        <path
-                          d="M 155 278 C 120 266, 82 242, 71 254 C 62 264, 76 286, 105 293 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 95 288 C 68 281, 61 295, 71 307 C 81 317, 108 318, 130 315 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 83 313 C 68 315, 68 331, 86 335 C 112 338, 146 328, 175 313 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 155 278 C 132 271, 112 263, 106 272 C 101 279, 114 290, 136 294 C 112 290, 102 295, 105 304 C 107 312, 124 314, 142 313 C 118 315, 108 320, 112 329 C 116 334, 148 326, 175 313 Z"
-                          fill={skinPalette.wingsBase}
-                          stroke="#07473C"
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                      </>
-                    )}
-                  </motion.g>
+                    {/* Overlays Badan: Sisik Naga & Panel Robot */}
+                    {renderNagaScales("side")}
+                    {renderRobotPanels("side")}
 
-                  <motion.g
-                    animate={legAnimate}
-                    style={{ transformOrigin: "265px 345px" }}
-                  >
-                    <path
-                      d="M 258 344 C 245 365, 225 375, 210 378 C 201 380, 197 392, 199 405 C 201 416, 212 412, 216 398 C 219 390, 218 386, 225 384 C 245 378, 262 365, 273 345 Z"
-                      fill="#FF5E6C"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 255 344 L 273 345 L 269 352 L 252 350 Z"
-                      fill="#07473C"
-                    />
-                  </motion.g>
-
-                  {resolvedAccessory !== "peci" && (
                     <motion.g
-                      animate={crestAnimate}
-                      style={{ transformOrigin: "250px 133px" }}
+                      animate={legAnimate}
+                      style={{ transformOrigin: "225px 325px" }}
                     >
                       <path
-                        d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
+                        d="M 218 324 C 202 348, 182 360, 162 363 C 151 365, 146 378, 148 392 C 150 404, 162 400, 167 385 C 170 377, 168 373, 176 371 C 198 365, 218 348, 230 330 C 234 323, 223 317, 218 324 Z"
+                        fill="#FF5E6C"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                    </motion.g>
+
+                    <motion.g
+                      animate={leftWingAnimate}
+                      style={{ transformOrigin: "198px 232px" }}
+                    >
+                      <path
+                        d="M 82 162 C 70 172, 82 198, 102 212 C 85 216, 88 238, 125 250 C 118 262, 138 278, 165 274 C 186 271, 203 255, 204 236 L 130 190 Z"
+                        fill="#FFFFFF"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 102 212 C 110 218, 118 221, 125 223 M 125 250 C 132 252, 138 253, 144 253"
+                        fill="none"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 131 158 C 158 178, 188 198, 201 220 C 206 229, 206 239, 196 241 C 174 244, 144 228, 130 202 C 125 186, 126 170, 131 158 Z"
+                        fill={skinPalette.accent2}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 131 158 C 110 143, 90 124, 80 130 C 68 136, 77 167, 98 185 C 109 194, 120 199, 130 202 C 125 186, 126 170, 131 158 Z"
                         fill={skinPalette.accent1}
                         stroke={skinPalette.stroke}
                         strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
+                      {showPlumes && (
+                        <g id="cendrawasih-side-wing-plumes">
+                          <path
+                            d="M 145 240 C 115 270, 92 315, 106 328 C 118 338, 138 318, 155 285 C 168 262, 178 245, 185 238 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 100 322 C 102 334, 114 338, 122 330 C 118 322, 110 318, 100 322 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 165 248 Q 135 285 116 320"
+                            fill="none"
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </g>
+                      )}
                     </motion.g>
-                  )}
 
-                  {/* Overlays Kepala: Tanduk Naga & Antena Robot */}
-                  {renderNagaHorns("side")}
-                  {renderRobotAntenna("side")}
+                    <motion.g
+                      animate={{ x: eyeOffsetX * 0.6, y: eyeOffsetY * 0.6 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                      }}
+                    >
+                      <path
+                        d="M 284 222 L 316 243 L 311 258 Z"
+                        fill="#EAA012"
+                      />
+                      <circle
+                        cx="240"
+                        cy="225"
+                        r={13.5 + cheekExtra}
+                        fill="#FF5E6C"
+                      />
+                      <circle
+                        cx="346"
+                        cy="218"
+                        r={12 + cheekExtra}
+                        fill="#FF5E6C"
+                      />
+                      {isShy && (
+                        <>
+                          <circle cx="240" cy="225" r="8" fill="#F43F5E" />
+                          <circle cx="346" cy="218" r="7" fill="#F43F5E" />
+                        </>
+                      )}
 
-                  <ellipse
-                    cx="255"
-                    cy="240"
-                    rx="106"
-                    ry="105"
-                    fill={skinPalette.body}
-                    stroke={skinPalette.stroke}
-                    strokeWidth="4.5"
-                  />
-                  <path
-                    d="M 153 268 C 175 305, 225 335, 305 332 C 262 352, 185 342, 153 268 Z"
-                    fill={skinPalette.belly}
-                  />
-                  <ellipse
-                    cx="255"
-                    cy="240"
-                    rx="106"
-                    ry="105"
-                    fill="none"
-                    stroke={skinPalette.stroke}
-                    strokeWidth="4.5"
-                  />
+                      <g
+                        transform={`translate(255, 190) rotate(-10) scale(${eyeScale})`}
+                      >
+                        {effectiveSkin === "robot" ? (
+                          renderRobotEye()
+                        ) : (
+                          <>
+                            <ellipse
+                              cx="0"
+                              cy="0"
+                              rx="25"
+                              ry="27"
+                              fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
+                              stroke={eyeHidden ? "none" : skinPalette.stroke}
+                              strokeWidth="4"
+                            />
+                            {eyeShape === "laugh" ? (
+                              renderLaughEye(18)
+                            ) : eyeShape === "sleep" ? (
+                              <path
+                                d="M -18 2 Q 0 14 18 2"
+                                fill="none"
+                                stroke="#07473C"
+                                strokeWidth="4.5"
+                                strokeLinecap="round"
+                              />
+                            ) : (
+                              <motion.g
+                                animate={
+                                  isReading
+                                    ? { x: [-5, 5, -5], y: 6 }
+                                    : isPeeking
+                                      ? { x: [-6, 6, -6], y: -3 }
+                                      : {
+                                          x: eyeOffsetX,
+                                          y: eyeOffsetY,
+                                          scale: pupilScale,
+                                        }
+                                }
+                                transition={
+                                  isReading || isPeeking
+                                    ? {
+                                        repeat: Infinity,
+                                        duration: 1.4,
+                                        ease: "easeInOut",
+                                      }
+                                    : undefined
+                                }
+                              >
+                                <circle cx="2" cy="0" r="19.5" fill="#008F7A" />
+                                <circle cx="3" cy="0" r="15.5" fill="#053B33" />
+                                <circle
+                                  cx="11"
+                                  cy="-8"
+                                  r="6.5"
+                                  fill="#FFFFFF"
+                                />
+                                <path
+                                  d="M -5 1 Q -5 6 0 6 Q -5 6 -5 11 Q -5 6 -10 6 Q -5 6 -5 1 Z"
+                                  fill="#FFFFFF"
+                                />
+                              </motion.g>
+                            )}
+                          </>
+                        )}
+                        {isGirl && (
+                          <g id="eyelashes-side-main">
+                            <path
+                              d="M 12 -22 Q 22 -30 30 -26"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 19 -15 Q 29 -20 36 -14"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 22 -6 Q 30 -9 35 -3"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                            />
+                          </g>
+                        )}
+                      </g>
 
-                  {/* Overlays Badan: Sisik Naga & Panel Robot */}
-                  {renderNagaScales("side")}
-                  {renderRobotPanels("side")}
+                      <g
+                        transform={`translate(326, 184) rotate(-10) scale(${eyeScale})`}
+                      >
+                        <ellipse
+                          cx="0"
+                          cy="0"
+                          rx="23"
+                          ry="25"
+                          fill={eyeHidden ? "#FBBF24" : "#FFFFFF"}
+                          stroke={eyeHidden ? "none" : "#07473C"}
+                          strokeWidth="4"
+                        />
+                        {eyeShape === "laugh" ? (
+                          renderLaughEye(16)
+                        ) : eyeShape === "sleep" ? (
+                          <path
+                            d="M -16 2 Q 0 13 16 2"
+                            fill="none"
+                            stroke="#07473C"
+                            strokeWidth="4.5"
+                            strokeLinecap="round"
+                          />
+                        ) : (
+                          <motion.g
+                            animate={
+                              isReading
+                                ? { x: [-5, 5, -5], y: 6 }
+                                : isPeeking
+                                  ? { x: [-6, 6, -6], y: -3 }
+                                  : {
+                                      x: eyeOffsetX,
+                                      y: eyeOffsetY,
+                                      scale: pupilScale,
+                                    }
+                            }
+                            transition={
+                              isReading || isPeeking
+                                ? {
+                                    repeat: Infinity,
+                                    duration: 1.4,
+                                    ease: "easeInOut",
+                                  }
+                                : undefined
+                            }
+                          >
+                            <circle cx="2" cy="0" r="18" fill="#008F7A" />
+                            <circle cx="3" cy="0" r="14" fill="#053B33" />
+                            <circle cx="10" cy="-7" r="6" fill="#FFFFFF" />
+                            <path
+                              d="M -4 1 Q -4 5.5 0.5 5.5 Q -4 5.5 -4 10 Q -4 5.5 -8.5 5.5 Q -4 5.5 -4 1 Z"
+                              fill="#FFFFFF"
+                            />
+                          </motion.g>
+                        )}
+                        {isGirl && (
+                          <g id="eyelashes-side-sub">
+                            <path
+                              d="M 10 -20 Q 18 -27 26 -24"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 18 -13 Q 26 -17 31 -12"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                            />
+                          </g>
+                        )}
+                      </g>
 
-                  <motion.g
-                    animate={legAnimate}
-                    style={{ transformOrigin: "225px 325px" }}
-                  >
-                    <path
-                      d="M 218 324 C 202 348, 182 360, 162 363 C 151 365, 146 378, 148 392 C 150 404, 162 400, 167 385 C 170 377, 168 373, 176 371 C 198 365, 218 348, 230 330 C 234 323, 223 317, 218 324 Z"
-                      fill="#FF5E6C"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
+                      <motion.g
+                        animate={
+                          talking || isLaughing || isSinging
+                            ? { scaleY: [1, 1.18, 0.92, 1.15, 1] }
+                            : isExcited || isCheering
+                              ? { scale: [1, 1.06, 1] }
+                              : {}
+                        }
+                        transition={
+                          talking || isLaughing || isSinging
+                            ? { repeat: Infinity, duration: 0.25 }
+                            : { repeat: Infinity, duration: 1.2 }
+                        }
+                        style={{ transformOrigin: "285px 212px" }}
+                      >
+                        {isShocked ? (
+                          <>
+                            <ellipse
+                              cx="302"
+                              cy="232"
+                              rx="16"
+                              ry="21"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                            />
+                            <ellipse
+                              cx="304"
+                              cy="236"
+                              rx="8"
+                              ry="13"
+                              fill="#07473C"
+                            />
+                            <path
+                              d="M 323 191 C 304 195, 285 201, 280 209 C 277 214, 282 218, 292 219 L 318 208 Z"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                              strokeLinejoin="round"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <path
+                              d={`M 284 212 L 318 194 L 305 212 L ${sideBeakTip.x - 2} ${sideBeakTip.y - 4} Z`}
+                              fill="#07473C"
+                            />
+                            <path
+                              d={`M 285 213 L 296 213 L ${sideBeakTip.x - 4} ${sideBeakTip.y - 6} L 285 220 Z`}
+                              fill="#FF5E6C"
+                            />
+                            <path
+                              d={`M 323 191 C 304 195, 285 201, 280 209 C 276 216, 281 224, ${sideBeakTip.x} ${sideBeakTip.y} L 305 213 L 286 213 L 323 191 Z`}
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d={`M 323 191 L 305 213 L ${sideBeakTip.x} ${sideBeakTip.y}`}
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="298" cy="202" r="1.8" fill="#07473C" />
+                            <circle cx="303" cy="200" r="1.5" fill="#07473C" />
+                          </>
+                        )}
+                      </motion.g>
+
+                      {renderEyeFx("side")}
+
+                      {isSleeping && (
+                        <motion.circle
+                          cx="326"
+                          cy="236"
+                          r="9"
+                          fill="#BAE6FD"
+                          stroke="#07473C"
+                          strokeWidth="4.5"
+                          animate={{ scale: [0.4, 1.2, 0.4] }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: 2.4,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      )}
+                    </motion.g>
+                    {renderPoseOverlay("side")}
+                    {renderAccessory("side")}
                   </motion.g>
+                )}
 
+                {finalDirection === "front" && (
                   <motion.g
-                    animate={leftWingAnimate}
-                    style={{ transformOrigin: "198px 232px" }}
+                    initial={{ opacity: 0.8, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <path
-                      d="M 82 162 C 70 172, 82 198, 102 212 C 85 216, 88 238, 125 250 C 118 262, 138 278, 165 274 C 186 271, 203 255, 204 236 L 130 190 Z"
-                      fill="#FFFFFF"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 102 212 C 110 218, 118 221, 125 223 M 125 250 C 132 252, 138 253, 144 253"
-                      fill="none"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 131 158 C 158 178, 188 198, 201 220 C 206 229, 206 239, 196 241 C 174 244, 144 228, 130 202 C 125 186, 126 170, 131 158 Z"
-                      fill={skinPalette.accent2}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 131 158 C 110 143, 90 124, 80 130 C 68 136, 77 167, 98 185 C 109 194, 120 199, 130 202 C 125 186, 126 170, 131 158 Z"
-                      fill={skinPalette.accent1}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    {showPlumes && (
-                      <g id="cendrawasih-side-wing-plumes">
+                    <g opacity="0.75">
+                      {!isStatic && !isPerching && !isRolling && (
+                        <motion.g
+                          animate={{ opacity: [0.3, 0.85, 0.3] }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: flapDuration * 1.5,
+                          }}
+                        >
+                          <path
+                            d="M 55 165 C 40 130, 62 100, 102 124"
+                            fill="none"
+                            stroke="#C5D6A7"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M 445 165 C 460 130, 438 100, 398 124"
+                            fill="none"
+                            stroke="#C5D6A7"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </motion.g>
+                      )}
+                      {!isRolling && (
+                        <ellipse
+                          cx="250"
+                          cy="252"
+                          rx="112"
+                          ry="108"
+                          fill="#CFD8B6"
+                          opacity="0.6"
+                        />
+                      )}
+                    </g>
+
+                    <motion.g
+                      animate={tailAnimate}
+                      style={{ transformOrigin: "250px 330px" }}
+                    >
+                      {showPlumes ? (
+                        <g id="cendrawasih-tail-front">
+                          <path
+                            d="M 216 330 C 190 365, 185 415, 218 435 C 235 444, 265 444, 282 435 C 315 415, 310 365, 284 330 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 228 330 C 210 360, 208 398, 232 418 C 242 426, 258 426, 268 418 C 292 398, 290 360, 272 330 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 228 412 Q 250 436 272 412 Q 250 422 228 412 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 250 334 L 250 422"
+                            fill="none"
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M 240 365 L 250 375 L 260 365 M 238 385 L 250 395 L 262 385"
+                            fill="none"
+                            stroke="#FFFFFF"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            opacity="0.8"
+                          />
+                          <path
+                            d="M 232 350 C 190 390, 165 435, 178 450 C 188 460, 202 452, 206 438 C 210 422, 222 392, 238 362"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="184"
+                            cy="452"
+                            r="5"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                          />
+                          <path
+                            d="M 268 350 C 310 390, 335 435, 322 450 C 312 460, 298 452, 294 438 C 290 422, 278 392, 262 362"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="316"
+                            cy="452"
+                            r="5"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                          />
+                        </g>
+                      ) : (
+                        <>
+                          <path
+                            d="M 225 330 C 215 358, 222 374, 235 370 C 238 382, 262 382, 265 370 C 278 374, 285 358, 275 330 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 232 330 C 226 348, 232 356, 240 353 C 243 362, 257 362, 260 353 C 268 356, 274 348, 268 330 Z"
+                            fill={skinPalette.wingsBase}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                        </>
+                      )}
+                    </motion.g>
+
+                    <motion.g
+                      animate={leftWingAnimate}
+                      style={{ transformOrigin: "165px 230px" }}
+                    >
+                      <path
+                        d="M 165 208 L 66 158 C 54 168, 61 195, 84 210 C 69 218, 74 242, 104 249 C 100 262, 118 274, 165 268 Z"
+                        fill="#FFFFFF"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 84 210 C 92 215, 100 219, 107 221 M 104 249 C 112 251, 119 251, 125 251"
+                        fill="none"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 165 202 C 142 187, 120 172, 102 162 C 96 180, 101 200, 118 216 C 132 228, 148 234, 163 236 Z"
+                        fill="#00937D"
+                        stroke="#07473C"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 102 162 C 86 147, 69 130, 59 135 C 50 140, 57 168, 76 187 C 89 199, 104 208, 118 216 C 101 200, 96 180, 102 162 Z"
+                        fill={skinPalette.accent1}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      {showPlumes && (
+                        <g id="cendrawasih-left-wing-plumes">
+                          <path
+                            d="M 120 248 C 95 285, 78 330, 92 342 C 104 352, 122 332, 138 300 C 148 280, 158 262, 164 252 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 132 250 C 114 282, 102 318, 112 328 C 120 334, 132 320, 145 292 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 86 336 C 88 348, 100 352, 108 344 C 104 336, 96 332, 86 336 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 150 262 Q 120 300 102 336"
+                            fill="none"
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </g>
+                      )}
+                    </motion.g>
+
+                    <motion.g
+                      animate={rightWingAnimate}
+                      style={{ transformOrigin: "335px 230px" }}
+                    >
+                      <path
+                        d="M 335 208 L 434 158 C 446 168, 439 195, 416 210 C 431 218, 426 242, 396 249 C 400 262, 382 274, 335 268 Z"
+                        fill={skinPalette.wingsBase}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 416 210 C 408 215, 400 219, 393 221 M 396 249 C 388 251, 381 251, 375 251"
+                        fill="none"
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 335 202 C 358 187, 380 172, 398 162 C 404 180, 399 200, 382 216 C 368 228, 352 234, 337 236 Z"
+                        fill={skinPalette.accent2}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 398 162 C 414 147, 431 130, 441 135 C 450 140, 443 168, 424 187 C 411 199, 396 208, 382 216 C 399 200, 404 180, 398 162 Z"
+                        fill={skinPalette.accent1}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      {showPlumes && (
+                        <g id="cendrawasih-right-wing-plumes">
+                          <path
+                            d="M 380 248 C 405 285, 422 330, 408 342 C 396 352, 378 332, 362 300 C 352 280, 342 262, 336 252 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 368 250 C 386 282, 398 318, 388 328 C 380 334, 368 320, 355 292 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 414 336 C 412 348, 400 352, 392 344 C 396 336, 404 332, 414 336 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 350 262 Q 380 300 398 336"
+                            fill="none"
+                            stroke="#07473C"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </g>
+                      )}
+                    </motion.g>
+
+                    {resolvedAccessory !== "peci" && (
+                      <motion.g
+                        animate={crestAnimate}
+                        style={{ transformOrigin: "250px 133px" }}
+                      >
                         <path
-                          d="M 145 240 C 115 270, 92 315, 106 328 C 118 338, 138 318, 155 285 C 168 262, 178 245, 185 238 Z"
+                          d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
                           fill={skinPalette.accent1}
                           stroke={skinPalette.stroke}
                           strokeWidth="4.5"
                           strokeLinejoin="round"
                         />
-                        <path
-                          d="M 100 322 C 102 334, 114 338, 122 330 C 118 322, 110 318, 100 322 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 165 248 Q 135 285 116 320"
-                          fill="none"
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                      </g>
-                    )}
-                  </motion.g>
-
-                  <motion.g
-                    animate={{ x: eyeOffsetX * 0.6, y: eyeOffsetY * 0.6 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  >
-                    <path d="M 284 222 L 316 243 L 311 258 Z" fill="#EAA012" />
-                    <circle
-                      cx="240"
-                      cy="225"
-                      r={13.5 + cheekExtra}
-                      fill="#FF5E6C"
-                    />
-                    <circle
-                      cx="346"
-                      cy="218"
-                      r={12 + cheekExtra}
-                      fill="#FF5E6C"
-                    />
-                    {isShy && (
-                      <>
-                        <circle cx="240" cy="225" r="8" fill="#F43F5E" />
-                        <circle cx="346" cy="218" r="7" fill="#F43F5E" />
-                      </>
+                      </motion.g>
                     )}
 
-                    <g
-                      transform={`translate(255, 190) rotate(-10) scale(${eyeScale})`}
+                    {/* Overlays Kepala: Tanduk Naga & Antena Robot */}
+                    {renderNagaHorns("front")}
+                    {renderRobotAntenna("front")}
+
+                    <ellipse
+                      cx="250"
+                      cy="240"
+                      rx="105"
+                      ry="105"
+                      fill={skinPalette.body}
+                      stroke={skinPalette.stroke}
+                      strokeWidth="4.5"
+                    />
+                    <path
+                      d="M 152 275 C 180 322, 320 322, 348 275 C 325 342, 175 342, 152 275 Z"
+                      fill={skinPalette.belly}
+                    />
+                    <ellipse
+                      cx="250"
+                      cy="240"
+                      rx="105"
+                      ry="105"
+                      fill="none"
+                      stroke={skinPalette.stroke}
+                      strokeWidth="4.5"
+                    />
+
+                    {/* Overlays Badan: Sisik Naga & Panel Robot */}
+                    {renderNagaScales("front")}
+                    {renderRobotPanels("front")}
+
+                    <motion.g
+                      animate={legAnimate}
+                      style={{ transformOrigin: "218px 332px" }}
                     >
-                      {effectiveSkin === "robot" ? (
-                        renderRobotEye()
-                      ) : (
+                      <path
+                        d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z"
+                        fill={skinPalette.leg}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                    </motion.g>
+                    <motion.g
+                      animate={legAnimate}
+                      style={{ transformOrigin: "282px 332px" }}
+                    >
+                      <path
+                        d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z"
+                        fill={skinPalette.leg}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                    </motion.g>
+
+                    <motion.g
+                      animate={{ x: eyeOffsetX * 0.8, y: eyeOffsetY * 0.8 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                      }}
+                    >
+                      <path
+                        d="M 234 228 L 266 228 L 250 256 Z"
+                        fill={skinPalette.belly}
+                      />
+                      <circle
+                        cx="182"
+                        cy="226"
+                        r={13.5 + cheekExtra}
+                        fill={skinPalette.cheek}
+                      />
+                      <circle
+                        cx="318"
+                        cy="226"
+                        r={13.5 + cheekExtra}
+                        fill={skinPalette.cheek}
+                      />
+                      {isShy && (
                         <>
-                          <ellipse
-                            cx="0"
-                            cy="0"
-                            rx="25"
-                            ry="27"
-                            fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
-                            stroke={eyeHidden ? "none" : skinPalette.stroke}
-                            strokeWidth="4"
-                          />
-                          {eyeShape === "laugh" ? (
-                            renderLaughEye(18)
-                          ) : eyeShape === "sleep" ? (
+                          <circle cx="182" cy="226" r="9" fill="#F43F5E" />
+                          <circle cx="318" cy="226" r="9" fill="#F43F5E" />
+                        </>
+                      )}
+
+                      <g transform={`translate(206, 192) scale(${eyeScale})`}>
+                        {effectiveSkin === "robot" ? (
+                          renderRobotEye()
+                        ) : (
+                          <>
+                            <ellipse
+                              cx="0"
+                              cy="0"
+                              rx="25"
+                              ry="27"
+                              fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
+                              stroke={eyeHidden ? "none" : skinPalette.stroke}
+                              strokeWidth="4"
+                            />
+                            {eyeShape === "laugh" ? (
+                              renderLaughEye(18)
+                            ) : eyeShape === "sleep" ? (
+                              <path
+                                d="M -18 2 Q 0 14 18 2"
+                                fill="none"
+                                stroke={skinPalette.stroke}
+                                strokeWidth="4.5"
+                                strokeLinecap="round"
+                              />
+                            ) : (
+                              <motion.g
+                                animate={
+                                  isReading
+                                    ? { x: [-6, 6, -6], y: 6 }
+                                    : isPeeking
+                                      ? { x: [-7, 7, -7], y: -3 }
+                                      : {
+                                          x: eyeOffsetX,
+                                          y: eyeOffsetY,
+                                          scale: pupilScale,
+                                        }
+                                }
+                                transition={
+                                  isReading || isPeeking
+                                    ? {
+                                        repeat: Infinity,
+                                        duration: 1.4,
+                                        ease: "easeInOut",
+                                      }
+                                    : undefined
+                                }
+                              >
+                                <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
+                                <circle cx="0" cy="0" r="15.5" fill="#053B33" />
+                                <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
+                                <path
+                                  d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
+                                  fill="#FFFFFF"
+                                />
+                              </motion.g>
+                            )}
+                          </>
+                        )}
+                        {isGirl && (
+                          <g id="eyelashes-front-left">
                             <path
-                              d="M -18 2 Q 0 14 18 2"
+                              d="M -16 -21 Q -24 -28 -32 -26"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M -22 -14 Q -32 -18 -38 -12"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M -25 -4 Q -34 -6 -38 2"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                            />
+                          </g>
+                        )}
+                      </g>
+
+                      <g transform={`translate(294, 192) scale(${eyeScale})`}>
+                        {effectiveSkin === "robot" ? (
+                          renderRobotEye()
+                        ) : (
+                          <>
+                            <ellipse
+                              cx="0"
+                              cy="0"
+                              rx="25"
+                              ry="27"
+                              fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
+                              stroke={eyeHidden ? "none" : skinPalette.stroke}
+                              strokeWidth="4"
+                            />
+                            {eyeShape === "laugh" ? (
+                              renderLaughEye(18)
+                            ) : eyeShape === "sleep" ? (
+                              <path
+                                d="M -18 2 Q 0 14 18 2"
+                                fill="none"
+                                stroke={skinPalette.stroke}
+                                strokeWidth="4.5"
+                                strokeLinecap="round"
+                              />
+                            ) : (
+                              <motion.g
+                                animate={
+                                  isReading
+                                    ? { x: [-6, 6, -6], y: 6 }
+                                    : isPeeking
+                                      ? { x: [-7, 7, -7], y: -3 }
+                                      : {
+                                          x: eyeOffsetX,
+                                          y: eyeOffsetY,
+                                          scale: pupilScale,
+                                        }
+                                }
+                                transition={
+                                  isReading || isPeeking
+                                    ? {
+                                        repeat: Infinity,
+                                        duration: 1.4,
+                                        ease: "easeInOut",
+                                      }
+                                    : undefined
+                                }
+                              >
+                                <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
+                                <circle cx="0" cy="0" r="15.5" fill="#053B33" />
+                                <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
+                                <path
+                                  d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
+                                  fill="#FFFFFF"
+                                />
+                              </motion.g>
+                            )}
+                          </>
+                        )}
+                        {isGirl && (
+                          <g id="eyelashes-front-right">
+                            <path
+                              d="M 16 -21 Q 24 -28 32 -26"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 22 -14 Q 32 -18 38 -12"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 25 -4 Q 34 -6 38 2"
+                              fill="none"
+                              stroke="#07473C"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                            />
+                          </g>
+                        )}
+                      </g>
+
+                      <motion.g
+                        animate={
+                          talking || isLaughing || isSinging
+                            ? { scaleY: [1, 1.2, 0.9, 1.15, 1] }
+                            : isExcited || isCheering
+                              ? { scale: [1, 1.07, 1] }
+                              : {}
+                        }
+                        transition={
+                          talking || isLaughing || isSinging
+                            ? { repeat: Infinity, duration: 0.25 }
+                            : { repeat: Infinity, duration: 1.2 }
+                        }
+                        style={{ transformOrigin: "250px 215px" }}
+                      >
+                        {isShocked ? (
+                          <>
+                            <ellipse
+                              cx="250"
+                              cy="238"
+                              rx="19"
+                              ry="24"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                            />
+                            <ellipse
+                              cx="250"
+                              cy="242"
+                              rx="10"
+                              ry="15"
+                              fill="#07473C"
+                            />
+                            <path
+                              d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="246" cy="206" r="1.6" fill="#07473C" />
+                            <circle cx="254" cy="206" r="1.6" fill="#07473C" />
+                          </>
+                        ) : isLaughing || isCheering ? (
+                          <>
+                            <path
+                              d="M 222 214 L 250 270 L 278 214 Z"
+                              fill="#07473C"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M 235 242 Q 250 230 265 242 L 250 262 Z"
+                              fill="#FF5E6C"
+                            />
+                            <path
+                              d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4.5"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="246" cy="206" r="1.6" fill="#07473C" />
+                            <circle cx="254" cy="206" r="1.6" fill="#07473C" />
+                          </>
+                        ) : isGreeting || isProud || isPraying || isStarry ? (
+                          <>
+                            <path
+                              d="M 230 214 Q 250 238 270 214 Z"
+                              fill="#07473C"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M 240 222 Q 250 218 260 222 Q 250 232 240 222 Z"
+                              fill="#FF5E6C"
+                            />
+                            <path
+                              d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="246" cy="206" r="1.6" fill="#07473C" />
+                            <circle cx="254" cy="206" r="1.6" fill="#07473C" />
+                          </>
+                        ) : isSleeping ? (
+                          <>
+                            <path
+                              d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M 232 220 Q 250 232 268 220"
                               fill="none"
                               stroke="#07473C"
                               strokeWidth="4.5"
                               strokeLinecap="round"
                             />
-                          ) : (
-                            <motion.g
-                              animate={
-                                isReading
-                                  ? { x: [-5, 5, -5], y: 6 }
-                                  : isPeeking
-                                    ? { x: [-6, 6, -6], y: -3 }
-                                    : {
-                                        x: eyeOffsetX,
-                                        y: eyeOffsetY,
-                                        scale: pupilScale,
-                                      }
-                              }
-                              transition={
-                                isReading || isPeeking
-                                  ? {
-                                      repeat: Infinity,
-                                      duration: 1.4,
-                                      ease: "easeInOut",
-                                    }
-                                  : undefined
-                              }
-                            >
-                              <circle cx="2" cy="0" r="19.5" fill="#008F7A" />
-                              <circle cx="3" cy="0" r="15.5" fill="#053B33" />
-                              <circle cx="11" cy="-8" r="6.5" fill="#FFFFFF" />
-                              <path
-                                d="M -5 1 Q -5 6 0 6 Q -5 6 -5 11 Q -5 6 -10 6 Q -5 6 -5 1 Z"
-                                fill="#FFFFFF"
-                              />
-                            </motion.g>
-                          )}
-                        </>
-                      )}
-                      {isGirl && (
-                        <g id="eyelashes-side-main">
-                          <path
-                            d="M 12 -22 Q 22 -30 30 -26"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M 19 -15 Q 29 -20 36 -14"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M 22 -6 Q 30 -9 35 -3"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                        </g>
-                      )}
-                    </g>
+                            <circle cx="246" cy="206" r="1.6" fill="#07473C" />
+                            <circle cx="254" cy="206" r="1.6" fill="#07473C" />
+                          </>
+                        ) : (
+                          <>
+                            <path
+                              d="M 230 214 L 250 246 L 270 214 Z"
+                              fill="#07473C"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M 238 224 Q 250 218 262 224 L 250 243 Z"
+                              fill="#FF5E6C"
+                            />
+                            <path
+                              d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
+                              fill="#FF5E6C"
+                              stroke="#07473C"
+                              strokeWidth="4"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="246" cy="206" r="1.6" fill="#07473C" />
+                            <circle cx="254" cy="206" r="1.6" fill="#07473C" />
+                          </>
+                        )}
+                      </motion.g>
 
-                    <g
-                      transform={`translate(326, 184) rotate(-10) scale(${eyeScale})`}
-                    >
-                      <ellipse
-                        cx="0"
-                        cy="0"
-                        rx="23"
-                        ry="25"
-                        fill={eyeHidden ? "#FBBF24" : "#FFFFFF"}
-                        stroke={eyeHidden ? "none" : "#07473C"}
-                        strokeWidth="4"
-                      />
-                      {eyeShape === "laugh" ? (
-                        renderLaughEye(16)
-                      ) : eyeShape === "sleep" ? (
-                        <path
-                          d="M -16 2 Q 0 13 16 2"
-                          fill="none"
+                      {renderEyeFx("front")}
+
+                      {isSleeping && (
+                        <motion.circle
+                          cx="288"
+                          cy="232"
+                          r="9"
+                          fill="#BAE6FD"
                           stroke="#07473C"
                           strokeWidth="4.5"
-                          strokeLinecap="round"
+                          animate={{ scale: [0.4, 1.2, 0.4] }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: 2.4,
+                            ease: "easeInOut",
+                          }}
                         />
-                      ) : (
-                        <motion.g
-                          animate={
-                            isReading
-                              ? { x: [-5, 5, -5], y: 6 }
-                              : isPeeking
-                                ? { x: [-6, 6, -6], y: -3 }
-                                : {
-                                    x: eyeOffsetX,
-                                    y: eyeOffsetY,
-                                    scale: pupilScale,
-                                  }
-                          }
-                          transition={
-                            isReading || isPeeking
-                              ? {
-                                  repeat: Infinity,
-                                  duration: 1.4,
-                                  ease: "easeInOut",
-                                }
-                              : undefined
-                          }
-                        >
-                          <circle cx="2" cy="0" r="18" fill="#008F7A" />
-                          <circle cx="3" cy="0" r="14" fill="#053B33" />
-                          <circle cx="10" cy="-7" r="6" fill="#FFFFFF" />
-                          <path
-                            d="M -4 1 Q -4 5.5 0.5 5.5 Q -4 5.5 -4 10 Q -4 5.5 -8.5 5.5 Q -4 5.5 -4 1 Z"
-                            fill="#FFFFFF"
-                          />
-                        </motion.g>
-                      )}
-                      {isGirl && (
-                        <g id="eyelashes-side-sub">
-                          <path
-                            d="M 10 -20 Q 18 -27 26 -24"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M 18 -13 Q 26 -17 31 -12"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                        </g>
-                      )}
-                    </g>
-
-                    <motion.g
-                      animate={
-                        talking || isLaughing || isSinging
-                          ? { scaleY: [1, 1.18, 0.92, 1.15, 1] }
-                          : isExcited || isCheering
-                            ? { scale: [1, 1.06, 1] }
-                            : {}
-                      }
-                      transition={
-                        talking || isLaughing || isSinging
-                          ? { repeat: Infinity, duration: 0.25 }
-                          : { repeat: Infinity, duration: 1.2 }
-                      }
-                      style={{ transformOrigin: "285px 212px" }}
-                    >
-                      {isShocked ? (
-                        <>
-                          <ellipse
-                            cx="302"
-                            cy="232"
-                            rx="16"
-                            ry="21"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                          />
-                          <ellipse
-                            cx="304"
-                            cy="236"
-                            rx="8"
-                            ry="13"
-                            fill="#07473C"
-                          />
-                          <path
-                            d="M 323 191 C 304 195, 285 201, 280 209 C 277 214, 282 218, 292 219 L 318 208 Z"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                            strokeLinejoin="round"
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <path
-                            d={`M 284 212 L 318 194 L 305 212 L ${sideBeakTip.x - 2} ${sideBeakTip.y - 4} Z`}
-                            fill="#07473C"
-                          />
-                          <path
-                            d={`M 285 213 L 296 213 L ${sideBeakTip.x - 4} ${sideBeakTip.y - 6} L 285 220 Z`}
-                            fill="#FF5E6C"
-                          />
-                          <path
-                            d={`M 323 191 C 304 195, 285 201, 280 209 C 276 216, 281 224, ${sideBeakTip.x} ${sideBeakTip.y} L 305 213 L 286 213 L 323 191 Z`}
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d={`M 323 191 L 305 213 L ${sideBeakTip.x} ${sideBeakTip.y}`}
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <circle cx="298" cy="202" r="1.8" fill="#07473C" />
-                          <circle cx="303" cy="200" r="1.5" fill="#07473C" />
-                        </>
                       )}
                     </motion.g>
-
-                    {renderEyeFx("side")}
-
-                    {isSleeping && (
-                      <motion.circle
-                        cx="326"
-                        cy="236"
-                        r="9"
-                        fill="#BAE6FD"
-                        stroke="#07473C"
-                        strokeWidth="4.5"
-                        animate={{ scale: [0.4, 1.2, 0.4] }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 2.4,
-                          ease: "easeInOut",
-                        }}
-                      />
-                    )}
+                    {renderPoseOverlay("front")}
+                    {renderAccessory("front")}
                   </motion.g>
-                  {renderPoseOverlay("side")}
-                  {renderAccessory("side")}
-                </motion.g>
-              )}
+                )}
 
-              {finalDirection === "front" && (
-                <motion.g
-                  initial={{ opacity: 0.8, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <g opacity="0.75">
-                    {!isStatic && !isPerching && !isRolling && (
-                      <motion.g
-                        animate={{ opacity: [0.3, 0.85, 0.3] }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: flapDuration * 1.5,
-                        }}
-                      >
-                        <path
-                          d="M 55 165 C 40 130, 62 100, 102 124"
-                          fill="none"
-                          stroke="#C5D6A7"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M 445 165 C 460 130, 438 100, 398 124"
-                          fill="none"
-                          stroke="#C5D6A7"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                      </motion.g>
-                    )}
+                {finalDirection === "back" && (
+                  <motion.g
+                    initial={{ opacity: 0.8, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     {!isRolling && (
                       <ellipse
                         cx="250"
@@ -3560,1324 +4354,658 @@ export function TitoMascot({
                         opacity="0.6"
                       />
                     )}
-                  </g>
 
-                  <motion.g
-                    animate={tailAnimate}
-                    style={{ transformOrigin: "250px 330px" }}
-                  >
-                    {showPlumes ? (
-                      <g id="cendrawasih-tail-front">
-                        <path
-                          d="M 216 330 C 190 365, 185 415, 218 435 C 235 444, 265 444, 282 435 C 315 415, 310 365, 284 330 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 228 330 C 210 360, 208 398, 232 418 C 242 426, 258 426, 268 418 C 292 398, 290 360, 272 330 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 228 412 Q 250 436 272 412 Q 250 422 228 412 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 250 334 L 250 422"
-                          fill="none"
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3.5"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M 240 365 L 250 375 L 260 365 M 238 385 L 250 395 L 262 385"
-                          fill="none"
-                          stroke="#FFFFFF"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          opacity="0.8"
-                        />
-                        <path
-                          d="M 232 350 C 190 390, 165 435, 178 450 C 188 460, 202 452, 206 438 C 210 422, 222 392, 238 362"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="184"
-                          cy="452"
-                          r="5"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                        />
-                        <path
-                          d="M 268 350 C 310 390, 335 435, 322 450 C 312 460, 298 452, 294 438 C 290 422, 278 392, 262 362"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="316"
-                          cy="452"
-                          r="5"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                        />
-                      </g>
-                    ) : (
-                      <>
-                        <path
-                          d="M 225 330 C 215 358, 222 374, 235 370 C 238 382, 262 382, 265 370 C 278 374, 285 358, 275 330 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 232 330 C 226 348, 232 356, 240 353 C 243 362, 257 362, 260 353 C 268 356, 274 348, 268 330 Z"
-                          fill={skinPalette.wingsBase}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                      </>
-                    )}
-                  </motion.g>
-
-                  <motion.g
-                    animate={leftWingAnimate}
-                    style={{ transformOrigin: "165px 230px" }}
-                  >
-                    <path
-                      d="M 165 208 L 66 158 C 54 168, 61 195, 84 210 C 69 218, 74 242, 104 249 C 100 262, 118 274, 165 268 Z"
-                      fill="#FFFFFF"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 84 210 C 92 215, 100 219, 107 221 M 104 249 C 112 251, 119 251, 125 251"
-                      fill="none"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 165 202 C 142 187, 120 172, 102 162 C 96 180, 101 200, 118 216 C 132 228, 148 234, 163 236 Z"
-                      fill="#00937D"
-                      stroke="#07473C"
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 102 162 C 86 147, 69 130, 59 135 C 50 140, 57 168, 76 187 C 89 199, 104 208, 118 216 C 101 200, 96 180, 102 162 Z"
-                      fill={skinPalette.accent1}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    {showPlumes && (
-                      <g id="cendrawasih-left-wing-plumes">
-                        <path
-                          d="M 120 248 C 95 285, 78 330, 92 342 C 104 352, 122 332, 138 300 C 148 280, 158 262, 164 252 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 132 250 C 114 282, 102 318, 112 328 C 120 334, 132 320, 145 292 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 86 336 C 88 348, 100 352, 108 344 C 104 336, 96 332, 86 336 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 150 262 Q 120 300 102 336"
-                          fill="none"
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                      </g>
-                    )}
-                  </motion.g>
-
-                  <motion.g
-                    animate={rightWingAnimate}
-                    style={{ transformOrigin: "335px 230px" }}
-                  >
-                    <path
-                      d="M 335 208 L 434 158 C 446 168, 439 195, 416 210 C 431 218, 426 242, 396 249 C 400 262, 382 274, 335 268 Z"
-                      fill={skinPalette.wingsBase}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 416 210 C 408 215, 400 219, 393 221 M 396 249 C 388 251, 381 251, 375 251"
-                      fill="none"
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 335 202 C 358 187, 380 172, 398 162 C 404 180, 399 200, 382 216 C 368 228, 352 234, 337 236 Z"
-                      fill={skinPalette.accent2}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 398 162 C 414 147, 431 130, 441 135 C 450 140, 443 168, 424 187 C 411 199, 396 208, 382 216 C 399 200, 404 180, 398 162 Z"
-                      fill={skinPalette.accent1}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    {showPlumes && (
-                      <g id="cendrawasih-right-wing-plumes">
-                        <path
-                          d="M 380 248 C 405 285, 422 330, 408 342 C 396 352, 378 332, 362 300 C 352 280, 342 262, 336 252 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 368 250 C 386 282, 398 318, 388 328 C 380 334, 368 320, 355 292 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 414 336 C 412 348, 400 352, 392 344 C 396 336, 404 332, 414 336 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 350 262 Q 380 300 398 336"
-                          fill="none"
-                          stroke="#07473C"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                      </g>
-                    )}
-                  </motion.g>
-
-                  {resolvedAccessory !== "peci" && (
                     <motion.g
-                      animate={crestAnimate}
-                      style={{ transformOrigin: "250px 133px" }}
+                      animate={legAnimate}
+                      style={{ transformOrigin: "218px 332px" }}
                     >
                       <path
-                        d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
-                        fill={skinPalette.accent1}
+                        d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z"
+                        fill={skinPalette.leg}
                         stroke={skinPalette.stroke}
                         strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
                     </motion.g>
-                  )}
-
-                  {/* Overlays Kepala: Tanduk Naga & Antena Robot */}
-                  {renderNagaHorns("front")}
-                  {renderRobotAntenna("front")}
-
-                  <ellipse
-                    cx="250"
-                    cy="240"
-                    rx="105"
-                    ry="105"
-                    fill={skinPalette.body}
-                    stroke={skinPalette.stroke}
-                    strokeWidth="4.5"
-                  />
-                  <path
-                    d="M 152 275 C 180 322, 320 322, 348 275 C 325 342, 175 342, 152 275 Z"
-                    fill={skinPalette.belly}
-                  />
-                  <ellipse
-                    cx="250"
-                    cy="240"
-                    rx="105"
-                    ry="105"
-                    fill="none"
-                    stroke={skinPalette.stroke}
-                    strokeWidth="4.5"
-                  />
-
-                  {/* Overlays Badan: Sisik Naga & Panel Robot */}
-                  {renderNagaScales("front")}
-                  {renderRobotPanels("front")}
-
-                  <motion.g
-                    animate={legAnimate}
-                    style={{ transformOrigin: "218px 332px" }}
-                  >
-                    <path
-                      d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z"
-                      fill={skinPalette.leg}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                  </motion.g>
-                  <motion.g
-                    animate={legAnimate}
-                    style={{ transformOrigin: "282px 332px" }}
-                  >
-                    <path
-                      d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z"
-                      fill={skinPalette.leg}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                  </motion.g>
-
-                  <motion.g
-                    animate={{ x: eyeOffsetX * 0.8, y: eyeOffsetY * 0.8 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  >
-                    <path d="M 234 228 L 266 228 L 250 256 Z" fill={skinPalette.belly} />
-                    <circle
-                      cx="182"
-                      cy="226"
-                      r={13.5 + cheekExtra}
-                      fill={skinPalette.cheek}
-                    />
-                    <circle
-                      cx="318"
-                      cy="226"
-                      r={13.5 + cheekExtra}
-                      fill={skinPalette.cheek}
-                    />
-                    {isShy && (
-                      <>
-                        <circle cx="182" cy="226" r="9" fill="#F43F5E" />
-                        <circle cx="318" cy="226" r="9" fill="#F43F5E" />
-                      </>
-                    )}
-
-                    <g transform={`translate(206, 192) scale(${eyeScale})`}>
-                      {effectiveSkin === "robot" ? (
-                        renderRobotEye()
-                      ) : (
-                        <>
-                          <ellipse
-                            cx="0"
-                            cy="0"
-                            rx="25"
-                            ry="27"
-                            fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
-                            stroke={eyeHidden ? "none" : skinPalette.stroke}
-                            strokeWidth="4"
-                          />
-                          {eyeShape === "laugh" ? (
-                            renderLaughEye(18)
-                          ) : eyeShape === "sleep" ? (
-                            <path
-                              d="M -18 2 Q 0 14 18 2"
-                              fill="none"
-                              stroke={skinPalette.stroke}
-                              strokeWidth="4.5"
-                              strokeLinecap="round"
-                            />
-                          ) : (
-                            <motion.g
-                              animate={
-                                isReading
-                                  ? { x: [-6, 6, -6], y: 6 }
-                                  : isPeeking
-                                    ? { x: [-7, 7, -7], y: -3 }
-                                    : {
-                                        x: eyeOffsetX,
-                                        y: eyeOffsetY,
-                                        scale: pupilScale,
-                                      }
-                              }
-                              transition={
-                                isReading || isPeeking
-                                  ? {
-                                      repeat: Infinity,
-                                      duration: 1.4,
-                                      ease: "easeInOut",
-                                    }
-                                  : undefined
-                              }
-                            >
-                              <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
-                              <circle cx="0" cy="0" r="15.5" fill="#053B33" />
-                              <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
-                              <path
-                                d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
-                                fill="#FFFFFF"
-                              />
-                            </motion.g>
-                          )}
-                        </>
-                      )}
-                      {isGirl && (
-                        <g id="eyelashes-front-left">
-                          <path
-                            d="M -16 -21 Q -24 -28 -32 -26"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M -22 -14 Q -32 -18 -38 -12"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M -25 -4 Q -34 -6 -38 2"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                        </g>
-                      )}
-                    </g>
-
-                    <g transform={`translate(294, 192) scale(${eyeScale})`}>
-                      {effectiveSkin === "robot" ? (
-                        renderRobotEye()
-                      ) : (
-                        <>
-                          <ellipse
-                            cx="0"
-                            cy="0"
-                            rx="25"
-                            ry="27"
-                            fill={eyeHidden ? skinPalette.body : "#FFFFFF"}
-                            stroke={eyeHidden ? "none" : skinPalette.stroke}
-                            strokeWidth="4"
-                          />
-                          {eyeShape === "laugh" ? (
-                            renderLaughEye(18)
-                          ) : eyeShape === "sleep" ? (
-                            <path
-                              d="M -18 2 Q 0 14 18 2"
-                              fill="none"
-                              stroke={skinPalette.stroke}
-                              strokeWidth="4.5"
-                              strokeLinecap="round"
-                            />
-                          ) : (
-                            <motion.g
-                              animate={
-                                isReading
-                                  ? { x: [-6, 6, -6], y: 6 }
-                                  : isPeeking
-                                    ? { x: [-7, 7, -7], y: -3 }
-                                    : {
-                                        x: eyeOffsetX,
-                                        y: eyeOffsetY,
-                                        scale: pupilScale,
-                                      }
-                              }
-                              transition={
-                                isReading || isPeeking
-                                  ? {
-                                      repeat: Infinity,
-                                      duration: 1.4,
-                                      ease: "easeInOut",
-                                    }
-                                  : undefined
-                              }
-                            >
-                              <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
-                              <circle cx="0" cy="0" r="15.5" fill="#053B33" />
-                              <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
-                              <path
-                                d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z"
-                                fill="#FFFFFF"
-                              />
-                            </motion.g>
-                          )}
-                        </>
-                      )}
-                      {isGirl && (
-                        <g id="eyelashes-front-right">
-                          <path
-                            d="M 16 -21 Q 24 -28 32 -26"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M 22 -14 Q 32 -18 38 -12"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M 25 -4 Q 34 -6 38 2"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                        </g>
-                      )}
-                    </g>
-
                     <motion.g
-                      animate={
-                        talking || isLaughing || isSinging
-                          ? { scaleY: [1, 1.2, 0.9, 1.15, 1] }
-                          : isExcited || isCheering
-                            ? { scale: [1, 1.07, 1] }
-                            : {}
-                      }
-                      transition={
-                        talking || isLaughing || isSinging
-                          ? { repeat: Infinity, duration: 0.25 }
-                          : { repeat: Infinity, duration: 1.2 }
-                      }
-                      style={{ transformOrigin: "250px 215px" }}
+                      animate={legAnimate}
+                      style={{ transformOrigin: "282px 332px" }}
                     >
-                      {isShocked ? (
-                        <>
-                          <ellipse
-                            cx="250"
-                            cy="238"
-                            rx="19"
-                            ry="24"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                          />
-                          <ellipse
-                            cx="250"
-                            cy="242"
-                            rx="10"
-                            ry="15"
-                            fill="#07473C"
-                          />
-                          <path
-                            d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                            strokeLinejoin="round"
-                          />
-                          <circle cx="246" cy="206" r="1.6" fill="#07473C" />
-                          <circle cx="254" cy="206" r="1.6" fill="#07473C" />
-                        </>
-                      ) : isLaughing || isCheering ? (
-                        <>
-                          <path
-                            d="M 222 214 L 250 270 L 278 214 Z"
-                            fill="#07473C"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M 235 242 Q 250 230 265 242 L 250 262 Z"
-                            fill="#FF5E6C"
-                          />
-                          <path
-                            d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                            strokeLinejoin="round"
-                          />
-                          <circle cx="246" cy="206" r="1.6" fill="#07473C" />
-                          <circle cx="254" cy="206" r="1.6" fill="#07473C" />
-                        </>
-                      ) : isGreeting || isProud || isPraying || isStarry ? (
-                        <>
-                          <path
-                            d="M 230 214 Q 250 238 270 214 Z"
-                            fill="#07473C"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M 240 222 Q 250 218 260 222 Q 250 232 240 222 Z"
-                            fill="#FF5E6C"
-                          />
-                          <path
-                            d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <circle cx="246" cy="206" r="1.6" fill="#07473C" />
-                          <circle cx="254" cy="206" r="1.6" fill="#07473C" />
-                        </>
-                      ) : isSleeping ? (
-                        <>
-                          <path
-                            d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M 232 220 Q 250 232 268 220"
-                            fill="none"
-                            stroke="#07473C"
-                            strokeWidth="4.5"
-                            strokeLinecap="round"
-                          />
-                          <circle cx="246" cy="206" r="1.6" fill="#07473C" />
-                          <circle cx="254" cy="206" r="1.6" fill="#07473C" />
-                        </>
-                      ) : (
-                        <>
-                          <path
-                            d="M 230 214 L 250 246 L 270 214 Z"
-                            fill="#07473C"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M 238 224 Q 250 218 262 224 L 250 243 Z"
-                            fill="#FF5E6C"
-                          />
-                          <path
-                            d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z"
-                            fill="#FF5E6C"
-                            stroke="#07473C"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <circle cx="246" cy="206" r="1.6" fill="#07473C" />
-                          <circle cx="254" cy="206" r="1.6" fill="#07473C" />
-                        </>
-                      )}
+                      <path
+                        d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z"
+                        fill={skinPalette.leg}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
                     </motion.g>
 
-                    {renderEyeFx("front")}
+                    {renderNagaHorns("back")}
+                    {renderRobotAntenna("back")}
 
-                    {isSleeping && (
-                      <motion.circle
-                        cx="288"
-                        cy="232"
-                        r="9"
-                        fill="#BAE6FD"
-                        stroke="#07473C"
-                        strokeWidth="4.5"
-                        animate={{ scale: [0.4, 1.2, 0.4] }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 2.4,
-                          ease: "easeInOut",
-                        }}
-                      />
+                    {resolvedAccessory !== "peci" && (
+                      <motion.g
+                        animate={crestAnimate}
+                        style={{ transformOrigin: "250px 133px" }}
+                      >
+                        <path
+                          d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
+                          fill={skinPalette.accent1}
+                          stroke={skinPalette.stroke}
+                          strokeWidth="4.5"
+                          strokeLinejoin="round"
+                        />
+                      </motion.g>
                     )}
-                  </motion.g>
-                  {renderPoseOverlay("front")}
-                  {renderAccessory("front")}
-                </motion.g>
-              )}
 
-              {finalDirection === "back" && (
-                <motion.g
-                  initial={{ opacity: 0.8, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {!isRolling && (
                     <ellipse
                       cx="250"
-                      cy="252"
-                      rx="112"
-                      ry="108"
-                      fill="#CFD8B6"
-                      opacity="0.6"
-                    />
-                  )}
-
-                  <motion.g
-                    animate={legAnimate}
-                    style={{ transformOrigin: "218px 332px" }}
-                  >
-                    <path
-                      d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z"
-                      fill={skinPalette.leg}
+                      cy="240"
+                      rx="105"
+                      ry="105"
+                      fill={skinPalette.body}
                       stroke={skinPalette.stroke}
                       strokeWidth="4.5"
-                      strokeLinejoin="round"
                     />
-                  </motion.g>
-                  <motion.g
-                    animate={legAnimate}
-                    style={{ transformOrigin: "282px 332px" }}
-                  >
                     <path
-                      d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z"
-                      fill={skinPalette.leg}
+                      d="M 148 265 C 175 325, 325 325, 352 265 C 332 342, 168 342, 148 265 Z"
+                      fill={skinPalette.belly}
+                    />
+                    <ellipse
+                      cx="250"
+                      cy="240"
+                      rx="105"
+                      ry="105"
+                      fill="none"
                       stroke={skinPalette.stroke}
                       strokeWidth="4.5"
-                      strokeLinejoin="round"
                     />
-                  </motion.g>
 
-                  {renderNagaHorns("back")}
-                  {renderRobotAntenna("back")}
-
-                  {resolvedAccessory !== "peci" && (
                     <motion.g
-                      animate={crestAnimate}
-                      style={{ transformOrigin: "250px 133px" }}
+                      animate={leftWingAnimate}
+                      style={{ transformOrigin: "165px 230px" }}
                     >
                       <path
-                        d="M 244 134 C 228 128, 220 115, 229 109 C 235 105, 243 113, 246 118 C 241 102, 244 91, 253 92 C 261 92, 262 104, 258 119 C 264 109, 273 105, 277 112 C 281 119, 270 131, 255 134 Z"
+                        d="M 165 208 L 66 158 C 54 168, 61 195, 84 210 C 69 218, 74 242, 104 249 C 100 262, 118 274, 165 268 Z"
+                        fill={skinPalette.wingsBase}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 168 200 C 142 185, 120 170, 102 162 C 96 180, 101 200, 118 216 C 134 230, 155 238, 172 238 Z"
+                        fill={skinPalette.accent2}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 102 162 C 86 147, 69 130, 59 135 C 50 140, 57 168, 76 187 C 89 199, 104 208, 118 216 C 101 200, 96 180, 102 162 Z"
                         fill={skinPalette.accent1}
                         stroke={skinPalette.stroke}
                         strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
+                      {showPlumes && (
+                        <g id="cendrawasih-left-wing-plumes-back">
+                          <path
+                            d="M 120 248 C 95 285, 78 330, 92 342 C 104 352, 122 332, 138 300 C 148 280, 158 262, 164 252 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 86 336 C 88 348, 100 352, 108 344 C 104 336, 96 332, 86 336 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                      )}
                     </motion.g>
-                  )}
 
-                  <ellipse
-                    cx="250"
-                    cy="240"
-                    rx="105"
-                    ry="105"
-                    fill={skinPalette.body}
-                    stroke={skinPalette.stroke}
-                    strokeWidth="4.5"
-                  />
-                  <path
-                    d="M 148 265 C 175 325, 325 325, 352 265 C 332 342, 168 342, 148 265 Z"
-                    fill={skinPalette.belly}
-                  />
-                  <ellipse
-                    cx="250"
-                    cy="240"
-                    rx="105"
-                    ry="105"
-                    fill="none"
-                    stroke={skinPalette.stroke}
-                    strokeWidth="4.5"
-                  />
-
-                  <motion.g
-                    animate={leftWingAnimate}
-                    style={{ transformOrigin: "165px 230px" }}
-                  >
-                    <path
-                      d="M 165 208 L 66 158 C 54 168, 61 195, 84 210 C 69 218, 74 242, 104 249 C 100 262, 118 274, 165 268 Z"
-                      fill={skinPalette.wingsBase}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 168 200 C 142 185, 120 170, 102 162 C 96 180, 101 200, 118 216 C 134 230, 155 238, 172 238 Z"
-                      fill={skinPalette.accent2}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 102 162 C 86 147, 69 130, 59 135 C 50 140, 57 168, 76 187 C 89 199, 104 208, 118 216 C 101 200, 96 180, 102 162 Z"
-                      fill={skinPalette.accent1}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    {showPlumes && (
-                      <g id="cendrawasih-left-wing-plumes-back">
-                        <path
-                          d="M 120 248 C 95 285, 78 330, 92 342 C 104 352, 122 332, 138 300 C 148 280, 158 262, 164 252 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 86 336 C 88 348, 100 352, 108 344 C 104 336, 96 332, 86 336 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                      </g>
-                    )}
-                  </motion.g>
-
-                  <motion.g
-                    animate={rightWingAnimate}
-                    style={{ transformOrigin: "335px 230px" }}
-                  >
-                    <path
-                      d="M 335 208 L 434 158 C 446 168, 439 195, 416 210 C 431 218, 426 242, 396 249 C 400 262, 382 274, 335 268 Z"
-                      fill={skinPalette.wingsBase}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 332 200 C 358 185, 380 170, 398 162 C 404 180, 399 200, 382 216 C 366 230, 345 238, 328 238 Z"
-                      fill={skinPalette.accent2}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M 398 162 C 414 147, 431 130, 441 135 C 450 140, 443 168, 424 187 C 411 199, 396 208, 382 216 C 399 200, 404 180, 398 162 Z"
-                      fill={skinPalette.accent1}
-                      stroke={skinPalette.stroke}
-                      strokeWidth="4.5"
-                      strokeLinejoin="round"
-                    />
-                    {showPlumes && (
-                      <g id="cendrawasih-right-wing-plumes-back">
-                        <path
-                          d="M 380 248 C 405 285, 422 330, 408 342 C 396 352, 378 332, 362 300 C 352 280, 342 262, 336 252 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 414 336 C 412 348, 400 352, 392 344 C 396 336, 404 332, 414 336 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                      </g>
-                    )}
-                  </motion.g>
-
-                  <motion.g
-                    animate={tailAnimate}
-                    style={{ transformOrigin: "250px 305px" }}
-                  >
-                    {showPlumes ? (
-                      <g id="cendrawasih-tail-back">
-                        <path
-                          d="M 216 305 C 190 345, 185 395, 218 425 C 235 436, 265 436, 282 425 C 315 395, 310 345, 284 305 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 228 305 C 210 340, 208 380, 232 405 C 242 415, 258 415, 268 405 C 292 380, 290 340, 272 305 Z"
-                          fill={skinPalette.accent1}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 228 398 Q 250 422 272 398 Q 250 410 228 398 Z"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 232 325 C 190 365, 165 410, 178 425 C 188 435, 202 427, 206 413 C 210 397, 222 367, 238 337"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="184"
-                          cy="427"
-                          r="5"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                        />
-                        <path
-                          d="M 268 325 C 310 365, 335 410, 322 425 C 312 435, 298 427, 294 413 C 290 397, 278 367, 262 337"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="316"
-                          cy="427"
-                          r="5"
-                          fill={skinPalette.tailTip}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="2.5"
-                        />
-                      </g>
-                    ) : (
-                      <>
-                        <path
-                          d="M 235 305 C 205 325, 185 355, 198 368 C 208 378, 228 362, 242 342 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 265 305 C 295 325, 315 355, 302 368 C 292 378, 272 362, 258 342 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 238 310 C 232 348, 236 378, 250 380 C 264 378, 268 348, 262 310 Z"
-                          fill={skinPalette.accent2}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M 232 300 C 214 316, 206 335, 214 342 C 222 348, 234 338, 240 328 C 238 345, 242 356, 250 356 C 258 356, 262 345, 260 328 C 266 338, 278 348, 286 342 C 294 335, 286 316, 268 300 Q 250 292 232 300 Z"
-                          fill={skinPalette.wingsBase}
-                          stroke={skinPalette.stroke}
-                          strokeWidth="4.5"
-                          strokeLinejoin="round"
-                        />
-                      </>
-                    )}
-                  </motion.g>
-                  {renderAccessory("back")}
-                </motion.g>
-              )}
-
-              {/* Lampu ide (thinking) */}
-              {isThinking && (
-                <motion.g
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{
-                    opacity: [0.85, 1, 0.85],
-                    scale: [0.95, 1.08, 0.95],
-                    y: [0, -4, 0],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.4,
-                    ease: "easeInOut",
-                  }}
-                  style={{ transformOrigin: "253px 50px" }}
-                >
-                  <circle
-                    cx="253"
-                    cy="48"
-                    r="18"
-                    fill="#FEF08A"
-                    stroke="#07473C"
-                    strokeWidth="4"
-                  />
-                  <path
-                    d="M 245 64 L 261 64 L 258 74 L 248 74 Z"
-                    fill="#07473C"
-                  />
-                  <path
-                    d="M 253 18 L 253 8 M 225 32 L 215 24 M 281 32 L 291 24 M 220 52 L 208 52 M 286 52 L 298 52"
-                    stroke="#FBBF24"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                  />
-                </motion.g>
-              )}
-
-              {/* Tanda Tanya "?" melayang (confused) */}
-              {isConfused && (
-                <motion.g
-                  animate={{
-                    y: [0, -10, 0],
-                    rotate: [-8, 12, -8],
-                    scale: [0.95, 1.08, 0.95],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.6,
-                    ease: "easeInOut",
-                  }}
-                  style={{ transformOrigin: "330px 95px" }}
-                >
-                  <circle
-                    cx="330"
-                    cy="92"
-                    r="26"
-                    fill="#FEF08A"
-                    stroke="#07473C"
-                    strokeWidth="4"
-                  />
-                  <path
-                    d="M 322 82 C 322 72, 338 72, 338 82 C 338 89, 330 90, 330 96"
-                    fill="none"
-                    stroke="#07473C"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="330" cy="106" r="3" fill="#07473C" />
-                </motion.g>
-              )}
-
-              {/* Cahaya Doa Berkilau (praying) */}
-              {isPraying && (
-                <motion.g
-                  animate={{
-                    opacity: [0.4, 1, 0.4],
-                    scale: [0.92, 1.08, 0.92],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 2,
-                    ease: "easeInOut",
-                  }}
-                  style={{ transformOrigin: "250px 85px" }}
-                >
-                  {[
-                    { x: 165, y: 120 },
-                    { x: 335, y: 120 },
-                    { x: 250, y: 65 },
-                  ].map((sp, i) => (
-                    <path
-                      key={i}
-                      transform={`translate(${sp.x} ${sp.y})`}
-                      d="M 0 -12 L 3.5 -3.5 L 12 0 L 3.5 3.5 L 0 12 L -3.5 3.5 L -12 0 L -3.5 -3.5 Z"
-                      fill="#FEF08A"
-                      stroke="#07473C"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                  ))}
-                </motion.g>
-              )}
-
-              {/* Kilau Bintang Sekeliling (starry) */}
-              {isStarry &&
-                [
-                  { x: 135, y: 145, d: 0 },
-                  { x: 365, y: 145, d: 0.3 },
-                  { x: 150, y: 265, d: 0.6 },
-                  { x: 350, y: 265, d: 0.15 },
-                ].map((st, idx) => (
-                  <motion.g
-                    key={idx}
-                    transform={`translate(${st.x} ${st.y})`}
-                    animate={{
-                      scale: [0.4, 1.25, 0.4],
-                      opacity: [0.3, 1, 0.3],
-                    }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 0.9,
-                      delay: st.d,
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <path
-                      d="M 0 -13 L 3.5 -3.5 L 13 0 L 3.5 3.5 L 0 13 L -3.5 3.5 L -13 0 L -3.5 -3.5 Z"
-                      fill="#FDE047"
-                      stroke="#07473C"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                  </motion.g>
-                ))}
-
-              {/* Konfeti Perayaan (cheer) */}
-              {isCheering &&
-                [
-                  { x: 125, y: 115, c: "#FF6B6B", d: 0 },
-                  { x: 375, y: 115, c: "#00B894", d: 0.2 },
-                  { x: 165, y: 75, c: "#FBBF24", d: 0.4 },
-                  { x: 335, y: 75, c: "#3B82F6", d: 0.1 },
-                  { x: 250, y: 55, c: "#F43F5E", d: 0.3 },
-                ].map((cf, i) => (
-                  <motion.rect
-                    key={i}
-                    x={cf.x}
-                    y={cf.y}
-                    width="12"
-                    height="12"
-                    rx="3"
-                    fill={cf.c}
-                    stroke="#07473C"
-                    strokeWidth="2.5"
-                    animate={{
-                      y: [0, 55],
-                      rotate: [0, 180],
-                      opacity: [1, 1, 0],
-                    }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 1.1,
-                      delay: cf.d,
-                      ease: "easeOut",
-                    }}
-                  />
-                ))}
-
-              {/* Not Irama Melayang (singing) */}
-              {isSinging &&
-                [
-                  { x: 335, y: 165, d: 0 },
-                  { x: 372, y: 125, d: 0.5 },
-                  { x: 145, y: 155, d: 0.9 },
-                ].map((nt, i) => (
-                  <g key={i} transform={`translate(${nt.x} ${nt.y})`}>
                     <motion.g
-                      animate={{
-                        y: [0, -42],
-                        x: [0, i % 2 === 0 ? 12 : -12],
-                        opacity: [0, 1, 0],
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 1.6,
-                        delay: nt.d,
-                        ease: "easeOut",
-                      }}
+                      animate={rightWingAnimate}
+                      style={{ transformOrigin: "335px 230px" }}
                     >
-                      <ellipse
-                        cx="0"
-                        cy="0"
-                        rx="8"
-                        ry="6"
-                        fill="#00B894"
-                        stroke="#07473C"
-                        strokeWidth="3.5"
-                      />
                       <path
-                        d="M 6 0 L 6 -22 L 18 -18"
-                        fill="none"
-                        stroke="#07473C"
-                        strokeWidth="4"
-                        strokeLinecap="round"
+                        d="M 335 208 L 434 158 C 446 168, 439 195, 416 210 C 431 218, 426 242, 396 249 C 400 262, 382 274, 335 268 Z"
+                        fill={skinPalette.wingsBase}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
                         strokeLinejoin="round"
                       />
+                      <path
+                        d="M 332 200 C 358 185, 380 170, 398 162 C 404 180, 399 200, 382 216 C 366 230, 345 238, 328 238 Z"
+                        fill={skinPalette.accent2}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M 398 162 C 414 147, 431 130, 441 135 C 450 140, 443 168, 424 187 C 411 199, 396 208, 382 216 C 399 200, 404 180, 398 162 Z"
+                        fill={skinPalette.accent1}
+                        stroke={skinPalette.stroke}
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+                      {showPlumes && (
+                        <g id="cendrawasih-right-wing-plumes-back">
+                          <path
+                            d="M 380 248 C 405 285, 422 330, 408 342 C 396 352, 378 332, 362 300 C 352 280, 342 262, 336 252 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 414 336 C 412 348, 400 352, 392 344 C 396 336, 404 332, 414 336 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                      )}
                     </motion.g>
-                  </g>
-                ))}
 
-              {/* Garis Getar & Keringat Dingin (shiver) */}
-              {isShivering && (
-                <motion.g
-                  animate={{ opacity: [1, 0.3, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.2 }}
-                >
-                  <path
-                    d="M 112 195 Q 102 215 112 235 Q 102 255 112 275 M 388 195 Q 398 215 388 235 Q 398 255 388 275"
-                    fill="none"
-                    stroke="#07473C"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 352 142 C 342 158, 346 172, 356 170 C 366 168, 364 156, 352 142 Z"
-                    fill="#BAE6FD"
-                    stroke="#07473C"
-                    strokeWidth="4"
-                    strokeLinejoin="round"
-                  />
-                </motion.g>
-              )}
-
-              {/* Zzz lama (mood "sleepy") */}
-              {isSleepy && (
-                <motion.g
-                  animate={{ y: [0, -15], opacity: [0, 1, 0] }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 2,
-                    ease: "easeOut",
-                  }}
-                >
-                  <text
-                    x="285"
-                    y="95"
-                    fill="#07473C"
-                    fontSize="24"
-                    fontWeight="bold"
-                    fontFamily="sans-serif"
-                  >
-                    Zzz
-                  </text>
-                </motion.g>
-              )}
-
-              {/* Zzz melayang untuk pose "sleeping" */}
-              {isSleeping && (
-                <>
-                  <motion.g
-                    animate={{ y: [0, -22], x: [0, 8], opacity: [0, 1, 0] }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 2.6,
-                      ease: "easeOut",
-                    }}
-                  >
-                    <text
-                      x="300"
-                      y="112"
-                      fill="#07473C"
-                      fontSize="32"
-                      fontWeight="bold"
-                      fontFamily="sans-serif"
-                    >
-                      Zzz
-                    </text>
-                  </motion.g>
-                  <motion.g
-                    animate={{ y: [0, -22], x: [0, 8], opacity: [0, 1, 0] }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 2.6,
-                      ease: "easeOut",
-                      delay: 1.3,
-                    }}
-                  >
-                    <text
-                      x="338"
-                      y="78"
-                      fill="#07473C"
-                      fontSize="22"
-                      fontWeight="bold"
-                      fontFamily="sans-serif"
-                    >
-                      Zz
-                    </text>
-                  </motion.g>
-                </>
-              )}
-
-              {/* Hati melayang (love) */}
-              {isLove &&
-                [
-                  { x: 150, y: 120, d: 0 },
-                  { x: 350, y: 110, d: 0.6 },
-                  { x: 250, y: 80, d: 1.2 },
-                ].map((h, i) => (
-                  <g key={i} transform={`translate(${h.x} ${h.y})`}>
-                    <motion.path
-                      d="M 0 10 C -16 -2, -12 -14, 0 -6 C 12 -14, 16 -2, 0 10 Z"
-                      fill="#FF6B6B"
-                      stroke="#07473C"
-                      strokeWidth="3.5"
-                      strokeLinejoin="round"
-                      animate={{ y: [0, -46], opacity: [0, 1, 0] }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 1.8,
-                        ease: "easeOut",
-                        delay: h.d,
-                      }}
-                    />
-                  </g>
-                ))}
-
-              {/* Urat marah (angry) */}
-              {isAngry && (
-                <motion.path
-                  d="M 318 118 Q 328 120 330 110 M 318 118 Q 320 128 330 126 M 342 118 Q 332 116 332 126 M 342 118 Q 340 108 330 110"
-                  fill="none"
-                  stroke="#EF4444"
-                  strokeWidth="4.5"
-                  strokeLinecap="round"
-                  animate={{ scale: [1, 1.25, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.35 }}
-                />
-              )}
-
-              {/* Bintang berputar di atas kepala (dizzy) */}
-              {isDizzy &&
-                [0, 1, 2].map((k) => {
-                  const xs = [
-                    ...orbitX.slice(k * 2),
-                    ...orbitX.slice(0, k * 2),
-                  ];
-                  const ys = [
-                    ...orbitY.slice(k * 2),
-                    ...orbitY.slice(0, k * 2),
-                  ];
-                  return (
                     <motion.g
-                      key={k}
-                      animate={{ x: [...xs, xs[0]], y: [...ys, ys[0]] }}
+                      animate={tailAnimate}
+                      style={{ transformOrigin: "250px 305px" }}
+                    >
+                      {showPlumes ? (
+                        <g id="cendrawasih-tail-back">
+                          <path
+                            d="M 216 305 C 190 345, 185 395, 218 425 C 235 436, 265 436, 282 425 C 315 395, 310 345, 284 305 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 228 305 C 210 340, 208 380, 232 405 C 242 415, 258 415, 268 405 C 292 380, 290 340, 272 305 Z"
+                            fill={skinPalette.accent1}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 228 398 Q 250 422 272 398 Q 250 410 228 398 Z"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 232 325 C 190 365, 165 410, 178 425 C 188 435, 202 427, 206 413 C 210 397, 222 367, 238 337"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="184"
+                            cy="427"
+                            r="5"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                          />
+                          <path
+                            d="M 268 325 C 310 365, 335 410, 322 425 C 312 435, 298 427, 294 413 C 290 397, 278 367, 262 337"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="316"
+                            cy="427"
+                            r="5"
+                            fill={skinPalette.tailTip}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="2.5"
+                          />
+                        </g>
+                      ) : (
+                        <>
+                          <path
+                            d="M 235 305 C 205 325, 185 355, 198 368 C 208 378, 228 362, 242 342 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 265 305 C 295 325, 315 355, 302 368 C 292 378, 272 362, 258 342 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 238 310 C 232 348, 236 378, 250 380 C 264 378, 268 348, 262 310 Z"
+                            fill={skinPalette.accent2}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M 232 300 C 214 316, 206 335, 214 342 C 222 348, 234 338, 240 328 C 238 345, 242 356, 250 356 C 258 356, 262 345, 260 328 C 266 338, 278 348, 286 342 C 294 335, 286 316, 268 300 Q 250 292 232 300 Z"
+                            fill={skinPalette.wingsBase}
+                            stroke={skinPalette.stroke}
+                            strokeWidth="4.5"
+                            strokeLinejoin="round"
+                          />
+                        </>
+                      )}
+                    </motion.g>
+                    {renderAccessory("back")}
+                  </motion.g>
+                )}
+
+                {/* Lampu ide (thinking) */}
+                {isThinking && (
+                  <motion.g
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                      opacity: [0.85, 1, 0.85],
+                      scale: [0.95, 1.08, 0.95],
+                      y: [0, -4, 0],
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1.4,
+                      ease: "easeInOut",
+                    }}
+                    style={{ transformOrigin: "253px 50px" }}
+                  >
+                    <circle
+                      cx="253"
+                      cy="48"
+                      r="18"
+                      fill="#FEF08A"
+                      stroke="#07473C"
+                      strokeWidth="4"
+                    />
+                    <path
+                      d="M 245 64 L 261 64 L 258 74 L 248 74 Z"
+                      fill="#07473C"
+                    />
+                    <path
+                      d="M 253 18 L 253 8 M 225 32 L 215 24 M 281 32 L 291 24 M 220 52 L 208 52 M 286 52 L 298 52"
+                      stroke="#FBBF24"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                  </motion.g>
+                )}
+
+                {/* Tanda Tanya "?" melayang (confused) */}
+                {isConfused && (
+                  <motion.g
+                    animate={{
+                      y: [0, -10, 0],
+                      rotate: [-8, 12, -8],
+                      scale: [0.95, 1.08, 0.95],
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1.6,
+                      ease: "easeInOut",
+                    }}
+                    style={{ transformOrigin: "330px 95px" }}
+                  >
+                    <circle
+                      cx="330"
+                      cy="92"
+                      r="26"
+                      fill="#FEF08A"
+                      stroke="#07473C"
+                      strokeWidth="4"
+                    />
+                    <path
+                      d="M 322 82 C 322 72, 338 72, 338 82 C 338 89, 330 90, 330 96"
+                      fill="none"
+                      stroke="#07473C"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="330" cy="106" r="3" fill="#07473C" />
+                  </motion.g>
+                )}
+
+                {/* Cahaya Doa Berkilau (praying) */}
+                {isPraying && (
+                  <motion.g
+                    animate={{
+                      opacity: [0.4, 1, 0.4],
+                      scale: [0.92, 1.08, 0.92],
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 2,
+                      ease: "easeInOut",
+                    }}
+                    style={{ transformOrigin: "250px 85px" }}
+                  >
+                    {[
+                      { x: 165, y: 120 },
+                      { x: 335, y: 120 },
+                      { x: 250, y: 65 },
+                    ].map((sp, i) => (
+                      <path
+                        key={i}
+                        transform={`translate(${sp.x} ${sp.y})`}
+                        d="M 0 -12 L 3.5 -3.5 L 12 0 L 3.5 3.5 L 0 12 L -3.5 3.5 L -12 0 L -3.5 -3.5 Z"
+                        fill="#FEF08A"
+                        stroke="#07473C"
+                        strokeWidth="2.5"
+                        strokeLinejoin="round"
+                      />
+                    ))}
+                  </motion.g>
+                )}
+
+                {/* Kilau Bintang Sekeliling (starry) */}
+                {isStarry &&
+                  [
+                    { x: 135, y: 145, d: 0 },
+                    { x: 365, y: 145, d: 0.3 },
+                    { x: 150, y: 265, d: 0.6 },
+                    { x: 350, y: 265, d: 0.15 },
+                  ].map((st, idx) => (
+                    <motion.g
+                      key={idx}
+                      transform={`translate(${st.x} ${st.y})`}
+                      animate={{
+                        scale: [0.4, 1.25, 0.4],
+                        opacity: [0.3, 1, 0.3],
+                      }}
                       transition={{
                         repeat: Infinity,
-                        duration: 2.4,
-                        ease: "linear",
+                        duration: 0.9,
+                        delay: st.d,
+                        ease: "easeInOut",
                       }}
                     >
-                      <polygon
-                        points="250,98 253,105 260,108 253,111 250,118 247,111 240,108 247,105"
+                      <path
+                        d="M 0 -13 L 3.5 -3.5 L 13 0 L 3.5 3.5 L 0 13 L -3.5 3.5 L -13 0 L -3.5 -3.5 Z"
                         fill="#FDE047"
                         stroke="#07473C"
                         strokeWidth="2.5"
                         strokeLinejoin="round"
                       />
                     </motion.g>
-                  );
-                })}
+                  ))}
 
-              {/* Efek kaget: garis radial + tetes keringat */}
-              {isShocked && (
-                <motion.g
-                  animate={{ opacity: [1, 0.35, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.3 }}
-                >
-                  <path
-                    d="M 250 76 L 250 42 M 200 92 L 178 66 M 300 92 L 322 66"
+                {/* Konfeti Perayaan (cheer) */}
+                {isCheering &&
+                  [
+                    { x: 125, y: 115, c: "#FF6B6B", d: 0 },
+                    { x: 375, y: 115, c: "#00B894", d: 0.2 },
+                    { x: 165, y: 75, c: "#FBBF24", d: 0.4 },
+                    { x: 335, y: 75, c: "#3B82F6", d: 0.1 },
+                    { x: 250, y: 55, c: "#F43F5E", d: 0.3 },
+                  ].map((cf, i) => (
+                    <motion.rect
+                      key={i}
+                      x={cf.x}
+                      y={cf.y}
+                      width="12"
+                      height="12"
+                      rx="3"
+                      fill={cf.c}
+                      stroke="#07473C"
+                      strokeWidth="2.5"
+                      animate={{
+                        y: [0, 55],
+                        rotate: [0, 180],
+                        opacity: [1, 1, 0],
+                      }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.1,
+                        delay: cf.d,
+                        ease: "easeOut",
+                      }}
+                    />
+                  ))}
+
+                {/* Not Irama Melayang (singing) */}
+                {isSinging &&
+                  [
+                    { x: 335, y: 165, d: 0 },
+                    { x: 372, y: 125, d: 0.5 },
+                    { x: 145, y: 155, d: 0.9 },
+                  ].map((nt, i) => (
+                    <g key={i} transform={`translate(${nt.x} ${nt.y})`}>
+                      <motion.g
+                        animate={{
+                          y: [0, -42],
+                          x: [0, i % 2 === 0 ? 12 : -12],
+                          opacity: [0, 1, 0],
+                        }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1.6,
+                          delay: nt.d,
+                          ease: "easeOut",
+                        }}
+                      >
+                        <ellipse
+                          cx="0"
+                          cy="0"
+                          rx="8"
+                          ry="6"
+                          fill="#00B894"
+                          stroke="#07473C"
+                          strokeWidth="3.5"
+                        />
+                        <path
+                          d="M 6 0 L 6 -22 L 18 -18"
+                          fill="none"
+                          stroke="#07473C"
+                          strokeWidth="4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </motion.g>
+                    </g>
+                  ))}
+
+                {/* Garis Getar & Keringat Dingin (shiver) */}
+                {isShivering && (
+                  <motion.g
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ repeat: Infinity, duration: 0.2 }}
+                  >
+                    <path
+                      d="M 112 195 Q 102 215 112 235 Q 102 255 112 275 M 388 195 Q 398 215 388 235 Q 398 255 388 275"
+                      fill="none"
+                      stroke="#07473C"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 352 142 C 342 158, 346 172, 356 170 C 366 168, 364 156, 352 142 Z"
+                      fill="#BAE6FD"
+                      stroke="#07473C"
+                      strokeWidth="4"
+                      strokeLinejoin="round"
+                    />
+                  </motion.g>
+                )}
+
+                {/* Zzz lama (mood "sleepy") */}
+                {isSleepy && (
+                  <motion.g
+                    animate={{ y: [0, -15], opacity: [0, 1, 0] }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 2,
+                      ease: "easeOut",
+                    }}
+                  >
+                    <text
+                      x="285"
+                      y="95"
+                      fill="#07473C"
+                      fontSize="24"
+                      fontWeight="bold"
+                      fontFamily="sans-serif"
+                    >
+                      Zzz
+                    </text>
+                  </motion.g>
+                )}
+
+                {/* Zzz melayang untuk pose "sleeping" */}
+                {isSleeping && (
+                  <>
+                    <motion.g
+                      animate={{ y: [0, -22], x: [0, 8], opacity: [0, 1, 0] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2.6,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <text
+                        x="300"
+                        y="112"
+                        fill="#07473C"
+                        fontSize="32"
+                        fontWeight="bold"
+                        fontFamily="sans-serif"
+                      >
+                        Zzz
+                      </text>
+                    </motion.g>
+                    <motion.g
+                      animate={{ y: [0, -22], x: [0, 8], opacity: [0, 1, 0] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2.6,
+                        ease: "easeOut",
+                        delay: 1.3,
+                      }}
+                    >
+                      <text
+                        x="338"
+                        y="78"
+                        fill="#07473C"
+                        fontSize="22"
+                        fontWeight="bold"
+                        fontFamily="sans-serif"
+                      >
+                        Zz
+                      </text>
+                    </motion.g>
+                  </>
+                )}
+
+                {/* Hati melayang (love) */}
+                {isLove &&
+                  [
+                    { x: 150, y: 120, d: 0 },
+                    { x: 350, y: 110, d: 0.6 },
+                    { x: 250, y: 80, d: 1.2 },
+                  ].map((h, i) => (
+                    <g key={i} transform={`translate(${h.x} ${h.y})`}>
+                      <motion.path
+                        d="M 0 10 C -16 -2, -12 -14, 0 -6 C 12 -14, 16 -2, 0 10 Z"
+                        fill="#FF6B6B"
+                        stroke="#07473C"
+                        strokeWidth="3.5"
+                        strokeLinejoin="round"
+                        animate={{ y: [0, -46], opacity: [0, 1, 0] }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1.8,
+                          ease: "easeOut",
+                          delay: h.d,
+                        }}
+                      />
+                    </g>
+                  ))}
+
+                {/* Urat marah (angry) */}
+                {isAngry && (
+                  <motion.path
+                    d="M 318 118 Q 328 120 330 110 M 318 118 Q 320 128 330 126 M 342 118 Q 332 116 332 126 M 342 118 Q 340 108 330 110"
                     fill="none"
-                    stroke="#07473C"
+                    stroke="#EF4444"
                     strokeWidth="4.5"
                     strokeLinecap="round"
+                    animate={{ scale: [1, 1.25, 1] }}
+                    transition={{ repeat: Infinity, duration: 0.35 }}
                   />
-                  <path
-                    d="M 356 124 C 344 142, 350 158, 362 156 C 374 154, 372 140, 356 124 Z"
-                    fill="#BAE6FD"
-                    stroke="#07473C"
-                    strokeWidth="4.5"
-                    strokeLinejoin="round"
-                  />
-                </motion.g>
-              )}
-            </>
-          )}
-        </motion.svg>
-      </motion.div>
-    </MascotAura>
-  </div>
-);
+                )}
+
+                {/* Bintang berputar di atas kepala (dizzy) */}
+                {isDizzy &&
+                  [0, 1, 2].map((k) => {
+                    const xs = [
+                      ...orbitX.slice(k * 2),
+                      ...orbitX.slice(0, k * 2),
+                    ];
+                    const ys = [
+                      ...orbitY.slice(k * 2),
+                      ...orbitY.slice(0, k * 2),
+                    ];
+                    return (
+                      <motion.g
+                        key={k}
+                        animate={{ x: [...xs, xs[0]], y: [...ys, ys[0]] }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 2.4,
+                          ease: "linear",
+                        }}
+                      >
+                        <polygon
+                          points="250,98 253,105 260,108 253,111 250,118 247,111 240,108 247,105"
+                          fill="#FDE047"
+                          stroke="#07473C"
+                          strokeWidth="2.5"
+                          strokeLinejoin="round"
+                        />
+                      </motion.g>
+                    );
+                  })}
+
+                {/* Efek kaget: garis radial + tetes keringat */}
+                {isShocked && (
+                  <motion.g
+                    animate={{ opacity: [1, 0.35, 1] }}
+                    transition={{ repeat: Infinity, duration: 0.3 }}
+                  >
+                    <path
+                      d="M 250 76 L 250 42 M 200 92 L 178 66 M 300 92 L 322 66"
+                      fill="none"
+                      stroke="#07473C"
+                      strokeWidth="4.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 356 124 C 344 142, 350 158, 362 156 C 374 154, 372 140, 356 124 Z"
+                      fill="#BAE6FD"
+                      stroke="#07473C"
+                      strokeWidth="4.5"
+                      strokeLinejoin="round"
+                    />
+                  </motion.g>
+                )}
+              </>
+            )}
+          </motion.svg>
+        </motion.div>
+      </MascotAura>
+    </div>
+  );
 }
 
 // Canonical mascot export & aliases for backwards compatibility

@@ -1,102 +1,52 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
-import {
-  getLeaderboard,
-  LEADERBOARD_GAME_IDS,
-  type LeaderboardEntry,
-} from "./games/_shared/progression";
-import { LeaderboardPanel } from "./games/_shared/LeaderboardPanel";
-import { getToken } from "../../../services/api";
-import {
-  isNgajiCeriaServerAvailable,
-  ngajiCeriaApi,
-} from "../services/ngajiCeriaApi";
-import { Trophy, Star } from "../../../components/ui/CustomIcons";
+import { Trophy, Star, Sparkles } from "@/components/ui/CustomIcons";
+import { LeaderboardList } from "@/components/ui/LeaderboardList";
 
-const TITLES: Record<string, string> = {
-  "ayat-hunter": "Ayat Hunter",
-  "doa-dungeon": "Doa Dungeon",
-  "nabi-chronicles": "Nabi Chronicles",
-  "malaikat-mission": "Malaikat Mission",
-  "tajwid-tetris": "Tajwid Tetris",
-};
+const GAME_TABS = [
+  { id: "ayat-hunter", title: "Ayat Hunter", icon: "🏹" },
+  { id: "doa-dungeon", title: "Doa Dungeon", icon: "🗝️" },
+  { id: "nabi-chronicles", title: "Nabi Chronicles", icon: "📜" },
+  { id: "malaikat-mission", title: "Malaikat Mission", icon: "✨" },
+  { id: "tajwid-tetris", title: "Tajwid Tetris", icon: "🧱" },
+];
 
 export default function NgajiCeriaLeaderboardPage() {
   const navigate = useNavigate();
-  const [version, setVersion] = useState(0);
-  const [serverEntries, setServerEntries] = useState<
-    Record<string, LeaderboardEntry[]>
-  >({});
+  const [activeTab, setActiveTab] = useState<string>("ayat-hunter");
   const [period, setPeriod] = useState<"daily" | "weekly">("weekly");
 
-  useEffect(() => {
-    const refresh = () => setVersion((v) => v + 1);
-    window.addEventListener("ngajiceria:leaderboard-updated", refresh);
-    return () =>
-      window.removeEventListener("ngajiceria:leaderboard-updated", refresh);
-  }, []);
-
-  useEffect(() => {
-    if (!isNgajiCeriaServerAvailable() || !getToken()) return;
-    let cancelled = false;
-    Promise.all(
-      LEADERBOARD_GAME_IDS.map(async (gameId) => {
-        try {
-          const response = await ngajiCeriaApi.getLeaderboard(gameId, period);
-          return [
-            gameId,
-            response.entries.map((entry) => ({
-              ...entry,
-              updatedAt: Date.parse(entry.updatedAt) || 0,
-            })),
-          ] as const;
-        } catch {
-          return null;
-        }
-      }),
-    ).then((items) => {
-      if (cancelled) return;
-      setServerEntries(
-        Object.fromEntries(
-          items.filter((item): item is readonly [string, LeaderboardEntry[]] =>
-            Boolean(item),
-          ),
-        ),
-      );
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [period, version]);
+  const currentTabInfo =
+    GAME_TABS.find((t) => t.id === activeTab) || GAME_TABS[0];
 
   return (
-    <NgajiCeriaLayout title="Papan Skor" showBack onBack={() => navigate(-1)}>
-      <div className="space-y-5 bg-[#F0FDF4] min-h-full rounded-t-3xl pb-32">
+    <NgajiCeriaLayout title="Papan Skor" showBack onBack={() => navigate("/member/ngaji-ceria")}>
+      <div className="space-y-4 bg-[var(--app-bg,#F0FDF4)] text-[var(--app-text,#134E4A)] min-h-full pb-32">
         {/* Hero Banner */}
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-6 pb-12 text-white rounded-b-[40px] shadow-lg">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[8px] border-white/5" />
-          <div className="absolute top-8 right-12 text-[#FF6B6B] rotate-12">
-            <Trophy size={48} />
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-6 pb-12 text-white rounded-b-[36px] border-b-[3px] border-[#134E4A]">
+          <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full border-[8px] border-white/5 pointer-events-none" />
+          <div className="absolute top-6 right-8 text-[#FF6B6B] rotate-12 pointer-events-none">
+            <Trophy size={44} />
           </div>
           <div className="relative z-10 max-w-[85%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FF6B6B] mb-2">
-              <Star size={12} /> Pahlawan Papan Skor
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FF6B6B] mb-2 border border-[#FF6B6B]/30">
+              <Star size={12} /> Papan Skor Santri
             </span>
-            <h2 className="font-display text-[24px] font-black leading-tight">
-              Siapa juara <br />
-              <span className="text-[#FF6B6B]">pekan ini?</span>
+            <h2 className="font-display text-2xl font-black leading-tight">
+              Papan Skor <br />
+              <span className="text-[#FEF08A]">Para Juara</span>
             </h2>
-            <p className="mt-2 text-[11px] leading-relaxed text-white/80">
-              Kumpulkan bintang sebanyak mungkin dan raih posisi teratas!
+            <p className="mt-1.5 text-xs text-white/80 leading-relaxed max-w-xs">
+              Kumpulkan skor terbaikmu dan raih puncak peringkat di setiap game!
             </p>
           </div>
         </section>
 
-        {/* Filter Tab (Sticker Style) */}
-        <section className="px-4 -mt-6 relative z-20">
-          <div className="flex gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-white p-1.5 shadow-[4px_4px_0px_#134E4A]">
+        {/* Periode Switcher (Harian / Mingguan) */}
+        <section className="px-4 -mt-7 relative z-20">
+          <div className="flex gap-2 rounded-2xl border-[3px] border-[var(--card-border,#134E4A)] bg-[var(--card-bg,#FFFFFF)] p-1.5 shadow-[4px_4px_0px_var(--card-shadow,#134E4A)]">
             {(["daily", "weekly"] as const).map((value) => (
               <button
                 key={value}
@@ -104,35 +54,57 @@ export default function NgajiCeriaLeaderboardPage() {
                 onClick={() => setPeriod(value)}
                 className={`flex-1 rounded-xl py-2 text-xs font-black transition-all active:scale-95 ${
                   period === value
-                    ? "bg-[#FF6B6B] text-white border-2 border-[#134E4A]"
-                    : "text-[#134E4A] hover:bg-[#F0FDF4]"
+                    ? "bg-[#0D9488] text-white border-2 border-[var(--card-border,#134E4A)] shadow-[2px_2px_0px_var(--card-shadow,#134E4A)]"
+                    : "text-[var(--app-text,#134E4A)] hover:bg-[var(--app-bg,#F0FDF4)]"
                 }`}
               >
-                {value === "daily" ? "Harian" : "Mingguan"}
+                {value === "daily" ? "Peringkat Harian" : "Peringkat Pekan Ini"}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Info Text */}
-        <p className="text-center text-[10px] font-semibold text-[#134E4A]/60 px-6">
-          Skor tersimpan di server saat tersedia. Perangkat offline memakai
-          papan lokal.
-        </p>
+        {/* TOP TAB BAR (Horizontal Scrollable) */}
+        <section className="px-4">
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text,#134E4A)]/70 mb-2">
+            Pilih Game:
+          </p>
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 pt-1">
+            {GAME_TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
+                    isActive
+                      ? "border-[3px] border-[var(--card-border,#134E4A)] bg-[#FEF08A] text-[#134E4A] font-black shadow-[3px_3px_0px_var(--card-shadow,#134E4A)] -translate-y-0.5"
+                      : "border-2 border-[var(--card-border,#134E4A)] bg-[var(--card-bg,#FFFFFF)] text-[var(--app-text,#134E4A)]/70 font-bold shadow-[1px_1px_0px_var(--card-shadow,#134E4A)] hover:bg-black/5"
+                  }`}
+                >
+                  <span className="text-sm">{tab.icon}</span>
+                  <span>{tab.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
-        {/* Leaderboards */}
-        <section className="px-4 space-y-4">
-          {LEADERBOARD_GAME_IDS.map((gameId) => (
-            <div
-              key={gameId}
-              className="rounded-[24px] border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A]"
-            >
-              <LeaderboardPanel
-                entries={serverEntries[gameId] ?? getLeaderboard(gameId)}
-                title={TITLES[gameId]}
-              />
-            </div>
-          ))}
+        {/* TAB CONTENT: LeaderboardList */}
+        <section className="px-4">
+          <motion.div
+            key={activeTab + period}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <LeaderboardList
+              gameId={activeTab}
+              title={currentTabInfo.title}
+              period={period}
+            />
+          </motion.div>
         </section>
       </div>
     </NgajiCeriaLayout>

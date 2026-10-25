@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
+import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
 import {
   CATALOG_TYPE_LABELS,
   LEARNING_CATALOG,
@@ -85,7 +87,6 @@ interface CatalogDetailModalProps {
 
 function CatalogDetailModal({ entry, onClose, onOpen }: CatalogDetailModalProps) {
   const isGame = entry.type === "game";
-  const route = entry.type === "game" ? undefined : entry.route;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
       <StickerCard className="max-h-[85dvh] w-full max-w-md overflow-y-auto p-5 sm:rounded-2xl">
@@ -164,11 +165,12 @@ function CatalogDetailModal({ entry, onClose, onOpen }: CatalogDetailModalProps)
           </ul>
         </div>
 
-        {route && (
-          <StickerButton className="mt-4 w-full" onClick={() => onOpen(route)}>
-            {entry.type === "quiz" ? "Buka Kuis" : "Buka Materi"}
-          </StickerButton>
-        )}
+        <StickerButton
+          className="mt-4 w-full"
+          onClick={() => onOpen(`/ustadz/preview/${entry.id}`)}
+        >
+          {entry.type === "quiz" ? "Buka Kuis" : entry.type === "game" ? "Buka Game" : "Buka Materi"}
+        </StickerButton>
 
         {entry.needsContentValidation && (
           <p className="mt-3 rounded-xl border-2 border-dashed border-[#FF6B6B] bg-[#FFF0F0] p-2 text-[10px] font-bold text-[#7C2D12]">
@@ -315,12 +317,18 @@ export function UstadzKurikulumPage() {
           {visible.length} item ditemukan
         </p>
 
-        <div className="space-y-3">
+        <motion.div
+          variants={staggerContainerVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {visible.map((entry) => (
             <StickerCard
               key={entry.id}
               asButton
-              className={`p-0 overflow-hidden transition-all hover:-translate-y-[2px] hover:shadow-[6px_6px_0_#134E4A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#134E4A]`}
+              variants={staggerItemVariants}
+              className={`p-0 overflow-hidden transition-all`}
               accent="none"
               onClick={() => setDetailEntry(entry)}
             >
@@ -353,7 +361,7 @@ export function UstadzKurikulumPage() {
               </div>
             </StickerCard>
           ))}
-        </div>
+        </motion.div>
 
         {detailEntry && (
           <CatalogDetailModal

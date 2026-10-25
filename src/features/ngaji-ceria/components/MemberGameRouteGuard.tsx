@@ -1,10 +1,11 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { isUstadzUser } from "@/lib/roles";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 
 function DeniedScreen() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-[100dvh] bg-[#F0FDF4] flex flex-col items-center justify-center px-6 text-center">
       <TilaMascot size={120} mood="sad" animation="float" direction="front" />
@@ -15,7 +16,7 @@ function DeniedScreen() {
         Area ini hanya dapat diakses oleh Member/Santri. Ustadz tidak dapat
         bermain game.
       </p>
-      <StickerButton variant="primary" className="mt-6" onClick={() => window.history.back()}>
+      <StickerButton variant="primary" className="mt-6" onClick={() => navigate("/member/ngaji-ceria/games")}>
         Kembali
       </StickerButton>
     </div>

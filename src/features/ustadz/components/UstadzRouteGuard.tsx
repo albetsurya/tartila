@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { classroomRoleForUser } from "@/lib/roles";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -6,6 +6,7 @@ import { GraduationCap } from "@/components/ui/CustomIcons";
 import "@/features/ustadz/ustadz.css";
 
 function DeniedScreen() {
+  const navigate = useNavigate();
   return (
     <div className="ustadz-shell flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center">
       <span className="ustadz-accent-soft flex h-24 w-24 items-center justify-center rounded-3xl">
@@ -18,7 +19,7 @@ function DeniedScreen() {
         Area ini hanya untuk Ustadz/Ustadzah. Santri bisa bergabung ke kelas
         lewat kode join dari pengajarnya.
       </p>
-      <StickerButton variant="primary" className="mt-6" onClick={() => window.history.back()}>
+      <StickerButton variant="primary" className="mt-6" onClick={() => navigate("/member/ngaji-ceria")}>
         Kembali
       </StickerButton>
     </div>

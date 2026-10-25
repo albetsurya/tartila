@@ -14,6 +14,10 @@ export { AvatarWithBadge } from "./AvatarWithBadge";
 // 3. Komponen Sticker (Neo-Brutalism)
 export { StickerButton } from "./StickerButton";
 export { StickerCard } from "./StickerCard";
+export { AnimatedCounter } from "./AnimatedCounter";
+export { AnimatedProgressBar } from "./AnimatedProgressBar";
+export * from "./JuicyIcons";
+export { LeaderboardList } from "./LeaderboardList";
 export { InputField } from "./InputField";
 export { StatCard } from "./StatCard";
 export { PageHero } from "./PageHero";

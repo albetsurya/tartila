@@ -31,6 +31,17 @@ const defaultTests = [
   'tests/voucher.test.ts',
   'tests/appTheme.test.ts',
   'tests/referral.test.ts',
+  'tests/arenaRooms.test.ts',
+  'tests/labIrama.test.ts',
+  'tests/tilawatiAudio.test.ts',
+  'tests/exploreHeader.test.ts',
+  'tests/answerFeedbackSheet.test.ts',
+  'tests/tilawatiAdventure.test.ts',
+  'tests/quizModelsOverhaul.test.ts',
+  'tests/arenaKartu.test.ts',
+  'tests/rhythmMemory.test.ts',
+  'tests/tilawatiMemory.test.ts',
+  'tests/universalGameFramework.test.ts',
 ];
 const requested = process.argv.slice(2);
 const entries = requested.length > 0 ? requested : defaultTests;

@@ -6,7 +6,7 @@ import { Pause, Volume2, UfoSvg } from "../../../../components/ui/CustomIcons";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
-import { ThemedHeader } from "../../components/ThemedHeader";
+import { ExploreHeader } from "../../components/ExploreHeader";
 
 /** Pola bintang deep-space (SVG statis, warna solid tegas) */
 const SpaceStarsSvg = ({ className = "" }: { className?: string }) => (
@@ -443,26 +443,33 @@ export default function JuzAmmaStarsPage() {
     navigate(`/member/ngaji-ceria/explore/juz-amma/${number}`);
   };
 
+  const handleBack = () => {
+    navigate("/member/ngaji-ceria/map");
+  };
+
   return (
     <NgajiCeriaLayout
       title="Galaksi Juz 'Amma"
       hideHeader={true}
-      onBack={() => navigate("/member/ngaji-ceria/map")}
+      themeScope="juz-amma"
+      onBack={handleBack}
     >
       <div className="min-h-[100dvh] w-full bg-[#1E1B4B] relative overflow-x-hidden pb-28">
         <SpaceStarsSvg />
 
-        <ThemedHeader
+        <ExploreHeader
           title="Galaksi Juz 'Amma"
-          onBack={() => navigate("/member/ngaji-ceria/map")}
+          subtitle="Petualangan Bintang & Misi Hafalan"
+          onBack={handleBack}
+          themeScope="juz-amma"
           themeColorClass="bg-[#1E1B4B]"
+          borderColorClass="border-[#FEF08A]"
+          shadowClass="shadow-[0_3px_0px_#134E4A]"
           textColorClass="text-[#FEF08A]"
-          statVariant="capsule"
-          statBgClass="bg-[#312E81] text-[#FEF08A]"
-          backClass="bg-[#FEF08A] text-[#134E4A]"
+          backClass="bg-[#FEF08A] text-[#134E4A] border-[#FEF08A] shadow-[2px_2px_0px_#134E4A]"
         >
           <svg
-            className="absolute inset-0 h-full w-full"
+            className="pointer-events-none absolute inset-0 h-full w-full"
             viewBox="0 0 400 64"
             preserveAspectRatio="xMidYMid slice"
             aria-hidden="true"
@@ -487,7 +494,7 @@ export default function JuzAmmaStarsPage() {
               />
             ))}
           </svg>
-        </ThemedHeader>
+        </ExploreHeader>
 
         <div className="relative z-10 px-4 pt-4">
           {/* ── HERO MISI HAFALAN ── */}

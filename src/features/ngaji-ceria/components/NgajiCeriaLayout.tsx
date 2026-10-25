@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
 import { RewardChestModal } from "./RewardChestModal";
-import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
 import { useEconomyStore, isUnlimitedUser } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeRole, isUstadzUser } from "@/lib/roles";
@@ -16,17 +15,46 @@ import {
 } from "../../../components/ui/TilaCompanion";
 import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
 import {
-  FireSvg,
-  StarSvg,
-  CoinSvg,
-  HeartSvg,
   TicketSvg,
   ChevronLeftSvg,
 } from "../../../components/ui/CustomIcons";
+import {
+  JuicyHeart,
+  JuicyStar,
+  JuicyCoin,
+} from "../../../components/ui/JuicyIcons";
 import { NotificationBell } from "../../../components/ui/NotificationBell";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
+import { pageVariants } from "@/lib/animationVariants";
 import type { NotificationRole } from "@/services/notificationService";
 
 export type { PageTipConfig };
+
+export type ImmersiveRealm =
+  | 'juz-amma'
+  | 'tajwid'
+  | 'doa'
+  | 'tahfidz'
+  | 'tilawati'
+  | 'arena-kartu'
+  | 'jurnal-ibadah'
+  | 'lab-irama';
+
+export type ThemeScope =
+  | 'global'
+  | 'immersive'
+  | ImmersiveRealm;
+
+const REALM_BG_CLASSES: Record<ImmersiveRealm, string> = {
+  'juz-amma': 'bg-[#1E1B4B]',
+  'tajwid': 'bg-[#FEF9C3]',
+  'doa': 'bg-[#FFFBEB]',
+  'tahfidz': 'bg-[#042F2E]',
+  'arena-kartu': 'bg-[#065F46]',
+  'tilawati': 'bg-[#E0F2FE]',
+  'jurnal-ibadah': 'bg-[#D1FAE5]',
+  'lab-irama': 'bg-[#111827]',
+};
 
 const MAIN_TABS = [
   "/member/ngaji-ceria",
@@ -42,8 +70,11 @@ interface NgajiCeriaLayoutProps {
   hideHeader?: boolean;
   showBack?: boolean;
   onBack?: () => void;
+  parentPath?: string;
   rightAction?: ReactNode;
   pageTip?: PageTipConfig;
+  themeScope?: ThemeScope;
+  immersiveRealm?: ImmersiveRealm;
 }
 
 function PageContentFallback() {
@@ -61,13 +92,15 @@ export function NgajiCeriaLayout({
   hideHeader = false,
   showBack = true,
   onBack,
+  parentPath,
   rightAction,
   pageTip,
+  themeScope = "global",
+  immersiveRealm,
 }: NgajiCeriaLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const isMainTab = MAIN_TABS.includes(location.pathname.replace(/\/$/, ""));
-  const { currentStreak } = useNgajiCeriaStreak();
   const progress = useNgajiProgress();
   const rank = getRank(progress.xp);
 
@@ -76,10 +109,65 @@ export function NgajiCeriaLayout({
   const tickets = useEconomyStore((s) => s.tickets);
   const isVip = useEconomyStore((s) => s.isVip);
   const syncTime = useEconomyStore((s) => s.syncTime);
+  const equippedAppTheme = useEconomyStore((s) => s.equippedAppTheme) || "default";
+  const storeCoins = useEconomyStore((s) => s.coins);
+  const currentCoins = storeCoins > 0 ? storeCoins : (progress.coins || 0);
+
+  const isDirectRealmScope =
+    themeScope !== "global" && themeScope !== "immersive";
+
+  const resolvedRealm: ImmersiveRealm | undefined =
+    (isDirectRealmScope ? (themeScope as ImmersiveRealm) : undefined) ||
+    immersiveRealm ||
+    (location.pathname.includes("/explore/juz-amma")
+      ? "juz-amma"
+      : location.pathname.includes("/explore/tajwid")
+        ? "tajwid"
+        : location.pathname.includes("/explore/doa")
+          ? "doa"
+          : location.pathname.includes("/explore/tahfidz")
+            ? "tahfidz"
+            : location.pathname.includes("/explore/tilawati")
+              ? "tilawati"
+              : location.pathname.includes("/explore/practice")
+                ? "arena-kartu"
+                : location.pathname.includes("/explore/jurnal")
+                  ? "jurnal-ibadah"
+                  : location.pathname.includes("/lab-irama")
+                    ? "lab-irama"
+                    : undefined);
+
+  const isImmersive =
+    themeScope === "immersive" ||
+    isDirectRealmScope ||
+    Boolean(immersiveRealm);
+
+  const activeThemeScopeAttr = isImmersive
+    ? (resolvedRealm || (themeScope !== "global" ? themeScope : "immersive"))
+    : undefined;
+
+  const containerBgClass =
+    isImmersive && resolvedRealm
+      ? REALM_BG_CLASSES[resolvedRealm]
+      : "bg-[var(--bg-app,#F0FDF4)]";
 
   useEffect(() => {
     syncTime();
   }, [syncTime]);
+
+  const isDarkTheme = equippedAppTheme === "night" || equippedAppTheme === "neon";
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-app-theme", equippedAppTheme);
+      document.body.setAttribute("data-app-theme", equippedAppTheme);
+      if (isDarkTheme) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, [equippedAppTheme, isDarkTheme]);
 
   const isUnlimited = isUnlimitedUser(user, isVip, groupId);
   const isUstadzAccount = user && isUstadzUser(user);
@@ -88,7 +176,7 @@ export function NgajiCeriaLayout({
   const userRole: NotificationRole =
     normalizeRole(user?.role) === "superadmin" || tier === "superadmin"
       ? "superadmin"
-      : normalizeRole(user?.role) === "admin"
+      : normalizeRole(user?.role) === "tartila_admin"
         ? "tartila_admin"
         : "member";
 
@@ -110,16 +198,23 @@ export function NgajiCeriaLayout({
       onBack();
       return;
     }
-    if (window.history.length > 1) navigate(-1);
-    else navigate("/member/ngaji-ceria");
+    if (parentPath) {
+      navigate(parentPath);
+      return;
+    }
+    navigate("/member/ngaji-ceria");
   };
 
   return (
     <div
-      className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} bg-mint-cloud text-deep-teal flex flex-col justify-between selection:bg-teal-emerald/20 relative overflow-x-clip font-sans`}
+      data-theme-scope={activeThemeScopeAttr}
+      data-realm={isImmersive ? resolvedRealm : undefined}
+      className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} ${containerBgClass} ${isImmersive ? "theme-isolated" : ""} text-[var(--text-main,#134E4A)] flex flex-col justify-between selection:bg-teal-emerald/20 relative overflow-x-clip font-sans transition-colors duration-200`}
     >
       {!hideHeader && !hideNav && (
-        <header className="sticky top-0 z-[60] shrink-0 pt-safe bg-white border-b-2 border-[#134E4A] shadow-[0px_2px_0px_#134E4A] transition-all">
+        <header
+          className="sticky top-0 z-[60] shrink-0 pt-safe transition-colors duration-200 bg-[var(--bg-card,#FFFFFF)] border-b-2 border-[var(--border-color,#134E4A)] shadow-[0px_2px_0px_var(--shadow-color,#134E4A))] text-[var(--text-main,#134E4A)]"
+        >
           {/* Container utama header responsif jika dua baris (Mobile, Tablet, Desktop) */}
           <div className="relative z-10 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-6">
             {/* BARIS 1: Identitas (logo/judul) + lonceng notifikasi */}
@@ -130,18 +225,16 @@ export function NgajiCeriaLayout({
                     onClick={handleBack}
                     aria-label="Kembali ke halaman sebelumnya"
                     title="Kembali"
-                    className="p-1.5 rounded-xl bg-white border-2 border-[#134E4A] text-[#134E4A] flex items-center justify-center hover:bg-[#FEF08A] transition-all active:translate-y-0.5 shadow-[1.5px_1.5px_0px_#134E4A]"
+                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border-2 hover:opacity-90 transition-all active:translate-y-0.5 bg-[var(--bg-card,#FFFFFF)] border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] shrink-0 cursor-pointer"
                   >
-                    <ChevronLeftSvg size={16} />
+                    <ChevronLeftSvg size={20} />
                   </button>
                 )}
                 {title === "Tartila" && (
                   <TartilaFaviconSvg variant="sticker" size={44} />
                 )}
                 <span
-                  className={`font-display font-black text-xl md:text-2xl text-[#134E4A] tracking-tight truncate max-w-[160px] sm:max-w-[220px] md:max-w-none ${
-                    title === "Tartila" ? "max-sm:hidden" : ""
-                  }`}
+                  className={`font-display font-black text-xl md:text-2xl tracking-tight truncate max-w-[160px] sm:max-w-[220px] md:max-w-none text-[var(--text-main,#134E4A)] ${title === "Tartila" ? "max-sm:hidden" : ""}`}
                 >
                   {title}
                 </span>
@@ -156,73 +249,64 @@ export function NgajiCeriaLayout({
               </div>
             </div>
 
-            {/* BARIS 2: Deretan badge ringkas (Hati, Tiket, Streak, XP, Koin) */}
+            {/* BARIS 2: Deretan badge ringkas (Hati, Tiket, XP, Koin) - Streak dihapus sesuai standarisasi */}
             {!isUstadzAccount && (
-              <div className="mt-1 flex w-full flex-nowrap items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5">
+              <div className="mt-1 flex w-full flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar pb-1.5">
                 <div
-                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FFF0F0] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FFF0F0]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
                   title={
                     isUnlimited
                       ? "Hati Tanpa Batas (Superadmin/VIP)"
                       : `Hati: ${hearts}/5`
                   }
                 >
-                  <HeartSvg size={14} />
+                  <JuicyHeart size={18} value={hearts} />
                   <span className="min-w-[1.9rem] text-center tabular-nums">
-                    {isUnlimited ? "∞" : `${hearts}/5`}
+                    {isUnlimited ? "∞" : <AnimatedCounter value={hearts} duration={0.4} />}
                   </span>
                 </div>
 
                 <div
-                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FEF3C7] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF3C7]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
                   title={
                     isUnlimited
                       ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
                       : `Tiket: ${tickets}/3`
                   }
                 >
-                  <TicketSvg size={14} />
+                  <TicketSvg size={18} />
                   <span className="min-w-[1.9rem] text-center tabular-nums">
                     {isUnlimited ? "∞" : `${tickets}/3`}
                   </span>
                 </div>
 
                 <div
-                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FFF0F0] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
-                  title={`Streak: ${currentStreak} hari`}
-                >
-                  <FireSvg size={14} />
-                  <span className="min-w-[2.1rem] text-center tabular-nums">
-                    {currentStreak}d
-                  </span>
-                </div>
-
-                <div
-                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#CCFBF1] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#CCFBF1]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
                   title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
                 >
-                  <StarSvg size={14} />
+                  <JuicyStar size={18} />
                   <span className="min-w-[3rem] text-center tabular-nums">
-                    {progress.xp} XP
+                    <AnimatedCounter value={progress.xp} /> XP
                   </span>
                 </div>
 
                 <div
-                  className="flex shrink-0 items-center gap-1 rounded-full bg-[#FEF08A] px-2 py-1 text-[#134E4A] font-black text-[10px] border-2 border-[#134E4A] shadow-[1px_1px_0px_#134E4A] whitespace-nowrap select-none"
-                  title={`Koin: ${progress.coins || 0}`}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF08A]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
+                  title={`Koin: ${currentCoins}`}
                 >
-                  <CoinSvg size={14} />
+                  <JuicyCoin size={18} value={currentCoins} />
                   <span className="min-w-[2.1rem] text-center tabular-nums">
-                    {progress.coins || 0}
+                    <AnimatedCounter value={currentCoins} />
                   </span>
                 </div>
               </div>
-                        )}
+            )}
           </div>
         </header>
       )}
 
       <main
+        id="main-scroll-container"
         className={`flex-1 min-h-0 w-full relative ${
           hideNav
             ? "max-w-none h-full overflow-hidden pb-0"
@@ -238,9 +322,10 @@ export function NgajiCeriaLayout({
         ) : (
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             className="w-full relative min-h-[50vh]"
           >
             <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
@@ -252,11 +337,9 @@ export function NgajiCeriaLayout({
       {!hideNav && !isUstadzAccount && <RewardChestModal />}
       {!hideNav && !isUstadzAccount && <ProgressionNotice />}
 
-      {!location.pathname.startsWith("/ustadz") && (
-        <div data-tila-companion>
-          <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
-        </div>
-      )}
+      <div data-tila-companion>
+        <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
+      </div>
     </div>
   );
 }

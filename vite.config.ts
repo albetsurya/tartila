@@ -96,12 +96,109 @@ function listPageAudio(jilidValue: unknown, pageValue: unknown) {
   if (!Number.isInteger(jilid) || jilid < 1 || jilid > 5) throw new Error("Jilid tidak valid");
   if (!Number.isInteger(page) || page < 1 || page > 44) throw new Error("Halaman tidak valid");
 
+  const layout = readTimelineEdits()[`${jilid}:${page}`];
+  const published = layout?.published as Record<string, unknown> | undefined;
+  const publishedTimeline = published?.timeline as Record<string, unknown> | undefined;
+
+  // JIKA di tilawatiTimelineEdits.json sudah ada data published untuk Jilid & Halaman tersebut,
+  // maka ABAIKAN pembacaan file fisik (fs.readdirSync).
+  // KEMBALIKAN data berdasarkan array timeline.clips dari data published tersebut,
+  // dipasangkan dengan teks Arab & transliterasi dari timeline.texts (berdasarkan clipId).
+  if (
+    publishedTimeline &&
+    Array.isArray(publishedTimeline.clips) &&
+    publishedTimeline.clips.length > 0
+  ) {
+    const texts = Array.isArray(publishedTimeline.texts)
+      ? (publishedTimeline.texts as Record<string, unknown>[])
+      : [];
+    const questions = Array.isArray(published?.questions)
+      ? (published.questions as Record<string, unknown>[])
+      : [];
+
+    return publishedTimeline.clips.map((clipRaw: unknown, index: number) => {
+      const clip = clipRaw as Record<string, unknown>;
+      const clipId = String(clip.id || `clip-${index + 1}`);
+      const audioUrl = String(clip.outputUrl || clip.audioUrl || "");
+
+      const linkedTexts = texts.filter(
+        (t) => String(t.clipId || "") === clipId,
+      );
+      const questionMatch = questions.find(
+        (q) => String(q.audioUrl || "") === audioUrl,
+      );
+
+      const arabic =
+        linkedTexts
+          .map((t) => String(t.arabic || "").trim())
+          .filter(Boolean)
+          .join("   ") ||
+        String(questionMatch?.arabic || "").trim() ||
+        "";
+
+      const parts = linkedTexts.flatMap((t) =>
+        Array.isArray(t.transliterationParts)
+          ? (t.transliterationParts as string[])
+          : t.transliteration
+            ? [String(t.transliteration)]
+            : [],
+      );
+      const transliteration =
+        parts.length > 0
+          ? parts.join(" - ")
+          : Array.isArray(questionMatch?.transliterationParts)
+            ? (questionMatch.transliterationParts as string[]).join(" - ")
+            : "";
+
+      let duration = Number(clip.duration) || 0;
+      if (
+        !duration &&
+        clip.trimEnd !== undefined &&
+        clip.trimStart !== undefined
+      ) {
+        duration = Math.max(0, Number(clip.trimEnd) - Number(clip.trimStart));
+      }
+      if (!duration && audioUrl) {
+        try {
+          const filePath = audioUrlToFile(audioUrl);
+          if (fs.existsSync(filePath)) {
+            duration = audioDuration(filePath);
+          }
+        } catch {
+          // ignore
+        }
+      }
+      const durasi = Number(duration.toFixed(3));
+
+      const filename = String(
+        clip.label ||
+          (audioUrl ? audioUrl.split("/").pop() : `clip_${index + 1}.ogg`),
+      );
+      const type = String(clip.kind || clip.type || "isi");
+
+      return {
+        id: clipId,
+        sequence: index + 1,
+        filename,
+        type,
+        duration: durasi,
+        durasi,
+        audioUrl,
+        teksArab: arabic,
+        teksLatin: transliteration,
+        isPublished: true,
+      };
+    });
+  }
+
+  // Fallback: pembacaan file fisik jika belum ada published
   const directory = path.resolve(audioRoot, `jilid_${jilid}`, `hal${page}`);
   if (!directory.startsWith(`${audioRoot}${path.sep}`)) throw new Error("Folder audio tidak valid");
   if (!fs.existsSync(directory)) return [];
 
+  // Hapus filter !filename.startsWith("editor_") agar file hasil merge dari Timeline Editor bisa terbaca
   const clips = fs.readdirSync(directory)
-    .filter((filename) => filename.toLowerCase().endsWith(".ogg") && !filename.startsWith("editor_"))
+    .filter((filename) => filename.toLowerCase().endsWith(".ogg"))
     .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
     .map((filename, index) => {
       const lower = filename.toLowerCase();
@@ -114,15 +211,22 @@ function listPageAudio(jilidValue: unknown, pageValue: unknown) {
             : lower.includes("baris")
               ? "baris"
               : "isi";
+      const audioUrl = `/audio/tilawati/jilid_${jilid}/hal${page}/${filename}`;
+      const dur = audioDuration(path.join(directory, filename));
       return {
+        id: `file-${index + 1}`,
         sequence: index + 1,
         filename,
         type,
-        duration: audioDuration(path.join(directory, filename)),
-        audioUrl: `/audio/tilawati/jilid_${jilid}/hal${page}/${filename}`,
+        duration: dur,
+        durasi: dur,
+        audioUrl,
+        teksArab: "",
+        teksLatin: "",
+        isPublished: false,
       };
     });
-  const layout = readTimelineEdits()[`${jilid}:${page}`];
+
   const audioOrder = Array.isArray(layout?.audioOrder) ? layout.audioOrder as string[] : [];
   const ranks = new Map(audioOrder.map((audioUrl, index) => [audioUrl, index]));
   return clips

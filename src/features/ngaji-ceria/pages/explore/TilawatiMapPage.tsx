@@ -20,7 +20,10 @@ import {
 } from "../../../../components/ui/CustomIcons";
 import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
+import { ExploreHeader, ExploreStatBadge } from "../../components/ExploreHeader";
+import { JuicyStar } from "@/components/ui/JuicyIcons";
 import { useEconomyStore, isUnlimitedUser } from "../../hooks/useEconomyStore";
+import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
 import { NGAJI_CERIA_ASSETS } from "../../data/assets";
@@ -254,6 +257,8 @@ export default function TilawatiMapPage() {
   const [energyEmpty, setEnergyEmpty] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
   const consumeHeart = useEconomyStore((s: any) => s.consumeHeart);
+  const stars = useNgajiCeriaStore((s) => s.stars);
+  const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
   const [selectedNode, setSelectedNode] = useState<
     (typeof TILAWATI_PAGES)[0] | null
   >(null);
@@ -265,8 +270,6 @@ export default function TilawatiMapPage() {
   }>({ visible: false, shownOnPage: null });
 
   const pageKey = `${jilid}-${hal}`;
-  const showGuideButton =
-    bubbleState.shownOnPage === pageKey && !bubbleState.visible;
 
   const totalHeight = TOP_PADDING + TILAWATI_PAGES.length * ITEM_HEIGHT + 120;
 
@@ -320,6 +323,8 @@ export default function TilawatiMapPage() {
   return (
     <NgajiCeriaLayout
       title={`Tilawati ${jilid}`}
+      hideHeader={true}
+      themeScope="tilawati"
       pageTip={{
         jilid,
         hal,
@@ -332,6 +337,69 @@ export default function TilawatiMapPage() {
         guideButtonRef,
       }}
     >
+      {/* Header Terstandarisasi Peta Tilawati [Hati] [Koin] [Bintang] */}
+      <ExploreHeader
+        themeScope="tilawati"
+        themeColorClass="bg-[#E0F2FE]"
+        borderColorClass="border-[#0D9488]"
+        shadowClass="shadow-[0_3px_0px_#0D9488]"
+        textColorClass="text-[#0369A1]"
+        onBack={() => navigate("/member/ngaji-ceria/explore/tilawati")}
+        backAriaLabel="Kembali ke Daftar Jilid"
+        backClass="px-3 py-2 min-h-[40px] w-auto h-auto rounded-xl border-2 border-[#0D9488] shadow-[2px_2px_0px_#0D9488]"
+        backContent={
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black">
+            <ChevronLeft size={18} />
+            <span className="hidden sm:inline">Daftar Jilid</span>
+          </div>
+        }
+        title={
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-xs font-black text-[#0369A1] border-2 border-[#0D9488] shadow-[2px_2px_0px_#0D9488]">
+              <Sparkles size={12} className="text-[#0D9488]" /> Jilid {jilid}
+            </span>
+          </div>
+        }
+        extraBadge={
+          <ExploreStatBadge
+            icon={<JuicyStar size={18} className="text-[#F59E0B] fill-[#F59E0B] shrink-0" />}
+            value={`${totalStars}/93`}
+            title={`Total Bintang: ${totalStars}/93`}
+          />
+        }
+        rightAction={
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsPracticeMode(!isPracticeMode)}
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-xl border-2 border-[#0D9488] px-2 sm:px-2.5 py-1 text-xs font-black shadow-[2px_2px_0px_#0D9488] active:translate-y-[1px] transition-all cursor-pointer ${
+                isPracticeMode
+                  ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#042F2E]"
+                  : "bg-white text-[#0369A1] hover:bg-sky-50"
+              }`}
+            >
+              <Compass
+                size={14}
+                className={isPracticeMode ? "text-white" : "text-[#0D9488]"}
+              />
+              <span className="hidden sm:inline">
+                {isPracticeMode ? "Latihan: ON" : "Latihan"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              ref={guideButtonRef}
+              onClick={handleOpenPanduan}
+              className="flex items-center gap-1 sm:gap-1.5 rounded-xl border-2 border-[#0D9488] bg-[#FEF08A] px-2 sm:px-2.5 py-1 text-xs font-black text-[#0369A1] shadow-[2px_2px_0px_#0D9488] active:translate-y-[1px] hover:bg-[#FDE047] transition-all cursor-pointer"
+            >
+              <BookOpen size={14} className="text-[#0369A1]" />
+              <span className="hidden sm:inline">Panduan</span>
+            </button>
+          </div>
+        }
+      />
+
       <div
         className={`${theme.bg} min-h-full pb-24 relative overflow-hidden border-[6px] ${theme.canvasBorder}/60 rounded-3xl m-2 shadow-inner transition-colors duration-500`}
       >
@@ -469,55 +537,7 @@ export default function TilawatiMapPage() {
           ))}
         </div>
 
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2 flex-wrap relative z-20">
-          <button
-            type="button"
-            onClick={() => navigate("/member/ngaji-ceria/explore/tilawati")}
-            className={`flex items-center gap-1.5 rounded-xl border-2 ${theme.nodeBorder} bg-white px-3 py-1.5 text-[11px] font-black ${theme.textColor} shadow-[2px_2px_0px_${theme.nodeBorder}] active:translate-y-[1px] active:shadow-none transition-all`}
-          >
-            <ChevronLeft size={14} />
-            Daftar Jilid
-          </button>
 
-          <button
-            type="button"
-            onClick={() => setIsPracticeMode(!isPracticeMode)}
-            className={`flex items-center gap-1.5 rounded-xl border-2 ${theme.nodeBorder} px-3 py-1.5 text-[11px] font-black transition-all ${
-              isPracticeMode
-                ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                : "bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
-            }`}
-          >
-            <Compass
-              size={13}
-              className={isPracticeMode ? "text-white" : "text-[#0D9488]"}
-            />
-            <span>{isPracticeMode ? "Latihan: ON" : "Latihan"}</span>
-          </button>
-
-          <AnimatePresence>
-            {showGuideButton && (
-              <motion.button
-                ref={guideButtonRef}
-                key="guide-button"
-                initial={{ opacity: 0, scale: 0.5, x: 40 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.85,
-                  transition: { duration: 0.18 },
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={handleOpenPanduan}
-                className={`flex items-center gap-1.5 rounded-xl border-2 ${theme.nodeBorder} ${theme.nodeBg} px-3 py-1.5 text-[11px] font-black text-white shadow-[2px_2px_0px_${theme.nodeBorder}] active:translate-y-[1px] active:shadow-none transition-all`}
-              >
-                <BookOpen size={14} />
-                Panduan
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </div>
 
         <div
           className="relative max-w-md mx-auto w-full z-10"

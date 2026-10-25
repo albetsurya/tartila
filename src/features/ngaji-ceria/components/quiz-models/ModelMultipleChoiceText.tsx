@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Volume2 } from "../../../../components/ui/CustomIcons";
-import {
-  StickerButton,
-  StickerCard,
-  TilaMascot,
-} from "../../../../components/ui";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceTextQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
+import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
 export interface ModelMultipleChoiceTextProps extends QuizModelBaseProps {
   question: MultipleChoiceTextQuestion;
@@ -48,29 +44,49 @@ export function ModelMultipleChoiceText({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-[#F0FDF4]">
-      <StickerCard className="relative p-8 text-center mb-6">
+    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
+      {/* Prompt Petunjuk (Jika Ada) */}
+      {question.prompt && (
+        <div className="mb-4 p-3.5 rounded-2xl bg-amber-50 border-2 border-[#0F172A] shadow-[2px_2px_0px_#0F172A] text-center">
+          <p className="text-sm sm:text-base font-bold text-amber-900">
+            {question.prompt}
+          </p>
+        </div>
+      )}
+
+      {/* Kartu Teks Arab / Ilustrasi SVG */}
+      <div className="relative p-6 sm:p-8 text-center mb-6 rounded-3xl bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#0284C7)] shadow-[4px_4px_0px_var(--border-color,#0284C7)] flex flex-col items-center justify-center">
         {question.audioUrl && (
-          <StickerButton
-            variant="secondary"
-            size="sm"
+          <button
+            type="button"
             onClick={() => {
               const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
               void audio.play();
             }}
-            className="absolute top-3 right-3 !w-10 !h-10 !p-0 !rounded-full"
+            aria-label="Putar Audio"
+            className="absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-[var(--border-color,#0284C7)] bg-white text-[var(--text-main,#0369A1)] flex items-center justify-center hover:bg-sky-50 shadow-[2px_2px_0px_var(--border-color,#0284C7)] transition-all"
           >
             <Volume2 size={18} />
-          </StickerButton>
+          </button>
         )}
-        <p
-          className="text-4xl sm:text-5xl font-arabic text-[#134E4A] leading-loose break-words"
-          dir="rtl"
-        >
-          {question.arabicText}
-        </p>
-      </StickerCard>
 
+        {question.illustration && (
+          <div className="flex justify-center items-center my-2">
+            {question.illustration}
+          </div>
+        )}
+
+        {question.arabicText && (
+          <p
+            className="text-4xl sm:text-5xl font-arabic text-[var(--text-main,#0369A1)] leading-loose break-words"
+            dir="rtl"
+          >
+            {question.arabicText}
+          </p>
+        )}
+      </div>
+
+      {/* Grid Opsi Pilihan Ganda */}
       <div className="grid grid-cols-2 gap-3">
         {question.options.map((option) => {
           const isSelected = selected === option;
@@ -82,20 +98,19 @@ export function ModelMultipleChoiceText({
             <motion.button
               key={option}
               type="button"
-              disabled={status !== "idle"}
               onClick={() => handlePick(option)}
               animate={answerFeedbackAnimation(
                 showCorrect ? "correct" : showWrong ? "wrong" : "none",
                 reducedMotion ?? false,
               )}
-              className={`min-h-[68px] rounded-xl border-[3px] p-4 text-2xl font-arabic font-bold leading-snug text-[#134E4A] break-words transition-all shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none ${
+              className={`min-h-[68px] rounded-2xl border-[3px] p-4 text-2xl sm:text-3xl font-arabic font-bold text-center flex items-center justify-center leading-snug break-words transition-all shadow-[3px_3px_0px_var(--border-color,#0284C7)] active:translate-y-[2px] active:shadow-none cursor-pointer ${
                 showCorrect
-                  ? "border-[#0D9488] bg-[#F0FDF4]"
+                  ? "border-[#0D9488] bg-[#F0FDF4] text-[#0D9488]"
                   : showWrong
-                    ? "border-[#FF6B6B] bg-[#FFF0F0]"
+                    ? "border-[#FF6B6B] bg-[#FFF0F0] text-[#FF6B6B]"
                     : isSelected
-                      ? "border-[#0D9488] bg-white"
-                      : "border-[#134E4A] bg-white"
+                      ? "border-[var(--border-color,#0284C7)] bg-sky-100/70 text-[var(--text-main,#0369A1)] ring-2 ring-[var(--border-color,#0284C7)]"
+                      : "border-[var(--border-color,#0284C7)] bg-white text-[var(--text-main,#0369A1)] hover:bg-sky-50"
               }`}
             >
               {option}
@@ -104,54 +119,30 @@ export function ModelMultipleChoiceText({
         })}
       </div>
 
-      {status !== "idle" && (
-        <div className="w-full mt-6">
-          <StickerCard
-            accent={status === "correct" ? "deep-teal" : "coral"}
-            className={`flex items-center gap-4 p-4 ${
-              status === "correct" ? "bg-[#F0FDF4]" : "bg-[#FFF0F0]"
-            }`}
-          >
-            <div className="shrink-0 -mt-8 -ml-2">
-              <TilaMascot
-                size={72}
-                mood={status === "correct" ? "excited" : "sad"}
-                animation="bounce"
-              />
-            </div>
-            <div className="flex-1">
-              <p
-                className={`text-sm font-black ${status === "correct" ? "text-[#0D9488]" : "text-[#FF6B6B]"}`}
-              >
-                {status === "correct"
-                  ? "Masya Allah, tepat!"
-                  : "Hampir tepat, coba lagi ya."}
-              </p>
-            </div>
-          </StickerCard>
-        </div>
-      )}
-
+      {/* Tombol Periksa Jawaban */}
       <div className="w-full mt-6">
-        {status === "idle" ? (
-          <StickerButton
-            variant="primary"
-            fullWidth
-            disabled={selected === null}
-            onClick={handleCheck}
-          >
-            Periksa Jawaban
-          </StickerButton>
-        ) : (
-          <StickerButton
-            variant={status === "correct" ? "primary" : "danger"}
-            fullWidth
-            onClick={status === "correct" ? onNext : handleRetry}
-          >
-            {status === "correct" ? "Lanjut →" : "Coba Lagi"}
-          </StickerButton>
-        )}
+        <button
+          type="button"
+          disabled={selected === null || status !== "idle"}
+          onClick={handleCheck}
+          className={`w-full py-4 px-6 rounded-2xl font-display font-black text-base border-[3px] transition-all flex items-center justify-center ${
+            selected === null || status !== "idle"
+              ? "bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed shadow-none"
+              : "bg-[var(--border-color,#0284C7)] hover:bg-[#0284C7]/90 text-white border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] cursor-pointer"
+          }`}
+        >
+          Periksa Jawaban
+        </button>
       </div>
+
+      {/* Bottom Sheet Notifikasi Jawaban Benar / Salah */}
+      <AnswerFeedbackSheet
+        isOpen={status !== "idle"}
+        isCorrect={status === "correct"}
+        onNext={onNext}
+        onRetry={handleRetry}
+        onReset={handleRetry}
+      />
     </div>
   );
 }

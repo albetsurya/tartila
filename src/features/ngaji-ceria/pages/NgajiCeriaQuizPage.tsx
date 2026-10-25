@@ -36,7 +36,12 @@ import { awardProgress } from "./games/_shared/progression";
 import { addEvent } from "@/services/eventService";
 import { QuizEngine } from "../components/quiz-models/QuizEngine";
 import { QuizSessionResult } from "../components/QuizSessionResult";
-import type { QuestionData } from "../components/quiz-models/types";
+import type { AudioMatchingOption, QuestionData } from "../components/quiz-models/types";
+import { generateAvailableLetters, extractArabicTokens } from "../components/quiz-models/quizModelRandomizer";
+import { GameStartSheet } from "./games/_shared/GameStartSheet";
+import { GameHud } from "./games/_shared/GameHud";
+import { GameResultModal } from "./games/_shared/GameResultModal";
+import { useGameStore } from "../hooks/useGameStore";
 
 const QUIZ_DATASETS = {
   1: TILAWATI_JILID_1_PAGES,
@@ -59,7 +64,7 @@ function shuffleArray<T>(items: T[]): T[] {
 }
 
 /**
- * Menyusun opsi pilihan ganda: jawaban benar + distraktor dari bacaan
+ * Menyusun opsi pilihan ganda Latin: jawaban benar + distraktor dari bacaan
  * soal saudara (sibling) pada halaman yang sama. Posisi jawaban benar
  * ikut diacak agar tidak selalu di opsi pertama.
  */
@@ -76,10 +81,68 @@ function buildMcqOptions(correct: string, siblingReadings: string[]): string[] {
 }
 
 /**
+ * Menyusun opsi pilihan ganda Teks Arab untuk model Multiple Choice Audio.
+ */
+function buildArabicMcqOptions(correctArabic: string, siblingArabics: string[]): string[] {
+  const cleanCorrect = correctArabic.replace(/\s+/g, " ").trim();
+  const uniqueDistractors = Array.from(
+    new Set(
+      siblingArabics
+        .map((text) => text.replace(/\s+/g, " ").trim())
+        .filter((text) => text.length > 0 && text !== cleanCorrect),
+    ),
+  );
+  const distractors = shuffleArray(uniqueDistractors).slice(0, 3);
+  return shuffleArray([cleanCorrect, ...distractors]);
+}
+
+/**
+ * Menyusun 2–4 opsi audio Kahoot-style untuk model Audio Matching.
+ * Sesuai aturan: jika variasi kurang dari 4 klip, jangan fallback, cukup tampilkan 2 atau 3 kartu audio.
+ */
+function buildAudioShapes(
+  question: QuizQuestion,
+  allQuestions: QuizQuestion[],
+  currentAudioUrl?: string | null,
+): { audioShapes: AudioMatchingOption[]; correctAudioId: string } | undefined {
+  const correctAudio = question.audioUrl || currentAudioUrl;
+  if (!correctAudio) return undefined;
+
+  const siblingAudios = Array.from(
+    new Set(
+      allQuestions
+        .filter((q) => q !== question && Boolean(q.audioUrl) && q.audioUrl !== correctAudio)
+        .map((q) => q.audioUrl!),
+    ),
+  );
+
+  // Jika tidak ada audio lain di halaman ini sama sekali, tidak bisa audio matching
+  if (siblingAudios.length === 0) return undefined;
+
+  const pickedDistractors = shuffleArray(siblingAudios).slice(0, 3);
+  const correctId = `audio-opt-${question.id}`;
+
+  const candidates = shuffleArray([
+    { id: correctId, audioUrl: correctAudio },
+    ...pickedDistractors.map((url, idx) => ({
+      id: `audio-sibling-${idx}-${url.split("/").pop() || idx}`,
+      audioUrl: url,
+    })),
+  ]);
+
+  const audioShapes: AudioMatchingOption[] = candidates.map((c) => ({
+    id: c.id,
+    audioUrl: c.audioUrl,
+  }));
+
+  return { audioShapes, correctAudioId: correctId };
+}
+
+/**
  * Memetakan pertanyaan Tilawati ke `QuestionData` yang fleksibel.
  * Halaman contoh (listen-only) tetap Material; soal biasa membawa opsi
- * pilihan ganda (dari sibling) sekaligus bank huruf untuk isi rumpang,
- * sehingga QuizEngine bebas mengacak model UI-nya.
+ * pilihan ganda Latin, pilihan ganda Arab, kartu audio Kahoot, serta bank huruf,
+ * sehingga QuizEngine bebas mengacak model UI-nya secara dinamis.
  */
 function toQuestionData(
   question: QuizQuestion,
@@ -92,10 +155,9 @@ function toQuestionData(
   const isMaterial = Boolean(
     question.isListenOnly ||
       question.isOpening ||
-      question.transliterationParts.length === 0,
+      question.transliterationParts.length === 0 ||
+      question.transliterationParts.every((p) => /^[0-9○\u06d6-\u06ed=\-—:.,\s]+$/.test(p)),
   );
-  // `question.audioUrl` hampir selalu kosong; URL sebenarnya dihitung oleh
-  // layanan audio (getTilawatiQuestionAudioUrl). Pakai hasil resolusi itu.
   const audioUrl = question.audioUrl || resolvedAudioUrl || undefined;
 
   if (isMaterial) {
@@ -117,18 +179,80 @@ function toQuestionData(
     .filter((sibling) => sibling !== question)
     .map((sibling) => sibling.transliterationParts.join(" "));
 
+  const siblingArabics = allQuestions
+    .filter((sibling) => sibling !== question)
+    .map((sibling) => sibling.arabic);
+
+  const audioShapesResult = buildAudioShapes(question, allQuestions, audioUrl);
+
+  // Kepingan kata/huruf Arab untuk model Susun Huruf (ModelArrangeLetters)
+  const correctWords = extractArabicTokens(question.arabic);
+
+  const siblingArabicWords = siblingArabics.flatMap((text) => extractArabicTokens(text));
+
+  // Bank Huruf Arab: 100% teks Arab murni, menyalin seluruh frekuensi huruf kembar + 3-4 pengecoh
+  const bankLetters = generateAvailableLetters(correctWords, siblingArabicWords, 3);
+
+  // Bank Huruf Transliterasi Latin (untuk ModelFillInTheBlank):
+  // Menjaga frekuensi kembar transliterationParts + pengecoh Latin dari options/siblings
+  const siblingTranslitParts = allQuestions
+    .filter((sibling) => sibling !== question)
+    .flatMap((sibling) => sibling.transliterationParts);
+  const availableLetters = generateAvailableLetters(
+    question.transliterationParts,
+    [...siblingTranslitParts, ...(question.options || [])],
+    4,
+  );
+
   return {
     id: String(question.id),
     type: "fill-in-the-blank",
     arabicTemplate: question.arabic,
     arabicText: question.arabic,
     options: buildMcqOptions(correctReading, siblingReadings),
-    availableLetters: question.options,
+    arabicOptions: buildArabicMcqOptions(question.arabic, siblingArabics),
+    availableLetters,
+    bankLetters,
+    correctLetters: correctWords,
+    audioShapes: audioShapesResult?.audioShapes,
+    correctAudioId: audioShapesResult?.correctAudioId,
     correctAnswer: question.transliterationParts,
     audioUrl,
     transliteration: correctReading,
   };
 }
+
+interface QuizLevelConfig {
+  level: number;
+  title: string;
+  questionCount: number;
+  durationSeconds: number;
+  description: string;
+}
+
+const QUIZ_LEVELS: QuizLevelConfig[] = [
+  {
+    level: 1,
+    title: "Level 1: Pemula",
+    questionCount: 5,
+    durationSeconds: 60,
+    description: "Jawab 5 soal dalam 60 detik (minimal 70% benar).",
+  },
+  {
+    level: 2,
+    title: "Level 2: Terampil",
+    questionCount: 10,
+    durationSeconds: 90,
+    description: "Jawab 10 soal dalam 90 detik (minimal 70% benar).",
+  },
+  {
+    level: 3,
+    title: "Level 3: Mahir",
+    questionCount: 15,
+    durationSeconds: 120,
+    description: "Jawab 15 soal dalam 120 detik (minimal 70% benar).",
+  },
+];
 
 export default function NgajiCeriaQuizPage() {
   const navigate = useNavigate();
@@ -149,6 +273,18 @@ export default function NgajiCeriaQuizPage() {
     published?.questions ?? pageData?.questions ?? [];
   const pageAwarded = useRef(false);
 
+  // Universal Game Framework State
+  const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("tilawati-quiz"));
+  const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
+
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const currentLevelConfig = QUIZ_LEVELS[selectedLevel - 1] || QUIZ_LEVELS[0];
+  const [isStartSheetOpen, setIsStartSheetOpen] = useState<boolean>(!searchParams.get("hal"));
+  const [isPlaying, setIsPlaying] = useState<boolean>(Boolean(searchParams.get("hal")));
+  const [timeLeft, setTimeLeft] = useState<number>(currentLevelConfig.durationSeconds);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [isWin, setIsWin] = useState<boolean>(false);
+
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
@@ -156,13 +292,55 @@ export default function NgajiCeriaQuizPage() {
   // (mengosongkan `selected`/`status`), termasuk saat halaman hanya 1 soal.
   const [sessionKey, setSessionKey] = useState(0);
 
-  const question = questions[currentIdx] || questions[0];
-  const totalQuestions = questions.length;
+  // Batasi soal aktif sesuai level kuis
+  const activeQuestions = useMemo(() => {
+    return questions.slice(0, currentLevelConfig.questionCount);
+  }, [questions, currentLevelConfig.questionCount]);
+
+  const totalQuestions = activeQuestions.length;
+  const question = activeQuestions[currentIdx] || activeQuestions[0];
   const currentStep = currentIdx + 1;
   const progressPercent =
     totalQuestions > 0
       ? Math.round((currentStep / totalQuestions) * 100)
       : 0;
+
+  // Timer hitung mundur saat bermain
+  useEffect(() => {
+    if (!isPlaying || isPaused || showResult) return;
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleTimeOut();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isPlaying, isPaused, showResult]);
+
+  const handleTimeOut = () => {
+    stopAllAudio();
+    soundManager.playSfx("gameover");
+    setIsWin(false);
+    setShowResult(true);
+  };
+
+  const handleStartLevel = (lvl: number) => {
+    setSelectedLevel(lvl);
+    const cfg = QUIZ_LEVELS[lvl - 1] || QUIZ_LEVELS[0];
+    setTimeLeft(cfg.durationSeconds);
+    setCurrentIdx(0);
+    setScore(0);
+    setShowResult(false);
+    setIsWin(false);
+    setIsStartSheetOpen(false);
+    setIsPlaying(true);
+    setIsPaused(false);
+    setSessionKey((prev) => prev + 1);
+  };
 
   const [isOpening, setIsOpening] = useState(true);
   const [isTaawudzPhase, setIsTaawudzPhase] = useState(true);
@@ -228,13 +406,7 @@ export default function NgajiCeriaQuizPage() {
 
   const handleExit = () => {
     stopAllAudio();
-    // Kembali ke halaman asal (Peta Tilawati / node peta). Jika halaman dibuka
-    // langsung dari URL (tidak ada riwayat), mundur fallback ke Peta Tilawati.
-    if (window.history.length > 1 && window.history.state?.idx > 0) {
-      navigate(-1);
-    } else {
-      navigate("/member/ngaji-ceria/explore/tilawati");
-    }
+    navigate("/member/ngaji-ceria/quiz");
   };
 
   const scorePercent =
@@ -244,9 +416,19 @@ export default function NgajiCeriaQuizPage() {
 
   const handleNext = () => {
     tapFeedback();
-    if (currentIdx < questions.length - 1) {
+    if (currentIdx < totalQuestions - 1) {
       setCurrentIdx((prev) => prev + 1);
       return;
+    }
+
+    // Sesi selesai: tentukan kemenangan (minimal 70% benar)
+    const win = scorePercent >= 70;
+    setIsWin(win);
+    if (win) {
+      soundManager.playSfx("victory");
+      unlockNextLevel("tilawati-quiz", selectedLevel);
+    } else {
+      soundManager.playSfx("wrong");
     }
 
     // Halaman selesai: simpan bintang (ambil nilai terbaik) & progres jika bukan mode latihan.
@@ -400,8 +582,8 @@ export default function NgajiCeriaQuizPage() {
     if (!question) return null;
     if (question.hintTone.includes("Datar")) {
       return (
-        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0D9488]/10 text-[#0D9488] text-xs font-black tracking-wide border border-[#0D9488]/20">
-          <span className="w-2 h-2 rounded-full bg-[#0D9488] animate-pulse" />
+        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-[var(--text-main,#0369A1)] text-xs font-black tracking-wide border border-[var(--border-color,#0284C7)]/30">
+          <span className="w-2 h-2 rounded-full bg-[var(--border-color,#0284C7)] animate-pulse" />
           {question.hintTone.includes("3x")
             ? "Rost: Datar (3x)"
             : "Rost: Datar"}
@@ -410,14 +592,14 @@ export default function NgajiCeriaQuizPage() {
     }
     if (question.hintTone.includes("Naik")) {
       return (
-        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0D9488]/10 text-[#0D9488] text-xs font-black tracking-wide border border-[#0D9488]/20">
-          <span className="w-2 h-2 rounded-full bg-[#0D9488] animate-pulse" />
+        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-[var(--text-main,#0369A1)] text-xs font-black tracking-wide border border-[var(--border-color,#0284C7)]/30">
+          <span className="w-2 h-2 rounded-full bg-[var(--border-color,#0284C7)] animate-pulse" />
           Rost: Naik
         </span>
       );
     }
     return (
-      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF6B6B]/10 text-[#FF6B6B] text-xs font-black tracking-wide border border-[#FF6B6B]/20">
+      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF6B6B]/10 text-[#FF6B6B] text-xs font-black tracking-wide border border-[#FF6B6B]/30">
         <span className="w-2 h-2 rounded-full bg-[#FF6B6B] animate-pulse" />
         Rost: Turun
       </span>
@@ -425,116 +607,153 @@ export default function NgajiCeriaQuizPage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-      onPointerDownCapture={(event) => {
-        if (
-          event.target instanceof Element &&
-          event.target.closest("button:not(:disabled)")
-        )
-          soundManager.playSfx("tap", 0.55);
-      }}
-      className="min-h-screen bg-[#F0FDF4] flex flex-col selection:bg-[#0D9488]/20"
-    >
-      {/* Top Header */}
-      <div className="pt-safe px-4 py-3 border-b-2 border-[#134E4A]/10 bg-[#F0FDF4]/90 backdrop-blur-md sticky top-0 z-20">
-        <div className="max-w-md mx-auto flex items-center gap-3">
-          <button
-            onClick={handleExit}
-            aria-label="Kembali"
-            className="min-w-[52px] h-[52px] rounded-2xl bg-white border-[3px] border-[#134E4A] flex items-center justify-center text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
-          >
-            <XSvg size={18} />
-          </button>
+    <NgajiCeriaLayout themeScope="tilawati" hideHeader={true}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        onPointerDownCapture={(event) => {
+          if (
+            event.target instanceof Element &&
+            event.target.closest("button:not(:disabled)")
+          )
+            soundManager.playSfx("tap", 0.55);
+        }}
+        className="min-h-screen bg-[var(--bg-app,#E0F2FE)] flex flex-col selection:bg-[var(--border-color,#0284C7)]/20"
+      >
+        {/* Top Header */}
+        <div className="pt-safe px-4 py-3 border-b-2 border-[var(--border-color,#0284C7)]/25 bg-[var(--bg-app,#E0F2FE)]/90 backdrop-blur-md sticky top-0 z-20">
+          <div className="max-w-md mx-auto flex items-center gap-3">
+            <button
+              onClick={handleExit}
+              aria-label="Kembali"
+              className="min-w-[48px] h-[48px] rounded-2xl bg-white border-[3px] border-[var(--border-color,#0284C7)] flex items-center justify-center text-[var(--text-main,#0369A1)] shadow-[3px_3px_0px_var(--border-color,#0284C7)] active:translate-y-[2px] active:shadow-none transition-all hover:bg-sky-50"
+            >
+              <XSvg size={18} />
+            </button>
 
-          <div className="flex-1">
-            <div className="flex justify-between items-center text-[11px] font-black mb-1 text-[#134E4A]/70">
-              <span className="font-extrabold text-[#134E4A]">
-                Jilid {activeJilid} · Hal {activePageNum} ({currentStep}/
-                {totalQuestions})
-              </span>
-              <span className="text-[#FF6B6B] font-black">
-                {progressPercent}%
-              </span>
+            <div className="flex-1">
+              <div className="flex justify-between items-center text-[11px] font-black mb-1 text-[var(--text-main,#0369A1)]">
+                <span className="font-extrabold text-[var(--text-main,#0369A1)]">
+                  Jilid {activeJilid} · Hal {activePageNum} ({currentStep}/
+                  {totalQuestions})
+                </span>
+                <span className="text-[var(--border-color,#0284C7)] font-black">
+                  {progressPercent}%
+                </span>
+              </div>
+              <div className="w-full bg-white rounded-full h-3.5 p-0.5 border-2 border-[var(--border-color,#0284C7)]">
+                <div
+                  className="bg-[var(--border-color,#0284C7)] h-full rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-white rounded-full h-3.5 p-0.5 border-2 border-[#134E4A]">
-              <div
-                className="bg-[#0D9488] h-full rounded-full transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
+
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#FEF3C7] text-[var(--text-main,#0369A1)] font-black text-xs border-2 border-[var(--border-color,#0284C7)] shadow-[2px_2px_0px_var(--border-color,#0284C7)]">
+              <SparklesSvg size={14} />
+              <span>+10</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#FEF3C7] text-[#134E4A] font-black text-xs border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-            <SparklesSvg size={14} />
-            <span>+10</span>
+          {/* Universal Game HUD */}
+          <div className="max-w-md mx-auto w-full pt-1">
+            <GameHud
+              level={selectedLevel}
+              timeLeft={timeLeft}
+              score={score}
+              targetScore={Math.ceil(totalQuestions * 0.7)}
+              onPause={() => setIsPaused((p) => !p)}
+            />
           </div>
         </div>
-      </div>
 
-      {/* Body - tetap sama persis seperti aslinya */}
-      {isTaawudzPhase ? (
-        <main className="max-w-md mx-auto w-full px-5 py-8 flex-1 flex flex-col items-center justify-center">
-          <div className="w-full bg-[#134E4A] text-white border-[3px] border-[#134E4A] rounded-3xl p-8 shadow-[4px_4px_0px_#FF6B6B] flex flex-col items-center justify-center text-center space-y-6">
-            <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mb-2">
-              <Volume2 size={28} className="animate-pulse text-[#FF6B6B]" />
-            </div>
-            <div>
-              <p
-                className="text-2xl font-arabic leading-loose tracking-wide text-[#FF6B6B]"
-                dir="rtl"
-              >
-                أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ
+        {/* Body */}
+        {isTaawudzPhase ? (
+          <main className="max-w-md mx-auto w-full px-5 py-8 flex-1 flex flex-col items-center justify-center">
+            <div className="w-full bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#0369A1)] border-[3px] border-[var(--border-color,#0284C7)] rounded-3xl p-8 shadow-[4px_4px_0px_var(--border-color,#0284C7)] flex flex-col items-center justify-center text-center space-y-6">
+              <div className="w-14 h-14 rounded-full bg-sky-100 flex items-center justify-center mb-2">
+                <Volume2 size={28} className="animate-pulse text-[var(--border-color,#0284C7)]" />
+              </div>
+              <div>
+                <p
+                  className="text-2xl font-arabic leading-loose tracking-wide text-[var(--border-color,#0284C7)]"
+                  dir="rtl"
+                >
+                  أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ
+                </p>
+                <div className="my-4 border-t border-[var(--border-color,#0284C7)]/20 w-24 mx-auto" />
+                <p
+                  className="text-3xl font-arabic leading-loose tracking-wide text-[var(--text-main,#0369A1)]"
+                  dir="rtl"
+                >
+                  بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+                </p>
+              </div>
+              <p className="text-xs text-[var(--text-main,#0369A1)]/80 font-bold pt-2">
+                Mendengarkan pembuka...
               </p>
-              <div className="my-4 border-t border-white/20 w-24 mx-auto" />
-              <p
-                className="text-3xl font-arabic leading-loose tracking-wide text-white"
-                dir="rtl"
-              >
-                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-              </p>
             </div>
-            <p className="text-xs text-white/80 font-bold pt-2">
-              Mendengarkan pembuka...
-            </p>
-          </div>
-        </main>
-      ) : (
-        <>
-          <div className="max-w-md mx-auto w-full px-5 pt-6">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="px-3 py-1 rounded-xl bg-white text-[#0D9488] text-[10px] font-black uppercase border-2 border-[#0D9488]/30 shadow-[2px_2px_0px_#0D9488]/20">
-                Tebak Bacaan Hal {activePageNum}
-              </span>
-              {renderToneBadge()}
+          </main>
+        ) : (
+          <>
+            <div className="max-w-md mx-auto w-full px-5 pt-6">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-xl bg-white text-[var(--text-main,#0369A1)] text-[10px] font-black uppercase border-2 border-[var(--border-color,#0284C7)] shadow-[2px_2px_0px_var(--border-color,#0284C7)]">
+                  Tebak Bacaan Hal {activePageNum}
+                </span>
+                {renderToneBadge()}
+              </div>
             </div>
-          </div>
 
-          {questionData && (
-            <QuizEngine
-              key={sessionKey}
-              question={questionData}
-              questionIndex={currentIdx}
-              onAnswerSubmit={handleAnswerSubmit}
-              onNext={handleNext}
-              onPlayAudio={handlePlayAudio}
-              isAudioPlaying={isAudioPlaying}
-            />
-          )}
-        </>
-      )}
+            {questionData && (
+              <QuizEngine
+                key={sessionKey}
+                question={questionData}
+                questionIndex={currentIdx}
+                onAnswerSubmit={handleAnswerSubmit}
+                onNext={handleNext}
+                onPlayAudio={handlePlayAudio}
+                isAudioPlaying={isAudioPlaying}
+              />
+            )}
+          </>
+        )}
 
-      <QuizSessionResult
-        open={showResult}
-        score={score}
-        total={totalQuestions}
-        stars={earnedStars}
-        isLastPage={activePageNum >= pageCount}
-        onReplay={handleReplay}
-        onContinue={handleContinue}
-      />
-    </motion.div>
+        {/* UNIVERSAL GAME START SHEET */}
+        <GameStartSheet
+          isOpen={isStartSheetOpen}
+          gameTitle="Kuis Ngaji"
+          gameSubtitle={`Tilawati Jilid ${activeJilid} · Level ${selectedLevel}`}
+          ruleDescription="Pilih level tantangan, jawab soal dengan tepat sebelum waktu habis! Minimal 70% benar untuk lulus dan membuka level berikutnya."
+          levels={QUIZ_LEVELS.map((l) => ({
+            level: l.level,
+            title: l.title,
+            description: l.description,
+            target: `${l.questionCount} Soal`,
+            durationSeconds: l.durationSeconds,
+          }))}
+          unlockedLevels={unlockedLevel}
+          selectedLevel={selectedLevel}
+          onSelectLevel={(lvl) => setSelectedLevel(lvl)}
+          onStart={(lvl) => handleStartLevel(lvl)}
+          onClose={handleExit}
+        />
+
+        {/* UNIVERSAL GAME RESULT MODAL */}
+        <GameResultModal
+          isOpen={showResult}
+          isWin={isWin}
+          score={score}
+          targetScore={Math.ceil(totalQuestions * 0.7)}
+          stars={earnedStars}
+          level={selectedLevel}
+          hasNextLevel={selectedLevel < QUIZ_LEVELS.length}
+          onRetry={() => handleStartLevel(selectedLevel)}
+          onNextLevel={() => handleStartLevel(selectedLevel + 1)}
+          onBackToHub={handleExit}
+        />
+      </motion.div>
+    </NgajiCeriaLayout>
   );
 }
