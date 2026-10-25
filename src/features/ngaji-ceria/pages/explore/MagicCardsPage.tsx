@@ -74,7 +74,7 @@ export default function MagicCardsPage() {
         <button
           type="button"
           onClick={() =>
-            navigate(`/member/ngaji-ceria/quiz?jilid=${selected.jilid}`)
+            navigate(`/member/ngaji-ceria/explore/tilawati/${selected.jilid}`)
           }
           className="w-full flex items-center justify-center gap-2 rounded-full bg-[#0D9488] hover:bg-[#0f766e] text-white font-bold text-sm py-3 px-6 shadow-sm active:scale-[0.99] transition-all"
         >

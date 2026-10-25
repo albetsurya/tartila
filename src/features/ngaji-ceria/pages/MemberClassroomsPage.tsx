@@ -5,17 +5,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
-import { TilaMascot } from "@/components/ui/TilaMascot";
 import {
   joinClassroomByCode,
   leaveClassroom,
   listJoinedClassrooms,
   type ClassroomRoom,
 } from "@/services/classroomService";
-import {
-  getGameById,
-  MATERI_LABELS,
-} from "@/data/learningCatalog";
+import { getGameById, MATERI_LABELS } from "@/data/learningCatalog";
 import { listGameAssignments } from "@/services/ustadzMonitoringService";
 import { listQuizzesForRooms, type Quiz } from "@/services/quizBankService";
 
@@ -113,13 +109,6 @@ export function MemberClassroomsPage() {
     <NgajiCeriaLayout title="Kelas Saya" hideNav>
       <div className="mx-auto w-full max-w-md px-4 py-6 space-y-5">
         <div className="flex items-center gap-3">
-          <TilaMascot
-            size={64}
-            mood="happy"
-            animation="bounce"
-            direction="front"
-            speech="Semangat belajar!"
-          />
           <p className="text-sm font-black text-[#134E4A]">
             Gabung kelas ustadz-mu lewat kode join, yuk!
           </p>
@@ -177,96 +166,101 @@ export function MemberClassroomsPage() {
             </h2>
             <div className="space-y-2">
               {rooms.map((room) => (
-            <StickerCard key={room.id} className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-[#134E4A]">
-                    {room.name}
-                  </p>
-                  <p className="text-xs font-semibold text-[#134E4A]/60">
-                    {room.ustadzName || "Ustadz"} · Target Jilid{" "}
-                    {room.targetJilid}
-                  </p>
-                </div>
-                <StickerButton
-                  variant="primary"
-                  size="sm"
-                  onClick={() =>
-                    navigate(`/member/ngaji-ceria/kelas/${room.id}`)
-                  }
-                >
-                  Buka Kelas
-                </StickerButton>
-              </div>
-              <div className="mt-3">
-                <StickerButton
-                  variant="coral-outline"
-                  size="sm"
-                  loading={leavingId === room.id}
-                  onClick={() => handleLeave(room.id)}
-                >
-                  Keluar Kelas
-                </StickerButton>
-              </div>
+                <StickerCard key={room.id} className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-[#134E4A]">
+                        {room.name}
+                      </p>
+                      <p className="text-xs font-semibold text-[#134E4A]/60">
+                        {room.ustadzName || "Ustadz"} · Target Jilid{" "}
+                        {room.targetJilid}
+                      </p>
+                    </div>
+                    <StickerButton
+                      variant="primary"
+                      size="sm"
+                      onClick={() =>
+                        navigate(`/member/ngaji-ceria/kelas/${room.id}`)
+                      }
+                    >
+                      Buka Kelas
+                    </StickerButton>
+                  </div>
+                  <div className="mt-3">
+                    <StickerButton
+                      variant="coral-outline"
+                      size="sm"
+                      loading={leavingId === room.id}
+                      onClick={() => handleLeave(room.id)}
+                    >
+                      Keluar Kelas
+                    </StickerButton>
+                  </div>
 
-              {(assignedByRoom.get(room.id)?.length ?? 0) > 0 && (
-                <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A] bg-[#F0FDF4] p-2">
-                  <p className="text-[10px] font-black uppercase text-[#134E4A]/70">
-                    Game direkomendasikan ustadz
-                  </p>
-                  <ul className="mt-1 space-y-1">
-                    {assignedByRoom
-                      .get(room.id)
-                      ?.map((gameId) => getGameById(gameId))
-                      .filter(
-                        (entry): entry is NonNullable<typeof entry> =>
-                          entry !== undefined,
-                      )
-                      .map((entry) => (
-                        <li key={entry.gameId} className="text-[11px] font-semibold text-[#134E4A]/80">
-                          <span className="font-black">{entry.title}</span>
-                          {" · "}
-                          {entry.materiPokok
-                            .map((m) => MATERI_LABELS[m])
-                            .join(", ")}
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              )}
-              {(quizzesByRoom.get(room.id)?.length ?? 0) > 0 && (
-                <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A] bg-[#F5F3FF] p-2">
-                  <p className="text-[10px] font-black uppercase text-[#134E4A]/70">
-                    Kuis dari ustadz
-                  </p>
-                  <ul className="mt-1 space-y-1.5">
-                    {quizzesByRoom.get(room.id)?.map((quiz) => (
-                      <li
-                        key={quiz.id}
-                        className="flex items-center justify-between gap-2"
-                      >
-                        <span className="min-w-0 text-[11px] font-semibold text-[#134E4A]/80">
-                          <span className="font-black">{quiz.title}</span>
-                          {" · "}
-                          {MATERI_LABELS[quiz.materi]}
-                          {" · "}
-                          {quiz.questions.length} soal
-                        </span>
-                        <StickerButton
-                          variant="primary"
-                          size="sm"
-                          onClick={() =>
-                            navigate(`/member/ngaji-ceria/kelas/kuis/${quiz.id}`)
-                          }
-                        >
-                          Kerjakan
-                        </StickerButton>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </StickerCard>
+                  {(assignedByRoom.get(room.id)?.length ?? 0) > 0 && (
+                    <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A] bg-[#F0FDF4] p-2">
+                      <p className="text-[10px] font-black uppercase text-[#134E4A]/70">
+                        Game direkomendasikan ustadz
+                      </p>
+                      <ul className="mt-1 space-y-1">
+                        {assignedByRoom
+                          .get(room.id)
+                          ?.map((gameId) => getGameById(gameId))
+                          .filter(
+                            (entry): entry is NonNullable<typeof entry> =>
+                              entry !== undefined,
+                          )
+                          .map((entry) => (
+                            <li
+                              key={entry.gameId}
+                              className="text-[11px] font-semibold text-[#134E4A]/80"
+                            >
+                              <span className="font-black">{entry.title}</span>
+                              {" · "}
+                              {entry.materiPokok
+                                .map((m) => MATERI_LABELS[m])
+                                .join(", ")}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
+                  {(quizzesByRoom.get(room.id)?.length ?? 0) > 0 && (
+                    <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A] bg-[#F5F3FF] p-2">
+                      <p className="text-[10px] font-black uppercase text-[#134E4A]/70">
+                        Kuis dari ustadz
+                      </p>
+                      <ul className="mt-1 space-y-1.5">
+                        {quizzesByRoom.get(room.id)?.map((quiz) => (
+                          <li
+                            key={quiz.id}
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <span className="min-w-0 text-[11px] font-semibold text-[#134E4A]/80">
+                              <span className="font-black">{quiz.title}</span>
+                              {" · "}
+                              {MATERI_LABELS[quiz.materi]}
+                              {" · "}
+                              {quiz.questions.length} soal
+                            </span>
+                            <StickerButton
+                              variant="primary"
+                              size="sm"
+                              onClick={() =>
+                                navigate(
+                                  `/member/ngaji-ceria/kelas/kuis/${quiz.id}`,
+                                )
+                              }
+                            >
+                              Kerjakan
+                            </StickerButton>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </StickerCard>
               ))}
             </div>
           </div>

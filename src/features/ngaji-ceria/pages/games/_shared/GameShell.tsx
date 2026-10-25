@@ -20,6 +20,7 @@ export function GameShell({
   onResume,
   accent,
   tutorialGameId,
+  floatingTopBar,
   children,
 }: {
   title: string;
@@ -28,6 +29,7 @@ export function GameShell({
   onResume: () => void;
   accent: GameAccent;
   tutorialGameId?: string;
+  floatingTopBar?: boolean;
   children: ReactNode;
 }) {
   const controlBtnStyle =
@@ -108,7 +110,9 @@ export function GameShell({
     >
       {/* HEADER GAME (Back, Judul, Pause) */}
       <header
-        className="shrink-0 sticky top-0 z-50 flex items-center justify-between gap-2 px-3 pt-2 pb-2 bg-[var(--bg-card,#FFFFFF)] border-b-[3px] border-[var(--border-color,#134E4A)] shadow-[0px_2px_0px_var(--shadow-color,#134E4A)] text-[var(--text-main,#134E4A)]"
+        className={`shrink-0 z-50 flex items-center justify-between gap-2 px-3 pt-2 pb-2 bg-[var(--bg-card,#FFFFFF)] border-b-[3px] border-[var(--border-color,#134E4A)] shadow-[0px_2px_0px_var(--shadow-color,#134E4A)] text-[var(--text-main,#134E4A)] ${
+          floatingTopBar ? "absolute top-0 inset-x-0 bg-transparent border-b-0 shadow-none pointer-events-none *:pointer-events-auto" : "sticky top-0"
+        }`}
       >
         <div className="flex min-w-0 items-center gap-2">
           <button

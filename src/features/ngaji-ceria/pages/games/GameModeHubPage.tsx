@@ -8,7 +8,7 @@ import { useActiveGames } from "../../hooks/useActiveGames";
 import { isAdminRole } from "@/lib/roles";
 import { LoginPromptModal } from "../../components/LoginPromptModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
-import { useEconomyStore, isUnlimitedUser } from "../../hooks/useEconomyStore";
+import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { TrophySvg, XSvg } from "@/components/ui/CustomIcons";
 import { LeaderboardList } from "@/components/ui/LeaderboardList";
 import { useAuth } from "@/contexts/AuthContext";
@@ -302,8 +302,6 @@ export default function GameModeHubPage({
   const { isGameActive, hasLoaded } = useActiveGames();
   const isAdmin = isAdminRole(user?.role);
   const [maintenanceToast, setMaintenanceToast] = useState<string | null>(null);
-  const isVip = useEconomyStore((s) => s.isVip);
-  const isUnlimited = isUnlimitedUser(user, isVip, groupId);
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [selectedLeaderboardGameId, setSelectedLeaderboardGameId] = useState<string>(
@@ -342,7 +340,7 @@ export default function GameModeHubPage({
 
   if (!config) return <Navigate to="/member/ngaji-ceria/games" replace />;
 
-  const openMode = (path: string, locked: boolean, isMaintenance: boolean, modeTitle: string) => {
+  const openMode = async (path: string, locked: boolean, isMaintenance: boolean, modeTitle: string) => {
     if (isMaintenance) {
       setMaintenanceToast(`Game "${modeTitle}" sedang dalam pemeliharaan ustadz. Coba game lain ya!`);
       setTimeout(() => setMaintenanceToast(null), 3000);
@@ -352,7 +350,8 @@ export default function GameModeHubPage({
       setPromptOpen(true);
       return;
     }
-    if (!isUnlimited && !consumeTicket()) {
+    const success = await consumeTicket();
+    if (!success) {
       setEnergyEmpty(true);
       return;
     }

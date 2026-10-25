@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { Pause, Volume2, UfoSvg } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
@@ -664,7 +665,7 @@ export default function JuzAmmaStarsPage() {
                     }`}
                   >
                     {isSurahPlaying ? (
-                      <Pause size={14} />
+                      <EqualizerIcon isPlaying={true} size={14} barClassName="bg-white" />
                     ) : (
                       <Volume2 size={14} />
                     )}

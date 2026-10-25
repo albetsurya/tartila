@@ -42,6 +42,7 @@ export function useAudioPlayer(): AudioPlayerController {
     const handleStop = () => {
       setIsPlaying(false);
       setCurrentTime(0);
+      setCurrentAudioUrl(null);
     };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);

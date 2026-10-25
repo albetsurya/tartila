@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { ModelAudioMatching } from "./ModelAudioMatching";
 import { ModelArrangeLetters } from "./ModelArrangeLetters";
 import { ModelFillInTheBlank } from "./ModelFillInTheBlank";
@@ -66,6 +66,20 @@ export function QuizEngine({
       : generateAvailableLetters(correctArray, options);
 
   const shared = { onAnswerSubmit, onNext, onPlayAudio, isAudioPlaying };
+
+  useEffect(() => {
+    // Auto-play: Tipe soal SELAIN "Tebak Bacaan" (multiple-choice-text) dan Audio Choice
+    // WAJIB memutar audio soal secara otomatis saat soal muncul.
+    if (
+      assignedModel !== "multiple-choice-text" &&
+      assignedModel !== "multiple-choice-audio" &&
+      assignedModel !== "audio-matching" &&
+      question.audioUrl &&
+      onPlayAudio
+    ) {
+      onPlayAudio();
+    }
+  }, [assignedModel, question.id, question.audioUrl, onPlayAudio]);
 
   return (
     <div

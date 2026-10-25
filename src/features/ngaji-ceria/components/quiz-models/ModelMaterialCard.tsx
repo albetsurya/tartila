@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Info, Volume2 } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import type { MaterialItem, QuizModelBaseProps } from "./types";
 import { getAudioUrl } from "../../utils/audioUrl";
 
@@ -11,12 +12,15 @@ export function ModelMaterialCard({
   material,
   onNext,
   onPlayAudio,
+  isAudioPlaying,
 }: ModelMaterialCardProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [localPlaying, setLocalPlaying] = useState(false);
 
   useEffect(() => {
     return () => {
       audioRef.current?.pause();
+      audioRef.current = null;
     };
   }, []);
 
@@ -26,13 +30,18 @@ export function ModelMaterialCard({
       return;
     }
     if (!material.audioUrl) return;
-    if (!audioRef.current) {
-      audioRef.current = new Audio(getAudioUrl(material.audioUrl) ?? material.audioUrl);
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
-    const audio = audioRef.current;
-    audio.currentTime = 0;
-    void audio.play();
+    const audio = new Audio(getAudioUrl(material.audioUrl) ?? material.audioUrl);
+    audioRef.current = audio;
+    setLocalPlaying(true);
+    audio.onended = () => setLocalPlaying(false);
+    audio.onerror = () => setLocalPlaying(false);
+    void audio.play().catch(() => setLocalPlaying(false));
   };
+
+  const isPlaying = Boolean(isAudioPlaying || localPlaying);
 
   return (
     <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
@@ -52,10 +61,18 @@ export function ModelMaterialCard({
         <button
           type="button"
           onClick={handlePlay}
-          className="mt-6 px-4 py-2 rounded-full border-2 border-[var(--border-color,#0284C7)] bg-white text-[var(--text-main,#0369A1)] font-bold text-xs shadow-[2px_2px_0px_var(--border-color,#0284C7)] active:translate-y-[1px] hover:bg-sky-50 flex items-center gap-1.5 transition-all"
+          className={`mt-6 px-4 py-2 rounded-full border-2 border-[var(--border-color,#0284C7)] font-bold text-xs active:translate-y-[1px] flex items-center gap-1.5 transition-all ${
+            isPlaying
+              ? "bg-[var(--border-color,#0284C7)] text-white shadow-[2px_2px_0px_var(--border-color,#0284C7)]"
+              : "bg-white text-[var(--text-main,#0369A1)] hover:bg-sky-50 shadow-[2px_2px_0px_var(--border-color,#0284C7)]"
+          }`}
         >
-          <Volume2 size={16} />
-          <span>Sentuh untuk Bunyikan</span>
+          {isPlaying ? (
+            <EqualizerIcon isPlaying={true} size={16} barClassName="bg-white" />
+          ) : (
+            <Volume2 size={16} />
+          )}
+          <span>{isPlaying ? "Memutar Audio..." : "Sentuh untuk Bunyikan"}</span>
         </button>
       </div>
 

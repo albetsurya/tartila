@@ -2,13 +2,17 @@ export function TargetBanner({
   target,
   name,
   actionLabel = "Tangkap",
+  className = "",
 }: {
   target: string;
   name: string;
   actionLabel?: string;
+  className?: string;
 }) {
   return (
-    <div className="border-[3px] border-[#134E4A] bg-[#CCFBF1] rounded-2xl shadow-[3px_3px_0px_#134E4A] px-4 py-3 flex items-center justify-center gap-3">
+    <div
+      className={`border-[3px] border-[#134E4A] bg-[#CCFBF1] rounded-2xl shadow-[3px_3px_0px_#134E4A] px-4 py-3 flex items-center justify-center gap-3 ${className}`}
+    >
       <span className="text-xs font-black uppercase tracking-wide text-[#134E4A]/70">
         {actionLabel}
       </span>

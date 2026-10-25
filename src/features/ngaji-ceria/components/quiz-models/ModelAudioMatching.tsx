@@ -38,17 +38,17 @@ function KahootAudioIcon({ isPlaying }: { isPlaying: boolean }) {
         <motion.span
           className="w-1.5 bg-white rounded-full"
           animate={isPlaying ? { height: [8, 22, 10, 8] } : { height: 8 }}
-          transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+          transition={isPlaying ? { repeat: Infinity, duration: 0.6, ease: "easeInOut" } : { duration: 0.2 }}
         />
         <motion.span
           className="w-1.5 bg-white rounded-full"
           animate={isPlaying ? { height: [14, 28, 8, 14] } : { height: 14 }}
-          transition={{ repeat: Infinity, duration: 0.5, delay: 0.1, ease: "easeInOut" }}
+          transition={isPlaying ? { repeat: Infinity, duration: 0.5, delay: 0.1, ease: "easeInOut" } : { duration: 0.2 }}
         />
         <motion.span
           className="w-1.5 bg-white rounded-full"
           animate={isPlaying ? { height: [20, 10, 26, 20] } : { height: 20 }}
-          transition={{ repeat: Infinity, duration: 0.7, delay: 0.2, ease: "easeInOut" }}
+          transition={isPlaying ? { repeat: Infinity, duration: 0.7, delay: 0.2, ease: "easeInOut" } : { duration: 0.2 }}
         />
       </div>
     </div>
@@ -128,7 +128,7 @@ export function ModelAudioMatching({
         : "grid-cols-2";
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
+    <div className="w-full max-w-md mx-auto px-4 py-6 flex flex-col bg-transparent">
       {/* Kartu Soal Teks Arab */}
       <div className="rounded-3xl bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#0284C7)] shadow-[4px_4px_0px_var(--border-color,#0284C7)] py-8 px-4 text-center mb-6">
         <p className="text-xs font-black uppercase text-[#134E4A]/60 tracking-wider mb-2">
@@ -163,7 +163,7 @@ export function ModelAudioMatching({
                 showCorrect ? "correct" : showWrong ? "wrong" : "none",
                 reducedMotion ?? false,
               )}
-              className={`relative min-h-[96px] sm:min-h-[110px] rounded-2xl flex flex-col items-center justify-center p-4 text-white transition-all border-[3px] shadow-[4px_4px_0px_rgba(0,0,0,0.25)] active:translate-y-[2px] active:shadow-none cursor-pointer ${
+              className={`relative ${optionCount <= 2 ? "h-auto" : "min-h-[96px] sm:min-h-[110px]"} rounded-2xl flex flex-col items-center justify-center p-4 text-white transition-all border-[3px] shadow-[4px_4px_0px_rgba(0,0,0,0.25)] active:translate-y-[2px] active:shadow-none cursor-pointer ${
                 palette.bg
               } ${palette.hover} ${
                 showCorrect

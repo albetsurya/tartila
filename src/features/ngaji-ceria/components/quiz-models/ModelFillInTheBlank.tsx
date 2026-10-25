@@ -4,6 +4,7 @@ import {
   RefreshCw,
   Volume2,
 } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { FillInTheBlankQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
@@ -96,7 +97,7 @@ export function ModelFillInTheBlank({
   const playing = Boolean(isAudioPlaying);
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
+    <div className="w-full max-w-md mx-auto px-4 py-6 flex flex-col bg-transparent">
       {/* Kartu Teks Arab */}
       <div className="relative p-8 text-center mb-6 rounded-3xl bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#0284C7)] shadow-[4px_4px_0px_var(--border-color,#0284C7)]">
         <button
@@ -105,14 +106,18 @@ export function ModelFillInTheBlank({
           aria-label="Putar Audio"
           className={`absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-[var(--border-color,#0284C7)] flex items-center justify-center transition-all ${
             playing
-              ? "bg-[var(--border-color,#0284C7)] text-white animate-pulse"
+              ? "bg-[var(--border-color,#0284C7)] text-white"
               : "bg-white text-[var(--text-main,#0369A1)] hover:bg-sky-50 shadow-[2px_2px_0px_var(--border-color,#0284C7)]"
           }`}
         >
-          <Volume2 size={18} />
+          {playing ? (
+            <EqualizerIcon isPlaying={true} size={18} barClassName="bg-white" />
+          ) : (
+            <Volume2 size={18} />
+          )}
         </button>
         <p
-          className="text-4xl sm:text-5xl font-arabic text-[var(--text-main,#0369A1)] leading-loose break-words"
+          className="text-5xl font-arabic text-[var(--text-main,#0369A1)] leading-loose break-words"
           dir="rtl"
         >
           {question.arabicTemplate}

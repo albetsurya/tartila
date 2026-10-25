@@ -15,6 +15,7 @@ import {
   Sparkles,
   Key,
 } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { TAJWID_RULES } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
@@ -237,7 +238,7 @@ export default function TajwidDetailPage() {
                   className="flex items-center gap-1.5 rounded-xl border-2 border-[#B45309] bg-[#0284C7] px-3.5 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#B45309] active:translate-y-[1px] active:shadow-none transition-all"
                 >
                   {isActive(firstExample.audioUrl) ? (
-                    <Pause size={13} />
+                    <EqualizerIcon isPlaying={true} size={13} barClassName="bg-white" />
                   ) : (
                     <Volume2 size={13} />
                   )}
@@ -286,7 +287,11 @@ export default function TajwidDetailPage() {
                             : "bg-white text-[#854D0E] border-[#B45309] hover:bg-[#FEF9C3]"
                         }`}
                       >
-                        {isExActive ? <Pause size={14} /> : <Play size={14} />}
+                        {isExActive ? (
+                          <EqualizerIcon isPlaying={true} size={14} barClassName="bg-white" />
+                        ) : (
+                          <Play size={14} />
+                        )}
                       </button>
                     </div>
 

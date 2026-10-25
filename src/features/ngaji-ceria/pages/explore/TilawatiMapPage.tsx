@@ -22,9 +22,8 @@ import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
 import { ExploreHeader, ExploreStatBadge } from "../../components/ExploreHeader";
 import { JuicyStar } from "@/components/ui/JuicyIcons";
-import { useEconomyStore, isUnlimitedUser } from "../../hooks/useEconomyStore";
+import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
-import { useAuth } from "@/contexts/AuthContext";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
 import { NGAJI_CERIA_ASSETS } from "../../data/assets";
 
@@ -296,16 +295,13 @@ export default function TilawatiMapPage() {
     setSelectedNode(nodeData);
   };
 
-  const { user, groupId } = useAuth();
-  const isVip = useEconomyStore((s: any) => s.isVip);
-  const isUnlimited = isUnlimitedUser(user as any, isVip, groupId as any);
-
   const handleStartLearning = async (practiceOverride?: boolean) => {
     if (!selectedNode) return;
     const isPractice =
       practiceOverride !== undefined ? practiceOverride : isPracticeMode;
-    if (!isPractice && !isUnlimited) {
-      if (!(await consumeHeart())) {
+    if (!isPractice) {
+      const success = await consumeHeart();
+      if (!success) {
         setEnergyEmpty(true);
         return;
       }

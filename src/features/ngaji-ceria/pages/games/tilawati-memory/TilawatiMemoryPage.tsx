@@ -387,14 +387,14 @@ export default function TilawatiMemoryPage() {
                   className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
                 >
                   <div className="bg-[#042F2E]/95 border-[3px] border-[#FDE047] text-[#FEF3C7] px-4 py-2.5 rounded-2xl shadow-[4px_4px_0px_#78350F] flex items-center gap-2 text-xs font-black">
-                    <span className="text-base animate-spin">🔀</span>
+                    <ShuffleSvg size={16} className="animate-spin" />
                     <span>Mengacak kartu...</span>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className={`grid gap-2.5 sm:gap-3 ${levelConfig.gridColsClass}`}>
+            <div className={`grid gap-2 content-evenly pb-32 ${levelConfig.gridColsClass}`}>
               {cards.map((card, index) => {
                 const isMatched = matchedPairIds.includes(card.pairId);
                 const isFlipped = flippedIndices.includes(index);
@@ -403,13 +403,11 @@ export default function TilawatiMemoryPage() {
                 return (
                   <motion.div
                     key={card.id}
-                    layout
                     custom={index}
                     variants={cardVariants}
                     initial="initial"
                     animate={isShuffling ? 'shuffling' : 'settled'}
                     transition={{
-                      layout: { type: 'spring', stiffness: 300, damping: 25 },
                       default: { type: 'spring', stiffness: 300, damping: 25 },
                     }}
                     className="aspect-[3/4] w-full"
@@ -625,9 +623,10 @@ export default function TilawatiMemoryPage() {
                 <button
                   type="button"
                   onClick={handleResetGame}
-                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Ulangi Level Ini 🔄
+                  <RotateCcwSvg size={14} />
+                  <span>Ulangi Level Ini</span>
                 </button>
                 <button
                   type="button"

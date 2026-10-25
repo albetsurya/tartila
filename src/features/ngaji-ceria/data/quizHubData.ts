@@ -2618,7 +2618,10 @@ export function getQuizHubQuestions(
   seed?: number,
   limit = 5,
 ): QuestionData[] {
-  const rawPool = QUIZ_HUB_QUESTIONS[category] || ARABIC_VOCAB_QUESTIONS;
+  const rawPool =
+    category === "tilawati"
+      ? getRandomQuestions(1, Math.max(limit * 2, 10)).map(toTilawatiQuestionData)
+      : QUIZ_HUB_QUESTIONS[category] || ARABIC_VOCAB_QUESTIONS;
 
   let filtered = rawPool;
   if (mode === "scramble") {

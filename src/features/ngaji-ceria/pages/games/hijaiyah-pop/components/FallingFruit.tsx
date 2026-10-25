@@ -64,7 +64,7 @@ export function FallingFruit({
         <div className="relative h-full w-full flex items-center justify-center">
           <ItemSvg
             size={80}
-            className="h-full w-full object-contain drop-shadow-[2px_2px_0px_#134E4A]"
+            className="h-full w-full object-contain drop-shadow-[3px_4px_0_rgba(15,23,42,1)]"
           />
           <span className="game-arabic absolute inset-0 flex items-center justify-center pt-2 text-center text-3xl font-black text-[#134E4A] select-none pointer-events-none">
             {fruit.letter}

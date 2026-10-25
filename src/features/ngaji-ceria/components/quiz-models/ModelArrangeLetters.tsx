@@ -45,8 +45,8 @@ function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
         height="16"
         rx="2.25"
         fill="currentColor"
-        animate={isPlaying ? { height: [16, 26, 12, 16], y: [16, 11, 18, 16] } : {}}
-        transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+        animate={isPlaying ? { height: [16, 26, 12, 16], y: [16, 11, 18, 16] } : { height: 16, y: 16 }}
+        transition={isPlaying ? { repeat: Infinity, duration: 0.8, ease: "easeInOut" } : { duration: 0.2 }}
       />
       <motion.rect
         x="14"
@@ -55,8 +55,8 @@ function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
         height="28"
         rx="2.25"
         fill="currentColor"
-        animate={isPlaying ? { height: [28, 14, 34, 28], y: [10, 17, 7, 10] } : {}}
-        transition={{ repeat: Infinity, duration: 0.7, delay: 0.1, ease: "easeInOut" }}
+        animate={isPlaying ? { height: [28, 14, 34, 28], y: [10, 17, 7, 10] } : { height: 28, y: 10 }}
+        transition={isPlaying ? { repeat: Infinity, duration: 0.7, delay: 0.1, ease: "easeInOut" } : { duration: 0.2 }}
       />
       <motion.rect
         x="22"
@@ -65,8 +65,8 @@ function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
         height="36"
         rx="2.25"
         fill="currentColor"
-        animate={isPlaying ? { height: [36, 18, 38, 36], y: [6, 15, 5, 6] } : {}}
-        transition={{ repeat: Infinity, duration: 0.6, delay: 0.2, ease: "easeInOut" }}
+        animate={isPlaying ? { height: [36, 18, 38, 36], y: [6, 15, 5, 6] } : { height: 36, y: 6 }}
+        transition={isPlaying ? { repeat: Infinity, duration: 0.6, delay: 0.2, ease: "easeInOut" } : { duration: 0.2 }}
       />
       <motion.rect
         x="30"
@@ -75,8 +75,8 @@ function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
         height="24"
         rx="2.25"
         fill="currentColor"
-        animate={isPlaying ? { height: [24, 32, 14, 24], y: [12, 8, 17, 12] } : {}}
-        transition={{ repeat: Infinity, duration: 0.75, delay: 0.15, ease: "easeInOut" }}
+        animate={isPlaying ? { height: [24, 32, 14, 24], y: [12, 8, 17, 12] } : { height: 24, y: 12 }}
+        transition={isPlaying ? { repeat: Infinity, duration: 0.75, delay: 0.15, ease: "easeInOut" } : { duration: 0.2 }}
       />
       <motion.rect
         x="38"
@@ -85,8 +85,8 @@ function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
         height="12"
         rx="2.25"
         fill="currentColor"
-        animate={isPlaying ? { height: [12, 22, 10, 12], y: [18, 13, 19, 18] } : {}}
-        transition={{ repeat: Infinity, duration: 0.85, delay: 0.05, ease: "easeInOut" }}
+        animate={isPlaying ? { height: [12, 22, 10, 12], y: [18, 13, 19, 18] } : { height: 12, y: 18 }}
+        transition={isPlaying ? { repeat: Infinity, duration: 0.85, delay: 0.05, ease: "easeInOut" } : { duration: 0.2 }}
       />
     </svg>
   );
@@ -219,8 +219,8 @@ export function ModelArrangeLetters({
         <motion.button
           type="button"
           onClick={handlePlay}
-          animate={{ scale: playing ? [1, 1.08, 1] : [1, 1.05, 1] }}
-          transition={{ repeat: Infinity, duration: playing ? 1 : 2, ease: "easeInOut" }}
+          animate={{ scale: playing ? [1, 1.08, 1] : 1 }}
+          transition={playing ? { repeat: Infinity, duration: 1, ease: "easeInOut" } : { duration: 0.2 }}
           className="relative w-28 h-28 rounded-full flex items-center justify-center p-2.5 bg-[#DCFCE7] border-[3px] border-[#4D7C0F]/40 shadow-[4px_4px_0px_#4D7C0F]/30 active:scale-95 transition-transform cursor-pointer"
           aria-label="Dengarkan Suara"
         >

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Play, Star, BookOpen, ChevronLeft } from "@/components/ui/CustomIcons";
+import { Play, Star, BookOpen } from "@/components/ui/CustomIcons";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { type GameAccent } from "./types";
 import type { ReactNode } from "react";
@@ -28,7 +28,6 @@ export function StartScreen({
   children?: ReactNode;
 }) {
   return (
-    // Wrapper untuk menengahkan kartu secara vertikal dan horizontal
     <div className="flex flex-1 flex-col items-center justify-center w-full px-4 py-8 pb-32">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -36,17 +35,6 @@ export function StartScreen({
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         className="relative w-full max-w-sm md:max-w-md mx-auto flex flex-col items-center bg-white rounded-[32px] border-[4px] border-[#134E4A] shadow-[6px_6px_0px_#134E4A] p-6 md:p-8 pt-12 md:pt-14 text-center"
       >
-        {/* Tombol Kembali (Hanya muncul jika onExit dikirim) */}
-        {onExit && (
-          <button
-            onClick={onExit}
-            className="absolute top-4 left-4 z-30 flex h-10 w-10 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-[#F0FDF4] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
-            aria-label="Kembali"
-          >
-            <ChevronLeft size={20} />
-          </button>
-        )}
-
         {/* Ornamen Latar Belakang */}
         <div className="absolute inset-0 overflow-hidden rounded-[28px] pointer-events-none z-0">
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F0FDF4] rounded-full blur-2xl opacity-60" />

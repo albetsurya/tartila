@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ThemedHeader } from "../../components/ThemedHeader";
 import { Volume2, Pause, ChevronLeftSvg } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { JUZ_AMMA_SURAHS, everyAyahAudio } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
@@ -235,7 +236,11 @@ export default function JuzAmmaDetailPage() {
                           : "bg-white text-[#134E4A]"
                       }`}
                     >
-                      {isAyahPlaying ? <Pause size={13} /> : <Volume2 size={13} />}
+                      {isAyahPlaying ? (
+                        <EqualizerIcon isPlaying={true} size={13} barClassName="bg-white" />
+                      ) : (
+                        <Volume2 size={13} />
+                      )}
                       {isAyahPlaying ? "Jeda" : "Putar"}
                     </button>
                   </div>

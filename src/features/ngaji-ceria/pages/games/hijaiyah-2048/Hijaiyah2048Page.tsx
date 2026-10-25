@@ -58,6 +58,7 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="cyan"
+      floatingTopBar
     >
       {game.phase === "idle" ? (
         <StartScreen
@@ -71,12 +72,12 @@ function Game() {
           accent="cyan"
         />
       ) : (
-        <div className="flex flex-col flex-1 gap-3 min-h-0 justify-between relative">
+        <div className="flex flex-col flex-1 gap-3 min-h-0 justify-between relative px-4 pt-16 pb-4">
           <HUD
             score={game.score}
             progressLabel={`Gerakan ${game.moves}`}
           />
-          <div className="flex items-center justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-2.5 shadow-[3px_3px_0px_#134E4A]">
+          <div className="flex items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-white p-2.5 shadow-[3px_3px_0px_#134E4A] max-w-md mx-auto w-full">
             <div className="flex items-center gap-2">
               <span className="text-[#134E4A]/70 font-bold text-xs">Huruf tertinggi</span>
               {game.letters[game.highest]?.arabic ? (
@@ -93,28 +94,6 @@ function Game() {
                 />
               )}
             </div>
-
-            {/* TilaMascot di sudut kanan dengan reaksi skor */}
-            <div className="relative">
-              <TilaMascot
-                size={80}
-                mood={scoreIncreased ? "excited" : "happy"}
-                animation={scoreIncreased ? "bounce" : "float"}
-                direction="left"
-              />
-              <AnimatePresence>
-                {scoreIncreased && (
-                  <motion.div
-                    initial={{ scale: 0, y: 10 }}
-                    animate={{ scale: 1, y: -10 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="absolute -top-3 -right-2 px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] text-[10px] font-black"
-                  >
-                    +Score!
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
           <div
             onPointerDown={(event) => {
@@ -125,7 +104,7 @@ function Game() {
             onPointerCancel={() => {
               touchStart.current = null;
             }}
-            className="touch-none select-none flex-1 flex flex-col justify-center"
+            className="touch-none select-none flex-1 flex flex-col justify-center items-center w-full"
           >
             <TileBoard
               grid={game.grid}

@@ -424,7 +424,7 @@ export default function SlasherStage({
                     className="absolute inset-0"
                     style={{ clipPath: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }}
                   >
-                    <fruit.FruitSliced size={96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
+                    <fruit.FruitSliced size={fruit.id === "watermelon" ? 120 : 96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
                   </motion.div>
                   <motion.div
                     initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
@@ -433,15 +433,17 @@ export default function SlasherStage({
                     className="absolute inset-0"
                     style={{ clipPath: "polygon(0 50%, 100% 50%, 100% 100%, 0 100%)" }}
                   >
-                    <fruit.FruitSliced size={96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
+                    <fruit.FruitSliced size={fruit.id === "watermelon" ? 120 : 96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
                   </motion.div>
                 </div>
               ) : (
                 <motion.div
                   initial={{ scale: 0.4, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                  animate={{ scale: fruit.id === "watermelon" ? 1.2 : 1, opacity: 1 }}
                   transition={{ duration: 0.18 }}
-                  className="relative flex h-24 w-24 items-center justify-center"
+                  className={`relative flex items-center justify-center ${
+                    fruit.id === "watermelon" ? "h-28 w-28" : "h-24 w-24"
+                  }`}
                   style={{
                     filter: highlight
                       ? "drop-shadow(0 0 0 4px #FDE68A)"
@@ -449,7 +451,7 @@ export default function SlasherStage({
                   }}
                 >
                   <fruit.FruitWhole
-                    size={96}
+                    size={fruit.id === "watermelon" ? 120 : 96}
                     className="drop-shadow-[4px_5px_0px_rgba(19,78,74,0.75)]"
                   />
                   {/* OVERLAY TEKS TARGET: Stiker putih dengan font Arab dinamis & responsif */}

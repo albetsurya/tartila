@@ -38,12 +38,15 @@ export function getGameParentHub(pathname: string): string {
   return GAME_HUB_PARENTS[pathname] || "/member/ngaji-ceria/games";
 }
 
-export function useGameExit() {
+export function useGameExit(fallbackRoute: string = "/member/ngaji-ceria") {
   const navigate = useNavigate();
-  const location = useLocation();
   return useCallback(() => {
-    navigate(getGameParentHub(location.pathname));
-  }, [navigate, location.pathname]);
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(fallbackRoute);
+    }
+  }, [navigate, fallbackRoute]);
 }
 
 /** Ref sinkron mencegah tap ganda; reducer tidak dijalankan ulang oleh StrictMode. */

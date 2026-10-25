@@ -610,7 +610,7 @@ export function NgajiBuddyWidget({
                 <StickerButton
                   variant="primary"
                   fullWidth
-                  onClick={() => handleAction("/member/ngaji-ceria/quiz")}
+                  onClick={() => handleAction("/member/ngaji-ceria/explore/tilawati")}
                   className="justify-start"
                 >
                   <BookOpen size={18} className="mr-2" /> Lanjut Belajar

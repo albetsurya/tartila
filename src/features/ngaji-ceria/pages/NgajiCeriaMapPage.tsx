@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
-import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
+import {
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/lib/animationVariants";
 import {
   LabTajwidBgSvg,
   GalaksiJuzAmmaBgSvg,
@@ -256,7 +259,11 @@ export default function NgajiCeriaMapPage() {
                     <div
                       className={`flex h-12 w-12 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shrink-0`}
                     >
-                      <Icon size={26} className="text-[#134E4A]" stroke="#134E4A" />
+                      <Icon
+                        size={26}
+                        className="text-[#134E4A]"
+                        stroke="#134E4A"
+                      />
                     </div>
                   </div>
 
@@ -292,44 +299,60 @@ export default function NgajiCeriaMapPage() {
 
         {/* Doa Cepat (Bottom) */}
         <section className="mt-8 px-4">
-          <div className="rounded-[28px] border-[3px] border-[#134E4A] bg-[#134E4A] p-5 shadow-[4px_4px_0px_#FF6B6B]">
+          {/* Card Utama dengan gaya Neo-Brutalism */}
+          <div className="rounded-[28px] border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6B6B]">
                   Akses Cepat
                 </span>
-                <h3 className="font-display text-lg font-black text-white">
+                <h3 className="font-display text-lg font-black text-[#134E4A]">
                   Doa Kilat
                 </h3>
               </div>
+
+              {/* Tombol "Semua" bergaya Sticker */}
               <button
                 onClick={() =>
                   handleNavigate("/member/ngaji-ceria/explore/doa")
                 }
-                className="flex items-center gap-1.5 rounded-xl border-2 border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-white/20 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#F0FDF4] px-3 py-1.5 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#DCFCE7] active:translate-y-[2px] active:shadow-none"
               >
-                Semua <ArrowRightSvg size={13} className="text-white" />
+                Semua <ArrowRightSvg size={13} className="text-[#134E4A]" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: MoonSvg, title: "Sebelum Tidur" },
-                { icon: SunSvg, title: "Bangun Tidur" },
-                { icon: UtensilsSvg, title: "Sebelum Makan" },
-                { icon: SparklesSvg, title: "Sesudah Makan" },
+                { id: "sebelum-tidur", icon: MoonSvg, title: "Sebelum Tidur" },
+                { id: "bangun-tidur", icon: SunSvg, title: "Bangun Tidur" },
+                {
+                  id: "sebelum-makan",
+                  icon: UtensilsSvg,
+                  title: "Sebelum Makan",
+                },
+                {
+                  id: "sesudah-makan",
+                  icon: SparklesSvg,
+                  title: "Sesudah Makan",
+                },
               ].map((doa, idx) => {
                 const Icon = doa.icon;
                 return (
                   <button
                     key={idx}
                     onClick={() =>
-                      handleNavigate("/member/ngaji-ceria/explore/doa")
+                      handleNavigate(
+                        `/member/ngaji-ceria/explore/doa/${doa.id}`,
+                      )
                     }
-                    className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 p-3 active:bg-white/10 transition-colors"
+                    // Tombol Opsi bergaya Sticker
+                    className="flex items-center gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#F8FAFC] active:translate-y-[2px] active:shadow-none"
                   >
-                    <Icon size={20} />
-                    <span className="text-[11px] font-bold text-white leading-tight">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#CCFBF1] border-2 border-[#134E4A] text-[#134E4A]">
+                      <Icon size={16} />
+                    </div>
+                    <span className="text-[11px] font-black text-[#134E4A] leading-tight text-left">
                       {doa.title}
                     </span>
                   </button>

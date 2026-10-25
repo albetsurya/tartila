@@ -8,12 +8,7 @@ import quizEdits from "./tilawatiQuizEdits.json";
 import timelineEdits from "./tilawatiTimelineEdits.json";
 import type { PublishedTimeline } from "../utils/pageTimeline";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
-import { TILAWATI_JILID_1_PAGES as RAW_TILAWATI_JILID_1_PAGES } from "./tilawatiQuizJilid1";
-import { TILAWATI_JILID_2_PAGES as RAW_TILAWATI_JILID_2_PAGES } from "./tilawatiQuizJilid2";
-import { TILAWATI_JILID_3_PAGES as RAW_TILAWATI_JILID_3_PAGES } from "./tilawatiQuizJilid3";
-import { TILAWATI_JILID_4_PAGES as RAW_TILAWATI_JILID_4_PAGES } from "./tilawatiQuizJilid4";
-import { TILAWATI_JILID_5_PAGES as RAW_TILAWATI_JILID_5_PAGES } from "./tilawatiQuizJilid5";
-import { TILAWATI_JILID_6_PAGES } from "./tilawatiQuizJilid6";
+import { getRawPages } from "./TilawatiDataProvider";
 
 const audioUrl = (jilid: number, pageNumber: number, filename: string): string =>
   `/audio/tilawati/jilid_${jilid}/hal${pageNumber}/${filename}`;
@@ -219,6 +214,13 @@ function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>):
     }),
   ) as Record<number, PageQuizData>;
 }
+
+const RAW_TILAWATI_JILID_1_PAGES = getRawPages(1);
+const RAW_TILAWATI_JILID_2_PAGES = getRawPages(2);
+const RAW_TILAWATI_JILID_3_PAGES = getRawPages(3);
+const RAW_TILAWATI_JILID_4_PAGES = getRawPages(4);
+const RAW_TILAWATI_JILID_5_PAGES = getRawPages(5);
+const TILAWATI_JILID_6_PAGES = getRawPages(6);
 
 const TILAWATI_JILID_1_PAGES = applyTimelineEdits(1, applyQuizEdits(1, groupJilid1Footers(RAW_TILAWATI_JILID_1_PAGES)));
 const TILAWATI_JILID_2_PAGES = applyTimelineEdits(2, applyQuizEdits(2, groupDatasetByAudioRows(2, RAW_TILAWATI_JILID_2_PAGES)));

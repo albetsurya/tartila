@@ -1,5 +1,9 @@
 import { arenaApi } from "./arenaApi";
 import type { ClientQuestionPayload } from "../data/quiz/types";
+import {
+  formatQuestionsForWebSocket,
+  type WebSocketQuestionPayload,
+} from "../data/TilawatiDataProvider";
 
 export interface ArenaSocketCallbacks {
   onRoomState?: (state: any) => void;
@@ -196,8 +200,14 @@ export class ArenaSocket {
     }
   }
 
-  startGame(): void {
-    this.send("start_game", {});
+  startGame(questions?: WebSocketQuestionPayload[]): void {
+    this.send("start_game", questions ? { questions } : {});
+  }
+
+  sendQuestions(jilid: number = 1, limit: number = 10): WebSocketQuestionPayload[] {
+    const questions = formatQuestionsForWebSocket(jilid, limit);
+    this.send("load_questions", { questions });
+    return questions;
   }
 
   submitAnswer(questionId: string, answer: string, timeTakenMs: number): void {

@@ -11,6 +11,7 @@ import {
   Star,
   Volume2,
 } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { DOA_LIST, DOA_AUDIO_PLACEHOLDER } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { getDoaAudioUrl } from "../../services/doaService";
@@ -164,7 +165,11 @@ export default function DoaDetailPage() {
                   : "bg-[#B45309] text-white shadow-[3px_3px_0px_#78350F] hover:bg-[#92400E]"
               }`}
             >
-              {isDoaPlaying ? <Pause size={18} /> : <Volume2 size={18} />}
+              {isDoaPlaying ? (
+                <EqualizerIcon isPlaying={true} size={18} barClassName="bg-white" />
+              ) : (
+                <Volume2 size={18} />
+              )}
               {isDoaPlaying ? "Jeda Audio" : "Dengarkan Doa"}
             </button>
 

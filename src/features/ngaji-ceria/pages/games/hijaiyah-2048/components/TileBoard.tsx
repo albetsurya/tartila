@@ -4,14 +4,14 @@ import type { Grid, MergeGhost, Tile } from "../hooks/useHijaiyah2048";
 import { HIJAIYAH_LIST } from "../../../../data/hijaiyah";
 
 const tileColors = [
-  "bg-teal-950",
-  "bg-teal-900",
-  "bg-teal-800",
-  "bg-teal-700",
-  "bg-teal-600",
-  "bg-amber-600",
-  "bg-rose-500",
-  "bg-rose-600",
+  "bg-[#0D9488]",
+  "bg-[#0284C7]",
+  "bg-[#2563EB]",
+  "bg-[#7C3AED]",
+  "bg-[#C026D3]",
+  "bg-[#EA580C]",
+  "bg-[#E11D48]",
+  "bg-[#CA8A04]",
 ];
 function label(tile: Tile | null): string | null {
   return !tile ? null : (HIJAIYAH_LIST[tile.level]?.arabic ?? null);
@@ -44,7 +44,7 @@ function TileFace({
           ? { duration: 0.3, delay: 0.1, ease: "easeOut" }
           : { type: "spring", stiffness: 500, damping: 24 }
       }
-      className={`flex h-full w-full items-center justify-center rounded-2xl border text-3xl font-black text-white ${merged ? "border-amber-200/70 shadow-[0_0_18px_rgba(251,191,36,.55)]" : "border-white/10"} ${tileColors[Math.min(tile.level, tileColors.length - 1)]}`}
+      className={`flex h-full w-full items-center justify-center rounded-2xl border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] text-3xl font-black text-white ${merged ? "ring-2 ring-[#FEF08A]" : ""} ${tileColors[Math.min(tile.level, tileColors.length - 1)]}`}
       dir="rtl"
     >
       {text ?? (
@@ -84,19 +84,19 @@ export function TileBoard({
     : { type: "spring" as const, stiffness: 550, damping: 42, mass: 0.9 };
   return (
     <div
-      className="relative aspect-square w-full rounded-3xl border border-teal-300/20 bg-teal-950/60 p-2"
+      className="relative aspect-square w-full max-w-md mx-auto rounded-3xl border-[3.5px] border-[#134E4A] bg-[#042F2E]/20 p-2.5 shadow-[5px_5px_0px_#134E4A]"
       aria-label="Papan Hijaiyah 2048"
       role="application"
     >
       <div
-        className="absolute inset-2 grid grid-cols-4 gap-2"
+        className="absolute inset-2.5 grid grid-cols-4 gap-2"
         aria-hidden="true"
       >
         {Array.from({ length: 16 }).map((_, index) => (
-          <div key={index} className="rounded-2xl bg-white/5" />
+          <div key={index} className="rounded-2xl border-2 border-[#134E4A]/25 bg-white/40" />
         ))}
       </div>
-      <div className="absolute inset-2" aria-hidden="false">
+      <div className="absolute inset-2.5" aria-hidden="false">
         {ghosts.map((ghost) => (
           <motion.div
             key={`${moveId}:${ghost.id}`}
@@ -121,7 +121,7 @@ export function TileBoard({
             }
           >
             <div
-              className={`flex h-full w-full items-center justify-center rounded-2xl border border-white/10 text-3xl font-black text-white ${tileColors[Math.min(ghost.level, tileColors.length - 1)]}`}
+              className={`flex h-full w-full items-center justify-center rounded-2xl border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] text-3xl font-black text-white ${tileColors[Math.min(ghost.level, tileColors.length - 1)]}`}
               dir="rtl"
             >
               {label({ id: ghost.id, level: ghost.level }) ?? (

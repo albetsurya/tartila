@@ -1,6 +1,6 @@
 import type { TilawatiAudioRequest } from "../../../services/tilawatiAudio";
 import { normalizeArabic } from "../../../services/tilawatiAudio";
-import { TILAWATI_JILID_1_PAGES } from "../../../data/tilawatiQuizJilid1";
+import { getRawPages } from "../../../data/TilawatiDataProvider";
 import { getTilawatiQuestionAudioUrl } from "../../../data/tilawatiAudioQuestionMap";
 
 const SURAH_AUDIO: Record<
@@ -65,7 +65,7 @@ export function letterRecitation(
   if (!arabic) return undefined;
   if (letterAudio.has(arabic)) return letterAudio.get(arabic);
   const normalized = normalizeArabic(arabic);
-  for (const page of Object.values(TILAWATI_JILID_1_PAGES)) {
+  for (const page of Object.values(getRawPages(1))) {
     const index = page.questions.findIndex(
       (question) =>
         !question.isOpening &&

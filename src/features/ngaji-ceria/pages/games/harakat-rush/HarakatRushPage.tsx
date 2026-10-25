@@ -160,6 +160,7 @@ function Game() {
         phase={phase as GamePhase}
         accent="emerald"
         tutorialGameId="harakat-rush"
+        floatingTopBar
         onPause={() => setPhase("paused")}
         onResume={() => setPhase("playing")}
       >
@@ -271,36 +272,30 @@ function Game() {
                 </div>
               </div>
 
-              {/* FASE 1: PLAKAT TARGET KONTRAK TINGGI (kanan atas) */}
-              <div className="pointer-events-none absolute right-3 top-14 z-30 sm:right-4 sm:top-16">
-                <div className="relative h-28 w-28 sm:h-32 sm:w-32">
-                  <PlakatTargetHarakatSvg size={130} className="absolute inset-0" />
-                  <div className="absolute inset-x-0 top-[40%] flex flex-col items-center gap-1 px-2.5">
-                    {/* Label TARGET Kontras Tinggi Neo-Brutalism */}
-                    <span className="rounded-full border-2 border-[#134E4A] bg-[#0D9488] px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-[1.5px_1.5px_0px_#134E4A]">
-                      TARGET
-                    </span>
+              {/* TARGET INDIKATOR DI TENGAH ATAS - NEO-BRUTALISM */}
+              <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-14 sm:top-16 z-30">
+                <div className="flex flex-col items-center rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] px-4 py-2 shadow-[4px_4px_0px_#134E4A] min-w-[130px]">
+                  <span className="rounded-full border-2 border-[#134E4A] bg-[#0D9488] px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-[1.5px_1.5px_0px_#134E4A]">
+                    TARGET
+                  </span>
 
-                    {/* Simbol Arab Dinamis & Terbaca dengan font-arabic */}
-                    <span
-                      className={`font-arabic font-black leading-none text-[#7C2D12] text-center max-w-full truncate px-1 ${
-                        currentTargetItem.symbol.length > 8
-                          ? "text-sm"
-                          : currentTargetItem.symbol.length > 5
-                            ? "text-base"
-                            : currentTargetItem.symbol.length > 2
-                              ? "text-xl"
-                              : "text-2xl"
-                      }`}
-                    >
-                      {currentTargetItem.symbol}
-                    </span>
+                  <span
+                    className={`font-arabic font-black leading-tight text-[#7C2D12] text-center max-w-[200px] truncate px-1 mt-0.5 ${
+                      currentTargetItem.symbol.length > 8
+                        ? "text-base"
+                        : currentTargetItem.symbol.length > 5
+                          ? "text-lg"
+                          : currentTargetItem.symbol.length > 2
+                            ? "text-2xl"
+                            : "text-3xl"
+                    }`}
+                  >
+                    {currentTargetItem.symbol}
+                  </span>
 
-                    {/* Keterangan Nama Target */}
-                    <span className="font-display text-[9px] font-black leading-tight text-[#7C2D12] text-center max-w-full truncate px-1">
-                      {currentTargetItem.name}
-                    </span>
-                  </div>
+                  <span className="font-display text-[10px] font-black leading-tight text-[#7C2D12] text-center max-w-[180px] truncate">
+                    {currentTargetItem.name}
+                  </span>
                 </div>
               </div>
 

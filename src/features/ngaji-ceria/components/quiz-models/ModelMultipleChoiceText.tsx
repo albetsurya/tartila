@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Volume2 } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceTextQuestion, QuizModelBaseProps } from "./types";
 import { playVoiceFeedback } from "../../utils/voiceFeedback";
@@ -15,10 +16,42 @@ export function ModelMultipleChoiceText({
   question,
   onAnswerSubmit,
   onNext,
+  onPlayAudio,
+  isAudioPlaying,
 }: ModelMultipleChoiceTextProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
+  const [localPlaying, setLocalPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [question.id]);
+
+  const handlePlayAudio = () => {
+    if (onPlayAudio) {
+      onPlayAudio();
+      return;
+    }
+    if (!question.audioUrl) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
+    audioRef.current = audio;
+    setLocalPlaying(true);
+    audio.onended = () => setLocalPlaying(false);
+    audio.onerror = () => setLocalPlaying(false);
+    void audio.play().catch(() => setLocalPlaying(false));
+  };
+
+  const isPlaying = Boolean(isAudioPlaying || localPlaying);
 
   const handlePick = (option: string) => {
     if (status !== "idle") return;
@@ -44,7 +77,7 @@ export function ModelMultipleChoiceText({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 py-6 flex flex-col bg-transparent">
+    <div className="w-full max-w-md mx-auto px-4 py-6 flex flex-col bg-transparent">
       {/* Prompt Petunjuk (Jika Ada) */}
       {question.prompt && (
         <div className="mb-4 p-3.5 rounded-2xl bg-amber-50 border-2 border-[#0F172A] shadow-[2px_2px_0px_#0F172A] text-center">
@@ -59,14 +92,19 @@ export function ModelMultipleChoiceText({
         {question.audioUrl && (
           <button
             type="button"
-            onClick={() => {
-              const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
-              void audio.play();
-            }}
+            onClick={handlePlayAudio}
             aria-label="Putar Audio"
-            className="absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-[var(--border-color,#0284C7)] bg-white text-[var(--text-main,#0369A1)] flex items-center justify-center hover:bg-sky-50 shadow-[2px_2px_0px_var(--border-color,#0284C7)] transition-all"
+            className={`absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-[var(--border-color,#0284C7)] flex items-center justify-center transition-all ${
+              isPlaying
+                ? "bg-[var(--border-color,#0284C7)] text-white"
+                : "bg-white text-[var(--text-main,#0369A1)] hover:bg-sky-50 shadow-[2px_2px_0px_var(--border-color,#0284C7)]"
+            }`}
           >
-            <Volume2 size={18} />
+            {isPlaying ? (
+              <EqualizerIcon isPlaying={true} size={18} barClassName="bg-white" />
+            ) : (
+              <Volume2 size={18} />
+            )}
           </button>
         )}
 
@@ -78,7 +116,7 @@ export function ModelMultipleChoiceText({
 
         {question.arabicText && (
           <p
-            className="text-4xl sm:text-5xl font-arabic text-[var(--text-main,#0369A1)] leading-loose break-words"
+            className="text-5xl font-arabic text-[var(--text-main,#0369A1)] leading-loose break-words"
             dir="rtl"
           >
             {question.arabicText}

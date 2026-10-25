@@ -1369,7 +1369,13 @@ export const useEconomyStore = create<EconomyState>()(
   // ── Energy actions (Supabase-backed, fallback lokal) ──
   consumeHeart: async () => {
     const state = get();
-    if (state.isVip || isUnlimitedUser(null, state.isVip)) return true;
+    const isUnlimited = isUnlimitedUser(
+      { role: state.role ?? undefined, group_id: state.groupId, subscription_type: state.subscriptionType },
+      state.isVip,
+      state.groupId,
+      state.subscriptionType,
+    );
+    if (isUnlimited) return true;
     if (state.hearts <= 0) return false;
     set({
       hearts: state.hearts - 1,
@@ -1385,7 +1391,13 @@ export const useEconomyStore = create<EconomyState>()(
 
   consumeTicket: async () => {
     const state = get();
-    if (state.isVip || isUnlimitedUser(null, state.isVip)) return true;
+    const isUnlimited = isUnlimitedUser(
+      { role: state.role ?? undefined, group_id: state.groupId, subscription_type: state.subscriptionType },
+      state.isVip,
+      state.groupId,
+      state.subscriptionType,
+    );
+    if (isUnlimited) return true;
     if (state.tickets <= 0) return false;
     set({
       tickets: state.tickets - 1,

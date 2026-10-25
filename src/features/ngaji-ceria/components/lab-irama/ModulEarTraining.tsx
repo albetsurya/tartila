@@ -20,6 +20,7 @@ import {
   CheckSvg,
   RotateCcwSvg,
 } from '../../../../components/ui/CustomIcons';
+import { EqualizerIcon } from '@/components/ui/EqualizerIcon';
 import { AnimatedProgressBar } from '../../../../components/ui/AnimatedProgressBar';
 
 interface ModulEarTrainingProps {
@@ -496,7 +497,11 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
           onClick={playCurrentAudio}
           className="w-full py-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-[var(--border-color,#134E4A)] font-display font-black text-xs text-[var(--text-main,#134E4A)] flex items-center justify-center gap-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:scale-98 transition-transform cursor-pointer"
         >
-          <PlaySvg size={14} />
+          {isPlayingAudio ? (
+            <EqualizerIcon isPlaying={true} size={14} barClassName="bg-[#134E4A]" />
+          ) : (
+            <PlaySvg size={14} />
+          )}
           {isPlayingAudio ? 'Sedang Memutar Audio...' : 'Putar Ulang Suara Qari 🎧'}
         </button>
 

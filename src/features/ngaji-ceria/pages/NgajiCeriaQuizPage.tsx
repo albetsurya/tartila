@@ -8,6 +8,7 @@ import {
   LockSvg,
   Volume2Svg as Volume2,
 } from "../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { tapFeedback } from "../../../lib/haptics";
 import {
   playSoundEffect,
@@ -406,7 +407,7 @@ export default function NgajiCeriaQuizPage() {
 
   const handleExit = () => {
     stopAllAudio();
-    navigate("/member/ngaji-ceria/quiz");
+    navigate(`/member/ngaji-ceria/explore/tilawati/${activeJilid}`);
   };
 
   const scorePercent =
@@ -673,7 +674,7 @@ export default function NgajiCeriaQuizPage() {
           <main className="max-w-md mx-auto w-full px-5 py-8 flex-1 flex flex-col items-center justify-center">
             <div className="w-full bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#0369A1)] border-[3px] border-[var(--border-color,#0284C7)] rounded-3xl p-8 shadow-[4px_4px_0px_var(--border-color,#0284C7)] flex flex-col items-center justify-center text-center space-y-6">
               <div className="w-14 h-14 rounded-full bg-sky-100 flex items-center justify-center mb-2">
-                <Volume2 size={28} className="animate-pulse text-[var(--border-color,#0284C7)]" />
+                <EqualizerIcon isPlaying={true} size={28} barClassName="bg-[var(--border-color,#0284C7)]" />
               </div>
               <div>
                 <p

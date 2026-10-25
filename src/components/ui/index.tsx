@@ -53,3 +53,4 @@ export type {
   BibiMascotVariant,
   BibiWaveProps,
 } from "./BibiMascot2D";
+export { EqualizerIcon, type EqualizerIconProps } from "./EqualizerIcon";
