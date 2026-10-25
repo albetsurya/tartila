@@ -79,7 +79,12 @@ export type TitoAccessoryType =
   | "hairbow"
   | "flowercrown"
   | "glasses"
-  | "crown";
+  | "crown"
+  | "wizardhat"
+  | "headphone"
+  | "sleepmask"
+  | "scarf"
+  | "turban";
 
 export type TilaAccessoryType = TitoAccessoryType;
 export type TitoHoldItem = "star" | "ball" | "heart";
@@ -1233,6 +1238,332 @@ export function TitoMascot({
       );
     }
 
+    if (resolvedAccessory === "turban") {
+      if (view === "side") {
+        return (
+          <g id="accessory-turban-side">
+            <path
+              d="M 212 142 Q 204 100 240 88 Q 282 74 308 100 Q 320 122 312 142 Q 262 150 212 142 Z"
+              fill="#FAFAF9"
+              stroke="#07473C"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 214 136 Q 262 146 308 134 M 222 104 Q 262 92 300 106"
+              fill="none"
+              stroke="#E7E5E4"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
+            <circle
+              cx="284"
+              cy="110"
+              r="5"
+              fill="#10B981"
+              stroke="#07473C"
+              strokeWidth="2.5"
+            />
+          </g>
+        );
+      }
+      return (
+        <g id={`accessory-turban-${view === "front" ? "front" : "back"}`}>
+          <path
+            d="M 200 142 Q 192 100 228 88 Q 264 72 300 96 Q 312 120 302 142 Q 250 150 200 142 Z"
+            fill="#FAFAF9"
+            stroke="#07473C"
+            strokeWidth="4.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 200 135 Q 250 148 300 133 M 214 112 Q 230 96 252 90 M 250 90 Q 276 96 292 112"
+            fill="none"
+            stroke="#E7E5E4"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {view === "front" && (
+            <g id="accessory-turban-front-jewel">
+              <circle
+                cx="250"
+                cy="104"
+                r="6"
+                fill="#10B981"
+                stroke="#07473C"
+                strokeWidth="2.5"
+              />
+            </g>
+          )}
+        </g>
+      );
+    }
+
+    if (resolvedAccessory === "wizardhat") {
+      if (view === "side") {
+        return (
+          <g id="accessory-wizardhat-side">
+            <path
+              d="M 262 18 L 232 96 L 302 96 Z"
+              fill="#A855F7"
+              stroke="#07473C"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 258 42 L 272 60 M 250 60 L 264 78"
+              stroke="#FBBF24"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+            />
+            <ellipse
+              cx="265"
+              cy="100"
+              rx="52"
+              ry="9"
+              fill="#A855F7"
+              stroke="#07473C"
+              strokeWidth="4.5"
+            />
+          </g>
+        );
+      }
+      return (
+        <g id={`accessory-wizardhat-${view === "front" ? "front" : "back"}`}>
+          <path
+            d="M 250 20 L 216 96 L 286 96 Z"
+            fill="#A855F7"
+            stroke="#07473C"
+            strokeWidth="4.5"
+            strokeLinejoin="round"
+          />
+          <polygon
+            points="250,52 253,60 261,60 255,65 257,73 250,68 243,73 245,65 239,60 247,60"
+            fill="#FBBF24"
+            stroke="#07473C"
+            strokeWidth="1.5"
+          />
+          <ellipse
+            cx="250"
+            cy="100"
+            rx="54"
+            ry="9"
+            fill="#A855F7"
+            stroke="#07473C"
+            strokeWidth="4.5"
+          />
+        </g>
+      );
+    }
+
+    if (resolvedAccessory === "headphone") {
+      if (view === "side") {
+        return (
+          <g id="accessory-headphone-side">
+            <path
+              d="M 220 112 Q 224 82 268 82"
+              fill="none"
+              stroke="#334155"
+              strokeWidth="7"
+              strokeLinecap="round"
+            />
+            <rect
+              x="216"
+              y="108"
+              width="24"
+              height="34"
+              rx="10"
+              fill="#FF6B6B"
+              stroke="#07473C"
+              strokeWidth="4.5"
+            />
+          </g>
+        );
+      }
+      return (
+        <g id={`accessory-headphone-${view === "front" ? "front" : "back"}`}>
+          <path
+            d="M 198 120 Q 202 78 250 78 Q 298 78 302 120"
+            fill="none"
+            stroke="#334155"
+            strokeWidth="7"
+            strokeLinecap="round"
+          />
+          {view === "front" ? (
+            <>
+              <g id="accessory-headphone-front-cup-l">
+                <rect
+                  x="190"
+                  y="112"
+                  width="26"
+                  height="38"
+                  rx="11"
+                  fill="#FF6B6B"
+                  stroke="#07473C"
+                  strokeWidth="4.5"
+                />
+              </g>
+              <g id="accessory-headphone-front-cup-r">
+                <rect
+                  x="284"
+                  y="112"
+                  width="26"
+                  height="38"
+                  rx="11"
+                  fill="#FF6B6B"
+                  stroke="#07473C"
+                  strokeWidth="4.5"
+                />
+              </g>
+            </>
+          ) : (
+            <g id="accessory-headphone-back-band">
+              <rect
+                x="196"
+                y="110"
+                width="32"
+                height="40"
+                rx="13"
+                fill="#FF6B6B"
+                stroke="#07473C"
+                strokeWidth="4.5"
+              />
+            </g>
+          )}
+        </g>
+      );
+    }
+
+    if (resolvedAccessory === "sleepmask") {
+      if (view === "side") {
+        return (
+          <g id="accessory-sleepmask-side">
+            <path
+              d="M 238 104 L 234 196"
+              fill="none"
+              stroke="#334155"
+              strokeWidth="6"
+              strokeLinecap="round"
+            />
+            <rect
+              x="232"
+              y="108"
+              width="42"
+              height="26"
+              rx="12"
+              fill="#60A5FA"
+              stroke="#07473C"
+              strokeWidth="4.5"
+            />
+            <circle cx="290" cy="230" r="4" fill="#60A5FA" />
+            <circle cx="282" cy="218" r="5" fill="#60A5FA" />
+            <circle cx="272" cy="204" r="6" fill="#60A5FA" />
+          </g>
+        );
+      }
+      return (
+        <g id={`accessory-sleepmask-${view === "front" ? "front" : "back"}`}>
+          {view === "front" ? (
+            <>
+              <g id="accessory-sleepmask-front-mask">
+                <path
+                  d="M 206 112 Q 250 102 294 112 Q 296 132 294 140 Q 250 148 206 140 Q 204 132 206 112 Z"
+                  fill="#60A5FA"
+                  stroke="#07473C"
+                  strokeWidth="4.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 232 124 H 244 M 258 124 H 270"
+                  stroke="#07473C"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </g>
+            </>
+          ) : (
+            <g id="accessory-sleepmask-back-strap">
+              <path
+                d="M 204 120 H 296"
+                fill="none"
+                stroke="#334155"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+            </g>
+          )}
+        </g>
+      );
+    }
+
+    if (resolvedAccessory === "scarf") {
+      if (view === "side") {
+        return (
+          <g id="accessory-scarf-side">
+            <path
+              d="M 218 148 Q 262 162 306 148 Q 308 168 304 178 Q 262 190 222 178 Q 216 168 218 148 Z"
+              fill="#FBBF24"
+              stroke="#07473C"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 288 172 L 284 232 L 258 228 L 264 176"
+              fill="#FBBF24"
+              stroke="#07473C"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 224 168 H 300"
+              stroke="#F59E0B"
+              strokeWidth="3.5"
+              strokeDasharray="6 6"
+            />
+          </g>
+        );
+      }
+      return (
+        <g id={`accessory-scarf-${view === "front" ? "front" : "back"}`}>
+          <path
+            d="M 206 146 Q 250 162 294 146 Q 300 168 294 180 Q 250 194 206 180 Q 202 168 206 146 Z"
+            fill="#FBBF24"
+            stroke="#07473C"
+            strokeWidth="4.5"
+            strokeLinejoin="round"
+          />
+          {view === "front" ? (
+            <g id="accessory-scarf-front-tail">
+              <path
+                d="M 276 176 L 272 240 L 244 234 L 252 180"
+                fill="#FBBF24"
+                stroke="#07473C"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 210 166 Q 250 180 292 164"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="3.5"
+                strokeDasharray="6 6"
+              />
+            </g>
+          ) : (
+            <g id="accessory-scarf-back-tail">
+              <path
+                d="M 260 178 L 262 236 L 236 232 L 240 178"
+                fill="#FBBF24"
+                stroke="#07473C"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+            </g>
+          )}
+        </g>
+      );
+    }
+
     return null;
   };
 
@@ -2082,7 +2413,7 @@ export function TitoMascot({
         </clipPath>
       </defs>
 
-      <circle cx="256" cy="252" r="112" fill="#CFD8B6" opacity="0.65" />
+      <circle cx="256" cy="252" r="112" fill={skinPalette.shadow} opacity="0.65" />
 
       <motion.ellipse
         cx="250"
@@ -2090,7 +2421,7 @@ export function TitoMascot({
         rx="148"
         ry="34"
         fill="none"
-        stroke="#C5D6A7"
+        stroke={skinPalette.shadow}
         strokeWidth="4"
         strokeDasharray="32 22 14 22"
         strokeLinecap="round"
@@ -2117,21 +2448,21 @@ export function TitoMascot({
           cy="128"
           rx="26"
           ry="9"
-          fill="#00937D"
-          stroke="#07473C"
+          fill={skinPalette.accent2}
+          stroke={skinPalette.stroke}
           strokeWidth="4.5"
         />
         <path
           d="M 240 126 C 240 100, 260 100, 260 126 Z"
-          fill="#00B894"
-          stroke="#07473C"
+          fill={skinPalette.accent1}
+          stroke={skinPalette.stroke}
           strokeWidth="4.5"
           strokeLinejoin="round"
         />
         <path
           d="M 228 344 L 250 382 L 272 344 Z"
-          fill="#FF5E6C"
-          stroke="#07473C"
+          fill={skinPalette.tailTip}
+          stroke={skinPalette.stroke}
           strokeWidth="4.5"
           strokeLinejoin="round"
         />
@@ -2140,8 +2471,8 @@ export function TitoMascot({
           cy="346"
           rx="28"
           ry="8"
-          fill="#00937D"
-          stroke="#07473C"
+          fill={skinPalette.accent2}
+          stroke={skinPalette.stroke}
           strokeWidth="4.5"
         />
       </motion.g>
@@ -2150,28 +2481,28 @@ export function TitoMascot({
         cx="250"
         cy="240"
         r="110"
-        fill="#FBBF24"
-        stroke="#07473C"
+        fill={skinPalette.body}
+        stroke={skinPalette.stroke}
         strokeWidth="4.5"
       />
 
       <g clipPath="url(#tila-spin-ball-clip)">
         <path
           d="M 130 162 Q 250 184 370 162 L 370 198 Q 250 220 130 198 Z"
-          fill="#00B894"
-          stroke="#07473C"
+          fill={skinPalette.accent1}
+          stroke={skinPalette.stroke}
           strokeWidth="4"
         />
         <path
           d="M 130 222 Q 250 244 370 222 L 370 258 Q 250 280 130 258 Z"
-          fill="#FFFFFF"
-          stroke="#07473C"
+          fill={skinPalette.wingsBase}
+          stroke={skinPalette.stroke}
           strokeWidth="4"
         />
         <path
           d="M 130 282 Q 250 304 370 282 L 370 318 Q 250 340 130 318 Z"
-          fill={isGirl ? "#FF6B6B" : "#00937D"}
-          stroke="#07473C"
+          fill={isGirl ? skinPalette.tailTip : skinPalette.accent2}
+          stroke={skinPalette.stroke}
           strokeWidth="4"
         />
 
@@ -2181,29 +2512,27 @@ export function TitoMascot({
         >
           {[-240, 0, 240].map((offset) => (
             <g key={offset} transform={`translate(${offset} 0)`}>
-              <ellipse cx="222" cy="208" rx="22" ry="8" fill="#07473C" />
-              <ellipse cx="226" cy="206" rx="9" ry="3.5" fill="#FFFFFF" />
-              <ellipse cx="278" cy="208" rx="22" ry="8" fill="#07473C" />
-              <ellipse cx="282" cy="206" rx="9" ry="3.5" fill="#FFFFFF" />
+              <ellipse cx="222" cy="208" rx="22" ry="8" fill={skinPalette.stroke} />
+              <ellipse cx="278" cy="208" rx="22" ry="8" fill={skinPalette.stroke} />
               <ellipse
                 cx="250"
                 cy="240"
                 rx="28"
                 ry="11"
-                fill="#FF5E6C"
-                stroke="#07473C"
+                fill={skinPalette.cheek}
+                stroke={skinPalette.stroke}
                 strokeWidth="3.5"
               />
               <path
                 d="M 170 180 L 215 180 M 285 180 L 330 180"
-                stroke="#FFFFFF"
+                stroke={skinPalette.wingsBase}
                 strokeWidth="5"
                 strokeLinecap="round"
                 opacity="0.85"
               />
               <path
                 d="M 185 300 L 235 300 M 265 300 L 315 300"
-                stroke="#FDE047"
+                stroke={skinPalette.accent1}
                 strokeWidth="5"
                 strokeLinecap="round"
                 opacity="0.9"
@@ -2214,7 +2543,7 @@ export function TitoMascot({
 
         <path
           d="M 140 280 C 175 338, 325 338, 360 280 C 335 362, 165 362, 140 280 Z"
-          fill="#EAA012"
+          fill={skinPalette.belly}
           opacity="0.85"
         />
         <ellipse
@@ -2233,7 +2562,7 @@ export function TitoMascot({
         cy="240"
         r="110"
         fill="none"
-        stroke="#07473C"
+        stroke={skinPalette.stroke}
         strokeWidth="4.5"
       />
 
@@ -2250,7 +2579,7 @@ export function TitoMascot({
       <motion.path
         d="M 118 252 C 135 276, 365 276, 382 252"
         fill="none"
-        stroke="#07473C"
+        stroke={skinPalette.stroke}
         strokeWidth="4"
         strokeLinecap="round"
         strokeDasharray="36 48"
@@ -2264,7 +2593,7 @@ export function TitoMascot({
         rx="44"
         ry="9"
         fill="none"
-        stroke="#07473C"
+        stroke={skinPalette.stroke}
         strokeWidth="3.5"
         strokeDasharray="18 14"
         animate={{
@@ -2293,8 +2622,8 @@ export function TitoMascot({
         >
           <path
             d="M 0 -11 L 3 -3 L 11 0 L 3 3 L 0 11 L -3 3 L -11 0 L -3 -3 Z"
-            fill="#FDE047"
-            stroke="#07473C"
+            fill={skinPalette.accent1}
+            stroke={skinPalette.stroke}
             strokeWidth="2.5"
             strokeLinejoin="round"
           />

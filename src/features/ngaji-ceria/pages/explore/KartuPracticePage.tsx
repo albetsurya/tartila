@@ -16,6 +16,7 @@ import { useEconomyStore } from '../../hooks/useEconomyStore';
 import { soundManager } from '../../services/soundManager';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { CheckSvg, ChevronRight, Volume2Svg, RotateCcwSvg } from '@/components/ui/CustomIcons';
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import type { HitResult } from '../../components/lab-irama/timingJudge';
 
 export default function KartuPracticePage() {
@@ -239,9 +240,7 @@ export default function KartuPracticePage() {
                 onClick={handlePlayAudio}
                 className="w-full py-4 rounded-2xl border-[3.5px] border-[#042F2E] bg-[#10B981] hover:bg-[#059669] active:translate-y-1 active:shadow-none text-white font-black text-base sm:text-lg shadow-[0_5px_0px_#042F2E] flex items-center justify-center gap-2.5 transition-all cursor-pointer select-none"
               >
-                <span className={`text-xl ${isPlayingAudio ? 'animate-bounce' : ''}`}>
-                  🔊
-                </span>
+                <EqualizerIcon isPlaying={isPlayingAudio} size={22} barClassName="bg-white" />
                 <span>
                   {isPlayingAudio ? 'Mendengarkan Qari...' : 'Dengar Bacaan Qari'}
                 </span>

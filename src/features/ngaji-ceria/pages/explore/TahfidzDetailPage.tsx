@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
 } from "../../../../components/ui/CustomIcons";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { LenteraIcon } from "../../components/LenteraIcon";
 import {
   getTargetBySurah,
@@ -305,7 +306,7 @@ export default function TahfidzDetailPage() {
                           }`}
                         >
                           {isAyahAudioActive ? (
-                            <Pause size={11} />
+                            <EqualizerIcon isPlaying={true} size={11} barClassName="bg-[#042F2E]" />
                           ) : (
                             <Play size={11} />
                           )}
