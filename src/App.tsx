@@ -92,6 +92,12 @@ const QuizHubPage = lazy(
 const QuizHubPlayPage = lazy(
   () => import("./features/ngaji-ceria/pages/QuizHubPlayPage"),
 );
+const DuelLobbyPage = lazy(
+  () => import("./features/ngaji-ceria/pages/quiz/DuelLobbyPage"),
+);
+const DuelPlayPage = lazy(
+  () => import("./features/ngaji-ceria/pages/quiz/DuelPlayPage"),
+);
 const NgajiCeriaLeaderboardPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaLeaderboardPage"),
 );
@@ -587,6 +593,14 @@ function AppRoutesContent() {
           <Route
             path="/member/ngaji-ceria/quiz-hub/versus"
             element={<QuizHubPlayPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/quiz/duel/lobby/:sessionId"
+            element={<DuelLobbyPage />}
+          />
+          <Route
+            path="/member/ngaji-ceria/quiz/duel/play/:sessionId"
+            element={<DuelPlayPage />}
           />
           <Route
             path="/member/ngaji-ceria/lab-irama"

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TilaMascot } from "@/components/ui/TilaMascot";
@@ -14,6 +14,11 @@ import {
 import { arenaRoomService, type ArenaRoom, type ArenaRoomPlayer } from "@/services/arenaRoomService";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeJoinCode } from "@/lib/joinCode";
+import { soundManager } from "../../services/soundManager";
+import { triggerBibiReaction } from "@/utils/tilaEvent";
+import { motion, AnimatePresence } from "framer-motion";
+
+const COUNTDOWN_STEPS = ["3", "2", "1", "MULAI!"];
 
 export default function RoomLobbyPage() {
   const { pin: rawPin } = useParams<{ pin: string }>();
@@ -27,12 +32,35 @@ export default function RoomLobbyPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countIndex, setCountIndex] = useState(0);
 
   // Cek apakah user adalah host
   const isHost = Boolean(
     (user?.id && room?.host_id && user.id === room.host_id) ||
     (typeof window !== "undefined" && window.sessionStorage.getItem(`arena_is_host_${pin}`) === "true")
   );
+
+  // Tentukan pemain lokal (host pakai kartu host, guest pakai session join)
+  useEffect(() => {
+    if (!room || myPlayerId) return;
+    let pid: string | null = null;
+    if (isHost) {
+      pid = players.find((p) => p.is_host)?.id ?? players[0]?.id ?? null;
+    } else {
+      pid =
+        (typeof window !== "undefined"
+          ? window.sessionStorage.getItem("arena_player_id")
+          : null) ||
+        players.find((p) => p.user_id === user?.id)?.id ||
+        null;
+    }
+    if (pid) setMyPlayerId(pid);
+  }, [players, isHost, room, user?.id, myPlayerId]);
+
+  const myReady = Boolean(players.find((p) => p.id === myPlayerId)?.is_ready);
+  const allReady = players.length > 0 && players.every((p) => p.is_ready);
 
   useEffect(() => {
     if (!pin) {
@@ -76,9 +104,9 @@ export default function RoomLobbyPage() {
             }
           },
           onGameStart: () => {
-            // Ketika host mulai game, semua pemain langsung berpindah
+            // Ketika host mulai game, semua pemain masuk hitung mundur dulu
             if (isMounted) {
-              navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`);
+              setShowCountdown(true);
             }
           },
         });
@@ -103,16 +131,38 @@ export default function RoomLobbyPage() {
   }, [pin, navigate, isHost]);
 
   const handleStartGame = async () => {
-    if (!room || !isHost || isStarting) return;
+    if (!room || !isHost || isStarting || !allReady) return;
+    triggerBibiReaction("click");
+    soundManager.playSfx("tap");
     setIsStarting(true);
     try {
       await arenaRoomService.startGame(room.id, pin);
-      navigate(`/arena/host/game/${pin}`);
+      setShowCountdown(true);
     } catch (err: any) {
       alert(err.message || "Gagal memulai permainan.");
       setIsStarting(false);
     }
   };
+
+  const handleToggleReady = async () => {
+    if (!room || !myPlayerId) return;
+    triggerBibiReaction("click");
+    soundManager.playSfx("tap");
+    const next = !myReady;
+    setPlayers((prev) => prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: next } : p)));
+    await arenaRoomService.setPlayerReady(room.id, myPlayerId, next);
+  };
+
+  useEffect(() => {
+    if (!showCountdown) return;
+    if (countIndex >= COUNTDOWN_STEPS.length) {
+      navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`);
+      return;
+    }
+    soundManager.playSfx("pop");
+    const timer = setTimeout(() => setCountIndex((i) => i + 1), 1000);
+    return () => clearTimeout(timer);
+  }, [showCountdown, countIndex, navigate, isHost, pin]);
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/arena/join?pin=${pin}`;
@@ -252,10 +302,19 @@ export default function RoomLobbyPage() {
                   <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A]">
                     {p.is_host || idx === 0 ? <CrownSvg size={16} /> : <GamepadSvg size={16} />}
                   </div>
-                  <div className="overflow-hidden">
+                  <div className="overflow-hidden flex-1 min-w-0">
                     <p className="truncate text-xs font-black text-[#134E4A]">{p.nickname}</p>
-                    <span className="text-[10px] font-bold text-[#134E4A]/50">
+                    <span className="block text-[10px] font-bold text-[#134E4A]/50">
                       {p.is_host || idx === 0 ? "Host Room" : "Pemain"}
+                    </span>
+                    <span
+                      className={`mt-1 inline-block px-2 py-0.5 rounded-md border-2 border-[#134E4A] text-[10px] font-black ${
+                        p.is_ready
+                          ? "bg-[#10B981] text-white"
+                          : "bg-[#E5E7EB] text-[#6B7280]"
+                      }`}
+                    >
+                      {p.is_ready ? "SIAP" : "MENUNGGU"}
                     </span>
                   </div>
                 </div>
@@ -264,24 +323,46 @@ export default function RoomLobbyPage() {
           )}
         </div>
 
-        {/* Action Panel: Tombol Mulai Game (HANYA MUNCUL UNTUK HOST) */}
+        {/* Tombol Siap / Batal Siap untuk semua pemain */}
         <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleToggleReady}
+            className={`w-full py-4 rounded-2xl border-[3px] border-[#134E4A] font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 ${
+              myReady ? "bg-[#10B981] text-white" : "bg-[#FEF08A] text-[#134E4A]"
+            }`}
+          >
+            <CheckSvg size={22} />
+            <span>{myReady ? "Batal Siap" : "Siap"}</span>
+          </button>
+        </div>
+
+        {/* Action Panel: Tombol Mulai Game (HANYA MUNCUL UNTUK HOST) */}
+        <div className="pt-3">
           {isHost ? (
             <button
               type="button"
-              disabled={isStarting}
+              disabled={isStarting || !allReady}
               onClick={handleStartGame}
-              className="w-full py-4 md:py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full py-4 md:py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <RocketSvg size={24} />
-              <span>{isStarting ? "Memulai Permainan..." : "Mulai Game Sekarang!"}</span>
+              <span>
+                {isStarting
+                  ? "Memulai Permainan..."
+                  : allReady
+                    ? "Mulai Game Sekarang!"
+                    : "Menunggu Pemain Lain..."}
+              </span>
             </button>
           ) : (
             <div className="p-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF9C3] shadow-[4px_4px_0px_#134E4A] flex items-center justify-center gap-3 text-center">
               <SparklesSvg size={22} />
               <div>
                 <p className="font-display font-black text-base text-[#134E4A]">
-                  Menunggu Host Memulai Permainan...
+                  {allReady
+                    ? "Semua pemain siap! Menunggu Host memulai..."
+                    : "Menunggu Host Memulai Permainan..."}
                 </p>
                 <p className="text-xs font-bold text-[#134E4A]/70 mt-0.5">
                   Layar akan otomatis berpindah begitu host menekan tombol mulai!
@@ -291,6 +372,31 @@ export default function RoomLobbyPage() {
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {showCountdown && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              key={countIndex}
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className={`font-display font-black leading-none ${
+                countIndex === COUNTDOWN_STEPS.length - 1
+                  ? "text-[4rem] text-[#FEF08A]"
+                  : "text-[9rem] text-[#0D9488]"
+              }`}
+            >
+              {COUNTDOWN_STEPS[countIndex]}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </NgajiCeriaLayout>
   );
 }

@@ -1,7 +1,9 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { TrophySvg, SparklesSvg, CrownSvg, ChartBarSvg } from "@/components/ui/CustomIcons";
+import { TrophySvg, SparklesSvg, CrownSvg, ChartBarSvg, WhatsAppSvg } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
+import { soundManager } from "../../services/soundManager";
+import { triggerBibiReaction } from "@/utils/tilaEvent";
 
 export default function ArenaPodiumPage() {
   const { pin } = useParams<{ pin: string }>();
@@ -28,6 +30,13 @@ export default function ArenaPodiumPage() {
   const firstPlace = leaderboard.find((p) => p.rank === 1);
   const secondPlace = leaderboard.find((p) => p.rank === 2);
   const thirdPlace = leaderboard.find((p) => p.rank === 3);
+
+  const myScore = state.myScore ?? firstPlace?.score ?? 0;
+  const myRank =
+    state.myRank ??
+    (state.myName
+      ? (leaderboard.find((p) => p.nickname === state.myName)?.rank ?? 1)
+      : 1);
 
   return (
     <NgajiCeriaLayout title="Podium Tartila Arena">
@@ -109,6 +118,23 @@ export default function ArenaPodiumPage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Bagikan Hasil ke WhatsApp */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            type="button"
+            onClick={() => {
+              triggerBibiReaction("click");
+              soundManager.playSfx("tap");
+              const text = `Aku baru saja menyelesaikan Tartila Arena! Aku mendapat peringkat ${myRank} dengan skor ${myScore}. Ayo ikut keseruannya di Tartila!`;
+              window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+            }}
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto py-4 px-6 rounded-2xl border-[3px] border-[#134E4A] bg-[#25D366] text-white font-black text-base shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all"
+          >
+            <WhatsAppSvg size={22} />
+            Bagikan ke WhatsApp
+          </button>
         </div>
 
         {/* Tabel Lengkap Seluruh Peserta */}

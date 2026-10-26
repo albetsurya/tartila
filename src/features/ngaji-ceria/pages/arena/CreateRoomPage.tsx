@@ -19,10 +19,13 @@ import {
 import { TargetTahfidzSvg } from "@/components/ui/Illustrations";
 import { SOAL_TILAWATI, SOAL_TAJWID, SOAL_NABI } from "../../data/quiz";
 import type { UniversalQuestion, QuestionCategory } from "../../data/quiz/types";
+import { GAME_METADATA_REGISTRY } from "../NgajiCeriaGamesPage";
 import { arenaRoomService } from "@/services/arenaRoomService";
 import { useAuth } from "@/contexts/AuthContext";
 import { isUstadzUser } from "@/lib/roles";
 import { getAudioUrl } from "../../utils/audioUrl";
+import { soundManager } from "../../services/soundManager";
+import { triggerBibiReaction } from "@/utils/tilaEvent";
 
 type TabType = "bank" | "manual" | "audio";
 type TierType = "free" | "vip" | "premium";
@@ -36,7 +39,11 @@ interface CasualGamePack {
   iconBg: string;
   category: QuestionCategory;
   questions: UniversalQuestion[];
+  registryId?: string;
 }
+
+const isQuizBasedPack = (pack: CasualGamePack): boolean =>
+  GAME_METADATA_REGISTRY[pack.registryId ?? ""]?.isQuizBased !== false;
 
 export default function CreateRoomPage() {
   const navigate = useNavigate();
@@ -63,6 +70,7 @@ export default function CreateRoomPage() {
       icon: TilawatiSvg,
       iconBg: "bg-[#FEF08A]",
       category: "tilawati",
+      registryId: "tilawati-memory",
       questions: SOAL_TILAWATI.slice(0, 10),
     },
     {
@@ -73,6 +81,7 @@ export default function CreateRoomPage() {
       icon: TargetTahfidzSvg,
       iconBg: "bg-[#FEE2E2]",
       category: "tajwid",
+      registryId: "ayat-scramble",
       questions: SOAL_TAJWID.slice(0, 10),
     },
     {
@@ -83,6 +92,7 @@ export default function CreateRoomPage() {
       icon: StarSvg,
       iconBg: "bg-[#FEF08A]",
       category: "nabi",
+      registryId: "quiz-hub",
       questions: SOAL_NABI.slice(0, 10),
     },
     {
@@ -93,6 +103,7 @@ export default function CreateRoomPage() {
       icon: FireSvg,
       iconBg: "bg-[#FFEDD5]",
       category: "tilawati",
+      registryId: "quiz-hub",
       questions: [
         ...SOAL_TILAWATI.slice(0, 4),
         ...SOAL_TAJWID.slice(0, 3),
@@ -318,13 +329,19 @@ export default function CreateRoomPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {CASUAL_PACKS.map((pack) => {
                 const isSelected = selectedPackId === pack.id;
+                const quizBased = isQuizBasedPack(pack);
                 const PackIcon = pack.icon;
                 return (
                   <button
                     key={pack.id}
                     type="button"
-                    onClick={() => setSelectedPackId(pack.id)}
-                    className={`p-4 rounded-2xl border-[3px] text-left transition-all flex flex-col justify-between gap-3 ${
+                    disabled={!quizBased}
+                    onClick={() => {
+                      triggerBibiReaction("click");
+                      soundManager.playSfx("tap");
+                      setSelectedPackId(pack.id);
+                    }}
+                    className={`p-4 rounded-2xl border-[3px] text-left transition-all flex flex-col justify-between gap-3 disabled:opacity-50 disabled:cursor-not-allowed ${
                       isSelected
                         ? "border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[#064e43] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] -translate-y-1 text-[#134E4A] dark:text-[#E6FFFA]"
                         : "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] hover:bg-[#F0FDF4] dark:hover:bg-slate-800 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] hover:-translate-y-0.5"
@@ -353,6 +370,11 @@ export default function CreateRoomPage() {
                       <p className="mt-1 text-xs font-bold text-[#134E4A]/70 dark:text-[var(--text-muted,#94A3B8)] line-clamp-2">
                         {pack.description}
                       </p>
+                      {!quizBased && (
+                        <span className="mt-1 inline-block w-fit px-2 py-0.5 rounded-md border-2 border-[#134E4A] bg-[#FEE2E2] text-[#991B1B] text-[10px] font-black">
+                          Hanya tersedia untuk Single Player
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-[#134E4A]/10 dark:border-white/10 text-xs font-black">

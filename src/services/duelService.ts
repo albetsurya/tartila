@@ -28,6 +28,31 @@ export interface ChallengeResult {
   roomId: string;
 }
 
+export interface CreateDuelSessionResult {
+  sessionId: string;
+  duelCode: string;
+}
+
+export interface JoinDuelSessionResult {
+  sessionId: string;
+  hostName: string;
+  questions: unknown[];
+}
+
+export interface SubmitDuelScoreResult {
+  ok: boolean;
+}
+
+const DUEL_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+export function generateDuelCode(): string {
+  let code = "";
+  for (let i = 0; i < 6; i += 1) {
+    code += DUEL_CODE_CHARS[Math.floor(Math.random() * DUEL_CODE_CHARS.length)];
+  }
+  return code;
+}
+
 export const duelService = {
   /** Daftar santri lain di kelas yang sama. */
   listClassmates: (roomId: string) =>
@@ -69,4 +94,25 @@ export const duelService = {
       `/api/v1/room/${encodeURIComponent(roomId)}/duel`,
       { enabled },
     ),
+
+  /** Buat sesi duel baru + kode 6 karakter untuk dibagikan. */
+  createDuelSession: (quizId: string, gameType: string) =>
+    callREST<CreateDuelSessionResult>("POST", "/api/v1/duel/session", {
+      quizId,
+      gameType,
+      duelCode: generateDuelCode(),
+    }),
+
+  /** Gabung sesi duel lewat kode. Backend ubah status waiting → playing. */
+  joinDuelSession: (duelCode: string) =>
+    callREST<JoinDuelSessionResult>("POST", "/api/v1/duel/join", {
+      duelCode,
+    }),
+
+  /** Simpan skor akhir user ke sesi duel. */
+  submitDuelScore: (sessionId: string, score: number) =>
+    callREST<SubmitDuelScoreResult>("POST", "/api/v1/duel/score", {
+      sessionId,
+      score,
+    }),
 };

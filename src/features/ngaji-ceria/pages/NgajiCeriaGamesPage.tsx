@@ -39,7 +39,7 @@ export interface GameEntry {
   bgColor?: string;
 }
 
-interface GameMetaInfo {
+export interface GameMetaInfo {
   title: string;
   genre: string;
   description: string;
@@ -47,13 +47,14 @@ interface GameMetaInfo {
   path: string;
   bestKey: string;
   isNew?: boolean;
+  isQuizBased?: boolean;
 }
 
 /**
  * Registry visual & rute untuk game/hub Tartila.
  * Tampilan aktual kartu sepenuhnya dikontrol oleh data database (is_active, display_type, sort_order).
  */
-const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
+export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   // 0. Pusat Kuis (Quiz Hub)
   "quiz-hub": {
     title: "Pusat Kuis",
@@ -63,6 +64,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/quiz-hub",
     bestKey: "quiz-hub",
     isNew: true,
+    isQuizBased: true,
   },
 
   // 1. Harakat Slasher
@@ -74,6 +76,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
     isNew: true,
+    isQuizBased: false,
   },
   "harakat-slasher": {
     title: "Harakat Slasher",
@@ -83,6 +86,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
     isNew: true,
+    isQuizBased: false,
   },
 
   // 2. Tilawati Memori
@@ -98,6 +102,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/memory/select",
     bestKey: "tilawati-memory",
     isNew: true,
+    isQuizBased: true,
   },
   "memory-match": {
     title: "Tilawati Memori",
@@ -111,6 +116,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/memory/select",
     bestKey: "tilawati-memory",
     isNew: true,
+    isQuizBased: true,
   },
 
   // 3. Ayat Scramble
@@ -121,6 +127,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <AyatScrambleCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/ayat-scramble",
     bestKey: "ayat-scramble:normal",
+    isQuizBased: true,
   },
 
   // 4. Hijaiyah 2048
@@ -131,6 +138,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <Hijaiyah2048CoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-2048",
     bestKey: "hijaiyah-2048",
+    isQuizBased: false,
   },
 
   // 5. Quiz Ngaji
@@ -141,6 +149,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <QuranQuizRoyaleCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/quiz-ngaji",
     bestKey: "quran-quiz-royale",
+    isQuizBased: true,
   },
 
   // 6. Hijaiyah Pop
@@ -151,6 +160,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <HijaiyahPopCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-pop",
     bestKey: "hijaiyah-pop",
+    isQuizBased: false,
   },
 
   // Game / Hub pendukung lainnya jika diaktifkan admin melalui CMS
@@ -161,6 +171,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <HarakatRushCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/ritme-ngaji",
     bestKey: "harakat-rush",
+    isQuizBased: false,
   },
   "puzzle-huruf": {
     title: "Puzzle Huruf",
@@ -169,6 +180,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <AyatScrambleCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/puzzle-huruf",
     bestKey: "ayat-scramble:normal",
+    isQuizBased: true,
   },
   "tajwid-lab": {
     title: "Tajwid Lab",
@@ -177,6 +189,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <TajwidArenaCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/tajwid-lab",
     bestKey: "tajwid-arena",
+    isQuizBased: false,
   },
   "petualangan-santri": {
     title: "Petualangan Santri",
@@ -186,6 +199,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/petualangan-santri",
     bestKey: "adab-rpg",
     isNew: true,
+    isQuizBased: false,
   },
   "makhraj-master": {
     title: "Makhraj Master",
@@ -194,6 +208,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <MakhrajMasterCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/makhraj-master",
     bestKey: "makhraj-master",
+    isQuizBased: false,
   },
   "hijaiyah-beats": {
     title: "Hijaiyah Beats",
@@ -202,6 +217,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <HijaiyahBeatsCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-beats",
     bestKey: "hijaiyah-beats",
+    isQuizBased: false,
   },
   "doa-dungeon": {
     title: "Doa Dungeon",
@@ -210,6 +226,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <DoaDungeonCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/doa-dungeon",
     bestKey: "doa-dungeon",
+    isQuizBased: true,
   },
   "sholat-hero": {
     title: "Sholat Hero",
@@ -218,6 +235,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <SholatHeroCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/sholat-hero",
     bestKey: "sholat-hero",
+    isQuizBased: true,
   },
   "wudhu-flow": {
     title: "Wudhu Flow",
@@ -226,6 +244,7 @@ const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     cover: <WudhuFlowCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/wudhu-flow",
     bestKey: "wudhu-flow",
+    isQuizBased: true,
   },
 };
 

@@ -26,6 +26,7 @@ export interface ArenaRoomPlayer {
   score: number;
   is_active: boolean;
   is_host?: boolean;
+  is_ready?: boolean;
   created_at?: string;
 }
 
@@ -357,6 +358,33 @@ export const arenaRoomService = {
     saveLocalRooms(localRooms);
 
     return true;
+  },
+
+  /**
+   * Tandai status "Siap" seorang pemain di lobi.
+   */
+  async setPlayerReady(
+    roomId: string,
+    playerId: string,
+    ready: boolean
+  ): Promise<void> {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from("room_players")
+          .update({ is_ready: ready })
+          .eq("id", playerId);
+      } catch {
+        // kolom is_ready mungkin belum ada; abaikan dan pakai mock
+      }
+    }
+
+    const all = getLocalPlayers();
+    const idx = all.findIndex((p) => p.id === playerId && p.room_id === roomId);
+    if (idx >= 0) {
+      all[idx] = { ...all[idx], is_ready: ready };
+      window.localStorage.setItem(LOCAL_PLAYERS_KEY, JSON.stringify(all));
+    }
   },
 
   /**
