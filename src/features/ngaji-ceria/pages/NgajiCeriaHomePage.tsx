@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "../../../contexts/AuthContext";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { DailyMissionsCard } from "../components/DailyMissionsCard";
@@ -31,7 +31,6 @@ import {
   CheckSvg,
   ChevronRightSvg,
   PlaySvg,
-  XSvg,
   DrumSvg,
   ClockSvg,
   LockSvg,
@@ -46,6 +45,7 @@ import { OnboardingModal } from "../components/OnboardingModal";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
 import { isUstadzUser } from "@/lib/roles";
+import { AppModal } from "@/components/ui/AppModal";
 
 interface DailyRewardItem {
   day: number;
@@ -793,42 +793,6 @@ export default function NgajiCeriaHomePage() {
             </button>
           </div>
 
-          {/* Banner Unggulan Lab Irama */}
-          <div
-            onClick={() => {
-              triggerBibiReaction("play");
-              navigate("/member/ngaji-ceria/lab-irama");
-            }}
-            className="text-left bg-gradient-to-r from-[#FDF4FF] to-[#FAF5FF] dark:from-[#3B0764] dark:to-[#1E1B4B] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-between gap-3 relative overflow-hidden cursor-pointer"
-          >
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-[#F3E8FF] dark:bg-slate-800 border-2 border-[#134E4A] dark:border-[#A855F7] flex items-center justify-center shrink-0 text-2xl shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)]">
-                <DrumSvg size={28} />
-              </div>
-              <div>
-                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FEF08A] text-[#000000] text-[10px] font-black uppercase tracking-wider mb-1 border-2 border-[#000000] shadow-[1.5px_1.5px_0px_#000000]">
-                  <SparklesSvg
-                    size={11}
-                    stroke="#000000"
-                    className="text-[#000000]"
-                  />{" "}
-                  BARU
-                </div>
-                <p className="text-sm md:text-base font-display font-black text-[var(--text-main,#134E4A)] leading-tight">
-                  Lab Irama & Ketukan
-                </p>
-                <p className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-gray-300">
-                  Latihan mandiri lagu Rost & ketukan mad Tilawati
-                </p>
-              </div>
-            </div>
-            <div className="shrink-0 relative z-10">
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0D9488] text-white font-black text-xs border-2 border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#FFFFFF]">
-                Latihan <ChevronRightSvg size={13} />
-              </span>
-            </div>
-          </div>
-
           <section>
             <SectionHeader
               title="Petualangan Tilawati"
@@ -948,182 +912,168 @@ export default function NgajiCeriaHomePage() {
           <div className="h-24" aria-hidden="true" />
         </div>
 
-        <AnimatePresence>
-          {showDailyModal && user && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                transition={{ type: "spring", damping: 25, stiffness: 260 }}
-                className="relative w-full max-w-sm rounded-[28px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#F0FDF4)] p-5 shadow-[6px_6px_0px_var(--shadow-color,#134E4A)] text-center max-h-[90vh] overflow-y-auto"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    autoModalTriggeredRef.current = true;
-                    setIsManualOpen(false);
-                    setShowDailyModal(false);
-                  }}
-                  className="absolute right-4 top-4 w-8 h-8 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#ffffff)] flex items-center justify-center text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 z-10"
+        <AppModal
+          isOpen={showDailyModal && !!user}
+          onClose={() => {
+            autoModalTriggeredRef.current = true;
+            setIsManualOpen(false);
+            setShowDailyModal(false);
+          }}
+          title="Hadiah Login Harian"
+        >
+          <div className="flex flex-col items-center">
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }}
+              transition={{
+                repeat: Infinity,
+                duration: 1.5,
+                ease: "easeInOut",
+              }}
+              className="w-16 h-16 rounded-2xl bg-[var(--bg-element,#FEF08A)] border-[3px] border-[var(--border-color,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center mb-2"
+            >
+              <PetiHartaSvg size={48} />
+            </motion.div>
+            <p className="text-xs font-bold text-[var(--text-main,#134E4A)]/60 mt-1">
+              Istiqomah mengaji setiap hari!
+            </p>
+
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-element,#FEF3C7)] px-3 py-1 text-[11px] font-black text-[var(--text-main,#B45309)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
+              <FireSvg size={22} />
+              <span>Streak: {effectiveStreak} Hari</span>
+              {streakMultiplier > 1 && (
+                <span className="bg-[#EA580C] text-white px-1.5 py-0.5 rounded-full text-[9px] font-black">
+                  Bonus {streakMultiplier}x!
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-4 gap-2">
+            {DAILY_REWARDS.map((r, idx) => {
+              const isClaimed =
+                idx + 1 < activeDay || (idx + 1 === activeDay && todayClaimed);
+              const isCurrent = idx + 1 === activeDay && !todayClaimed;
+              const finalCoins = Math.round(
+                r.coins * (isCurrent ? streakMultiplier : 1),
+              );
+
+              return (
+                <motion.div
+                  key={r.day}
+                  animate={isCurrent ? { scale: [1, 1.04, 1] } : undefined}
+                  transition={
+                    isCurrent
+                      ? {
+                          repeat: Infinity,
+                          duration: 2,
+                          ease: "easeInOut",
+                        }
+                      : undefined
+                  }
+                  className={`rounded-2xl border-[2px] p-2 text-center flex flex-col items-center justify-between transition-all ${
+                    idx === 6
+                      ? "col-span-2 flex-row justify-center gap-3 p-3 text-left"
+                      : ""
+                  } ${
+                    isClaimed
+                      ? "border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[var(--bg-element)] opacity-75 shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]"
+                      : isCurrent
+                        ? "border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] dark:bg-[var(--bg-element)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] -translate-y-0.5 ring-2 ring-[#0D9488]"
+                        : "border-dashed border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] opacity-70"
+                  }`}
                 >
-                  <XSvg size={16} />
-                </button>
+                  <div>
+                    <span className="text-[10px] font-black text-[var(--text-main,#134E4A)]/70 uppercase block">
+                      Hari {r.day}
+                    </span>
+                    <div className="w-8 h-8 flex items-center justify-center my-1 mx-auto">
+                      {r.image}
+                    </div>
+                    <span className="flex items-center justify-center gap-0.5 text-[11px] font-black text-[var(--text-main,#134E4A)]">
+                      <span>+{finalCoins}</span>
+                      <CoinSvg size={12} />
+                    </span>
+                  </div>
 
-                <div className="flex flex-col items-center">
-                  <motion.div
-                    animate={{ scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 1.5,
-                      ease: "easeInOut",
-                    }}
-                    className="w-16 h-16 rounded-2xl bg-[var(--bg-element,#FEF08A)] border-[3px] border-[var(--border-color,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center mb-2"
-                  >
-                    <PetiHartaSvg size={48} />
-                  </motion.div>
-                  <h3 className="font-display text-xl font-black text-[var(--text-main,#134E4A)]">
-                    Hadiah Login Harian
-                  </h3>
-                  <p className="text-xs font-bold text-[var(--text-main,#134E4A)]/60 mt-1">
-                    Istiqomah mengaji setiap hari!
-                  </p>
-
-                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-element,#FEF3C7)] px-3 py-1 text-[11px] font-black text-[var(--text-main,#B45309)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
-                    <FireSvg size={22} />
-                    <span>Streak: {effectiveStreak} Hari</span>
-                    {streakMultiplier > 1 && (
-                      <span className="bg-[#EA580C] text-white px-1.5 py-0.5 rounded-full text-[9px] font-black">
-                        Bonus {streakMultiplier}x!
+                  <div className={idx === 6 ? "mt-1" : ""}>
+                    {isClaimed ? (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-[#0D9488] bg-[var(--bg-card)] px-1.5 py-0.5 rounded-md border border-[#0D9488]">
+                        <CheckSvg size={10} /> Sudah
+                      </span>
+                    ) : isCurrent ? (
+                      <span className="text-[9px] font-black text-white bg-[#0D9488] px-1.5 py-0.5 rounded-md border border-[var(--border-color,#134E4A)]">
+                        Klaim!
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-black text-[var(--text-main,#134E4A)]/40 inline-flex items-center justify-center">
+                        <GiftSvg size={12} />
                       </span>
                     )}
                   </div>
-                </div>
+                </motion.div>
+              );
+            })}
+          </div>
 
-                <div className="mt-5 grid grid-cols-4 gap-2">
-                  {DAILY_REWARDS.map((r, idx) => {
-                    const isClaimed =
-                      idx + 1 < activeDay ||
-                      (idx + 1 === activeDay && todayClaimed);
-                    const isCurrent = idx + 1 === activeDay && !todayClaimed;
-                    const finalCoins = Math.round(
-                      r.coins * (isCurrent ? streakMultiplier : 1),
-                    );
-
-                    return (
-                      <motion.div
-                        key={r.day}
-                        animate={
-                          isCurrent ? { scale: [1, 1.04, 1] } : undefined
-                        }
-                        transition={
-                          isCurrent
-                            ? {
-                                repeat: Infinity,
-                                duration: 2,
-                                ease: "easeInOut",
-                              }
-                            : undefined
-                        }
-                        className={`rounded-2xl border-[2px] p-2 text-center flex flex-col items-center justify-between transition-all ${
-                          idx === 6
-                            ? "col-span-2 flex-row justify-center gap-3 p-3 text-left"
-                            : ""
-                        } ${
-                          isClaimed
-                            ? "border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[var(--bg-element)] opacity-75 shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]"
-                            : isCurrent
-                              ? "border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] dark:bg-[var(--bg-element)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] -translate-y-0.5 ring-2 ring-[#0D9488]"
-                              : "border-dashed border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] opacity-70"
-                        }`}
-                      >
-                        <div>
-                          <span className="text-[10px] font-black text-[var(--text-main,#134E4A)]/70 uppercase block">
-                            Hari {r.day}
-                          </span>
-                          <div className="w-8 h-8 flex items-center justify-center my-1 mx-auto">
-                            {r.image}
-                          </div>
-                          <span className="flex items-center justify-center gap-0.5 text-[11px] font-black text-[var(--text-main,#134E4A)]">
-                            <span>+{finalCoins}</span>
-                            <CoinSvg size={12} />
-                          </span>
-                        </div>
-
-                        <div className={idx === 6 ? "mt-1" : ""}>
-                          {isClaimed ? (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-[#0D9488] bg-[var(--bg-card)] px-1.5 py-0.5 rounded-md border border-[#0D9488]">
-                              <CheckSvg size={10} /> Sudah
-                            </span>
-                          ) : isCurrent ? (
-                            <span className="text-[9px] font-black text-white bg-[#0D9488] px-1.5 py-0.5 rounded-md border border-[var(--border-color,#134E4A)]">
-                              Klaim!
-                            </span>
-                          ) : (
-                            <span className="text-[9px] font-black text-[var(--text-main,#134E4A)]/40 inline-flex items-center justify-center">
-                              <GiftSvg size={12} />
-                            </span>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-6">
-                  {todayClaimed ? (
-                    <button
-                      type="button"
-                      disabled
-                      className="w-full py-3 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-gray-200 dark:bg-gray-800 text-[var(--text-main,#134E4A)]/50 font-black text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
-                    >
-                      <CheckSvg size={16} /> Sudah Diklaim Hari Ini
-                    </button>
-                  ) : (
-                    <motion.button
-                      type="button"
-                      disabled={isClaiming}
-                      onClick={handleClaim}
-                      whileHover={isClaiming ? undefined : { scale: 1.02 }}
-                      whileTap={isClaiming ? undefined : { scale: 0.95, y: 2 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 450,
-                        damping: 25,
-                      }}
-                      className="w-full py-3.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <SparklesSvg size={18} />
-                      {isClaiming ? (
-                        <>
-                          <Loader2Svg size={18} style={{ animation: "spin 1s linear infinite" }} />
-                          <span>Mengklaim Hadiah...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Klaim Hadiah Hari {activeDay} (+{Math.round(currentReward.coins * streakMultiplier)})</span>
-                          <CoinSvg size={16} />
-                        </>
-                      )}
-                    </motion.button>
-                  )}
-                </div>
-
-                <div className="mt-3.5 flex flex-col items-center gap-1.5 text-center">
-                  <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/70">
-                    Reset harian terjadi setiap pukul 04:00 Pagi.
-                  </p>
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] px-3 py-1 text-[10px] font-black text-[#0D9488] shadow-sm">
-                    <span className="inline-flex items-center gap-1"><ClockSvg size={13} /> Sisa waktu klaim hari ini:</span>
-                    <span className="tabular-nums font-mono font-black text-[var(--text-main,#134E4A)]">
-                      {timeUntilReset}
+          <div className="mt-6">
+            {todayClaimed ? (
+              <button
+                type="button"
+                disabled
+                className="w-full py-3 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-gray-200 dark:bg-gray-800 text-[var(--text-main,#134E4A)]/50 font-black text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                <CheckSvg size={16} /> Sudah Diklaim Hari Ini
+              </button>
+            ) : (
+              <motion.button
+                type="button"
+                disabled={isClaiming}
+                onClick={handleClaim}
+                whileHover={isClaiming ? undefined : { scale: 1.02 }}
+                whileTap={isClaiming ? undefined : { scale: 0.95, y: 2 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 450,
+                  damping: 25,
+                }}
+                className="w-full py-3.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <SparklesSvg size={18} />
+                {isClaiming ? (
+                  <>
+                    <Loader2Svg
+                      size={18}
+                      style={{ animation: "spin 1s linear infinite" }}
+                    />
+                    <span>Mengklaim Hadiah...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      Klaim Hadiah Hari {activeDay} (+
+                      {Math.round(currentReward.coins * streakMultiplier)})
                     </span>
-                  </div>
-                </div>
-              </motion.div>
+                    <CoinSvg size={16} />
+                  </>
+                )}
+              </motion.button>
+            )}
+          </div>
+
+          <div className="mt-3.5 flex flex-col items-center gap-1.5 text-center">
+            <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/70">
+              Reset harian terjadi setiap pukul 04:00 Pagi.
+            </p>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] px-3 py-1 text-[10px] font-black text-[#0D9488] shadow-sm">
+              <span className="inline-flex items-center gap-1">
+                <ClockSvg size={13} /> Sisa waktu klaim hari ini:
+              </span>
+              <span className="tabular-nums font-mono font-black text-[var(--text-main,#134E4A)]">
+                {timeUntilReset}
+              </span>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+        </AppModal>
 
         {/* Modal Onboarding Peran (Santri vs Ustadz) */}
         <OnboardingModal />

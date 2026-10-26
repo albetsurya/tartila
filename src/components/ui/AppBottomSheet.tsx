@@ -11,9 +11,19 @@ export interface AppBottomSheetProps {
 }
 
 /**
- * Bottom Sheet standar aplikasi.
+ * Bottom Sheet standar aplikasi (Single Source of Truth).
+ *
+ * ATURAN PENGGUNAAN:
+ * - **AppBottomSheet**: Pilihan ringan (pilih level game), filter, form pendek
+ *   (mis. Edit Profil/Avatar), dan aksi cepat yang mudah dijangkau jempol.
+ *   Non-blocking: konten di belakang tetap terlihat, user bisa langsung tutup
+ *   dengan klik backdrop / swipe / tombol X.
+ *
+ * - **AppModal**: Konfirmasi destruktif, error kritis, info penting, reward
+ *   (blocking). Posisi tengah, memerlukan perhatian penuh.
+ *
  * Dipakai untuk: aksi cepat, pilihan opsi, filter, dan form ringan
- * (mis. Edit Profil/Avatar) yang mudah dijangkau jempol.
+ * yang mudah dijangkau jempol.
  */
 export function AppBottomSheet({
   isOpen,
@@ -62,7 +72,7 @@ export function AppBottomSheet({
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[88dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[32px] border-t-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-5 pb-8 pt-3 shadow-[0_-6px_24px_rgba(0,0,0,0.25)]"
+            className="max-h-[88dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[32px] border-[3px] border-[#134E4A] bg-[var(--bg-card,#FFFFFF)] px-5 pb-8 pt-3 shadow-[0_-4px_0px_#134E4A]"
           >
             <div
               aria-hidden="true"

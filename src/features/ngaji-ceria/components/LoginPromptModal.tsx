@@ -1,6 +1,5 @@
-import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { LockSvg } from "@/components/ui/CustomIcons";
+import { AppModal } from "@/components/ui/AppModal";
 
 /**
  * Modal ajakan login saat tamu mengetuk konten terkunci.
@@ -16,36 +15,10 @@ export function LoginPromptModal({
   title?: string;
 }) {
   const navigate = useNavigate();
-  const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const panel = ref.current;
-    panel?.querySelector<HTMLButtonElement>("button")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-5 py-6"
-      onClick={onClose}
-    >
-      <div
-        ref={ref}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl border-[3px] border-[#134E4A] bg-[#F0FDF4] p-6 text-center text-[#134e4a] shadow-[6px_6px_0px_#134E4A]"
-      >
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#134e4a] px-3 py-1 text-xs font-black text-white">
-          <LockSvg size={13} /> {title}
-        </span>
+    <AppModal isOpen={open} onClose={onClose} title={title} variant="warm">
+      <div className="text-center">
         <h2 className="mt-3 font-display text-xl font-black">
           Masuk untuk Akses Penuh
         </h2>
@@ -69,6 +42,6 @@ export function LoginPromptModal({
           Nanti Saja
         </button>
       </div>
-    </div>
+    </AppModal>
   );
 }

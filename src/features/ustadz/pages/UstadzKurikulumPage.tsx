@@ -5,6 +5,7 @@ import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
 import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
+import { AppModal } from "@/components/ui/AppModal";
 import {
   CATALOG_TYPE_LABELS,
   LEARNING_CATALOG,
@@ -80,105 +81,103 @@ function TypeBadge({ type }: { type: CatalogType }) {
 }
 
 interface CatalogDetailModalProps {
-  entry: CatalogEntry;
+  entry: CatalogEntry | null;
   onClose: () => void;
   onOpen: (route: string) => void;
 }
 
 function CatalogDetailModal({ entry, onClose, onOpen }: CatalogDetailModalProps) {
-  const isGame = entry.type === "game";
+  const isGame = entry?.type === "game";
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
-      <StickerCard className="max-h-[85dvh] w-full max-w-md overflow-y-auto p-5 sm:rounded-2xl">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-base font-black text-[#134E4A]">{entry.title}</p>
-            <div className="mt-1 flex flex-wrap gap-1">
-              <TypeBadge type={entry.type} />
-              {isGame && (
-                <span
-                  className={`shrink-0 rounded-lg border-2 border-[#134E4A] px-2 py-0.5 text-[10px] font-black ${
-                    entry.access === "guest-open"
-                      ? "bg-[#DCFCE7] text-[#166534]"
-                      : "bg-[#FEF9C3] text-[#7C2D12]"
-                  }`}
-                >
-                  {entry.access === "guest-open"
-                    ? "Terbuka untuk tamu"
-                    : "Hanya member"}
-                </span>
-              )}
-              {entry.materiPokok.map((materi) => (
-                <MateriChip key={materi} label={MATERI_LABELS[materi]} materi={materi} />
-              ))}
-            </div>
+    <AppModal
+      isOpen={!!entry}
+      onClose={onClose}
+      title={entry?.title ?? ""}
+    >
+      {entry && (
+        <>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <TypeBadge type={entry.type} />
+            {isGame && (
+              <span
+                className={`shrink-0 rounded-lg border-2 border-[#134E4A] px-2 py-0.5 text-[10px] font-black ${
+                  entry.access === "guest-open"
+                    ? "bg-[#DCFCE7] text-[#166534]"
+                    : "bg-[#FEF9C3] text-[#7C2D12]"
+                }`}
+              >
+                {entry.access === "guest-open"
+                  ? "Terbuka untuk tamu"
+                  : "Hanya member"}
+              </span>
+            )}
+            {entry.materiPokok.map((materi) => (
+              <MateriChip key={materi} label={MATERI_LABELS[materi]} materi={materi} />
+            ))}
           </div>
-          <StickerButton variant="ghost" size="sm" onClick={onClose}>
-            Tutup
-          </StickerButton>
-        </div>
 
-        <p className="mt-3 text-xs font-bold text-[#134E4A]/80">
-          <span className="font-black">Tujuan Belajar:</span>{" "}
-          {entry.learningObjective}
-        </p>
-        <p className="mt-2 text-xs font-semibold text-[#134E4A]/80">
-          <span className="font-black">
-            {isGame ? "Cara Main:" : "Cara Belajar:"}
-          </span>{" "}
-          {entry.caraMain}
-        </p>
+          <p className="mt-3 text-xs font-bold text-[#134E4A]/80">
+            <span className="font-black">Tujuan Belajar:</span>{" "}
+            {entry.learningObjective}
+          </p>
+          <p className="mt-2 text-xs font-semibold text-[#134E4A]/80">
+            <span className="font-black">
+              {isGame ? "Cara Main:" : "Cara Belajar:"}
+            </span>{" "}
+            {entry.caraMain}
+          </p>
 
-        <div className="mt-3">
-          <p className="text-xs font-black text-[#134E4A]">Jilid Relevan</p>
-          {entry.jilidRelevan.length > 0 ? (
-            <div className="mt-1 flex gap-1">
-              {entry.jilidRelevan.map((jilid) => (
-                <span
-                  key={jilid}
-                  className="h-7 w-7 rounded-lg border-[3px] border-[#134E4A] bg-[#FEF3C7] text-center text-xs font-black leading-6 text-[#7C2D12]"
+          <div className="mt-3">
+            <p className="text-xs font-black text-[#134E4A]">Jilid Relevan</p>
+            {entry.jilidRelevan.length > 0 ? (
+              <div className="mt-1 flex gap-1">
+                {entry.jilidRelevan.map((jilid) => (
+                  <span
+                    key={jilid}
+                    className="h-7 w-7 rounded-lg border-[3px] border-[#134E4A] bg-[#FEF3C7] text-center text-xs font-black leading-6 text-[#7C2D12]"
+                  >
+                    {jilid}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
+                Materi pengayaan: tidak terikat jilid Tilawati.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-3">
+            <p className="text-xs font-black text-[#134E4A]">
+              Tips Membimbing Santri
+            </p>
+            <ul className="mt-1 space-y-1">
+              {entry.tipsUstadz.map((tip) => (
+                <li
+                  key={tip}
+                  className="list-disc pl-4 text-[11px] font-semibold text-[#134E4A]/80"
                 >
-                  {jilid}
-                </span>
+                  {tip}
+                </li>
               ))}
-            </div>
-          ) : (
-            <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
-              Materi pengayaan: tidak terikat jilid Tilawati.
+            </ul>
+          </div>
+
+          <StickerButton
+            className="mt-4 w-full"
+            onClick={() => onOpen(`/ustadz/preview/${entry.id}`)}
+          >
+            {entry.type === "quiz" ? "Buka Kuis" : entry.type === "game" ? "Buka Game" : "Buka Materi"}
+          </StickerButton>
+
+          {entry.needsContentValidation && (
+            <p className="mt-3 rounded-xl border-2 border-dashed border-[#FF6B6B] bg-[#FFF0F0] p-2 text-[10px] font-bold text-[#7C2D12]">
+              Metadata ini masih draf: perlu validasi konten oleh tim kurikulum.
             </p>
           )}
-        </div>
-
-        <div className="mt-3">
-          <p className="text-xs font-black text-[#134E4A]">
-            Tips Membimbing Santri
-          </p>
-          <ul className="mt-1 space-y-1">
-            {entry.tipsUstadz.map((tip) => (
-              <li
-                key={tip}
-                className="list-disc pl-4 text-[11px] font-semibold text-[#134E4A]/80"
-              >
-                {tip}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <StickerButton
-          className="mt-4 w-full"
-          onClick={() => onOpen(`/ustadz/preview/${entry.id}`)}
-        >
-          {entry.type === "quiz" ? "Buka Kuis" : entry.type === "game" ? "Buka Game" : "Buka Materi"}
-        </StickerButton>
-
-        {entry.needsContentValidation && (
-          <p className="mt-3 rounded-xl border-2 border-dashed border-[#FF6B6B] bg-[#FFF0F0] p-2 text-[10px] font-bold text-[#7C2D12]">
-            Metadata ini masih draf: perlu validasi konten oleh tim kurikulum.
-          </p>
-        )}
-      </StickerCard>
-    </div>
+        </>
+      )}
+    </AppModal>
   );
 }
 
@@ -363,16 +362,14 @@ export function UstadzKurikulumPage() {
           ))}
         </motion.div>
 
-        {detailEntry && (
-          <CatalogDetailModal
-            entry={detailEntry}
-            onClose={() => setDetailEntry(null)}
-            onOpen={(route) => {
-              setDetailEntry(null);
-              navigate(route);
-            }}
-          />
-        )}
+        <CatalogDetailModal
+          entry={detailEntry}
+          onClose={() => setDetailEntry(null)}
+          onOpen={(route) => {
+            setDetailEntry(null);
+            navigate(route);
+          }}
+        />
       </div>
     </>
   );

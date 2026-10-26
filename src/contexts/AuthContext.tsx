@@ -8,7 +8,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { authApi } from "@/services/authApi";
 import { getToken, clearToken } from "@/services/api";
-import { isUstadzRole, isUstadzUser } from "@/lib/roles";
+import { isUstadzRole, isUstadzUser, normalizeRole } from "@/lib/roles";
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { userApi } from "@/services/userApi";
@@ -359,8 +359,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
         setUser((prev) => {
           const merged: CeriaUser = {
             ...fromSession,
-            // Pertahankan role, isVip, name, group_id, gender dari Backend Go (langkah 1).
-            role: prev?.role || goData.role || fromSession.role,
+            // Backend Go (langkah 1) adalah SSOT role; JANGAN biarkan role
+            // teroptimisasi dari cache localStorage (prev) menimpa Go role,
+            // karena berisiko menyelamatkan role 'admin' Sambung Ngaji yang
+            // kadaluarsa dan membocorkan akses /admin Tartila.
+            role: goData.role || fromSession.role,
             is_vip: prev?.is_vip ?? goData.is_vip ?? fromSession.is_vip,
             name: prev?.name || goData.name || fromSession.name,
             group_id: prev?.group_id ?? goData.group_id ?? fromSession.group_id,
@@ -410,7 +413,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
         email: null,
         username: legacyUser.username || identifier,
         name: legacyUser.name || identifier,
-        role: legacyUser.role || 'member',
+        // Admin Sambung Ngaji (role 'admin' / 'ADMIN') dilarang masuk Tartila.
+        // Dipaksa jadi 'member' saat login via legacy REST agar tidak menembus guard /admin.
+        role:
+          normalizeRole(legacyUser.role) === 'admin'
+            ? 'member'
+            : (legacyUser.role || 'member'),
         group_id: legacyUser.group_id || null,
         is_vip: false,
         is_ustadz: isUstadzUser(legacyUser),

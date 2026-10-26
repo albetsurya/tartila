@@ -2,7 +2,9 @@
    Border tebal #134E4A, hard shadow, warna ceria (#FEF3C7, #FEF08A, #0D9488).
    Dark mode digerakkan class `.dark` pada <html> (src/contexts/ThemeContext.tsx). */
 
-.admin-shell {
+/* Var admin diglobalkan ke :root agar tetap tersedia saat modal di-render
+   lewat portal (document.body), di luar .admin-shell. */
+:root {
   --admin-bg: #fef3c7;
   --admin-surface: #fffbeb;
   --admin-border: #134e4a;
@@ -14,18 +16,9 @@
   --admin-danger-soft: #fff0f0;
   --admin-skeleton: #fde68a;
   --admin-teal-soft: #ccfbf1;
-
-  background-color: var(--admin-bg);
-  color: var(--admin-text);
-  font-family:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
 }
 
-.dark .admin-shell {
+.dark {
   --admin-bg: #0b1220;
   --admin-surface: #101a2a;
   --admin-border: #0d9488;
@@ -37,6 +30,17 @@
   --admin-danger-soft: #221015;
   --admin-skeleton: #1c2b40;
   --admin-teal-soft: #0f2f2c;
+}
+
+.admin-shell {
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .admin-metro {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   DAILY_MISSIONS,
   claimMission,
@@ -10,11 +10,11 @@ import {
   Sparkles,
   Check,
   Coins,
-  X,
   BookOpen,
   Gamepad,
   Fire,
 } from "../../../components/ui/CustomIcons";
+import { AppModal } from "@/components/ui/AppModal";
 import { PetiHartaSvg } from "@/components/ui/Illustrations";
 import { useNgajiProgress } from "../pages/games/_shared/progression";
 import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
@@ -181,160 +181,131 @@ export function DailyMissionsCard() {
       </div>
 
       {/* MODAL DETAIL MISI */}
-      <AnimatePresence>
+      <AppModal
+        isOpen={!!selectedMission}
+        onClose={() => setSelectedMission(null)}
+        title={selectedMission?.title ?? ""}
+        variant="warm"
+      >
         {selectedMission && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedMission(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-            />
-            <motion.div
-              initial={{ scale: 0.8, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.8, y: 50, opacity: 0 }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none"
-            >
-              <div className="w-full max-w-sm bg-[#FFFBEB] dark:bg-[var(--bg-card)] rounded-[32px] border-[4px] border-[var(--border-color,#134E4A)] shadow-[8px_8px_0px_var(--shadow-color,#134E4A)] p-6 pointer-events-auto relative overflow-hidden text-[var(--text-main,#134E4A)]">
-                {/* Ornamen Background Modal */}
-                <div className="absolute -top-10 -right-10 opacity-10">
-                  <Sparkles size={150} />
-                </div>
+            <div className="flex flex-col items-center text-center mt-2">
+              {/* Animasi Peti Harta (Menggunakan SVG ukuran 140) */}
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2.5,
+                  ease: "easeInOut",
+                }}
+                className="mb-2 drop-shadow-xl text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]"
+              >
+                <PetiHartaSvg size={140} stroke="#134E4A" />
+              </motion.div>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedMission(null)}
-                  className="absolute right-4 top-4 w-9 h-9 rounded-full border-[3px] border-[#134E4A] bg-[#FF6B6B] flex items-center justify-center shadow-[2px_2px_0px_#134E4A] active:translate-y-0.5 active:shadow-none z-20 hover:bg-[#EF4444] transition-colors"
-                  aria-label="Tutup modal"
-                >
-                  <X size={16} showCircle={false} stroke="#FFFFFF" className="text-white" />
-                </button>
+              <p className="text-xs font-bold text-[#134E4A]/80 dark:text-gray-300 mt-2 px-2">
+                {selectedMission.description}
+              </p>
 
-                <div className="relative z-10 flex flex-col items-center text-center mt-2">
-                  {/* Animasi Peti Harta (Menggunakan SVG ukuran 140) */}
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 2.5,
-                      ease: "easeInOut",
-                    }}
-                    className="mb-2 drop-shadow-xl text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]"
-                  >
-                    <PetiHartaSvg size={140} stroke="#134E4A" />
-                  </motion.div>
-
-                  <h3 className="font-display text-2xl font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] leading-tight">
-                    {selectedMission.title}
-                  </h3>
-                  <p className="text-xs font-bold text-[#134E4A]/80 dark:text-gray-300 mt-2 px-2">
-                    {selectedMission.description}
-                  </p>
-
-                  {/* Info Hadiah yang Lebih Mencolok */}
-                  <div className="mt-5 flex items-center justify-center gap-3 w-full">
-                    <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[#134E4A] dark:border-[var(--border-color,#134E4A)] rounded-2xl py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
-                      <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] border-2 border-[#134E4A] flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_#134E4A]">
-                        <Coins size={22} className="text-[#F59E0B]" stroke="#134E4A" />
-                      </div>
-                      <span className="text-base font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
-                        +{selectedMission.rewardCoins}
-                      </span>
-                      <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-gray-300 uppercase tracking-widest mt-0.5">
-                        Koin
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[#134E4A] dark:border-[var(--border-color,#134E4A)] rounded-2xl py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
-                      <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] border-2 border-[#134E4A] flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_#134E4A]">
-                        <Sparkles size={22} className="text-[#0D9488]" stroke="#134E4A" />
-                      </div>
-                      <span className="text-base font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
-                        +{selectedMission.rewardXp}
-                      </span>
-                      <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-gray-300 uppercase tracking-widest mt-0.5">
-                        EXP
-                      </span>
-                    </div>
+              {/* Info Hadiah yang Lebih Mencolok */}
+              <div className="mt-5 flex items-center justify-center gap-3 w-full">
+                <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[#134E4A] dark:border-[var(--border-color,#134E4A)] rounded-2xl py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                  <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] border-2 border-[#134E4A] flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_#134E4A]">
+                    <Coins size={22} className="text-[#F59E0B]" stroke="#134E4A" />
                   </div>
-
-                  {/* Progress Bar Modal */}
-                  <div className="w-full mt-6">
-                    <div className="flex justify-between text-[10px] font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mb-1.5 uppercase tracking-wider">
-                      <span>Progres Misi</span>
-                      <span>
-                        {getMissionCurrentProgress(selectedMission)} /{" "}
-                        {selectedMission.target}
-                      </span>
-                    </div>
-                    <AnimatedProgressBar
-                      value={Math.min(100, (getMissionCurrentProgress(selectedMission) / selectedMission.target) * 100)}
-                      height="h-4"
-                      className="border-[3px] shadow-inner"
-                      barClassName="bg-[#10B981] dark:bg-[#34D399]"
-                    />
-                  </div>
+                  <span className="text-base font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                    +{selectedMission.rewardCoins}
+                  </span>
+                  <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-gray-300 uppercase tracking-widest mt-0.5">
+                    Koin
+                  </span>
                 </div>
-
-                {/* TOMBOL AKSI MODAL */}
-                <div className="mt-7 relative z-10">
-                  {(() => {
-                    const current = getMissionCurrentProgress(selectedMission);
-                    const completed = current >= selectedMission.target;
-                    const claimed = isMissionClaimed(selectedMission.id);
-
-                    if (claimed) {
-                      return (
-                        <button
-                          disabled
-                          className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-gray-200 text-[#134E4A]/50 font-black text-sm flex items-center justify-center gap-2 cursor-not-allowed shadow-[3px_3px_0px_#134E4A]"
-                        >
-                          <Check size={18} /> Hadiah Diklaim
-                        </button>
-                      );
-                    }
-
-                    if (completed) {
-                      return (
-                        <motion.button
-                          animate={{ scale: [1, 1.03, 1] }}
-                          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                          whileHover={{ scale: 1.04, rotate: [0, -1.5, 1.5, -1.5, 0] }}
-                          whileTap={{ scale: 0.95, y: 2 }}
-                          onClick={() => {
-                            claimMission(selectedMission);
-                            setRefresh((r) => r + 1);
-                            setSelectedMission(null);
-                          }}
-                          className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-[#F59E0B] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer"
-                        >
-                          <Sparkles size={18} /> Klaim Hadiah!
-                        </motion.button>
-                      );
-                    }
-
-                    return (
-                      <button
-                        onClick={() => {
-                          setSelectedMission(null);
-                          if ((selectedMission as any).to) {
-                            window.location.href = (selectedMission as any).to;
-                          }
-                        }}
-                        className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-wide"
-                      >
-                        Kerjakan Sekarang
-                      </button>
-                    );
-                  })()}
+                <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[#134E4A] dark:border-[var(--border-color,#134E4A)] rounded-2xl py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                  <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] border-2 border-[#134E4A] flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_#134E4A]">
+                    <Sparkles size={22} className="text-[#0D9488]" stroke="#134E4A" />
+                  </div>
+                  <span className="text-base font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                    +{selectedMission.rewardXp}
+                  </span>
+                  <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-gray-300 uppercase tracking-widest mt-0.5">
+                    EXP
+                  </span>
                 </div>
               </div>
-            </motion.div>
+
+              {/* Progress Bar Modal */}
+              <div className="w-full mt-6">
+                <div className="flex justify-between text-[10px] font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mb-1.5 uppercase tracking-wider">
+                  <span>Progres Misi</span>
+                  <span>
+                    {getMissionCurrentProgress(selectedMission)} /{" "}
+                    {selectedMission.target}
+                  </span>
+                </div>
+                <AnimatedProgressBar
+                  value={Math.min(100, (getMissionCurrentProgress(selectedMission) / selectedMission.target) * 100)}
+                  height="h-4"
+                  className="border-[3px] shadow-inner"
+                  barClassName="bg-[#10B981] dark:bg-[#34D399]"
+                />
+              </div>
+            </div>
+
+            {/* TOMBOL AKSI MODAL */}
+            <div className="mt-7">
+              {(() => {
+                const current = getMissionCurrentProgress(selectedMission);
+                const completed = current >= selectedMission.target;
+                const claimed = isMissionClaimed(selectedMission.id);
+
+                if (claimed) {
+                  return (
+                    <button
+                      disabled
+                      className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-gray-200 text-[#134E4A]/50 font-black text-sm flex items-center justify-center gap-2 cursor-not-allowed shadow-[3px_3px_0px_#134E4A]"
+                    >
+                      <Check size={18} /> Hadiah Diklaim
+                    </button>
+                  );
+                }
+
+                if (completed) {
+                  return (
+                    <motion.button
+                      animate={{ scale: [1, 1.03, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      whileHover={{ scale: 1.04, rotate: [0, -1.5, 1.5, -1.5, 0] }}
+                      whileTap={{ scale: 0.95, y: 2 }}
+                      onClick={() => {
+                        claimMission(selectedMission);
+                        setRefresh((r) => r + 1);
+                        setSelectedMission(null);
+                      }}
+                      className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-[#F59E0B] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer"
+                    >
+                      <Sparkles size={18} /> Klaim Hadiah!
+                    </motion.button>
+                  );
+                }
+
+                return (
+                  <button
+                    onClick={() => {
+                      setSelectedMission(null);
+                      if ((selectedMission as any).to) {
+                        window.location.href = (selectedMission as any).to;
+                      }
+                    }}
+                    className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-wide"
+                  >
+                    Kerjakan Sekarang
+                  </button>
+                );
+              })()}
+            </div>
           </>
         )}
-      </AnimatePresence>
+      </AppModal>
     </>
   );
 }

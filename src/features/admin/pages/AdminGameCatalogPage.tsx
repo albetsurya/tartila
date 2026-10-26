@@ -32,6 +32,7 @@ import {
   type AdminGameFilter,
   type GameCatalogOverride,
 } from "../services/gameCatalogAdminService";
+import { AppModal } from "@/components/ui/AppModal";
 
 const JILID_OPTIONS: JilidNumber[] = [1, 2, 3, 4, 5];
 
@@ -633,39 +634,36 @@ export function AdminGameCatalogPage() {
       )}
 
       {/* Modal Konfirmasi Reset Semua */}
-      {confirmResetAll && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="admin-surface admin-border w-full max-w-md rounded-2xl border p-6 shadow-2xl">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
-              <RefreshCw size={24} />
-            </div>
-            <h3 className="mt-4 text-lg font-bold">
-              Reset Seluruh Kustomisasi Game?
-            </h3>
-            <p className="mt-2 text-sm admin-muted">
-              Tindakan ini akan mengembalikan semua hak akses tamu, status
-              validasi, dan deskripsi tujuan pembelajaran {stats.overriddenCount}{" "}
-              game yang telah diubah ke konfigurasi bawaan sistem.
-            </p>
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmResetAll(false)}
-                className="admin-surface admin-border rounded-lg border px-4 py-2 text-sm font-medium hover:bg-[var(--admin-accent-soft)]"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmResetAll}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
-              >
-                Ya, Reset Semua
-              </button>
-            </div>
-          </div>
+      <AppModal
+        isOpen={confirmResetAll}
+        onClose={() => setConfirmResetAll(false)}
+        title="Reset Seluruh Kustomisasi Game?"
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
+          <RefreshCw size={24} />
         </div>
-      )}
+        <p className="mt-2 text-sm admin-muted">
+          Tindakan ini akan mengembalikan semua hak akses tamu, status
+          validasi, dan deskripsi tujuan pembelajaran {stats.overriddenCount}{" "}
+          game yang telah diubah ke konfigurasi bawaan sistem.
+        </p>
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setConfirmResetAll(false)}
+            className="admin-surface admin-border rounded-lg border px-4 py-2 text-sm font-medium hover:bg-[var(--admin-accent-soft)]"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmResetAll}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            Ya, Reset Semua
+          </button>
+        </div>
+      </AppModal>
     </div>
   );
 }
@@ -1159,314 +1157,294 @@ function EditGameModal({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
-    >
-      <div className="admin-surface admin-border flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border shadow-2xl animate-in fade-in zoom-in-95">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-6 py-4">
-          <div>
-            <h2 className="text-lg font-bold">Edit Metadata Game</h2>
-            <p className="font-mono text-xs admin-muted">id: {game.gameId}</p>
+    <AppModal isOpen={true} onClose={onClose} title="Edit Metadata Game">
+      <p className="font-mono text-xs admin-muted">id: {game.gameId}</p>
+
+      <form
+        id="edit-game-form"
+        onSubmit={handleSubmit}
+        className="admin-scroll mt-4 space-y-5 text-sm"
+      >
+        {/* Judul Game */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Judul Game
+          </label>
+          <input
+            type="text"
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        {/* Tingkat Akses (Radio Cards) */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Hak Akses Santri
+          </label>
+          <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+                access === "guest-open"
+                  ? "border-teal-500 bg-teal-500/10 font-semibold"
+                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="access"
+                value="guest-open"
+                checked={access === "guest-open"}
+                onChange={() => setAccess("guest-open")}
+                className="mt-0.5 text-teal-600 focus:ring-teal-500"
+              />
+              <div>
+                <span className="block text-xs font-bold text-teal-700 dark:text-teal-300">
+                  Terbuka untuk Tamu (Guest Open)
+                </span>
+                <span className="mt-0.5 block text-[11px] admin-muted">
+                  Dapat dimainkan santri tanpa perlu login akun.
+                </span>
+              </div>
+            </label>
+
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+                access === "member-only"
+                  ? "border-indigo-500 bg-indigo-500/10 font-semibold"
+                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="access"
+                value="member-only"
+                checked={access === "member-only"}
+                onChange={() => setAccess("member-only")}
+                className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+              />
+              <div>
+                <span className="block text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                  Khusus Member (Wajib Login)
+                </span>
+                <span className="mt-0.5 block text-[11px] admin-muted">
+                  Santri harus masuk akun terlebih dahulu.
+                </span>
+              </div>
+            </label>
           </div>
+        </div>
+
+        {/* Status Validasi Konten */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Status Validasi Kurikulum
+          </label>
+          <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+                !needsContentValidation
+                  ? "border-emerald-500 bg-emerald-500/10 font-semibold"
+                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="validation"
+                checked={!needsContentValidation}
+                onChange={() => setNeedsContentValidation(false)}
+                className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+              />
+              <div>
+                <span className="block text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  Tervalidasi Resmi
+                </span>
+                <span className="mt-0.5 block text-[11px] admin-muted">
+                  Konten dan materi sudah diverifikasi tim ustadz/kurikulum.
+                </span>
+              </div>
+            </label>
+
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+                needsContentValidation
+                  ? "border-amber-500 bg-amber-500/10 font-semibold"
+                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="validation"
+                checked={needsContentValidation}
+                onChange={() => setNeedsContentValidation(true)}
+                className="mt-0.5 text-amber-600 focus:ring-amber-500"
+              />
+              <div>
+                <span className="block text-xs font-bold text-amber-700 dark:text-amber-300">
+                  Perlu Validasi (Draf)
+                </span>
+                <span className="mt-0.5 block text-[11px] admin-muted">
+                  Perlu peninjauan ulang keselarasan tajwid/makhraj.
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Materi Pokok Tags Checkbox */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Materi Pokok Terkait
+          </label>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {ALL_MATERI_POKOK.map((m) => {
+              const checked = materiPokok.includes(m);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => handleToggleMateri(m)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                    checked
+                      ? "bg-[var(--admin-accent)] text-white shadow-xs"
+                      : "admin-surface admin-border border admin-muted hover:border-[var(--admin-accent)]"
+                  }`}
+                >
+                  {MATERI_LABELS[m]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Jilid Relevan */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Jilid Tilawati Relevan
+          </label>
+          <div className="mt-2 flex items-center gap-2">
+            {JILID_OPTIONS.map((j) => {
+              const checked = jilidRelevan.includes(j);
+              return (
+                <button
+                  key={j}
+                  type="button"
+                  onClick={() => handleToggleJilid(j)}
+                  className={`flex h-8 w-16 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                    checked
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "admin-surface admin-border border admin-muted hover:border-emerald-500"
+                  }`}
+                >
+                  Jilid {j}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tujuan Pembelajaran */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Tujuan Pembelajaran
+          </label>
+          <textarea
+            rows={2}
+            required
+            value={learningObjective}
+            onChange={(e) => setLearningObjective(e.target.value)}
+            className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        {/* Cara Bermain */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            Instruksi / Cara Main
+          </label>
+          <textarea
+            rows={3}
+            required
+            value={caraMain}
+            onChange={(e) => setCaraMain(e.target.value)}
+            className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        {/* Tips Ustadz */}
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+              Tips Ustadz ({tipsUstadz.length})
+            </label>
+            <button
+              type="button"
+              onClick={handleAddTip}
+              className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+            >
+              <Plus size={13} />
+              Tambah Tips
+            </button>
+          </div>
+          <div className="mt-2 space-y-2">
+            {tipsUstadz.map((tip, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={tip}
+                  onChange={(e) => handleUpdateTip(idx, e.target.value)}
+                  placeholder={`Tips #${idx + 1}`}
+                  className="admin-surface admin-border flex-1 rounded-lg border px-3 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTip(idx)}
+                  className="admin-muted p-1 hover:text-red-500"
+                  title="Hapus tip"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </form>
+
+      {/* Footer Modal */}
+      <div className="mt-6 flex items-center justify-between">
+        {game.isOverridden ? (
+          <button
+            type="button"
+            onClick={onResetDefault}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline dark:text-red-400"
+          >
+            <RefreshCw size={13} />
+            Kembalikan ke Default
+          </button>
+        ) : (
+          <span className="text-xs admin-muted">Konfigurasi bawaan</span>
+        )}
+
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="admin-muted rounded-lg p-1.5 hover:bg-[var(--admin-accent-soft)] hover:text-[var(--admin-text)]"
+            className="admin-surface admin-border rounded-lg border px-4 py-2 text-xs font-semibold hover:bg-[var(--admin-accent-soft)]"
           >
-            <X size={18} />
+            Batal
+          </button>
+          <button
+            type="submit"
+            form="edit-game-form"
+            className="admin-accent-bg rounded-lg px-4 py-2 text-xs font-semibold hover:opacity-90 shadow-sm"
+          >
+            Simpan Perubahan
           </button>
         </div>
-
-        {/* Form Isi Modal */}
-        <form
-          id="edit-game-form"
-          onSubmit={handleSubmit}
-          className="admin-scroll flex-1 space-y-5 overflow-y-auto p-6 text-sm"
-        >
-          {/* Judul Game */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Judul Game
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          {/* Tingkat Akses (Radio Cards) */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Hak Akses Santri
-            </label>
-            <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              <label
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                  access === "guest-open"
-                    ? "border-teal-500 bg-teal-500/10 font-semibold"
-                    : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="access"
-                  value="guest-open"
-                  checked={access === "guest-open"}
-                  onChange={() => setAccess("guest-open")}
-                  className="mt-0.5 text-teal-600 focus:ring-teal-500"
-                />
-                <div>
-                  <span className="block text-xs font-bold text-teal-700 dark:text-teal-300">
-                    Terbuka untuk Tamu (Guest Open)
-                  </span>
-                  <span className="mt-0.5 block text-[11px] admin-muted">
-                    Dapat dimainkan santri tanpa perlu login akun.
-                  </span>
-                </div>
-              </label>
-
-              <label
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                  access === "member-only"
-                    ? "border-indigo-500 bg-indigo-500/10 font-semibold"
-                    : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="access"
-                  value="member-only"
-                  checked={access === "member-only"}
-                  onChange={() => setAccess("member-only")}
-                  className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
-                />
-                <div>
-                  <span className="block text-xs font-bold text-indigo-700 dark:text-indigo-300">
-                    Khusus Member (Wajib Login)
-                  </span>
-                  <span className="mt-0.5 block text-[11px] admin-muted">
-                    Santri harus masuk akun terlebih dahulu.
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Status Validasi Konten */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Status Validasi Kurikulum
-            </label>
-            <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              <label
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                  !needsContentValidation
-                    ? "border-emerald-500 bg-emerald-500/10 font-semibold"
-                    : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="validation"
-                  checked={!needsContentValidation}
-                  onChange={() => setNeedsContentValidation(false)}
-                  className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
-                />
-                <div>
-                  <span className="block text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    Tervalidasi Resmi
-                  </span>
-                  <span className="mt-0.5 block text-[11px] admin-muted">
-                    Konten dan materi sudah diverifikasi tim ustadz/kurikulum.
-                  </span>
-                </div>
-              </label>
-
-              <label
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                  needsContentValidation
-                    ? "border-amber-500 bg-amber-500/10 font-semibold"
-                    : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="validation"
-                  checked={needsContentValidation}
-                  onChange={() => setNeedsContentValidation(true)}
-                  className="mt-0.5 text-amber-600 focus:ring-amber-500"
-                />
-                <div>
-                  <span className="block text-xs font-bold text-amber-700 dark:text-amber-300">
-                    Perlu Validasi (Draf)
-                  </span>
-                  <span className="mt-0.5 block text-[11px] admin-muted">
-                    Perlu peninjauan ulang keselarasan tajwid/makhraj.
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Materi Pokok Tags Checkbox */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Materi Pokok Terkait
-            </label>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {ALL_MATERI_POKOK.map((m) => {
-                const checked = materiPokok.includes(m);
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => handleToggleMateri(m)}
-                    className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                      checked
-                        ? "bg-[var(--admin-accent)] text-white shadow-xs"
-                        : "admin-surface admin-border border admin-muted hover:border-[var(--admin-accent)]"
-                    }`}
-                  >
-                    {MATERI_LABELS[m]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Jilid Relevan */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Jilid Tilawati Relevan
-            </label>
-            <div className="mt-2 flex items-center gap-2">
-              {JILID_OPTIONS.map((j) => {
-                const checked = jilidRelevan.includes(j);
-                return (
-                  <button
-                    key={j}
-                    type="button"
-                    onClick={() => handleToggleJilid(j)}
-                    className={`flex h-8 w-16 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
-                      checked
-                        ? "bg-emerald-600 text-white shadow-xs"
-                        : "admin-surface admin-border border admin-muted hover:border-emerald-500"
-                    }`}
-                  >
-                    Jilid {j}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Tujuan Pembelajaran */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Tujuan Pembelajaran
-            </label>
-            <textarea
-              rows={2}
-              required
-              value={learningObjective}
-              onChange={(e) => setLearningObjective(e.target.value)}
-              className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          {/* Cara Bermain */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-              Instruksi / Cara Main
-            </label>
-            <textarea
-              rows={3}
-              required
-              value={caraMain}
-              onChange={(e) => setCaraMain(e.target.value)}
-              className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          {/* Tips Ustadz */}
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
-                Tips Ustadz ({tipsUstadz.length})
-              </label>
-              <button
-                type="button"
-                onClick={handleAddTip}
-                className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
-              >
-                <Plus size={13} />
-                Tambah Tips
-              </button>
-            </div>
-            <div className="mt-2 space-y-2">
-              {tipsUstadz.map((tip, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={tip}
-                    onChange={(e) => handleUpdateTip(idx, e.target.value)}
-                    placeholder={`Tips #${idx + 1}`}
-                    className="admin-surface admin-border flex-1 rounded-lg border px-3 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTip(idx)}
-                    className="admin-muted p-1 hover:text-red-500"
-                    title="Hapus tip"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </form>
-
-        {/* Footer Modal */}
-        <div className="flex items-center justify-between border-t border-[var(--admin-border)] px-6 py-4">
-          {game.isOverridden ? (
-            <button
-              type="button"
-              onClick={onResetDefault}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline dark:text-red-400"
-            >
-              <RefreshCw size={13} />
-              Kembalikan ke Default
-            </button>
-          ) : (
-            <span className="text-xs admin-muted">Konfigurasi bawaan</span>
-          )}
-
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="admin-surface admin-border rounded-lg border px-4 py-2 text-xs font-semibold hover:bg-[var(--admin-accent-soft)]"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              form="edit-game-form"
-              className="admin-accent-bg rounded-lg px-4 py-2 text-xs font-semibold hover:opacity-90 shadow-sm"
-            >
-              Simpan Perubahan
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </AppModal>
   );
 }
 

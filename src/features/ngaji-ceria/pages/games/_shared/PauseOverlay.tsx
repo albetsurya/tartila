@@ -1,4 +1,4 @@
-import { ModalPanel } from "./ModalPanel";
+import { AppModal } from "@/components/ui/AppModal";
 import { StickerButton } from "@/components/ui/StickerButton";
 
 export function PauseOverlay({
@@ -12,7 +12,7 @@ export function PauseOverlay({
 }) {
   if (!visible) return null;
   return (
-    <ModalPanel title="Lagi Jeda">
+    <AppModal isOpen={true} title="Lagi Jeda" onClose={onResume}>
       <p className="mb-5 mt-2 text-sm text-white/70">
         Ambil napas dulu. Waktu dan permainan berhenti di sini.
       </p>
@@ -28,6 +28,6 @@ export function PauseOverlay({
       >
         Keluar
       </StickerButton>
-    </ModalPanel>
+    </AppModal>
   );
 }

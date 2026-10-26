@@ -11,7 +11,6 @@ import {
   Pause,
   Volume2,
   Check,
-  X,
   Plus,
   Users,
   Lightbulb,
@@ -46,6 +45,7 @@ import {
   assignGameToRoom,
   listGameAssignments,
 } from "@/services/ustadzMonitoringService";
+import { AppModal } from "@/components/ui/AppModal";
 
 /* -------------------------------------------------------------------------- */
 /* Modal Penugasan Materi ke Kelas                                           */
@@ -114,8 +114,6 @@ function AssignModal({
     };
   }, [isOpen, ustadzId, materialId]);
 
-  if (!isOpen) return null;
-
   const handleAssign = async (room: ClassroomRoom) => {
     if (!ustadzId) return;
     setAssigningId(room.id);
@@ -140,114 +138,97 @@ function AssignModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <StickerCard className="max-h-[85dvh] w-full max-w-lg overflow-y-auto p-5 sm:rounded-2xl">
-        <div className="flex items-start justify-between gap-3 border-b-2 border-[#134E4A]/10 pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
-                Penugasan
-              </span>
-              <p className="text-base font-black text-[#134E4A]">
-                Tugaskan Materi Ini
-              </p>
-            </div>
-            <p className="mt-1 text-xs font-semibold text-[#134E4A]/80">
-              Materi: <span className="font-black">{materialTitle}</span>
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-          >
-            <X size={16} />
-          </button>
-        </div>
+    <AppModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Tugaskan Materi Ini"
+    >
+      <p className="text-xs font-semibold text-[#134E4A]/80">
+        Materi: <span className="font-black">{materialTitle}</span>
+      </p>
 
-        {feedback && (
-          <div
-            className={`mt-4 rounded-xl border-2 p-3 text-xs font-bold ${
-              feedback.type === "success"
-                ? "border-[#166534] bg-[#DCFCE7] text-[#166534]"
-                : "border-[#991B1B] bg-[#FEE2E2] text-[#991B1B]"
-            }`}
-          >
-            {feedback.message}
+      {feedback && (
+        <div
+          className={`mt-4 rounded-xl border-2 p-3 text-xs font-bold ${
+            feedback.type === "success"
+              ? "border-[#166534] bg-[#DCFCE7] text-[#166534]"
+              : "border-[#991B1B] bg-[#FEE2E2] text-[#991B1B]"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
+
+      <div className="mt-4">
+        <p className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
+          Pilih Kelas Tujuan
+        </p>
+        {loading ? (
+          <div className="py-8 text-center text-xs font-bold text-[#134E4A]/60">
+            Memuat daftar kelas Ustadz...
+          </div>
+        ) : rooms.length === 0 ? (
+          <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-gray-50 p-4 text-center">
+            <p className="text-xs font-bold text-[#134E4A]/70">
+              Ustadz belum memiliki kelas aktif.
+            </p>
+            <StickerButton
+              variant="ghost"
+              size="sm"
+              className="mt-3"
+              onClick={onClose}
+            >
+              Tutup
+            </StickerButton>
+          </div>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {rooms.map((room) => {
+              const isAssigned = assignedRoomIds.includes(room.id);
+              const isBusy = assigningId === room.id;
+              return (
+                <div
+                  key={room.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A]"
+                >
+                  <div>
+                    <p className="text-sm font-black text-[#134E4A]">
+                      {room.name}
+                    </p>
+                    <div className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-[#134E4A]/70">
+                      <span>Kode: {room.joinCode}</span>
+                      {room.targetJilid && (
+                        <span>· Target Jilid {room.targetJilid}</span>
+                      )}
+                    </div>
+                  </div>
+                  {isAssigned ? (
+                    <span className="flex items-center gap-1 rounded-lg border-2 border-[#166534] bg-[#DCFCE7] px-2.5 py-1 text-xs font-black text-[#166534]">
+                      <Check size={14} /> Sudah Ditugaskan
+                    </span>
+                  ) : (
+                    <StickerButton
+                      size="sm"
+                      disabled={isBusy}
+                      onClick={() => handleAssign(room)}
+                      className="bg-[#0D9488] text-xs font-black text-white hover:bg-[#0f766e]"
+                    >
+                      {isBusy ? "Menugaskan..." : "Tugaskan ke Kelas"}
+                    </StickerButton>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
+      </div>
 
-        <div className="mt-4">
-          <p className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
-            Pilih Kelas Tujuan
-          </p>
-          {loading ? (
-            <div className="py-8 text-center text-xs font-bold text-[#134E4A]/60">
-              Memuat daftar kelas Ustadz...
-            </div>
-          ) : rooms.length === 0 ? (
-            <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-gray-50 p-4 text-center">
-              <p className="text-xs font-bold text-[#134E4A]/70">
-                Ustadz belum memiliki kelas aktif.
-              </p>
-              <StickerButton
-                variant="ghost"
-                size="sm"
-                className="mt-3"
-                onClick={onClose}
-              >
-                Tutup
-              </StickerButton>
-            </div>
-          ) : (
-            <div className="mt-3 space-y-2">
-              {rooms.map((room) => {
-                const isAssigned = assignedRoomIds.includes(room.id);
-                const isBusy = assigningId === room.id;
-                return (
-                  <div
-                    key={room.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A]"
-                  >
-                    <div>
-                      <p className="text-sm font-black text-[#134E4A]">
-                        {room.name}
-                      </p>
-                      <div className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-[#134E4A]/70">
-                        <span>Kode: {room.joinCode}</span>
-                        {room.targetJilid && (
-                          <span>· Target Jilid {room.targetJilid}</span>
-                        )}
-                      </div>
-                    </div>
-                    {isAssigned ? (
-                      <span className="flex items-center gap-1 rounded-lg border-2 border-[#166534] bg-[#DCFCE7] px-2.5 py-1 text-xs font-black text-[#166534]">
-                        <Check size={14} /> Sudah Ditugaskan
-                      </span>
-                    ) : (
-                      <StickerButton
-                        size="sm"
-                        disabled={isBusy}
-                        onClick={() => handleAssign(room)}
-                        className="bg-[#0D9488] text-xs font-black text-white hover:bg-[#0f766e]"
-                      >
-                        {isBusy ? "Menugaskan..." : "Tugaskan ke Kelas"}
-                      </StickerButton>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <StickerButton variant="ghost" size="sm" onClick={onClose}>
-            Selesai
-          </StickerButton>
-        </div>
-      </StickerCard>
-    </div>
+      <div className="mt-6 flex justify-end">
+        <StickerButton variant="ghost" size="sm" onClick={onClose}>
+          Selesai
+        </StickerButton>
+      </div>
+    </AppModal>
   );
 }
 

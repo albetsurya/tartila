@@ -11,9 +11,9 @@ import {
   Share2Svg,
   UsersSvg,
   SparklesSvg,
-  XSvg,
   ChevronRightSvg,
 } from "@/components/ui/CustomIcons";
+import { AppModal } from "@/components/ui/AppModal";
 import { tapFeedback } from "@/lib/haptics";
 import { playSfx } from "@/features/ngaji-ceria/pages/games/_shared/audio";
 
@@ -216,166 +216,134 @@ export function ReferralSection() {
       </div>
 
       {/* MODAL 1: DAFTAR TEMAN DIUNDANG */}
-      {isFriendsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
-          <div className="max-h-[80dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A] sm:rounded-2xl">
-            <div className="flex items-center justify-between border-b-2 border-[#134E4A]/10 pb-3">
-              <div className="flex items-center gap-2">
-                <UsersSvg size={20} className="text-[#134E4A]" />
-                <h3 className="font-display font-black text-base text-[#134E4A]">
-                  Daftar Teman Diundang
-                </h3>
+      <AppModal
+        isOpen={isFriendsModalOpen}
+        onClose={() => setIsFriendsModalOpen(false)}
+        title="Daftar Teman Diundang"
+      >
+        <div className="mt-4">
+          {referrals.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-[#134E4A]/30 bg-[#F0FDF4] p-6 text-center">
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#134E4A] bg-[#CCFBF1] text-[#0D9488]">
+                <UsersSvg size={22} />
               </div>
-              <button
-                type="button"
-                onClick={() => setIsFriendsModalOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[1px_1px_0px_#134E4A] active:translate-y-[1px]"
-              >
-                <XSvg size={16} />
-              </button>
+              <p className="font-display text-sm font-black text-[#134E4A]">
+                Belum Ada Teman yang Bergabung
+              </p>
+              <p className="mt-1 text-xs font-semibold text-[#134E4A]/70">
+                Bagikan kode referral <span className="font-black text-[#0D9488]">{referralCode}</span> ke santri lain atau keluarga untuk mendapatkan 1 bulan langganan VIP gratis!
+              </p>
             </div>
-
-            <div className="mt-4">
-              {referrals.length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed border-[#134E4A]/30 bg-[#F0FDF4] p-6 text-center">
-                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#134E4A] bg-[#CCFBF1] text-[#0D9488]">
-                    <UsersSvg size={22} />
+          ) : (
+            <div className="space-y-2.5">
+              {referrals.map((item: ReferralItem) => {
+                const isSuccess =
+                  item.status === "success" || item.status === "rewarded";
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] p-3 shadow-[2px_2px_0px_#134E4A]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-display text-xs font-black text-[#134E4A]">
+                        {item.referee_name}
+                      </p>
+                      <p className="text-[10px] font-bold text-[#134E4A]/60">
+                        Bergabung:{" "}
+                        {new Date(item.created_at).toLocaleDateString(
+                          "id-ID",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {isSuccess ? (
+                        <span className="inline-flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-[#DCFCE7] px-2.5 py-0.5 text-[10px] font-black text-[#166534]">
+                          <CheckSvg size={12} /> VIP Aktif
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-[10px] font-black text-[#854D0E]">
+                          Menunggu Aktif
+                        </span>
+                      )}
+                      <p className="mt-0.5 text-[9px] font-bold text-[#134E4A]/60">
+                        {isSuccess ? "Hadiah Diterima" : "Perlu kuis 1x"}
+                      </p>
+                    </div>
                   </div>
-                  <p className="font-display text-sm font-black text-[#134E4A]">
-                    Belum Ada Teman yang Bergabung
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-[#134E4A]/70">
-                    Bagikan kode referral <span className="font-black text-[#0D9488]">{referralCode}</span> ke santri lain atau keluarga untuk mendapatkan 1 bulan langganan VIP gratis!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {referrals.map((item: ReferralItem) => {
-                    const isSuccess =
-                      item.status === "success" || item.status === "rewarded";
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] p-3 shadow-[2px_2px_0px_#134E4A]"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate font-display text-xs font-black text-[#134E4A]">
-                            {item.referee_name}
-                          </p>
-                          <p className="text-[10px] font-bold text-[#134E4A]/60">
-                            Bergabung:{" "}
-                            {new Date(item.created_at).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              },
-                            )}
-                          </p>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          {isSuccess ? (
-                            <span className="inline-flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-[#DCFCE7] px-2.5 py-0.5 text-[10px] font-black text-[#166534]">
-                              <CheckSvg size={12} /> VIP Aktif
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-[10px] font-black text-[#854D0E]">
-                              Menunggu Aktif
-                            </span>
-                          )}
-                          <p className="mt-0.5 text-[9px] font-bold text-[#134E4A]/60">
-                            {isSuccess ? "Hadiah Diterima" : "Perlu kuis 1x"}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                );
+              })}
             </div>
-
-            <div className="mt-5">
-              <button
-                type="button"
-                onClick={() => setIsFriendsModalOpen(false)}
-                className="w-full rounded-xl border-2 border-[#134E4A] bg-white py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px]"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={() => setIsFriendsModalOpen(false)}
+            className="w-full rounded-xl border-2 border-[#134E4A] bg-white py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px]"
+          >
+            Tutup
+          </button>
+        </div>
+      </AppModal>
 
       {/* MODAL 2: INPUT KODE REFERRAL TEMAN */}
-      {isInputModalOpen && !info?.referred_by && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
-          <div className="w-full max-w-md rounded-t-3xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A] sm:rounded-2xl">
-            <div className="flex items-center justify-between border-b-2 border-[#134E4A]/10 pb-3">
-              <div className="flex items-center gap-2">
-                <SparklesSvg size={18} className="text-[#F59E0B]" />
-                <h3 className="font-display font-black text-base text-[#134E4A]">
-                  Punya Kode Referral Teman?
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsInputModalOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[1px_1px_0px_#134E4A] active:translate-y-[1px]"
-              >
-                <XSvg size={16} />
-              </button>
-            </div>
+      <AppModal
+        isOpen={isInputModalOpen && !info?.referred_by}
+        onClose={() => setIsInputModalOpen(false)}
+        title="Punya Kode Referral Teman?"
+      >
+        <p className="mt-3 text-xs font-semibold text-[#134E4A]/80">
+          Masukkan kode referral dari temanmu untuk mendapatkan hadiah belajar di Tartila.
+        </p>
 
-            <p className="mt-3 text-xs font-semibold text-[#134E4A]/80">
-              Masukkan kode referral dari temanmu untuk mendapatkan hadiah belajar di Tartila.
-            </p>
+        <form onSubmit={handleApplyCode} className="mt-4 space-y-3">
+          <input
+            type="text"
+            value={inputCode}
+            onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+            placeholder="Misal: TARTILA-ABCD"
+            maxLength={20}
+            spellCheck={false}
+            className="w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2.5 text-xs font-black uppercase tracking-wider text-[#134E4A] shadow-[2px_2px_0px_#134E4A] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30"
+          />
+          <button
+            type="submit"
+            disabled={applying || !inputCode.trim()}
+            className="w-full rounded-xl border-2 border-[#134E4A] bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] disabled:opacity-50 active:translate-y-[1px]"
+          >
+            {applying ? "Memproses..." : "Terapkan Kode Referral"}
+          </button>
+        </form>
 
-            <form onSubmit={handleApplyCode} className="mt-4 space-y-3">
-              <input
-                type="text"
-                value={inputCode}
-                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                placeholder="Misal: TARTILA-ABCD"
-                maxLength={20}
-                spellCheck={false}
-                className="w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2.5 text-xs font-black uppercase tracking-wider text-[#134E4A] shadow-[2px_2px_0px_#134E4A] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30"
-              />
-              <button
-                type="submit"
-                disabled={applying || !inputCode.trim()}
-                className="w-full rounded-xl border-2 border-[#134E4A] bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] disabled:opacity-50 active:translate-y-[1px]"
-              >
-                {applying ? "Memproses..." : "Terapkan Kode Referral"}
-              </button>
-            </form>
+        {applyMessage && (
+          <p
+            role="alert"
+            className={`mt-3 rounded-xl border-2 p-2.5 text-xs font-bold ${
+              applyMessage.type === "success"
+                ? "border-[#166534] bg-[#DCFCE7] text-[#166534]"
+                : "border-[#991B1B] bg-[#FEE2E2] text-[#991B1B]"
+            }`}
+          >
+            {applyMessage.text}
+          </p>
+        )}
 
-            {applyMessage && (
-              <p
-                role="alert"
-                className={`mt-3 rounded-xl border-2 p-2.5 text-xs font-bold ${
-                  applyMessage.type === "success"
-                    ? "border-[#166534] bg-[#DCFCE7] text-[#166534]"
-                    : "border-[#991B1B] bg-[#FEE2E2] text-[#991B1B]"
-                }`}
-              >
-                {applyMessage.text}
-              </p>
-            )}
-
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => setIsInputModalOpen(false)}
-                className="w-full rounded-xl border-2 border-[#134E4A] bg-white py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px]"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setIsInputModalOpen(false)}
+            className="w-full rounded-xl border-2 border-[#134E4A] bg-white py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px]"
+          >
+            Tutup
+          </button>
         </div>
-      )}
+      </AppModal>
     </section>
   );
 }

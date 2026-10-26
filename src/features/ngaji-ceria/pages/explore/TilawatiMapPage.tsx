@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import {
   Star,
   Lock,
   BookOpen,
   Play,
-  X,
   ChevronLeft,
   Sun,
   Moon,
@@ -18,6 +17,7 @@ import {
   Snowflake,
   Compass,
 } from "../../../../components/ui/CustomIcons";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
 import { ExploreHeader, ExploreStatBadge } from "../../components/ExploreHeader";
@@ -644,126 +644,104 @@ export default function TilawatiMapPage() {
           })}
         </div>
 
-        <AnimatePresence>
+        <AppBottomSheet
+          isOpen={!!selectedNode}
+          onClose={() => setSelectedNode(null)}
+          title={selectedNode?.title ?? ""}
+        >
           {selectedNode && (
             <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setSelectedNode(null)}
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-              />
-              <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] border-t-[3px] border-x-[3px] ${theme.nodeBorder} p-6 max-w-md mx-auto`}
-              >
-                <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5" />
-
-                <div className="flex items-center justify-between mb-4">
-                  <span
-                    className={`px-3 py-1.5 rounded-full ${theme.islandBg} ${theme.textColor} text-xs font-black border-2 ${theme.nodeBorder}`}
-                  >
-                    Jilid {jilid} Hal {selectedNode.page}
-                  </span>
-                  <button
-                    onClick={() => setSelectedNode(null)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 border-2 ${theme.nodeBorder} ${theme.textColor} shadow-[2px_2px_0px_${theme.nodeBorder}] active:translate-y-[1px] active:shadow-none transition-all`}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                <div
-                  className={`w-full ${theme.islandBg}/20 border-[3px] border-dashed ${theme.nodeBorder} rounded-2xl py-6 flex items-center justify-center mb-5`}
+              <div className="flex items-center justify-between mb-4">
+                <span
+                  className={`px-3 py-1.5 rounded-full ${theme.islandBg} ${theme.textColor} text-xs font-black border-2 ${theme.nodeBorder}`}
                 >
-                  <span className={`text-4xl font-arabic ${theme.textColor}`}>
-                    {selectedNode.arabic}
-                  </span>
-                </div>
+                  Jilid {jilid} Hal {selectedNode.page}
+                </span>
+              </div>
 
-                <div className="text-center mb-4">
-                  <h2 className={`text-lg font-black ${theme.textColor}`}>
-                    {selectedNode.title}
-                  </h2>
-                  <p className={`text-xs font-bold ${theme.textColor}/60 mt-1`}>
-                    {selectedNode.desc}
+              <div
+                className={`w-full ${theme.islandBg}/20 border-[3px] border-dashed ${theme.nodeBorder} rounded-2xl py-6 flex items-center justify-center mb-5`}
+              >
+                <span className={`text-4xl font-arabic ${theme.textColor}`}>
+                  {selectedNode.arabic}
+                </span>
+              </div>
+
+              <div className="text-center mb-4">
+                <p className={`text-xs font-bold ${theme.textColor}/60 mt-1`}>
+                  {selectedNode.desc}
+                </p>
+              </div>
+
+              <div className="flex justify-center gap-2 mb-5">
+                {[1, 2, 3].map((s) => (
+                  <Star
+                    key={s}
+                    size={24}
+                    className={
+                      s <= selectedNode.stars
+                        ? "text-[#F59E0B] fill-[#F59E0B]"
+                        : "text-gray-200 fill-gray-200"
+                    }
+                  />
+                ))}
+              </div>
+
+              <div
+                className={`flex items-center justify-center gap-3 mb-4 ${theme.islandBg}/10 rounded-xl py-2.5 px-3 border-2 ${theme.nodeBorder}/20`}
+              >
+                <div
+                  className={`flex items-center gap-1 text-[11px] font-bold ${theme.textColor}`}
+                >
+                  <Star size={12} className="text-[#F59E0B] fill-[#F59E0B]" />
+                  {isPracticeMode ? "0 Poin (Latihan)" : "+30 Poin"}
+                </div>
+                <div className={`w-px h-3 ${theme.nodeBorder}/20`} />
+                <div
+                  className={`flex items-center gap-1 text-[11px] font-bold ${theme.textColor}`}
+                >
+                  <BookOpen size={12} className={theme.textColor} />
+                  Iqro {jilid}
+                </div>
+              </div>
+
+              {/* Mode Latihan Toggle Box */}
+              <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] mb-4">
+                <div className="text-left">
+                  <p className="text-xs font-black text-[#134E4A] flex items-center gap-1.5">
+                    <Compass size={14} className="text-[#0D9488]" /> Mode Latihan
+                  </p>
+                  <p className="text-[10px] font-bold text-[#134E4A]/60">
+                    Bebas tanpa nyawa & tanpa perolehan bintang
                   </p>
                 </div>
-
-                <div className="flex justify-center gap-2 mb-5">
-                  {[1, 2, 3].map((s) => (
-                    <Star
-                      key={s}
-                      size={24}
-                      className={
-                        s <= selectedNode.stars
-                          ? "text-[#F59E0B] fill-[#F59E0B]"
-                          : "text-gray-200 fill-gray-200"
-                      }
-                    />
-                  ))}
-                </div>
-
-                <div
-                  className={`flex items-center justify-center gap-3 mb-4 ${theme.islandBg}/10 rounded-xl py-2.5 px-3 border-2 ${theme.nodeBorder}/20`}
-                >
-                  <div
-                    className={`flex items-center gap-1 text-[11px] font-bold ${theme.textColor}`}
-                  >
-                    <Star size={12} className="text-[#F59E0B] fill-[#F59E0B]" />
-                    {isPracticeMode ? "0 Poin (Latihan)" : "+30 Poin"}
-                  </div>
-                  <div className={`w-px h-3 ${theme.nodeBorder}/20`} />
-                  <div
-                    className={`flex items-center gap-1 text-[11px] font-bold ${theme.textColor}`}
-                  >
-                    <BookOpen size={12} className={theme.textColor} />
-                    Iqro {jilid}
-                  </div>
-                </div>
-
-                {/* Mode Latihan Toggle Box */}
-                <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] mb-4">
-                  <div className="text-left">
-                    <p className="text-xs font-black text-[#134E4A] flex items-center gap-1.5">
-                      <Compass size={14} className="text-[#0D9488]" /> Mode Latihan
-                    </p>
-                    <p className="text-[10px] font-bold text-[#134E4A]/60">
-                      Bebas tanpa nyawa & tanpa perolehan bintang
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsPracticeMode(!isPracticeMode)}
-                    className={`w-12 h-6 rounded-full border-2 border-[#134E4A] transition-colors p-0.5 flex items-center ${
-                      isPracticeMode
-                        ? "bg-[#0D9488] justify-end"
-                        : "bg-gray-200 justify-start"
-                    }`}
-                  >
-                    <div className="w-4 h-4 rounded-full bg-white border border-[#134E4A] shadow-sm" />
-                  </button>
-                </div>
-
                 <button
-                  onClick={() => handleStartLearning()}
-                  className={`w-full ${
-                    isPracticeMode ? "bg-[#0D9488]" : theme.nodeBg
-                  } text-white font-black text-sm py-4 rounded-2xl border-[3px] ${
-                    theme.nodeBorder
-                  } shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
+                  type="button"
+                  onClick={() => setIsPracticeMode(!isPracticeMode)}
+                  className={`w-12 h-6 rounded-full border-2 border-[#134E4A] transition-colors p-0.5 flex items-center ${
+                    isPracticeMode
+                      ? "bg-[#0D9488] justify-end"
+                      : "bg-gray-200 justify-start"
+                  }`}
                 >
-                  {isPracticeMode ? "Mulai Latihan (Bebas Nyawa)" : "Mulai Belajar (1 Hati)"}{" "}
-                  <Play size={14} className="fill-white" />
+                  <div className="w-4 h-4 rounded-full bg-white border border-[#134E4A] shadow-sm" />
                 </button>
-              </motion.div>
+              </div>
+
+              <button
+                onClick={() => handleStartLearning()}
+                className={`w-full ${
+                  isPracticeMode ? "bg-[#0D9488]" : theme.nodeBg
+                } text-white font-black text-sm py-4 rounded-2xl border-[3px] ${
+                  theme.nodeBorder
+                } shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
+              >
+                {isPracticeMode ? "Mulai Latihan (Bebas Nyawa)" : "Mulai Belajar (1 Hati)"}{" "}
+                <Play size={14} className="fill-white" />
+              </button>
             </>
           )}
-        </AnimatePresence>
+        </AppBottomSheet>
 
         <PanduanMembacaModal
           open={isPanduanOpen}

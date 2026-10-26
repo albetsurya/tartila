@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-24T13:34:19.308Z",
+  "last_updated": "2026-10-26T04:19:10.106Z",
   "format": "page_progress",
   "total_pages": 84,
   "pages": {
@@ -176,13 +176,24 @@
     },
     "jilid_4": {
       "total_chunks": 0,
-      "completed": 0,
-      "percentage": 0,
-      "status": "belum_dimulai",
-      "last_edited_chunk": null,
-      "notes": "Belum terstruktur di mapping",
+      "completed": 8,
+      "percentage": 18,
+      "status": "sedang_diedit",
+      "last_edited_chunk": "hal8",
+      "notes": "Halaman 8 selesai dan dikirim ke Tartila",
       "action": "complete_chunk",
-      "complete_instruction": "Set completed < number > menjadi < persentase > dan status menjadi selesai"
+      "complete_instruction": "Set completed < number > menjadi < persentase > dan status menjadi selesai",
+      "total_pages": 44,
+      "finished_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
     },
     "jilid_5": {
       "total_chunks": 0,

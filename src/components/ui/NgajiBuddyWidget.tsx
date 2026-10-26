@@ -29,6 +29,7 @@ import {
   Lightbulb,
   User,
 } from ".";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { BibiReactionType } from "@/utils/bibiEvent";
 
 export interface PageTipConfig {
@@ -581,73 +582,50 @@ export function NgajiBuddyWidget({
         )}
       </motion.button>
 
-      <AnimatePresence>
-        {isHelpOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 pb-24 px-4 backdrop-blur-sm"
-            onClick={() => setIsHelpOpen(false)}
+      <AppBottomSheet
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+        title="Yuk pilih kegiatan belajarmu!"
+      >
+        <div className="space-y-2.5">
+          <StickerButton
+            variant="primary"
+            fullWidth
+            onClick={() => handleAction("/member/ngaji-ceria/explore/tilawati")}
+            className="justify-start"
           >
-            <StickerCard
-              className="w-full max-w-sm p-5 rounded-[24px] shadow-[8px_8px_0px_#134E4A]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display font-black text-lg text-[#134E4A]">
-                  Yuk pilih kegiatan belajarmu!
-                </h3>
-                <button
-                  onClick={() => setIsHelpOpen(false)}
-                  className="rounded-full bg-gray-100 p-1.5 text-[#134E4A]"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="space-y-2.5">
-                <StickerButton
-                  variant="primary"
-                  fullWidth
-                  onClick={() => handleAction("/member/ngaji-ceria/explore/tilawati")}
-                  className="justify-start"
-                >
-                  <BookOpen size={18} className="mr-2" /> Lanjut Belajar
-                </StickerButton>
-                <StickerButton
-                  variant="secondary"
-                  fullWidth
-                  onClick={() =>
-                    handleAction("/member/ngaji-ceria/explore/doa")
-                  }
-                  className="justify-start"
-                >
-                  <HandsPraying size={18} className="mr-2 text-[#FF6B6B]" /> Doa
-                  Harian
-                </StickerButton>
-                <StickerButton
-                  variant="secondary"
-                  fullWidth
-                  onClick={() => handleAction("/member/ngaji-ceria/profile")}
-                  className="justify-start"
-                >
-                  <HelpCircle size={18} className="mr-2 text-[#0D9488]" />{" "}
-                  Kritik & Saran
-                </StickerButton>
-                <StickerButton
-                  variant="danger"
-                  fullWidth
-                  onClick={() => handleAction("/member/ngaji-ceria")}
-                  className="justify-start"
-                >
-                  <Home size={18} className="mr-2" /> Kembali ke Beranda
-                </StickerButton>
-              </div>
-            </StickerCard>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <BookOpen size={18} className="mr-2" /> Lanjut Belajar
+          </StickerButton>
+          <StickerButton
+            variant="secondary"
+            fullWidth
+            onClick={() =>
+              handleAction("/member/ngaji-ceria/explore/doa")
+            }
+            className="justify-start"
+          >
+            <HandsPraying size={18} className="mr-2 text-[#FF6B6B]" /> Doa
+            Harian
+          </StickerButton>
+          <StickerButton
+            variant="secondary"
+            fullWidth
+            onClick={() => handleAction("/member/ngaji-ceria/profile")}
+            className="justify-start"
+          >
+            <HelpCircle size={18} className="mr-2 text-[#0D9488]" />{" "}
+            Kritik & Saran
+          </StickerButton>
+          <StickerButton
+            variant="danger"
+            fullWidth
+            onClick={() => handleAction("/member/ngaji-ceria")}
+            className="justify-start"
+          >
+            <Home size={18} className="mr-2" /> Kembali ke Beranda
+          </StickerButton>
+        </div>
+      </AppBottomSheet>
 
       <AnimatePresence>
         {!isHidden && (

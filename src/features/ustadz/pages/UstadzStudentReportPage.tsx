@@ -9,6 +9,7 @@ import {
 } from "@/services/ustadzMonitoringService";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { StickerCard } from "@/components/ui/StickerCard";
+import { AppModal } from "@/components/ui/AppModal";
 
 type ReportFilter = "semua" | StudentActivityStatus;
 
@@ -153,14 +154,12 @@ export function UstadzStudentReportPage() {
         </div>
       )}
 
-      {detailName && (
-        <StudentWeekModal
-          student={
-            students.find((student) => student.name === detailName) ?? null
-          }
-          onClose={() => setDetailName(null)}
-        />
-      )}
+      <StudentWeekModal
+        student={
+          students.find((student) => student.name === detailName) ?? null
+        }
+        onClose={() => setDetailName(null)}
+      />
     </div>
   );
 }
@@ -230,72 +229,59 @@ function StudentWeekModal({
     };
   }, [student]);
 
-  if (!student) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
-      onClick={onClose}
+    <AppModal
+      isOpen={!!student}
+      onClose={onClose}
+      title={
+        student
+          ? `Riwayat Minggu Ini · ${student.name}`
+          : "Riwayat Minggu Ini"
+      }
     >
-      <StickerCard
-        className="max-h-[80dvh] w-full max-w-md overflow-y-auto p-5"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-black text-[#134E4A]">
-              Riwayat Minggu Ini · {student.name}
+      {student && (
+        <>
+          <p className="text-xs font-bold text-[#134E4A]/70">
+            {student.practiceCount}x latihan · {student.quizCount}x kuis ·
+            terakhir belajar {student.lastActive.toLowerCase()}
+          </p>
+
+          {loading ? (
+            <p className="mt-4 text-xs font-bold text-[#134E4A]/60">
+              Memuat riwayat…
             </p>
-            <p className="text-xs font-bold text-[#134E4A]/70">
-              {student.practiceCount}x latihan · {student.quizCount}x kuis ·
-              terakhir belajar {student.lastActive.toLowerCase()}
+          ) : logs.length === 0 ? (
+            <p className="mt-4 text-xs font-bold text-[#134E4A]/60">
+              Belum ada aktivitas minggu ini.
             </p>
-          </div>
-          <button
-            type="button"
+          ) : (
+            <ul className="mt-4 space-y-2">
+              {logs.map((log, index) => (
+                <li
+                  key={`${log.day}-${index}`}
+                  className="flex items-center justify-between rounded-xl border-[2.5px] border-[#0A2540] bg-[#F4F1EA] px-3 py-2"
+                >
+                  <span className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
+                    {log.day}
+                  </span>
+                  <span className="text-xs font-black text-[#134E4A]">
+                    {log.activity}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <StickerButton
+            variant="secondary"
+            size="sm"
+            className="mt-4 w-full"
             onClick={onClose}
-            aria-label="Tutup"
-            className="rounded-lg border-2 border-[#0A2540] bg-white px-2 py-1 text-xs font-black text-[#134E4A]"
           >
-            Tutup
-          </button>
-        </div>
-
-        {loading ? (
-          <p className="mt-4 text-xs font-bold text-[#134E4A]/60">
-            Memuat riwayat…
-          </p>
-        ) : logs.length === 0 ? (
-          <p className="mt-4 text-xs font-bold text-[#134E4A]/60">
-            Belum ada aktivitas minggu ini.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-2">
-            {logs.map((log, index) => (
-              <li
-                key={`${log.day}-${index}`}
-                className="flex items-center justify-between rounded-xl border-[2.5px] border-[#0A2540] bg-[#F4F1EA] px-3 py-2"
-              >
-                <span className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
-                  {log.day}
-                </span>
-                <span className="text-xs font-black text-[#134E4A]">
-                  {log.activity}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <StickerButton
-          variant="secondary"
-          size="sm"
-          className="mt-4 w-full"
-          onClick={onClose}
-        >
-          Tutup Laporan
-        </StickerButton>
-      </StickerCard>
-    </div>
+            Tutup Laporan
+          </StickerButton>
+        </>
+      )}
+    </AppModal>
   );
 }

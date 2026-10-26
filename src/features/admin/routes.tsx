@@ -25,6 +25,11 @@ function SuperAdminGuard({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   if (!isTartilaAdmin(user?.role)) {
+    console.warn(
+      "Akses ditolak: Role",
+      user?.role,
+      "bukan Tartila Admin. Mengalihkan ke /admin",
+    );
     return <Navigate to="/admin" replace />;
   }
   return <>{children}</>;

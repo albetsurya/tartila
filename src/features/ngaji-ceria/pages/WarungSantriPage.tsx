@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { StickerButton, StickerCard, SectionHeader } from "@/components/ui";
+import { AppModal } from "@/components/ui/AppModal";
 import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
 import {
   CoinSvg,
@@ -1852,15 +1853,15 @@ export default function WarungSantriPage() {
       </div>
 
       {/* Modal Sukses Pembelian Tema (Pakai Sekarang) */}
-      {purchasedThemeModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
-        >
-          <div className="relative w-full max-w-sm rounded-3xl border-4 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-6 shadow-[6px_6px_0px_var(--shadow-color,#134E4A)] text-center">
+      <AppModal
+        isOpen={!!purchasedThemeModal}
+        onClose={() => setPurchasedThemeModal(null)}
+        title="Alhamdulillah!"
+      >
+        {purchasedThemeModal && (
+          <div className="flex flex-col items-center">
             <div
-              className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+              className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
               style={{ backgroundColor: purchasedThemeModal.item.swatch }}
             >
               <purchasedThemeModal.item.iconComponent
@@ -1868,10 +1869,7 @@ export default function WarungSantriPage() {
                 className={purchasedThemeModal.item.iconColor}
               />
             </div>
-            <h3 className="font-display text-xl font-black text-[var(--text-main,#134E4A)]">
-              Alhamdulillah!
-            </h3>
-            <p className="mt-1 text-sm font-bold text-[var(--text-main,#134E4A)]/80">
+            <p className="text-sm font-bold text-[var(--text-main,#134E4A)]/80 text-center">
               Tema <strong>{purchasedThemeModal.item.name}</strong> berhasil kamu dapatkan! Mau langsung memakainya sekarang?
             </p>
             <div className="mt-6 flex flex-col gap-2">
@@ -1904,8 +1902,8 @@ export default function WarungSantriPage() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </AppModal>
     </div>
   );
 }

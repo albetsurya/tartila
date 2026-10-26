@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Star, Play, CoinSvg, Sparkles } from "@/components/ui/CustomIcons";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { ModalPanel } from "./ModalPanel";
+import { AppModal } from "@/components/ui/AppModal";
 import { type GameOverModalProps } from "./types";
 import { awardProgress, getProgress, recordLeaderboard } from "./progression";
 import { soundManager } from "../../../services/soundManager";
@@ -129,7 +129,7 @@ export function GameOverModal({
 
   if (secondChance && !skipped)
     return (
-      <ModalPanel title="Jangan Menyerah!" warm>
+      <AppModal isOpen={true} title="Jangan Menyerah!" variant="warm" onClose={onExit}>
         <p className="mb-1 mt-2 text-sm font-black text-[#FF6B6B]">
           Kesempatan Kedua
         </p>
@@ -177,11 +177,11 @@ export function GameOverModal({
         >
           Lewati dulu
         </button>
-      </ModalPanel>
+      </AppModal>
     );
 
   return (
-    <ModalPanel title={title} warm>
+    <AppModal isOpen={true} title={title} variant="warm" onClose={onExit}>
       <motion.p
         data-testid="xp-gained"
         role="status"
@@ -261,6 +261,6 @@ export function GameOverModal({
       >
         Keluar
       </StickerButton>
-    </ModalPanel>
+    </AppModal>
   );
 }

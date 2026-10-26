@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { motion } from "framer-motion";
-import { ChevronDown, X } from "@/components/ui/CustomIcons";
+import { ChevronDown } from "@/components/ui/CustomIcons";
+import { AppModal } from "@/components/ui/AppModal";
 import {
   getAdminErrorMessage,
   type AdminUser,
@@ -135,170 +135,143 @@ export function UserFormModal({
   const isEdit = mode === "edit";
 
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
-      onClick={isSubmitting ? undefined : onClose}
-      role="presentation"
+    <AppModal
+      isOpen={true}
+      onClose={isSubmitting ? () => {} : onClose}
+      title={isEdit ? "Edit Pengguna" : "Tambah Pengguna"}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.15 }}
-        role="dialog"
-        aria-modal="true"
-        aria-label={isEdit ? "Edit Pengguna" : "Tambah Pengguna"}
-        onClick={(event) => event.stopPropagation()}
-        className="admin-surface admin-border w-full max-w-lg rounded-lg border p-6 shadow-lg"
-      >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">
-              {isEdit ? "Edit Pengguna" : "Tambah Pengguna"}
-            </h2>
-            <p className="mt-1 text-xs admin-muted">
-              {isEdit
-                ? "Perbarui data pengguna Tartila."
-                : "Tambahkan pengguna baru ke platform Tartila."}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            aria-label="Tutup"
-            className="admin-nav-item rounded-md p-2 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            <X size={16} />
-          </button>
-        </div>
+      <p className="mb-4 text-xs admin-muted">
+        {isEdit
+          ? "Perbarui data pengguna Tartila."
+          : "Tambahkan pengguna baru ke platform Tartila."}
+      </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <Field id="user-name" label="Nama Lengkap" error={errors.name}>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <Field id="user-name" label="Nama Lengkap" error={errors.name}>
+          <input
+            id="user-name"
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Mis. Abdullah Fattah"
+            className={INPUT_CLASS}
+            style={{ color: "var(--admin-text)" }}
+          />
+        </Field>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field id="user-username" label="Username" error={errors.username}>
             <input
-              id="user-name"
+              id="user-username"
               type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Mis. Abdullah Fattah"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Mis. ceria_abdullah"
               className={INPUT_CLASS}
               style={{ color: "var(--admin-text)" }}
             />
           </Field>
+          <Field id="user-email" label="Email" error={errors.email}>
+            <input
+              id="user-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="nama@email.com"
+              className={INPUT_CLASS}
+              style={{ color: "var(--admin-text)" }}
+            />
+          </Field>
+        </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="user-username" label="Username" error={errors.username}>
-              <input
-                id="user-username"
-                type="text"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="Mis. ceria_abdullah"
-                className={INPUT_CLASS}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field id="user-role" label="Role">
+            <div className="relative">
+              <select
+                id="user-role"
+                value={role}
+                onChange={(event) =>
+                  setRole(event.target.value as AdminUserRole)
+                }
+                className={`${INPUT_CLASS} appearance-none pr-9`}
                 style={{ color: "var(--admin-text)" }}
+              >
+                {ROLE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className="admin-muted pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
               />
-            </Field>
-            <Field id="user-email" label="Email" error={errors.email}>
-              <input
-                id="user-email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="nama@email.com"
-                className={INPUT_CLASS}
-                style={{ color: "var(--admin-text)" }}
-              />
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="user-role" label="Role">
-              <div className="relative">
-                <select
-                  id="user-role"
-                  value={role}
-                  onChange={(event) =>
-                    setRole(event.target.value as AdminUserRole)
-                  }
-                  className={`${INPUT_CLASS} appearance-none pr-9`}
-                  style={{ color: "var(--admin-text)" }}
-                >
-                  {ROLE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="admin-muted pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
-                />
-              </div>
-            </Field>
-            <Field id="user-status" label="Status">
-              <div className="relative">
-                <select
-                  id="user-status"
-                  value={status}
-                  onChange={(event) =>
-                    setStatus(event.target.value as AdminUserStatus)
-                  }
-                  className={`${INPUT_CLASS} appearance-none pr-9`}
-                  style={{ color: "var(--admin-text)" }}
-                >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="admin-muted pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
-                />
-              </div>
-            </Field>
-          </div>
-
-          {submitError ? (
-            <div
-              role="alert"
-              className="rounded-lg border px-3 py-2 text-xs"
-              style={{
-                color: "var(--admin-danger)",
-                borderColor: "var(--admin-danger)",
-                backgroundColor:
-                  "color-mix(in srgb, var(--admin-danger) 10%, transparent)",
-              }}
-            >
-              {submitError}
             </div>
-          ) : null}
+          </Field>
+          <Field id="user-status" label="Status">
+            <div className="relative">
+              <select
+                id="user-status"
+                value={status}
+                onChange={(event) =>
+                  setStatus(event.target.value as AdminUserStatus)
+                }
+                className={`${INPUT_CLASS} appearance-none pr-9`}
+                style={{ color: "var(--admin-text)" }}
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className="admin-muted pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+              />
+            </div>
+          </Field>
+        </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="admin-nav-item rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-              className="admin-accent-bg inline-flex min-w-[176px] items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isSubmitting ? <Spinner size={14} /> : null}
-              {isSubmitting
-                ? "Menyimpan..."
-                : isEdit
-                  ? "Simpan Perubahan"
-                  : "Tambah Pengguna"}
-            </button>
+        {submitError ? (
+          <div
+            role="alert"
+            className="rounded-lg border px-3 py-2 text-xs"
+            style={{
+              color: "var(--admin-danger)",
+              borderColor: "var(--admin-danger)",
+              backgroundColor:
+                "color-mix(in srgb, var(--admin-danger) 10%, transparent)",
+            }}
+          >
+            {submitError}
           </div>
-        </form>
-      </motion.div>
-    </div>
+        ) : null}
+
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="admin-nav-item rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+            className="admin-accent-bg inline-flex min-w-[176px] items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isSubmitting ? <Spinner size={14} /> : null}
+            {isSubmitting
+              ? "Menyimpan..."
+              : isEdit
+                ? "Simpan Perubahan"
+                : "Tambah Pengguna"}
+          </button>
+        </div>
+      </form>
+    </AppModal>
   );
 }

@@ -17,6 +17,7 @@ import { soundManager } from '../../services/soundManager';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { CheckSvg, ChevronRight, Volume2Svg, RotateCcwSvg, LightbulbSvg, DrumSvg, StarSvg, ClipboardListSvg, ArrowRightSvg } from '@/components/ui/CustomIcons';
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
+import { AppModal } from "@/components/ui/AppModal";
 import type { HitResult } from '../../components/lab-irama/timingJudge';
 
 export default function KartuPracticePage() {
@@ -284,67 +285,53 @@ export default function KartuPracticePage() {
       </div>
 
       {/* DIALOG SUKSES MENGUASAI KARTU */}
-      <AnimatePresence>
-        {isSuccessModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      <AppModal
+        isOpen={isSuccessModalOpen}
+        onClose={handleNextCard}
+        title="Hebat! Kartu Dikuasai!"
+        variant="warm"
+      >
+        {/* Ikon Piala / Bintang */}
+        <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#10B981] flex items-center justify-center shadow-md mx-auto mb-3">
+          <StarSvg size={40} fill="#FDE047" stroke="#042F2E" />
+        </div>
+
+        <p className="text-xs text-[#92400E] font-medium mb-4 text-center">
+          Kamu telah berhasil melatih irama dan menguasai Kartu #{currentCard.cardIndex}. Kartu ini sekarang terbuka permanen di Papan Progresmu!
+        </p>
+
+        {/* Box Kartu Mini */}
+        <div className="p-4 rounded-2xl bg-[#F0FDF4] border-2 border-[#10B981] mb-5 flex items-center justify-between">
+          <div className="text-right flex-1" dir="rtl">
+            <span className="font-arabic font-bold text-3xl text-[#065F46]">
+              {currentCard.text}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10B981] text-white text-xs font-black">
+            <CheckSvg size={14} /> Terbuka
+          </div>
+        </div>
+
+        {/* Tombol Aksi Modal */}
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}`)}
+            className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <motion.div
-              initial={{ scale: 0.85, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.85, y: 20 }}
-              className="w-full max-w-sm rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-6 text-center shadow-[8px_8px_0px_#78350F]"
-            >
-              {/* Ikon Piala / Bintang */}
-              <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#10B981] flex items-center justify-center shadow-md mx-auto mb-3">
-                <StarSvg size={40} fill="#FDE047" stroke="#042F2E" />
-              </div>
-
-              <h3 className="text-2xl font-black text-[#78350F] mb-1">
-                Hebat! Kartu Dikuasai!
-              </h3>
-              <p className="text-xs text-[#92400E] font-medium mb-4">
-                Kamu telah berhasil melatih irama dan menguasai Kartu #{currentCard.cardIndex}. Kartu ini sekarang terbuka permanen di Papan Progresmu!
-              </p>
-
-              {/* Box Kartu Mini */}
-              <div className="p-4 rounded-2xl bg-[#F0FDF4] border-2 border-[#10B981] mb-5 flex items-center justify-between">
-                <div className="text-right flex-1" dir="rtl">
-                  <span className="font-arabic font-bold text-3xl text-[#065F46]">
-                    {currentCard.text}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10B981] text-white text-xs font-black">
-                  <CheckSvg size={14} /> Terbuka
-                </div>
-              </div>
-
-              {/* Tombol Aksi Modal */}
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}`)}
-                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>Kembali ke Papan Progres</span>
-                  <ClipboardListSvg size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNextCard}
-                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>Lanjut ke Kartu Berikutnya</span>
-                  <ArrowRightSvg size={12} />
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <span>Kembali ke Papan Progres</span>
+            <ClipboardListSvg size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={handleNextCard}
+            className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <span>Lanjut ke Kartu Berikutnya</span>
+            <ArrowRightSvg size={12} />
+          </button>
+        </div>
+      </AppModal>
     </NgajiCeriaLayout>
   );
 }

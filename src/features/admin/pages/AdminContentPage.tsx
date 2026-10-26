@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -10,8 +9,8 @@ import {
   Plus,
   ScrollText,
   Trash2,
-  X,
 } from "@/components/ui/CustomIcons";
+import { AppModal } from "@/components/ui/AppModal";
 import {
   deleteMaterial,
   fetchMaterials,
@@ -127,72 +126,36 @@ function MaterialCover({ material }: { material: AdminMaterial }) {
 }
 
 function AddMaterialModal({ onClose }: { onClose: () => void }) {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
-      onClick={onClose}
-      role="presentation"
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.15 }}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Tambah Materi"
-        onClick={(event) => event.stopPropagation()}
-        className="admin-surface admin-border w-full max-w-md rounded-lg border p-6 shadow-lg"
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">Tambah Materi</h2>
-            <p className="mt-1 text-xs admin-muted">
-              Formulir materi baru akan tersedia di sini.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Tutup"
-            className="admin-nav-item rounded-md p-2 transition-colors duration-150"
-          >
-            <X size={16} />
-          </button>
-        </div>
+    <AppModal isOpen={true} onClose={onClose} title="Tambah Materi">
+      <p className="mb-4 text-xs admin-muted">
+        Formulir materi baru akan tersedia di sini.
+      </p>
 
-        <p className="rounded-lg border border-dashed px-4 py-6 text-center text-xs admin-muted admin-border">
-          {/* TODO: Wire to API once a `materials`/`books` master table exists. */}
-          Belum ada tabel master materi di backend. Formulir ini masih berupa
-          mockup UI.
-        </p>
+      <p className="rounded-lg border border-dashed px-4 py-6 text-center text-xs admin-muted admin-border">
+        {/* TODO: Wire to API once a `materials`/`books` master table exists. */}
+        Belum ada tabel master materi di backend. Formulir ini masih berupa
+        mockup UI.
+      </p>
 
-        <div className="mt-5 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="admin-nav-item rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Belum tersedia"
-            className="admin-accent-bg inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium opacity-60"
-          >
-            Simpan
-          </button>
-        </div>
-      </motion.div>
-    </div>
+      <div className="mt-5 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="admin-nav-item rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          disabled
+          title="Belum tersedia"
+          className="admin-accent-bg inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium opacity-60"
+        >
+          Simpan
+        </button>
+      </div>
+    </AppModal>
   );
 }
 

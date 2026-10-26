@@ -43,6 +43,8 @@ export const tests = {
     // Admin Sambung Ngaji TIDAK BERHAK masuk ke Tartila Admin
     assert.equal(isAdminRole('admin'), false);
     assert.equal(isTartilaAdmin('admin'), false);
+    // Huruf besar/semua kapital tetap harus ditolak
+    assert.equal(isTartilaAdmin('ADMIN'), false);
 
     // Tartila Admin & Superadmin berhak
     assert.equal(isAdminRole('tartila_admin'), true);

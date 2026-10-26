@@ -30,6 +30,7 @@ import { getBest, setBest } from '../_shared/storage';
 import { GameStartSheet } from '../_shared/GameStartSheet';
 import { GameHud } from '../_shared/GameHud';
 import { GameResultModal } from '../_shared/GameResultModal';
+import { AppModal } from '@/components/ui/AppModal';
 import { useGameStore } from '@/features/ngaji-ceria/hooks/useGameStore';
 
 // Varian animasi realistis shuffle kartu di atas meja
@@ -572,77 +573,63 @@ export default function TilawatiMemoryPage() {
       </div>
 
       {/* MODAL JEDA (PAUSE MODAL) */}
-      <AnimatePresence>
-        {isPaused && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      <AppModal
+        isOpen={isPaused}
+        onClose={() => setIsPaused(false)}
+        title="Permainan Dijeda"
+        variant="warm"
+      >
+        <div className="w-16 h-16 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
+          <PauseSvg size={28} />
+        </div>
+
+        <p className="text-xs text-[#92400E] font-medium mb-4 text-center">
+          Napas dulu sejenak! Waktu dihentikan sementara.
+        </p>
+
+        <div className="bg-[#FDE68A] border-2 border-[#B45309] rounded-2xl p-3 mb-5 text-left text-xs text-[#78350F] space-y-1 font-bold">
+          <div className="flex justify-between">
+            <span>Level:</span>
+            <span>{levelConfig.title}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Sisa Waktu:</span>
+            <span>{formattedTimeLeft}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Pasangan Cocok:</span>
+            <span>
+              {matchedPairIds.length} / {levelConfig.pairsCount}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setIsPaused(false)}
+            className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-sm rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-6 text-center shadow-[8px_8px_0px_#78350F]"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
-                <PauseSvg size={28} />
-              </div>
-
-              <h3 className="text-2xl font-black text-[#78350F] mb-1">
-                Permainan Dijeda
-              </h3>
-              <p className="text-xs text-[#92400E] font-medium mb-4">
-                Napas dulu sejenak! Waktu dihentikan sementara.
-              </p>
-
-              <div className="bg-[#FDE68A] border-2 border-[#B45309] rounded-2xl p-3 mb-5 text-left text-xs text-[#78350F] space-y-1 font-bold">
-                <div className="flex justify-between">
-                  <span>Level:</span>
-                  <span>{levelConfig.title}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sisa Waktu:</span>
-                  <span>{formattedTimeLeft}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Pasangan Cocok:</span>
-                  <span>
-                    {matchedPairIds.length} / {levelConfig.pairsCount}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsPaused(false)}
-                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>Lanjutkan Bermain</span>
-                  <PlaySvg size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResetGame}
-                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <RotateCcwSvg size={14} />
-                  <span>Ulangi Level Ini</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/member/ngaji-ceria/games/memory/select')}
-                  className="w-full py-2 text-xs font-bold text-[#78350F]/80 hover:text-[#78350F] underline cursor-pointer"
-                >
-                  Pilih Level Lain
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <span>Lanjutkan Bermain</span>
+            <PlaySvg size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={handleResetGame}
+            className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <RotateCcwSvg size={14} />
+            <span>Ulangi Level Ini</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/member/ngaji-ceria/games/memory/select')}
+            className="w-full py-2 text-xs font-bold text-[#78350F]/80 hover:text-[#78350F] underline cursor-pointer"
+          >
+            Pilih Level Lain
+          </button>
+        </div>
+      </AppModal>
 
       {/* UNIVERSAL GAME START SHEET */}
       <GameStartSheet

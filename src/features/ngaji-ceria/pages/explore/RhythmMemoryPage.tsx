@@ -25,6 +25,7 @@ import {
 import { soundManager } from '../../services/soundManager';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import type { HitResult } from '../../components/lab-irama/timingJudge';
+import { AppModal } from '@/components/ui/AppModal';
 
 export default function RhythmMemoryPage() {
   const navigate = useNavigate();
@@ -448,82 +449,68 @@ export default function RhythmMemoryPage() {
       </div>
 
       {/* DIALOG KEMENANGAN (VICTORY MODAL) */}
-      <AnimatePresence>
-        {isComplete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+      <AppModal
+        isOpen={isComplete}
+        onClose={() => navigate('/member/ngaji-ceria/training')}
+        title="Mumtaz! Luar Biasa!"
+        variant="warm"
+      >
+        <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
+          <TrophySvg size={44} />
+        </div>
+
+        <p className="text-xs text-[#92400E] font-medium mb-4 text-center">
+          Kamu berhasil menyelesaikan seluruh irama & kartu Tilawati Jilid {currentJilid}!
+        </p>
+
+        <div className="flex justify-around bg-[#FDE68A] border-2 border-[#B45309] rounded-2xl p-3 mb-5">
+          <div>
+            <span className="block text-[10px] font-bold text-[#78350F] uppercase">
+              Total Skor
+            </span>
+            <span className="text-xl font-black text-[#78350F]">
+              {score}
+            </span>
+          </div>
+          <div className="border-r border-[#B45309]/30" />
+          <div>
+            <span className="block text-[10px] font-bold text-[#78350F] uppercase">
+              Langkah
+            </span>
+            <span className="text-xl font-black text-[#78350F]">
+              {moves}
+            </span>
+          </div>
+          <div className="border-r border-[#B45309]/30" />
+          <div>
+            <span className="block text-[10px] font-bold text-[#78350F] uppercase">
+              Streak
+            </span>
+            <span className="text-xl font-black text-[#78350F] flex items-center justify-center gap-0.5">
+              <span>{streak}</span>
+              <FireSvg size={16} className="text-[#EA580C]" />
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleResetGame}
+            className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <motion.div
-              initial={{ scale: 0.85, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.85, y: 20 }}
-              className="w-full max-w-sm rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-6 text-center shadow-[8px_8px_0px_#78350F]"
-            >
-              <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
-                <TrophySvg size={44} />
-              </div>
-
-              <h3 className="text-2xl font-black text-[#78350F] mb-1">
-                Mumtaz! Luar Biasa!
-              </h3>
-              <p className="text-xs text-[#92400E] font-medium mb-4">
-                Kamu berhasil menyelesaikan seluruh irama & kartu Tilawati Jilid {currentJilid}!
-              </p>
-
-              <div className="flex justify-around bg-[#FDE68A] border-2 border-[#B45309] rounded-2xl p-3 mb-5">
-                <div>
-                  <span className="block text-[10px] font-bold text-[#78350F] uppercase">
-                    Total Skor
-                  </span>
-                  <span className="text-xl font-black text-[#78350F]">
-                    {score}
-                  </span>
-                </div>
-                <div className="border-r border-[#B45309]/30" />
-                <div>
-                  <span className="block text-[10px] font-bold text-[#78350F] uppercase">
-                    Langkah
-                  </span>
-                  <span className="text-xl font-black text-[#78350F]">
-                    {moves}
-                  </span>
-                </div>
-                <div className="border-r border-[#B45309]/30" />
-                <div>
-                  <span className="block text-[10px] font-bold text-[#78350F] uppercase">
-                    Streak
-                  </span>
-                  <span className="text-xl font-black text-[#78350F] flex items-center justify-center gap-0.5">
-                    <span>{streak}</span>
-                    <FireSvg size={16} className="text-[#EA580C]" />
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleResetGame}
-                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>Main Lagi</span>
-                  <RotateCcwSvg size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/member/ngaji-ceria/training')}
-                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
-                >
-                  Kembali ke Pusat Latihan
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <span>Main Lagi</span>
+            <RotateCcwSvg size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/member/ngaji-ceria/training')}
+            className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+          >
+            Kembali ke Pusat Latihan
+          </button>
+        </div>
+      </AppModal>
     </NgajiCeriaLayout>
   );
 }

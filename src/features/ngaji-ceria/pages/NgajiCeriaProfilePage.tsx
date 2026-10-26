@@ -9,7 +9,7 @@ import {
   getRank,
   useNgajiProgress,
 } from "./games/_shared/progression";
-import { ModalPanel } from "./games/_shared/ModalPanel";
+import { AppModal } from "@/components/ui/AppModal";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
@@ -814,9 +814,9 @@ export default function NgajiCeriaProfilePage() {
 
       {/* --- MODALS --- */}
       {activeModal === "edit" && (
-        <ModalPanel
+        <AppModal isOpen={true}
           title="Edit Profil"
-          warm
+          variant="warm"
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-4">
@@ -1044,11 +1044,11 @@ export default function NgajiCeriaProfilePage() {
               </button>
             </div>
           </div>
-        </ModalPanel>
+        </AppModal>
       )}
 
       {activeModal === "password" && (
-        <ModalPanel
+        <AppModal isOpen={true}
           title="Ganti Kata Sandi"
           onClose={() => setActiveModal(null)}
         >
@@ -1110,13 +1110,13 @@ export default function NgajiCeriaProfilePage() {
               </div>
             </form>
           )}
-        </ModalPanel>
+        </AppModal>
       )}
 
       {activeModal === "feedback" && (
-        <ModalPanel
+        <AppModal isOpen={true}
           title="Kritik & Saran"
-          warm
+          variant="warm"
           onClose={() => setActiveModal(null)}
         >
           {submitted ? (
@@ -1165,13 +1165,13 @@ export default function NgajiCeriaProfilePage() {
               </div>
             </form>
           )}
-        </ModalPanel>
+        </AppModal>
       )}
 
       {activeModal === "install" && (
-        <ModalPanel
+        <AppModal isOpen={true}
           title="Install Tartila"
-          warm
+          variant="warm"
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-3 text-center">
@@ -1200,13 +1200,13 @@ export default function NgajiCeriaProfilePage() {
               Tutup
             </button>
           </div>
-        </ModalPanel>
+        </AppModal>
       )}
 
       {activeModal === "logout" && (
-        <ModalPanel
+        <AppModal isOpen={true}
           title="Keluar Akun?"
-          warm
+          variant="warm"
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-3 text-center">
@@ -1232,11 +1232,11 @@ export default function NgajiCeriaProfilePage() {
               </button>
             </div>
           </div>
-        </ModalPanel>
+        </AppModal>
       )}
 
       {activeModal === "delete" && (
-        <ModalPanel
+        <AppModal isOpen={true}
           title="Hapus Akun"
           onClose={() => setActiveModal(null)}
         >
@@ -1262,7 +1262,7 @@ export default function NgajiCeriaProfilePage() {
               </button>
             </div>
           </div>
-        </ModalPanel>
+        </AppModal>
       )}
 
       {/* Voucher Modal */}

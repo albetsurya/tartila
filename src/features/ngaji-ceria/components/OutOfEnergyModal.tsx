@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ModalPanel } from "../pages/games/_shared/ModalPanel";
+import { AppModal } from "@/components/ui/AppModal";
 import { StickerButton } from "@/components/ui";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { Coins, Crown } from "@/components/ui/CustomIcons";
@@ -57,7 +57,7 @@ export function OutOfEnergyModal({
     : formatWait(now, lastTicketRegen, TICKET_REGEN_MS);
 
   return (
-    <ModalPanel title={isHeart ? "Hati Habis!" : "Tiket Habis!"} warm onClose={onClose}>
+    <AppModal isOpen={true} title={isHeart ? "Hati Habis!" : "Tiket Habis!"} variant="warm" onClose={onClose}>
       <div className="my-4 flex flex-col items-center text-center">
         <TilaMascot size={120} mood="sad" direction="front" animation="float" />
 
@@ -89,6 +89,6 @@ export function OutOfEnergyModal({
           </StickerButton>
         </div>
       </div>
-    </ModalPanel>
+    </AppModal>
   );
 }

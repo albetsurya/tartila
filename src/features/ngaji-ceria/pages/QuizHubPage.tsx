@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeftSvg,
   CoinSvg,
@@ -14,10 +14,10 @@ import {
   WhatsAppSvg,
   CopySvg,
   CheckSvg,
-  XSvg,
   RefreshCwSvg,
   SparklesSvg,
 } from "@/components/ui/CustomIcons";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -229,144 +229,115 @@ export default function QuizHubPage() {
       </main>
 
       {/* 5. Bottom Sheet Tantang Teman */}
-      <AnimatePresence>
-        {isChallengeSheetOpen && (
-          <div className="fixed inset-0 z-50 flex flex-col justify-end">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-              onClick={() => setIsChallengeSheetOpen(false)}
-            />
-
-            {/* Sheet Container */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative z-10 w-full max-w-lg mx-auto bg-white rounded-t-[32px] border-t-4 border-x-4 border-[#0F172A] shadow-[0_-8px_30px_rgba(0,0,0,0.3)] px-5 pt-4 pb-8 flex flex-col"
-            >
-              {/* Header Bottom Sheet */}
-              <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#C084FC] border-2 border-[#0F172A] flex items-center justify-center text-white">
-                    <SwordsSvg size={18} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-[#0F172A]">Tantang Teman</h3>
-                    <p className="text-xs font-bold text-slate-500">Soal sama persis berbasis Seed</p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsChallengeSheetOpen(false)}
-                  className="w-8 h-8 rounded-full border-2 border-[#0F172A] bg-slate-100 flex items-center justify-center hover:bg-slate-200"
-                >
-                  <XSvg size={16} />
-                </button>
-              </div>
-
-              {/* Konten Sheet */}
-              <div className="py-4 space-y-4">
-                {/* Pilihan Kategori */}
-                <div>
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-600 block mb-2">
-                    1. Pilih Kategori Soal:
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {QUIZ_HUB_CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setSelectedCategory(cat.id)}
-                        className={`p-2.5 rounded-xl border-2 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
-                          selectedCategory === cat.id
-                            ? "bg-[#FEF08A] border-[#0F172A] shadow-[2px_2px_0px_#0F172A] text-[#0F172A]"
-                            : "bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        <div className="shrink-0">{getCategoryIcon(cat.id)}</div>
-                        <span className="truncate">{cat.title}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Seed Acak */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">
-                      2. Seed Acak Soal:
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleRandomizeSeed}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#0369A1] hover:underline"
-                    >
-                      <RefreshCwSvg size={12} />
-                      <span>Acak Ulang</span>
-                    </button>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-100 border-2 border-[#0F172A] flex items-center justify-between font-mono font-bold text-sm">
-                    <span>Seed: #{seed}</span>
-                    <span className="text-[11px] font-sans font-semibold text-slate-500">
-                      5 Soal Tersinkronisasi
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tautan Tantangan */}
-                <div>
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-600 block mb-1.5">
-                    3. Tautan Tantangan:
-                  </label>
-                  <div className="p-2.5 rounded-xl bg-slate-50 border-2 border-slate-300 text-xs font-mono break-all text-slate-700 select-all">
-                    {shareUrl}
-                  </div>
-                </div>
-
-                {/* Tombol Aksi: Salin & WhatsApp */}
-                <div className="pt-2 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    className="py-3 px-3 rounded-xl bg-white hover:bg-slate-50 border-3 border-[#0F172A] shadow-[3px_3px_0px_#0F172A] font-black text-xs sm:text-sm text-[#0F172A] flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5 active:shadow-none"
-                  >
-                    {isCopied ? <CheckSvg size={16} /> : <CopySvg size={16} />}
-                    <span>{isCopied ? "Tersalin!" : "Salin Tautan"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleShareWhatsApp}
-                    className="py-3 px-3 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] border-3 border-[#0F172A] shadow-[3px_3px_0px_#0F172A] font-black text-xs sm:text-sm text-white flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5 active:shadow-none"
-                  >
-                    <WhatsAppSvg size={18} />
-                    <span>WhatsApp</span>
-                  </button>
-                </div>
-
-                {/* Tombol Langsung Mainkan Sendiri */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsChallengeSheetOpen(false);
-                    navigate(`/quiz-hub/versus?seed=${seed}&category=${selectedCategory}&challenger=${encodeURIComponent(challengerId)}`);
-                  }}
-                  className="w-full py-2.5 rounded-xl bg-[#E0F2FE] hover:bg-[#BAE6FD] border-2 border-[#0F172A] font-black text-xs text-[#0369A1] flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <SparklesSvg size={14} />
-                  <span>Coba Mainkan Sendiri Dulu</span>
-                </button>
-              </div>
-            </motion.div>
+      <AppBottomSheet
+        isOpen={isChallengeSheetOpen}
+        onClose={() => setIsChallengeSheetOpen(false)}
+        title="Tantang Teman"
+      >
+        {/* Header Bottom Sheet */}
+        <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#C084FC] border-2 border-[#0F172A] flex items-center justify-center text-white">
+              <SwordsSvg size={18} />
+            </div>
+            <p className="text-xs font-bold text-slate-500">Soal sama persis berbasis Seed</p>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+
+        {/* Konten Sheet */}
+        <div className="py-4 space-y-4">
+          {/* Pilihan Kategori */}
+          <div>
+            <label className="text-xs font-black uppercase tracking-wider text-slate-600 block mb-2">
+              1. Pilih Kategori Soal:
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {QUIZ_HUB_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`p-2.5 rounded-xl border-2 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedCategory === cat.id
+                      ? "bg-[#FEF08A] border-[#0F172A] shadow-[2px_2px_0px_#0F172A] text-[#0F172A]"
+                      : "bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  <div className="shrink-0">{getCategoryIcon(cat.id)}</div>
+                  <span className="truncate">{cat.title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Seed Acak */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-600">
+                2. Seed Acak Soal:
+              </label>
+              <button
+                type="button"
+                onClick={handleRandomizeSeed}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#0369A1] hover:underline"
+              >
+                <RefreshCwSvg size={12} />
+                <span>Acak Ulang</span>
+              </button>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-100 border-2 border-[#0F172A] flex items-center justify-between font-mono font-bold text-sm">
+              <span>Seed: #{seed}</span>
+              <span className="text-[11px] font-sans font-semibold text-slate-500">
+                5 Soal Tersinkronisasi
+              </span>
+            </div>
+          </div>
+
+          {/* Tautan Tantangan */}
+          <div>
+            <label className="text-xs font-black uppercase tracking-wider text-slate-600 block mb-1.5">
+              3. Tautan Tantangan:
+            </label>
+            <div className="p-2.5 rounded-xl bg-slate-50 border-2 border-slate-300 text-xs font-mono break-all text-slate-700 select-all">
+              {shareUrl}
+            </div>
+          </div>
+
+          {/* Tombol Aksi: Salin & WhatsApp */}
+          <div className="pt-2 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="py-3 px-3 rounded-xl bg-white hover:bg-slate-50 border-3 border-[#0F172A] shadow-[3px_3px_0px_#0F172A] font-black text-xs sm:text-sm text-[#0F172A] flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5 active:shadow-none"
+            >
+              {isCopied ? <CheckSvg size={16} /> : <CopySvg size={16} />}
+              <span>{isCopied ? "Tersalin!" : "Salin Tautan"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShareWhatsApp}
+              className="py-3 px-3 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] border-3 border-[#0F172A] shadow-[3px_3px_0px_#0F172A] font-black text-xs sm:text-sm text-white flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5 active:shadow-none"
+            >
+              <WhatsAppSvg size={18} />
+              <span>WhatsApp</span>
+            </button>
+          </div>
+
+          {/* Tombol Langsung Mainkan Sendiri */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsChallengeSheetOpen(false);
+              navigate(`/quiz-hub/versus?seed=${seed}&category=${selectedCategory}&challenger=${encodeURIComponent(challengerId)}`);
+            }}
+            className="w-full py-2.5 rounded-xl bg-[#E0F2FE] hover:bg-[#BAE6FD] border-2 border-[#0F172A] font-black text-xs text-[#0369A1] flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <SparklesSvg size={14} />
+            <span>Coba Mainkan Sendiri Dulu</span>
+          </button>
+        </div>
+      </AppBottomSheet>
     </div>
   );
 }

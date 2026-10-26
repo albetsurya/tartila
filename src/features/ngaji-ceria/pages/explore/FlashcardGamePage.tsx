@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ChevronLeft } from "../../../../components/ui/CustomIcons";
+import { AppModal } from "../../../../components/ui/AppModal";
 
 const CARD_LABELS = [
   "ا",
@@ -158,30 +159,27 @@ export default function FlashcardGamePage() {
         </div>
 
         {/* Modal: Uji Layar */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div
-              className="relative w-full max-w-md bg-white rounded-2xl border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] p-8 transform scale-95 opacity-0 transition-all duration-300"
-              style={{ transform: "scale(1)" }}
-            >
-              <p className="text-5xl font-black text-[#134E4A] mb-6 text-center select-none">
-                {currentArabic}
-              </p>
-              <button
-                onClick={handleSudahDibaca}
-                className="w-full rounded-lg border-2 border-[#134E4A] bg-[#0D9488] text-white font-bold text-sm py-3 px-6 shadow-[2px_2px_0px_#134E4A] hover:bg-[#134E4A] transition-colors"
-              >
-                Sudah Dibaca
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="mt-4 text-gray-500 hover:text-[#134E4A] transition-colors"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        )}
+        <AppModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title="Uji Layar"
+        >
+          <p className="text-5xl font-black text-[#134E4A] mb-6 text-center select-none">
+            {currentArabic}
+          </p>
+          <button
+            onClick={handleSudahDibaca}
+            className="w-full rounded-lg border-2 border-[#134E4A] bg-[#0D9488] text-white font-bold text-sm py-3 px-6 shadow-[2px_2px_0px_#134E4A] hover:bg-[#134E4A] transition-colors"
+          >
+            Sudah Dibaca
+          </button>
+          <button
+            onClick={() => setShowModal(false)}
+            className="mt-4 text-gray-500 hover:text-[#134E4A] transition-colors"
+          >
+            Tutup
+          </button>
+        </AppModal>
       </div>
     </NgajiCeriaLayout>
   );

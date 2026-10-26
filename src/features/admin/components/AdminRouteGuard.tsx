@@ -26,6 +26,11 @@ export function AdminRouteGuard() {
   // HANYA tartila_admin dan superadmin yang boleh masuk ke /admin Tartila.
   // Admin Sambung Ngaji (role 'admin') ditendang ke '/' (Unauthorized).
   if (!isTartilaAdmin(user.role)) {
+    console.warn(
+      "Akses ditolak: Role",
+      user.role,
+      "bukan Tartila Admin. Mengalihkan ke /",
+    );
     return <Navigate to="/" replace />;
   }
 

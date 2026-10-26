@@ -8,14 +8,32 @@ export interface AppModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  variant?: "warm" | "cool";
 }
 
 /**
- * Modal tengah standar aplikasi.
- * Dipakai untuk: konfirmasi kritis (Hapus Akun, Logout) dan peringatan
- * (Hati Habis) yang memblokir interaksi di belakangnya.
+ * Modal tengah standar aplikasi (Single Source of Truth).
+ *
+ * ATURAN PENGGUNAAN:
+ * - **AppModal**: Konfirmasi destruktif (Hapus Akun, Logout), error kritis,
+ *   info penting (peringatan), dan reward (XP/Koin). Blocking: user harus
+ *   berinteraksi dulu (OK/Batal/Tutup) sebelum kembali ke konten di belakangnya.
+ *
+ * - **AppBottomSheet**: Pilihan ringan (pilih level), filter, form pendek,
+ *   aksi cepat (Edit Profil/Avatar). Non-blocking: mudah dijangkau jempol,
+ *   konten di belakang masih terlihat samar.
+ *
+ * Variant:
+ * - "warm": background kuning (#FEF3C7) — untuk info/peringatan positif/netral.
+ * - "cool": background putih/card — untuk konfirmasi netral/default.
  */
-export function AppModal({ isOpen, onClose, title, children }: AppModalProps) {
+export function AppModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  variant = "cool",
+}: AppModalProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,12 +75,14 @@ export function AppModal({ isOpen, onClose, title, children }: AppModalProps) {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 300, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[calc(100dvh-3rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-[32px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-6 shadow-[6px_6px_0px_var(--shadow-color,#134E4A)]"
+            className={`max-h-[calc(100dvh-3rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-[32px] border-[3px] border-[var(--border-color,#134E4A)] p-6 shadow-[6px_6px_0px_var(--shadow-color,#134E4A)] ${
+              variant === "warm"
+                ? "bg-[#FEF3C7] text-[#78350F]"
+                : "bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)]"
+            }`}
           >
             <div className="mb-4 flex items-start justify-between gap-3">
-              <h2 className="font-display text-xl font-black text-[var(--text-main,#134E4A)]">
-                {title}
-              </h2>
+              <h2 className="font-display text-xl font-black">{title}</h2>
               <button
                 type="button"
                 onClick={onClose}

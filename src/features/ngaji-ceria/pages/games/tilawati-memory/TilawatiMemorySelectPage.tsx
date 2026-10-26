@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { NgajiCeriaLayout } from '../../../components/NgajiCeriaLayout';
 import { ExploreHeader } from '../../../components/ExploreHeader';
 import { ARENA_KARTU_DATA, ArenaKartuLevel } from '../../../data/arenaKartuData';
@@ -14,7 +14,6 @@ import {
   Sparkles,
   LockSvg,
   PlaySvg,
-  XSvg,
   CheckSvg,
   StarSvg,
   GameCardSvg,
@@ -23,6 +22,7 @@ import {
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
+import { AppBottomSheet } from '@/components/ui/AppBottomSheet';
 
 export default function TilawatiMemorySelectPage() {
   const navigate = useNavigate();
@@ -164,166 +164,126 @@ export default function TilawatiMemorySelectPage() {
       </div>
 
       {/* START SCREEN (BOTTOM SHEET / MODAL NEO-BRUTALISM) */}
-      <AnimatePresence>
+      <AppBottomSheet
+        isOpen={!!selectedJilid}
+        onClose={() => setSelectedJilid(null)}
+        title={`Memory Match - Jilid ${selectedJilid?.jilid ?? ""}`}
+      >
         {selectedJilid && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedJilid(null)}
-              className="absolute inset-0 bg-black/65 backdrop-blur-xs"
-            />
+          <>
+            {/* Deskripsi Misi */}
+            <p className="text-xs font-bold text-[#78350F]/85 leading-relaxed mb-4">
+              Temukan semua pasangan kartu sebelum waktu habis! Selesaikan level untuk membuka tantangan berikutnya.
+            </p>
 
-            {/* Sheet Container */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-              className="relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-5 sm:p-6 shadow-[0_-8px_30px_rgba(0,0,0,0.4)] sm:shadow-[8px_8px_0px_#78350F] max-h-[92vh] overflow-y-auto"
-            >
-              {/* Header Sheet */}
-              <div className="flex items-center justify-between border-b-2 border-[#B45309]/20 pb-3 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#065F46] border-2 border-[#134E4A] flex items-center justify-center text-white shadow-xs">
-                    <GameCardSvg size={20} stroke="#FEF3C7" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase text-[#B45309] tracking-wider">
-                      Misi Time Attack
-                    </span>
-                    <h2 className="font-display font-black text-lg sm:text-xl text-[#78350F]">
-                      Memory Match - Jilid {selectedJilid.jilid}
-                    </h2>
-                  </div>
-                </div>
+            {/* Pilihan Level (4 Tombol) */}
+            <div className="space-y-2 mb-4">
+              <span className="block text-xs font-black text-[#78350F] uppercase tracking-wider">
+                Pilih Tingkat Kesulitan:
+              </span>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedJilid(null)}
-                  className="w-8 h-8 rounded-full bg-white/80 border-2 border-[#B45309] text-[#78350F] flex items-center justify-center font-black active:scale-90 transition-transform cursor-pointer"
-                  aria-label="Tutup"
-                >
-                  <XSvg size={14} />
-                </button>
-              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {MEMORY_LEVELS_CONFIG.map((lvl) => {
+                  const isUnlocked = lvl.level <= maxUnlockedLevel;
+                  const isSelected = chosenLevel === lvl.level;
+                  const recordKey = `${selectedJilid.jilid}-${lvl.level}`;
+                  const record = levelRecords[recordKey];
 
-              {/* Deskripsi Misi */}
-              <p className="text-xs font-bold text-[#78350F]/85 leading-relaxed mb-4">
-                Temukan semua pasangan kartu sebelum waktu habis! Selesaikan level untuk membuka tantangan berikutnya.
-              </p>
-
-              {/* Pilihan Level (4 Tombol) */}
-              <div className="space-y-2 mb-4">
-                <span className="block text-xs font-black text-[#78350F] uppercase tracking-wider">
-                  Pilih Tingkat Kesulitan:
-                </span>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  {MEMORY_LEVELS_CONFIG.map((lvl) => {
-                    const isUnlocked = lvl.level <= maxUnlockedLevel;
-                    const isSelected = chosenLevel === lvl.level;
-                    const recordKey = `${selectedJilid.jilid}-${lvl.level}`;
-                    const record = levelRecords[recordKey];
-
-                    return (
-                      <button
-                        key={lvl.level}
-                        type="button"
-                        disabled={!isUnlocked}
-                        onClick={() => {
-                          setChosenLevel(lvl.level);
-                          soundManager.playSfx('tap');
-                        }}
-                        className={`relative p-3 rounded-2xl border-[3px] text-left transition-all flex flex-col justify-between min-h-[90px] select-none ${
-                          !isUnlocked
-                            ? 'bg-gray-200/90 border-gray-400/80 text-gray-500 cursor-not-allowed opacity-60 shadow-none'
-                            : isSelected
-                            ? 'bg-[#10B981] text-white border-[#065F46] shadow-[3px_3px_0px_#065F46] scale-[1.02] ring-3 ring-[#34D399] cursor-pointer'
-                            : 'bg-white text-[#78350F] border-[#B45309] hover:bg-[#FEF08A] shadow-[2px_2px_0px_#78350F] cursor-pointer active:translate-y-0.5 active:shadow-none'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <span className="font-display font-black text-xs sm:text-sm">
-                            Level {lvl.level}
+                  return (
+                    <button
+                      key={lvl.level}
+                      type="button"
+                      disabled={!isUnlocked}
+                      onClick={() => {
+                        setChosenLevel(lvl.level);
+                        soundManager.playSfx('tap');
+                      }}
+                      className={`relative p-3 rounded-2xl border-[3px] text-left transition-all flex flex-col justify-between min-h-[90px] select-none ${
+                        !isUnlocked
+                          ? 'bg-gray-200/90 border-gray-400/80 text-gray-500 cursor-not-allowed opacity-60 shadow-none'
+                          : isSelected
+                          ? 'bg-[#10B981] text-white border-[#065F46] shadow-[3px_3px_0px_#065F46] scale-[1.02] ring-3 ring-[#34D399] cursor-pointer'
+                          : 'bg-white text-[#78350F] border-[#B45309] hover:bg-[#FEF08A] shadow-[2px_2px_0px_#78350F] cursor-pointer active:translate-y-0.5 active:shadow-none'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-display font-black text-xs sm:text-sm">
+                          Level {lvl.level}
+                        </span>
+                        {!isUnlocked ? (
+                          <span className="flex items-center gap-1 text-[10px] font-black text-gray-500 bg-gray-300 px-1.5 py-0.5 rounded-md">
+                            <LockSvg size={11} /> Kunci
                           </span>
-                          {!isUnlocked ? (
-                            <span className="flex items-center gap-1 text-[10px] font-black text-gray-500 bg-gray-300 px-1.5 py-0.5 rounded-md">
-                              <LockSvg size={11} /> Kunci
-                            </span>
-                          ) : (
-                            <div className="flex items-center gap-0.5 text-[11px] text-[#FDE047]">
-                              {record?.stars ? (
-                                Array.from({ length: record.stars }).map((_, sIdx) => (
-                                  <StarSvg key={sIdx} size={12} fill="#FDE047" stroke="#78350F" />
-                                ))
-                              ) : (
-                                <span
-                                  className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${
-                                    isSelected
-                                      ? 'bg-white/20 text-white'
-                                      : 'bg-[#FEF08A] text-[#78350F]'
-                                  }`}
-                                >
-                                  Terbuka
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        ) : (
+                          <div className="flex items-center gap-0.5 text-[11px] text-[#FDE047]">
+                            {record?.stars ? (
+                              Array.from({ length: record.stars }).map((_, sIdx) => (
+                                <StarSvg key={sIdx} size={12} fill="#FDE047" stroke="#78350F" />
+                              ))
+                            ) : (
+                              <span
+                                className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${
+                                  isSelected
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[#FEF08A] text-[#78350F]'
+                                }`}
+                              >
+                                Terbuka
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
-                        <div className="mt-2 space-y-0.5">
-                            <p
-                              className={`text-[11px] font-black ${
-                                isSelected ? 'text-white' : 'text-[#78350F]'
-                              }`}
-                            >
-                              <GameCardSvg size={14} stroke="#065F46" /> {lvl.pairsCount} Pasang ({lvl.cardsCount} Kartu)
-                            </p>
-                            <p
-                              className={`text-[10px] font-bold ${
-                                isSelected ? 'text-[#ECFDF5]' : 'text-[#78350F]/70'
-                              }`}
-                            >
-                              <ClockSvg size={11} stroke="#ECFDF5" /> Batas Waktu: {lvl.timeLimitSeconds}s
-                            </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                      <div className="mt-2 space-y-0.5">
+                          <p
+                            className={`text-[11px] font-black ${
+                              isSelected ? 'text-white' : 'text-[#78350F]'
+                            }`}
+                          >
+                            <GameCardSvg size={14} stroke="#065F46" /> {lvl.pairsCount} Pasang ({lvl.cardsCount} Kartu)
+                          </p>
+                          <p
+                            className={`text-[10px] font-bold ${
+                              isSelected ? 'text-[#ECFDF5]' : 'text-[#78350F]/70'
+                            }`}
+                          >
+                            <ClockSvg size={11} stroke="#ECFDF5" /> Batas Waktu: {lvl.timeLimitSeconds}s
+                          </p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Box Rangkuman Misi Level Terpilih */}
-              <div className="p-3.5 rounded-2xl bg-[#065F46] border-2 border-[#134E4A] text-[#FEF3C7] shadow-inner mb-5">
-                <div className="flex items-center justify-between text-xs font-black mb-1">
-                  <span className="text-[#FDE047] flex items-center gap-1">
-                    <TargetSvg size={13} stroke="#FDE047" /> Target Level {chosenLevel}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#A7F3D0]">
-                    Jilid {selectedJilid.jilid}
-                  </span>
-                </div>
-                <p className="text-xs font-semibold leading-relaxed">
-                  Cocokkan <strong>{chosenConfig.pairsCount} pasang kartu ({chosenConfig.cardsCount} kartu)</strong> sebelum waktu <strong>{chosenConfig.timeLimitSeconds} detik</strong> habis. Sisa waktu lebih banyak memberikan bintang lebih tinggi!
-                </p>
+            {/* Box Rangkuman Misi Level Terpilih */}
+            <div className="p-3.5 rounded-2xl bg-[#065F46] border-2 border-[#134E4A] text-[#FEF3C7] shadow-inner mb-5">
+              <div className="flex items-center justify-between text-xs font-black mb-1">
+                <span className="text-[#FDE047] flex items-center gap-1">
+                  <TargetSvg size={13} stroke="#FDE047" /> Target Level {chosenLevel}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#A7F3D0]">
+                  Jilid {selectedJilid.jilid}
+                </span>
               </div>
+              <p className="text-xs font-semibold leading-relaxed">
+                Cocokkan <strong>{chosenConfig.pairsCount} pasang kartu ({chosenConfig.cardsCount} kartu)</strong> sebelum waktu <strong>{chosenConfig.timeLimitSeconds} detik</strong> habis. Sisa waktu lebih banyak memberikan bintang lebih tinggi!
+              </p>
+            </div>
 
-              {/* Tombol Mulai Bermain */}
-              <button
-                type="button"
-                onClick={handleStartGame}
-                className="w-full py-3.5 px-4 rounded-2xl bg-[#10B981] hover:bg-[#059669] text-white font-display font-black text-base border-[3px] border-[#042F2E] shadow-[4px_4px_0px_#042F2E] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <PlaySvg size={18} />
-                <span>Mulai Level {chosenLevel} Sekarang</span>
-              </button>
-            </motion.div>
-          </div>
+            {/* Tombol Mulai Bermain */}
+            <button
+              type="button"
+              onClick={handleStartGame}
+              className="w-full py-3.5 px-4 rounded-2xl bg-[#10B981] hover:bg-[#059669] text-white font-display font-black text-base border-[3px] border-[#042F2E] shadow-[4px_4px_0px_#042F2E] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <PlaySvg size={18} />
+              <span>Mulai Level {chosenLevel} Sekarang</span>
+            </button>
+          </>
         )}
-      </AnimatePresence>
+      </AppBottomSheet>
     </NgajiCeriaLayout>
   );
 }
