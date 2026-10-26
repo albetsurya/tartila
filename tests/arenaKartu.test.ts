@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import React from 'react';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   ARENA_KARTU_DATA,
   getArenaKartuPairs,
@@ -12,6 +15,8 @@ import ArenaKartuPage from '../src/features/ngaji-ceria/pages/explore/ArenaKartu
 import KartuPracticePage from '../src/features/ngaji-ceria/pages/explore/KartuPracticePage';
 import { useEconomyStore } from '../src/features/ngaji-ceria/hooks/useEconomyStore';
 import { isTilaCompanionExcluded } from '../src/components/ui/TilaCompanion';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export const tests = {
   'ARENA_KARTU_DATA: memiliki data lengkap Jilid 1 sampai 6 dengan 12 kartu materi': () => {
@@ -31,6 +36,43 @@ export const tests = {
     }
   },
 
+  'audioUrl kartu menunjuk berkas audio yang ada dan berasal dari jilid sendiri': () => {
+    for (let j = 1; j <= 6; j++) {
+      for (const card of getArenaKartuMateri(j)) {
+        if (!card.audioUrl) continue; // jilid 6: Al-Asr/Al-Fatihah/Al-Qadr belum punya audio
+        const file = path.join(root, 'public', card.audioUrl);
+        assert.ok(fs.existsSync(file), `${card.id} menunjuk berkas tidak ada: ${card.audioUrl}`);
+        assert.ok(card.audioUrl.includes(`/jilid_${j}/`), `${card.id} audio jilid ${j} berasal dari jilid lain: ${card.audioUrl}`);
+      }
+    }
+  },
+
+  'teks dan audio kartu selaras: tiap kartu = satu unit tilawati unik': () => {
+    // Jilid 1-5 dibangun ulang dari unit tilawati: 12 teks unik dan 12 audio unik.
+    for (let j = 1; j <= 5; j++) {
+      const level = ARENA_KARTU_DATA.find((item) => item.jilid === j);
+      assert.ok(level, `Jilid ${j} harus ada`);
+
+      const texts = new Set(level.texts);
+      assert.equal(texts.size, 12, `Jilid ${j}: level.texts harus 12 teks unik`);
+
+      const audioUrls = new Set<string>();
+      for (const card of level.cards) {
+        assert.ok(card.audioUrl, `Jilid ${j}: kartu ${card.id} harus punya audio`);
+        assert.ok(
+          texts.has(card.text),
+          `Jilid ${j}: teks kartu ${card.id} tidak ada di level.texts`,
+        );
+        audioUrls.add(card.audioUrl as string);
+      }
+      assert.equal(
+        audioUrls.size,
+        12,
+        `Jilid ${j}: 12 kartu harus memakai 12 berkas audio unik`,
+      );
+    }
+  },
+
   'getArenaKartuMateri & getArenaKartuCardById: mengembalikan data kartu dengan tepat': () => {
     const cards = getArenaKartuMateri(1);
     assert.equal(cards.length, 12);
@@ -38,7 +80,7 @@ export const tests = {
 
     const card = getArenaKartuCardById(1, 'j1-c1');
     assert.ok(card);
-    assert.equal(card.text, 'اَ');
+    assert.equal(card.text, 'اَ اَ اَ');
     assert.equal(card.cardIndex, 1);
   },
 

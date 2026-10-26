@@ -20,12 +20,20 @@ import {
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
-import { ExploreHeader, ExploreStatBadge } from "../../components/ExploreHeader";
+import {
+  ExploreHeader,
+  ExploreStatBadge,
+} from "../../components/ExploreHeader";
 import { JuicyStar } from "@/components/ui/JuicyIcons";
 import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
-import { AvatarAnakBersorakSvg } from "../../../../components/ui/Illustrations";
+import {
+  AvatarAnakBersorakSvg,
+  AvatarSantriAccessory,
+  AvatarSantriSvg,
+} from "../../../../components/ui/Illustrations";
+import { resolveMascotGender } from "@/utils/mascotHelper";
 
 const TILAWATI_PAGES = [
   {
@@ -256,6 +264,7 @@ export default function TilawatiMapPage() {
   const [energyEmpty, setEnergyEmpty] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
   const consumeHeart = useEconomyStore((s: any) => s.consumeHeart);
+  const tilaGender = useEconomyStore((s) => s.tilaGender);
   const stars = useNgajiCeriaStore((s) => s.stars);
   const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
   const [selectedNode, setSelectedNode] = useState<
@@ -358,7 +367,12 @@ export default function TilawatiMapPage() {
         }
         extraBadge={
           <ExploreStatBadge
-            icon={<JuicyStar size={18} className="text-[#F59E0B] fill-[#F59E0B] shrink-0" />}
+            icon={
+              <JuicyStar
+                size={18}
+                className="text-[#F59E0B] fill-[#F59E0B] shrink-0"
+              />
+            }
             value={`${totalStars}/93`}
             title={`Total Bintang: ${totalStars}/93`}
           />
@@ -533,8 +547,6 @@ export default function TilawatiMapPage() {
           ))}
         </div>
 
-
-
         <div
           className="relative max-w-md mx-auto w-full z-10"
           style={{ height: totalHeight }}
@@ -588,9 +600,11 @@ export default function TilawatiMapPage() {
                         className={`w-full h-full ${theme.islandBg} border-[3px] ${theme.nodeBorder} rounded-full rounded-br-none rotate-45 flex items-center justify-center`}
                       >
                         <div className="w-[82%] h-[82%] rounded-full overflow-hidden -rotate-45 bg-white border-2 border-black/10">
-                          <AvatarAnakBersorakSvg
-                            size={44}
-                            className="w-full h-full"
+                          <AvatarSantriSvg
+                            size={58}
+                            gender={resolveMascotGender(tilaGender)}
+                            mood="happy"
+                            className="shrink-0"
                           />
                         </div>
                       </div>
@@ -709,7 +723,8 @@ export default function TilawatiMapPage() {
               <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] mb-4">
                 <div className="text-left">
                   <p className="text-xs font-black text-[#134E4A] flex items-center gap-1.5">
-                    <Compass size={14} className="text-[#0D9488]" /> Mode Latihan
+                    <Compass size={14} className="text-[#0D9488]" /> Mode
+                    Latihan
                   </p>
                   <p className="text-[10px] font-bold text-[#134E4A]/60">
                     Bebas tanpa nyawa & tanpa perolehan bintang
@@ -736,7 +751,9 @@ export default function TilawatiMapPage() {
                   theme.nodeBorder
                 } shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
               >
-                {isPracticeMode ? "Mulai Latihan (Bebas Nyawa)" : "Mulai Belajar (1 Hati)"}{" "}
+                {isPracticeMode
+                  ? "Mulai Latihan (Bebas Nyawa)"
+                  : "Mulai Belajar (1 Hati)"}{" "}
                 <Play size={14} className="fill-white" />
               </button>
             </>
