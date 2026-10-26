@@ -10,7 +10,12 @@ import { authApi } from "@/services/authApi";
 import { getToken, clearToken } from "@/services/api";
 import { isUstadzRole, isUstadzUser, normalizeRole } from "@/lib/roles";
 import { resolveMascotGender } from "@/utils/mascotHelper";
-import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
+import { MASCOT_STORAGE_KEY } from "@/constants/mascot";
+import {
+  useEconomyStore,
+  DAILY_CLAIM_STORAGE_KEY,
+  DAILY_CLAIMED_DAYS_STORAGE_KEY,
+} from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { userApi } from "@/services/userApi";
 
 // Tipe user yang digunakan di aplikasi
@@ -32,7 +37,7 @@ interface AuthContextValue {
   user: CeriaUser | null;
   loading: boolean;
   isAuthLoading: boolean; // Flag loading autentikasi awal untuk mencegah flicker ke guest
-  loginWithGoogle: (credential?: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
   login: (identifier: string, password: string) => Promise<void>; // email atau username
@@ -50,6 +55,37 @@ interface AuthContextValue {
   setUstadzRole: (isUstadz: boolean) => Promise<void>; // Fungsi baru: set role setelah login
 }
 
+/**
+ * Normalisasi role ke kanonik dan turunkan role Admin Sambung Ngaji ('admin')
+ * menjadi 'member'. Superadmin tetap penuh. Role tak dikenal -> 'member'.
+ * Mencegah eskalasi hak akses lintas platform (Bagian 8.4).
+ */
+function toTartilaRole(role: string | null | undefined): string {
+  const normalized = normalizeRole(role);
+  if (!normalized || normalized === 'admin') return 'member';
+  return normalized;
+}
+
+/**
+ * Bersihkan cache lokal yang bersifat per-user (Bagian 8.6).
+ * Dipanggil saat logout, SIGNED_OUT, dan saat terdeteksi perubahan role.
+ */
+function clearAuthCache() {
+  try {
+    localStorage.removeItem("tartila_cached_user");
+  } catch {
+    // noop
+  }
+  localStorage.removeItem(MASCOT_STORAGE_KEY);
+  localStorage.removeItem(DAILY_CLAIM_STORAGE_KEY);
+  localStorage.removeItem(DAILY_CLAIMED_DAYS_STORAGE_KEY);
+  try {
+    useEconomyStore.persist.clearStorage();
+  } catch {
+    // noop
+  }
+}
+
 // Helper untuk membuat user dari Supabase auth response.
 // `roleOverride` berasal dari Backend Go (SSOT data user). Metadata Supabase
 // TIDAK boleh menentukan role Tartila, karena bisa membuat Admin Sambung Ngaji
@@ -59,7 +95,7 @@ function createCeriaUser(
   ustadzFlag: boolean = false,
   roleOverride?: string | null,
 ): CeriaUser {
-  const role = roleOverride || sbUser.user_metadata?.role || 'member';
+  const role = toTartilaRole(roleOverride || sbUser.user_metadata?.role);
   return {
     id: sbUser.id,
     email: sbUser.email,
@@ -102,6 +138,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  // Kirim JWT Supabase ke Backend Go untuk upsert profil (Bagian 8.3).
+  // Fire-and-forget: kegagalan tidak boleh menghalangi aplikasi.
+  const syncProfileWithBackend = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await authApi.syncProfile(session.access_token);
+      }
+    } catch {
+      // Backend Go belum siap / endpoint belum tersedia.
+    }
+  };
+
   // Initialize: cek session Supabase saat komponen mount
   useEffect(() => {
     let mounted = true;
@@ -141,6 +190,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
               void useEconomyStore.getState().setTilaGender(mascotGender);
             }
           }
+          void syncProfileWithBackend();
         } else {
           // Fallback bila pengguna login via REST token legacy
           const token = getToken();
@@ -198,10 +248,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false);
             setIsAuthLoading(false);
           }
+          void syncProfileWithBackend();
         } else if (event === "SIGNED_OUT") {
           if (mounted) {
             setUser(null);
-            localStorage.removeItem("tartila_cached_user");
+            clearAuthCache();
             clearToken();
             void useEconomyStore.getState().setUserId(null);
             setLoading(false);
@@ -218,19 +269,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Fungsi login dengan Google
-  const loginWithGoogle = async (credential?: string) => {
+  // Fungsi login dengan Google via Supabase OAuth redirect.
+  // Redirect kembali ke /login; session ditangkap AuthContext lalu LoginPage
+  // mengarahkan user ke /member/ngaji-ceria.
+  const loginWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: window.location.origin + '/login',
         },
       });
 
       if (error) throw error;
-      // Setelah OAuth, arahkan ke onboarding role
-      // atau tunggu user login lalu panggil setUstadzRole
     } catch (err) {
       console.error('Google login error:', err);
       throw err;
@@ -287,7 +338,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', err);
     } finally {
       setUser(null);
-      localStorage.removeItem("tartila_cached_user");
+      clearAuthCache();
       clearToken();
       void useEconomyStore.getState().setUserId(null);
     }
@@ -356,6 +407,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
           sbUser.user_metadata?.role === 'ustadz' ||
           sbUser.user_metadata?.role === 'ustadzah';
         const fromSession = createCeriaUser(sbUser, isUstadz, goData.role);
+        const nextRole = toTartilaRole(goData.role || fromSession.role);
+        // Perubahan role dari backend: buang cache lama agar tak dipakai user lain.
+        if (user && user.role !== nextRole) {
+          clearAuthCache();
+        }
         setUser((prev) => {
           const merged: CeriaUser = {
             ...fromSession,
@@ -363,7 +419,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // teroptimisasi dari cache localStorage (prev) menimpa Go role,
             // karena berisiko menyelamatkan role 'admin' Sambung Ngaji yang
             // kadaluarsa dan membocorkan akses /admin Tartila.
-            role: goData.role || fromSession.role,
+            role: nextRole,
             is_vip: prev?.is_vip ?? goData.is_vip ?? fromSession.is_vip,
             name: prev?.name || goData.name || fromSession.name,
             group_id: prev?.group_id ?? goData.group_id ?? fromSession.group_id,
@@ -384,7 +440,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         // tidak ada session Supabase, tapi ada data Go (login REST legacy)
         setUser((prev) => ({
           ...(prev as CeriaUser),
-          role: goData.role as string,
+          role: toTartilaRole(goData.role) || 'member',
           name: goData.name || prev?.name || null,
           group_id: goData.group_id ?? prev?.group_id ?? null,
           gender: goData.gender || prev?.gender || null,
@@ -414,11 +470,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
         username: legacyUser.username || identifier,
         name: legacyUser.name || identifier,
         // Admin Sambung Ngaji (role 'admin' / 'ADMIN') dilarang masuk Tartila.
-        // Dipaksa jadi 'member' saat login via legacy REST agar tidak menembus guard /admin.
-        role:
-          normalizeRole(legacyUser.role) === 'admin'
-            ? 'member'
-            : (legacyUser.role || 'member'),
+        // Diturunkan jadi 'member' agar tidak menembus guard /admin.
+        role: toTartilaRole(legacyUser.role),
         group_id: legacyUser.group_id || null,
         is_vip: false,
         is_ustadz: isUstadzUser(legacyUser),

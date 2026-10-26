@@ -47,10 +47,8 @@ import {
 } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeRole, isTartilaAdmin } from "@/lib/roles";
-import { shopApi } from "../services/ngajiCeriaApi";
 import {
   getProgress,
-  spendCoins,
   subscribeProgress,
 } from "./games/_shared/progression";
 import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
@@ -689,51 +687,38 @@ export default function WarungSantriPage() {
   // Admin Sambung Ngaji ('admin') tidak mendapat bypass gratis di Tartila.
   const isSuperAdmin = isTartilaAdmin(user?.role);
 
-  // Optimistic unlock + catat ke backend (gratis untuk privileged role).
-  const unlockItem = (
-    kind: "accessory" | "room_theme" | "game_theme" | "app_theme" | "booster" | "skin",
-    itemId: string,
-    price: number,
-  ) => {
-    shopApi
-      .buyItem(kind as any, itemId, price)
-      .catch(() =>
-        setMessage(
-          "Item terbuka lokal; backend sedang tidak terjangkau, sinkron nanti.",
-        ),
-      );
-  };
-
   const stock: Record<EnergyKind, number> = { heart: hearts, ticket: tickets };
 
-  const handleExchangeEnergy = (item: (typeof ENERGY_ITEMS)[number]) => {
+  const handleExchangeEnergy = async (item: (typeof ENERGY_ITEMS)[number]) => {
     const price = ENERGY_PRICES[item.kind];
 
     if (isUnlimited) {
       setMessage("Kamu memiliki energi tak terbatas (Superadmin/VIP)!");
       return;
     }
-    if (!isSuperAdmin) {
-      if (purchasedToday(item.kind) >= SHOP_DAILY_LIMIT) {
-        setMessage(
-          `Batas ${SHOP_DAILY_LIMIT}x penukaran harian sudah tercapai.`,
-        );
-        return;
-      }
-      if (!spendCoins(price)) {
-        setMessage("Koin Hijaiyah-mu belum cukup.");
-        return;
-      }
+    if (purchasedToday(item.kind) >= SHOP_DAILY_LIMIT) {
+      setMessage(
+        `Batas ${SHOP_DAILY_LIMIT}x penukaran harian sudah tercapai.`,
+      );
+      return;
     }
     if (stock[item.kind] >= item.max) {
       setMessage("Energimu sudah penuh, mainkan dulu ya.");
       return;
     }
-    grantEnergy(item.kind);
+    if (!isSuperAdmin && coins < price) {
+      setMessage("Koin Hijaiyah-mu belum cukup.");
+      return;
+    }
+
+    // Koin & energi kini dikelola Backend Go lewat economyApi (GUIDELINES 11.3).
+    const ok = await grantEnergy(item.kind);
     setMessage(
-      isSuperAdmin
-        ? "GRATIS! Energi berhasil ditambahkan."
-        : "Berhasil ditukar!",
+      ok
+        ? isSuperAdmin
+          ? "GRATIS! Energi berhasil ditambahkan."
+          : "Berhasil ditukar!"
+        : "Gagal menukar energi. Coba lagi.",
     );
   };
 
@@ -761,9 +746,8 @@ export default function WarungSantriPage() {
       return;
     }
 
-    const success = await buyAccessory(item.id, item.price, isSuperAdmin);
+    const success = await buyAccessory(item.id, item.price);
     if (success) {
-      unlockItem("accessory", item.id, item.price);
       if (!isFit) {
         const targetGender = item.category === "boy" ? "boy" : "girl";
         setTilaGender(targetGender);
@@ -790,9 +774,8 @@ export default function WarungSantriPage() {
       setMessage("Koin Hijaiyah-mu belum cukup untuk booster ini.");
       return;
     }
-    const success = await buyBooster(item.id, item.price, isSuperAdmin);
+    const success = await buyBooster(item.id, item.price);
     if (success) {
-      unlockItem("booster", item.id, item.price);
       setMessage(
         isSuperAdmin
           ? `GRATIS! ${item.name} langsung aktif.`
@@ -810,9 +793,8 @@ export default function WarungSantriPage() {
       setMessage("Koin Hijaiyah-mu belum cukup untuk aksesoris ini.");
       return false;
     }
-    const success = await buyAccessory(item.id, item.price, isSuperAdmin);
+    const success = await buyAccessory(item.id, item.price);
     if (success) {
-      unlockItem("accessory", item.id, item.price);
       setMessage(
         isSuperAdmin
           ? `GRATIS! ${item.name} terbuka dan dipakai!`
@@ -855,12 +837,15 @@ export default function WarungSantriPage() {
     }
 
     if (item.price === 0 || isSuperAdmin) {
-      await buyAvatarAccessory(item.id, 0, true);
-      equipAvatarAccessory(item.id);
-      unlockItem("accessory", item.id, item.price);
-      tapFeedback();
-      playSfx("powerup");
-      setMessage(`Alhamdulillah! ${item.name} didapatkan gratis dan langsung dipakai!`);
+      const granted = await buyAvatarAccessory(item.id, 0);
+      if (granted) {
+        equipAvatarAccessory(item.id);
+        tapFeedback();
+        playSfx("powerup");
+        setMessage(`Alhamdulillah! ${item.name} didapatkan gratis dan langsung dipakai!`);
+      } else {
+        setMessage("Koin Hijaiyah-mu belum cukup.");
+      }
       return;
     }
 
@@ -870,9 +855,8 @@ export default function WarungSantriPage() {
       return;
     }
 
-    const success = await buyAvatarAccessory(item.id, item.price, false);
+    const success = await buyAvatarAccessory(item.id, item.price);
     if (success) {
-      unlockItem("accessory", item.id, item.price);
       tapFeedback();
       playSfx("powerup");
       setMessage(`Alhamdulillah! ${item.name} berhasil dibeli dan dipakai pada avatar!`);
@@ -881,7 +865,7 @@ export default function WarungSantriPage() {
     }
   };
 
-  const handleToggleTheme = (
+  const handleToggleTheme = async (
     item: ThemeItem,
     scope: "kamar" | "app",
   ) => {
@@ -913,17 +897,10 @@ export default function WarungSantriPage() {
 
     const success =
       scope === "kamar"
-        ? buyRoomTheme(item.id, item.price, isSuperAdmin, false)
-        : buyAppTheme(item.id, item.price, isSuperAdmin, false);
+        ? await buyRoomTheme(item.id, item.price, false)
+        : await buyAppTheme(item.id, item.price, false);
 
     if (success) {
-      unlockItem(
-        scope === "kamar"
-          ? "room_theme"
-          : "app_theme",
-        item.id,
-        item.price,
-      );
       playSfx("powerup");
       tapFeedback();
       setPurchasedThemeModal({ item, scope });
@@ -933,7 +910,7 @@ export default function WarungSantriPage() {
     }
   };
 
-  const handleBuySkin = (item: SkinItem) => {
+  const handleBuySkin = async (item: SkinItem) => {
     const isOwned =
       ownedSkins.includes(item.id) ||
       ownedSkins.includes(item.skinKey) ||
@@ -960,9 +937,10 @@ export default function WarungSantriPage() {
       }
     }
 
-    const success = buySkin(item.id, item.price, item.currency || "coin");
+    // shortcut: Backend Go hanya memproses pembayaran koin untuk item 'game_theme';
+    // skin yang bersharga tiket akan ditolak server sampai ada endpoint tiket.
+    const success = await buySkin(item.id, item.price, item.currency || "coin");
     if (success) {
-      unlockItem("skin", item.id, item.price);
       setMessage(
         isSuperAdmin
           ? `GRATIS! Skin ${item.name} berhasil dibuka dan dipakaikan!`
@@ -1158,7 +1136,9 @@ export default function WarungSantriPage() {
                         pulse={affordable}
                         className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
                         disabled={!affordable}
-                        onClick={() => handleExchangeEnergy(item)}
+                        onClick={() => {
+                          void handleExchangeEnergy(item);
+                        }}
                       >
                         {isSuperAdmin ? (
                           <span className="text-[#0D9488]">GRATIS · Ambil</span>

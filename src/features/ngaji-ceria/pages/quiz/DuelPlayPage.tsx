@@ -65,7 +65,9 @@ export default function DuelPlayPage() {
   const finishDuel = async () => {
     setIsFinished(true);
     const finalMyScore = isHost ? hostScoreRef.current : guestScoreRef.current;
-    // shortcut: skor lawan masih mock acak; ganti dari duelService saat realtime siap
+    // TODO(backend): skor lawan masih mock acak. Backend Go belum punya kontrak duel
+    // (tidak ada /api/v1/duel/*, tabel duel_sessions, atau tipe pesan duel di WS).
+    // Ganti dengan duelService.getDuelSession + submitDuelScore begitu endpoint tersedia.
     setOpponentScore(Math.floor(Math.random() * (questions.length + 1)));
     try {
       await duelService.submitDuelScore(sessionId ?? "", finalMyScore);

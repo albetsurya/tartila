@@ -39,6 +39,11 @@ import {
 import { PetiHartaSvg } from "../../../components/ui/Illustrations";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { AvatarWithBadge } from "../../../components/ui/AvatarWithBadge";
+import {
+  AvatarSantriSvg,
+  AvatarSantriAccessory,
+} from "../../../components/ui/Illustrations";
+import { resolveMascotGender } from "@/utils/mascotHelper";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
 import { TartilaLogo } from "../components/TartilaLogo";
 import { OnboardingModal } from "../components/OnboardingModal";
@@ -133,6 +138,9 @@ export default function NgajiCeriaHomePage() {
   const dailyRewardsClaimed = useEconomyStore((s) => s.dailyRewardsClaimed);
   const applyStreakMultiplier = useEconomyStore((s) => s.applyStreakMultiplier);
   const streakMultiplier = useEconomyStore((s) => s.streakMultiplier);
+  const avatarMode = useEconomyStore((s) => s.avatarMode || "avatar");
+  const equippedAvatarAccessory = useEconomyStore((s) => s.equippedAvatarAccessory);
+  const tilaGender = useEconomyStore((s) => s.tilaGender);
 
   const todayDateKey = getTodayDateKey();
   const isClaimedToday =
@@ -294,15 +302,25 @@ export default function NgajiCeriaHomePage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <AvatarWithBadge
-                src={user?.photo_url || NGAJI_CERIA_ASSETS.avatarAnak}
-                name={displayName}
-                size={56}
-                shape="rounded-2xl"
-                role={user?.role}
-                groupId={user?.group_id}
-                gender={user?.gender ?? undefined}
-              />
+              {avatarMode === "photo" ? (
+                <AvatarWithBadge
+                  src={user?.photo_url || NGAJI_CERIA_ASSETS.avatarAnak}
+                  name={displayName}
+                  size={56}
+                  shape="rounded-2xl"
+                  role={user?.role}
+                  groupId={user?.group_id}
+                  gender={user?.gender ?? undefined}
+                />
+              ) : (
+                <AvatarSantriSvg
+                  size={56}
+                  gender={resolveMascotGender(tilaGender)}
+                  accessory={(equippedAvatarAccessory || "none") as AvatarSantriAccessory}
+                  mood="happy"
+                  className="shrink-0"
+                />
+              )}
               <div>
                 <p className="text-xs font-black text-[var(--text-main,#134E4A)]/70 uppercase tracking-widest mb-0.5">
                   Assalamu'alaikum,

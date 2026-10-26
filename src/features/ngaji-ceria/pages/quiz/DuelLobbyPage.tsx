@@ -76,7 +76,9 @@ export default function DuelLobbyPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       pollCountRef.current += 1;
-      // shortcut: mock lawan join; backend realtime/websocket duel belum siap, ganti ke duelService.getDuelSession saat endpoint tersedia
+      // TODO(backend): lawan join masih mock. Backend Go belum punya kontrak duel
+      // (tidak ada /api/v1/duel/* atau tipe pesan duel di WS). Ganti ke
+      // duelService.getDuelSession + polling begitu endpoint tersedia.
       if (hostReady && pollCountRef.current >= 2 && !opponentReady) {
         setOpponentReady(true);
         setOpponentName("Teman Santri");

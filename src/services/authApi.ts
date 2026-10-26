@@ -1,4 +1,4 @@
-import { setToken, getToken, clearToken, callREST } from "./api";
+import { setToken, clearToken, callREST } from "./api";
 
 export interface User {
   id?: string;
@@ -42,6 +42,18 @@ export const authApi = {
     );
     storeSessionToken(data.token);
     return data.user;
+  },
+
+  // Kirim JWT Supabase ke Backend Go agar profil user (role default 'member')
+  // di-upsert ke public.users (Bagian 8.3). Fire-and-forget dari pemanggil.
+  async syncProfile(supabaseJwt: string): Promise<void> {
+    await callREST(
+      "POST",
+      "/api/v1/auth/sync-profile",
+      {},
+      undefined,
+      supabaseJwt
+    );
   },
 
   async registerCeria(
