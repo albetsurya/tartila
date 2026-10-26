@@ -1516,7 +1516,7 @@ export function TilaCompanion({
             style={{ x, y }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={`fixed bottom-28 right-0 z-40 pointer-events-auto cursor-grab active:cursor-grabbing ${className}`}
+            className={`fixed bottom-28 right-0 z-[70] pointer-events-auto cursor-grab active:cursor-grabbing ${className}`}
           >
             <div className="relative flex items-center justify-center">
               <AnimatePresence>

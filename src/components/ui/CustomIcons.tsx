@@ -3944,3 +3944,292 @@ export const WhatsAppSvg: React.FC<SvgProps> = ({
   </svg>
 );
 export const WhatsApp = WhatsAppSvg;
+
+// ============================================================================
+// MISSING ICONS (migrated from legacy assets / new requirements)
+// ============================================================================
+
+export const EarSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <path d="M6 8a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0z" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <path d="M14 12a2 2 0 0 1 2-2h4" stroke="var(--svg-primary)" strokeWidth="2" />
+  </svg>
+);
+
+export const ArrowUpRightSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <line x1="7" y1="17" x2="17" y2="7" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <polyline points="7 7 17 7 17 17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+  </svg>
+);
+
+export const ArrowDownRightSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <line x1="7" y1="7" x2="17" y2="17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <polyline points="17 7 17 17 7 17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+  </svg>
+);
+
+export const DrumSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <ellipse cx="12" cy="6" rx="8" ry="3" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M4 6v12" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M20 6v12" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse cx="12" cy="18" rx="8" ry="3" stroke="var(--svg-primary)" strokeWidth="2" />
+    <line x1="9" y1="6" x2="9.01" y2="18" stroke="var(--svg-primary)" strokeWidth="2" />
+    <line x1="15" y1="6" x2="15.01" y2="18" stroke="var(--svg-primary)" strokeWidth="2" />
+  </svg>
+);
+
+export const LeafSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 6.1 20 10.6 20 16.5" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M2.2 21.8l19.6-19.6" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+export const TargetSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" stroke="var(--svg-primary)" strokeWidth="2" />
+    <circle cx="12" cy="12" r="6" stroke="var(--svg-primary)" strokeWidth="2" />
+    <circle cx="12" cy="12" r="2" fill="var(--svg-primary)" />
+  </svg>
+);
+
+export const ClockSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" stroke="var(--svg-primary)" strokeWidth="2" />
+    <polyline points="12 6 12 12 16 14" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+export const BrickSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <rect x="2" y="2" width="20" height="20" rx="2" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M2 10h20M2 14h20" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <path d="M8 2v4M16 2v4M8 20v-4M16 20v-4" stroke="var(--svg-primary)" strokeWidth="1.5" />
+  </svg>
+);
+
+export const GameCardSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <rect x="2" y="4" width="20" height="16" rx="3" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M6 8h12M6 12h12M6 16h8" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <circle cx="18" cy="12" r="2" fill="var(--svg-primary)" />
+  </svg>
+);
+
+export const MapPinSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="var(--svg-primary)" strokeWidth="2" />
+    <circle cx="12" cy="10" r="3" fill="var(--svg-primary)" />
+  </svg>
+);
+
+export const TelescopeSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  style,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    {...props}
+  >
+    <path d="M10 2 3 10" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="m14 2 6 8" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M17 14 10 7" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path d="M10 22 3 14" stroke="var(--svg-primary)" strokeWidth="2" />
+    <circle cx="12" cy="12" r="3" stroke="var(--svg-primary)" strokeWidth="2" />
+  </svg>
+);

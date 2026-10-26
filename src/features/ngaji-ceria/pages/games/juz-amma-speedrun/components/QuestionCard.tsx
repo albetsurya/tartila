@@ -15,6 +15,6 @@ export function QuestionCard({ question, selectedIndex, answerState, onSelect }:
       <p dir="rtl" className="game-arabic mt-3 text-center text-3xl leading-loose text-[#134E4A]">{question.promptArabic}</p>
     </div>
     <div className="space-y-2">{question.options.map((option, index) => <OptionButton key={`${question.id}:${index}`} label={option} index={index} selected={selectedIndex === index} correct={question.correctIndex === index} answerState={answerState} arabic={question.type === "lanjut-ayat"} onSelect={onSelect} />)}</div>
-    {answerState !== "idle" && <p className="text-center text-xs font-semibold text-[#0D9488]">{question.surahName} · ayat {question.ayahNumber}{question.type === "lanjut-ayat" ? ` → ${question.ayahNumber + 1}` : ""}</p>}
+    {answerState !== "idle" && <p className="text-center text-xs font-semibold text-[#0D9488]">{question.surahName} · ayat {question.ayahNumber}{question.type === "lanjut-ayat" ? ` - ${question.ayahNumber + 1}` : ""}</p>}
   </motion.div>;
 }

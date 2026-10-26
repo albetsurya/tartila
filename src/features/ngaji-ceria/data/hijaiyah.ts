@@ -1,5 +1,5 @@
 // Mapping hijaiyah alphabet data for games
-import * as NEW from "../../../assets/ngaji-ceria-new/ngaji-ceria-tilawati/index";
+import * as NEW from "../../../assets/ngaji-ceria-svg-bundle";
 
 export interface HijaiyahItem {
   id: string;

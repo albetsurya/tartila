@@ -141,6 +141,15 @@ interface EconomyState {
   bibiGender: BibiGender;
   equippedAccessory: TilaAccessory;
   ownedAccessories: string[];
+  // Avatar profil (terpisah dari maskot Tila/Tito)
+  avatarMode: "photo" | "avatar";
+  equippedAvatarAccessory: string | null;
+  ownedAvatarAccessories: string[];
+  setAvatarMode: (mode: "photo" | "avatar") => void;
+  setEquippedAvatarAccessory: (id: string | null) => void;
+  setOwnedAvatarAccessories: (ids: string[]) => void;
+  buyAvatarAccessory: (id: string, price: number, free?: boolean) => Promise<boolean>;
+  equipAvatarAccessory: (id: string | null) => void;
   showMascot: boolean;
   setShowMascot: (show: boolean) => void;
   inventory: string[];
@@ -333,6 +342,16 @@ export const useEconomyStore = create<EconomyState>()(
       bibiGender: initialMascotGender,
       equippedAccessory: initialMascotGender === 'girl' ? 'hairbow' : 'peci',
       ownedAccessories: ['none', 'peci', 'hairbow'],
+      // Avatar profil
+      avatarMode: 'avatar',
+      equippedAvatarAccessory: 'peci',
+      ownedAvatarAccessories: ['peci'],
+      setAvatarMode: (mode: "photo" | "avatar") => set({ avatarMode: mode }),
+      setEquippedAvatarAccessory: (id: string | null) => set({ equippedAvatarAccessory: id }),
+      setOwnedAvatarAccessories: (ids: string[]) => {
+        const withPeci = ids.includes('peci') ? ids : ['peci', ...ids];
+        set({ ownedAvatarAccessories: withPeci });
+      },
       ownedRoomThemes: ['default'],
       equippedRoomTheme: 'default',
       equippedTheme: 'default',
@@ -1063,6 +1082,38 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
+  buyAvatarAccessory: async (id: string, price: number, free = false) => {
+    const owned = get().ownedAvatarAccessories || [];
+    const normalizedOwned = owned.includes('peci') ? owned : ['peci', ...owned];
+
+    if (normalizedOwned.includes(id) || id === 'peci') {
+      set({ equippedAvatarAccessory: id });
+      return true;
+    }
+
+    if (!free && price > 0 && !spendCoins(price)) {
+      return false;
+    }
+
+    const nextOwned = Array.from(new Set([...normalizedOwned, id]));
+    set({
+      ownedAvatarAccessories: nextOwned,
+      equippedAvatarAccessory: id,
+    });
+    return true;
+  },
+
+  equipAvatarAccessory: (id: string | null) => {
+    if (!id || id === 'none') {
+      set({ equippedAvatarAccessory: null });
+      return;
+    }
+    const owned = get().ownedAvatarAccessories || [];
+    if (id === 'peci' || owned.includes(id)) {
+      set({ equippedAvatarAccessory: id });
+    }
+  },
+
   buyRoomTheme: (id: string, price: number, free = false, autoEquip = true) => {
     const normalized = (id === 'theme_space' || id === 'space') ? 'galaksi'
       : (id === 'theme_default' || id === 'classic' || id === 'theme_classic') ? 'default'
@@ -1488,6 +1539,10 @@ export const useEconomyStore = create<EconomyState>()(
           state.ownedAppThemes = Array.from(new Set([...(state.ownedAppThemes || ['default']), ...legacyOwnedGameThemes]));
         }
 
+        if (!state.ownedAvatarAccessories || !state.ownedAvatarAccessories.includes('peci')) {
+          state.ownedAvatarAccessories = Array.from(new Set(['peci', ...(state.ownedAvatarAccessories || [])]));
+        }
+
         if (typeof state.showMascot !== "boolean") return;
         if (typeof window === "undefined") return;
         try {
@@ -1510,6 +1565,9 @@ export const useEconomyStore = create<EconomyState>()(
         bibiGender: state.bibiGender,
         equippedAccessory: state.equippedAccessory,
         ownedAccessories: state.ownedAccessories,
+        avatarMode: state.avatarMode,
+        equippedAvatarAccessory: state.equippedAvatarAccessory,
+        ownedAvatarAccessories: state.ownedAvatarAccessories,
         ownedRoomThemes: state.ownedRoomThemes,
         equippedRoomTheme: state.equippedRoomTheme,
         ownedAppThemes: state.ownedAppThemes,

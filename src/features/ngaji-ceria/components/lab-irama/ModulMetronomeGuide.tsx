@@ -14,6 +14,9 @@ import {
   Volume2Svg,
   VolumeXSvg,
   SparklesSvg,
+  ArrowRightSvg,
+  ArrowUpRightSvg,
+  ArrowDownRightSvg,
 } from '../../../../components/ui/CustomIcons';
 
 export const ModulMetronomeGuide: React.FC = () => {
@@ -205,12 +208,23 @@ export const ModulMetronomeGuide: React.FC = () => {
             }`}
           >
             <span>Nada:</span>
-            <span>
-              {activeToneInCycle === 'Datar'
-                ? 'Datar... ➡️'
-                : activeToneInCycle === 'Naik'
-                ? 'Naik... ↗️'
-                : 'Turun... ↘️'}
+            <span className="inline-flex items-center gap-1">
+              {activeToneInCycle === 'Datar' ? (
+                <>
+                  <span>Datar...</span>
+                  <ArrowRightSvg size={14} />
+                </>
+              ) : activeToneInCycle === 'Naik' ? (
+                <>
+                  <span>Naik...</span>
+                  <ArrowUpRightSvg size={14} />
+                </>
+              ) : (
+                <>
+                  <span>Turun...</span>
+                  <ArrowDownRightSvg size={14} />
+                </>
+              )}
             </span>
           </span>
 
@@ -239,12 +253,14 @@ export const ModulMetronomeGuide: React.FC = () => {
             <div
               className={`w-12 h-12 rounded-full border-[3px] ${ballBorder} ${ballBg} flex items-center justify-center text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A]`}
             >
-              <span>
-                {activeToneInCycle === 'Datar'
-                  ? '➡️'
-                  : activeToneInCycle === 'Naik'
-                  ? '↗️'
-                  : '↘️'}
+              <span className="inline-flex items-center">
+                {activeToneInCycle === 'Datar' ? (
+                  <ArrowRightSvg size={20} />
+                ) : activeToneInCycle === 'Naik' ? (
+                  <ArrowUpRightSvg size={20} />
+                ) : (
+                  <ArrowDownRightSvg size={20} />
+                )}
               </span>
             </div>
             {/* Bayangan bola di lantai */}
@@ -264,7 +280,8 @@ export const ModulMetronomeGuide: React.FC = () => {
                 stage: 1,
                 beats: [1, 2],
                 tone: 'Datar',
-                label: '1-2 Datar ➡️',
+                label: '1-2 Datar',
+                icon: <ArrowRightSvg size={14} />,
                 desc: 'Stabil',
                 color: 'bg-sky-400',
               },
@@ -272,7 +289,8 @@ export const ModulMetronomeGuide: React.FC = () => {
                 stage: 2,
                 beats: [3, 4],
                 tone: 'Naik',
-                label: '3-4 Naik ↗️',
+                label: '3-4 Naik',
+                icon: <ArrowUpRightSvg size={14} />,
                 desc: 'Meninggi',
                 color: 'bg-amber-400',
               },
@@ -280,7 +298,8 @@ export const ModulMetronomeGuide: React.FC = () => {
                 stage: 3,
                 beats: [5, 6],
                 tone: 'Turun',
-                label: '5-6 Turun ↘️',
+                label: '5-6 Turun',
+                icon: <ArrowDownRightSvg size={14} />,
                 desc: 'Melandai',
                 color: 'bg-rose-400',
               },
@@ -295,7 +314,7 @@ export const ModulMetronomeGuide: React.FC = () => {
                       : 'bg-white/80 dark:bg-gray-800/80 border-[var(--border-color,#134E4A)]/40 text-[var(--text-main,#134E4A)]/60'
                   }`}
                 >
-                  <span className="text-xs font-black">{p.label}</span>
+                  <span className="text-xs font-black inline-flex items-center gap-1">{p.label} {p.icon}</span>
                   <span className="text-[10px] font-bold">({p.desc})</span>
                 </div>
               );
@@ -305,12 +324,23 @@ export const ModulMetronomeGuide: React.FC = () => {
 
         {/* Keterangan Karakteristik Nada */}
         <div className="mt-2 text-center">
-          <span className="inline-block text-[11px] font-black px-3 py-0.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-white text-[#134E4A] dark:bg-gray-800 dark:text-white shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
-            {activeToneInCycle === 'Datar'
-              ? '➡️ NADA DATAR (Ketukan 1-2): Suara lurus, stabil, dan tenang.'
-              : activeToneInCycle === 'Naik'
-              ? '↗️ NADA NAIK (Ketukan 3-4): Intonasi meninggi ke puncak baris.'
-              : '↘️ NADA TURUN (Ketukan 5-6): Alunan melandai ke bawah menutup bait.'}
+          <span className="inline-flex items-center gap-1 text-[11px] font-black px-3 py-0.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-white text-[#134E4A] dark:bg-gray-800 dark:text-white shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
+            {activeToneInCycle === 'Datar' ? (
+              <>
+                <ArrowRightSvg size={12} />
+                <span>NADA DATAR (Ketukan 1-2): Suara lurus, stabil, dan tenang.</span>
+              </>
+            ) : activeToneInCycle === 'Naik' ? (
+              <>
+                <ArrowUpRightSvg size={12} />
+                <span>NADA NAIK (Ketukan 3-4): Intonasi meninggi ke puncak baris.</span>
+              </>
+            ) : (
+              <>
+                <ArrowDownRightSvg size={12} />
+                <span>NADA TURUN (Ketukan 5-6): Alunan melandai ke bawah menutup bait.</span>
+              </>
+            )}
           </span>
         </div>
       </div>

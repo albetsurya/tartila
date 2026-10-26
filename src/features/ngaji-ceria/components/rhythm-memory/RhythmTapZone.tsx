@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { judgeBeatHit, HitResult, HIT_WINDOWS } from '../lab-irama/timingJudge';
 import { soundManager } from '../../services/soundManager';
+import { DrumSvg, TargetSvg, SparklesSvg, MusicSvg } from '../../../../components/ui/CustomIcons';
 
 interface RhythmTapZoneProps {
   active: boolean;
@@ -78,7 +79,7 @@ export function RhythmTapZone({
         const missResult: HitResult = {
           judgment: 'miss',
           score: 0,
-          label: 'Terlewat! 🍃',
+          label: 'Terlewat!',
           color: '#EF4444',
           diffMs: elapsed - lastTarget,
         };
@@ -157,7 +158,7 @@ export function RhythmTapZone({
         {/* PANEL STATUS & PETUNJUK */}
         <div className="flex items-center justify-between rounded-xl bg-[#0f172a]/90 border-2 border-[#10b981]/50 px-3 py-1.5 shadow-md">
           <div className="flex items-center gap-2">
-            <span className="text-amber-300 text-sm animate-pulse">🎵</span>
+            <span className="text-amber-300 animate-pulse inline-flex items-center"><MusicSvg size={14} /></span>
             <div className="flex flex-col">
               <span className="text-[11px] font-black text-amber-200">
                 {transliteration ? `${transliteration} (${tone.toUpperCase()})` : 'Ikuti Ketukan'}
@@ -201,7 +202,7 @@ export function RhythmTapZone({
               className="w-12 h-12 rounded-full border-[3.5px] border-[#fde047] bg-[#022c22] flex items-center justify-center shadow-[0_0_12px_#fde047]"
             >
               <div className="w-5 h-5 rounded-full bg-[#fde047]/30 border-2 border-dashed border-[#fde047] flex items-center justify-center">
-                <span className="text-[9px] font-black text-[#fde047]">🎯</span>
+                <TargetSvg size={12} stroke="#78350f" />
               </div>
             </motion.div>
           </div>
@@ -250,9 +251,9 @@ export function RhythmTapZone({
           onClick={handleTap}
           className="w-full py-4 sm:py-5 rounded-2xl border-[3.5px] border-[#78350f] bg-gradient-to-r from-[#fbbf24] via-[#f59e0b] to-[#d97706] hover:from-[#fde047] hover:to-[#f59e0b] text-[#78350f] font-black text-xl sm:text-2xl tracking-wider uppercase shadow-[0_6px_0px_#78350f] active:shadow-none flex items-center justify-center gap-3 transition-colors cursor-pointer select-none"
         >
-          <span className="text-2xl animate-bounce">🥁</span>
+          <DrumSvg size={28} stroke="#78350f" className="animate-bounce" />
           <span>KETUK SEKARANG!</span>
-          <span className="text-2xl animate-bounce">✨</span>
+          <SparklesSvg size={24} stroke="#78350f" className="animate-bounce text-[#78350f]" />
         </motion.button>
       </div>
     </motion.div>

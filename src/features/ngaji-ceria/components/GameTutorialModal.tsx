@@ -5,6 +5,7 @@ import {
   HijaiyahPopCoverSvg,
   WudhuFlowCoverSvg,
 } from "@/components/ui/Illustrations";
+import { ChevronRightSvg } from "@/components/ui/CustomIcons";
 
 interface TutorialStep {
   title: string;
@@ -183,13 +184,14 @@ export function GameTutorialModal({
               >
                 Lewati
               </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="flex-1 rounded-xl border-[2px] border-[#134E4A] bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
-              >
-                {isLast ? "Mulai Main!" : "Lanjut →"}
-              </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="flex-1 rounded-xl border-[2px] border-[#134E4A] bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span>{isLast ? 'Mulai Main!' : 'Lanjut'}</span>
+                  <ChevronRightSvg size={14} />
+                </button>
             </div>
           </motion.div>
         </div>

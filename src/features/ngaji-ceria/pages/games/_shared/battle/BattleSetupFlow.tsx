@@ -12,7 +12,7 @@ import {
   type BattleSetup,
 } from "./models";
 import { NGAJI_CERIA_ASSETS } from "@/features/ngaji-ceria/data/assets";
-import { SwordsSvg } from "@/components/ui/CustomIcons";
+import { SwordsSvg, ArrowLeftSvg, ArrowRightSvg } from "@/components/ui/CustomIcons";
 
 type Step = "character" | "arena" | "versus";
 
@@ -161,9 +161,10 @@ export function BattleSetupFlow({
             <button
               type="button"
               onClick={() => setStep("arena")}
-              className={`game-button mt-2 w-full ${ACCENTS[accent].button}`}
+              className={`game-button mt-2 w-full flex items-center justify-center gap-1.5 ${ACCENTS[accent].button}`}
             >
-              Lanjut Pilih Arena →
+              <span>Lanjut Pilih Arena</span>
+              <ArrowRightSvg size={14} />
             </button>
           </motion.section>
         )}
@@ -179,9 +180,10 @@ export function BattleSetupFlow({
             <button
               type="button"
               onClick={() => setStep("character")}
-              className="mt-3 text-[11px] font-black text-white/60 transition hover:text-white"
+              className="mt-3 text-[11px] font-black text-white/60 transition hover:text-white inline-flex items-center gap-1 mx-auto"
             >
-              ← Ganti karakter ({character.name})
+              <ArrowLeftSvg size={12} />
+              <span>Ganti karakter ({character.name})</span>
             </button>
             <h2 className="mt-1 text-center text-sm font-black text-white">
               Pilih Arena Tempur
@@ -331,13 +333,14 @@ export function BattleSetupFlow({
             >
               <SwordsSvg size={18} /> Mulai Bertarung!
             </motion.button>
-            <button
-              type="button"
-              onClick={() => setStep("arena")}
-              className="mt-2 text-[11px] font-black text-white/60 transition hover:text-white"
-            >
-              ← Ganti arena
-            </button>
+          <button
+            type="button"
+            onClick={() => setStep("arena")}
+            className="mt-2 text-[11px] font-black text-white/60 transition hover:text-white inline-flex items-center gap-1"
+          >
+            <ArrowLeftSvg size={12} />
+            <span>Ganti arena</span>
+          </button>
           </motion.section>
         )}
       </AnimatePresence>

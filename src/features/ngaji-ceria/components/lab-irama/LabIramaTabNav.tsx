@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { LabIramaTab } from '../../hooks/useLabIramaStore';
+import { MusicSvg, ZapSvg, EarSvg } from '../../../../components/ui/CustomIcons';
 
 interface LabIramaTabNavProps {
   activeTab: LabIramaTab;
@@ -11,7 +12,7 @@ interface TabItem {
   id: LabIramaTab;
   label: string;
   shortLabel: string;
-  icon: string;
+  icon: React.ReactNode;
   badge?: string;
 }
 
@@ -20,21 +21,21 @@ const TABS: TabItem[] = [
     id: 'guide',
     label: 'Panduan Metronom',
     shortLabel: 'Panduan',
-    icon: '🎵',
+    icon: <MusicSvg size={16} />,
     badge: 'Visual',
   },
   {
     id: 'ear-training',
     label: 'Tebak Nada Rost',
     shortLabel: 'Tebak Nada',
-    icon: '👂',
+    icon: <EarSvg size={16} />,
     badge: 'Latihan',
   },
   {
     id: 'tap-beat',
     label: 'Ketuk Irama',
     shortLabel: 'Ketuk Irama',
-    icon: '⚡',
+    icon: <ZapSvg size={16} />,
     badge: 'Game',
   },
 ];
@@ -61,7 +62,7 @@ export const LabIramaTabNav: React.FC<LabIramaTabNavProps> = ({
               }`}
             >
               <div className="flex items-center gap-1">
-                <span className="text-sm md:text-base">{tab.icon}</span>
+                {tab.icon}
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">{tab.shortLabel}</span>
               </div>

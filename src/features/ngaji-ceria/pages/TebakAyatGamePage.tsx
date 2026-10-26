@@ -8,6 +8,7 @@ import {
   X,
   Sparkles,
   Trophy,
+  ChevronRight,
 } from "../../../components/ui/CustomIcons";
 
 export default function TebakAyatGamePage() {
@@ -197,17 +198,24 @@ export default function TebakAyatGamePage() {
           ) : (
             <button
               onClick={handleNext}
-              className={`w-full py-4 rounded-2xl font-black text-base text-white transition-all shadow-lg active:scale-[0.98] border-b-4 ${
+              className={`w-full py-4 rounded-2xl font-black text-base text-white transition-all shadow-lg active:scale-[0.98] border-b-4 flex items-center justify-center gap-1.5 ${
                 status === "correct"
                   ? "bg-[#0F766E] border-[#134E4A]"
                   : "bg-[#0D9488] border-[#0F766E]"
               }`}
             >
-              {currentIdx < totalQuestions - 1
-                ? status === "correct"
-                  ? "Tepat! Lanjut →"
-                  : "Coba Soal Berikutnya →"
-                : "Lihat Hasil Akhir"}
+              {currentIdx < totalQuestions - 1 ? (
+                <>
+                  <span>
+                    {status === "correct"
+                      ? "Tepat! Lanjut"
+                      : "Coba Soal Berikutnya"}
+                  </span>
+                  <ChevronRight size={18} />
+                </>
+              ) : (
+                "Lihat Hasil Akhir"
+              )}
             </button>
           )}
         </div>

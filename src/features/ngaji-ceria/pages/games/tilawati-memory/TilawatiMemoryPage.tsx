@@ -21,6 +21,8 @@ import {
   ChevronRight,
   ShuffleSvg,
   PauseSvg,
+  PlaySvg,
+  CheckSvg,
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
@@ -494,8 +496,8 @@ export default function TilawatiMemoryPage() {
                         {/* Status centang matched */}
                         {isMatched && (
                           <div className="absolute top-1.5 right-1.5 z-10">
-                            <div className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center text-[9px] font-black shadow-2xs">
-                              ✓
+                            <div className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-2xs">
+                              <CheckSvg size={10} />
                             </div>
                           </div>
                         )}
@@ -584,8 +586,8 @@ export default function TilawatiMemoryPage() {
               exit={{ scale: 0.9, y: 20 }}
               className="w-full max-w-sm rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-6 text-center shadow-[8px_8px_0px_#78350F]"
             >
-              <div className="w-16 h-16 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-3xl shadow-md mx-auto mb-3">
-                ⏸️
+              <div className="w-16 h-16 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
+                <PauseSvg size={28} />
               </div>
 
               <h3 className="text-2xl font-black text-[#78350F] mb-1">
@@ -616,9 +618,10 @@ export default function TilawatiMemoryPage() {
                 <button
                   type="button"
                   onClick={() => setIsPaused(false)}
-                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Lanjutkan Bermain ▶️
+                  <span>Lanjutkan Bermain</span>
+                  <PlaySvg size={14} />
                 </button>
                 <button
                   type="button"

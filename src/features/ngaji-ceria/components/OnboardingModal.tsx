@@ -139,7 +139,8 @@ export function OnboardingModal({ isOpen, onClose, initialRole }: OnboardingModa
                   </p>
                 </div>
                 <span className="mt-4 text-xs font-black text-[#0D9488] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Mulai sebagai Santri →
+                  <span>Mulai sebagai Santri</span>
+                  <ArrowRight size={13} />
                 </span>
               </button>
 
@@ -160,7 +161,8 @@ export function OnboardingModal({ isOpen, onClose, initialRole }: OnboardingModa
                   </p>
                 </div>
                 <span className="mt-4 text-xs font-black text-[#B45309] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Mulai sebagai Ustadz →
+                  <span>Mulai sebagai Ustadz</span>
+                  <ArrowRight size={13} />
                 </span>
               </button>
             </div>

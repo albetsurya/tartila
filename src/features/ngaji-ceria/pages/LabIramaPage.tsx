@@ -8,7 +8,7 @@ import { ModulEarTraining } from '../components/lab-irama/ModulEarTraining';
 import { ModulTapTheBeat } from '../components/lab-irama/ModulTapTheBeat';
 import { useLabIramaStore } from '../hooks/useLabIramaStore';
 import { preloadLabIramaAudio } from '../hooks/useLabIramaMetronome';
-import { SparklesSvg, FireSvg, StarSvg, ChevronLeftSvg } from '../../../components/ui/CustomIcons';
+import { SparklesSvg, FireSvg, StarSvg, ChevronLeftSvg, MusicSvg, DrumSvg, EarSvg, ZapSvg } from '../../../components/ui/CustomIcons';
 import { ExploreHeader, ExploreStatBadge } from '../components/ExploreHeader';
 
 export default function LabIramaPage() {
@@ -43,7 +43,7 @@ export default function LabIramaPage() {
         title={
           <span className="flex items-center gap-1.5 font-display font-black text-base sm:text-lg text-white leading-tight">
             <span>Lab Irama</span>
-            <span className="text-sm">🎵</span>
+            <span className="text-sm inline-flex items-center [--svg-primary:#FFFFFF]"><MusicSvg size={14} /></span>
           </span>
         }
         subtitle="Latihan Nada Rost & Ketukan Tilawati"
@@ -70,8 +70,8 @@ export default function LabIramaPage() {
         {/* 1. Hero Banner Arcade Neon Emas */}
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1F2937] to-[#111827] border-[3px] border-[var(--border-color,#F59E0B)] p-4 text-white shadow-[4px_4px_0px_var(--shadow-color,#F59E0B)]">
           <div className="relative z-10 flex items-center gap-3">
-            <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#F59E0B]/20 border-2 border-[#F59E0B]/50 flex items-center justify-center text-3xl shadow-sm rotate-3">
-              🥁
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#F59E0B]/20 border-2 border-[#F59E0B]/50 flex items-center justify-center shadow-sm rotate-3 [--svg-primary:#FDE047]">
+              <DrumSvg size={32} />
             </div>
             <div>
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F59E0B] text-[#111827] text-[10px] font-black uppercase tracking-wider mb-1 shadow-xs">
@@ -89,8 +89,8 @@ export default function LabIramaPage() {
 
         {/* 2. Mini Rekor Badges */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-[var(--bg-card,#1F2937)] border-2 border-[var(--border-color,#F59E0B)] rounded-2xl p-2.5 shadow-[2px_2px_0px_var(--shadow-color,#F59E0B)] flex items-center gap-2">
-            <span className="text-xl">👂</span>
+          <div className="bg-[var(--bg-card,#1F2937)] border-2 border-[var(--border-color,#F59E0B)] rounded-2xl p-2.5 shadow-[2px_2px_0px_var(--shadow-color,#F59E0B)] flex items-center gap-2 [--svg-primary:#FDE047]">
+            <EarSvg size={22} />
             <div>
               <span className="text-[9px] font-black uppercase text-amber-300/80">Rekor Tebak</span>
               <p className="font-display font-black text-sm text-[var(--text-main,#F8FAFC)]">
@@ -99,12 +99,12 @@ export default function LabIramaPage() {
             </div>
           </div>
 
-          <div className="bg-[var(--bg-card,#1F2937)] border-2 border-[var(--border-color,#F59E0B)] rounded-2xl p-2.5 shadow-[2px_2px_0px_var(--shadow-color,#F59E0B)] flex items-center gap-2">
-            <span className="text-xl">⚡</span>
+          <div className="bg-[var(--bg-card,#1F2937)] border-2 border-[var(--border-color,#F59E0B)] rounded-2xl p-2.5 shadow-[2px_2px_0px_var(--shadow-color,#F59E0B)] flex items-center gap-2 [--svg-primary:#FDE047]">
+            <ZapSvg size={22} />
             <div>
               <span className="text-[9px] font-black uppercase text-amber-300/80">Rekor Ketuk</span>
               <p className="font-display font-black text-sm text-[var(--text-main,#F8FAFC)]">
-                {bestTapScore > 0 ? `${bestTapScore} (${tapMaxCombo}x 🔥)` : 'Belum Ada'}
+                {bestTapScore > 0 ? `${bestTapScore} (${tapMaxCombo}x <FireSvg size={14} className="inline-block" />)` : 'Belum Ada'}
               </p>
             </div>
           </div>

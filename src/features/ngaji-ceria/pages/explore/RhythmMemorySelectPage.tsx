@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { NgajiCeriaLayout } from '../../components/NgajiCeriaLayout';
 import { ExploreHeader } from '../../components/ExploreHeader';
 import { RHYTHM_MEMORY_LEVELS, RhythmMemoryLevel } from '../../data/rhythmMemoryData';
-import { ChevronRight, Sparkles } from '@/components/ui/CustomIcons';
+import { ChevronRight, Sparkles, DrumSvg } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '../../services/soundManager';
 
@@ -52,8 +52,8 @@ export default function RhythmMemorySelectPage() {
           <section className="px-4 pt-6 max-w-4xl mx-auto">
             <div className="relative overflow-hidden rounded-2xl bg-[#fef3c7] border-[3px] border-[#34d399] p-4 sm:p-5 shadow-[4px_4px_0px_#022c22]">
               <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#064e3b] border-2 border-[#34d399] text-3xl shadow-[2px_2px_0px_#022c22]">
-                  🥁
+                <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#064e3b] border-2 border-[#34d399] shadow-[2px_2px_0px_#022c22]">
+                  <DrumSvg size={28} stroke="#34d399" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-[#064e3b] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#a7f3d0] mb-1">

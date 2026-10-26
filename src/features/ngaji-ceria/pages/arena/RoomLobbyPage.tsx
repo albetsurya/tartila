@@ -249,8 +249,8 @@ export default function RoomLobbyPage() {
                   key={p.id || idx}
                   className="p-3 rounded-xl border-2 border-[#134E4A] bg-white font-black text-sm text-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center gap-2.5 transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center text-xs font-black shrink-0">
-                    {p.is_host || idx === 0 ? "👑" : "🎮"}
+                  <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A]">
+                    {p.is_host || idx === 0 ? <CrownSvg size={16} /> : <GamepadSvg size={16} />}
                   </div>
                   <div className="overflow-hidden">
                     <p className="truncate text-xs font-black text-[#134E4A]">{p.nickname}</p>

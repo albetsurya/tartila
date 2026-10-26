@@ -1,5 +1,5 @@
-// Assets import for Ngaji Ceria using SVG asset suite
-import * as NEW from "../../../assets/ngaji-ceria-new/index";
+// Assets import for Ngaji Ceria using SVG asset suite (data-URI bundle)
+import * as NEW from "../../../assets/ngaji-ceria-svg-bundle";
 
 export const NGAJI_CERIA_ASSETS = {
   // HUD Elements

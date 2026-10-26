@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Info, Volume2 } from "../../../../components/ui/CustomIcons";
+import { Info, Volume2, ArrowRightSvg } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import type { MaterialItem, QuizModelBaseProps } from "./types";
 import { getAudioUrl } from "../../utils/audioUrl";
@@ -91,7 +91,7 @@ export function ModelMaterialCard({
         className="mt-6 w-full py-4 px-6 rounded-2xl bg-[var(--border-color,#0284C7)] hover:bg-[#0284C7]/90 text-white font-display font-black text-base border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 cursor-pointer"
       >
         <span>Lanjut</span>
-        <span className="text-lg">➔</span>
+        <ArrowRightSvg size={18} />
       </button>
     </div>
   );

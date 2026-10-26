@@ -670,17 +670,240 @@ export default function TahfidzPage() {
         <div className="relative z-10 px-4 pt-4">
           {/* ── HERO MISI PENJAGA LENTERA ── */}
           <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#FEF08A] bg-[#115E59] p-5 text-white shadow-[5px_5px_0px_#134E4A]">
-            {/* Maskot Tito di Kanan Bawah */}
-            <div className="absolute -right-1 -bottom-2 z-10 pointer-events-none">
-              <TitoMascot size={108} mood="excited" animation="float" />
+            {/* ============================================================
+      1. LATAR BELAKANG TAMAN CAHAYA ( Ambient Glow, Hills & Stars )
+     ============================================================ */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+              {/* Pendaran Cahaya Lentera di Kanan */}
+              <div
+                className="absolute -right-8 -top-8 h-56 w-56 rounded-full opacity-35"
+                style={{
+                  background:
+                    "radial-gradient(circle, #FEF08A 0%, #F59E0B 40%, transparent 72%)",
+                }}
+              />
+
+              {/* Siluet Bukit Taman & Lengkungan Mihrab Halus di Bawah */}
+              <svg
+                viewBox="0 0 400 140"
+                preserveAspectRatio="none"
+                className="absolute bottom-0 left-0 h-24 w-full"
+              >
+                {/* Bukit Belakang */}
+                <path
+                  d="M0 140 L0 95 Q90 60 200 100 T400 75 L400 140 Z"
+                  fill="#0F766E"
+                  opacity="0.55"
+                />
+                {/* Bukit Depan */}
+                <path
+                  d="M0 140 L0 115 Q130 85 250 115 T400 95 L400 140 Z"
+                  fill="#042F2E"
+                  opacity="0.65"
+                />
+                {/* Aksen Rumput / Semak Taman */}
+                <circle cx="310" cy="118" r="14" fill="#134E4A" />
+                <circle cx="332" cy="112" r="18" fill="#042F2E" />
+                <circle cx="358" cy="116" r="15" fill="#134E4A" />
+              </svg>
+
+              {/* Kunang-kunang & Bintang Berkedip */}
+              <motion.div
+                animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.15, 0.85] }}
+                transition={{
+                  duration: 2.4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute right-[32%] top-4 h-2 w-2 rounded-full bg-[#FEF08A] shadow-[0_0_8px_#FEF08A]"
+              />
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4], y: [0, -4, 0] }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.7,
+                }}
+                className="absolute right-[27%] bottom-7 h-2.5 w-2.5 rounded-full bg-[#34D399] border border-[#042F2E]"
+              />
+              <motion.div
+                animate={{ opacity: [0.2, 0.9, 0.2] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 1.2,
+                }}
+                className="absolute right-4 bottom-5 h-2 w-2 rounded-full bg-[#FEF08A]"
+              />
             </div>
 
+            {/* ============================================================
+      2. ILUSTRASI UTAMA: LENTERA SURGA & BULAN SABIT (Kanan)
+     ============================================================ */}
+            <div className="pointer-events-none absolute -right-1 top-0 bottom-0 flex w-[34%] items-center justify-center select-none">
+              <motion.svg
+                viewBox="0 0 130 160"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-full max-h-[148px] w-auto overflow-visible drop-shadow-[3px_4px_0px_#042F2E]"
+                animate={{ y: [0, -5, 0], rotate: [-1.5, 1.5, -1.5] }}
+                transition={{
+                  duration: 3.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                {/* Bintang 4-Sudut Kecil di Kiri Atas Lentera */}
+                <path
+                  d="M22 34 L25 41 L32 44 L25 47 L22 54 L19 47 L12 44 L19 41 Z"
+                  fill="#FEF08A"
+                  stroke="#042F2E"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+
+                {/* Bintang 4-Sudut Kecil di Kanan Bawah */}
+                <path
+                  d="M108 106 L110 111 L115 113 L110 115 L108 120 L106 115 L101 113 L106 111 Z"
+                  fill="#34D399"
+                  stroke="#042F2E"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+
+                {/* Rantai Gantungan Lentera */}
+                <line
+                  x1="68"
+                  y1="-10"
+                  x2="68"
+                  y2="20"
+                  stroke="#FEF08A"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+                <circle
+                  cx="68"
+                  cy="22"
+                  r="5"
+                  fill="#F59E0B"
+                  stroke="#042F2E"
+                  strokeWidth="2.5"
+                />
+
+                {/* Kubah Atas Lentera */}
+                <path
+                  d="M46 42 C46 28, 90 28, 90 42 Z"
+                  fill="#F59E0B"
+                  stroke="#042F2E"
+                  strokeWidth="3"
+                  strokeLinejoin="round"
+                />
+                {/* Puncak Bulan Sabit Kecil di Atas Lentera */}
+                <rect
+                  x="41"
+                  y="40"
+                  width="54"
+                  height="7"
+                  rx="3.5"
+                  fill="#FEF08A"
+                  stroke="#042F2E"
+                  strokeWidth="2.5"
+                />
+
+                {/* Badan Kaca Lentera (Bercahaya Kuning Hangat) */}
+                <path
+                  d="M45 47 H91 L85 102 H51 L45 47 Z"
+                  fill="#FEF9C3"
+                  stroke="#042F2E"
+                  strokeWidth="3"
+                  strokeLinejoin="round"
+                />
+
+                {/* Nyala Api Cahaya Al-Qur'an di Dalam Lentera */}
+                <path
+                  d="M68 58 C68 58, 80 71, 77 83 C75 90, 61 90, 59 83 C56 71, 68 58, 68 58 Z"
+                  fill="#FF6B6B"
+                  stroke="#042F2E"
+                  strokeWidth="2.2"
+                />
+                <path
+                  d="M68 66 C68 66, 74 74, 72 82 C71 86, 65 86, 64 82 C62 74, 68 66, 68 66 Z"
+                  fill="#FBBF24"
+                />
+
+                {/* Jeruji Ornamen Lentera */}
+                <line
+                  x1="58"
+                  y1="47"
+                  x2="60"
+                  y2="102"
+                  stroke="#042F2E"
+                  strokeWidth="2.2"
+                />
+                <line
+                  x1="78"
+                  y1="47"
+                  x2="76"
+                  y2="102"
+                  stroke="#042F2E"
+                  strokeWidth="2.2"
+                />
+
+                {/* Alas Bawah Lentera */}
+                <rect
+                  x="44"
+                  y="100"
+                  width="48"
+                  height="8"
+                  rx="4"
+                  fill="#F59E0B"
+                  stroke="#042F2E"
+                  strokeWidth="2.5"
+                />
+                <path
+                  d="M54 108 H82 L75 117 H61 L54 108 Z"
+                  fill="#0D9488"
+                  stroke="#042F2E"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                />
+                {/* Bandul Bawah Lentera */}
+                <circle
+                  cx="68"
+                  cy="123"
+                  r="4.5"
+                  fill="#FF6B6B"
+                  stroke="#042F2E"
+                  strokeWidth="2.2"
+                />
+
+                {/* Daun Taman Surga di Kaki Lentera */}
+                <path
+                  d="M45 104 C32 102, 26 114, 38 118 C44 120, 50 112, 45 104 Z"
+                  fill="#34D399"
+                  stroke="#042F2E"
+                  strokeWidth="2.2"
+                />
+                <path
+                  d="M91 104 C104 102, 110 114, 98 118 C92 120, 86 112, 91 104 Z"
+                  fill="#34D399"
+                  stroke="#042F2E"
+                  strokeWidth="2.2"
+                />
+              </motion.svg>
+            </div>
+
+            {/* ============================================================
+      3. KONTEN UTAMA HERO (Kiri - 70%)
+     ============================================================ */}
             <div className="relative z-10 max-w-[70%]">
-              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[#FEF08A] bg-[#042F2E] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FEF08A]">
+              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[#FEF08A] bg-[#042F2E] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FEF08A] shadow-[2px_2px_0px_#042F2E]">
                 <Sparkles size={13} />
                 <span>Misi Penjaga Cahaya</span>
               </span>
-              <h2 className="mt-1 font-display text-xl font-black leading-tight text-white">
+              <h2 className="mt-1 font-display text-xl font-black leading-tight text-white drop-shadow-[0_2px_0px_#042F2E]">
                 Nyalakan lentera surah & terangi taman surga!
               </h2>
 

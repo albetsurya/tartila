@@ -128,7 +128,7 @@ function Game() {
         </StartScreen>
       ) : (
         game.currentQuestion && (
-          <div className="relative flex flex-col flex-1 min-h-0 gap-3 p-4 pt-16 justify-between overflow-hidden">
+          <div className="relative flex flex-col flex-1 min-h-0 gap-3 p-4 pt-3 justify-between overflow-hidden">
             <DndContext
               sensors={sensors}
               collisionDetection={collision}
@@ -197,7 +197,7 @@ function Game() {
                   className="w-full rounded-2xl border-[3px] border-dashed border-[#134E4A] bg-white/50 p-4 min-h-[160px]"
                 >
                   <p className="mb-2 text-sm font-black text-[#134E4A]/80">
-                    Jawaban · urutan dari kanan → kiri
+                    Jawaban · urutan dari kanan ke kiri
                   </p>
                   <div className="flex flex-wrap gap-2 overflow-x-auto rounded-xl border border-[#134E4A]/30 bg-white/70 p-3 min-h-[120px]">
                     <SortableContext

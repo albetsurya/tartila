@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  ClockSvg,
 } from "../../../components/ui/CustomIcons";
 
 export type CekAudioVariant = "member" | "admin";
@@ -891,24 +892,26 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
               {hasPublishedData && " (Sinkron Timeline Editor)"}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`${timelineLocalHref}?jilid=${jilid}&hal=${hal}`)
-            }
-            className="shrink-0 rounded-lg bg-[#0D9488] px-3 py-2 text-[10px] font-black text-white shadow-sm transition active:scale-95"
-          >
-            Editor Lokal →
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`${timelineCloudHref}?jilid=${jilid}&hal=${hal}`)
-            }
-            className="shrink-0 rounded-lg bg-[#0F766E] px-3 py-2 text-[10px] font-black text-white shadow-sm transition active:scale-95"
-          >
-            Cloud Editor →
-          </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigate(`${timelineLocalHref}?jilid=${jilid}&hal=${hal}`)
+              }
+              className="shrink-0 rounded-lg bg-[#0D9488] px-3 py-2 text-[10px] font-black text-white shadow-sm transition active:scale-95 flex items-center gap-1.5"
+            >
+              <span>Editor Lokal</span>
+              <ChevronRight size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigate(`${timelineCloudHref}?jilid=${jilid}&hal=${hal}`)
+              }
+              className="shrink-0 rounded-lg bg-[#0F766E] px-3 py-2 text-[10px] font-black text-white shadow-sm transition active:scale-95 flex items-center gap-1.5"
+            >
+              <span>Cloud Editor</span>
+              <ChevronRight size={12} />
+            </button>
         </section>
 
         {editingQuestion && editorDraft && (
@@ -1208,7 +1211,8 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                         )}
                         {item.durasi > 0 && (
                           <span className="inline-flex items-center gap-1 font-mono text-[9px] font-black text-[#0F766E] bg-[#CCFBF1]/70 px-1.5 py-0.5 rounded border border-[#0D9488]/30">
-                            ⏱️ {item.durasi.toFixed(2)}s
+                            <ClockSvg size={10} stroke="#0F766E" />
+                            <span>{item.durasi.toFixed(2)}s</span>
                           </span>
                         )}
                       </div>

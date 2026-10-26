@@ -1,4 +1,5 @@
 import React from "react";
+import { PlaySvg } from "@/components/ui/CustomIcons";
 import type { TimelineText } from "../../utils/pageTimeline";
 import type { DragData } from "./types";
 
@@ -37,7 +38,7 @@ export const TimelineAssetPanel: React.FC<Props> = ({
           onDragStart={(event) => onStartDrag(event, { type: "asset", id: asset.audioUrl })}
           onDragEnd={onEndDrag}>
           <strong title={asset.filename}>{asset.filename}</strong><small>{asset.type} · {seconds(asset.duration)}</small>
-          <div><button className="te-btn" aria-label={`Preview ${asset.filename}`} onClick={() => onPreviewAsset(asset)}>▶</button>
+          <div><button className="te-btn inline-flex items-center justify-center p-1.5" aria-label={`Preview ${asset.filename}`} onClick={() => onPreviewAsset(asset)}><PlaySvg size={12} /></button>
             <button className="te-btn" aria-label={`Tambah ${asset.filename}`} onClick={() => onAddAsset(asset)}>+ Timeline</button></div>
         </div>
       ))}

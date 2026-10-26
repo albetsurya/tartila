@@ -3,6 +3,12 @@ import type { SvgProps } from "./CustomIcons";
 
 export type { SvgProps };
 
+// Type helper for avatar body colors
+type AvatarBodyColors = {
+  boy: { skin: string; shirt: string; pants: string };
+  girl: { skin: string; shirt: string; skirt: string };
+};
+
 /**
  * 1. PetiHartaSvg (Peti Tertutup)
  * Gaya Neo-Brutalism Murni:
@@ -5322,3 +5328,520 @@ export const QuizHubCoverSvg: React.FC<SvgProps> = ({
     </g>
   </svg>
 );
+
+// ============================================================================
+// AVATAR SANTRI SYSTEM (Neo-Brutalism) - Updated with new illustrations
+// ============================================================================
+
+export type AvatarSantriAccessory =
+  | "none"
+  | "peci"
+  | "hairbow"
+  | "flowercrown"
+  | "glasses"
+  | "crown"
+  | "wizardhat"
+  | "headphone"
+  | "sleepmask"
+  | "scarf"
+  | "turban"
+  | "sunglasses"
+  | "chain"
+  | "star"
+  | "medal"
+  | "bandana";
+
+export interface AvatarSantriSvgProps extends SvgProps {
+  gender?: "boy" | "girl";
+  accessory?: AvatarSantriAccessory | string | null;
+  mood?: "idle" | "happy" | "cheer";
+}
+
+function AvatarAccessoryLayer({
+  accessory,
+}: {
+  accessory: AvatarSantriAccessory | string | null;
+}) {
+  if (!accessory || accessory === "none") return null;
+
+  if (accessory === "peci") {
+    return (
+      <g>
+        <path
+          d="M 38 50 C 38 28 50 22 64 22 C 78 22 90 28 90 50 C 80 42 48 42 38 50 Z"
+          fill="#FFFFFF"
+          stroke="#134E4A"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <rect x="39" y="42" width="50" height="7" rx="3.5" fill="#FFFFFF" stroke="#134E4A" strokeWidth="4" />
+        <path
+          d="M 64 30 L 66 35 L 71 35 L 67 38 L 68 43 L 64 40 L 60 43 L 61 38 L 57 35 L 62 35 Z"
+          fill="#FF6B6B"
+          stroke="#134E4A"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+      </g>
+    );
+  }
+
+  if (accessory === "hairbow") {
+    return (
+      <g transform="translate(64 30)">
+        <polygon points="-18,0 -4,-8 -4,8" fill="#F472B6" stroke="#134E4A" strokeWidth="3" strokeLinejoin="round" />
+        <polygon points="18,0 4,-8 4,8" fill="#F472B6" stroke="#134E4A" strokeWidth="3" strokeLinejoin="round" />
+        <circle cx="0" cy="0" r="5" fill="#FF6B6B" stroke="#134E4A" strokeWidth="3" />
+      </g>
+    );
+  }
+
+  if (accessory === "flowercrown") {
+    return (
+      <g>
+        <path d="M 38 52 Q 64 62 90 52" fill="none" stroke="#059669" strokeWidth="6" strokeLinecap="round" />
+        <circle cx="44" cy="52" r="7" fill="#FF6B6B" stroke="#134E4A" strokeWidth="3" />
+        <circle cx="58" cy="56" r="8" fill="#FFFFFF" stroke="#134E4A" strokeWidth="3" />
+        <circle cx="72" cy="56" r="8" fill="#FBBF24" stroke="#134E4A" strokeWidth="3" />
+        <circle cx="86" cy="52" r="7" fill="#FF6B6B" stroke="#134E4A" strokeWidth="3" />
+      </g>
+    );
+  }
+
+  if (accessory === "glasses") {
+    return (
+      <g>
+        <circle cx="52" cy="64" r="11" fill="none" stroke="#134E4A" strokeWidth="4" />
+        <circle cx="76" cy="64" r="11" fill="none" stroke="#134E4A" strokeWidth="4" />
+        <path d="M 63 64 Q 64 61 65 64" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 41 64 L 32 60" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 87 64 L 96 60" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+      </g>
+    );
+  }
+
+  if (accessory === "crown") {
+    return (
+      <g>
+        <path
+          d="M 36 42 L 32 18 L 48 30 L 64 14 L 80 30 L 96 18 L 92 42 Z"
+          fill="#FBBF24"
+          stroke="#134E4A"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+        <circle cx="32" cy="18" r="4" fill="#FF6B6B" stroke="#134E4A" strokeWidth="2" />
+        <circle cx="64" cy="14" r="5" fill="#3B82F6" stroke="#134E4A" strokeWidth="2" />
+        <circle cx="96" cy="18" r="4" fill="#FF6B6B" stroke="#134E4A" strokeWidth="2" />
+      </g>
+    );
+  }
+
+  if (accessory === "wizardhat") {
+    return (
+      <g transform="translate(0, -22)">
+        <path
+          d="M 64 18 L 40 62 L 88 62 Z"
+          fill="#A855F7"
+          stroke="#134E4A"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+        <ellipse cx="64" cy="64" rx="40" ry="7" fill="#A855F7" stroke="#134E4A" strokeWidth="4" />
+        <polygon
+          points="64,44 66,49 71,49 67,52 68,57 64,54 60,57 61,52 57,49 62,49"
+          fill="#FBBF24"
+          stroke="#134E4A"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </g>
+    );
+  }
+
+  if (accessory === "headphone") {
+    return (
+      <g>
+        <path d="M 36 64 C 36 40 50 30 64 30 C 78 30 92 40 92 64" fill="none" stroke="#334155" strokeWidth="6" strokeLinecap="round" />
+        <rect x="30" y="58" width="12" height="22" rx="5" fill="#FF6B6B" stroke="#134E4A" strokeWidth="4" />
+        <rect x="86" y="58" width="12" height="22" rx="5" fill="#FF6B6B" stroke="#134E4A" strokeWidth="4" />
+      </g>
+    );
+  }
+
+  if (accessory === "sleepmask") {
+    return (
+      <g>
+        <rect x="38" y="56" width="52" height="16" rx="8" fill="#60A5FA" stroke="#134E4A" strokeWidth="4" />
+        <path d="M 44 64 H 54 M 74 64 H 84" stroke="#134E4A" strokeWidth="3" strokeLinecap="round" />
+        <path d="M 30 62 L 16 56" stroke="#134E4A" strokeWidth="3" strokeLinecap="round" />
+        <path d="M 98 62 L 112 56" stroke="#134E4A" strokeWidth="3" strokeLinecap="round" />
+      </g>
+    );
+  }
+
+  if (accessory === "scarf") {
+    return (
+      <g>
+        <path
+          d="M 36 92 Q 64 104 92 92 Q 96 106 92 114 Q 64 124 36 114 Q 32 106 36 92 Z"
+          fill="#FBBF24"
+          stroke="#134E4A"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+        <path d="M 72 108 L 76 124 L 66 122 L 64 110" fill="#FBBF24" stroke="#134E4A" strokeWidth="3" strokeLinejoin="round" />
+      </g>
+    );
+  }
+
+  if (accessory === "turban") {
+    return (
+      <g transform="translate(0, -16)">
+        <path
+          d="M 34 58 Q 28 26 64 22 Q 100 26 94 58 Q 64 68 34 58 Z"
+          fill="#FAFAF9"
+          stroke="#134E4A"
+          strokeWidth="4.5"
+          strokeLinejoin="round"
+        />
+        <path d="M 36 52 Q 64 60 92 52 M 44 38 Q 64 30 84 38" fill="none" stroke="#E7E5E4" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="64" cy="34" r="4" fill="#10B981" stroke="#134E4A" strokeWidth="2.5" />
+      </g>
+    );
+  }
+
+  if (accessory === "sunglasses") {
+    return (
+      <g>
+        <rect x="38" y="56" width="24" height="16" rx="4" fill="#134E4A" stroke="#134E4A" strokeWidth="3" />
+        <rect x="66" y="56" width="24" height="16" rx="4" fill="#134E4A" stroke="#134E4A" strokeWidth="3" />
+        <path d="M 62 60 L 66 60" stroke="#134E4A" strokeWidth="3" strokeLinecap="round" />
+        <path d="M 40 58 L 32 52" stroke="#134E4A" strokeWidth="3" strokeLinecap="round" />
+        <path d="M 90 58 L 98 52" stroke="#134E4A" strokeWidth="3" strokeLinecap="round" />
+      </g>
+    );
+  }
+
+  if (accessory === "chain") {
+    return (
+      <g>
+        <path d="M 44 86 Q 64 100 84 86" fill="none" stroke="#FBBF24" strokeWidth="5" strokeLinecap="round" />
+        <circle cx="44" cy="86" r="3.5" fill="#F59E0B" />
+        <circle cx="64" cy="93" r="3.5" fill="#F59E0B" />
+        <circle cx="84" cy="86" r="3.5" fill="#F59E0B" />
+      </g>
+    );
+  }
+
+  if (accessory === "star") {
+    return (
+      <g transform="translate(64 42)">
+        <polygon
+          points="0,-14 3,-4 13,-4 5,2 8,12 0,6 -8,12 -5,2 -13,-4 -3,-4"
+          fill="#FBBF24"
+          stroke="#134E4A"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+      </g>
+    );
+  }
+
+  if (accessory === "medal") {
+    return (
+      <g>
+        <path d="M 54 88 L 48 108 M 74 88 L 80 108" stroke="#3B82F6" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="64" cy="110" r="9" fill="#FBBF24" stroke="#134E4A" strokeWidth="3.5" />
+        <circle cx="64" cy="110" r="4" fill="#FF6B6B" stroke="#134E4A" strokeWidth="2" />
+      </g>
+    );
+  }
+
+  if (accessory === "bandana") {
+    return (
+      <g>
+        <path d="M 38 48 C 38 34 50 30 64 30 C 78 30 90 34 90 48" fill="none" stroke="#EF4444" strokeWidth="7" strokeLinecap="round" />
+        <polygon points="64,30 58,22 70,22" fill="#EF4444" stroke="#134E4A" strokeWidth="2" strokeLinejoin="round" />
+      </g>
+    );
+  }
+
+  return null;
+}
+
+export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  gender = "boy",
+  accessory = "none",
+  mood = "idle",
+}) => {
+  const isGirl = gender === "girl";
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const clipId = `avatar-clip-${uid}`;
+  const dotsId = `avatar-dots-${uid}`;
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 128 140"
+      width={size}
+      height={size}
+      fill="none"
+      role="img"
+      aria-label={`Avatar Santri ${isGirl ? "Putri" : "Putra"}`}
+      className={className}
+      style={style}
+    >
+      <defs>
+        <pattern id={dotsId} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.5" fill="#0D9488" opacity="0.15" />
+        </pattern>
+        <clipPath id={clipId}>
+          <circle cx="64" cy="68" r="52" />
+        </clipPath>
+      </defs>
+
+      <circle cx="64" cy="74" r="52" fill="#134E4A" />
+      <circle cx="64" cy="68" r="52" fill="#F0FDF4" stroke="#134E4A" strokeWidth="5" />
+      <circle cx="64" cy="68" r="52" fill={`url(#${dotsId})`} />
+
+      <g clipPath={`url(#${clipId})`}>
+        <path
+          d="M 20 120 C 24 92 40 86 64 86 C 88 86 104 92 108 120 Z"
+          fill="#0D9488"
+          stroke="#134E4A"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 52 86 L 64 100 L 76 86"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 52 86 L 64 100 L 76 86"
+          fill="none"
+          stroke="#134E4A"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <rect x="54" y="78" width="20" height="12" rx="6" fill="#FCD34D" stroke="#134E4A" strokeWidth="4" />
+
+        {!isGirl && (
+          <>
+            <circle cx="38" cy="60" r="6" fill="#FCD34D" stroke="#134E4A" strokeWidth="4" />
+            <circle cx="90" cy="60" r="6" fill="#FCD34D" stroke="#134E4A" strokeWidth="4" />
+          </>
+        )}
+
+        <circle cx="64" cy="60" r="26" fill="#FCD34D" stroke="#134E4A" strokeWidth="5" />
+
+        {!isGirl && (
+          <g>
+            <path
+              d="M 38 56 C 34 40 44 26 60 28 C 66 20 80 24 84 32 C 94 34 94 46 90 56 C 84 46 76 48 70 42 C 64 50 54 44 48 50 C 44 46 40 50 38 56 Z"
+              fill="#1E293B"
+              stroke="#134E4A"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 56 28 Q 64 20 70 28"
+              fill="none"
+              stroke="#134E4A"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <path
+              d="M 46 38 Q 56 34 64 38"
+              fill="none"
+              stroke="#334155"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </g>
+        )}
+
+        {isGirl && (
+          <>
+            <path
+              d="M 26 114 C 22 70 30 26 64 26 C 98 26 106 70 102 114 C 94 122 34 122 26 114 Z"
+              fill="#FF6B6B"
+              stroke="#134E4A"
+              strokeWidth="5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M 34 64 C 34 30 94 30 94 64 C 94 100 80 108 64 108 C 48 108 34 100 34 64 Z M 88 64 A 24 24 0 1 0 40 64 A 24 24 0 1 0 88 64 Z"
+              fill="#FF6B6B"
+              stroke="#134E4A"
+              strokeWidth="5"
+              fillRule="evenodd"
+              strokeLinejoin="round"
+            />
+            <circle cx="64" cy="60" r="26" fill="#FCD34D" stroke="#134E4A" strokeWidth="5" />
+            <path
+              d="M 40 52 Q 64 38 88 52 C 84 34 44 34 40 52 Z"
+              fill="#E11D48"
+              stroke="#134E4A"
+              strokeWidth="4"
+              strokeLinejoin="round"
+            />
+          </>
+        )}
+
+        <AvatarAccessoryLayer accessory={accessory} />
+
+        {mood === "happy" || mood === "cheer" ? (
+          <>
+            <path d="M 48 62 Q 53 56 58 62" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+            <path d="M 70 62 Q 75 56 80 62" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+          </>
+        ) : (
+          <>
+            <circle cx="52" cy="60" r="4.5" fill="#134E4A" />
+            <circle cx="76" cy="60" r="4.5" fill="#134E4A" />
+            <circle cx="50" cy="58" r="1.5" fill="#FFFFFF" />
+            <circle cx="74" cy="58" r="1.5" fill="#FFFFFF" />
+          </>
+        )}
+
+        <circle cx="44" cy="70" r="6" fill="#FF6B6B" opacity="0.6" />
+        <circle cx="84" cy="70" r="6" fill="#FF6B6B" opacity="0.6" />
+
+        {mood === "cheer" ? (
+          <>
+            <path d="M 52 74 C 56 92 72 92 76 74 Z" fill="#134E4A" />
+            <path d="M 58 86 C 62 80 66 80 70 86 C 66 91 62 91 58 86 Z" fill="#FF6B6B" />
+          </>
+        ) : mood === "happy" ? (
+          <path d="M 54 72 C 58 84 70 84 74 72" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+        ) : (
+          <path d="M 56 72 C 60 80 68 80 72 72" fill="none" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" />
+        )}
+
+        <circle cx="80" cy="105" r="6" fill="#FF6B6B" stroke="#134E4A" strokeWidth="2" />
+        <path
+          d="M 80 102 L 81 104 L 83 104 L 81.5 105.5 L 82 108 L 80 106.5 L 78 108 L 78.5 105.5 L 77 104 L 79 104 Z"
+          fill="#FFFFFF"
+        />
+      </g>
+    </svg>
+  );
+};
+
+export const AvatarSantriBoySvg: React.FC<Omit<AvatarSantriSvgProps, "gender">> = (props) => (
+  <AvatarSantriSvg {...props} gender="boy" />
+);
+
+export const AvatarSantriGirlSvg: React.FC<Omit<AvatarSantriSvgProps, "gender">> = (props) => (
+  <AvatarSantriSvg {...props} gender="girl" />
+);
+
+export const AvatarAnakBersorakSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  ...props
+}) => {
+  const id = useId();
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 128 128"
+      width={size}
+      height={size}
+      fill="none"
+      role="img"
+      aria-label="Anak Bersorak"
+      className={className}
+      style={style}
+      {...props}
+    >
+      <ellipse cx="64" cy="118" rx="48" ry="8" fill="var(--svg-primary)" />
+      <circle cx="64" cy="56" r="32" fill="#F5D6A9" stroke="var(--svg-primary)" strokeWidth="3.5" />
+      <ellipse cx="50" cy="50" rx="5" ry="8" fill="#134E4A" />
+      <ellipse cx="78" cy="50" rx="5" ry="8" fill="#134E4A" />
+      <path d="M40 72 Q64 88 88 72" stroke="#134E4A" strokeWidth="4" strokeLinecap="round" fill="none" />
+      <circle cx="40" cy="60" r="6" fill="#FBBF24" opacity="0.6" />
+      <circle cx="88" cy="60" r="6" fill="#FBBF24" opacity="0.6" />
+      <path d="M20 96 L108 96" stroke="var(--svg-primary)" strokeWidth="3" />
+    </svg>
+  );
+};
+
+export const AvatarUstadzSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  ...props
+}) => {
+  const id = useId();
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 128 128"
+      width={size}
+      height={size}
+      fill="none"
+      role="img"
+      aria-label="Ustadz"
+      className={className}
+      style={style}
+      {...props}
+    >
+      <ellipse cx="64" cy="118" rx="48" ry="8" fill="var(--svg-primary)" />
+      <circle cx="64" cy="56" r="32" fill="#F5D6A9" stroke="var(--svg-primary)" strokeWidth="3.5" />
+      <ellipse cx="50" cy="50" rx="5" ry="5" fill="#134E4A" />
+      <ellipse cx="78" cy="50" rx="5" ry="5" fill="#134E4A" />
+      <path d="M44 68 Q64 60 84 68" stroke="#134E4A" strokeWidth="3" fill="none" />
+      <path d="M36 96 L92 96" stroke="var(--svg-primary)" strokeWidth="4" />
+      {/* Kopiah */}
+      <ellipse cx="64" cy="20" rx="28" ry="4" fill="#134E4A" stroke="var(--svg-primary)" strokeWidth="3" />
+      <path d="M36 20 Q64 0 92 20" fill="#134E4A" stroke="var(--svg-primary)" strokeWidth="3.5" />
+      <ellipse cx="64" cy="20" rx="20" ry="3" fill="#0D9488" />
+    </svg>
+  );
+};
+
+export const AvatarUstadzahSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  ...props
+}) => {
+  const id = useId();
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 128 128"
+      width={size}
+      height={size}
+      fill="none"
+      role="img"
+      aria-label="Ustadzah"
+      className={className}
+      style={style}
+      {...props}
+    >
+      <ellipse cx="64" cy="118" rx="48" ry="8" fill="var(--svg-primary)" />
+      <circle cx="64" cy="56" r="32" fill="#F5D6A9" stroke="var(--svg-primary)" strokeWidth="3.5" />
+      <ellipse cx="50" cy="50" rx="5" ry="5" fill="#134E4A" />
+      <ellipse cx="78" cy="50" rx="5" ry="5" fill="#134E4A" />
+      <path d="M44 68 Q64 60 84 68" stroke="#134E4A" strokeWidth="3" fill="none" />
+      <path d="M36 96 L92 96" stroke="var(--svg-primary)" strokeWidth="4" />
+      {/* Hijab */}
+      <path d="M20 32 Q64 0 108 32 L108 100 L20 100 Z" fill="#F5D6A9" stroke="var(--svg-primary)" strokeWidth="3.5" />
+      <path d="M30 40 Q64 20 98 40" fill="none" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" />
+      <path d="M30 50 Q64 30 98 50" fill="none" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+};

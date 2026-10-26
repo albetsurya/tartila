@@ -299,26 +299,24 @@ export default function NgajiCeriaMapPage() {
 
         {/* Doa Cepat (Bottom) */}
         <section className="mt-8 px-4">
-          {/* Card Utama dengan gaya Neo-Brutalism */}
-          <div className="rounded-[28px] border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
+          <div className="rounded-[28px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6B6B]">
                   Akses Cepat
                 </span>
-                <h3 className="font-display text-lg font-black text-[#134E4A]">
+                <h3 className="font-display text-lg font-black text-[var(--text-main,#134E4A)]">
                   Doa Kilat
                 </h3>
               </div>
 
-              {/* Tombol "Semua" bergaya Sticker */}
               <button
                 onClick={() =>
                   handleNavigate("/member/ngaji-ceria/explore/doa")
                 }
-                className="flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#F0FDF4] px-3 py-1.5 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#DCFCE7] active:translate-y-[2px] active:shadow-none"
+                className="flex items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] px-3 py-1.5 text-[11px] font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#DCFCE7] active:translate-y-[2px] active:shadow-none"
               >
-                Semua <ArrowRightSvg size={13} className="text-[#134E4A]" />
+                Semua <ArrowRightSvg size={13} className="text-[var(--text-main,#134E4A)]" />
               </button>
             </div>
 
@@ -346,13 +344,12 @@ export default function NgajiCeriaMapPage() {
                         `/member/ngaji-ceria/explore/doa/${doa.id}`,
                       )
                     }
-                    // Tombol Opsi bergaya Sticker
-                    className="flex items-center gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#F8FAFC] active:translate-y-[2px] active:shadow-none"
+                    className="flex items-center gap-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#F8FAFC] active:translate-y-[2px] active:shadow-none"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#CCFBF1] border-2 border-[#134E4A] text-[#134E4A]">
-                      <Icon size={16} />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#CCFBF1] border-2 border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)]">
+                      <Icon size={16} stroke="#134E4A" />
                     </div>
-                    <span className="text-[11px] font-black text-[#134E4A] leading-tight text-left">
+                    <span className="text-[11px] font-black text-[var(--text-main,#134E4A)] leading-tight text-left">
                       {doa.title}
                     </span>
                   </button>

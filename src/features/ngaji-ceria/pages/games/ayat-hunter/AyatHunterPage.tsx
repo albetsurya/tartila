@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckSvg } from "@/components/ui/CustomIcons";
+import { CheckSvg, ChevronUpSvg, ChevronDownSvg, ArrowLeftSvg, ArrowRightSvg } from "@/components/ui/CustomIcons";
 import { AyatHunterCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot, type TilaDirection } from "@/components/ui/TilaMascot";
 import { preloadBattleModels } from "../_shared/battle/BattleScene";
@@ -196,7 +196,7 @@ function Game() {
                     onClick={() => handleMove("up")}
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
                   >
-                    ▲
+                    <ChevronUpSvg size={20} />
                   </button>
                   <div />
                   <button
@@ -205,7 +205,7 @@ function Game() {
                     onClick={() => handleMove("left")}
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
                   >
-                    ◀
+                    <ArrowLeftSvg size={20} />
                   </button>
                   <button
                     type="button"
@@ -213,7 +213,7 @@ function Game() {
                     onClick={() => handleMove("down")}
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
                   >
-                    ▼
+                    <ChevronDownSvg size={20} />
                   </button>
                   <button
                     type="button"
@@ -221,7 +221,7 @@ function Game() {
                     onClick={() => handleMove("right")}
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white text-base font-black shadow-[2px_2px_0px_#134E4A] active:scale-95"
                   >
-                    ▶
+                    <ArrowRightSvg size={20} />
                   </button>
                 </div>
               </div>

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ExploreHeader } from "../../components/ExploreHeader";
 import { ARENA_KARTU_DATA, ArenaKartuLevel } from "../../data/arenaKartuData";
-import { ChevronRight, Sparkles, BookOpen } from "@/components/ui/CustomIcons";
+import { ChevronRight, Sparkles, BookOpen, GameCardSvg } from "@/components/ui/CustomIcons";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
 
 export default function ArenaKartuSelectPage() {
@@ -57,8 +57,8 @@ export default function ArenaKartuSelectPage() {
           <section className="px-4 pt-6 max-w-4xl mx-auto">
             <div className="relative overflow-hidden rounded-2xl bg-[#FEF3C7] border-[3px] border-[#B45309] p-4 sm:p-5 shadow-[4px_4px_0px_#78350F]">
               <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#134E4A] text-3xl shadow-[2px_2px_0px_#134E4A]">
-                  🃏
+                <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#134E4A] text-[#FEF3C7] shadow-[2px_2px_0px_#134E4A]">
+                  <GameCardSvg size={28} stroke="#FEF3C7" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-[#B45309] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#FEF3C7] mb-1">

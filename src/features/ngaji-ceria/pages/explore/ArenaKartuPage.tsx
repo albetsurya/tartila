@@ -15,6 +15,9 @@ import {
   CheckSvg,
   ChevronRight,
   BookOpen,
+  ClipboardListSvg,
+  LockSvg,
+  HelpCircleSvg,
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
@@ -121,7 +124,7 @@ export default function ArenaKartuPage() {
             <div className="rounded-2xl bg-[#042F2E]/90 border-[3px] border-[#10B981]/50 p-3.5 sm:p-4 text-[#FEF3C7] shadow-[4px_4px_0px_#022C22]">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">📋</span>
+                  <ClipboardListSvg size={22} className="text-[#A7F3D0]" />
                   <div>
                     <h2 className="text-xs sm:text-sm font-black text-white">
                       Progres Materi Jilid {currentJilid}
@@ -194,8 +197,8 @@ export default function ArenaKartuPage() {
                           <CheckSvg size={12} />
                         </span>
                       ) : (
-                        <span className="w-5 h-5 rounded-full bg-[#042F2E]/60 border border-[#FEF08A]/40 text-[#FEF08A] flex items-center justify-center text-[10px] font-black shadow-xs">
-                          🔒
+                        <span className="w-5 h-5 rounded-full bg-[#042F2E]/60 border border-[#FEF08A]/40 text-[#FEF08A] flex items-center justify-center shadow-xs">
+                          <LockSvg size={11} />
                         </span>
                       )}
                     </div>
@@ -224,8 +227,8 @@ export default function ArenaKartuPage() {
                       /* KARTU TERTUTUP (BELUM DIKUASAI) */
                       <div className="flex-1 flex flex-col items-center justify-center my-auto">
                         <div className="w-12 h-12 rounded-2xl bg-[#042F2E]/50 border-2 border-[#FEF08A]/60 flex items-center justify-center rotate-45 shadow-xs mb-2">
-                          <div className="-rotate-45 text-xl text-[#FDE047]">
-                            ❓
+                          <div className="-rotate-45 text-[#FDE047]">
+                            <HelpCircleSvg size={22} />
                           </div>
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-wider text-[#FEF08A]/80">

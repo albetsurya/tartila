@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, RefreshCw, StarSvg, SparklesSvg } from "@/components/ui/CustomIcons";
+import { Check, X, RefreshCw, StarSvg, SparklesSvg, ChevronRightSvg } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 
 export interface AnswerFeedbackSheetProps {
@@ -111,7 +111,7 @@ export function AnswerFeedbackSheet({
                   className="w-full mt-6 py-4 px-6 rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-lg border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Lanjut</span>
-                  <span className="text-xl leading-none">➔</span>
+                  <ChevronRightSvg size={20} />
                 </button>
               </div>
             ) : (

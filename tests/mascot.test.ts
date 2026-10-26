@@ -14,6 +14,7 @@ import {
 } from '../src/constants/mascot.ts';
 import { SKIN_ITEMS } from '../src/features/ngaji-ceria/data/shopData.ts';
 import { isTilaCompanionExcluded } from '../src/components/ui/TilaCompanion.tsx';
+import { useEconomyStore } from '../src/features/ngaji-ceria/hooks/useEconomyStore.ts';
 
 export const tests = {
   'konstanta nama maskot resmi': () => {
@@ -192,5 +193,35 @@ export const tests = {
     assert.equal(isTilaCompanionExcluded('/admin/users'), true, 'Admin Users');
     assert.equal(isTilaCompanionExcluded('/ustadz'), true, 'Ustadz Panel');
     assert.equal(isTilaCompanionExcluded('/ustadz/kurikulum'), true, 'Ustadz Kurikulum');
+  },
+
+  'useEconomyStore: aksesoris avatar default peci dan mekanisme equip/buy': async () => {
+    // Reset state avatar
+    useEconomyStore.setState({
+      ownedAvatarAccessories: ['peci'],
+      equippedAvatarAccessory: 'peci',
+    });
+
+    const store = useEconomyStore.getState();
+    assert.ok(store.ownedAvatarAccessories.includes('peci'), 'peci harus selalu dimiliki sebagai default');
+    assert.equal(store.equippedAvatarAccessory, 'peci');
+
+    // Equip unowned accessory harus ditolak/diabaikan
+    store.equipAvatarAccessory('crown');
+    assert.equal(useEconomyStore.getState().equippedAvatarAccessory, 'peci');
+
+    // Beli avatar accessory baru dengan flag free=true
+    const bought = await store.buyAvatarAccessory('crown', 300, true);
+    assert.equal(bought, true);
+    assert.ok(useEconomyStore.getState().ownedAvatarAccessories.includes('crown'));
+    assert.equal(useEconomyStore.getState().equippedAvatarAccessory, 'crown');
+
+    // Lepas aksesoris
+    store.equipAvatarAccessory(null);
+    assert.equal(useEconomyStore.getState().equippedAvatarAccessory, null);
+
+    // Pasang kembali peci gratis
+    store.equipAvatarAccessory('peci');
+    assert.equal(useEconomyStore.getState().equippedAvatarAccessory, 'peci');
   },
 };

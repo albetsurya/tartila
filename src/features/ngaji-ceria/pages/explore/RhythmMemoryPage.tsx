@@ -11,7 +11,17 @@ import {
 } from '../../data/rhythmMemoryData';
 import { RhythmTapZone } from '../../components/rhythm-memory/RhythmTapZone';
 import { useRhythmMemoryAudio } from '../../hooks/useRhythmMemoryAudio';
-import { StarSvg, ChevronRight, RotateCcwSvg } from '@/components/ui/CustomIcons';
+import {
+  StarSvg,
+  ChevronRight,
+  RotateCcwSvg,
+  TargetSvg,
+  FireSvg,
+  SparklesSvg,
+  MusicSvg,
+  TrophySvg,
+  CheckSvg,
+} from '@/components/ui/CustomIcons';
 import { soundManager } from '../../services/soundManager';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import type { HitResult } from '../../components/lab-irama/timingJudge';
@@ -246,15 +256,15 @@ export default function RhythmMemoryPage() {
           <section className="px-4 pt-3 max-w-md mx-auto">
             <div className="flex items-center justify-between rounded-2xl bg-[#022c22]/90 border-2 border-[#10b981]/50 px-3 py-2 text-[#fef3c7] shadow-sm">
               <div className="flex items-center gap-1.5 text-xs font-black">
-                <span className="text-amber-300">🎯</span>
+                <TargetSvg size={14} className="text-amber-300" stroke="#fde047" />
                 <span>Langkah: {moves}</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-black">
-                <span className="text-emerald-400">🔥</span>
+                <FireSvg size={14} className="text-emerald-400" />
                 <span>Streak: {streak}</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-black">
-                <span className="text-yellow-300">✨</span>
+                <SparklesSvg size={14} className="text-yellow-300" />
                 <span>Skor: {score}</span>
               </div>
               <button
@@ -332,8 +342,8 @@ export default function RhythmMemoryPage() {
                         {/* Logo Nada & Bintang */}
                         <div className="z-10 flex items-center justify-center my-auto">
                           <div className="w-10 h-10 rounded-2xl bg-[#042F2E]/40 border-2 border-[#FDE047]/70 flex items-center justify-center rotate-45 shadow-xs">
-                            <div className="-rotate-45 flex items-center justify-center text-[#FDE047] text-base font-black">
-                              🎵
+                            <div className="-rotate-45 flex items-center justify-center text-[#FDE047]">
+                              <MusicSvg size={18} stroke="#FDE047" />
                             </div>
                           </div>
                         </div>
@@ -376,8 +386,8 @@ export default function RhythmMemoryPage() {
                           </span>
 
                           {isMatched ? (
-                            <span className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center text-[9px] font-black shadow-xs">
-                              ✓
+                            <span className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+                              <CheckSvg size={10} />
                             </span>
                           ) : isTapping ? (
                             <span className="px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[8px] font-black animate-pulse">
@@ -452,8 +462,8 @@ export default function RhythmMemoryPage() {
               exit={{ scale: 0.85, y: 20 }}
               className="w-full max-w-sm rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-6 text-center shadow-[8px_8px_0px_#78350F]"
             >
-              <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-5xl shadow-md mx-auto mb-3">
-                🏆
+              <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
+                <TrophySvg size={44} />
               </div>
 
               <h3 className="text-2xl font-black text-[#78350F] mb-1">
@@ -486,8 +496,9 @@ export default function RhythmMemoryPage() {
                   <span className="block text-[10px] font-bold text-[#78350F] uppercase">
                     Streak
                   </span>
-                  <span className="text-xl font-black text-[#78350F]">
-                    {streak}🔥
+                  <span className="text-xl font-black text-[#78350F] flex items-center justify-center gap-0.5">
+                    <span>{streak}</span>
+                    <FireSvg size={16} className="text-[#EA580C]" />
                   </span>
                 </div>
               </div>
@@ -496,9 +507,10 @@ export default function RhythmMemoryPage() {
                 <button
                   type="button"
                   onClick={handleResetGame}
-                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Main Lagi 🔄
+                  <span>Main Lagi</span>
+                  <RotateCcwSvg size={14} />
                 </button>
                 <button
                   type="button"

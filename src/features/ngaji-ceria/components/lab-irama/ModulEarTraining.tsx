@@ -19,6 +19,15 @@ import {
   SparklesSvg,
   CheckSvg,
   RotateCcwSvg,
+  CoinSvg,
+  HeadphoneSvg,
+  HelpCircleSvg,
+  AlertTriangleSvg,
+  ArrowRightSvg,
+  ArrowUpRightSvg,
+  ArrowDownRightSvg,
+  XSvg,
+  StarSvg,
 } from '../../../../components/ui/CustomIcons';
 import { EqualizerIcon } from '@/components/ui/EqualizerIcon';
 import { AnimatedProgressBar } from '../../../../components/ui/AnimatedProgressBar';
@@ -285,8 +294,8 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
 
     return (
       <div className="bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-3xl p-6 shadow-[5px_5px_0px_var(--shadow-color,#134E4A)] text-center space-y-5">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FEF08A] border-[3px] border-[var(--border-color,#134E4A)] flex items-center justify-center text-3xl shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
-          🎉
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FEF08A] border-[3px] border-[var(--border-color,#134E4A)] flex items-center justify-center text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
+          <SparklesSvg size={36} />
         </div>
 
         <div>
@@ -314,7 +323,10 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
           </div>
           <div className="bg-[#FEF9C3] border-2 border-[var(--border-color,#134E4A)] rounded-2xl p-3">
             <span className="text-[10px] font-black uppercase text-amber-800">Bonus Koin</span>
-            <p className="font-display font-black text-2xl text-amber-700">+{earnedCoins} 🪙</p>
+            <p className="font-display font-black text-2xl text-amber-700 flex items-center justify-center gap-1">
+              <span>+{earnedCoins}</span>
+              <CoinSvg size={20} />
+            </p>
           </div>
         </div>
 
@@ -373,8 +385,8 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
           Soal {currentIndex + 1} dari {questions.length}
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[var(--border-color,#134E4A)]">
-            ⭐ {score} Poin
+          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[var(--border-color,#134E4A)] inline-flex items-center gap-1">
+            <StarSvg size={14} fill="#FDE047" stroke="#134E4A" /> {score} Poin
           </span>
         </div>
       </div>
@@ -454,8 +466,14 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
 
           {/* Dinamis Monitor Alunan Nada Saat Audio Qari Berjalan */}
           <div className="mt-4 pt-3 border-t border-[var(--border-color,#134E4A)]/15 w-full flex items-center justify-center gap-2 flex-wrap">
-            <span className="text-[11px] font-black text-[var(--text-main,#134E4A)]/70">
-              {isPlayingAudio ? '🎧 Mendengarkan Alunan:' : 'Siklus Nada:'}
+            <span className="text-[11px] font-black text-[var(--text-main,#134E4A)]/70 inline-flex items-center gap-1">
+              {isPlayingAudio ? (
+                <>
+                  <HeadphoneSvg size={14} /> Mendengarkan Alunan:
+                </>
+              ) : (
+                'Siklus Nada:'
+              )}
             </span>
             <div className="flex items-center gap-1.5">
               {currentQ.siklusNada.map((tone, idx) => {
@@ -463,12 +481,12 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                 return (
                   <React.Fragment key={idx}>
                     {idx > 0 && (
-                      <span className="text-xs font-black text-[var(--text-main,#134E4A)]/40">
-                        ➔
+                      <span className="text-xs font-black text-[var(--text-main,#134E4A)]/40 inline-flex items-center">
+                        <ArrowRightSvg size={10} />
                       </span>
                     )}
                     <span
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-black border transition-all ${
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-black border transition-all inline-flex items-center gap-1 ${
                         isToneActive
                           ? tone === 'Datar'
                             ? 'bg-[#38BDF8] text-white border-[#0284C7] scale-110 ring-2 ring-sky-400 shadow-sm animate-pulse'
@@ -480,9 +498,20 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                           : 'bg-white/70 dark:bg-gray-800/70 text-gray-400 border-dashed border-gray-300'
                       }`}
                     >
-                      {isAnswerRevealed || isToneActive
-                        ? `${tone === 'Datar' ? '➡️' : tone === 'Naik' ? '↗️' : '↘️'} ${tone}`
-                        : `Kotak ${idx + 1}`}
+                      {isAnswerRevealed || isToneActive ? (
+                        <>
+                          {tone === 'Datar' ? (
+                            <ArrowRightSvg size={11} />
+                          ) : tone === 'Naik' ? (
+                            <ArrowUpRightSvg size={11} />
+                          ) : (
+                            <ArrowDownRightSvg size={11} />
+                          )}
+                          <span>{tone}</span>
+                        </>
+                      ) : (
+                        `Kotak ${idx + 1}`
+                      )}
                     </span>
                   </React.Fragment>
                 );
@@ -502,7 +531,8 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
           ) : (
             <PlaySvg size={14} />
           )}
-          {isPlayingAudio ? 'Sedang Memutar Audio...' : 'Putar Ulang Suara Qari 🎧'}
+          <span>{isPlayingAudio ? 'Sedang Memutar Audio...' : 'Putar Ulang Suara Qari'}</span>
+          {!isPlayingAudio && <HeadphoneSvg size={14} />}
         </button>
 
         {/* Feedback Penjelasan Saat Terjawab */}
@@ -524,9 +554,9 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
               <div>
                 <p className="font-black text-sm">
                   {!hasWrongAttempt
-                    ? 'Luar Biasa, Tepat Sekali! 🎉'
+                    ? 'Luar Biasa, Tepat Sekali!'
                     : 'Susunan Nada yang Tepat:'}{' '}
-                  ({currentQ.siklusNada.join(' ➔ ')})
+                  ({currentQ.siklusNada.join(' → ')})
                 </p>
                 <p className="text-[11px] mt-1 leading-relaxed opacity-95">
                   {currentQ.explanation}
@@ -559,8 +589,8 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
             {userPattern.map((placedTone, slotIdx) => (
               <React.Fragment key={slotIdx}>
                 {slotIdx > 0 && (
-                  <span className="text-base font-black text-[#134E4A]/40 shrink-0 select-none">
-                    ➔
+                  <span className="text-base font-black text-[#134E4A]/40 shrink-0 select-none inline-flex items-center">
+                    <ArrowRightSvg size={14} />
                   </span>
                 )}
 
@@ -579,15 +609,17 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                         : 'bg-[#FB7185] text-white'
                     }`}
                   >
-                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-[#134E4A] border-2 border-[#134E4A] text-[10px] font-black flex items-center justify-center shadow-xs">
-                      ✕
+                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-[#134E4A] border-2 border-[#134E4A] flex items-center justify-center shadow-xs">
+                      <XSvg size={10} />
                     </span>
-                    <span className="text-2xl">
-                      {placedTone === 'Datar'
-                        ? '➡️'
-                        : placedTone === 'Naik'
-                        ? '↗️'
-                        : '↘️'}
+                    <span className="text-2xl inline-flex items-center">
+                      {placedTone === 'Datar' ? (
+                        <ArrowRightSvg size={24} />
+                      ) : placedTone === 'Naik' ? (
+                        <ArrowUpRightSvg size={24} />
+                      ) : (
+                        <ArrowDownRightSvg size={24} />
+                      )}
                     </span>
                     <span className="font-display font-black text-xs sm:text-sm">
                       {placedTone}
@@ -600,7 +632,9 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                   <div
                     className="flex-1 min-w-[90px] max-w-[130px] py-3.5 px-2 rounded-2xl border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-white/70 dark:bg-gray-800/70 flex flex-col items-center justify-center gap-1 shadow-inner text-center select-none"
                   >
-                    <span className="text-xl opacity-60">❓</span>
+                    <span className="text-xl opacity-60 inline-flex items-center">
+                      <HelpCircleSvg size={22} />
+                    </span>
                     <span className="font-display font-black text-xs text-[var(--text-main,#134E4A)]/70 dark:text-gray-300">
                       Kotak {slotIdx + 1}
                     </span>
@@ -618,9 +652,10 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-3 rounded-2xl bg-[#FEE2E2] border-2 border-[#DC2626]/40 text-[#991B1B] text-xs font-bold text-center leading-relaxed"
+              className="p-3 rounded-2xl bg-[#FEE2E2] border-2 border-[#DC2626]/40 text-[#991B1B] text-xs font-bold text-center leading-relaxed flex items-center justify-center gap-1.5"
             >
-              ⚠️ Urutan nada belum tepat dengan alunan qari. Coba dengarkan lagi dan atur ulang kotaknya ya!
+              <AlertTriangleSvg size={14} className="shrink-0" />
+              <span>Urutan nada belum tepat dengan alunan qari. Coba dengarkan lagi dan atur ulang kotaknya ya!</span>
             </motion.div>
           )}
 
@@ -638,7 +673,7 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                 onClick={() => handleAddTone('Datar')}
                 className="py-3.5 px-2 rounded-2xl font-display font-black text-xs sm:text-sm border-[3px] border-[var(--border-color,#134E4A)] bg-[#38BDF8] hover:bg-[#0284C7] text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all"
               >
-                <span className="text-xl">➡️</span>
+                <ArrowRightSvg size={22} />
                 <span>Datar</span>
                 <span className="text-[9px] font-bold opacity-90">(Lurus)</span>
               </motion.button>
@@ -650,7 +685,7 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                 onClick={() => handleAddTone('Naik')}
                 className="py-3.5 px-2 rounded-2xl font-display font-black text-xs sm:text-sm border-[3px] border-[var(--border-color,#134E4A)] bg-[#FACC15] hover:bg-[#EAB308] text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all"
               >
-                <span className="text-xl">↗️</span>
+                <ArrowUpRightSvg size={22} />
                 <span>Naik</span>
                 <span className="text-[9px] font-bold opacity-90">(Meninggi)</span>
               </motion.button>
@@ -662,7 +697,7 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                 onClick={() => handleAddTone('Turun')}
                 className="py-3.5 px-2 rounded-2xl font-display font-black text-xs sm:text-sm border-[3px] border-[var(--border-color,#134E4A)] bg-[#FB7185] hover:bg-[#F43F5E] text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all"
               >
-                <span className="text-xl">↘️</span>
+                <ArrowDownRightSvg size={22} />
                 <span>Turun</span>
                 <span className="text-[9px] font-bold opacity-90">(Melandai)</span>
               </motion.button>
@@ -691,9 +726,14 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-400 border-gray-400 cursor-not-allowed shadow-none'
               }`}
             >
-              {isAllFilled
-                ? 'Periksa Susunan Nada ✨'
-                : `Isi Semua Kotak (${userPattern.filter(Boolean).length}/${userPattern.length})`}
+              {isAllFilled ? (
+                <span className="inline-flex items-center gap-1.5 justify-center">
+                  <span>Periksa Susunan Nada</span>
+                  <SparklesSvg size={14} />
+                </span>
+              ) : (
+                `Isi Semua Kotak (${userPattern.filter(Boolean).length}/${userPattern.length})`
+              )}
             </button>
           </div>
         </div>
@@ -701,9 +741,19 @@ export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }
         <button
           type="button"
           onClick={handleNext}
-          className="w-full py-4 rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-base border-[3px] border-[var(--border-color,#134E4A)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+          className="w-full py-4 rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-base border-[3px] border-[var(--border-color,#134E4A)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer inline-flex items-center justify-center gap-2"
         >
-          {currentIndex < questions.length - 1 ? 'Soal Berikutnya ➡️' : 'Lihat Hasil Akhir 🎉'}
+          {currentIndex < questions.length - 1 ? (
+            <>
+              <span>Soal Berikutnya</span>
+              <ArrowRightSvg size={16} />
+            </>
+          ) : (
+            <>
+              <span>Lihat Hasil Akhir</span>
+              <SparklesSvg size={16} />
+            </>
+          )}
         </button>
       )}
     </div>

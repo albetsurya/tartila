@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { SparklesSvg } from "@/components/ui/CustomIcons";
+import { SparklesSvg, ArrowLeftSvg, ArrowRightSvg, ChevronDownSvg, RotateCcwSvg } from "@/components/ui/CustomIcons";
 import { TajwidTetrisCoverSvg } from "@/components/ui/Illustrations";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { playLetterAudio } from "../_shared/gameAudio";
@@ -206,7 +206,7 @@ function Game() {
               onClick={() => game.move(-1)}
               className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-teal-600 text-lg font-bold"
             >
-              ←
+              <ArrowLeftSvg size={20} />
             </button>
             <button
               type="button"
@@ -214,7 +214,7 @@ function Game() {
               onClick={game.rotate}
               className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-teal-600 text-lg font-bold"
             >
-              ↻
+              <RotateCcwSvg size={20} />
             </button>
             <button
               type="button"
@@ -222,7 +222,7 @@ function Game() {
               onClick={() => game.move(1)}
               className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-teal-600 text-lg font-bold"
             >
-              →
+              <ArrowRightSvg size={20} />
             </button>
             <button
               type="button"
@@ -230,7 +230,7 @@ function Game() {
               onClick={() => game.drop(true)}
               className="game-button min-w-[44px] min-h-[44px] flex items-center justify-center bg-rose-600 text-lg font-bold"
             >
-              ↓
+              <ChevronDownSvg size={20} />
             </button>
           </div>
           <p className="text-center text-[11px] text-[#134E4A]/75 font-bold">

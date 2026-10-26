@@ -15,7 +15,7 @@ import { useRhythmMemoryAudio } from '../../hooks/useRhythmMemoryAudio';
 import { useEconomyStore } from '../../hooks/useEconomyStore';
 import { soundManager } from '../../services/soundManager';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
-import { CheckSvg, ChevronRight, Volume2Svg, RotateCcwSvg } from '@/components/ui/CustomIcons';
+import { CheckSvg, ChevronRight, Volume2Svg, RotateCcwSvg, LightbulbSvg, DrumSvg, StarSvg, ClipboardListSvg, ArrowRightSvg } from '@/components/ui/CustomIcons';
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import type { HitResult } from '../../components/lab-irama/timingJudge';
 
@@ -224,9 +224,10 @@ export default function KartuPracticePage() {
 
               {/* Petunjuk Makhraj / Bacaan */}
               {currentCard.instruction && (
-                <div className="mt-4 p-3 rounded-2xl bg-[#FEF08A]/60 border border-[#B45309]/40 text-left">
+                <div className="mt-4 p-3 rounded-2xl bg-[#FEF08A]/60 border border-[#B45309]/40 text-left flex items-start gap-1.5">
+                  <LightbulbSvg size={16} stroke="#78350F" className="shrink-0 mt-0.5" />
                   <p className="text-xs text-[#78350F] font-semibold leading-relaxed">
-                    💡 <span className="font-bold">Tips Tilawati:</span> {currentCard.instruction}
+                    <span className="font-bold">Tips Tilawati:</span> {currentCard.instruction}
                   </p>
                 </div>
               )}
@@ -257,7 +258,7 @@ export default function KartuPracticePage() {
                 onClick={handleStartTapping}
                 className="w-full py-4 rounded-2xl border-[3.5px] border-[#78350F] bg-gradient-to-r from-[#FDE047] via-[#F59E0B] to-[#D97706] hover:from-[#FEF08A] hover:to-[#F59E0B] active:translate-y-1 active:shadow-none text-[#78350F] font-black text-base sm:text-lg shadow-[0_5px_0px_#78350F] flex items-center justify-center gap-2.5 transition-all cursor-pointer select-none"
               >
-                <span className="text-xl">🥁</span>
+                <DrumSvg size={24} stroke="#78350F" />
                 <span>Mulai Latihan Ketuk Irama</span>
               </button>
             </div>
@@ -298,8 +299,8 @@ export default function KartuPracticePage() {
               className="w-full max-w-sm rounded-3xl bg-[#FEF3C7] border-[4px] border-[#B45309] p-6 text-center shadow-[8px_8px_0px_#78350F]"
             >
               {/* Ikon Piala / Bintang */}
-              <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#10B981] flex items-center justify-center text-4xl shadow-md mx-auto mb-3">
-                ⭐
+              <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#10B981] flex items-center justify-center shadow-md mx-auto mb-3">
+                <StarSvg size={40} fill="#FDE047" stroke="#042F2E" />
               </div>
 
               <h3 className="text-2xl font-black text-[#78350F] mb-1">
@@ -326,16 +327,18 @@ export default function KartuPracticePage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}`)}
-                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Kembali ke Papan Progres 📋
+                  <span>Kembali ke Papan Progres</span>
+                  <ClipboardListSvg size={14} />
                 </button>
                 <button
                   type="button"
                   onClick={handleNextCard}
-                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Lanjut ke Kartu Berikutnya ➔
+                  <span>Lanjut ke Kartu Berikutnya</span>
+                  <ArrowRightSvg size={12} />
                 </button>
               </div>
             </motion.div>

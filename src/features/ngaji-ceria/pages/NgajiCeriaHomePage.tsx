@@ -8,7 +8,11 @@ import { CeriaGameLoading } from "../components/CeriaGameLoading";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
-import { activityDate, yesterdayActivityDate, getTimeUntilDailyResetWib } from "../utils/activityDate";
+import {
+  activityDate,
+  yesterdayActivityDate,
+  getTimeUntilDailyResetWib,
+} from "../utils/activityDate";
 import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
 import { MASCOT_NAME } from "@/constants/mascot";
 import {
@@ -28,6 +32,10 @@ import {
   ChevronRightSvg,
   PlaySvg,
   XSvg,
+  DrumSvg,
+  ClockSvg,
+  LockSvg,
+  Loader2Svg,
 } from "../../../components/ui/CustomIcons";
 import { PetiHartaSvg } from "../../../components/ui/Illustrations";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
@@ -114,7 +122,9 @@ export default function NgajiCeriaHomePage() {
 
   const { currentStreak, lastPlayedAt } = useNgajiCeriaStreak();
   const streak = useEconomyStore((s) => s.loginStreak);
-  const lastClaim = useEconomyStore((s) => s.lastClaimDate || s.lastDailyClaimDate);
+  const lastClaim = useEconomyStore(
+    (s) => s.lastClaimDate || s.lastDailyClaimDate,
+  );
   const dailyClaimed = useEconomyStore((s) => s.dailyClaimed);
   const coins = useEconomyStore((s) => s.coins);
   const isLoadingProfile = useEconomyStore((s) => s.isLoadingProfile);
@@ -126,9 +136,7 @@ export default function NgajiCeriaHomePage() {
 
   const todayDateKey = getTodayDateKey();
   const isClaimedToday =
-    dailyClaimed ||
-    lastClaim === todayDateKey ||
-    isRewardClaimedToday();
+    dailyClaimed || lastClaim === todayDateKey || isRewardClaimedToday();
   const todayClaimed = isClaimedToday;
   const [showDailyModal, setShowDailyModal] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
@@ -149,7 +157,9 @@ export default function NgajiCeriaHomePage() {
   const todayStr = activityDate(now);
   const yesterdayStr = yesterdayActivityDate(now);
 
-  const [timeUntilReset, setTimeUntilReset] = useState(() => getTimeUntilDailyResetWib().formatted);
+  const [timeUntilReset, setTimeUntilReset] = useState(
+    () => getTimeUntilDailyResetWib().formatted,
+  );
 
   useEffect(() => {
     if (!showDailyModal) return;
@@ -173,20 +183,28 @@ export default function NgajiCeriaHomePage() {
 
     // Hari ini aktif jika isClaimedToday bernilai true ATAU user sudah ada aktivitas mengaji hari ini
     const isTodayActive = isClaimedToday || lastPlayedAt === todayStr;
-    const isYesterdayActive = lastClaim === yesterdayStr || lastPlayedAt === yesterdayStr;
+    const isYesterdayActive =
+      lastClaim === yesterdayStr || lastPlayedAt === yesterdayStr;
     if (!isTodayActive && !isYesterdayActive) return history;
 
     // Jika sudah aktif hari ini, titik tumpu (anchor) adalah hari ini (todayDayIdx).
     // Jika belum klaim/mengaji hari ini tapi streak masih jalan dari kemarin, anchor adalah kemarin.
-    const anchorIdx =
-      isTodayActive ? todayDayIdx : (todayDayIdx - 1 + 7) % 7;
+    const anchorIdx = isTodayActive ? todayDayIdx : (todayDayIdx - 1 + 7) % 7;
 
     for (let i = 0; i < Math.min(7, effectiveStreak); i++) {
       const idx = (anchorIdx - i + 7) % 7;
       history[idx] = true;
     }
     return history;
-  }, [effectiveStreak, isClaimedToday, lastClaim, lastPlayedAt, todayStr, yesterdayStr, todayDayIdx]);
+  }, [
+    effectiveStreak,
+    isClaimedToday,
+    lastClaim,
+    lastPlayedAt,
+    todayStr,
+    yesterdayStr,
+    todayDayIdx,
+  ]);
 
   useEffect(() => {
     // 1. JANGAN munculkan modal jika status autentikasi atau profil masih memuat dari server
@@ -210,8 +228,12 @@ export default function NgajiCeriaHomePage() {
   const activeDay = Math.min(
     7,
     todayClaimed
-      ? (effectiveStreak > 0 ? ((effectiveStreak - 1) % 7) + 1 : (dailyRewardsClaimed[dailyRewardsClaimed.length - 1] || 1))
-      : (effectiveStreak > 0 ? (effectiveStreak % 7) + 1 : ((dailyRewardsClaimed.length % 7) + 1)),
+      ? effectiveStreak > 0
+        ? ((effectiveStreak - 1) % 7) + 1
+        : dailyRewardsClaimed[dailyRewardsClaimed.length - 1] || 1
+      : effectiveStreak > 0
+        ? (effectiveStreak % 7) + 1
+        : (dailyRewardsClaimed.length % 7) + 1,
   );
 
   const currentReward = DAILY_REWARDS[activeDay - 1] || DAILY_REWARDS[0];
@@ -402,13 +424,18 @@ export default function NgajiCeriaHomePage() {
                         stroke="#FEF08A"
                         strokeWidth="8"
                         initial={{ strokeDasharray: "0 282" }}
-                        animate={{ strokeDasharray: `${progressPercentage * 2.82} 282` }}
+                        animate={{
+                          strokeDasharray: `${progressPercentage * 2.82} 282`,
+                        }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         strokeLinecap="round"
                       />
                     </svg>
                     <span className="text-sm font-black text-[#FEF08A] relative z-10">
-                      <AnimatedCounter value={progressPercentage} formatFn={(v) => `${v}%`} />
+                      <AnimatedCounter
+                        value={progressPercentage}
+                        formatFn={(v) => `${v}%`}
+                      />
                     </span>
                   </div>
                 </div>
@@ -469,7 +496,11 @@ export default function NgajiCeriaHomePage() {
                             ? NGAJI_CERIA_ASSETS.apiStreak
                             : NGAJI_CERIA_ASSETS.apiStreakMati
                         }
-                        alt={isDone ? `Streak ${day.full} Aktif` : `${day.full} Belum Aktif`}
+                        alt={
+                          isDone
+                            ? `Streak ${day.full} Aktif`
+                            : `${day.full} Belum Aktif`
+                        }
                         className={`w-5 h-5 object-contain transition-transform ${
                           isDone
                             ? "scale-110 drop-shadow-[0_2px_3px_rgba(234,88,12,0.35)]"
@@ -512,7 +543,8 @@ export default function NgajiCeriaHomePage() {
                   Tartila Arena
                 </h3>
                 <p className="text-xs font-bold text-[var(--text-main,#134E4A)]/80 dark:text-gray-200">
-                  Uji kemampuan tilawati &amp; tajwid secara real-time. Gabung dengan PIN atau buat room sendiri untuk bermain bersama teman.
+                  Uji kemampuan tilawati &amp; tajwid secara real-time. Gabung
+                  dengan PIN atau buat room sendiri untuk bermain bersama teman.
                 </p>
               </div>
 
@@ -529,7 +561,10 @@ export default function NgajiCeriaHomePage() {
                   onClick={() => navigate("/arena/host/create")}
                   className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] font-black text-xs md:text-sm shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:scale-95 transition-all hover:bg-black/5"
                 >
-                  <CrownSvg size={16} /> {Boolean(user?.is_ustadz || isUstadzUser(user)) ? "Buat Room Ujian" : "Buat Room Main"}
+                  <CrownSvg size={16} />{" "}
+                  {Boolean(user?.is_ustadz || isUstadzUser(user))
+                    ? "Buat Room Ujian"
+                    : "Buat Room Main"}
                 </button>
               </div>
             </div>
@@ -711,7 +746,11 @@ export default function NgajiCeriaHomePage() {
               className="text-left bg-[#FFE4E6] dark:bg-[var(--bg-card)] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] p-3.5 md:p-5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-3 relative overflow-hidden cursor-pointer"
             >
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-[#134E4A] dark:border-[#2DD4BF] flex items-center justify-center shrink-0 z-10 shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)]">
-                <StoreSvg size={20} stroke="#134E4A" className="text-[#134E4A] dark:text-[#2DD4BF]" />
+                <StoreSvg
+                  size={20}
+                  stroke="#134E4A"
+                  className="text-[#134E4A] dark:text-[#2DD4BF]"
+                />
               </div>
               <div className="relative z-10">
                 <p className="text-sm md:text-base font-black text-[var(--text-main,#134E4A)] leading-tight">
@@ -734,7 +773,11 @@ export default function NgajiCeriaHomePage() {
               className="text-left bg-[#FEF3C7] dark:bg-[var(--bg-card)] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] p-3.5 md:p-5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-3 relative overflow-hidden cursor-pointer"
             >
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-[#134E4A] dark:border-[#FBBF24] flex items-center justify-center shrink-0 z-10 shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)]">
-                <CrownSvg size={20} stroke="#134E4A" className="text-[#D97706] dark:text-[#FBBF24]" />
+                <CrownSvg
+                  size={20}
+                  stroke="#134E4A"
+                  className="text-[#D97706] dark:text-[#FBBF24]"
+                />
               </div>
               <div className="relative z-10">
                 <p className="text-sm md:text-base font-black text-[var(--text-main,#134E4A)] leading-tight">
@@ -760,11 +803,16 @@ export default function NgajiCeriaHomePage() {
           >
             <div className="flex items-center gap-3 relative z-10">
               <div className="w-12 h-12 rounded-2xl bg-[#F3E8FF] dark:bg-slate-800 border-2 border-[#134E4A] dark:border-[#A855F7] flex items-center justify-center shrink-0 text-2xl shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)]">
-                🥁
+                <DrumSvg size={28} />
               </div>
               <div>
                 <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FEF08A] text-[#000000] text-[10px] font-black uppercase tracking-wider mb-1 border-2 border-[#000000] shadow-[1.5px_1.5px_0px_#000000]">
-                  <SparklesSvg size={11} stroke="#000000" className="text-[#000000]" /> BARU
+                  <SparklesSvg
+                    size={11}
+                    stroke="#000000"
+                    className="text-[#000000]"
+                  />{" "}
+                  BARU
                 </div>
                 <p className="text-sm md:text-base font-display font-black text-[var(--text-main,#134E4A)] leading-tight">
                   Lab Irama & Ketukan
@@ -775,8 +823,8 @@ export default function NgajiCeriaHomePage() {
               </div>
             </div>
             <div className="shrink-0 relative z-10">
-              <span className="px-3 py-1.5 rounded-xl bg-[#0D9488] text-white font-black text-xs border-2 border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
-                Latihan ➡️
+              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0D9488] text-white font-black text-xs border-2 border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#FFFFFF]">
+                Latihan <ChevronRightSvg size={13} />
               </span>
             </div>
           </div>
@@ -789,31 +837,80 @@ export default function NgajiCeriaHomePage() {
                 onClick: () => navigate("/member/ngaji-ceria/explore/tilawati"),
               }}
             />
-            <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
-              <div className="shrink-0 w-40 bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-2xl p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] relative">
-                <div className="absolute top-2 right-2 bg-[#0D9488] text-white text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-[var(--border-color,#134E4A)] z-10">
-                  AKTIF
-                </div>
-                <TilawatiSvg size={24} className="mb-3" />
-                <p className="font-display font-black text-sm text-[var(--text-main,#134E4A)]">
-                  Tilawati {currentJilidNumber}
-                </p>
-                <AnimatedProgressBar
-                  value={progressPercentage}
-                  className="mt-3"
-                  barClassName="bg-[#0D9488]"
-                />
-              </div>
+            {/* PERUBAHAN: Kembali ke scroll horizontal dengan snap yang mulus */}
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide snap-x snap-mandatory">
+              {[1, 2, 3, 4, 5, 6].map((jilid) => {
+                const isActive = jilid === currentJilidNumber;
+                const isCompleted = jilid < currentJilidNumber;
+                const isLocked = jilid > currentJilidNumber;
 
-              <div className="shrink-0 w-40 bg-gray-50 dark:bg-gray-800/40 border-[3px] border-dashed border-[var(--border-color,#134E4A)]/30 rounded-2xl p-4 opacity-75 flex flex-col justify-between">
-                <div>
-                  <TilawatiSvg size={24} className="mb-3 opacity-60" />
-                  <p className="font-display font-black text-sm text-gray-400">
-                    Tilawati {currentJilidNumber + 1}
-                  </p>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full border-2 border-gray-300 dark:border-gray-600 mt-3" />
-              </div>
+                return (
+                  <div
+                    key={jilid}
+                    onClick={() => {
+                      if (!isLocked) {
+                        triggerBibiReaction("click");
+                        navigate("/member/ngaji-ceria/explore/tilawati");
+                      }
+                    }}
+                    className={`shrink-0 snap-start w-36 sm:w-40 rounded-2xl p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] relative border-[3px] transition-all flex flex-col justify-between ${
+                      isActive
+                        ? "bg-[var(--bg-card,#FFFFFF)] border-[var(--border-color,#134E4A)] cursor-pointer active:translate-y-[2px] active:shadow-none"
+                        : isCompleted
+                          ? "bg-[#DCFCE7] dark:bg-[#064E3B] border-[var(--border-color,#134E4A)] cursor-pointer active:translate-y-[2px] active:shadow-none"
+                          : "bg-gray-50 dark:bg-gray-800/40 border-dashed border-[var(--border-color,#134E4A)]/30 opacity-75"
+                    }`}
+                  >
+                    <div className="absolute top-2 right-2 z-10">
+                      {isActive && (
+                        <span className="bg-[#0D9488] text-white text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-[var(--border-color,#134E4A)]">
+                          AKTIF
+                        </span>
+                      )}
+                      {isCompleted && (
+                        <span className="bg-[#10B981] text-white text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-[var(--border-color,#134E4A)] flex items-center gap-1">
+                          <CheckSvg size={10} /> SELESAI
+                        </span>
+                      )}
+                      {isLocked && (
+                        <span className="bg-gray-200 text-gray-500 text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <LockSvg size={10} /> KUNCI
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <TilawatiSvg
+                        size={24}
+                        className={`mb-3 ${isLocked ? "opacity-60" : ""}`}
+                      />
+                      <p
+                        className={`font-display font-black text-sm ${isLocked ? "text-gray-400" : "text-[var(--text-main,#134E4A)]"}`}
+                      >
+                        Tilawati {jilid}
+                      </p>
+                    </div>
+
+                    {isActive && (
+                      <AnimatedProgressBar
+                        value={progressPercentage}
+                        className="mt-3"
+                        barClassName="bg-[#0D9488]"
+                      />
+                    )}
+                    {isCompleted && (
+                      <AnimatedProgressBar
+                        value={100}
+                        className="mt-3"
+                        barClassName="bg-[#10B981]"
+                      />
+                    )}
+                    {isLocked && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full border-2 border-gray-300 dark:border-gray-600 mt-3" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -876,7 +973,11 @@ export default function NgajiCeriaHomePage() {
                 <div className="flex flex-col items-center">
                   <motion.div
                     animate={{ scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1.5,
+                      ease: "easeInOut",
+                    }}
                     className="w-16 h-16 rounded-2xl bg-[var(--bg-element,#FEF08A)] border-[3px] border-[var(--border-color,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center mb-2"
                   >
                     <PetiHartaSvg size={48} />
@@ -912,10 +1013,16 @@ export default function NgajiCeriaHomePage() {
                     return (
                       <motion.div
                         key={r.day}
-                        animate={isCurrent ? { scale: [1, 1.04, 1] } : undefined}
+                        animate={
+                          isCurrent ? { scale: [1, 1.04, 1] } : undefined
+                        }
                         transition={
                           isCurrent
-                            ? { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                            ? {
+                                repeat: Infinity,
+                                duration: 2,
+                                ease: "easeInOut",
+                              }
                             : undefined
                         }
                         className={`rounded-2xl border-[2px] p-2 text-center flex flex-col items-center justify-between transition-all ${
@@ -979,16 +1086,25 @@ export default function NgajiCeriaHomePage() {
                       onClick={handleClaim}
                       whileHover={isClaiming ? undefined : { scale: 1.02 }}
                       whileTap={isClaiming ? undefined : { scale: 0.95, y: 2 }}
-                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 450,
+                        damping: 25,
+                      }}
                       className="w-full py-3.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                     >
                       <SparklesSvg size={18} />
-                      <span>
-                        {isClaiming
-                          ? "Mengklaim Hadiah..."
-                          : `Klaim Hadiah Hari ${activeDay} (+${Math.round(currentReward.coins * streakMultiplier)})`}
-                      </span>
-                      <CoinSvg size={16} />
+                      {isClaiming ? (
+                        <>
+                          <Loader2Svg size={18} style={{ animation: "spin 1s linear infinite" }} />
+                          <span>Mengklaim Hadiah...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Klaim Hadiah Hari {activeDay} (+{Math.round(currentReward.coins * streakMultiplier)})</span>
+                          <CoinSvg size={16} />
+                        </>
+                      )}
                     </motion.button>
                   )}
                 </div>
@@ -998,7 +1114,7 @@ export default function NgajiCeriaHomePage() {
                     Reset harian terjadi setiap pukul 04:00 Pagi.
                   </p>
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] px-3 py-1 text-[10px] font-black text-[#0D9488] shadow-sm">
-                    <span>⏳ Sisa waktu klaim hari ini:</span>
+                    <span className="inline-flex items-center gap-1"><ClockSvg size={13} /> Sisa waktu klaim hari ini:</span>
                     <span className="tabular-nums font-mono font-black text-[var(--text-main,#134E4A)]">
                       {timeUntilReset}
                     </span>

@@ -33,7 +33,7 @@ export default function NgajiCeriaHistoryPage() {
   const displayName = user?.name ? user.name.split(" ")[0] : "Santri";
 
   const perJilid = useMemo<JilidProgress[]>(() => {
-    return [1, 2, 3, 4, 5].map((jilid) => {
+    return [1, 2, 3, 4, 5, 6].map((jilid) => {
       const pages = Object.keys(getTilawatiDataset(jilid));
       const total = pages.length;
       let done = 0;

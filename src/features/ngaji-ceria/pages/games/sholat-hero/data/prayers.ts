@@ -4,7 +4,7 @@ import {
   iconSholatAshar,
   iconSholatMaghrib,
   iconSholatIsya,
-} from "@/assets/ngaji-ceria-new";
+} from "@/assets/ngaji-ceria-svg-bundle";
 
 export interface PrayerSchedule { id: string; name: string; start: number; end: number; icon: string }
 export const PRAYER_SCHEDULE: PrayerSchedule[] = [

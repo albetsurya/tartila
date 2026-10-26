@@ -264,7 +264,7 @@ export default function JuzAmmaDetailPage() {
                     className="mt-3 text-left text-[10px] font-black uppercase tracking-wide text-[#0D9488] active:scale-95"
                   >
                     {expandedAyah === ayah.nomorAyah
-                      ? "Sembunyikan terjemahan" : "Terjemahan ▾"}
+                      ? "Sembunyikan terjemahan" : "Terjemahan"}
                   </button>
                   {expandedAyah === ayah.nomorAyah && (
                     <div className="mt-2 rounded-xl border-2 border-dashed border-[#134E4A]/40 bg-[#F0FDF4] p-3">

@@ -108,7 +108,7 @@ function Game() {
               </div>
 
               <p className="text-xs text-teal-100">
-                Sumber → pipa 1 · tujuan setelah pipa 10{" "}
+                Sumber ke pipa 1 · tujuan setelah pipa 10{" "}
                 {game.mode === "challenge" && `· ${game.water} percobaan air`}
               </p>
               <WaterPipeBoard

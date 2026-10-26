@@ -1,4 +1,5 @@
 import React from "react";
+import { ArrowLeftSvg } from "@/components/ui/CustomIcons";
 
 interface Props {
   jilid: number;
@@ -14,7 +15,10 @@ interface Props {
 
 export const TimelineHeader: React.FC<Props> = ({ jilid, hal, dirty, loading, saving, draft, onLeave, onSwitchPage, onSave }) => (
   <header className="te-header">
-    <button className="te-btn" onClick={() => onLeave(`/member/ngaji-ceria/cek-audio?jilid=${jilid}&hal=${hal}`)}>← Cek Audio Manual</button>
+    <button className="te-btn flex items-center gap-1" onClick={() => onLeave(`/member/ngaji-ceria/cek-audio?jilid=${jilid}&hal=${hal}`)}>
+      <ArrowLeftSvg size={14} />
+      <span>Cek Audio Manual</span>
+    </button>
     <div><h1>Cloud Timeline Editor</h1><p>Jilid {jilid} · Halaman {hal} · {dirty ? "Draft belum disimpan" : "Sesuai hasil tersimpan"}</p></div>
     <div className="te-page-select">
       <select aria-label="Jilid" value={jilid} disabled={saving} onChange={(e) => onSwitchPage(Number(e.target.value), hal)}>

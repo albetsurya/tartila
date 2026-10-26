@@ -15,6 +15,14 @@ import {
   PlaySvg,
   SparklesSvg,
   RotateCcwSvg,
+  TrophySvg,
+  FireSvg,
+  StarSvg,
+  DrumSvg,
+  ArrowRightSvg,
+  ArrowUpRightSvg,
+  ArrowDownRightSvg,
+  LeafSvg,
 } from '../../../../components/ui/CustomIcons';
 
 interface BeatNode {
@@ -115,7 +123,7 @@ export const ModulTapTheBeat: React.FC = () => {
           setLastHit({
             judgment: 'miss',
             score: 0,
-            label: 'Terlewat! 🍃',
+            label: 'Terlewat!',
             color: '#EF4444',
             diffMs: (elapsed - node.targetTime) * 1000,
           });
@@ -242,8 +250,8 @@ export const ModulTapTheBeat: React.FC = () => {
 
     return (
       <div className="bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-3xl p-6 shadow-[5px_5px_0px_var(--shadow-color,#134E4A)] text-center space-y-5">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#0D9488] border-[3px] border-[var(--border-color,#134E4A)] flex items-center justify-center text-3xl text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
-          🏆
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#0D9488] border-[3px] border-[var(--border-color,#134E4A)] flex items-center justify-center text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
+          <TrophySvg size={32} />
         </div>
 
         <div>
@@ -269,7 +277,10 @@ export const ModulTapTheBeat: React.FC = () => {
           </div>
           <div className="bg-[#FEF9C3] border-2 border-[var(--border-color,#134E4A)] rounded-2xl p-2.5">
             <span className="text-[9px] font-black uppercase text-amber-800">Max Combo</span>
-            <p className="font-display font-black text-lg text-amber-700">{maxCombo}x 🔥</p>
+            <p className="font-display font-black text-lg text-amber-700 flex items-center justify-center gap-1">
+              <span>{maxCombo}x</span>
+              <FireSvg size={18} className="text-[#EA580C]" />
+            </p>
           </div>
           <div className="bg-[#E0F2FE] border-2 border-[var(--border-color,#134E4A)] rounded-2xl p-2.5">
             <span className="text-[9px] font-black uppercase text-sky-800">Akurasi</span>
@@ -313,14 +324,15 @@ export const ModulTapTheBeat: React.FC = () => {
             Tempo: {preferredBpm} BPM
           </span>
           {combo >= 3 && (
-            <span className="text-xs font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-sm animate-pulse">
-              {combo}x COMBO 🔥
+            <span className="text-xs font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-sm animate-pulse inline-flex items-center gap-1">
+              <span>{combo}x COMBO</span>
+              <FireSvg size={12} className="inline-block" />
             </span>
           )}
         </div>
 
-        <span className="text-xs font-black px-3 py-1 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[var(--border-color,#134E4A)]">
-          ⭐ {score} Poin
+        <span className="text-xs font-black px-3 py-1 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[var(--border-color,#134E4A)] inline-flex items-center gap-1">
+          <StarSvg size={14} fill="#FDE047" stroke="#134E4A" /> {score} Poin
         </span>
       </div>
 
@@ -402,8 +414,14 @@ export const ModulTapTheBeat: React.FC = () => {
                       {node.arabic}
                     </span>
                   ) : (
-                    <span className="text-xs">
-                      {node.tone === 'datar' ? '➡️' : node.tone === 'naik' ? '↗️' : '↘️'}
+                    <span className="text-xs inline-flex items-center">
+                      {node.tone === 'datar' ? (
+                        <ArrowRightSvg size={14} />
+                      ) : node.tone === 'naik' ? (
+                        <ArrowUpRightSvg size={14} />
+                      ) : (
+                        <ArrowDownRightSvg size={14} />
+                      )}
                     </span>
                   )}
                 </div>
@@ -450,7 +468,7 @@ export const ModulTapTheBeat: React.FC = () => {
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-2xl sm:text-3xl">🥁</span>
+            <DrumSvg size={28} />
             <span>{isPlaying ? 'TAP KETUKAN DI SINI!' : 'MULAI KETUK IRAMA'}</span>
           </div>
           <span className="text-xs opacity-90 font-bold tracking-wide">

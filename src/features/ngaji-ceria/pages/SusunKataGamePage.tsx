@@ -10,6 +10,7 @@ import {
   X,
   RefreshCw,
   Volume2,
+  ChevronRight,
 } from "../../../components/ui/CustomIcons";
 
 interface WordPuzzle {
@@ -323,13 +324,20 @@ export default function SusunKataGamePage() {
                   : "bg-[#0D9488] border-[#0F766E]"
             }`}
           >
-            {status === "idle"
-              ? "Periksa Susunan"
-              : status === "correct"
-                ? currentIdx < PUZZLE_DATA.length - 1
-                  ? "Benar! Lanjut →"
-                  : "Selesai"
-                : "Coba Lagi"}
+            {status === "idle" ? (
+              "Periksa Susunan"
+            ) : status === "correct" ? (
+              currentIdx < PUZZLE_DATA.length - 1 ? (
+                <span className="flex items-center justify-center gap-1.5">
+                  <span>Benar! Lanjut</span>
+                  <ChevronRight size={18} />
+                </span>
+              ) : (
+                "Selesai"
+              )
+            ) : (
+              "Coba Lagi"
+            )}
           </button>
         </div>
       </div>

@@ -28,7 +28,11 @@ import {
   SunSvg,
 } from "@/components/ui/CustomIcons";
 import { ChevronLeft, Info } from "@/components/ui/CustomIcons";
-import { PetiHartaSvg } from "@/components/ui/Illustrations";
+import {
+  PetiHartaSvg,
+  AvatarSantriSvg,
+  type AvatarSantriAccessory,
+} from "@/components/ui/Illustrations";
 import { playSfx } from "./games/_shared/audio";
 import { tapFeedback } from "@/lib/haptics";
 import {
@@ -58,7 +62,7 @@ function useCoinsBalance(): number {
   return coins;
 }
 
-type ShopTab = "energi" | "skin" | "kostum" | "kamar" | "app" | "booster";
+type ShopTab = "energi" | "skin" | "kostum" | "avatar" | "kamar" | "app" | "booster";
 
 const TAB_ITEMS: Array<{
   key: ShopTab;
@@ -83,6 +87,12 @@ const TAB_ITEMS: Array<{
     label: "Kostum",
     icon: ShirtSvg,
     activeColor: "bg-[#FF6B6B] text-white",
+  },
+  {
+    key: "avatar",
+    label: "Aksesoris Avatar",
+    icon: GraduationCapSvg,
+    activeColor: "bg-[#0284C7] text-white",
   },
   {
     key: "kamar",
@@ -244,24 +254,24 @@ const APP_THEMES: ThemeItem[] = [
 const ACCESSORY_ITEMS = [
   {
     id: "turban",
-    name: "Serban Santri",
-    desc: "Serban putih melilit kepala, cocok untuk semua karakter.",
+    name: "Santri Turban",
+    desc: "White turban wrapped around head, fits all characters.",
     iconComponent: TurbanSvg,
     price: 150,
     accent: "cream",
   },
   {
     id: "wizardhat",
-    name: "Topi Penyihir",
-    desc: "Topi kerucut ungu berhias bintang emas sangar.",
+    name: "Wizard Hat",
+    desc: "Purple cone hat adorned with golden stars.",
     iconComponent: WizardHatSvg,
     price: 250,
     accent: "purple",
   },
   {
     id: "headphone",
-    name: "Headphone DJ",
-    desc: "Headphone merah muda untuk ngajinya tala comedian.",
+    name: "DJ Headphones",
+    desc: "Pink headphones for fun study sessions.",
     iconComponent: HeadphoneSvg,
     price: 300,
     accent: "pink",
@@ -269,10 +279,126 @@ const ACCESSORY_ITEMS = [
   {
     id: "sleepmask",
     name: "Sleep Mask",
-    desc: "Penutup mata biru pola zzz untuk istirahat Tito.",
+    desc: "Blue Zzz-patterned eye mask for Tito's rest.",
     iconComponent: SleepMaskSvg,
     price: 100,
     accent: "sky",
+  },
+];
+
+export interface AvatarAccessoryShopItem {
+  id: AvatarSantriAccessory;
+  name: string;
+  desc: string;
+  price: number;
+  gender: "all" | "boy" | "girl";
+}
+
+export const AVATAR_ACCESSORY_SHOP_ITEMS: AvatarAccessoryShopItem[] = [
+  {
+    id: "peci",
+    name: "Santri Peci",
+    desc: "Classic Nusantara santri peci.",
+    price: 0,
+    gender: "all",
+  },
+  {
+    id: "hairbow",
+    name: "Santri Hair Bow",
+    desc: "Sweet hair bow with neat ribbon knot.",
+    price: 100,
+    gender: "girl",
+  },
+  {
+    id: "flowercrown",
+    name: "Flower Crown",
+    desc: "Fresh flower crown circle, blooming bright.",
+    price: 150,
+    gender: "girl",
+  },
+  {
+    id: "glasses",
+    name: "Scholar Glasses",
+    desc: "Reading glasses for diligent santri seeking knowledge.",
+    price: 120,
+    gender: "all",
+  },
+  {
+    id: "crown",
+    name: "Champion Gold Crown",
+    desc: "Golden crown symbol of tilawah champion.",
+    price: 300,
+    gender: "all",
+  },
+  {
+    id: "wizardhat",
+    name: "Night Star Wizard Hat",
+    desc: "Cone hat adorned with golden stars.",
+    price: 200,
+    gender: "all",
+  },
+  {
+    id: "headphone",
+    name: "Murottal Headphones",
+    desc: "Comfy headphones for listening to melodious murottal.",
+    price: 250,
+    gender: "all",
+  },
+  {
+    id: "sleepmask",
+    name: "Eye Mask",
+    desc: "Blue eye mask with zzz pattern for post-tadarus rest.",
+    price: 80,
+    gender: "all",
+  },
+  {
+    id: "scarf",
+    name: "Warm Scarf",
+    desc: "Knitted scarf protecting santri from cold subuh air.",
+    price: 100,
+    gender: "all",
+  },
+  {
+    id: "turban",
+    name: "Santri Turban",
+    desc: "Graceful and dignified wrapped head turban.",
+    price: 180,
+    gender: "boy",
+  },
+  {
+    id: "sunglasses",
+    name: "Cool Sunglasses",
+    desc: "Casual sunglasses shielding from blazing sun.",
+    price: 140,
+    gender: "all",
+  },
+  {
+    id: "chain",
+    name: "Star Necklace",
+    desc: "Gold star pendant necklace shining bright.",
+    price: 220,
+    gender: "all",
+  },
+  {
+    id: "star",
+    name: "Gold Star Pin",
+    desc: "Gold star pin marking exemplary santri.",
+    price: 160,
+    gender: "all",
+  },
+  {
+    id: "medal",
+    name: "Honor Medal",
+    desc: "Special honor medal for Quran completion.",
+    price: 280,
+    gender: "all",
+  },
+  {
+    id: "bandana",
+    name: "Spirit Bandana",
+    desc: "Red bandana igniting enthusiasm for Quran study.",
+    price: 110,
+    gender: "all",
   },
 ];
 
@@ -286,16 +412,16 @@ const ENERGY_ITEMS: Array<{
 }> = [
   {
     kind: "heart",
-    name: "1 Hati Belajar",
-    desc: "Untuk masuk sesi belajar Tilawati.",
+    name: "1 Study Heart",
+    desc: "For entering Tilawati study sessions.",
     icon: HeartSvg,
     accent: "coral",
     max: HEART_MAX,
   },
   {
     kind: "ticket",
-    name: "1 Tiket Bermain",
-    desc: "Untuk masuk ke Mini Games.",
+    name: "1 Play Ticket",
+    desc: "For entering Mini Games.",
     icon: TicketSvg,
     accent: "amber",
     max: TICKET_MAX,
@@ -306,7 +432,7 @@ const COSTUME_ITEMS = [
   {
     id: "peci",
     name: "Sacred Cap",
-    desc: "Songkok hitam berhias sulam emas khas santri berjiwa luhur.",
+    desc: "Black songkok with gold embroidery, for noble-hearted santri.",
     iconComponent: GraduationCapSvg,
     price: 200,
     accent: "teal",
@@ -315,7 +441,7 @@ const COSTUME_ITEMS = [
   {
     id: "hairbow",
     name: "Grace Ribbon",
-    desc: "Pita cantik berwarna merah muda yang manis dan anggun.",
+    desc: "Beautiful soft pink ribbon, sweet and graceful.",
     iconComponent: HairbowSvg,
     price: 200,
     accent: "coral",
@@ -324,7 +450,7 @@ const COSTUME_ITEMS = [
   {
     id: "flowercrown",
     name: "Floral Crown",
-    desc: "Karangan bunga aneka warna yang segar, ceria, dan mempesona.",
+    desc: "Fresh multi-colored flower arrangement, cheerful and enchanting.",
     iconComponent: CrownSvg,
     price: 300,
     accent: "amber",
@@ -333,7 +459,7 @@ const COSTUME_ITEMS = [
   {
     id: "glasses",
     name: "Smart Glasses",
-    desc: "Kacamata bulat stylish pembawa semangat belajar tekun.",
+    desc: "Stylish round glasses bringing diligent study spirit.",
     iconComponent: GlassesSvg,
     price: 500,
     accent: "sky",
@@ -342,7 +468,7 @@ const COSTUME_ITEMS = [
   {
     id: "crown",
     name: "Champion's Crown",
-    desc: "Mahkota emas gemerlap tanda santri istiqomah berprestasi.",
+    desc: "Gleaming gold crown marking high-achieving steadfast santri.",
     iconComponent: CrownSvg,
     price: 1000,
     accent: "amber",
@@ -354,15 +480,15 @@ const BOOSTER_ITEMS = [
   {
     id: "double-exp",
     name: "Double EXP (2x)",
-    desc: "Dapatkan 2x lipat EXP untuk setiap kuis yang kamu selesaikan.",
+    desc: "Get 2x EXP for every quiz you complete.",
     iconComponent: ZapSvg,
     price: 100,
     accent: "amber",
   },
   {
     id: "full-heart",
-    name: "Full Hati Instan",
-    desc: "Isi ulang seluruh 5 Hati belajar seketika tanpa menunggu.",
+    name: "Instant Full Hearts",
+    desc: "Instantly refill all 5 study Hearts without waiting.",
     iconComponent: HeartSvg,
     price: 300,
     accent: "coral",
@@ -370,7 +496,7 @@ const BOOSTER_ITEMS = [
   {
     id: "streak-freeze",
     name: "Streak Freeze",
-    desc: "Lindungi streak istiqomahmu agar tidak putus jika terlewat 1 hari.",
+    desc: "Protect your steadfast streak from breaking if you miss a day.",
     iconComponent: SnowflakeSvg,
     price: 150,
     accent: "sky",
@@ -491,6 +617,7 @@ export default function WarungSantriPage() {
     "energi",
     "skin",
     "kostum",
+    "avatar",
     "kamar",
     "app",
     "booster",
@@ -516,6 +643,15 @@ export default function WarungSantriPage() {
   const [costumeFilter, setCostumeFilter] = useState<"all" | "boy" | "girl">(
     "all",
   );
+  const [avatarGenderFilter, setAvatarGenderFilter] = useState<"all" | "boy" | "girl">(
+    "all",
+  );
+
+  // Aksesoris Avatar Profil
+  const ownedAvatarAccessories = useEconomyStore((s) => s.ownedAvatarAccessories || []);
+  const equippedAvatarAccessory = useEconomyStore((s) => s.equippedAvatarAccessory);
+  const buyAvatarAccessory = useEconomyStore((s) => s.buyAvatarAccessory);
+  const equipAvatarAccessory = useEconomyStore((s) => s.equipAvatarAccessory);
 
   const activeBoosters = useEconomyStore((s: any) => s.activeBoosters);
   const buyBooster = useEconomyStore((s: any) => s.buyBooster);
@@ -698,6 +834,50 @@ export default function WarungSantriPage() {
     }
     if (equippedAccessory === item.id) return;
     await handleBuyAccessoryItem(item);
+  };
+
+  const handleToggleAvatarAccessory = async (item: AvatarAccessoryShopItem) => {
+    const isOwned = item.id === "peci" || ownedAvatarAccessories.includes(item.id);
+
+    if (isOwned) {
+      if (equippedAvatarAccessory === item.id) {
+        equipAvatarAccessory(null);
+        tapFeedback();
+        setMessage(`Aksesoris ${item.name} dilepas dari avatar.`);
+        return;
+      }
+      equipAvatarAccessory(item.id);
+      tapFeedback();
+      playSfx("powerup");
+      setMessage(`Aksesoris ${item.name} berhasil dipakai pada avatar profil!`);
+      return;
+    }
+
+    if (item.price === 0 || isSuperAdmin) {
+      await buyAvatarAccessory(item.id, 0, true);
+      equipAvatarAccessory(item.id);
+      unlockItem("accessory", item.id, item.price);
+      tapFeedback();
+      playSfx("powerup");
+      setMessage(`Alhamdulillah! ${item.name} didapatkan gratis dan langsung dipakai!`);
+      return;
+    }
+
+    if (coins < item.price) {
+      playSfx("wrong");
+      setMessage("Koin Hijaiyah-mu belum cukup untuk aksesoris ini.");
+      return;
+    }
+
+    const success = await buyAvatarAccessory(item.id, item.price, false);
+    if (success) {
+      unlockItem("accessory", item.id, item.price);
+      tapFeedback();
+      playSfx("powerup");
+      setMessage(`Alhamdulillah! ${item.name} berhasil dibeli dan dipakai pada avatar!`);
+    } else {
+      setMessage("Koin Hijaiyah-mu belum cukup.");
+    }
   };
 
   const handleToggleTheme = (
@@ -1404,6 +1584,169 @@ export default function WarungSantriPage() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* TAB: AKSESORIS AVATAR PROFIL */}
+        {activeTab === "avatar" && (
+          <div className="space-y-4 mt-4">
+            <div className="flex items-center justify-between gap-2">
+              <SectionHeader
+                title="Aksesoris Avatar Profil"
+                icon={<GraduationCapSvg size={16} />}
+                accent="teal"
+              />
+              {equippedAvatarAccessory && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    equipAvatarAccessory(null);
+                    tapFeedback();
+                    setMessage("Aksesoris avatar dilepas.");
+                  }}
+                  className="shrink-0 text-xs font-black text-rose-600 dark:text-rose-400 hover:underline cursor-pointer px-2.5 py-1 bg-rose-50 dark:bg-rose-950/30 rounded-xl border-2 border-rose-200 dark:border-rose-800"
+                >
+                  Lepas Aksesoris
+                </button>
+              )}
+            </div>
+
+            {/* Filter Gender */}
+            <div className="flex items-center gap-1.5 p-1 bg-[var(--bg-card)] rounded-2xl border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] w-fit">
+              <button
+                type="button"
+                onClick={() => setAvatarGenderFilter("all")}
+                className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  avatarGenderFilter === "all"
+                    ? "bg-[#FEF08A] text-[#134E4A] dark:bg-[#78350F] dark:text-[#FEF08A] border border-[var(--border-color)] shadow-[1px_1px_0px_var(--shadow-color)]"
+                    : "text-[var(--text-main)]/70 hover:text-[var(--text-main)]"
+                }`}
+              >
+                Semua ({AVATAR_ACCESSORY_SHOP_ITEMS.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAvatarGenderFilter("boy")}
+                className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  avatarGenderFilter === "boy"
+                    ? "bg-[#CCFBF1] text-[#0F766E] dark:bg-[#064E3B] dark:text-[#5EEAD4] border border-[var(--border-color)] shadow-[1px_1px_0px_var(--shadow-color)]"
+                    : "text-[var(--text-main)]/70 hover:text-[var(--text-main)]"
+                }`}
+              >
+                Santri Putra
+              </button>
+              <button
+                type="button"
+                onClick={() => setAvatarGenderFilter("girl")}
+                className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  avatarGenderFilter === "girl"
+                    ? "bg-[#FCE7F3] text-[#BE185D] dark:bg-[#831843] dark:text-[#F472B6] border border-[var(--border-color)] shadow-[1px_1px_0px_var(--shadow-color)]"
+                    : "text-[var(--text-main)]/70 hover:text-[var(--text-main)]"
+                }`}
+              >
+                Santri Putri
+              </button>
+            </div>
+
+            <p className="text-xs font-bold text-[var(--text-main)]/70">
+              Kustomisasi penampilan avatar santri profilmu dengan aksesoris nusantara! Peci santri sudah tersedia gratis sebagai perlengkapan awal.
+            </p>
+
+            <motion.div
+              variants={staggerContainerVariants}
+              initial="hidden"
+              animate="show"
+              className="space-y-3 pb-8"
+            >
+              {AVATAR_ACCESSORY_SHOP_ITEMS.filter((item) =>
+                avatarGenderFilter === "all" ? true : item.gender === avatarGenderFilter
+              ).map((item) => {
+                const isPeci = item.id === "peci";
+                const isOwned = isPeci || ownedAvatarAccessories.includes(item.id);
+                const isEquipped = equippedAvatarAccessory === item.id;
+                const affordable = isSuperAdmin || isOwned || coins >= item.price;
+                const avatarGender: "boy" | "girl" =
+                  user?.gender === "female" || user?.gender === "perempuan"
+                    ? "girl"
+                    : "boy";
+
+                return (
+                  <motion.div key={item.id} variants={staggerItemVariants}>
+                    <StickerCard className="flex items-center gap-3.5 p-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-[3px] border-[var(--border-color)] bg-[#FEF3C7] dark:bg-[#78350F]/30 shadow-[2px_2px_0px_var(--shadow-color)] overflow-hidden">
+                        <AvatarSantriSvg
+                          size={46}
+                          gender={avatarGender}
+                          accessory={item.id}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-black text-[var(--text-main)]">
+                            {item.name}
+                          </h3>
+                          {isPeci && (
+                            <span className="text-[9px] font-extrabold bg-[#CCFBF1] dark:bg-[#064E3B]/60 text-[#0F766E] dark:text-[#5EEAD4] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                              Gratis (Default)
+                            </span>
+                          )}
+                          {isEquipped && (
+                            <span className="text-[9px] font-extrabold bg-[#134E4A] text-white px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                              Dipakai
+                            </span>
+                          )}
+                          {isOwned && !isEquipped && (
+                            <span className="text-[9px] font-extrabold bg-[#0D9488]/20 text-[#0D9488] dark:text-[#5EEAD4] px-2 py-0.5 rounded-md border border-[#0D9488]">
+                              Dimiliki
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-bold text-[var(--text-main)]/60 mt-0.5">
+                          {item.desc}
+                        </p>
+                      </div>
+
+                      {isEquipped ? (
+                        <span className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#134E4A] text-white text-xs font-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)]">
+                          <CheckSvg size={12} /> Aktif
+                        </span>
+                      ) : isOwned ? (
+                        <StickerButton
+                          variant="primary"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() => handleToggleAvatarAccessory(item)}
+                        >
+                          Pakai
+                        </StickerButton>
+                      ) : (
+                        <StickerButton
+                          variant={
+                            isSuperAdmin || affordable ? "primary" : "secondary"
+                          }
+                          size="sm"
+                          pulse={affordable}
+                          className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
+                          disabled={!isSuperAdmin && !affordable}
+                          onClick={() => handleToggleAvatarAccessory(item)}
+                        >
+                          {isSuperAdmin ? (
+                            <span className="text-[#0D9488]">
+                              GRATIS · Ambil
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <CoinSvg size={14} />
+                              <span>{item.price === 0 ? "Gratis" : item.price}</span>
+                            </div>
+                          )}
+                        </StickerButton>
+                      )}
+                    </StickerCard>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           </div>
         )}
 

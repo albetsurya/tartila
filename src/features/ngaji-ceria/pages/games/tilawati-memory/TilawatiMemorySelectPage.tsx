@@ -17,6 +17,9 @@ import {
   XSvg,
   CheckSvg,
   StarSvg,
+  GameCardSvg,
+  ClockSvg,
+  TargetSvg,
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
@@ -92,8 +95,8 @@ export default function TilawatiMemorySelectPage() {
           <section className="px-4 pt-6 max-w-4xl mx-auto">
             <div className="relative overflow-hidden rounded-2xl bg-[#FEF3C7] border-[3px] border-[#B45309] p-4 sm:p-5 shadow-[4px_4px_0px_#78350F]">
               <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#134E4A] text-3xl shadow-[2px_2px_0px_#134E4A]">
-                  🃏
+                <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                  <GameCardSvg size={28} stroke="#FEF3C7" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-[#B45309] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#FEF3C7] mb-1">
@@ -184,8 +187,8 @@ export default function TilawatiMemorySelectPage() {
               {/* Header Sheet */}
               <div className="flex items-center justify-between border-b-2 border-[#B45309]/20 pb-3 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#065F46] border-2 border-[#134E4A] flex items-center justify-center text-xl text-white shadow-xs">
-                    🃏
+                  <div className="w-10 h-10 rounded-xl bg-[#065F46] border-2 border-[#134E4A] flex items-center justify-center text-white shadow-xs">
+                    <GameCardSvg size={20} stroke="#FEF3C7" />
                   </div>
                   <div>
                     <span className="text-[10px] font-black uppercase text-[#B45309] tracking-wider">
@@ -272,20 +275,20 @@ export default function TilawatiMemorySelectPage() {
                         </div>
 
                         <div className="mt-2 space-y-0.5">
-                          <p
-                            className={`text-[11px] font-black ${
-                              isSelected ? 'text-white' : 'text-[#78350F]'
-                            }`}
-                          >
-                            🃏 {lvl.pairsCount} Pasang ({lvl.cardsCount} Kartu)
-                          </p>
-                          <p
-                            className={`text-[10px] font-bold ${
-                              isSelected ? 'text-[#ECFDF5]' : 'text-[#78350F]/70'
-                            }`}
-                          >
-                            ⏱️ Batas Waktu: {lvl.timeLimitSeconds}s
-                          </p>
+                            <p
+                              className={`text-[11px] font-black ${
+                                isSelected ? 'text-white' : 'text-[#78350F]'
+                              }`}
+                            >
+                              <GameCardSvg size={14} stroke="#065F46" /> {lvl.pairsCount} Pasang ({lvl.cardsCount} Kartu)
+                            </p>
+                            <p
+                              className={`text-[10px] font-bold ${
+                                isSelected ? 'text-[#ECFDF5]' : 'text-[#78350F]/70'
+                              }`}
+                            >
+                              <ClockSvg size={11} stroke="#ECFDF5" /> Batas Waktu: {lvl.timeLimitSeconds}s
+                            </p>
                         </div>
                       </button>
                     );
@@ -297,7 +300,7 @@ export default function TilawatiMemorySelectPage() {
               <div className="p-3.5 rounded-2xl bg-[#065F46] border-2 border-[#134E4A] text-[#FEF3C7] shadow-inner mb-5">
                 <div className="flex items-center justify-between text-xs font-black mb-1">
                   <span className="text-[#FDE047] flex items-center gap-1">
-                    🎯 Target Level {chosenLevel}
+                    <TargetSvg size={13} stroke="#FDE047" /> Target Level {chosenLevel}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#A7F3D0]">
                     Jilid {selectedJilid.jilid}

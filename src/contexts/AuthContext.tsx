@@ -50,9 +50,16 @@ interface AuthContextValue {
   setUstadzRole: (isUstadz: boolean) => Promise<void>; // Fungsi baru: set role setelah login
 }
 
-// Helper untuk membuat user dari Supabase auth response
-function createCeriaUser(sbUser: any, ustadzFlag: boolean = false): CeriaUser {
-  const role = sbUser.user_metadata?.role || 'member';
+// Helper untuk membuat user dari Supabase auth response.
+// `roleOverride` berasal dari Backend Go (SSOT data user). Metadata Supabase
+// TIDAK boleh menentukan role Tartila, karena bisa membuat Admin Sambung Ngaji
+// bocor menjadi Admin Tartila.
+function createCeriaUser(
+  sbUser: any,
+  ustadzFlag: boolean = false,
+  roleOverride?: string | null,
+): CeriaUser {
+  const role = roleOverride || sbUser.user_metadata?.role || 'member';
   return {
     id: sbUser.id,
     email: sbUser.email,
@@ -65,6 +72,17 @@ function createCeriaUser(sbUser: any, ustadzFlag: boolean = false): CeriaUser {
     photo_url: sbUser.user_metadata?.photo_url || null,
     gender: sbUser.user_metadata?.mascot_gender || sbUser.user_metadata?.gender || null,
   };
+}
+
+/** Ambil role otoritatif dari Backend Go. `undefined` bila offline/belum login. */
+async function fetchGoRole(): Promise<string | undefined> {
+  try {
+    const res = await userApi.getUserProfile();
+    const u = res?.user || res?.profile;
+    return u?.role || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -91,10 +109,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     async function initAuth() {
       try {
         // Sinkronisasi data profil & maskot dari Backend Go (Single Source of Truth)
+        let goRole: string | undefined;
         try {
           const profileRes = await userApi.getUserProfile();
           if (profileRes) {
             useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
+            const goUser = profileRes.user || profileRes.profile;
+            goRole = goUser?.role || undefined;
             const rawMascot = profileRes.mascot_gender || profileRes.user?.mascot_gender || profileRes.user?.gender;
             if (rawMascot) {
               const mascotGender = resolveMascotGender(rawMascot);
@@ -110,7 +131,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             session.user.user_metadata?.role === 'ustadz' ||
             session.user.user_metadata?.role === 'ustadzah' ||
             session.user.user_metadata?.is_ustadz === true;
-          const ceriaUser = createCeriaUser(session.user, isUstadz);
+          const ceriaUser = createCeriaUser(session.user, isUstadz, goRole);
           if (mounted) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
@@ -164,7 +185,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
             session.user.user_metadata?.role === 'ustadz' ||
             session.user.user_metadata?.role === 'ustadzah' ||
             session.user.user_metadata?.is_ustadz === true;
-          const ceriaUser = createCeriaUser(session.user, isUstadz);
+          const goRole = await fetchGoRole();
+          const ceriaUser = createCeriaUser(session.user, isUstadz, goRole);
           if (mounted) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
@@ -299,53 +321,72 @@ function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // 1. Ambil data user & maskot dari Backend Go (Single Source of Truth)
       const profileRes = await userApi.getUserProfile().catch(() => null);
+      let goData: {
+        role?: string;
+        name?: string;
+        group_id?: string | null;
+        gender?: string | null;
+        is_vip?: boolean;
+      } = {};
       if (profileRes) {
         useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
         const u = profileRes.user || profileRes.profile;
         const rawMascot = profileRes.mascot_gender || u?.mascot_gender || u?.gender;
-        if (rawMascot) {
-          const mascotGender = resolveMascotGender(rawMascot);
-          void useEconomyStore.getState().setTilaGender(mascotGender);
-        }
+        goData = {
+          role: u?.role || undefined,
+          name: u?.name || undefined,
+          gender: rawMascot || undefined,
+          group_id: u?.group_id ?? null,
+          is_vip: profileRes.is_vip ?? u?.is_vip ?? (u?.role === 'SUPER_ADMIN'),
+        };
         if (u) {
-          const isVipUser = Boolean(profileRes.is_vip ?? u.is_vip ?? (u.role === 'SUPER_ADMIN'));
-          setUser((prev) => {
-            if (!prev) return prev;
-            const updated = {
-              ...prev,
-              name: u.name || prev.name,
-              role: u.role || prev.role,
-              group_id: u.group_id ?? prev.group_id,
-              gender: rawMascot || prev.gender,
-              is_vip: isVipUser,
-            };
-            try {
-              localStorage.setItem("tartila_cached_user", JSON.stringify(updated));
-            } catch {
-              // noop
-            }
-            return updated;
-          });
-          if (isVipUser) {
+          if (goData.is_vip) {
             useEconomyStore.getState().applyVipSuccess();
           }
         }
       }
 
       // 2. Refresh metadata dari session Supabase jika ada
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      // Perhatikan: role sudah di-set oleh langkah 1 dari Backend Go (SSOT).
+      // JANGAN timpa role dengan metadata Supabase karena bisa membuat
+      // Admin Sambung Ngaji (role 'admin') bocor menjadi Admin Tartila.
+      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      if (sbUser) {
         const isUstadz =
-          user.user_metadata?.role === 'ustadz' ||
-          user.user_metadata?.role === 'ustadzah';
-        const ceriaUser = createCeriaUser(user, isUstadz);
-        setUser(ceriaUser);
-        localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
-
-        if (ceriaUser.gender) {
-          const mascotGender = resolveMascotGender(ceriaUser.gender);
+          sbUser.user_metadata?.role === 'ustadz' ||
+          sbUser.user_metadata?.role === 'ustadzah';
+        const fromSession = createCeriaUser(sbUser, isUstadz, goData.role);
+        setUser((prev) => {
+          const merged: CeriaUser = {
+            ...fromSession,
+            // Pertahankan role, isVip, name, group_id, gender dari Backend Go (langkah 1).
+            role: prev?.role || goData.role || fromSession.role,
+            is_vip: prev?.is_vip ?? goData.is_vip ?? fromSession.is_vip,
+            name: prev?.name || goData.name || fromSession.name,
+            group_id: prev?.group_id ?? goData.group_id ?? fromSession.group_id,
+            gender: prev?.gender ?? goData.gender ?? fromSession.gender,
+          };
+          try {
+            localStorage.setItem("tartila_cached_user", JSON.stringify(merged));
+          } catch {
+            // noop
+          }
+          return merged;
+        });
+        if (fromSession.gender) {
+          const mascotGender = resolveMascotGender(fromSession.gender);
           void useEconomyStore.getState().setTilaGender(mascotGender);
         }
+      } else if (goData.role) {
+        // tidak ada session Supabase, tapi ada data Go (login REST legacy)
+        setUser((prev) => ({
+          ...(prev as CeriaUser),
+          role: goData.role as string,
+          name: goData.name || prev?.name || null,
+          group_id: goData.group_id ?? prev?.group_id ?? null,
+          gender: goData.gender || prev?.gender || null,
+          is_vip: goData.is_vip ?? prev?.is_vip ?? false,
+        }));
       }
     } catch (err) {
       console.error('Refresh user error:', err);

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { playSoundEffect } from "../utils/audioPlayer";
 import { tapFeedback } from "../../../lib/haptics";
-import { Trophy, Sparkles } from "../../../components/ui/CustomIcons";
+import { Trophy, Sparkles, ArrowLeft, ChevronUp, ArrowRight } from "../../../components/ui/CustomIcons";
 
 interface HarakatTarget {
   id: string;
@@ -303,7 +303,22 @@ export default function TangkapHarakatGamePage() {
                       : "bg-white text-[#134e4a] border-[#134E4A]"
                   }`}
                 >
-                  {lane === 0 ? "◀ Kiri" : lane === 1 ? "▲ Tengah" : "Kanan ▶"}
+                  {lane === 0 ? (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <ArrowLeft size={14} />
+                      <span>Kiri</span>
+                    </span>
+                  ) : lane === 1 ? (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <ChevronUp size={14} />
+                      <span>Tengah</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <span>Kanan</span>
+                      <ArrowRight size={14} />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

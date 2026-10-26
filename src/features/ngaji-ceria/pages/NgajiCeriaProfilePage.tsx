@@ -26,7 +26,13 @@ import { ReferralSection } from "../components/ReferralSection";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import "./games/_shared/games.css";
 import { TilaMascot } from "@/components/ui/TilaMascot";
-import { getMascotName } from "@/utils/mascotHelper";
+import { AvatarSantriSvg } from "@/components/ui/Illustrations";
+import { AvatarSantriAccessory } from "@/components/ui/Illustrations";
+import { AVATAR_ACCESSORY_SHOP_ITEMS } from "../pages/WarungSantriPage";
+import {
+  getMascotName,
+  resolveMascotGender,
+} from "@/utils/mascotHelper";
 import { isAdminRole, classroomRoleForUser } from "@/lib/roles";
 import { stopAllAudio } from "../utils/audioPlayer";
 
@@ -53,6 +59,8 @@ import {
   StoreSvg,
   TrophySvg,
   UsersSvg,
+  AlertCircle,
+  FireSvg,
 } from "@/components/ui/CustomIcons";
 
 const TOTAL_STARS = 654;
@@ -71,6 +79,29 @@ type ActiveModal =
   | "delete"
   | null;
 
+const AVATAR_ACCESSORIES_CONFIG: { id: string; name: string }[] = [
+  { id: "peci", name: "Peci" },
+  { id: "hairbow", name: "Pita Rambut" },
+  { id: "flowercrown", name: "Mahkota Bunga" },
+  { id: "glasses", name: "Kacamata" },
+  { id: "crown", name: "Mahkota Juara" },
+  { id: "wizardhat", name: "Topi Penyihir" },
+  { id: "headphone", name: "Headphone" },
+  { id: "sleepmask", name: "Penutup Mata" },
+  { id: "scarf", name: "Syal Leher" },
+  { id: "turban", name: "Sorban Arabia" },
+  { id: "sunglasses", name: "Kacamata Hitam" },
+  { id: "chain", name: "Kalung Emas" },
+  { id: "star", name: "Bintang Emas" },
+  { id: "medal", name: "Medali Juara" },
+  { id: "bandana", name: "Bandana Merah" },
+];
+
+function getAvatarAccessoryName(id: string): string {
+  const found = AVATAR_ACCESSORIES_CONFIG.find((item) => item.id === id);
+  return found?.name || id;
+}
+
 export default function NgajiCeriaProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -88,6 +119,12 @@ export default function NgajiCeriaProfilePage() {
   const setTilaGender = useEconomyStore((s) => s.setTilaGender);
   const mascotName = getMascotName(tilaGender);
 
+  const avatarMode = useEconomyStore((s) => s.avatarMode || "avatar");
+  const setAvatarMode = useEconomyStore((s) => s.setAvatarMode);
+  const equippedAvatarAccessory = useEconomyStore((s) => s.equippedAvatarAccessory);
+  const setEquippedAvatarAccessory = useEconomyStore((s) => s.setEquippedAvatarAccessory);
+  const ownedAvatarAccessories = useEconomyStore((s) => s.ownedAvatarAccessories || []);
+
   const showMascot = useEconomyStore((s) => s.showMascot);
   const setShowMascot = useEconomyStore((s) => s.setShowMascot);
 
@@ -100,6 +137,8 @@ export default function NgajiCeriaProfilePage() {
   const classroomRole = classroomRoleForUser(user);
 
   const [genderDraft, setGenderDraft] = useState<TilaGender>(tilaGender);
+  const [avatarModeDraft, setAvatarModeDraft] = useState<"photo" | "avatar">("avatar");
+  const [accessoryDraft, setAccessoryDraft] = useState<AvatarSantriAccessory | null>(null);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
@@ -110,7 +149,7 @@ export default function NgajiCeriaProfilePage() {
 
   const earned = useMemo(() => {
     const set = new Set(progress.achievements);
-    for (let jilid = 1; jilid <= 5; jilid++) {
+    for (let jilid = 1; jilid <= 6; jilid++) {
       const pages = Object.keys(getTilawatiDataset(jilid));
       if (
         pages.length &&
@@ -148,7 +187,10 @@ export default function NgajiCeriaProfilePage() {
     setSubmitted(false);
     if (modal === "edit") {
       setNameDraft(displayName);
-      setGenderDraft(tilaGender);
+      const userNorm = user?.gender ? normalizeGender(user.gender) : null;
+      setGenderDraft(userNorm === "P" || tilaGender === "girl" ? "girl" : "boy");
+      setAvatarModeDraft(avatarMode);
+      setAccessoryDraft(equippedAvatarAccessory as AvatarSantriAccessory | null);
     }
     setActiveModal(modal);
   };
@@ -183,10 +225,14 @@ export default function NgajiCeriaProfilePage() {
     setActiveModal(null);
   };
 
-  const handleSaveName = async () => {
+  const handleSaveProfile = async () => {
     if (nameDraft.trim()) setNameOverride(nameDraft.trim());
     if (genderDraft) {
       await setTilaGender(genderDraft);
+    }
+    setAvatarMode(avatarModeDraft);
+    if (avatarModeDraft === "avatar") {
+      setEquippedAvatarAccessory(accessoryDraft);
     }
     setActiveModal(null);
   };
@@ -282,8 +328,9 @@ export default function NgajiCeriaProfilePage() {
               <p className="text-[9px] font-black uppercase tracking-wider text-white/70">
                 Streak
               </p>
-              <p className="text-xs font-black text-[#FBBF24]">
-                🔥 {effectiveStreak} Hari
+              <p className="text-xs font-black text-[#FBBF24] flex items-center justify-end gap-1">
+                <FireSvg size={14} className="text-[#EA580C]" />
+                <span>{effectiveStreak} Hari</span>
               </p>
             </div>
           </div>
@@ -293,16 +340,26 @@ export default function NgajiCeriaProfilePage() {
           {/* 1. Avatar Card */}
           <section className="-mt-8 relative z-20 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3.5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
             <div className="flex items-center gap-3">
-              <AvatarWithBadge
-                src={user?.photo_url}
-                name={displayName}
-                size={58}
-                shape="circle"
-                role={user?.role}
-                groupId={user?.group_id}
-                gender={normalizeGender(user?.gender)}
-                borderClassName="border-2 border-[#FF6B6B] bg-white"
-              />
+              {avatarMode === "photo" ? (
+                <AvatarWithBadge
+                  src={user?.photo_url}
+                  name={displayName}
+                  size={58}
+                  shape="circle"
+                  role={user?.role}
+                  groupId={user?.group_id}
+                  gender={normalizeGender(user?.gender)}
+                  borderClassName="border-2 border-[#FF6B6B] bg-white"
+                />
+              ) : (
+                <AvatarSantriSvg
+                  size={58}
+                  gender={resolveMascotGender(tilaGender)}
+                  accessory={(equippedAvatarAccessory || "none") as AvatarSantriAccessory}
+                  mood="happy"
+                  className="shrink-0"
+                />
+              )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <h2 className="truncate text-base font-black text-[var(--text-main,#134E4A)]">
@@ -758,13 +815,86 @@ export default function NgajiCeriaProfilePage() {
       {/* --- MODALS --- */}
       {activeModal === "edit" && (
         <ModalPanel
-          title="Nama & Avatar"
+          title="Edit Profil"
           warm
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-4">
+            {/* Pratinjau Avatar Langsung */}
+            <div className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-[#134E4A]/30 bg-amber-50/50">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 mb-2">
+                Pratinjau {avatarModeDraft === "photo" ? "Foto Profil" : "Avatar"}
+              </span>
+
+              {avatarModeDraft === "photo" ? (
+                <AvatarWithBadge
+                  src={user?.photo_url}
+                  name={nameDraft || displayName}
+                  size={84}
+                  shape="circle"
+                  role={user?.role}
+                  groupId={user?.group_id}
+                  gender={genderDraft === "girl" ? "P" : "L"}
+                  borderClassName="border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] bg-white"
+                />
+              ) : (
+                <AvatarSantriSvg
+                  size={80}
+                  gender={resolveMascotGender(genderDraft)}
+                  accessory={accessoryDraft || "none"}
+                  mood="happy"
+                  className="shrink-0"
+                />
+              )}
+
+              {/* Peringatan jika Foto Profil dipilih namun photo_url kosong */}
+              {avatarModeDraft === "photo" && !user?.photo_url && (
+                <div className="mt-3 w-full rounded-xl border-2 border-[#B45309] bg-[#FEF3C7] p-2.5 text-left text-xs font-bold text-[#78350F] flex items-start gap-2 shadow-[2px_2px_0px_#B45309]">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#B45309]" />
+                  <div>
+                    <p className="font-black">Belum Ada Foto Profil</p>
+                    <p className="text-[11px] opacity-90 mt-0.5">
+                      Akunmu belum memiliki foto profil. Foto dapat diambil otomatis dari akun Google saat masuk, atau gunakan mode Avatar.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Pilihan Tampilan Avatar Profil */}
             <div>
-              <label className="mb-1 block text-xs font-bold text-[#134E4A]">
+              <label className="mb-1.5 block text-xs font-black uppercase text-[#134E4A]">
+                Tampilan Profil
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAvatarModeDraft("photo")}
+                  className={`rounded-2xl border-[3px] border-[#134E4A] py-2.5 px-3 text-center transition-all font-display font-black text-xs cursor-pointer ${
+                    avatarModeDraft === "photo"
+                      ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
+                      : "bg-white hover:bg-slate-50 opacity-70"
+                  }`}
+                >
+                  Foto Profil
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAvatarModeDraft("avatar")}
+                  className={`rounded-2xl border-[3px] border-[#134E4A] py-2.5 px-3 text-center transition-all font-display font-black text-xs cursor-pointer ${
+                    avatarModeDraft === "avatar"
+                      ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
+                      : "bg-white hover:bg-slate-50 opacity-70"
+                  }`}
+                >
+                  Avatar
+                </button>
+              </div>
+            </div>
+
+            {/* Nama Tampilan */}
+            <div>
+              <label className="mb-1 block text-xs font-black uppercase text-[#134E4A]">
                 Nama Tampilan
               </label>
               <input
@@ -777,46 +907,126 @@ export default function NgajiCeriaProfilePage() {
               />
             </div>
 
+            {/* Karakter Avatar */}
             <div>
-              <label className="mb-1 block text-xs font-bold text-[#134E4A]">
-                Karakter Maskot
+              <label className="mb-1.5 block text-xs font-black uppercase text-[#134E4A]">
+                Karakter Avatar
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setGenderDraft("boy")}
-                  className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all ${
+                  className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all cursor-pointer ${
                     genderDraft === "boy"
                       ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
                       : "bg-white opacity-70"
                   }`}
                 >
                   <p className="font-display font-black text-sm text-[#134E4A]">
-                    Tito
-                  </p>
-                  <p className="text-[10px] font-bold text-[#134E4A]/70">
                     Santri Putra
                   </p>
                 </button>
                 <button
                   type="button"
                   onClick={() => setGenderDraft("girl")}
-                  className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all ${
+                  className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all cursor-pointer ${
                     genderDraft === "girl"
                       ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
                       : "bg-white opacity-70"
                   }`}
                 >
                   <p className="font-display font-black text-sm text-[#134E4A]">
-                    Tila
-                  </p>
-                  <p className="text-[10px] font-bold text-[#134E4A]/70">
                     Santri Putri
                   </p>
                 </button>
               </div>
             </div>
 
+            {/* Grid Aksesoris Avatar (Hanya muncul saat mode Avatar dipilih) */}
+            {avatarModeDraft === "avatar" && (
+              <div>
+                <label className="mb-1.5 block text-xs font-black uppercase text-[#134E4A]">
+                  Aksesoris Avatar
+                </label>
+                {ownedAvatarAccessories.length === 0 ? (
+                  <div className="rounded-2xl border-2 border-dashed border-[#134E4A]/40 bg-amber-50/60 p-4 text-center space-y-2">
+                    <p className="text-xs font-bold text-[#134E4A]/80">
+                      Belum ada aksesoris avatar yang dimiliki.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveModal(null);
+                        navigate("/member/ngaji-ceria/warung-santri?tab=avatar");
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none hover:bg-[#FDE047] transition-all cursor-pointer"
+                    >
+                      <StoreSvg size={14} /> Buka Warung Santri
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAccessoryDraft(null)}
+                        className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                          !accessoryDraft || accessoryDraft === "none"
+                            ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
+                            : "bg-white hover:bg-slate-50"
+                        }`}
+                      >
+                        <AvatarSantriSvg
+                          size={40}
+                          gender={resolveMascotGender(genderDraft)}
+                          accessory={null}
+                        />
+                        <span>Tanpa</span>
+                      </button>
+                      {ownedAvatarAccessories
+                        .filter((accId) => {
+                          const item = AVATAR_ACCESSORY_SHOP_ITEMS.find((i) => i.id === accId);
+                          if (!item) return true;
+                          return item.gender === "all" || item.gender === genderDraft;
+                        })
+                        .map((accId) => (
+                          <button
+                            key={accId}
+                            type="button"
+                            onClick={() => setAccessoryDraft(accId as AvatarSantriAccessory)}
+                            className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs capitalize transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                              accessoryDraft === accId
+                                ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
+                                : "bg-white hover:bg-slate-50"
+                            }`}
+                          >
+                            <AvatarSantriSvg
+                              size={40}
+                              gender={resolveMascotGender(genderDraft)}
+                              accessory={accId}
+                            />
+                            <span>{getAvatarAccessoryName(accId)}</span>
+                          </button>
+                        ))}
+                    </div>
+                    <div className="text-center pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveModal(null);
+                          navigate("/member/ngaji-ceria/warung-santri?tab=avatar");
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs font-black text-[#0D9488] hover:underline cursor-pointer"
+                      >
+                        <StoreSvg size={13} /> Belanja aksesoris lainnya di Warung Santri
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tombol Aksi */}
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
@@ -827,7 +1037,7 @@ export default function NgajiCeriaProfilePage() {
               </button>
               <button
                 type="button"
-                onClick={handleSaveName}
+                onClick={handleSaveProfile}
                 className={`flex-1 ${btnPrimaryStyle}`}
               >
                 Simpan

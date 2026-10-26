@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
-import { Trophy, Star, Sparkles } from "@/components/ui/CustomIcons";
+import { Trophy, Star, SparklesSvg, TargetSvg, KeyRoundSvg, ScrollTextSvg, BrickSvg } from "@/components/ui/CustomIcons";
 import { LeaderboardList } from "@/components/ui/LeaderboardList";
 
 const GAME_TABS = [
-  { id: "ayat-hunter", title: "Ayat Hunter", icon: "🏹" },
-  { id: "doa-dungeon", title: "Doa Dungeon", icon: "🗝️" },
-  { id: "nabi-chronicles", title: "Nabi Chronicles", icon: "📜" },
-  { id: "malaikat-mission", title: "Malaikat Mission", icon: "✨" },
-  { id: "tajwid-tetris", title: "Tajwid Tetris", icon: "🧱" },
+  { id: "ayat-hunter", title: "Ayat Hunter", icon: <TargetSvg size={16} /> },
+  { id: "doa-dungeon", title: "Doa Dungeon", icon: <KeyRoundSvg size={16} /> },
+  { id: "nabi-chronicles", title: "Nabi Chronicles", icon: <ScrollTextSvg size={16} /> },
+  { id: "malaikat-mission", title: "Malaikat Mission", icon: <SparklesSvg size={16} /> },
+  { id: "tajwid-tetris", title: "Tajwid Tetris", icon: <BrickSvg size={16} /> },
 ];
 
 export default function NgajiCeriaLeaderboardPage() {
@@ -83,7 +83,7 @@ export default function NgajiCeriaLeaderboardPage() {
                       : "border-2 border-[var(--card-border,#134E4A)] bg-[var(--card-bg,#FFFFFF)] text-[var(--app-text,#134E4A)]/70 font-bold shadow-[1px_1px_0px_var(--card-shadow,#134E4A)] hover:bg-black/5"
                   }`}
                 >
-                  <span className="text-sm">{tab.icon}</span>
+                  <span className="shrink-0">{tab.icon}</span>
                   <span>{tab.title}</span>
                 </button>
               );

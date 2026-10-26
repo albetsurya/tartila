@@ -32,7 +32,7 @@ export function judgeBeatHit(diffMs: number): HitResult {
     return {
       judgment: 'perfect',
       score: 100,
-      label: 'Sempurna! ✨',
+      label: 'Sempurna!',
       color: '#0D9488', // Teal cerah
       diffMs,
     };
@@ -42,7 +42,7 @@ export function judgeBeatHit(diffMs: number): HitResult {
     return {
       judgment: 'good',
       score: 60,
-      label: 'Bagus! 👍',
+      label: 'Bagus!',
       color: '#0284C7', // Biru sky
       diffMs,
     };
@@ -51,7 +51,7 @@ export function judgeBeatHit(diffMs: number): HitResult {
   return {
     judgment: 'miss',
     score: 0,
-    label: 'Terlewat! 🍃',
+    label: 'Terlewat!',
     color: '#EF4444', // Merah koral
     diffMs,
   };
