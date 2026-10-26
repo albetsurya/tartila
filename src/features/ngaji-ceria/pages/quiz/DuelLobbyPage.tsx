@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
-import { generateDuelCode } from "@/services/duelService";
+import { duelService, generateDuelCode } from "@/services/duelService";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { useEconomyStore } from "../../hooks/useEconomyStore";
@@ -44,11 +44,15 @@ function PlayerSlot({
 }
 
 export default function DuelLobbyPage() {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
 
-  const storageKey = `tartila:duel:${sessionId ?? "unknown"}:code`;
-  const [duelCode] = useState(() => {
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(() => {
+    return routeSessionId && routeSessionId !== "new" ? routeSessionId : null;
+  });
+
+  const storageKey = `tartila:duel:${activeSessionId ?? "default"}:code`;
+  const [duelCode, setDuelCode] = useState(() => {
     try {
       const existing = localStorage.getItem(storageKey);
       if (existing) return existing;
@@ -67,23 +71,82 @@ export default function DuelLobbyPage() {
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
 
+  const [joinCodeInput, setJoinCodeInput] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState("");
+
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
   const [ticketError, setTicketError] = useState(false);
 
-  const pollCountRef = useRef(0);
   const startingRef = useRef(false);
 
+  // Buat sesi duel baru di backend jika host membuka lobi baru
   useEffect(() => {
-    const interval = setInterval(() => {
-      pollCountRef.current += 1;
-      // shortcut: mock lawan join; backend realtime/websocket duel belum siap, ganti ke duelService.getDuelSession saat endpoint tersedia
-      if (hostReady && pollCountRef.current >= 2 && !opponentReady) {
-        setOpponentReady(true);
-        setOpponentName("Teman Santri");
+    if (activeSessionId) return;
+    let mounted = true;
+    duelService
+      .createDuelSession("bahasa-arab", "kuis", duelCode)
+      .then((res) => {
+        if (!mounted || !res.sessionId) return;
+        setActiveSessionId(res.sessionId);
+        if (res.duelCode) setDuelCode(res.duelCode);
+        navigate(`/member/ngaji-ceria/quiz/duel/lobby/${res.sessionId}`, {
+          replace: true,
+        });
+      })
+      .catch((err) => {
+        console.warn("[DuelLobby] Buat sesi duel backend error:", err);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [activeSessionId, duelCode, navigate]);
+
+  // Polling status room dari backend (mengecek jika lawan sudah join)
+  useEffect(() => {
+    const targetSession = activeSessionId || (routeSessionId !== "new" ? routeSessionId : null);
+    if (!targetSession || opponentReady) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const sess = await duelService.getDuelSession(targetSession);
+        if (sess && (sess.opponentId || sess.status === "playing")) {
+          setOpponentReady(true);
+          setOpponentName("Teman Santri");
+          if (sess.duelCode) setDuelCode(sess.duelCode);
+        }
+      } catch {
+        // Abaikan polling error sementara
       }
     }, 1500);
+
     return () => clearInterval(interval);
-  }, [hostReady, opponentReady]);
+  }, [activeSessionId, routeSessionId, opponentReady]);
+
+  // Handle lawan memasukkan kode duel untuk bergabung
+  const handleJoinWithCode = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanCode = joinCodeInput.trim().toUpperCase();
+    if (cleanCode.length < 4) return;
+    setJoinLoading(true);
+    setJoinError("");
+
+    try {
+      const res = await duelService.joinDuelSession(cleanCode);
+      soundManager.playSfx("tap");
+      const ok = await consumeTicket();
+      if (!ok) {
+        setTicketError(true);
+        return;
+      }
+      navigate(`${PLAY_ROUTE}/${res.sessionId}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Kode duel tidak ditemukan atau room sudah penuh";
+      setJoinError(msg);
+    } finally {
+      setJoinLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (hostReady && opponentReady) setShowCountdown(true);
@@ -94,20 +157,21 @@ export default function DuelLobbyPage() {
     if (countIndex >= COUNTDOWN_STEPS.length) {
       if (startingRef.current) return;
       startingRef.current = true;
+      const targetSession = activeSessionId || routeSessionId || "";
       void consumeTicket().then((ok) => {
         if (!ok) {
           setShowCountdown(false);
           setTicketError(true);
           return;
         }
-        navigate(`${PLAY_ROUTE}/${sessionId ?? ""}`);
+        navigate(`${PLAY_ROUTE}/${targetSession}`);
       });
       return;
     }
     soundManager.playSfx("pop");
     const timer = setTimeout(() => setCountIndex((i) => i + 1), 1000);
     return () => clearTimeout(timer);
-  }, [showCountdown, countIndex, navigate, sessionId, consumeTicket]);
+  }, [showCountdown, countIndex, navigate, activeSessionId, routeSessionId, consumeTicket]);
 
   const handleReady = () => {
     triggerBibiReaction("click");
@@ -218,9 +282,39 @@ export default function DuelLobbyPage() {
           {hostReady
             ? opponentReady
               ? "Lawan siap! Bersiaplah..."
-              : "Menunggu lawan menekan Siap..."
+              : "Menunggu lawan menekan Siap atau memasukkan kode..."
             : "Tekan Siap saat kamu sudah siap!"}
         </p>
+
+        {/* Input Gabung Lawan dengan Kode */}
+        <div className="mt-8 rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A]">
+          <p className="font-display text-xs font-black uppercase tracking-wider text-[#134E4A]/70">
+            Punya Kode Lawan?
+          </p>
+          <form onSubmit={handleJoinWithCode} className="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              maxLength={6}
+              placeholder="KODE"
+              value={joinCodeInput}
+              onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+              className="flex-1 rounded-xl border-[3px] border-[#134E4A] bg-[#F0FDF4] px-3 py-2 font-display text-lg font-black tracking-widest text-[#134E4A] uppercase placeholder:text-[#134E4A]/30 focus:outline-none"
+            />
+            <StickerButton
+              type="submit"
+              variant="secondary"
+              size="md"
+              disabled={joinCodeInput.trim().length < 4 || joinLoading}
+            >
+              {joinLoading ? "Masuk..." : "Gabung"}
+            </StickerButton>
+          </form>
+          {joinError && (
+            <p className="mt-2 font-display text-xs font-bold text-[#FF6B6B]">
+              {joinError}
+            </p>
+          )}
+        </div>
       </main>
 
       <AnimatePresence>

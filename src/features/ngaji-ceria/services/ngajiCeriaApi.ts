@@ -65,9 +65,30 @@ export interface ServerLeaderboardResponse {
 }
 
 export const ngajiCeriaApi = {
-  getProgress: () => callREST<ServerNgajiProgress>("GET", "/api/v1/ngaji-ceria/progress"),
-  awardProgress: (event: ServerProgressEvent) => callREST<ServerNgajiProgress>("POST", "/api/v1/ngaji-ceria/progress/events", event),
-  claimMission: (missionId: string) => callREST<MissionRewardResponse>("POST", `/api/v1/ngaji-ceria/missions/${encodeURIComponent(missionId)}/claim`),
-  getLeaderboard: (gameId: string, period: "daily" | "weekly" = "weekly") => callREST<ServerLeaderboardResponse>("GET", "/api/v1/ngaji-ceria/leaderboard", undefined, { gameId, period }),
-  submitLeaderboard: (event: ServerProgressEvent) => callREST<{ progress: ServerNgajiProgress }>("POST", "/api/v1/ngaji-ceria/leaderboard", event),
+  getProgress: () =>
+    callREST<ServerNgajiProgress>("GET", "/api/v1/ngaji-ceria/progress"),
+  awardProgress: (event: ServerProgressEvent) =>
+    callREST<ServerNgajiProgress>(
+      "POST",
+      "/api/v1/ngaji-ceria/progress/events",
+      event,
+    ),
+  claimMission: (missionId: string) =>
+    callREST<MissionRewardResponse>(
+      "POST",
+      `/api/v1/ngaji-ceria/missions/${encodeURIComponent(missionId)}/claim`,
+    ),
+  getLeaderboard: (gameId: string, period: "daily" | "weekly" = "weekly") =>
+    callREST<ServerLeaderboardResponse>(
+      "GET",
+      "/api/v1/ngaji-ceria/leaderboard",
+      undefined,
+      { gameId, period },
+    ),
+  submitLeaderboard: (event: ServerProgressEvent) =>
+    callREST<{ progress: ServerNgajiProgress }>(
+      "POST",
+      "/api/v1/ngaji-ceria/leaderboard",
+      event,
+    ),
 };

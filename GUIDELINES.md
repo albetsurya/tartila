@@ -1,32 +1,33 @@
 # Tartila (Ngaji Ceria) — Architecture & Development Guidelines
+
 > **Single Source of Truth (SSOT)** untuk pengembangan antarmuka, gamifikasi, manajemen state, sistem audio, dan arsitektur kode pada platform Tartila.
 
 ---
 
 ## 1. Design System & UI/UX (Sticker / Neo-Brutalism)
 
-Tartila mengadopsi bahasa visual **"Sticker Neo-Brutalism"** yang ceria, ramah anak, tegas, dan berenergi tinggi. Seluruh komponen visual menolak gaya *glassmorphism*, gradasi lembut (*soft/diffuse blur*), dan bayangan kabur transparan. Sebagai gantinya, antarmuka menggunakan **garis kontur pekat**, **hard shadow (bayangan solid tanpa blur)**, dan **warna-warna cerah berkontras tinggi**.
+Tartila mengadopsi bahasa visual **"Sticker Neo-Brutalism"** yang ceria, ramah anak, tegas, dan berenergi tinggi. Seluruh komponen visual menolak gaya _glassmorphism_, gradasi lembut (_soft/diffuse blur_), dan bayangan kabur transparan. Sebagai gantinya, antarmuka menggunakan **garis kontur pekat**, **hard shadow (bayangan solid tanpa blur)**, dan **warna-warna cerah berkontras tinggi**.
 
 ### 1.1 Design Tokens (Color Palette)
 
 Palet warna utama berpusat pada **Emerald Oasis** (kombinasi hijau mint `#F0FDF4`, deep teal `#134E4A`, teal utama `#0D9488`, dan aksen coral ceria `#FF6B6B`).
 
-| Token / Nama Warna | Hex Code | Peran / Penggunaan Utama |
-| :--- | :--- | :--- |
-| **Deep Teal (Contour)** | `#134E4A` | Garis tepi (*border*), bayangan (*hard shadow*), dan teks utama |
-| **Mint Cloud (Background)** | `#F0FDF4` | Latar belakang dasar aplikasi (*oasis canvas*) |
-| **Teal Emerald (Primary)** | `#0D9488` | Tombol aksi utama, aksen tombol aktif, badge progres |
-| **Teal Dark** | `#0F766E` | Hover/active state dari elemen Teal |
-| **Coral Glow (Accent)** | `#FF6B6B` | Aksen sekunder, tombol bahaya/salah, elemen hati/nyawa |
-| **Coral Soft** | `#FFF0F0` | Latar kartu feedback salah, badge hati, container lembut |
-| **Amber Gold (Warning)** | `#F59E0B` / `#D97706` | Bintang, reward, misi, streak api, tiket game |
-| **Yellow Sunny** | `#FEF08A` / `#FEF3C7` | Latar badge aktif, sorotan, kartu pengingat kaidah |
-| **Success Emerald** | `#16A34A` / `#15803D` | Feedback jawaban benar, status selesai, status tepat waktu |
-| **Success Soft** | `#DCFCE7` / `#EAF5EA` | Background kartu jawaban benar & lab tajwid |
-| **Sky Blue (Karaoke/Info)** | `#0284C7` | Sorotan tajwid, audio aktif, teks karaoke sinkronisasi |
-| **Sky Soft** | `#E0F2FE` / `#BAE6FD` | Background kotak contoh tajwid, background kata aktif karaoke |
-| **Purple Magic** | `#9333EA` / `#F3E8FF` | Gudang doa, kartu ajaib, elemen spiritual |
-| **Surface Card** | `#FFFFFF` | Permukaan kartu utama (putih bersih) |
+| Token / Nama Warna          | Hex Code              | Peran / Penggunaan Utama                                        |
+| :-------------------------- | :-------------------- | :-------------------------------------------------------------- |
+| **Deep Teal (Contour)**     | `#134E4A`             | Garis tepi (_border_), bayangan (_hard shadow_), dan teks utama |
+| **Mint Cloud (Background)** | `#F0FDF4`             | Latar belakang dasar aplikasi (_oasis canvas_)                  |
+| **Teal Emerald (Primary)**  | `#0D9488`             | Tombol aksi utama, aksen tombol aktif, badge progres            |
+| **Teal Dark**               | `#0F766E`             | Hover/active state dari elemen Teal                             |
+| **Coral Glow (Accent)**     | `#FF6B6B`             | Aksen sekunder, tombol bahaya/salah, elemen hati/nyawa          |
+| **Coral Soft**              | `#FFF0F0`             | Latar kartu feedback salah, badge hati, container lembut        |
+| **Amber Gold (Warning)**    | `#F59E0B` / `#D97706` | Bintang, reward, misi, streak api, tiket game                   |
+| **Yellow Sunny**            | `#FEF08A` / `#FEF3C7` | Latar badge aktif, sorotan, kartu pengingat kaidah              |
+| **Success Emerald**         | `#16A34A` / `#15803D` | Feedback jawaban benar, status selesai, status tepat waktu      |
+| **Success Soft**            | `#DCFCE7` / `#EAF5EA` | Background kartu jawaban benar & lab tajwid                     |
+| **Sky Blue (Karaoke/Info)** | `#0284C7`             | Sorotan tajwid, audio aktif, teks karaoke sinkronisasi          |
+| **Sky Soft**                | `#E0F2FE` / `#BAE6FD` | Background kotak contoh tajwid, background kata aktif karaoke   |
+| **Purple Magic**            | `#9333EA` / `#F3E8FF` | Gudang doa, kartu ajaib, elemen spiritual                       |
+| **Surface Card**            | `#FFFFFF`             | Permukaan kartu utama (putih bersih)                            |
 
 ---
 
@@ -45,11 +46,13 @@ Setiap elemen antarmuka yang dapat diinteraksi atau berfungsi sebagai kartu info
 ```
 
 #### Aturan Ketebalan Garis (Border)
+
 - **Kontur Kartu / Modal / Banner**: `border-[3px] border-[#134E4A]` (wajib konsisten).
 - **Sub-elemen / Chip / Badge Kecil**: `border-2 border-[#134E4A]`.
 - **Garis Pemisah Internal**: `border-t-2 border-[#134E4A]/10` atau `border-b-2 border-[#134E4A]/10`.
 
 #### Aturan Hard Shadow
+
 - **Kartu Utama & Tombol Primer**: `shadow-[4px_4px_0px_#134E4A]`.
 - **Kartu Sekunder & Tombol Sedang**: `shadow-[3px_3px_0px_#134E4A]`.
 - **Badge / Chip / Tombol Kecil**: `shadow-[2px_2px_0px_#134E4A]`.
@@ -61,6 +64,7 @@ Setiap elemen antarmuka yang dapat diinteraksi atau berfungsi sebagai kartu info
   Elemen memberikan umpan balik taktil seperti menekan tombol fisik stiker.
 
 #### Aturan Border Radius
+
 - **Layar Modal / Wrapper Bawah / Banner Hero**: `rounded-[28px]` atau `rounded-[32px]`.
 - **Kartu Konten (Card Container)**: `rounded-2xl` (16px) atau `rounded-[24px]`.
 - **Tombol & Input Field**: `rounded-xl` (12px) atau `rounded-2xl` (16px).
@@ -70,18 +74,20 @@ Setiap elemen antarmuka yang dapat diinteraksi atau berfungsi sebagai kartu info
 
 ### 1.3 Sistem Tipografi
 
-| Kategori | Font Family | Kelas CSS Tailwind | Karakteristik & Kegunaan |
-| :--- | :--- | :--- | :--- |
-| **Heading / Judul** | `Gabarito`, `Bricolage Grotesque`, sans-serif | `font-display font-black` | Tebal, ekspresif, sedikit rapat (`tracking-[-0.01em]`) untuk memberi kesan stiker kokoh |
-| **Body / Latin Teks** | `Plus Jakarta Sans`, sans-serif | `font-sans font-bold` / `font-semibold` | Bersih, sangat mudah dibaca anak-anak, `tracking-[0.02em]` untuk ukuran kecil agar tidak dempet |
-| **Ayat / Teks Arab** | `Scheherazade New`, `Amiri`, serif | `font-arabic` | Harakat jelas, spasi baris longgar (`leading-[2.2]` s.d. `leading-[2.4]`) dengan `dir="rtl"` |
+| Kategori              | Font Family                                   | Kelas CSS Tailwind                      | Karakteristik & Kegunaan                                                                        |
+| :-------------------- | :-------------------------------------------- | :-------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| **Heading / Judul**   | `Gabarito`, `Bricolage Grotesque`, sans-serif | `font-display font-black`               | Tebal, ekspresif, sedikit rapat (`tracking-[-0.01em]`) untuk memberi kesan stiker kokoh         |
+| **Body / Latin Teks** | `Plus Jakarta Sans`, sans-serif               | `font-sans font-bold` / `font-semibold` | Bersih, sangat mudah dibaca anak-anak, `tracking-[0.02em]` untuk ukuran kecil agar tidak dempet |
+| **Ayat / Teks Arab**  | `Scheherazade New`, `Amiri`, serif            | `font-arabic`                           | Harakat jelas, spasi baris longgar (`leading-[2.2]` s.d. `leading-[2.4]`) dengan `dir="rtl"`    |
 
 ---
 
 ### 1.4 Animasi Standar (Framer Motion & Mascot)
 
 #### 1. Umpan Balik Jawaban (Feedback Motion)
+
 Didefinisikan dalam `feedbackMotion.ts`:
+
 - **Jawaban Benar (`correct`)**:
   ```ts
   { scale: [1, 1.08, 1], transition: { duration: 0.4, ease: "easeOut" } }
@@ -92,7 +98,9 @@ Didefinisikan dalam `feedbackMotion.ts`:
   ```
 
 #### 2. Bibi Mascot & Companion Event
+
 Maskot Bibi (`BibiMascot` / `BibiCompanion`) merespons aksi anak secara dinamis lewat event kustom window:
+
 ```ts
 // src/utils/bibiEvent.ts
 export type BibiReactionType = "play" | "exit" | "success" | "error" | "click";
@@ -102,29 +110,31 @@ export const triggerBibiReaction = (reaction: BibiReactionType) => {
   }
 };
 ```
+
 - **Aturan Pemanggilan**: Panggil `triggerBibiReaction("click")` saat menavigasi tab/menu, `triggerBibiReaction("play")` saat audio diputar, `triggerBibiReaction("success")` saat berhasil menjawab kuis/menghafal ayat, dan `triggerBibiReaction("error")` saat reset atau gagal.
 
 ---
 
 ## 2. Mekanisme Game (Gamifikasi)
 
-Sistem ekonomi dan progres game dirancang dengan pola *Dual-Energy* (Hati untuk Belajar, Tiket untuk Bermain) serta sistem EXP berbasis level.
+Sistem ekonomi dan progres game dirancang dengan pola _Dual-Energy_ (Hati untuk Belajar, Tiket untuk Bermain) serta sistem EXP berbasis level.
 
 ### 2.1 Ringkasan Parameter Gamifikasi
 
-| Komponen | Default / Batas Maks | Konsumsi | Pengisian Ulang (Regen) | Fungsi / Kegunaan |
-| :--- | :--- | :--- | :--- | :--- |
-| **Koin Hijaiyah** | `0` (tak terbatas) | Beli energi di Warung Santri | Hadiah game & misi harian | Mata uang penukaran |
-| **Hati (Hearts)** | Maksimal `5` | 1 hati per sesi Tilawati | 1 hati setiap 4 Jam (`HEART_REGEN_MS`) | Kuota belajar materi Tilawati |
-| **Tiket Bermain** | Maksimal `3` | 1 tiket per sesi Mini Game | 1 tiket setiap 6 Jam (`TICKET_REGEN_MS`) | Tiket masuk ke arcade/mini games |
-| **EXP (Pengalaman)** | `0` (berkelanjutan) | Tidak pernah berkurang | Skor game & latihan | Menaikkan Rank Santri |
-| **Streak (Hari)** | `0` (berjalan harian) | Hangus jika absen 1 hari | 1 hari berturut-turut | Menjaga kedisiplinan istiqomah |
+| Komponen             | Default / Batas Maks  | Konsumsi                     | Pengisian Ulang (Regen)                  | Fungsi / Kegunaan                |
+| :------------------- | :-------------------- | :--------------------------- | :--------------------------------------- | :------------------------------- |
+| **Koin Hijaiyah**    | `0` (tak terbatas)    | Beli energi di Warung Santri | Hadiah game & misi harian                | Mata uang penukaran              |
+| **Hati (Hearts)**    | Maksimal `5`          | 1 hati per sesi Tilawati     | 1 hati setiap 4 Jam (`HEART_REGEN_MS`)   | Kuota belajar materi Tilawati    |
+| **Tiket Bermain**    | Maksimal `3`          | 1 tiket per sesi Mini Game   | 1 tiket setiap 6 Jam (`TICKET_REGEN_MS`) | Tiket masuk ke arcade/mini games |
+| **EXP (Pengalaman)** | `0` (berkelanjutan)   | Tidak pernah berkurang       | Skor game & latihan                      | Menaikkan Rank Santri            |
+| **Streak (Hari)**    | `0` (berjalan harian) | Hangus jika absen 1 hari     | 1 hari berturut-turut                    | Menjaga kedisiplinan istiqomah   |
 
 ---
 
 ### 2.2 Rincian Mekanisme
 
 #### 1. Koin (Hijaiyah Coins)
+
 - **Sumber Perolehan**:
   - Menyelesaikan sesi game: Dihitung dengan rumus:
     $$\text{earnedCoins} = \max\left(5, \left\lfloor \frac{\text{baseXp} + \text{score}}{10} \right\rfloor\right)$$
@@ -136,26 +146,30 @@ Sistem ekonomi dan progres game dirancang dengan pola *Dual-Energy* (Hati untuk 
   - Dibatasi maksimal **2x pembelian harian** (`SHOP_DAILY_LIMIT = 2`).
 
 #### 2. Hati (Hearts / Nyawa)
+
 - Digunakan saat anak membuka halaman baca Tilawati (`consumeHeart()` di `TilawatiMapPage.tsx`).
 - Jika Hati berjumlah 0, sesi belajar terkunci dengan dialog peringatan menuju Warung Santri atau menunggu waktu regenerasi (4 jam).
 - Pengguna dengan status **VIP** menikmati hati tak terbatas (`isVip: true` $\rightarrow$ bebas hambatan).
 
 #### 3. Tiket Bermain (Game Tickets)
+
 - Digunakan saat anak meluncurkan mini game di `GameModeHubPage.tsx` (`consumeTicket()`).
 - Jika Tiket bernilai 0, mini game tidak dapat dimainkan hingga tiket terisi ulang secara otomatis (6 jam) atau dibeli di Warung Santri.
 
 #### 4. EXP & Tangga Peringkat (Rank Info)
+
 Tingkatan rank dihitung secara otomatis dari total akumulasi XP pengguna (`getRank(xp)` di `progression.ts`):
 
-| Pangkat (Title) | Ambang Minimal XP (`minXp`) | XP ke Tingkat Berikutnya (`nextXp`) |
-| :--- | :--- | :--- |
-| **Pemula** | `0 XP` | `250 XP` |
-| **Penjelajah** | `250 XP` | `700 XP` |
-| **Penghafal** | `700 XP` | `1.400 XP` |
-| **Guru Muda** | `1.400 XP` | `2.500 XP` |
-| **Ustadz Cilik** | `2.500 XP` | *Tingkat Tertinggi (null)* |
+| Pangkat (Title)  | Ambang Minimal XP (`minXp`) | XP ke Tingkat Berikutnya (`nextXp`) |
+| :--------------- | :-------------------------- | :---------------------------------- |
+| **Pemula**       | `0 XP`                      | `250 XP`                            |
+| **Penjelajah**   | `250 XP`                    | `700 XP`                            |
+| **Penghafal**    | `700 XP`                    | `1.400 XP`                          |
+| **Guru Muda**    | `1.400 XP`                  | `2.500 XP`                          |
+| **Ustadz Cilik** | `2.500 XP`                  | _Tingkat Tertinggi (null)_          |
 
 #### 5. Sistem Streak (Istiqomah)
+
 - Dilacak setiap hari melalui helper `recordActivity()` menggunakan format tanggal ISO (`YYYY-MM-DD`).
 - **Logika Perhitungan**:
   - Jika `lastPlayedAt === hari ini`: Streak dipertahankan (tidak bertambah ganda).
@@ -174,24 +188,28 @@ flowchart TD
     User["Aktivitas Pengguna"] --> ScopeEngine["getNgajiCeriaScope()"]
     ScopeEngine -->|Guest Scope| GuestKey["LocalStorage (Key Standar)"]
     ScopeEngine -->|Member Scope| ScopedKey["LocalStorage (Key:UserId)"]
-    
+
     subgraph StateManagers["Pengelola State"]
         Zustand["useEconomyStore (Zustand Persist)"]
         ExternalStore["useNgajiCeriaStore (useSyncExternalStore)"]
         ScopedHooks["useTahfidz & useSholatJournal"]
     end
-    
+
     StateManagers <--> ScopedKey
     StateManagers <--> GuestKey
     StateManagers -->|Online Sync| ServerQueue["Server Event Queue (ngajiceriaApi)"]
 ```
 
 ### 3.1 Pola User Scoping (Multi-Tenant Isolation)
+
 Untuk mencegah data akun yang berbeda bercampur saat bermain di perangkat yang sama:
+
 ```ts
 export function getNgajiCeriaScope(): string {
   try {
-    const cached = JSON.parse(sessionStorage.getItem("sambung_ngaji_cached_user") || "null");
+    const cached = JSON.parse(
+      sessionStorage.getItem("sambung_ngaji_cached_user") || "null",
+    );
     if (typeof cached?.user_id === "string" && cached.user_id.trim()) {
       return cached.user_id.trim();
     }
@@ -207,14 +225,14 @@ function scopedKey(base: string): string {
 
 ### 3.2 Daftar Kunci Penyimpanan (Storage Keys)
 
-| Kunci Base Storage | Pengelola / Hook | Isi Data |
-| :--- | :--- | :--- |
-| `tartila-economy` | `useEconomyStore` (Zustand) | `{ hearts, tickets, isVip, lastHeartRegen, dailyPurchases }` |
-| `ngaji-ceria-progress` | `useNgajiCeriaStore` | `{ stars, lastPlayedAt, currentStreak, streakDays }` |
-| `ngajiceria:progress:v1` | `progression.ts` | `{ xp, totalScore, gamesPlayed, coins, achievements, daily }` |
-| `ngaji-ceria-tahfidz-v1` | `useTahfidz` | `Record<"surah:ayat", { hafal, hafalSince, lastReview }>` |
-| `ngaji-ceria-sholat-journal-v1` | `useSholatJournal` | `Record<"YYYY-MM-DD", Partial<Record<WaktuSholat, StatusSholat>>>` |
-| `ngajiceria:sound:muted` | `soundManager` | `"1"` (bisu) atau `"0"` (bersuara) |
+| Kunci Base Storage              | Pengelola / Hook            | Isi Data                                                           |
+| :------------------------------ | :-------------------------- | :----------------------------------------------------------------- |
+| `tartila-economy`               | `useEconomyStore` (Zustand) | `{ hearts, tickets, isVip, lastHeartRegen, dailyPurchases }`       |
+| `ngaji-ceria-progress`          | `useNgajiCeriaStore`        | `{ stars, lastPlayedAt, currentStreak, streakDays }`               |
+| `ngajiceria:progress:v1`        | `progression.ts`            | `{ xp, totalScore, gamesPlayed, coins, achievements, daily }`      |
+| `ngaji-ceria-tahfidz-v1`        | `useTahfidz`                | `Record<"surah:ayat", { hafal, hafalSince, lastReview }>`          |
+| `ngaji-ceria-sholat-journal-v1` | `useSholatJournal`          | `Record<"YYYY-MM-DD", Partial<Record<WaktuSholat, StatusSholat>>>` |
+| `ngajiceria:sound:muted`        | `soundManager`              | `"1"` (bisu) atau `"0"` (bersuara)                                 |
 
 ---
 
@@ -262,38 +280,40 @@ Seluruh halaman utama berada di bawah namespace rute `/member/ngaji-ceria/`.
 
 ### 5.1 Peta Rute Aplikasi (`App.tsx`)
 
-| Path URL | Halaman Komponen | Fitur & Deskripsi |
-| :--- | :--- | :--- |
-| `/member/ngaji-ceria` | `NgajiCeriaHomePage` | Beranda utama, progres harian, streak, dan akses cepat |
-| `/member/ngaji-ceria/map` | `NgajiCeriaMapPage` | Peta Jelajah Bento Grid (Hub sentral seluruh materi) |
-| `/member/ngaji-ceria/explore/tilawati` | `TilawatiAdventurePage` | Jalur level petualangan Tilawati Jilid 1–6 |
-| `/member/ngaji-ceria/explore/tilawati/:jilid` | `TilawatiMapPage` | Peta halaman dan titik latihan per Jilid |
-| `/member/ngaji-ceria/explore/tajwid` | `TajwidSecretPage` | Daftar 14 misi kaidah hukum tajwid |
-| `/member/ngaji-ceria/explore/tajwid/:id` | `TajwidDetailPage` | Latihan kaidah tajwid dengan **Karaoke Effect 1 Ayat Penuh** |
-| `/member/ngaji-ceria/explore/juz-amma` | `JuzAmmaStarsPage` | Galaksi 37 surat pendek Juz 30 bersama murottal |
-| `/member/ngaji-ceria/explore/doa` | `DoaTreasurePage` | Gudang 34 doa harian santri |
-| `/member/ngaji-ceria/explore/doa/:id` | `DoaDetailPage` | Detail doa lengkap (Arab, Latin, Arti, & Pemutar Audio) |
-| `/member/ngaji-ceria/explore/tahfidz` | `TahfidzPage` | Tracker hafalan mandiri Juz 30, Juz 1, & Surah Pilihan |
-| `/member/ngaji-ceria/explore/jurnal` | `JurnalIbadahPage` | Jurnal pencatat sholat 5 waktu & pelacak streak istiqomah |
-| `/member/ngaji-ceria/explore/practice` | `ArenaKartuPage` | Flashcard ajaib latihan huruf dan harakat |
-| `/member/ngaji-ceria/warung-santri` | `WarungSantriPage` | Toko penukaran Koin Hijaiyah menjadi Hati & Tiket |
-| `/member/ngaji-ceria/premium` | `PremiumPage` | Langganan VIP energi tak terbatas |
-| `/member/ngaji-ceria/quiz` | `NgajiCeriaQuizListPage` | Daftar kuis evaluasi jilid |
-| `/member/ngaji-ceria/quiz/play` | `NgajiCeriaQuizPage` | Sesi bermain kuis dengan voice feedback |
-| `/member/ngaji-ceria/games` | `NgajiCeriaGamesPage` | Hub arcade mini games |
+| Path URL                                      | Halaman Komponen         | Fitur & Deskripsi                                            |
+| :-------------------------------------------- | :----------------------- | :----------------------------------------------------------- |
+| `/member/ngaji-ceria`                         | `NgajiCeriaHomePage`     | Beranda utama, progres harian, streak, dan akses cepat       |
+| `/member/ngaji-ceria/map`                     | `NgajiCeriaMapPage`      | Peta Jelajah Bento Grid (Hub sentral seluruh materi)         |
+| `/member/ngaji-ceria/explore/tilawati`        | `TilawatiAdventurePage`  | Jalur level petualangan Tilawati Jilid 1–6                   |
+| `/member/ngaji-ceria/explore/tilawati/:jilid` | `TilawatiMapPage`        | Peta halaman dan titik latihan per Jilid                     |
+| `/member/ngaji-ceria/explore/tajwid`          | `TajwidSecretPage`       | Daftar 14 misi kaidah hukum tajwid                           |
+| `/member/ngaji-ceria/explore/tajwid/:id`      | `TajwidDetailPage`       | Latihan kaidah tajwid dengan **Karaoke Effect 1 Ayat Penuh** |
+| `/member/ngaji-ceria/explore/juz-amma`        | `JuzAmmaStarsPage`       | Galaksi 37 surat pendek Juz 30 bersama murottal              |
+| `/member/ngaji-ceria/explore/doa`             | `DoaTreasurePage`        | Gudang 34 doa harian santri                                  |
+| `/member/ngaji-ceria/explore/doa/:id`         | `DoaDetailPage`          | Detail doa lengkap (Arab, Latin, Arti, & Pemutar Audio)      |
+| `/member/ngaji-ceria/explore/tahfidz`         | `TahfidzPage`            | Tracker hafalan mandiri Juz 30, Juz 1, & Surah Pilihan       |
+| `/member/ngaji-ceria/explore/jurnal`          | `JurnalIbadahPage`       | Jurnal pencatat sholat 5 waktu & pelacak streak istiqomah    |
+| `/member/ngaji-ceria/explore/practice`        | `ArenaKartuPage`         | Flashcard ajaib latihan huruf dan harakat                    |
+| `/member/ngaji-ceria/warung-santri`           | `WarungSantriPage`       | Toko penukaran Koin Hijaiyah menjadi Hati & Tiket            |
+| `/member/ngaji-ceria/premium`                 | `PremiumPage`            | Langganan VIP energi tak terbatas                            |
+| `/member/ngaji-ceria/quiz`                    | `NgajiCeriaQuizListPage` | Daftar kuis evaluasi jilid                                   |
+| `/member/ngaji-ceria/quiz/play`               | `NgajiCeriaQuizPage`     | Sesi bermain kuis dengan voice feedback                      |
+| `/member/ngaji-ceria/games`                   | `NgajiCeriaGamesPage`    | Hub arcade mini games                                        |
 
 ---
 
 ## 6. Code Conventions & Aturan Penulisan
 
 ### 6.1 Standar Penamaan File & Simbol
+
 - **Komponen React & Halaman**: `PascalCase.tsx` (contoh: `TahfidzPage.tsx`, `StickerButton.tsx`).
 - **Custom Hooks**: `camelCase.ts` diawali `use` (contoh: `useAudioPlayer.ts`, `useTahfidz.ts`).
 - **Service / Helper / Data**: `camelCase.ts` (contoh: `doaService.ts`, `tahfidzData.ts`).
 - **Konstanta Baku**: `UPPER_SNAKE_CASE` (contoh: `HEART_MAX`, `TAJWID_RULES`).
 
 ### 6.2 TypeScript: Interface vs Type
-- Gunakan **`interface`** untuk mendefinisikan struktur objek data, kontrak props komponen, dan entitas yang dapat diekstensi (*open for extension*):
+
+- Gunakan **`interface`** untuk mendefinisikan struktur objek data, kontrak props komponen, dan entitas yang dapat diekstensi (_open for extension_):
   ```ts
   export interface TahfidzTarget {
     surah: number;
@@ -318,10 +338,12 @@ Seluruh halaman utama berada di bawah namespace rute `/member/ngaji-ceria/`.
    - Kotak pilihan huruf/opsi Arab yang membutuhkan manipulasi layout dinamis (`grid`, `scale-105`, `font-arabic`).
    - Wajib tetap menyertakan kelas dasar Neo-brutalism:
      ```tsx
-     className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
+     className =
+       "rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all";
      ```
 
 ### 6.4 Aturan Import Path
+
 - Utamakan penggunaan alias path `@/` untuk mengimpor komponen UI bersama dan icon:
   ```ts
   import { StickerButton, StickerCard } from "@/components/ui";
@@ -334,23 +356,178 @@ Seluruh halaman utama berada di bawah namespace rute `/member/ngaji-ceria/`.
 ## 7. Aturan Kaku Otorisasi Role (Tartila & Sambung Ngaji)
 
 ### 7.1 Definisi Role (Jangan Dicampur Aduk)
+
 - **`admin`**: Hanya untuk Admin Sambung Ngaji. **TIDAK BOLEH** masuk ke Panel Admin Tartila.
 - **`tartila_admin`**: Admin Tartila. Berhak mengakses fitur Tartila (Game, Audio, Timeline, Kuis).
 - **`superadmin` / `SUPER_ADMIN`**: Dewan Direksi / Pemilik. **WAJIB BISA MENGAKSES SEMUA FITUR** (Sambung Ngaji & Tartila).
 
 ### 7.2 Aturan Penulisan Kode (Backend Go)
+
 - Setiap kali membuat endpoint dengan prefix `/api/admin/...` atau `/api/tartila-admin/...`, **WAJIB** menggunakan fungsi pengecekan role terpusat `IsTartilaAdmin(role)`.
 - Fungsi pengecekan `IsTartilaAdmin(role)` **HARUS** mengembalikan `true` HANYA untuk role: `"tartila_admin"`, `"SUPER_ADMIN"`, `"SUPERADMIN"`, `"superadmin"`, `"SUPERADMIN1"`.
 - JIKA string role adalah `"ADMIN"` (Sambung Ngaji), fungsi **HARUS** mengembalikan `false` dan menolak akses (403 Forbidden). DILARANG KERAS meloloskan role `"ADMIN"` ke fitur/endpoint Tartila!
 - Selalu gunakan `strings.ToUpper(strings.TrimSpace(role))` dan normalisasi spasi/tanda hubung (`strings.ReplaceAll(..., " ", "_")`) sebelum mengecek, agar tidak error karena variasi huruf/spasi tak sengaja (seperti `"SUPER ADMIN"`).
 
 ### 7.3 Aturan Penulisan Kode (Frontend React)
+
 - Jangan pernah melakukan hardcode `if (role === 'admin')` untuk fitur Tartila. Gunakan helper `isTartilaAdmin(role)` dari `roles.ts`.
 - Pastikan helper `isTartilaAdmin` di `roles.ts` selalu menyertakan `superadmin` di dalamnya.
 
 ### 7.4 Integritas Database (Migrasi)
+
 - Role default untuk user biasa adalah `member`.
 - Jangan pernah menyimpan role `admin` di tabel user Tartila, gunakan `tartila_admin`.
 
 ---
-*Dokumen ini diterbitkan sebagai panduan arsitektur resmi Tartila. Setiap kontribusi fitur baru wajib mengikuti ketentuan di atas.*
+
+_Dokumen ini diterbitkan sebagai panduan arsitektur resmi Tartila. Setiap kontribusi fitur baru wajib mengikuti ketentuan di atas._
+
+## 8. Security & Authentication (Keamanan Sistem Terpusat)
+
+Bagian ini adalah aturan kaku (SSOT) terkait keamanan data, autentikasi, dan otorisasi. Pelanggaran dapat menyebabkan data breach atau privilege escalation.
+
+### 8.1 Manajemen Kunci API & Environment Variables
+
+- **Frontend**: Hanya boleh menggunakan `VITE_*` (publishable keys). **DILARANG** `SERVICE_ROLE_KEY`, `JWT_SECRET`, `GOOGLE_CLIENT_SECRET`.
+- Kunci rahasia hanya boleh di Environment Variables Backend Go.
+
+### 8.2 Arsitektur Dual-Supabase (Hybrid)
+
+1. **Supabase Auth** (Frontend): Login OAuth, session management, realtime WebSocket. Hanya `ANON_KEY` yang dipakai frontend.
+2. **Supabase Core** (Backend Go): Data profil (role, koin, hati). Frontend **DILARANG** akses langsung. Semua request harus lewat API Backend Go.
+
+### 8.3 Alur OAuth Google (Secure Flow)
+
+1. Frontend panggil `supabase.auth.signInWithOAuth({ provider: 'google' })`.
+2. Redirect ke `/login` setelah konsensi Google.
+3. **WAJIB** kirim JWT ke `/api/v1/auth/sync-profile` Backend Go untuk upsert profil (`role: "member"` default).
+4. AuthContext deteksi session setelah redirect.
+
+### 8.4 Aturan Kaku Otorisasi
+
+- Role `ADMIN` (Sambung Ngaji) **WAJIB DITURUNAN** menjadi `member` bila masuk Tartila.
+- Gunakan helper `toTartilaRole()` di AuthContext untuk normalisasi + downgrade.
+- Route guard `/admin` & `/member/ngaji-ceria/admin/*` hanya untuk `tartila_admin`/`superadmin`.
+
+### 8.5 Database Security (RLS)
+
+- Setiap tabel publik **WAJIB** punya RLS.
+- User hanya boleh `SELECT/INSERT/UPDATE` pada data yang `user_id`-nya sama dengan `auth.uid()`.
+- **DILARANG** validasi saldo/skor dari frontend. Semua transaksi koin, pembelian, score Duel harus lewat Backend Go.
+
+### 8.6 Keamanan Cache Lokal
+
+- Data di `localStorage` harus di-scoping per-user. Gunakan `tartila_cached_user:{userId}` atau bersihkan saat pergantian role.
+- Hapus semua cache (economy store, mascot gender, daily claim) saat **logout**.
+
+---
+
+## 9. Arsitektur Full-Stack & Infrastruktur (Backend & Database)
+
+Aplikasi Tartila tidak berdiri sendiri. Ia adalah bagian dari ekosistem **Sabil** yang menggunakan arsitektur _Decoupled_ (Frontend dan Backend terpisah).
+
+### 9.1 Pembagian Backend (Go & Fiber)
+
+1. **Backend Utama (Sambung Ngaji Core / Fiber)**:
+   - Berjalan di port `8080` (atau `29001` di Docker).
+   - Menggunakan **Go Fiber v2**, PostgreSQL (`pgx`), dan JWT.
+   - Mengelola otorisasi role, profil user, ekonomi (koin/hati), dan data progres.
+   - **Aturan Ketat**: Endpoint `GET /api/v1/auth/me` hanya untuk Frontend Sambung Ngaji. Frontend Tartila **WAJIB** menggunakan `GET /api/v1/user/profile`.
+2. **Backend Realtime (WebSocket/Net HTTP)**:
+   - Berjalan di repositori terpisah.
+   - Menangani _state_ Lobby, sinkronisasi _Countdown_, dan _update_ skor real-time untuk fitur Duel dan Tartila Arena.
+
+### 9.2 Arsitektur Dual-Supabase
+
+Karena alasan keamanan dan pemisahan beban, aplikasi menggunakan 2 instance Supabase:
+
+1. **Supabase Auth & Realtime (Frontend)**:
+   - Digunakan untuk Login (OAuth Google), WebSocket Arena/Duel, dan tabel sementara (seperti `rooms`).
+   - Konfigurasi `.env` Frontend: `VITE_SUPABASE_URL` & `VITE_SUPABASE_ANON_KEY`.
+2. **Supabase Core Database (Backend Go)**:
+   - Database PostgreSQL utama (tabel `users`, `ngaji_ceria_progress`, dll).
+   - **Frontend DILARANG KERAS** terhubung langsung ke sini menggunakan `SERVICE_ROLE_KEY`. Semua akses harus lewat API Go.
+
+---
+
+## 10. Manajemen Database & Migrasi (Supabase CLI)
+
+### 10.1 Struktur Tabel Utama
+
+Berdasarkan audit database, tabel krusial di Supabase Core adalah:
+
+- `users`: Menyimpan `coins`, `hearts`, `tickets`, `xp`, `is_vip`, `role`, `mascot_gender`.
+- `ngaji_ceria_progress`: Menyimpan `xp`, `total_score`, `games_played`, `current_streak`.
+- `friend_challenges`: Menyimpan data Duel 1v1 (jika backend sudah siap).
+- `rooms` & `room_players`: Menyimpan data Tartila Arena.
+
+### 10.2 Aturan Migrasi
+
+- Semua perubahan skema database **WAJIB** melalui file migrasi di folder `supabase/migrations/` (format: `YYYYMMDDHHMMSS_nama_migrasi.sql`).
+- **DILARANG** melakukan `CREATE TABLE` atau `ALTER TABLE` secara manual via Supabase Dashboard SQL Editor pada environment production.
+- Jalankan migrasi dengan: `supabase db push` atau `supabase db reset` (lokal).
+
+### 10.3 Database Trigger (Proteksi Ekonomi)
+
+- Tabel `users` dilindungi oleh Trigger `trg_protect_economy`.
+- **Aturan**: Frontend (client) **DILARANG** melakukan `UPDATE` langsung pada kolom `coins`, `hearts`, `tickets`, `xp`, dan `is_vip`. Trigger database akan otomatis menolak (_RAISE EXCEPTION_) jika mendeteksi perubahan dari selain `service_role` (Backend Go).
+
+---
+
+## 11. Mekanisme Fitur Kompetitif (Duel & Arena)
+
+Fitur multiplayer menggunakan alur yang seragam: **Lobby -> Ready -> Countdown -> Play -> Share**.
+
+### 11.1 Tantang Teman / Duel 1v1
+
+- **Mekanisme**: User membuat sesi (mendapatkan `duel_code` 6 karakter). Kode dibagikan via WhatsApp. Lawan memasukkan kode untuk bergabung.
+- **Batasan**: Hanya game dengan properti `isQuizBased: true` yang boleh dimainkan. Soal diacak secara _server-side_ agar tidak bisa dihafal.
+- **Biaya**: Memotong **1 Tiket Bermain** (dipotong saat Countdown selesai, bukan saat lobby dibuka).
+- **Frontend State**: Menggunakan `DuelLobbyPage` dan `DuelPlayPage` (Skor Kiri vs Kanan).
+
+### 11.2 Tartila Arena (Massal)
+
+- **Mekanisme**: Host membuat room (mendapatkan PIN 6 Digit). Pemain bergabung via PIN.
+- **Aturan Lobby**: Host tidak bisa memulai game sampai _semua_ pemain di lobby menekan tombol "Siap".
+- **Biaya**: Memotong **1 Tiket Bermain** per sesi.
+- **Frontend State**: Menggunakan `RoomLobbyPage` dan `ArenaPlayerGamePage`.
+
+### 11.3 Integrasi API Ekonomi (Frontend -> Go)
+
+- Frontend **DILARANG** memanggil `supabase.from('users').update(...)`.
+- Frontend **WAJIB** memanggil fungsi dari `src/services/economyApi.ts` (contoh: `economyApi.claimDaily()`, `economyApi.buyItem()`).
+- _Fallback_: Jika API Go belum menyala (404/500), Frontend boleh menggunakan _LocalStorage_ sebagai _fallback_ sementara, dengan menampilkan `console.warn`.
+
+---
+
+## 12. Status Transisi & Integrasi yang Belum Selesai (Jangan Berasumsi!)
+
+Bagian ini mencatat area yang saat ini sedang dalam masa transisi. **AI Agent dan Developer dilarang berasumsi** bahwa fitur ini sudah berjalan 100%:
+
+1. **Endpoint Go Belum Live**: Saat ini, endpoint `/api/v1/ngaji-ceria/progress` dan `/api/v1/user/economy/*` baru saja didefinisikan di dokumen referensi. Tim Backend Go sedang dalam proses mengimplementasikannya.
+2. **Mock Data Duel**: `DuelPlayPage.tsx` saat ini menggunakan skor lawan _mock_ (random) dan timer statis karena WebSocket untuk Duel belum terhubung sepenuhnya.
+3. **Sinkronisasi Google OAuth**: Frontend sudah memiliki tombol Google OAuth. Alur _redirect_ menggunakan Supabase OAuth sudah berjalan, tetapi fungsi sinkronisasi profil `POST /api/v1/auth/sync-profile` harus dipastikan sudah menyala di Backend Go.
+4. **Refactor `arenaRoomService.ts`**: Saat ini service ini masih menulis langsung ke tabel `rooms` di Supabase. Ini dibiarkan sementara sampai API Go untuk Arena siap.
+
+---
+
+## 13. Workflow Development & Deployment
+
+### 13.1 Frontend (Vite)
+
+- Jalankan dengan `npm run dev` (Port `5173`).
+- **Vite Proxy**: `vite.config.ts` sudah dikonfigurasi untuk meneruskan request `/api/*` ke Backend Go (`http://127.0.0.1:8080` atau `29001`). Jangan mengubah URL base API secara _hardcode_ di kode Frontend.
+
+### 13.2 Backend (Go)
+
+- Jalankan dengan `go run ./cmd/api` atau via Docker `docker compose up -d --build`.
+- Selalu jalankan `go vet ./...` dan `go test ./...` sebelum melakukan _commit_.
+
+### 13.3 Database (Supabase)
+
+- Lakukan `supabase db push` setelah menambah file migrasi baru.
+- Selalu _backup_ (snapshot) database sebelum melakukan migrasi di environment production.
+
+---
+
+_Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._

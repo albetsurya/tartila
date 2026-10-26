@@ -43,6 +43,20 @@ export interface SubmitDuelScoreResult {
   ok: boolean;
 }
 
+export interface DuelSession {
+  sessionId: string;
+  duelCode: string;
+  hostId: string;
+  opponentId?: string;
+  quizId: string;
+  gameType: string;
+  status: "waiting" | "playing" | "finished";
+  questions: unknown[];
+  hostScore: number;
+  opponentScore: number;
+  winnerId?: string;
+}
+
 const DUEL_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 export function generateDuelCode(): string {
@@ -96,11 +110,11 @@ export const duelService = {
     ),
 
   /** Buat sesi duel baru + kode 6 karakter untuk dibagikan. */
-  createDuelSession: (quizId: string, gameType: string) =>
+  createDuelSession: (quizId = "bahasa-arab", gameType = "kuis", duelCode?: string) =>
     callREST<CreateDuelSessionResult>("POST", "/api/v1/duel/session", {
       quizId,
       gameType,
-      duelCode: generateDuelCode(),
+      duelCode: duelCode || generateDuelCode(),
     }),
 
   /** Gabung sesi duel lewat kode. Backend ubah status waiting → playing. */
@@ -109,6 +123,10 @@ export const duelService = {
       duelCode,
     }),
 
+  /** Ambil status sesi duel terkini. */
+  getDuelSession: (sessionId: string) =>
+    callREST<DuelSession>("GET", `/api/v1/duel/${encodeURIComponent(sessionId)}`),
+
   /** Simpan skor akhir user ke sesi duel. */
   submitDuelScore: (sessionId: string, score: number) =>
     callREST<SubmitDuelScoreResult>("POST", "/api/v1/duel/score", {
@@ -116,3 +134,5 @@ export const duelService = {
       score,
     }),
 };
+
+export const duelApi = duelService;

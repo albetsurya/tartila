@@ -348,7 +348,7 @@ export const SKIN_ITEMS: SkinItem[] = [
     },
   },
   {
-id: "skin_malaikat_cahaya",
+    id: "skin_malaikat_cahaya",
     skinKey: "malaikat_cahaya",
     name: "Seraphim Light",
     desc: "Holy being with pearl-white feathers, divine golden halo, and heavenly feather light particles.",

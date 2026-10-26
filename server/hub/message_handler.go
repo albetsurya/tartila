@@ -327,7 +327,63 @@ func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 				"autoSubmitted": autoSubmitted,
 			},
 		})
+
+	case "submit_score":
+		// Duel: pemain mengirim skor terkini; hub menyiarkannya ke lawan.
+		// Kontrak frontend: { "type": "submit_score", "score": <skor> }.
+		score := msg.Score
+		if payloadMap, ok := msg.Payload.(map[string]interface{}); ok {
+			score = payloadInt(payloadMap, "score")
+		}
+		if score < 0 {
+			score = 0
+		}
+		player, playerExists := room.Players[c.PlayerID]
+		if !playerExists {
+			return
+		}
+		player.Score = score
+		h.BroadcastToRoomExcept(room.PIN, c, models.WSMessage{
+			Type: "opponent_score_update",
+			Payload: map[string]interface{}{
+				"playerId": player.ID,
+				"score":    score,
+			},
+		})
+
+	case "duel_start":
+		// Duel: tandai room bermulai dan beri cap waktu server.
+		if room.Status == models.RoomStatusPlaying {
+			return
+		}
+		room.Status = models.RoomStatusPlaying
+		room.QuestionStartTime = time.Now()
+		h.BroadcastToRoom(room.PIN, models.WSMessage{
+			Type: "duel_started",
+			Payload: map[string]interface{}{
+				"serverTimestamp": time.Now().UnixMilli(),
+			},
+		})
 	}
+}
+
+// payloadInt membaca nilai numerik dari payload WS (JSON angka = float64).
+func payloadInt(payload map[string]interface{}, key string) int {
+	switch v := payload[key].(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case json.Number:
+		i, err := v.Int64()
+		if err != nil {
+			return 0
+		}
+		return int(i)
+	}
+	return 0
 }
 
 func (h *RoomHub) buildLeaderboard(room *models.Room) []map[string]interface{} {

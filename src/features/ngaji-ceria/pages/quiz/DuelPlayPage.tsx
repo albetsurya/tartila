@@ -8,8 +8,12 @@ import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { ClockSvg, WhatsAppSvg } from "@/components/ui/CustomIcons";
+import { useAuth } from "@/contexts/AuthContext";
 
 const QUESTION_TIME = 20;
+const ARENA_WS_BASE =
+  import.meta.env.VITE_ARENA_SERVER_URL?.replace(/^http/, "ws") ||
+  `ws://${window.location.hostname}:8080`;
 
 function ScoreCard({
   label,
@@ -41,6 +45,7 @@ function ScoreCard({
 export default function DuelPlayPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const questions = useMemo(
     () => getQuizHubQuestions("bahasa-arab", "mcq", undefined, 5),
@@ -55,20 +60,109 @@ export default function DuelPlayPage() {
   const [answered, setAnswered] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [resultReady, setResultReady] = useState(false);
-
-  // TODO: Ganti dengan pengecekan user ID dari backend
-  const [isHost] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [isHost, setIsHost] = useState(true);
 
   const hostScoreRef = useRef(0);
   const guestScoreRef = useRef(0);
+  const myScoreRef = useRef(0);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // Ambil status sesi duel untuk tentukan peran (host vs opponent)
+  useEffect(() => {
+    if (!sessionId) return;
+    duelService
+      .getDuelSession(sessionId)
+      .then((sess) => {
+        if (sess && user) {
+          setIsHost(sess.hostId === user.id);
+        }
+      })
+      .catch(() => {
+        // fallback: anggap host
+      });
+  }, [sessionId, user]);
+
+  // Koneksi WebSocket ke duel room
+  useEffect(() => {
+    if (!sessionId) return;
+    const playerId = user?.id || "guest";
+    const nickname = user?.name || user?.username || "Pemain";
+    const url = `${ARENA_WS_BASE}/api/ws/duel/${sessionId}?playerId=${encodeURIComponent(playerId)}&nickname=${encodeURIComponent(nickname)}`;
+
+    let socket: WebSocket | null = null;
+    let closedByUs = false;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      try {
+        socket = new WebSocket(url);
+        wsRef.current = socket;
+      } catch {
+        return;
+      }
+
+      socket.onopen = () => {
+        // Host memberi sinyal start ke lawan
+        if (isHost) {
+          socket?.send(JSON.stringify({ type: "duel_start", payload: {} }));
+        }
+        setGameStarted(true);
+      };
+
+      socket.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === "opponent_score_update") {
+            const score = Number(msg.payload?.score ?? 0);
+            setOpponentScore(score);
+          } else if (msg.type === "duel_started") {
+            setGameStarted(true);
+          }
+        } catch {
+          // abaikan pesan non-JSON
+        }
+      };
+
+      socket.onclose = () => {
+        wsRef.current = null;
+        if (!closedByUs && !isFinished) {
+          reconnectTimer = setTimeout(connect, 3000);
+        }
+      };
+
+      socket.onerror = () => {
+        socket?.close();
+      };
+    };
+
+    connect();
+
+    return () => {
+      closedByUs = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [sessionId, user?.id, user?.name, user?.username, isFinished, isHost]);
+
+  // Kirim skor real-time ke lawan setelah menjawab
+  const pushScoreToOpponent = (newScore: number) => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "submit_score", score: newScore }));
+    }
+  };
 
   const finishDuel = async () => {
     setIsFinished(true);
-    const finalMyScore = isHost ? hostScoreRef.current : guestScoreRef.current;
-    // shortcut: skor lawan masih mock acak; ganti dari duelService saat realtime siap
-    setOpponentScore(Math.floor(Math.random() * (questions.length + 1)));
+    const finalMyScore = myScoreRef.current;
     try {
       await duelService.submitDuelScore(sessionId ?? "", finalMyScore);
+    } catch {
+      // Tetap tampilkan hasil lokal
     } finally {
       setResultReady(true);
     }
@@ -85,15 +179,16 @@ export default function DuelPlayPage() {
     setAnswered(false);
   };
 
+  // Timer countdown hanya jalan setelah duel_started diterima dari server
   useEffect(() => {
-    if (isFinished || answered) return;
+    if (isFinished || answered || !gameStarted) return;
     if (timeLeft <= 0) {
       advanceRef.current();
       return;
     }
     const timer = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
     return () => clearTimeout(timer);
-  }, [timeLeft, isFinished, answered]);
+  }, [timeLeft, isFinished, answered, gameStarted]);
 
   const handleAnswer = (isCorrect: boolean) => {
     if (answered || isFinished) return;
@@ -102,10 +197,13 @@ export default function DuelPlayPage() {
     if (isHost) {
       hostScoreRef.current += 1;
       setHostScore(hostScoreRef.current);
+      myScoreRef.current = hostScoreRef.current;
     } else {
       guestScoreRef.current += 1;
       setGuestScore(guestScoreRef.current);
+      myScoreRef.current = guestScoreRef.current;
     }
+    pushScoreToOpponent(myScoreRef.current);
   };
 
   const handleNext = () => {

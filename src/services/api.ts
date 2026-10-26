@@ -132,6 +132,7 @@ export async function callREST<T>(
   path: string,
   data?: Record<string, any>,
   queryParams?: Record<string, any>,
+  bearer?: string | null,
 ): Promise<T> {
   const baseUrl = API_BASE_URL
     ? API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "")
@@ -146,7 +147,8 @@ export async function callREST<T>(
     if (q) url += `?${q}`;
   }
 
-  const token = getToken();
+  // `bearer` menimpa token Go (mis. JWT Supabase untuk /auth/sync-profile).
+  const token = bearer !== undefined ? bearer : getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };

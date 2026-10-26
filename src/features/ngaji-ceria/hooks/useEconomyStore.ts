@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase';
-import { callREST } from '@/services/api';
 import { userApi } from '@/services/userApi';
-import { spendCoins, grantCoins, getProgress, saveProgress } from '@/features/ngaji-ceria/pages/games/_shared/progression';
+import { economyApi, type ClaimDailyResult } from '@/services/economyApi';
+import { grantCoins, getProgress, saveProgress } from '@/features/ngaji-ceria/pages/games/_shared/progression';
 import {
   resolveMascotGender,
   isAccessoryAllowedForGender,
@@ -148,7 +148,7 @@ interface EconomyState {
   setAvatarMode: (mode: "photo" | "avatar") => void;
   setEquippedAvatarAccessory: (id: string | null) => void;
   setOwnedAvatarAccessories: (ids: string[]) => void;
-  buyAvatarAccessory: (id: string, price: number, free?: boolean) => Promise<boolean>;
+  buyAvatarAccessory: (id: string, price: number) => Promise<boolean>;
   equipAvatarAccessory: (id: string | null) => void;
   showMascot: boolean;
   setShowMascot: (show: boolean) => void;
@@ -159,15 +159,15 @@ interface EconomyState {
   setEquippedTheme: (id: string) => void;
   ownedRoomThemes: string[];
   equippedRoomTheme: string;
-  buyRoomTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
+  buyRoomTheme: (id: string, price: number, autoEquip?: boolean) => Promise<boolean>;
   equipRoomTheme: (id: string) => void;
   ownedAppThemes: string[];
   equippedAppTheme: string;
-  buyAppTheme: (id: string, price: number, free?: boolean, autoEquip?: boolean) => boolean;
+  buyAppTheme: (id: string, price: number, autoEquip?: boolean) => Promise<boolean>;
   equipAppTheme: (id: string) => void;
   ownedSkins: string[];
   equippedSkin: MascotSkin;
-  buySkin: (id: string, price: number, currency?: 'coin' | 'ticket') => boolean;
+  buySkin: (id: string, price: number, currency?: 'coin' | 'ticket') => Promise<boolean>;
   equipSkin: (id: string) => void;
   streakMultiplier: number;
   loginStreak: number;
@@ -180,10 +180,10 @@ interface EconomyState {
   syncDailyRewardFromProfile: (profileData: any) => void;
   setTilaGender: (gender: TilaGender) => Promise<void> | void;
   setBibiGender: (gender: BibiGender) => void;
-  buyAccessory: (id: string, price: number, free?: boolean) => Promise<boolean>;
+  buyAccessory: (id: string, price: number) => Promise<boolean>;
   equipAccessory: (id: string) => void;
   syncTime: () => void;
-  grantEnergy: (kind: EnergyKind) => boolean;
+  grantEnergy: (kind: EnergyKind) => Promise<boolean>;
   purchasedToday: (kind: EnergyKind) => number;
   activateVip: () => void;
   applyVipSuccess: (durationDays?: number, expiresAt?: string) => void;
@@ -204,7 +204,7 @@ interface EconomyState {
   consumeTicket: () => Promise<boolean>;
   restoreHeart: () => Promise<boolean>;
   restoreTicket: () => Promise<boolean>;
-  buyBooster: (boosterId: string, price: number, free?: boolean) => Promise<boolean>;
+  buyBooster: (boosterId: string, price: number) => Promise<boolean>;
   setVip: (isVip: boolean) => Promise<void>;
   setGroupId: (groupId: string | null) => Promise<void>;
   setSubscription: (subType: 'free' | 'vip' | 'premium') => Promise<void>;
@@ -260,41 +260,19 @@ export const getInitialUserId = (): string | null => {
   return null;
 };
 
-const getStoredDailyClaimDate = (userId?: string | null): string | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const id = userId || getInitialUserId();
-    if (id) {
-      const userClaim = window.localStorage.getItem(`${DAILY_CLAIM_STORAGE_KEY}:${id}`);
-      if (userClaim) return userClaim;
-    }
-    return window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-};
-
-const getStoredDailyClaimedDays = (userId?: string | null): number[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const id = userId || getInitialUserId();
-    if (id) {
-      const rawUser = window.localStorage.getItem(`${DAILY_CLAIMED_DAYS_STORAGE_KEY}:${id}`);
-      if (rawUser) {
-        const parsed = JSON.parse(rawUser);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    }
-    const raw = window.localStorage.getItem(DAILY_CLAIMED_DAYS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
+// Status klaim harian murni dari Backend Go (response klaim / profil),
+// bukan dari localStorage. Konstanta di atas hanya dipakai membersihkan
+// sisa cache lama saat logout (lihat AuthContext.clearAuthCache).
 
 const todayKey = getTodayDateKey;
+
+// ID tema kamar dari UI dipetakan ke id kanonik yang dipakai state lokal.
+const normalizeRoomThemeId = (id: string): string =>
+  (id === 'theme_space' || id === 'space') ? 'galaksi'
+  : (id === 'theme_default' || id === 'classic' || id === 'theme_classic') ? 'default'
+  : (id === 'theme_forest') ? 'hutan'
+  : (id === 'theme_castle') ? 'istana'
+  : id;
 
 const getInitialMascotGender = (): TilaGender => {
   if (typeof window === "undefined") return "boy";
@@ -394,9 +372,9 @@ export const useEconomyStore = create<EconomyState>()(
   loginStreak: 0,
   dailyClaimed: false,
   isLoadingProfile: false,
-  dailyRewardsClaimed: getStoredDailyClaimedDays(),
-  lastDailyClaimDate: getStoredDailyClaimDate(),
-  lastClaimDate: getStoredDailyClaimDate(),
+  dailyRewardsClaimed: [],
+  lastDailyClaimDate: null,
+  lastClaimDate: null,
   coins: typeof window !== 'undefined' ? (getProgress().coins || 0) : 0,
 
   // Arena Kartu Progress (Papan Progres per Jilid)
@@ -598,70 +576,34 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  // Set subscription type (dari UI pembayaran)
+  // Set subscription type (dari UI pembayaran). Tier & masa aktif ditentukan
+  // Backend Go (voucher/admin); frontend hanya mencerminkan nilai untuk kuota lokal.
   setSubscription: async (subType: 'free' | 'vip' | 'premium') => {
     const { userId } = get();
     if (!userId) return;
 
-    set({ subscriptionType: subType });
+    let roomLimit = 1;
+    let participantLimit = 5;
 
-    try {
-      const { data: { user} } = await supabase.auth.getUser();
-      if (user && userId) {
-        // Update di database
-        const column = subType === 'premium' ? 'premium_features' : 'subscription_type';
-        await supabase
-          .from('users')
-          .update({ subscription_type: subType })
-          .eq('id', userId);
-          
-        // Update room limits berdasarkan subscription
-        let roomLimit = 1;
-        let participantLimit = 5;
-        
-        if (subType === 'vip') {
-          roomLimit = 5;
-          participantLimit = 10;
-        } else if (subType === 'premium') {
-          roomLimit = -1; // Unlimited
-          participantLimit = 50;
-        }
-
-        // Update rooms_created count if upgrading
-        if (subType !== 'free' && get().roomsCreated === 0) {
-          // User pertama kalinya upgrade, reset rooms if needed
-        }
-
-        set({
-          roomLimit: roomLimit,
-          participantLimit: participantLimit,
-          lastSync: Date.now(),
-        });
-      }
-    } catch (err) {
-      console.error('Failed to sync subscription to Supabase:', err);
-      // Revert state jika gagal sync
-      set({ subscriptionType: 'free' });
+    if (subType === 'vip') {
+      roomLimit = 5;
+      participantLimit = 10;
+    } else if (subType === 'premium') {
+      roomLimit = -1;
+      participantLimit = 50;
     }
+
+    set({
+      subscriptionType: subType,
+      roomLimit,
+      participantLimit,
+      lastSync: Date.now(),
+    });
   },
 
-  // Set ustadz flag
+   // Set ustadz flag (hanya lokal; is_vip tidak boleh ditentukan frontend — lihat 8.5)
   setUstadzFlag: async (isUstadz: boolean) => {
-    const { userId } = get();
     set({ isUstadz });
-
-    try {
-      const { data: { user} } = await supabase.auth.getUser();
-      if (user && userId) {
-        await supabase
-          .from('users')
-          .update({ is_vip: isUstadz })
-          .eq('id', userId);
-        set({ lastSync: Date.now() });
-      }
-    } catch (err) {
-      console.error('Failed to sync ustadz flag to Supabase:', err);
-    }
   },
 
   // Fungsi: Cek apakah bisa membuat room
@@ -720,11 +662,7 @@ export const useEconomyStore = create<EconomyState>()(
         joined_at: new Date().toISOString(),
       });
 
-      // Update counter rooms_created di users
-      await supabase
-        .from('users')
-        .update({ rooms_created: roomsCreated + 1 })
-        .eq('id', userId);
+      // rooms_created masih dihitung lokal; endpoint Go untuk ustadz room belum ada.
 
       // Update state lokal
       const updatedRooms = [room, ...get().ustadzRooms].filter(
@@ -944,30 +882,38 @@ export const useEconomyStore = create<EconomyState>()(
     return kind === 'heart' ? purchases.hearts : purchases.tickets;
   },
 
-  grantEnergy: (kind: EnergyKind) => {
+  grantEnergy: async (kind: EnergyKind) => {
     const state = get();
     let purchases = state.dailyPurchases;
     if (purchases.date !== todayKey()) {
       purchases = { hearts: 0, tickets: 0, date: todayKey() };
     }
 
-    if (kind === 'heart') {
-      if (purchases.hearts >= SHOP_DAILY_LIMIT) return false;
-      if (state.hearts >= HEART_MAX) return false;
+    const isHeart = kind === 'heart';
+    const used = isHeart ? purchases.hearts : purchases.tickets;
+    if (used >= SHOP_DAILY_LIMIT) return false;
+
+    const current = isHeart ? state.hearts : state.tickets;
+    const max = isHeart ? HEART_MAX : TICKET_MAX;
+    if (current >= max) return false;
+
+    const nextValue = Math.min(max, current + 1);
+
+    // Backend PATCH /api/v1/user/economy memotong koin secara atomik
+    // (100 koin/hati, 150 koin/tiket) saat ada penambahan energi.
+
+    try {
+      const res = isHeart
+        ? await economyApi.updateEnergy({ hearts: nextValue })
+        : await economyApi.updateEnergy({ tickets: nextValue });
       set({
-        hearts: state.hearts + 1,
-        dailyPurchases: { ...purchases, hearts: purchases.hearts + 1 },
+        ...(isHeart ? { hearts: res.hearts } : { tickets: res.tickets }),
+        dailyPurchases: { ...purchases, [kind]: used + 1 },
       });
       return true;
+    } catch {
+      return false;
     }
-
-    if (purchases.tickets >= SHOP_DAILY_LIMIT) return false;
-    if (state.tickets >= TICKET_MAX) return false;
-    set({
-      tickets: state.tickets + 1,
-      dailyPurchases: { ...purchases, tickets: purchases.tickets + 1 },
-    });
-    return true;
   },
 
   activateVip: () => set({ isVip: true, subscriptionType: 'vip' }),
@@ -1042,7 +988,7 @@ export const useEconomyStore = create<EconomyState>()(
     void get().setTilaGender(gender);
   },
 
-  buyAccessory: async (id: string, price: number, free = false) => {
+  buyAccessory: async (id: string, price: number) => {
     const { ownedAccessories, tilaGender, inventory } = get();
     const currentGender = resolveMascotGender(tilaGender);
 
@@ -1053,7 +999,10 @@ export const useEconomyStore = create<EconomyState>()(
       return true;
     }
 
-    if (!free && !spendCoins(price)) {
+    // Saldo koin hanya diubah Backend Go (GUIDELINES 11.3).
+    try {
+      await economyApi.buyItem({ kind: "accessory", itemId: id, price });
+    } catch {
       return false;
     }
 
@@ -1082,7 +1031,7 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  buyAvatarAccessory: async (id: string, price: number, free = false) => {
+  buyAvatarAccessory: async (id: string, price: number) => {
     const owned = get().ownedAvatarAccessories || [];
     const normalizedOwned = owned.includes('peci') ? owned : ['peci', ...owned];
 
@@ -1091,7 +1040,9 @@ export const useEconomyStore = create<EconomyState>()(
       return true;
     }
 
-    if (!free && price > 0 && !spendCoins(price)) {
+    try {
+      await economyApi.buyItem({ kind: "accessory", itemId: id, price });
+    } catch {
       return false;
     }
 
@@ -1114,18 +1065,19 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  buyRoomTheme: (id: string, price: number, free = false, autoEquip = true) => {
-    const normalized = (id === 'theme_space' || id === 'space') ? 'galaksi'
-      : (id === 'theme_default' || id === 'classic' || id === 'theme_classic') ? 'default'
-      : (id === 'theme_forest') ? 'hutan'
-      : (id === 'theme_castle') ? 'istana'
-      : id;
+  buyRoomTheme: async (id: string, price: number, autoEquip = true) => {
+    const normalized = normalizeRoomThemeId(id);
 
     if (get().ownedRoomThemes.includes(normalized) || get().inventory?.includes(normalized) || get().inventory?.includes(id)) {
       if (autoEquip) set({ equippedRoomTheme: normalized, equippedTheme: normalized });
       return true;
     }
-    if (!free && !spendCoins(price)) return false;
+
+    try {
+      await economyApi.buyItem({ kind: "room_theme", itemId: id, price });
+    } catch {
+      return false;
+    }
 
     const nextOwned = Array.from(new Set([...get().ownedRoomThemes, normalized]));
     const nextInventory = Array.from(new Set([...(get().inventory || []), id, normalized]));
@@ -1138,11 +1090,7 @@ export const useEconomyStore = create<EconomyState>()(
   },
 
   equipRoomTheme: (id: string) => {
-    const normalized = (id === 'theme_space' || id === 'space') ? 'galaksi'
-      : (id === 'theme_default' || id === 'classic' || id === 'theme_classic') ? 'default'
-      : (id === 'theme_forest') ? 'hutan'
-      : (id === 'theme_castle') ? 'istana'
-      : id;
+    const normalized = normalizeRoomThemeId(id);
 
     if (
       normalized === 'default' ||
@@ -1155,20 +1103,18 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  buyAppTheme: (id: string, price: number, free = false, autoEquip = true) => {
-    const isUnlimited = isUnlimitedUser(
-      { role: get().role ?? undefined },
-      get().isVip,
-      get().groupId,
-      get().subscriptionType,
-    );
+  buyAppTheme: async (id: string, price: number, autoEquip = true) => {
     if (get().ownedAppThemes.includes(id) || get().inventory?.includes(id)) {
       if (autoEquip) get().equipAppTheme(id);
       return true;
     }
-    if (!free && !isUnlimited && !spendCoins(price)) {
+
+    try {
+      await economyApi.buyItem({ kind: "game_theme", itemId: id, price });
+    } catch {
       return false;
     }
+
     const nextOwned = Array.from(new Set([...get().ownedAppThemes, id]));
     const nextInventory = Array.from(new Set([...(get().inventory || []), id]));
     set({
@@ -1196,7 +1142,7 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  buySkin: (id: string, price: number, currency: 'coin' | 'ticket' = 'coin') => {
+  buySkin: async (id: string, price: number, currency: 'coin' | 'ticket' = 'coin') => {
     const skinKey = (id.replace(/^skin_/, '') || 'default') as MascotSkin;
     if (
       get().ownedSkins.includes(id) ||
@@ -1208,29 +1154,18 @@ export const useEconomyStore = create<EconomyState>()(
       return true;
     }
 
-    const state = get();
-    const isUnlimited = isUnlimitedUser(
-      {
-        role: state.role ?? undefined,
-        group_id: state.groupId,
-        is_vip: state.isVip,
-        is_ustadz: state.isUstadz,
-      },
-      state.isVip,
-      state.groupId,
-    );
-
-    if (!isUnlimited) {
-      if (currency === 'ticket') {
-        if (state.tickets < price) {
-          return false;
-        }
-        set({ tickets: state.tickets - price });
-      } else {
-        if (!spendCoins(price)) {
-          return false;
-        }
+    try {
+      const res = await economyApi.buyItem({
+        kind: "game_theme",
+        itemId: id,
+        price,
+        currency,
+      });
+      if (typeof res?.tickets === "number") {
+        set({ tickets: res.tickets });
       }
+    } catch {
+      return false;
     }
 
     const nextOwned = Array.from(new Set([...get().ownedSkins, id, skinKey]));
@@ -1308,69 +1243,41 @@ export const useEconomyStore = create<EconomyState>()(
 
     const mult = state.streakMultiplier || 1;
     const totalCoins = Math.round(baseCoins * mult);
-    const optimisticDate = getTodayDateKey();
-    const optimisticStreak = state.loginStreak > 0 ? state.loginStreak + 1 : 1;
-    const currentCoins = state.coins || (typeof window !== 'undefined' ? (getProgress().coins || 0) : 0);
-    const optimisticCoins = currentCoins + totalCoins;
 
-    // Hubungi Backend Go (Single Source of Truth untuk Koin & Hadiah)
-    let serverDate = optimisticDate;
-    let serverCoinsAwarded = totalCoins;
-    let serverStreak = optimisticStreak;
-    let serverTotalCoins = optimisticCoins;
+    // Status klaim & saldo koin murni dari Backend Go (GUIDELINES 11.3).
+    let res: ClaimDailyResult;
     try {
-      const res = await userApi.claimDailyReward(day, totalCoins);
-      if (res) {
-        if (res.lastClaimDate || res.date) serverDate = res.lastClaimDate || res.date;
-        if (res.coinsAwarded) serverCoinsAwarded = res.coinsAwarded;
-        if (typeof res.coins === 'number') {
-          serverTotalCoins = res.coins;
-        } else if (typeof res.totalCoins === 'number') {
-          serverTotalCoins = res.totalCoins;
-        }
-        if (typeof res.streak === 'number' && res.streak > 0) {
-          serverStreak = res.streak;
-        } else if (typeof res.loginStreak === 'number' && res.loginStreak > 0) {
-          serverStreak = res.loginStreak;
-        }
-      }
+      res = await economyApi.claimDaily(day, totalCoins);
     } catch (err: any) {
       const msg = String(err?.message || "").toLowerCase();
-      // Jika server menyatakan sudah klaim hari ini, sinkronkan dan tolak
+      // Server menyatakan sudah klaim hari ini -> sinkronkan dan tolak
       if (msg.includes("sudah diklaim") || msg.includes("already claimed") || msg.includes("sudah klaim")) {
         const today = getTodayDateKey();
         set({ dailyClaimed: true, lastDailyClaimDate: today, lastClaimDate: today });
         return false;
       }
-      if (msg.includes("unauthorized") || err?.status === 401) {
-        return false;
-      }
-    }
-
-    const today = serverDate || getTodayDateKey();
-    const userClaimKey = `${DAILY_CLAIM_STORAGE_KEY}:${activeUserId}`;
-    if (
-      state.dailyClaimed ||
-      state.lastDailyClaimDate === today ||
-      (typeof window !== 'undefined' &&
-        (window.localStorage.getItem(DAILY_CLAIM_STORAGE_KEY) === today ||
-         window.localStorage.getItem(userClaimKey) === today))
-    ) {
       return false;
     }
 
-    grantCoins(serverCoinsAwarded, `Hadiah Login Hari ke-${day}`);
-    const finalCoins = serverTotalCoins || (typeof window !== 'undefined' ? (getProgress().coins || 0) : 0);
+    const today = res.lastClaimDate || res.date || getTodayDateKey();
+    const streak = res.loginStreak || res.streak || 1;
+    const coinsAwarded = res.coinsAwarded || totalCoins;
+    const finalCoins =
+      typeof res.coins === 'number' && res.coins > 0
+        ? res.coins
+        : (typeof res.totalCoins === 'number' && res.totalCoins > 0 ? res.totalCoins : state.coins);
 
-    const dayInCycle = Math.max(1, ((serverStreak - 1) % 7) + 1);
+    grantCoins(coinsAwarded, `Hadiah Login Hari ke-${day}`);
+
+    const dayInCycle = Math.max(1, ((streak - 1) % 7) + 1);
     const nextClaimedDays = Array.from({ length: dayInCycle }, (_, i) => i + 1);
 
     // Sinkronkan ke store aktivitas agar streak dan kalender di seluruh aplikasi langsung aktif instan
-    hydrateActivity(today, serverStreak);
+    hydrateActivity(today, streak);
 
     const updates: Partial<EconomyState> = {
       dailyClaimed: true,
-      loginStreak: serverStreak,
+      loginStreak: streak,
       lastDailyClaimDate: today,
       lastClaimDate: today,
       coins: finalCoins,
@@ -1382,23 +1289,6 @@ export const useEconomyStore = create<EconomyState>()(
     }
     if (extra?.tickets) {
       updates.tickets = Math.min(TICKET_MAX, state.tickets + extra.tickets);
-    }
-
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(DAILY_CLAIM_STORAGE_KEY, today);
-        window.localStorage.setItem(userClaimKey, today);
-        window.localStorage.setItem(
-          DAILY_CLAIMED_DAYS_STORAGE_KEY,
-          JSON.stringify(nextClaimedDays),
-        );
-        window.localStorage.setItem(
-          `${DAILY_CLAIMED_DAYS_STORAGE_KEY}:${activeUserId}`,
-          JSON.stringify(nextClaimedDays),
-        );
-      } catch {
-        // ignore
-      }
     }
 
     set(updates as EconomyState);
@@ -1417,7 +1307,7 @@ export const useEconomyStore = create<EconomyState>()(
     return get().getRooms();
   },
 
-  // ── Energy actions (Supabase-backed, fallback lokal) ──
+  // ── Energy actions (Supabase-backed) ──
   consumeHeart: async () => {
     const state = get();
     const isUnlimited = isUnlimitedUser(
@@ -1428,14 +1318,16 @@ export const useEconomyStore = create<EconomyState>()(
     );
     if (isUnlimited) return true;
     if (state.hearts <= 0) return false;
-    set({
-      hearts: state.hearts - 1,
-      lastHeartRegen: state.hearts === HEART_MAX ? Date.now() : state.lastHeartRegen,
-    });
+
+    // PATCH /api/v1/user/economy menyimpan nilai absolut hearts & tickets.
     try {
-      await supabase.from('users').update({ hearts: get().hearts }).eq('id', state.userId ?? '');
+      const res = await economyApi.updateEnergy({ hearts: state.hearts - 1 });
+      set({
+        hearts: res.hearts,
+        lastHeartRegen: state.hearts === HEART_MAX ? Date.now() : state.lastHeartRegen,
+      });
     } catch {
-      // offline / belum login: state lokal tetap berlaku
+      return false;
     }
     return true;
   },
@@ -1450,14 +1342,15 @@ export const useEconomyStore = create<EconomyState>()(
     );
     if (isUnlimited) return true;
     if (state.tickets <= 0) return false;
-    set({
-      tickets: state.tickets - 1,
-      lastTicketRegen: state.tickets === TICKET_MAX ? Date.now() : state.lastTicketRegen,
-    });
+
     try {
-      await supabase.from('users').update({ tickets: get().tickets }).eq('id', state.userId ?? '');
+      const res = await economyApi.updateEnergy({ tickets: state.tickets - 1 });
+      set({
+        tickets: res.tickets,
+        lastTicketRegen: state.tickets === TICKET_MAX ? Date.now() : state.lastTicketRegen,
+      });
     } catch {
-      // offline / belum login: state lokal tetap berlaku
+      return false;
     }
     return true;
   },
@@ -1476,34 +1369,22 @@ export const useEconomyStore = create<EconomyState>()(
     return true;
   },
 
-  buyBooster: async (boosterId: string, price: number, free = false) => {
-    if (!free && !spendCoins(price)) return false;
+  buyBooster: async (boosterId: string, price: number) => {
+    try {
+      await economyApi.buyItem({ kind: "booster", itemId: boosterId, price });
+    } catch {
+      return false;
+    }
     set({ activeBoosters: { ...get().activeBoosters, [boosterId]: true } });
     return true;
   },
 
   setVip: async (isVip: boolean) => {
     set({ isVip, lastSync: Date.now() });
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('users').update({ is_vip: isVip }).eq('id', user.id);
-      }
-    } catch {
-      // ignore
-    }
   },
 
   setGroupId: async (groupId: string | null) => {
     set({ groupId });
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('users').update({ group_id: groupId }).eq('id', user.id);
-      }
-    } catch {
-      // ignore
-    }
   },
     }),
     {

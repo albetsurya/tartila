@@ -88,6 +88,21 @@ func main() {
 		hub.ServeWS(roomHub, w, r, pin, playerID, isHost)
 	})
 
+	// WebSocket Route Duel: /api/ws/duel/:sessionId
+	// Skor real-time (submit_score -> opponent_score_update) in-memory.
+	mux.HandleFunc("/api/ws/duel/", func(w http.ResponseWriter, r *http.Request) {
+		sessionID := strings.TrimPrefix(r.URL.Path, "/api/ws/duel/")
+		if sessionID == "" {
+			http.Error(w, "Session ID required", http.StatusBadRequest)
+			return
+		}
+
+		playerID := r.URL.Query().Get("playerId")
+		nickname := r.URL.Query().Get("nickname")
+
+		hub.ServeDuelWS(roomHub, w, r, sessionID, playerID, nickname)
+	})
+
 	// Health check
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -107,6 +122,7 @@ func main() {
 	log.Printf("==================================================")
 	log.Printf("🚀 Tartila Arena WebSocket Server listening on :%s", port)
 	log.Printf("   WS Endpoint  : ws://localhost:%s/api/ws/room/:pin", port)
+	log.Printf("   WS Duel      : ws://localhost:%s/api/ws/duel/:sessionId", port)
 	log.Printf("   REST Endpoint: http://localhost:%s/api/rooms", port)
 	log.Printf("==================================================")
 
