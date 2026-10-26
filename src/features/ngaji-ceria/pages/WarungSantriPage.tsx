@@ -937,8 +937,7 @@ export default function WarungSantriPage() {
       }
     }
 
-    // shortcut: Backend Go hanya memproses pembayaran koin untuk item 'game_theme';
-    // skin yang bersharga tiket akan ditolak server sampai ada endpoint tiket.
+    // Backend Go sudah memproses tiket & VIP bypass pada POST /shop/buy.
     const success = await buySkin(item.id, item.price, item.currency || "coin");
     if (success) {
       setMessage(

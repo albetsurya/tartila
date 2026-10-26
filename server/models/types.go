@@ -109,5 +109,6 @@ type Room struct {
 type WSMessage struct {
 	Type    string      `json:"type"`
 	Sender  string      `json:"sender,omitempty"`
+	Score   int         `json:"score,omitempty"` // duel: skor submit_score di level atas
 	Payload interface{} `json:"payload"`
 }

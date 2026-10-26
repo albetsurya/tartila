@@ -47,6 +47,7 @@ type RoomHub struct {
 type RoomBroadcast struct {
 	RoomPIN string
 	Message []byte
+	Except  *Client
 }
 
 func NewRoomHub() *RoomHub {
@@ -89,6 +90,9 @@ func (h *RoomHub) Run() {
 			h.Mu.RLock()
 			clients := h.Clients[broadcast.RoomPIN]
 			for client := range clients {
+				if broadcast.Except != nil && client == broadcast.Except {
+					continue
+				}
 				select {
 				case client.Send <- broadcast.Message:
 				default:
@@ -110,6 +114,20 @@ func (h *RoomHub) BroadcastToRoom(pin string, msg models.WSMessage) {
 	h.Broadcast <- RoomBroadcast{
 		RoomPIN: pin,
 		Message: bytes,
+	}
+}
+
+// BroadcastToRoomExcept mengirim pesan ke semua klien di room kecuali pengirim.
+func (h *RoomHub) BroadcastToRoomExcept(pin string, except *Client, msg models.WSMessage) {
+	bytes, err := json.Marshal(msg)
+	if err != nil {
+		log.Printf("[Hub] Broadcast marshal error: %v", err)
+		return
+	}
+	h.Broadcast <- RoomBroadcast{
+		RoomPIN: pin,
+		Message: bytes,
+		Except:  except,
 	}
 }
 

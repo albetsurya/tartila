@@ -899,10 +899,8 @@ export const useEconomyStore = create<EconomyState>()(
 
     const nextValue = Math.min(max, current + 1);
 
-    // TODO(backend): PATCH /api/v1/user/economy hanya menyimpan nilai absolut
-    // hearts/tickets — BELUM memotong koin. Penukaran energi gratis sampai
-    // endpoint exchange (koin -> energi) tersedia di Backend Go.
-    console.warn("[TODO backend] exchangeEnergy: PATCH /api/v1/user/economy belum memotong koin");
+    // Backend PATCH /api/v1/user/economy memotong koin secara atomik
+    // (100 koin/hati, 150 koin/tiket) saat ada penambahan energi.
 
     try {
       const res = isHeart
@@ -1144,7 +1142,7 @@ export const useEconomyStore = create<EconomyState>()(
     }
   },
 
-  buySkin: async (id: string, price: number, _currency: 'coin' | 'ticket' = 'coin') => {
+  buySkin: async (id: string, price: number, currency: 'coin' | 'ticket' = 'coin') => {
     const skinKey = (id.replace(/^skin_/, '') || 'default') as MascotSkin;
     if (
       get().ownedSkins.includes(id) ||
@@ -1156,10 +1154,16 @@ export const useEconomyStore = create<EconomyState>()(
       return true;
     }
 
-    // shortcut: Backend Go memotong koin saja (belum ada pembayaran tiket),
-    // skin ber-harga tiket akan ditolak server sampai endpoint tiket ada.
     try {
-      await economyApi.buyItem({ kind: "game_theme", itemId: id, price });
+      const res = await economyApi.buyItem({
+        kind: "game_theme",
+        itemId: id,
+        price,
+        currency,
+      });
+      if (typeof res?.tickets === "number") {
+        set({ tickets: res.tickets });
+      }
     } catch {
       return false;
     }

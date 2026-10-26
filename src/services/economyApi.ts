@@ -6,6 +6,7 @@ export interface BuyItemRequest {
   kind: string;
   itemId: string;
   price: number;
+  currency?: "coin" | "ticket";
 }
 
 /** Balasan POST /api/v1/shop/buy (ShopUnlockResult). */
@@ -13,6 +14,7 @@ export interface BuyItemResult {
   granted: boolean;
   already: boolean;
   coins: number;
+  tickets?: number;
 }
 
 /** Balasan POST /api/v1/user/claim-daily (ClaimDailyResult). */

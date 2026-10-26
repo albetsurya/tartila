@@ -141,9 +141,8 @@ export const SKIN_ITEMS: SkinItem[] = [
     skinKey: "phoenix_gold",
     name: "Celestial Phoenix",
     desc: "Majestic heavenly bird wrapped in pure gold with eternal holy golden starlight.",
-    // TODO: Kembalikan ke tiket jika backend sudah support.
-    price: 7500, // 50 tiket x 150 koin (backend hanya potong koin di /shop/buy)
-    currency: "coin",
+    price: 50,
+    currency: "ticket",
     rarity: "Mythic",
     effect: "Golden Stars",
     accentColor: "#FBBF24",
@@ -334,9 +333,8 @@ export const SKIN_ITEMS: SkinItem[] = [
     skinKey: "pelangi_kristal",
     name: "Prismatic Gem",
     desc: "Mythological transparent diamond refracting rainbow light spectrum from pure magical crystal shards.",
-    // TODO: Kembalikan ke tiket jika backend sudah support.
-    price: 6000, // 40 tiket x 150 koin (backend hanya potong koin di /shop/buy)
-    currency: "coin",
+    price: 40,
+    currency: "ticket",
     rarity: "Mythic",
     effect: "Crystal Shards",
     accentColor: "#EC4899",
@@ -350,13 +348,12 @@ export const SKIN_ITEMS: SkinItem[] = [
     },
   },
   {
-id: "skin_malaikat_cahaya",
+    id: "skin_malaikat_cahaya",
     skinKey: "malaikat_cahaya",
     name: "Seraphim Light",
     desc: "Holy being with pearl-white feathers, divine golden halo, and heavenly feather light particles.",
-    // TODO: Kembalikan ke tiket jika backend sudah support.
-    price: 11250, // 75 tiket x 150 koin (backend hanya potong koin di /shop/buy)
-    currency: "coin",
+    price: 75,
+    currency: "ticket",
     rarity: "Mythic",
     effect: "Golden Feathers",
     accentColor: "#FACC15",
