@@ -72,7 +72,7 @@ export function AppBottomSheet({
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[88dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[32px] border-[3px] border-[#134E4A] bg-[var(--bg-card,#FFFFFF)] px-5 pb-8 pt-3 shadow-[0_-4px_0px_#134E4A]"
+            className="max-h-[88dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[32px] border-[3px] border-[#134E4A] bg-[var(--bg-card,#FFFFFF)] px-5 pb-8 pt-3 shadow-[4px_4px_0px_#134E4A]"
           >
             <div
               aria-hidden="true"
@@ -86,7 +86,7 @@ export function AppBottomSheet({
                 type="button"
                 onClick={onClose}
                 aria-label="Tutup"
-                className="rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-white p-1.5 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none cursor-pointer transition-all"
+                className="rounded-xl border-[3px] border-[#FF6B6B] bg-[#FF6B6B] p-1.5 text-white shadow-[3px_3px_0px_#DC2626] active:translate-y-[2px] active:shadow-none cursor-pointer transition-all hover:scale-105"
               >
                 <XSvg size={16} />
               </button>

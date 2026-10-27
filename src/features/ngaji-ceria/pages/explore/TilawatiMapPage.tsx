@@ -317,12 +317,16 @@ export default function TilawatiMapPage() {
     }
     triggerBibiReaction("play");
     const targetNode = selectedNode;
-    setSelectedNode(null);
-    navigate(
-      `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${targetNode.page}${
-        isPractice ? "&practice=true" : ""
-      }`,
-    );
+    try {
+      setSelectedNode(null);
+      navigate(
+        `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${targetNode.page}${
+          isPractice ? "&practice=true" : ""
+        }`,
+      );
+    } catch {
+      setSelectedNode(targetNode);
+    }
   };
 
   return (
@@ -586,38 +590,59 @@ export default function TilawatiMapPage() {
                 }}
               >
                 {isFirst && (
-                  <div className="absolute -top-[75px] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
+                  <div className="absolute -top-[85px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
+                    {/* PIN AVATAR DENGAN ANIMASI */}
                     <motion.div
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                      initial={{ scale: 0, y: 20, opacity: 0 }}
+                      animate={{
+                        scale: 1,
+                        opacity: 1,
+                        y: [0, -10, 0],
+                        rotate: [-4, 4, -4], 
                       }}
-                      className={`relative w-[52px] h-[52px] drop-shadow-[3px_3px_0px_${theme.nodeBorder}] z-10`}
+                      transition={{
+                        y: {
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        },
+                        rotate: {
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        },
+                        // Efek pantulan (spring) saat pertama kali muncul
+                        scale: { type: "spring", bounce: 0.6, duration: 0.8 },
+                        opacity: { duration: 0.3 },
+                      }}
+                      className={`relative w-[56px] h-[56px] drop-shadow-[3px_3px_0px_${theme.nodeBorder}] z-10`}
                     >
                       <div
                         className={`w-full h-full ${theme.islandBg} border-[3px] ${theme.nodeBorder} rounded-full rounded-br-none rotate-45 flex items-center justify-center`}
                       >
-                        <div className="w-[82%] h-[82%] rounded-full overflow-hidden -rotate-45 bg-white border-2 border-black/10">
+                        <div className="w-[88%] h-[88%] rounded-full overflow-hidden -rotate-45 bg-white flex items-center justify-center">
                           <AvatarSantriSvg
-                            size={58}
+                            size={46}
                             gender={resolveMascotGender(tilaGender)}
                             mood="happy"
-                            className="shrink-0"
+                            className="shrink-0 scale-110 mt-1"
                           />
                         </div>
                       </div>
                     </motion.div>
 
+                    {/* BAYANGAN (SHADOW) YANG BERDENYUT SINKRON DENGAN PIN */}
                     <motion.div
-                      animate={{ scale: [1, 0.6, 1], opacity: [0.3, 0.1, 0.3] }}
+                      animate={{
+                        scale: [1, 0.7, 1], // Bayangan mengecil saat pin naik
+                        opacity: [0.4, 0.15, 0.4], // Bayangan memudar saat pin naik
+                      }}
                       transition={{
-                        duration: 2,
+                        duration: 2.5, // SAMA dengan durasi 'y' pada pin agar sinkron
                         repeat: Infinity,
                         ease: "easeInOut",
                       }}
-                      className="w-6 h-1.5 bg-black/40 rounded-[100%] blur-[1.5px] mt-[-8px] z-0"
+                      className="w-7 h-2 bg-black/50 rounded-[100%] blur-[1.5px] mt-1.5 z-0"
                     />
                   </div>
                 )}
@@ -744,6 +769,7 @@ export default function TilawatiMapPage() {
               </div>
 
               <button
+                type="button"
                 onClick={() => handleStartLearning()}
                 className={`w-full ${
                   isPracticeMode ? "bg-[#0D9488]" : theme.nodeBg

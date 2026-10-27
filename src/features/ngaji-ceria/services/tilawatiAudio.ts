@@ -167,6 +167,10 @@ export function useTilawatiAudio(request: TilawatiAudioRequest) {
   const stop = useCallback(() => { stopTilawatiAudio(); setIsPlaying(false); }, []);
   const play = useCallback(async () => {
     stopTilawatiAudio();
+    // Cancel any text-to-speech to prevent audio stack conflicts
+    if (typeof speechSynthesis !== "undefined") {
+      speechSynthesis.cancel();
+    }
     if (soundManager.muted) return;
     const token = generation;
     setIsPlaying(true); setError(""); soundManager.duckBgm(true);
@@ -183,6 +187,9 @@ export function useTilawatiAudio(request: TilawatiAudioRequest) {
       soundManager.duckBgm(false);
       setIsPlaying(false);
       if (!success) setError(blocked ? "Ketuk Baca untuk memutar audio." : "Audio belum tersedia. Coba lagi saat koneksi pulih.");
+    } else if (token !== generation) {
+      // Playback was cancelled or interrupted
+      setIsPlaying(false);
     }
   }, [resolution]);
   useEffect(() => {
