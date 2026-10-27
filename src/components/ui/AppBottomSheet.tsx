@@ -59,7 +59,7 @@ export function AppBottomSheet({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[110] flex items-end justify-center bg-black/50"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
           onClick={onClose}
         >
           <motion.div

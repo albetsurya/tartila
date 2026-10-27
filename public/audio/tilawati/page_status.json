@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-27T03:30:41.333Z",
+  "last_updated": "2026-10-27T08:16:48.618Z",
   "format": "page_progress",
   "total_pages": 84,
   "pages": {
@@ -65,8 +65,8 @@
       "completed": 44,
       "percentage": 100,
       "status": "selesai",
-      "last_edited_chunk": "hal44",
-      "notes": "Halaman 44 selesai dan dikirim ke Tartila",
+      "last_edited_chunk": "hal1",
+      "notes": "Halaman 1 selesai dan dikirim ke Tartila",
       "action": "complete_chunk",
       "complete_instruction": "Set completed < number > menjadi < persentase > dan status menjadi selesai",
       "total_pages": 44,
@@ -179,8 +179,8 @@
       "completed": 44,
       "percentage": 100,
       "status": "selesai",
-      "last_edited_chunk": "hal44",
-      "notes": "Halaman 44 selesai dan dikirim ke Tartila",
+      "last_edited_chunk": "hal37",
+      "notes": "Halaman 37 selesai dan dikirim ke Tartila",
       "action": "complete_chunk",
       "complete_instruction": "Set completed < number > menjadi < persentase > dan status menjadi selesai",
       "total_pages": 44,
@@ -233,11 +233,11 @@
     },
     "jilid_5": {
       "total_chunks": 0,
-      "completed": 42,
-      "percentage": 95,
+      "completed": 43,
+      "percentage": 98,
       "status": "sedang_diedit",
-      "last_edited_chunk": "hal43",
-      "notes": "Halaman 43 selesai dan dikirim ke Tartila",
+      "last_edited_chunk": "hal37",
+      "notes": "Halaman 37 selesai dan dikirim ke Tartila",
       "action": "complete_chunk",
       "complete_instruction": "Set completed < number > menjadi < persentase > dan status menjadi selesai",
       "total_pages": 44,
@@ -283,7 +283,8 @@
         39,
         40,
         41,
-        43
+        43,
+        44
       ]
     },
     "jilid_6": {

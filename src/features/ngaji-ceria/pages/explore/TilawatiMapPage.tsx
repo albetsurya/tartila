@@ -311,6 +311,7 @@ export default function TilawatiMapPage() {
     if (!isPractice) {
       const success = await consumeHeart();
       if (!success) {
+        setSelectedNode(null);
         setEnergyEmpty(true);
         return;
       }

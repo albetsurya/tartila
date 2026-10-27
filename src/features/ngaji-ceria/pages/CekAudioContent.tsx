@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { latinToArabic } from "../utils/translit";
-import { getAudioUrl } from "../utils/audioUrl";
+import { sanitizeAudioUrl } from "../utils/audioUrl";
 import {
   TILAWATI_JILID_1_PAGES,
   TILAWATI_JILID_2_PAGES,
@@ -30,6 +30,94 @@ const QUIZ_DATASETS: Record<number, Record<number, PageQuizData>> = {
   5: TILAWATI_JILID_5_PAGES,
 };
 const AUDIO_TEST_STORAGE_KEY = "ngaji-ceria:tilawati-audio-tested:v1";
+
+type NoteOption =
+  | "Datar"
+  | "Naik"
+  | "Turun"
+  | "Datar-Turun"
+  | "Datar-Naik-Turun"
+  | "Datar-Naik-Naik-Turun";
+type RepeatOption = "1x" | "2x" | "3x";
+
+const NOTE_BADGES: { value: NoteOption; label: string }[] = [
+  { value: "Datar", label: "Datar" },
+  { value: "Naik", label: "Naik" },
+  { value: "Turun", label: "Turun" },
+  { value: "Datar-Turun", label: "Datar - Turun" },
+  { value: "Datar-Naik-Turun", label: "Datar - Naik - Turun" },
+  { value: "Datar-Naik-Naik-Turun", label: "Datar - Naik - Naik - Turun" },
+];
+
+const REPEAT_BADGES: { value: RepeatOption; label: string }[] = [
+  { value: "1x", label: "1x" },
+  { value: "2x", label: "2x" },
+  { value: "3x", label: "3x" },
+];
+
+const parseHintTone = (hintTone: string): {
+  notes: NoteOption[];
+  repeat: RepeatOption;
+} => {
+  const lower = hintTone.toLowerCase();
+  const notes: NoteOption[] = [];
+
+  // Check for specific sequences first (order matters in the string)
+  const hasNaikMultiple =
+    lower.includes("naik") && lower.indexOf("naik") !== lower.lastIndexOf("naik");
+
+  // Datar-Naik-Naik-Turun: has Datar + Naik twice + Turun
+  if (
+    lower.includes("datar") &&
+    hasNaikMultiple &&
+    lower.includes("turun")
+  ) {
+    notes.push("Datar-Naik-Naik-Turun");
+  } else if (lower.includes("datar") && lower.includes("naik") && lower.includes("turun")) {
+    notes.push("Datar-Naik-Turun");
+  } else if (lower.includes("datar") && lower.includes("turun")) {
+    notes.push("Datar-Turun");
+  } else {
+    // Single notes - check in order Datar, Naik, Turun
+    if (lower.includes("datar")) notes.push("Datar");
+    if (lower.includes("naik")) notes.push("Naik");
+    if (lower.includes("turun")) notes.push("Turun");
+  }
+
+  let repeat: RepeatOption = "1x";
+  if (lower.includes("(3x)") || lower.includes(" 3x")) repeat = "3x";
+  else if (lower.includes("(2x)") || lower.includes(" 2x")) repeat = "2x";
+  else if (lower.includes("(1x)") || lower.includes(" 1x")) repeat = "1x";
+  return { notes, repeat };
+};
+
+const generateHintTone = (
+  notes: NoteOption[],
+  repeat: RepeatOption,
+): string => {
+  if (notes.length === 0) return "Rost: Baris";
+  if (notes.includes("Datar-Naik-Naik-Turun")) {
+    return repeat === "1x"
+      ? "Rost: Datar — Naik — Naik — Turun"
+      : `Rost: Datar — Naik — Naik — Turun (${repeat})`;
+  }
+  if (notes.includes("Datar-Naik-Turun")) {
+    return repeat === "1x"
+      ? "Rost: Datar — Naik — Turun"
+      : `Rost: Datar — Naik — Turun (${repeat})`;
+  }
+  if (notes.includes("Datar-Turun")) {
+    return repeat === "1x"
+      ? "Rost: Datar — Turun"
+      : `Rost: Datar — Turun (${repeat})`;
+  }
+  if (notes.length === 1) {
+    return `Rost: Nada ${notes[0]}`;
+  }
+  return repeat === "1x"
+    ? `Rost: ${notes.join(" — ")}`
+    : `Rost: ${notes.join(" — ")} (${repeat})`;
+};
 
 type EditorSegment = {
   sourceAudioUrl: string;
@@ -119,6 +207,11 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   const [editingQuestion, setEditingQuestion] =
     useState<EditingQuestion | null>(null);
   const [editorDraft, setEditorDraft] = useState<EditorDraft | null>(null);
+  const editorDraftParse = editorDraft
+    ? parseHintTone(editorDraft.hintTone)
+    : { notes: [] as NoteOption[], repeat: "1x" as RepeatOption };
+  const [editedHintTones, setEditedHintTones] = useState<Record<string, string>>({});
+  const [cardSaveMessage, setCardSaveMessage] = useState("");
   const [editorSegments, setEditorSegments] = useState<EditorSegment[]>([]);
   const [editorBusy, setEditorBusy] = useState(false);
   const [editorMessage, setEditorMessage] = useState("");
@@ -210,7 +303,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     }
     setPlayingId(id);
     setPlayErrorId(null);
-    const audio = new Audio(getAudioUrl(url) ?? url);
+    const audio = new Audio(sanitizeAudioUrl(url) ?? url);
     audioRef.current = audio;
     audio.play().catch((e) => {
       console.warn("Direct slice play failed", e);
@@ -267,7 +360,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     });
 
     if (audioUrl) {
-      const audio = new Audio(getAudioUrl(audioUrl) ?? audioUrl);
+      const audio = new Audio(sanitizeAudioUrl(audioUrl) ?? audioUrl);
       audio.onloadedmetadata = () => {
         setEditorDraft((current) =>
           current
@@ -378,7 +471,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
 
   const previewTimelineSelection = () => {
     if (!selectedTimelineClip) return;
-    const audio = new Audio(getAudioUrl(selectedTimelineClip.audioUrl) ?? selectedTimelineClip.audioUrl);
+    const audio = new Audio(sanitizeAudioUrl(selectedTimelineClip.audioUrl) ?? selectedTimelineClip.audioUrl);
     audioRef.current?.pause();
     audioRef.current = audio;
     const start = Number(timelineStart) || 0;
@@ -607,6 +700,22 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   const editorKey = editingQuestion
     ? `${jilid}:${hal}:${editingQuestion.question.id}`
     : "";
+
+  const saveHintTone = async (key: string, hintTone: string) => {
+    try {
+      await editorRequest("save-text", { key, hintTone });
+      setEditedHintTones((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      setCardSaveMessage("Tersimpan");
+      setTimeout(() => setCardSaveMessage(""), 1200);
+      reloadAfterEditorSave();
+    } catch (error) {
+      setCardSaveMessage(error instanceof Error ? error.message : String(error));
+    }
+  };
 
   const saveEditorAudio = async (action: "cut" | "merge") => {
     if (!editingQuestion || !editorDraft || !editorDraft.outputAudioUrl) return;
@@ -984,16 +1093,9 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
               </label>
               <label className="block text-xs font-black text-[#134e4a]">
                 Nada / keterangan
-                <input
-                  value={editorDraft.hintTone}
-                  onChange={(event) =>
-                    setEditorDraft({
-                      ...editorDraft,
-                      hintTone: event.target.value,
-                    })
-                  }
-                  className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
-                />
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-100 bg-white p-3">
+                  <span className="truncate text-[#134e4a]">{editorDraft.hintTone}</span>
+                </div>
               </label>
 
               <div className="grid grid-cols-1 gap-2">
@@ -1188,6 +1290,9 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                   testedAudio[getQuestionKey(item.index)] ||
                   testedAudio[`${jilid}:${hal}:${item.id}`],
               );
+              const effectiveHintTone =
+                editedHintTones[item.questionKey] ?? item.hintTone;
+              const effectiveParse = parseHintTone(effectiveHintTone);
               return (
                 <div
                   key={item.id}
@@ -1280,11 +1385,66 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
                         ? item.audioUrl.split("/").pop()
                         : "Audio belum tersedia"}
                     </span>
-                    <span className="shrink-0 rounded bg-[#F0FDFA] px-2 py-0.5 font-bold text-[#134e4a]/70">
-                      {item.hintTone.includes("3x")
-                        ? "3x Rost"
-                        : item.hintTone || "1x"}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {NOTE_BADGES.map((badge) => {
+                        const isSelected = effectiveParse.notes.includes(badge.value);
+                        return (
+                          <button
+                            key={badge.value}
+                            type="button"
+                            onClick={() => {
+                              const nextNotes: NoteOption[] = isSelected
+                                ? effectiveParse.notes.filter((n) => n !== badge.value)
+                                : [...effectiveParse.notes, badge.value];
+                              setEditedHintTones((prev) => ({
+                                ...prev,
+                                [item.questionKey]: generateHintTone(nextNotes, effectiveParse.repeat),
+                              }));
+                            }}
+                            className={`rounded-full border-2 px-2.5 py-1 font-black text-xs transition-all ${
+                              isSelected
+                                ? "border-[#FF6B6B] bg-[#FF6B6B] text-white shadow-[3px_3px_0px_#DC2626]"
+                                : "border-[#134E4A] bg-white text-[#134E4A] hover:bg-[#F0FDF4]"
+                            }`}
+                          >
+                            {badge.label}
+                          </button>
+                        );
+                      })}
+                      <div className="flex items-center gap-1.5 ml-1">
+                        {REPEAT_BADGES.map((badge) => {
+                          const isSelected = effectiveParse.repeat === badge.value;
+                          return (
+                            <button
+                              key={badge.value}
+                              type="button"
+                              onClick={() => {
+                                setEditedHintTones((prev) => ({
+                                  ...prev,
+                                  [item.questionKey]: generateHintTone(effectiveParse.notes, badge.value),
+                                }));
+                              }}
+                              className={`rounded-full border-2 px-2.5 py-1 font-black text-xs transition-all ${
+                                isSelected
+                                  ? "border-[#0D9488] bg-[#0D9488] text-white shadow-[3px_3px_0px_#0D9488]"
+                                  : "border-[#134E4A] bg-white text-[#134E4A] hover:bg-[#F0FDF4]"
+                              }`}
+                            >
+                              {badge.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          saveHintTone(item.questionKey, effectiveHintTone)
+                        }
+                        className="shrink-0 rounded-xl border border-[#0D9488]/30 bg-[#F0FDF4] px-2.5 py-2 text-[10px] font-black text-[#0F766E]"
+                      >
+                        Simpan
+                      </button>
+                    </div>
                     {!item.audioUrl ? (
                       <span
                         className={`shrink-0 rounded px-2 py-0.5 font-black ${

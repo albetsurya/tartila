@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -292,11 +292,23 @@ export default function NgajiCeriaQuizPage() {
   // Bertambah tiap sesi baru/Ulangi agar model kuis selalu mount ulang
   // (mengosongkan `selected`/`status`), termasuk saat halaman hanya 1 soal.
   const [sessionKey, setSessionKey] = useState(0);
+  const [isOpening, setIsOpening] = useState(true);
+  const [isTaawudzPhase, setIsTaawudzPhase] = useState(true);
+  const taawudzShownRef = useRef(false);
 
-  // Batasi soal aktif sesuai level kuis
+  // Batasi soal aktif sesuai level kuis.
+  // Level 2 melanjutkan dari soal Level 1 (jangan ulangi soal).
+  // Filter soal materi Rost (type === "material" / isListenOnly / isOpening) karena
+  // Ta'awudz sudah muncul di awal, layar materi Rost di tengah kuis tidak perlu.
+  const filteredQuestions = useMemo(() => {
+    return questions.filter(
+      (q) => !q.isListenOnly && !q.isOpening && q.transliterationParts.length > 0 && !q.transliterationParts.every((p) => /^[0-9○\u06d6-\u06ed=\-—:.,\s]+$/.test(p)),
+    );
+  }, [questions]);
   const activeQuestions = useMemo(() => {
-    return questions.slice(0, currentLevelConfig.questionCount);
-  }, [questions, currentLevelConfig.questionCount]);
+    const startIdx = selectedLevel === 1 ? 0 : QUIZ_LEVELS[selectedLevel - 2].questionCount;
+    return filteredQuestions.slice(startIdx, currentLevelConfig.questionCount);
+  }, [filteredQuestions, selectedLevel, currentLevelConfig.questionCount]);
 
   const totalQuestions = activeQuestions.length;
   const question = activeQuestions[currentIdx] || activeQuestions[0];
@@ -307,8 +319,9 @@ export default function NgajiCeriaQuizPage() {
       : 0;
 
   // Timer hitung mundur saat bermain
+  // Timer berhenti selama Ta'awudz phase
   useEffect(() => {
-    if (!isPlaying || isPaused || showResult) return;
+    if (!isPlaying || isPaused || showResult || isTaawudzPhase) return;
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -320,7 +333,7 @@ export default function NgajiCeriaQuizPage() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isPlaying, isPaused, showResult]);
+  }, [isPlaying, isPaused, showResult, isTaawudzPhase]);
 
   const handleTimeOut = () => {
     stopAllAudio();
@@ -341,10 +354,9 @@ export default function NgajiCeriaQuizPage() {
     setIsPlaying(true);
     setIsPaused(false);
     setSessionKey((prev) => prev + 1);
+    // Keep taawudzShownRef as-is so Ta'awudz doesn't reappear when switching levels
   };
 
-  const [isOpening, setIsOpening] = useState(true);
-  const [isTaawudzPhase, setIsTaawudzPhase] = useState(true);
   const access = useJilidAccess(activeJilid);
   const tilawatiAudio = useTilawatiAudio({
     question,
@@ -359,7 +371,7 @@ export default function NgajiCeriaQuizPage() {
     return () => soundManager.stopBgm();
   }, [access.isOpen, access.isComingSoon]);
 
-  // Reset state when page number changes
+// Reset state when page number changes
   useEffect(() => {
     if (!access.isOpen || access.isComingSoon || !question) return;
     setCurrentIdx(0);
@@ -367,11 +379,11 @@ export default function NgajiCeriaQuizPage() {
     setShowResult(false);
     setSessionKey((prev) => prev + 1);
     setIsOpening(true);
+    taawudzShownRef.current = false;
     setIsTaawudzPhase(true);
     pageAwarded.current = false;
   }, [activeJilid, activePageNum]);
 
-  // Auto-play audio when question or opening phase changes
   useEffect(() => {
     if (!access.isOpen || access.isComingSoon || !question) return;
     if (currentIdx === 0 && isOpening) {
@@ -380,9 +392,9 @@ export default function NgajiCeriaQuizPage() {
         setIsTaawudzPhase(false);
         setIsOpening(false);
       });
-    } else {
-      handlePlayAudio();
     }
+    // Note: Auto-play for quiz questions handled by QuizEngine with proper type guards.
+    // Material (listen-only) and audio-matching types are skipped by QuizEngine.
 
     return () => {
       stopAllAudio();
@@ -393,7 +405,7 @@ export default function NgajiCeriaQuizPage() {
     activePageNum,
     access.isOpen,
     access.isComingSoon,
-    tilawatiAudio.url,
+    question?.id,
   ]);
 
   // Petakan soal ke QuestionData (opsi MCQ + bank huruf). Di-memo agar
@@ -418,6 +430,7 @@ export default function NgajiCeriaQuizPage() {
   const handleNext = () => {
     tapFeedback();
     if (currentIdx < totalQuestions - 1) {
+      stopAllAudio();
       setCurrentIdx((prev) => prev + 1);
       return;
     }
@@ -497,15 +510,13 @@ export default function NgajiCeriaQuizPage() {
     if (isCorrect) setScore((prev) => prev + 1);
   };
 
-  const handlePlayAudio = () => {
+  const handlePlayAudio = useCallback(() => {
     if (!question || !access.isOpen || access.isComingSoon) return;
-    if (isAudioPlaying) {
-      tilawatiAudio.stop();
-      return;
-    }
+    // Stop any currently playing audio (harmless no-op if already stopped)
+    tilawatiAudio.stop();
     tapFeedback();
     void tilawatiAudio.play();
-  };
+  }, [question?.id, isAudioPlaying, access.isOpen]);
 
   if (!access.isOpen || access.isComingSoon) {
     return (
@@ -694,6 +705,20 @@ export default function NgajiCeriaQuizPage() {
               <p className="text-xs text-[var(--text-main,#0369A1)]/80 font-bold pt-2">
                 Mendengarkan pembuka...
               </p>
+              {!taawudzShownRef.current && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopAllAudio();
+                    taawudzShownRef.current = true;
+                    setIsTaawudzPhase(false);
+                    setIsOpening(false);
+                  }}
+                  className="mt-4 px-4 py-2 rounded-xl bg-[#0D9488]/10 text-[var(--text-main,#0369A1)] text-xs font-bold border-2 border-[var(--border-color,#0284C7)]/30 hover:bg-[#0D9488]/20 active:scale-95 transition-transform cursor-pointer"
+                >
+                  Lewati
+                </button>
+              )}
             </div>
           </main>
         ) : (
@@ -709,7 +734,7 @@ export default function NgajiCeriaQuizPage() {
 
             {questionData && (
               <QuizEngine
-                key={sessionKey}
+                key={question.id}
                 question={questionData}
                 questionIndex={currentIdx}
                 onAnswerSubmit={handleAnswerSubmit}

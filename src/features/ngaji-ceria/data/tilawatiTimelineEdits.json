@@ -55524,7 +55524,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 3.150492553710938,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_asset-0.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_asset-0.ogg"
           },
           {
             "id": "clip-fd81b455-b330-43aa-aadd-8d0b301722a3",
@@ -55544,7 +55544,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 3.1853240966796874,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-fd81b455-b330-43aa-aadd-8d0b301722a3.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-fd81b455-b330-43aa-aadd-8d0b301722a3.ogg"
           },
           {
             "id": "clip-44e5df80-d642-450c-b8fd-bb826cafd752",
@@ -55564,7 +55564,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 3.2134234619140623,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-44e5df80-d642-450c-b8fd-bb826cafd752.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-44e5df80-d642-450c-b8fd-bb826cafd752.ogg"
           },
           {
             "id": "clip-ae4a6058-2318-4249-a47c-b5f46a124f23",
@@ -55579,7 +55579,7 @@
             ],
             "trimStart": 1.7492401123046875,
             "trimEnd": 4.78,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-ae4a6058-2318-4249-a47c-b5f46a124f23.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-ae4a6058-2318-4249-a47c-b5f46a124f23.ogg"
           },
           {
             "id": "asset-3",
@@ -55594,7 +55594,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 3.081656494140625,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_asset-3.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_asset-3.ogg"
           },
           {
             "id": "clip-3baf51be-91be-4078-8ff2-561e171593c9",
@@ -55614,7 +55614,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 3.159362182617187,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-3baf51be-91be-4078-8ff2-561e171593c9.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-3baf51be-91be-4078-8ff2-561e171593c9.ogg"
           },
           {
             "id": "clip-ee8dda72-fa39-42fc-a263-f18dc5a18e8a",
@@ -55629,7 +55629,7 @@
             ],
             "trimStart": 1.6810186767578126,
             "trimEnd": 4.64,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-ee8dda72-fa39-42fc-a263-f18dc5a18e8a.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-ee8dda72-fa39-42fc-a263-f18dc5a18e8a.ogg"
           },
           {
             "id": "asset-5",
@@ -55644,16 +55644,16 @@
             ],
             "trimStart": 0,
             "trimEnd": 5.02,
-            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_asset-5.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_asset-5.ogg"
           }
         ],
         "texts": [
           {
             "id": 0,
-            "arabic": "سَلَمَ سَلِمَ",
+            "arabic": "سَلَمَ سَلَمِ",
             "transliterationParts": [
               "salama",
-              "salima"
+              "salami"
             ],
             "options": [
               "salama",
@@ -55708,10 +55708,10 @@
           },
           {
             "id": 2,
-            "arabic": "وَلَكَ   وَلِكَ",
+            "arabic": "وَلَكَ وَلَكِ",
             "transliterationParts": [
               "walaka",
-              "walika"
+              "walaki"
             ],
             "options": [
               "walaka",
@@ -55730,10 +55730,10 @@
           },
           {
             "id": 4,
-            "arabic": "شَهَدَ   شَهِدَ",
+            "arabic": "شَهَدَ   شَهَدِ",
             "transliterationParts": [
               "syahada",
-              "syahida"
+              "syahadi"
             ],
             "options": [
               "syahada",
@@ -55752,10 +55752,10 @@
           },
           {
             "id": 6,
-            "arabic": "وَلَدَ   وَلِدَ",
+            "arabic": "وَلَدَ وَلَدِ",
             "transliterationParts": [
               "walada",
-              "walida"
+              "waladi"
             ],
             "options": [
               "walada",
@@ -55774,10 +55774,10 @@
           },
           {
             "id": 8,
-            "arabic": "خَرَجَ   خَرِجَ",
+            "arabic": "خَرَجَ خَرَجِ",
             "transliterationParts": [
               "kharaja",
-              "kharija"
+              "kharaji"
             ],
             "options": [
               "kharaja",
@@ -55796,10 +55796,10 @@
           },
           {
             "id": 10,
-            "arabic": "كَتَبَ   كَتِبَ",
+            "arabic": "كَتَبَ كَتَبِ",
             "transliterationParts": [
               "kataba",
-              "katiba"
+              "katabi"
             ],
             "options": [
               "kataba",
@@ -55818,10 +55818,10 @@
           },
           {
             "id": 12,
-            "arabic": "خَرَبَ   خَرِبَ",
+            "arabic": "خَرَبَ خَرَبِ",
             "transliterationParts": [
               "kharaba",
-              "khariba"
+              "kharabi"
             ],
             "options": [
               "kharaba",
@@ -55843,38 +55843,39 @@
       "questions": [
         {
           "id": 0,
-          "arabic": "سَلَمَ سَلِمَ",
+          "arabic": "سَلَمَ سَلَمِ",
           "transliterationParts": [
             "salama",
-            "salima"
+            "salami"
           ],
           "options": [
             "salama",
+            "salami",
+            "salima",
             "salima",
             "a",
             "i",
             "u",
             "ba",
             "ta",
-            "tsa",
-            "ja",
-            "ha"
+            "tsa"
           ],
           "hintTone": "Rost: Datar — Naik — Turun (3x)",
           "isOpening": true,
           "isListenOnly": true,
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_asset-0.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_asset-0.ogg",
           "audioMappingComplete": true
         },
         {
           "id": 2,
-          "arabic": "وَلَكَ وَلِكَ",
+          "arabic": "وَلَكَ وَلَكِ",
           "transliterationParts": [
             "walaka",
-            "walika"
+            "walaki"
           ],
           "options": [
             "walaka",
+            "walaki",
             "walika",
             "a",
             "i",
@@ -55882,22 +55883,22 @@
             "ba",
             "ta",
             "tsa",
-            "ja",
-            "ha"
+            "ja"
           ],
           "hintTone": "Rost: Datar — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-fd81b455-b330-43aa-aadd-8d0b301722a3.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-fd81b455-b330-43aa-aadd-8d0b301722a3.ogg",
           "audioMappingComplete": true
         },
         {
           "id": 4,
-          "arabic": "شَهَدَ شَهِدَ",
+          "arabic": "شَهَدَ شَهَدِ",
           "transliterationParts": [
             "syahada",
-            "syahida"
+            "syahadi"
           ],
           "options": [
             "syahada",
+            "syahadi",
             "syahida",
             "a",
             "i",
@@ -55905,22 +55906,22 @@
             "ba",
             "ta",
             "tsa",
-            "ja",
-            "ha"
+            "ja"
           ],
           "hintTone": "Rost: Datar — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-44e5df80-d642-450c-b8fd-bb826cafd752.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-44e5df80-d642-450c-b8fd-bb826cafd752.ogg",
           "audioMappingComplete": true
         },
         {
           "id": 6,
-          "arabic": "وَلَدَ وَلِدَ",
+          "arabic": "وَلَدَ وَلَدِ",
           "transliterationParts": [
             "walada",
-            "walida"
+            "waladi"
           ],
           "options": [
             "walada",
+            "waladi",
             "walida",
             "a",
             "i",
@@ -55928,22 +55929,22 @@
             "ba",
             "ta",
             "tsa",
-            "ja",
-            "ha"
+            "ja"
           ],
           "hintTone": "Rost: Datar — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-ae4a6058-2318-4249-a47c-b5f46a124f23.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-ae4a6058-2318-4249-a47c-b5f46a124f23.ogg",
           "audioMappingComplete": true
         },
         {
           "id": 8,
-          "arabic": "خَرَجَ خَرِجَ",
+          "arabic": "خَرَجَ خَرَجِ",
           "transliterationParts": [
             "kharaja",
-            "kharija"
+            "kharaji"
           ],
           "options": [
             "kharaja",
+            "kharaji",
             "kharija",
             "a",
             "i",
@@ -55951,22 +55952,22 @@
             "ba",
             "ta",
             "tsa",
-            "ja",
-            "ha"
+            "ja"
           ],
           "hintTone": "Rost: Datar — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_asset-3.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_asset-3.ogg",
           "audioMappingComplete": true
         },
         {
           "id": 10,
-          "arabic": "كَتَبَ كَتِبَ",
+          "arabic": "كَتَبَ كَتَبِ",
           "transliterationParts": [
             "kataba",
-            "katiba"
+            "katabi"
           ],
           "options": [
             "kataba",
+            "katabi",
             "katiba",
             "a",
             "i",
@@ -55974,22 +55975,22 @@
             "ba",
             "ta",
             "tsa",
-            "ja",
-            "ha"
+            "ja"
           ],
           "hintTone": "Rost: Datar — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-3baf51be-91be-4078-8ff2-561e171593c9.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-3baf51be-91be-4078-8ff2-561e171593c9.ogg",
           "audioMappingComplete": true
         },
         {
           "id": 12,
-          "arabic": "خَرَبَ خَرِبَ",
+          "arabic": "خَرَبَ خَرَبِ",
           "transliterationParts": [
             "kharaba",
-            "khariba"
+            "kharabi"
           ],
           "options": [
             "kharaba",
+            "kharabi",
             "khariba",
             "a",
             "i",
@@ -55997,11 +55998,10 @@
             "ba",
             "ta",
             "tsa",
-            "ja",
-            "ha"
+            "ja"
           ],
           "hintTone": "Rost: Datar — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_clip-ee8dda72-fa39-42fc-a263-f18dc5a18e8a.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_clip-ee8dda72-fa39-42fc-a263-f18dc5a18e8a.ogg",
           "audioMappingComplete": true
         },
         {
@@ -56032,11 +56032,11 @@
             "ba"
           ],
           "hintTone": "Rost: Nada Datar",
-          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1792804202464_asset-5.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal1/editor_1793139010302_asset-5.ogg",
           "audioMappingComplete": true
         }
       ],
-      "revision": "1792804202464"
+      "revision": "1793139010302"
     }
   },
   "3:1": {
@@ -65056,7 +65056,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.5,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-0.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-0.ogg"
           },
           {
             "id": "asset-1",
@@ -65071,7 +65071,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.66,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-1.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-1.ogg"
           },
           {
             "id": "asset-2",
@@ -65086,7 +65086,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.544,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-2.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-2.ogg"
           },
           {
             "id": "asset-3",
@@ -65101,7 +65101,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.64,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-3.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-3.ogg"
           },
           {
             "id": "asset-4",
@@ -65116,7 +65116,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.64,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-4.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-4.ogg"
           },
           {
             "id": "asset-5",
@@ -65131,7 +65131,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.68,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-5.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-5.ogg"
           },
           {
             "id": "asset-6",
@@ -65146,7 +65146,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.74,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-6.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-6.ogg"
           },
           {
             "id": "asset-7",
@@ -65161,16 +65161,16 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.69,
-            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-7.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-7.ogg"
           }
         ],
         "texts": [
           {
             "id": 0,
-            "arabic": "دَخَلَ دَخَلَ دَخِلِ",
+            "arabic": "دَخَلَ دَخَلِ دَخِلِ",
             "transliterationParts": [
               "dakhala",
-              "dakhala",
+              "dakhali",
               "dakhili"
             ],
             "options": [
@@ -65369,15 +65369,15 @@
       "questions": [
         {
           "id": 0,
-          "arabic": "دَخَلَ دَخَلَ دَخِلِ",
+          "arabic": "دَخَلَ دَخَلِ دَخِلِ",
           "transliterationParts": [
             "dakhala",
-            "dakhala",
+            "dakhali",
             "dakhili"
           ],
           "options": [
             "dakhala",
-            "dakhala",
+            "dakhali",
             "dakhili",
             "dakhila",
             "a",
@@ -65389,7 +65389,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-0.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-0.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65414,7 +65414,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-1.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-1.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65439,7 +65439,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-2.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-2.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65464,7 +65464,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-3.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-3.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65489,7 +65489,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-4.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-4.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65514,7 +65514,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-5.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-5.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65539,7 +65539,7 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-6.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-6.ogg",
           "audioMappingComplete": true
         },
         {
@@ -65564,11 +65564,11 @@
             "ja"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1792803001204_asset-7.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal2/editor_1793139043941_asset-7.ogg",
           "audioMappingComplete": true
         }
       ],
-      "revision": "1792803001204"
+      "revision": "1793139043941"
     }
   },
   "2:4": {
@@ -68988,7 +68988,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.34,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-0.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-0.ogg"
           },
           {
             "id": "asset-1",
@@ -69003,7 +69003,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.32,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-1.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-1.ogg"
           },
           {
             "id": "asset-2",
@@ -69018,7 +69018,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.44,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-2.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-2.ogg"
           },
           {
             "id": "asset-3",
@@ -69033,7 +69033,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.56,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-3.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-3.ogg"
           },
           {
             "id": "asset-4",
@@ -69048,7 +69048,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.56,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-4.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-4.ogg"
           },
           {
             "id": "asset-5",
@@ -69063,7 +69063,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.42,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-5.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-5.ogg"
           },
           {
             "id": "asset-6",
@@ -69078,7 +69078,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.5,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-6.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-6.ogg"
           },
           {
             "id": "asset-7",
@@ -69093,16 +69093,16 @@
             ],
             "trimStart": 0,
             "trimEnd": 4.59,
-            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-7.ogg"
+            "outputUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-7.ogg"
           }
         ],
         "texts": [
           {
             "id": 0,
-            "arabic": "اَسَفًا   رَجَلًا   جُرُزًا",
+            "arabic": "اَسَفًا رَجُلًا جُرُزًا",
             "transliterationParts": [
               "asafan",
-              "rajalan",
+              "rajulan",
               "juruzan"
             ],
             "options": [
@@ -69294,15 +69294,15 @@
       "questions": [
         {
           "id": 0,
-          "arabic": "اَسَفًا رَجَلًا جُرُزًا",
+          "arabic": "اَسَفًا رَجُلًا جُرُزًا",
           "transliterationParts": [
             "asafan",
-            "rajalan",
+            "rajulan",
             "juruzan"
           ],
           "options": [
             "asafan",
-            "rajalan",
+            "rajulan",
             "juruzan",
             "asafana",
             "rajalana",
@@ -69314,7 +69314,7 @@
             "ta"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-0.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-0.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69339,7 +69339,7 @@
             "ta"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-1.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-1.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69364,7 +69364,7 @@
             "ha"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-2.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-2.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69389,7 +69389,7 @@
             "ha"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-3.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-3.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69414,7 +69414,7 @@
             "ha"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-4.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-4.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69439,7 +69439,7 @@
             "ha"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-5.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-5.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69464,7 +69464,7 @@
             "ha"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-6.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-6.ogg",
           "audioMappingComplete": true
         },
         {
@@ -69489,11 +69489,11 @@
             "ha"
           ],
           "hintTone": "Rost: Datar — Naik — Turun",
-          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1792814039797_asset-7.ogg",
+          "audioUrl": "/audio/tilawati/jilid_2/hal10/editor_1793108522169_asset-7.ogg",
           "audioMappingComplete": true
         }
       ],
-      "revision": "1792814039797"
+      "revision": "1793108522169"
     }
   },
   "2:24": {
@@ -104181,7 +104181,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 9.96,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-0.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-0.ogg"
           },
           {
             "id": "clip-d6f9dcdb-2fbc-4f34-b205-b65408b54c02",
@@ -104201,7 +104201,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 9.98,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_clip-d6f9dcdb-2fbc-4f34-b205-b65408b54c02.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_clip-d6f9dcdb-2fbc-4f34-b205-b65408b54c02.ogg"
           },
           {
             "id": "asset-3",
@@ -104216,7 +104216,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 9.04,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-3.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-3.ogg"
           },
           {
             "id": "asset-4",
@@ -104231,7 +104231,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 6.82,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-4.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-4.ogg"
           },
           {
             "id": "asset-5",
@@ -104246,7 +104246,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 5.195167541503906,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-5.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-5.ogg"
           },
           {
             "id": "clip-8591dcfa-57c0-4b4d-aeb6-988712c91ead",
@@ -104261,7 +104261,7 @@
             ],
             "trimStart": 5.195167541503906,
             "trimEnd": 11.04,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_clip-8591dcfa-57c0-4b4d-aeb6-988712c91ead.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_clip-8591dcfa-57c0-4b4d-aeb6-988712c91ead.ogg"
           },
           {
             "id": "asset-6",
@@ -104276,7 +104276,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 7.74,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-6.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-6.ogg"
           },
           {
             "id": "asset-7",
@@ -104291,7 +104291,7 @@
             ],
             "trimStart": 0,
             "trimEnd": 9.16,
-            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-7.ogg"
+            "outputUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-7.ogg"
           }
         ],
         "texts": [
@@ -104366,7 +104366,7 @@
               "waallaahu",
               "min",
               "wwaraa'ihim",
-              "mmuhiythun"
+              "mmuhiyth"
             ],
             "options": [
               "waallaahu",
@@ -104393,7 +104393,7 @@
               "innahu",
               "bikulli",
               "syay'in",
-              "mmuhiythun"
+              "mmuhiyth"
             ],
             "options": [
               "alaa",
@@ -104421,7 +104421,7 @@
               "'alayhi",
               "syajaratan",
               "mmin",
-              "yyaqthiynin"
+              "yyaqthiyn"
             ],
             "options": [
               "waanbatnaa",
@@ -104587,12 +104587,13 @@
             "waallaahu",
             "min",
             "wwaraa'ihim",
-            "mmuhiythun"
+            "mmuhiyth"
           ],
           "options": [
             "waallaahu",
             "min",
             "wwaraa'ihim",
+            "mmuhiyth",
             "mmuhiythun",
             "○",
             "a",
@@ -104600,11 +104601,10 @@
             "u",
             "ba",
             "ta",
-            "tsa",
-            "ja"
+            "tsa"
           ],
           "hintTone": "Rost: Nada Naik",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-0.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-0.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104615,13 +104615,14 @@
             "innahu",
             "bikulli",
             "syay'in",
-            "mmuhiythun"
+            "mmuhiyth"
           ],
           "options": [
             "alaa",
             "innahu",
             "bikulli",
             "syay'in",
+            "mmuhiyth",
             "mmuhiythun",
             "○",
             "a",
@@ -104629,11 +104630,10 @@
             "u",
             "ba",
             "ta",
-            "tsa",
-            "ja"
+            "tsa"
           ],
           "hintTone": "Rost: Nada Turun",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_clip-d6f9dcdb-2fbc-4f34-b205-b65408b54c02.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_clip-d6f9dcdb-2fbc-4f34-b205-b65408b54c02.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104644,13 +104644,14 @@
             "'alayhi",
             "syajaratan",
             "mmin",
-            "yyaqthiynin"
+            "yyaqthiyn"
           ],
           "options": [
             "waanbatnaa",
             "'alayhi",
             "syajaratan",
             "mmin",
+            "yyaqthiyn",
             "yyaqthiynin",
             "○",
             "a",
@@ -104658,11 +104659,10 @@
             "u",
             "ba",
             "ta",
-            "tsa",
-            "ja"
+            "tsa"
           ],
           "hintTone": "Rost: Nada Datar",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-3.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-3.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104689,7 +104689,7 @@
             "ja"
           ],
           "hintTone": "Rost: Nada Naik",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-4.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-4.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104716,7 +104716,7 @@
             "ja"
           ],
           "hintTone": "Rost: Nada Turun",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-5.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-5.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104745,7 +104745,7 @@
             "ja"
           ],
           "hintTone": "Rost: Nada Datar",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_clip-8591dcfa-57c0-4b4d-aeb6-988712c91ead.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_clip-8591dcfa-57c0-4b4d-aeb6-988712c91ead.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104776,7 +104776,7 @@
             "ja"
           ],
           "hintTone": "Rost: Nada Naik",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-6.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-6.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104803,7 +104803,7 @@
             "ja"
           ],
           "hintTone": "Rost: Nada Turun",
-          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793071931242_asset-7.ogg",
+          "audioUrl": "/audio/tilawati/jilid_5/hal44/editor_1793085640131_asset-7.ogg",
           "audioMappingComplete": true
         },
         {
@@ -104873,7 +104873,1189 @@
           "audioMappingComplete": true
         }
       ],
-      "revision": "1793071931242"
+      "revision": "1793085640131"
+    }
+  },
+  "4:37": {
+    "published": {
+      "timeline": {
+        "version": 2,
+        "clips": [
+          {
+            "id": "asset-0",
+            "label": "hal37_baris_01.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_01.ogg",
+                "start": 0,
+                "end": 8.52
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 8.52,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-0.ogg"
+          },
+          {
+            "id": "asset-1",
+            "label": "hal37_baris_02.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_02.ogg",
+                "start": 0,
+                "end": 9.04
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 9.04,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-1.ogg"
+          },
+          {
+            "id": "asset-2",
+            "label": "hal37_baris_03.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_03.ogg",
+                "start": 0,
+                "end": 10.68
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 10.68,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-2.ogg"
+          },
+          {
+            "id": "asset-3",
+            "label": "hal37_baris_04.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_04.ogg",
+                "start": 0,
+                "end": 5.94
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 5.94,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-3.ogg"
+          },
+          {
+            "id": "asset-4",
+            "label": "hal37_baris_05.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_05.ogg",
+                "start": 0,
+                "end": 10.9
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 10.9,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-4.ogg"
+          },
+          {
+            "id": "asset-5",
+            "label": "hal37_baris_06.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_06.ogg",
+                "start": 0,
+                "end": 9.92
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 9.92,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-5.ogg"
+          },
+          {
+            "id": "asset-6",
+            "label": "hal37_baris_07.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_4/hal37/hal37_baris_07.ogg",
+                "start": 0,
+                "end": 8.06
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 8.06,
+            "outputUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-6.ogg"
+          }
+        ],
+        "texts": [
+          {
+            "id": 0,
+            "arabic": "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+            "transliterationParts": [
+              "bismi",
+              "allaahi",
+              "alrrahmaani",
+              "alrrahiymi"
+            ],
+            "options": [
+              "bismi",
+              "allaahi",
+              "alrrahmaani",
+              "alrrahiymi",
+              "bismi",
+              "allaahi",
+              "alrrahmaani",
+              "alrrahiymi",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha",
+              "na"
+            ],
+            "hintTone": "Rost: Datar — Naik — Turun (3x)",
+            "isOpening": true,
+            "isListenOnly": true,
+            "clipId": null
+          },
+          {
+            "id": 1,
+            "arabic": "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+            "transliterationParts": [
+              "bismi",
+              "allaahi",
+              "alrrahmaani",
+              "alrrahiymi"
+            ],
+            "options": [
+              "bismi",
+              "allaahi",
+              "alrrahmaani",
+              "alrrahiymi",
+              "bismi",
+              "allaahi",
+              "alrrahmaani",
+              "alrrahiymi",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha",
+              "na"
+            ],
+            "hintTone": "Rost: Nada Datar",
+            "clipId": null
+          },
+          {
+            "id": 2,
+            "arabic": "اِللَا ذِكرَااَ لِلبَشَرِ ○ تَعْمَلُ الْخَبَائِثَ ○",
+            "transliterationParts": [
+              "illaa",
+              "dzikraaa",
+              "lilbasyari",
+              "ta'malu",
+              "alkhabaa'itsa"
+            ],
+            "options": [
+              "illaa",
+              "dzikraaa",
+              "lilbasyari",
+              "famaa",
+              "alhadiytsu",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-0"
+          },
+          {
+            "id": 4,
+            "arabic": "لَمَّا عَلَيْهَا حَافِظٌ ○   عَلَيْهَا تِسْعَةَ عَشَرَ ○",
+            "transliterationParts": [
+              "lammaa",
+              "'alayhaa",
+              "haafizhun",
+              "'alayhaa",
+              "tis'ata",
+              "'asyara"
+            ],
+            "options": [
+              "lammaa",
+              "'alayhaa",
+              "haafizhun",
+              "'alayhaa",
+              "tis'ata",
+              "'asyara",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-1"
+          },
+          {
+            "id": 6,
+            "arabic": "وَلَكُمْ فِيْهَا مَنَافِعُ ○   فَيَقُوْلُ رَبِّيْٓ اَهَانَنِ ○",
+            "transliterationParts": [
+              "walakum",
+              "fiyhaa",
+              "manaafi'u",
+              "fayaquwlu",
+              "rabbiy",
+              "ahaanani"
+            ],
+            "options": [
+              "walakum",
+              "fiyhaa",
+              "manaafi'u",
+              "fayaquwlu",
+              "rabbiy",
+              "ahaanani",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-2"
+          },
+          {
+            "id": 8,
+            "arabic": "بَلَغَنِيَ الْكِبَرُ ○   بِعَصَاكَ الْحَجَرَ ○",
+            "transliterationParts": [
+              "balaghaniya",
+              "alkibaru",
+              "bi'ashaaka",
+              "alhajara"
+            ],
+            "options": [
+              "balaghaniya",
+              "alkibaru",
+              "bi'ashaaka",
+              "alhajara",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-3"
+          },
+          {
+            "id": 10,
+            "arabic": "اِنَّآ اَعْطَيْنٰكَ الْكَوْثَرَ ○   سَاُصْلِيْهِ سَقَرَ ○",
+            "transliterationParts": [
+              "innaa",
+              "a'thaynaaka",
+              "alkawtsara",
+              "saushliyhi",
+              "saqara"
+            ],
+            "options": [
+              "innaa",
+              "a'thaynaaka",
+              "alkawtsara",
+              "saushliyhi",
+              "saqara",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-4"
+          },
+          {
+            "id": 12,
+            "arabic": "اِذَا الشَّمْسُ كُوِّرَتْ ○   وَالسَّمَآءِ وَمَا بَنٰهَا ○",
+            "transliterationParts": [
+              "idzaa",
+              "alsysyamsu",
+              "kuwwirat",
+              "waalssamaa'i",
+              "wamaa",
+              "banaahaa"
+            ],
+            "options": [
+              "idzaa",
+              "alsysyamsu",
+              "kuwwirat",
+              "waalssamaa'i",
+              "wamaa",
+              "banaahaa",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-5"
+          },
+          {
+            "id": 14,
+            "arabic": "الْجَوَارِ الْكُنَّسِ ○   وَالَّيْلِ اِذَا عَسْعَسَ ○",
+            "transliterationParts": [
+              "aljawaari",
+              "alkunnasi",
+              "waallayli",
+              "idzaa",
+              "'as'asa"
+            ],
+            "options": [
+              "aljawaari",
+              "alkunnasi",
+              "waallayli",
+              "idzaa",
+              "'as'asa",
+              "○",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja"
+            ],
+            "hintTone": "Rost: Datar — Turun",
+            "clipId": "asset-6"
+          }
+        ]
+      },
+      "questions": [
+        {
+          "id": 2,
+          "arabic": "اِللَا ذِكرَااَ لِلبَشَرِ ○ تَعْمَلُ الْخَبَائِثَ ○",
+          "transliterationParts": [
+            "illaa",
+            "dzikraaa",
+            "lilbasyari",
+            "ta'malu",
+            "alkhabaa'itsa"
+          ],
+          "options": [
+            "illaa",
+            "dzikraaa",
+            "lilbasyari",
+            "ta'malu",
+            "alkhabaa'itsa",
+            "famaa",
+            "alhadiytsu",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-0.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 4,
+          "arabic": "لَمَّا عَلَيْهَا حَافِظٌ ○ عَلَيْهَا تِسْعَةَ عَشَرَ ○",
+          "transliterationParts": [
+            "lammaa",
+            "'alayhaa",
+            "haafizhun",
+            "'alayhaa",
+            "tis'ata",
+            "'asyara"
+          ],
+          "options": [
+            "lammaa",
+            "'alayhaa",
+            "haafizhun",
+            "'alayhaa",
+            "tis'ata",
+            "'asyara",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-1.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 6,
+          "arabic": "وَلَكُمْ فِيْهَا مَنَافِعُ ○ فَيَقُوْلُ رَبِّيْٓ اَهَانَنِ ○",
+          "transliterationParts": [
+            "walakum",
+            "fiyhaa",
+            "manaafi'u",
+            "fayaquwlu",
+            "rabbiy",
+            "ahaanani"
+          ],
+          "options": [
+            "walakum",
+            "fiyhaa",
+            "manaafi'u",
+            "fayaquwlu",
+            "rabbiy",
+            "ahaanani",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-2.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 8,
+          "arabic": "بَلَغَنِيَ الْكِبَرُ ○ بِعَصَاكَ الْحَجَرَ ○",
+          "transliterationParts": [
+            "balaghaniya",
+            "alkibaru",
+            "bi'ashaaka",
+            "alhajara"
+          ],
+          "options": [
+            "balaghaniya",
+            "alkibaru",
+            "bi'ashaaka",
+            "alhajara",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-3.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 10,
+          "arabic": "اِنَّآ اَعْطَيْنٰكَ الْكَوْثَرَ ○ سَاُصْلِيْهِ سَقَرَ ○",
+          "transliterationParts": [
+            "innaa",
+            "a'thaynaaka",
+            "alkawtsara",
+            "saushliyhi",
+            "saqara"
+          ],
+          "options": [
+            "innaa",
+            "a'thaynaaka",
+            "alkawtsara",
+            "saushliyhi",
+            "saqara",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-4.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 12,
+          "arabic": "اِذَا الشَّمْسُ كُوِّرَتْ ○ وَالسَّمَآءِ وَمَا بَنٰهَا ○",
+          "transliterationParts": [
+            "idzaa",
+            "alsysyamsu",
+            "kuwwirat",
+            "waalssamaa'i",
+            "wamaa",
+            "banaahaa"
+          ],
+          "options": [
+            "idzaa",
+            "alsysyamsu",
+            "kuwwirat",
+            "waalssamaa'i",
+            "wamaa",
+            "banaahaa",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-5.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 14,
+          "arabic": "الْجَوَارِ الْكُنَّسِ ○ وَالَّيْلِ اِذَا عَسْعَسَ ○",
+          "transliterationParts": [
+            "aljawaari",
+            "alkunnasi",
+            "waallayli",
+            "idzaa",
+            "'as'asa"
+          ],
+          "options": [
+            "aljawaari",
+            "alkunnasi",
+            "waallayli",
+            "idzaa",
+            "'as'asa",
+            "○",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja"
+          ],
+          "hintTone": "Rost: Datar — Turun",
+          "audioUrl": "/audio/tilawati/jilid_4/hal37/editor_1793086504501_asset-6.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 0,
+          "arabic": "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+          "transliterationParts": [
+            "bismi",
+            "allaahi",
+            "alrrahmaani",
+            "alrrahiymi"
+          ],
+          "options": [
+            "bismi",
+            "allaahi",
+            "alrrahmaani",
+            "alrrahiymi",
+            "bismi",
+            "allaahi",
+            "alrrahmaani",
+            "alrrahiymi",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha",
+            "na"
+          ],
+          "hintTone": "Rost: Datar — Naik — Turun (3x)",
+          "isOpening": true,
+          "isListenOnly": true,
+          "audioUrl": "",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 1,
+          "arabic": "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+          "transliterationParts": [
+            "bismi",
+            "allaahi",
+            "alrrahmaani",
+            "alrrahiymi"
+          ],
+          "options": [
+            "bismi",
+            "allaahi",
+            "alrrahmaani",
+            "alrrahiymi",
+            "bismi",
+            "allaahi",
+            "alrrahmaani",
+            "alrrahiymi",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha",
+            "na"
+          ],
+          "hintTone": "Rost: Nada Datar",
+          "audioUrl": "",
+          "audioMappingComplete": true
+        }
+      ],
+      "revision": "1793086504501"
+    }
+  },
+  "2:11": {
+    "published": {
+      "timeline": {
+        "version": 2,
+        "clips": [
+          {
+            "id": "asset-0",
+            "label": "hal11_baris_01.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_01.ogg",
+                "start": 0,
+                "end": 4.12
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.12,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-0.ogg"
+          },
+          {
+            "id": "asset-1",
+            "label": "hal11_baris_02.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_02.ogg",
+                "start": 0,
+                "end": 4.2
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.2,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-1.ogg"
+          },
+          {
+            "id": "asset-2",
+            "label": "hal11_baris_03.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_03.ogg",
+                "start": 0,
+                "end": 4.24
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.24,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-2.ogg"
+          },
+          {
+            "id": "asset-3",
+            "label": "hal11_baris_04.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_04.ogg",
+                "start": 0,
+                "end": 4.2
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.2,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-3.ogg"
+          },
+          {
+            "id": "asset-4",
+            "label": "hal11_baris_05.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_05.ogg",
+                "start": 0,
+                "end": 4.36
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.36,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-4.ogg"
+          },
+          {
+            "id": "asset-5",
+            "label": "hal11_baris_06.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_06.ogg",
+                "start": 0,
+                "end": 4.24
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.24,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-5.ogg"
+          },
+          {
+            "id": "asset-6",
+            "label": "hal11_baris_07.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_07.ogg",
+                "start": 0,
+                "end": 4.2
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.2,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-6.ogg"
+          },
+          {
+            "id": "asset-7",
+            "label": "hal11_baris_08.ogg",
+            "kind": "baris",
+            "segments": [
+              {
+                "sourceUrl": "/audio/tilawati/jilid_2/hal11/hal11_baris_08.ogg",
+                "start": 0,
+                "end": 4.35
+              }
+            ],
+            "trimStart": 0,
+            "trimEnd": 4.35,
+            "outputUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-7.ogg"
+          }
+        ],
+        "texts": [
+          {
+            "id": 0,
+            "arabic": "حَرَجًا   حَضَرَ   دَخَلًا",
+            "transliterationParts": [
+              "harajan",
+              "hadhara",
+              "dakhalan"
+            ],
+            "options": [
+              "harajan",
+              "hadhara",
+              "dakhalan",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-0"
+          },
+          {
+            "id": 3,
+            "arabic": "هَدِيَ   خَتَمُ   ذَنَبًا",
+            "transliterationParts": [
+              "hadiya",
+              "khatamu",
+              "dzanaban"
+            ],
+            "options": [
+              "hadiya",
+              "khatamu",
+              "dzanaban",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-1"
+          },
+          {
+            "id": 6,
+            "arabic": "فَرِغُ   قَبِلَ   كَرِمُ",
+            "transliterationParts": [
+              "farighu",
+              "qabila",
+              "karimu"
+            ],
+            "options": [
+              "farighu",
+              "qabila",
+              "karimu",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-2"
+          },
+          {
+            "id": 9,
+            "arabic": "وَحِدًا   نَظِرُ   سَهِلُ",
+            "transliterationParts": [
+              "wahidan",
+              "nazhiru",
+              "sahilu"
+            ],
+            "options": [
+              "wahidan",
+              "nazhiru",
+              "sahilu",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-3"
+          },
+          {
+            "id": 12,
+            "arabic": "شَعَرًا   حَفَظًا   شَهِدُ",
+            "transliterationParts": [
+              "sya'aran",
+              "hafazhan",
+              "syahidu"
+            ],
+            "options": [
+              "sya'aran",
+              "hafazhan",
+              "syahidu",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-4"
+          },
+          {
+            "id": 15,
+            "arabic": "مَلَكَ   وَعَدُ   رَزِقُ",
+            "transliterationParts": [
+              "malaka",
+              "wa'adu",
+              "raziqu"
+            ],
+            "options": [
+              "malaka",
+              "wa'adu",
+              "raziqu",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-5"
+          },
+          {
+            "id": 18,
+            "arabic": "نَهِرُ   كَتِبُ   رَفَقًا",
+            "transliterationParts": [
+              "nahiru",
+              "katibu",
+              "rafaqan"
+            ],
+            "options": [
+              "nahiru",
+              "katibu",
+              "rafaqan",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-6"
+          },
+          {
+            "id": 21,
+            "arabic": "مَرَحَ   مَلِكَ   فَرَطًا",
+            "transliterationParts": [
+              "maraha",
+              "malika",
+              "farathan"
+            ],
+            "options": [
+              "maraha",
+              "malika",
+              "farathan",
+              "a",
+              "i",
+              "u",
+              "ba",
+              "ta",
+              "tsa",
+              "ja",
+              "ha"
+            ],
+            "hintTone": "Rost: Turun — Datar — Naik",
+            "clipId": "asset-7"
+          }
+        ]
+      },
+      "questions": [
+        {
+          "id": 0,
+          "arabic": "حَرَجًا حَضَرَ دَخَلًا",
+          "transliterationParts": [
+            "harajan",
+            "hadhara",
+            "dakhalan"
+          ],
+          "options": [
+            "harajan",
+            "hadhara",
+            "dakhalan",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-0.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 3,
+          "arabic": "هَدِيَ خَتَمُ ذَنَبًا",
+          "transliterationParts": [
+            "hadiya",
+            "khatamu",
+            "dzanaban"
+          ],
+          "options": [
+            "hadiya",
+            "khatamu",
+            "dzanaban",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-1.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 6,
+          "arabic": "فَرِغُ قَبِلَ كَرِمُ",
+          "transliterationParts": [
+            "farighu",
+            "qabila",
+            "karimu"
+          ],
+          "options": [
+            "farighu",
+            "qabila",
+            "karimu",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-2.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 9,
+          "arabic": "وَحِدًا نَظِرُ سَهِلُ",
+          "transliterationParts": [
+            "wahidan",
+            "nazhiru",
+            "sahilu"
+          ],
+          "options": [
+            "wahidan",
+            "nazhiru",
+            "sahilu",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-3.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 12,
+          "arabic": "شَعَرًا حَفَظًا شَهِدُ",
+          "transliterationParts": [
+            "sya'aran",
+            "hafazhan",
+            "syahidu"
+          ],
+          "options": [
+            "sya'aran",
+            "hafazhan",
+            "syahidu",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-4.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 15,
+          "arabic": "مَلَكَ وَعَدُ رَزِقُ",
+          "transliterationParts": [
+            "malaka",
+            "wa'adu",
+            "raziqu"
+          ],
+          "options": [
+            "malaka",
+            "wa'adu",
+            "raziqu",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-5.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 18,
+          "arabic": "نَهِرُ كَتِبُ رَفَقًا",
+          "transliterationParts": [
+            "nahiru",
+            "katibu",
+            "rafaqan"
+          ],
+          "options": [
+            "nahiru",
+            "katibu",
+            "rafaqan",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-6.ogg",
+          "audioMappingComplete": true
+        },
+        {
+          "id": 21,
+          "arabic": "مَرَحَ مَلِكَ فَرَطًا",
+          "transliterationParts": [
+            "maraha",
+            "malika",
+            "farathan"
+          ],
+          "options": [
+            "maraha",
+            "malika",
+            "farathan",
+            "a",
+            "i",
+            "u",
+            "ba",
+            "ta",
+            "tsa",
+            "ja",
+            "ha"
+          ],
+          "hintTone": "Rost: Turun — Datar — Naik",
+          "audioUrl": "/audio/tilawati/jilid_2/hal11/editor_1793108444770_asset-7.ogg",
+          "audioMappingComplete": true
+        }
+      ],
+      "revision": "1793108444770"
     }
   }
 }

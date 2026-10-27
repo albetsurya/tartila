@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../constants";
+import { authApi } from "./authApi";
 
 const REQUEST_TIMEOUT_MS = 15000;
 const TOKEN_COOKIE = "tartila_token";
@@ -8,6 +9,58 @@ type UnauthorizedHandler = () => void;
 
 let unauthorizedHandler: UnauthorizedHandler | null = null;
 let sessionExpiryNotified = false;
+let refreshInProgress = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * Helper to retry a request with refreshed token.
+ * Prevents infinite retry loops with `_retry` flag.
+ */
+async function retryWithFreshToken<T>(
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+  path: string,
+  data?: Record<string, any>,
+  queryParams?: Record<string, any>,
+  bearer?: string | null,
+  _retry?: boolean,
+): Promise<T> {
+  if (refreshInProgress && !_retry) {
+    // Wait for any in-progress refresh
+    if (refreshPromise) {
+      await refreshPromise;
+    }
+    // Retry with fresh token after refresh completes
+    return callREST<T>(method, path, data, queryParams, bearer, true);
+  }
+
+  // Don't retry auth endpoints to avoid infinite loop
+  if (_retry && path.includes("/auth/refresh")) {
+    throw new ApiError("Session expired", undefined, { retryable: false });
+  }
+
+  // Try to refresh token silently
+  refreshInProgress = true;
+  refreshPromise = authApi.refreshToken();
+
+  try {
+    const newToken = await refreshPromise;
+    if (newToken && !_retry) {
+      // Token refreshed, retry request with new token
+      return callREST<T>(method, path, data, queryParams, newToken, true);
+    }
+    // Refresh failed or already retried - session truly expired
+    // Hard redirect to login with clear token state
+    clearToken();
+    sessionExpiryNotified = true;
+    window.location.href = "/login";
+    throw new ApiError("Session expired. Please log in again.", undefined, {
+      retryable: false,
+    });
+  } finally {
+    refreshInProgress = false;
+    refreshPromise = null;
+  }
+}
 
 /**
  * Register a global handler invoked once when the API reports an
@@ -133,6 +186,7 @@ export async function callREST<T>(
   data?: Record<string, any>,
   queryParams?: Record<string, any>,
   bearer?: string | null,
+  _retry?: boolean,
 ): Promise<T> {
   const baseUrl = API_BASE_URL
     ? API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "")
@@ -179,6 +233,14 @@ export async function callREST<T>(
     }
     if (!res.ok || json.success === false) {
       if (res.status === 401 || res.status === 403) {
+        if (!_retry) {
+          // Try silent token refresh before notifying
+          try {
+            return await retryWithFreshToken<T>(method, path, data, queryParams, bearer, false);
+          } catch {
+            // retryWithFreshToken handles notification and error
+          }
+        }
         notifyUnauthorized();
       }
       throw new ApiError(json.message || `REST request gagal (${res.status})`, undefined, {

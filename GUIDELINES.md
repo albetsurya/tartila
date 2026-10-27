@@ -272,6 +272,19 @@ Platform Tartila memiliki arsitektur audio 4 lapis yang bekerja secara harmonis 
 4. **Pembatalan Speech Synthesis**:
    - `playVoiceFeedback` selalu memanggil `window.speechSynthesis.cancel()` sebelum memutar frasa baru untuk mencegah antrean suara menumpuk saat anak mengklik tombol dengan cepat.
 
+### 4.3 Mekanisme Autoplay Audio pada Kuis (Quiz Engine)
+
+Halaman kuis (`NgajiCeriaQuizPage.tsx` & `QuizEngine.tsx`) memiliki aturan ketat untuk mencegah *looping* dan memastikan audio berjalan sesuai jenis soal.
+
+**A. Aturan Baku (SSOT):**
+1. **Semua model soal WAJIB Auto-play** saat pertama kali muncul (di-mount), termasuk Susun Huruf, Pilihan Ganda Teks, dan Pilihan Ganda Audio.
+2. **SATU-SATUNYA pengecualian** adalah model **Audio Matching**. Pada model ini, audio tidak boleh berbunyi otomatis, melainkan harus menunggu *user* mengklik opsi jawaban.
+
+**B. Mekanisme Teknis Pencegahan Bug:**
+1. **Dependensi `useEffect`:** Efek pemutaran audio di `QuizEngine.tsx` HANYA boleh bergantung pada `[question.id]` atau `[currentIdx]`. 
+2. **Anti Infinite Loop:** JANGOR PERNAH memasukkan fungsi callback (`onPlayAudio`), URL audio, atau state jawaban (seperti `selectedLetters`) ke dalam array dependensi `useEffect`. Fungsi callback wajib dibungkus dengan `useCallback` di komponen induk (`NgajiCeriaQuizPage.tsx`).
+3. **Reset State Antar Soal:** Saat berpindah soal, komponen induk wajib memanggil `tilawatiAudio.stop()` secara eksplisit, dan memberikan `key={question.id}` pada komponen `<QuizEngine />` untuk memaksa React me-reset seluruh state internal kuis agar audio soal baru bisa berputar.
+
 ---
 
 ## 5. Struktur Fitur & Routing
