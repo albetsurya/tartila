@@ -14,20 +14,16 @@
  */
 import type { PageQuizData, QuizQuestion } from "./tilawatiQuizTypes";
 import { TILAWATI_JILID_1_PAGES } from "./tilawatiQuizJilid1";
-import { TILAWATI_JILID_2_PAGES } from "./tilawatiQuizJilid2";
-import { TILAWATI_JILID_3_PAGES } from "./tilawatiQuizJilid3";
-import { TILAWATI_JILID_4_PAGES } from "./tilawatiQuizJilid4";
-import { TILAWATI_JILID_5_PAGES } from "./tilawatiQuizJilid5";
-import { TILAWATI_JILID_6_PAGES } from "./tilawatiQuizJilid6";
 
-/** Peta jilid ke dataset halamannya. Kunci harus cocok dengan `jilid`. */
-const JILID_PAGES: Record<number, Record<number, PageQuizData>> = {
+/** Peta jilid ke dataset halamannya. Jilid 1 statik, 2-6 dinamis. */
+const JILID_CACHES: Record<number, Record<number, PageQuizData>> = {
   1: TILAWATI_JILID_1_PAGES,
-  2: TILAWATI_JILID_2_PAGES,
-  3: TILAWATI_JILID_3_PAGES,
-  4: TILAWATI_JILID_4_PAGES,
-  5: TILAWATI_JILID_5_PAGES,
-  6: TILAWATI_JILID_6_PAGES,
+  // Jilid 2-6 dimuat secara dinamis via loadJilidPages
+};
+
+/** Flag per-jilid apakah sudah dimuat dinamis. */
+const LOADING_STATE: Record<number, { loading: true } | { loaded: true; data: Record<number, PageQuizData> }> = {
+  1: { loaded: true, data: TILAWATI_JILID_1_PAGES },
 };
 
 /** Payload ringan untuk WebSocket Tartila Arena. */
@@ -97,18 +93,42 @@ function shuffle<T>(items: readonly T[]): T[] {
 }
 
 /**
+ * Memuat dataset jilid secara dinamis (dynamic import) dengan cache per-jilid.
+ *
+ * Jilid 1 selalu tersedia secara sinron (static import pada module load).
+ * Jilid 2-6 dimuat secara lazy via dynamic import untuk mengurangi ukuran
+ * bundle awal. Setelah dipanggil sekali, hasilnya disimpan di `JILID_CACHES`
+ * sehingga pemanggilan berikutnya tidak perlu import ulang.
+ *
+ * @param jilid Nomor jilid (1-6).
+ * @returns Peta nomor halaman ke `PageQuizData`, kosong bila gagal.
+ */
+export async function loadJilidPages(jilid: number): Promise<Record<number, PageQuizData>> {
+  if (JILID_CACHES[jilid]) return JILID_CACHES[jilid]!;
+  const module = await import(`./tilawatiQuizJilid${jilid}`);
+  const pages = (module as Record<string, Record<number, PageQuizData>>)[`TILAWATI_JILID_${jilid}_PAGES`];
+  if (!pages) return {};
+  JILID_CACHES[jilid] = pages;
+  return pages;
+}
+
+/**
  * Mengambil dataset halaman MENTAH untuk satu jilid.
+ *
+ * Untuk Jilid 1, data tersedia secara sinron (static import). Untuk Jilid 2-6,
+ * panggil `await loadJilidPages(jilid)` terlebih dahulu agar data tersedia
+ * di cache, lalu gunakan fungsi ini secara sinron.
  *
  * Dipakai pipeline audio (`tilawatiQuizData.ts`) sebagai sumber data inti,
  * sehingga file inti hanya di-import di sini. Struktur dan isi halaman tidak
  * diubah; simbol waqaf tetap utuh.
  *
  * @param jilid Nomor jilid (1-6).
- * @returns Peta nomor halaman ke `PageQuizData` mentah, kosong bila jilid tidak
- *   tersedia.
+ * @returns Peta nomor halaman ke `PageQuizData` mentah, kosong bila jilid belum
+ *   dimuat (gunakan `loadJilidPages` terlebih dahulu untuk Jilid 2-6).
  */
 export function getRawPages(jilid: number): Record<number, PageQuizData> {
-  return JILID_PAGES[jilid] ?? {};
+  return JILID_CACHES[jilid] ?? {};
 }
 
 /**
@@ -123,7 +143,7 @@ export function getRawPages(jilid: number): Record<number, PageQuizData> {
  * @returns Array soal acak, kosong bila jilid tidak tersedia.
  */
 export function getRandomQuestions(jilid: number, limit: number): QuizQuestion[] {
-  const pages = JILID_PAGES[jilid];
+  const pages = JILID_CACHES[jilid];
   if (!pages) return [];
   const pool: QuizQuestion[] = [];
   for (const page of Object.values(pages)) {
@@ -157,7 +177,7 @@ export function getSpecificPageForAssignment(
   jilid: number,
   pageNumber: number,
 ): SpecificPageResult {
-  const pages = JILID_PAGES[jilid];
+  const pages = JILID_CACHES[jilid];
   if (!pages) {
     return { ok: false, error: `Jilid ${jilid} tidak tersedia.` };
   }

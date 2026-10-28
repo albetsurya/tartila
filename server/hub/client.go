@@ -33,6 +33,7 @@ type Client struct {
 	RoomPIN  string
 	PlayerID string
 	IsHost   bool
+	UserID   string
 }
 
 type RoomHub struct {
@@ -217,6 +218,13 @@ func (c *Client) WritePump() {
 
 // ServeWS handles incoming websocket requests for /api/ws/room/:pin
 func ServeWS(hub *RoomHub, w http.ResponseWriter, r *http.Request, pin string, playerID string, isHost bool) {
+	userID, _, err := ParseAuthToken(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		log.Printf("[ServeWS] auth failed: %v", err)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("[ServeWS] Upgrade error: %v", err)
@@ -230,6 +238,7 @@ func ServeWS(hub *RoomHub, w http.ResponseWriter, r *http.Request, pin string, p
 		RoomPIN:  pin,
 		PlayerID: playerID,
 		IsHost:   isHost,
+		UserID:   userID,
 	}
 
 	hub.Register <- client

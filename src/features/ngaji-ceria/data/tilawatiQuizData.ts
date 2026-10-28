@@ -225,30 +225,20 @@ function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>, 
   ) as Record<number, PageQuizData>;
 }
 
-const RAW_TILAWATI_JILID_1_PAGES = getRawPages(1);
-const RAW_TILAWATI_JILID_2_PAGES = getRawPages(2);
-const RAW_TILAWATI_JILID_3_PAGES = getRawPages(3);
-const RAW_TILAWATI_JILID_4_PAGES = getRawPages(4);
-const RAW_TILAWATI_JILID_5_PAGES = getRawPages(5);
-const TILAWATI_JILID_6_PAGES = getRawPages(6);
-
-const TILAWATI_JILID_1_PAGES = applyTimelineEdits(1, applyQuizEdits(1, groupJilid1Footers(RAW_TILAWATI_JILID_1_PAGES)), TIMELINE_EDITS);
-const TILAWATI_JILID_2_PAGES = applyTimelineEdits(2, applyQuizEdits(2, groupDatasetByAudioRows(2, RAW_TILAWATI_JILID_2_PAGES)), TIMELINE_EDITS);
-const TILAWATI_JILID_3_PAGES = applyTimelineEdits(3, applyQuizEdits(3, groupDatasetByAudioRows(3, RAW_TILAWATI_JILID_3_PAGES)), TIMELINE_EDITS);
-const TILAWATI_JILID_4_PAGES = applyTimelineEdits(4, applyQuizEdits(4, groupDatasetByAudioRows(4, RAW_TILAWATI_JILID_4_PAGES)), TIMELINE_EDITS);
-const TILAWATI_JILID_5_PAGES = applyTimelineEdits(5, applyQuizEdits(5, groupDatasetByAudioRows(5, RAW_TILAWATI_JILID_5_PAGES)), TIMELINE_EDITS);
+/**
+ * Konstanta sync untuk Jilid 1 (statik import).
+ * Jilid 2-6 tidak lagi diekspor sebagai konstanta — gunakan `getTilawatiJilidPages(jilid)`.
+ */
+const TILAWATI_JILID_1_PAGES = applyTimelineEdits(
+  1,
+  applyQuizEdits(1, groupJilid1Footers(getRawPages(1))),
+  TIMELINE_EDITS,
+);
 
 export type { QuizQuestion, PageQuizData } from "./tilawatiQuizTypes";
 
 export {
   TILAWATI_JILID_1_PAGES,
-  TILAWATI_JILID_2_PAGES,
-  TILAWATI_JILID_3_PAGES,
-  TILAWATI_JILID_4_PAGES,
-  TILAWATI_JILID_5_PAGES,
-  TILAWATI_JILID_6_PAGES,
+  getTilawatiJilidPages,
+  applyTimelineEdits,
 };
-
-// Exported so consumers (e.g. async dataset loader) can re-apply timeline edits
-// when fetched at runtime. Defaults to EMPTY_TIMELINE_EDITS when not provided.
-export { applyTimelineEdits };
