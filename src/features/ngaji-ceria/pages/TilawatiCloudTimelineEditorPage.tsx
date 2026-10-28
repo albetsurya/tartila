@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ScissorsSvg, SettingsSvg } from "@/components/ui/CustomIcons";
 import { latinToArabic } from "../utils/translit";
-import { TILAWATI_PAGE_DATASETS } from "../data/tilawatiPageDatasets";
-import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
+import { getTilawatiPageQuestions } from "../data/tilawatiPageDatasets";
 import {
   AudioAsset,
   AudioSegment,
@@ -159,17 +158,7 @@ export default function TilawatiCloudTimelineEditorPage({
           controller.signal,
         );
         if (controller.signal.aborted) return;
-        const page = TILAWATI_PAGE_DATASETS[jilid][hal];
-        const questions = page.questions.map((question, index) => ({
-          ...question,
-          audioUrl: getQuestionAudioUrl(
-            question,
-            jilid,
-            hal,
-            index,
-            Boolean(page.questions[0]?.isOpening),
-          ),
-        }));
+        const questions = await getTilawatiPageQuestions(jilid, hal);
         const base =
           data.published?.timeline ?? initialTimeline(data.clips, questions);
         const project = restored.draft?.timeline ?? base;

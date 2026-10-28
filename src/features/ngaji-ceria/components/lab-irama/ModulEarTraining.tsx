@@ -39,13 +39,27 @@ function isArrowPattern(value: PatternType): value is PatternArrowType {
   return ARROW_PATTERN_TYPES.includes(value as PatternArrowType);
 }
 
-function buildQuestions(): PatternQuestion[] {
+const FALLBACK_QUESTIONS: PatternQuestion[] = [
+  {
+    id: 'fallback-1',
+    audioUrl: '/audio/tilawati/jilid_1/hal1/hal1_header_datar.ogg',
+    correctPattern: '1-datar',
+  },
+  {
+    id: 'fallback-3',
+    audioUrl: '/audio/tilawati/jilid_1/hal1/hal1_header_full.ogg',
+    correctPattern: '3-datar-naik-turun',
+  },
+];
+
+async function buildQuestions(): Promise<PatternQuestion[]> {
   const jilidList = [1, 2, 3, 4, 5];
   const collected: PatternQuestion[] = [];
   const seenPattern = new Set<PatternArrowType>();
 
   for (const jilid of jilidList) {
-    for (const item of getHeaderSamples(jilid)) {
+    const samples = await getHeaderSamples(jilid);
+    for (const item of samples) {
       if (!isArrowPattern(item.patternType)) continue;
       if (seenPattern.has(item.patternType)) continue;
 
@@ -61,22 +75,26 @@ function buildQuestions(): PatternQuestion[] {
   if (collected.length >= 2) return collected;
 
   // Fallback sementara bila data adapter belum memuat audio.
-  return [
-    {
-      id: 'fallback-1',
-      audioUrl: '/audio/tilawati/jilid_1/hal1/hal1_header_datar.ogg',
-      correctPattern: '1-datar',
-    },
-    {
-      id: 'fallback-3',
-      audioUrl: '/audio/tilawati/jilid_1/hal1/hal1_header_full.ogg',
-      correctPattern: '3-datar-naik-turun',
-    },
-  ];
+  return FALLBACK_QUESTIONS;
 }
 
 export const ModulEarTraining = ({ onComplete }: ModulEarTrainingProps) => {
-  const [questions] = useState<PatternQuestion[]>(() => buildQuestions());
+  const [questions, setQuestions] = useState<PatternQuestion[]>(() => FALLBACK_QUESTIONS);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void buildQuestions()
+      .then((result) => {
+        if (alive) setQuestions(result);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingQuestions(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPattern, setSelectedPattern] = useState<PatternArrowType | null>(null);
   const [answerStatus, setAnswerStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');

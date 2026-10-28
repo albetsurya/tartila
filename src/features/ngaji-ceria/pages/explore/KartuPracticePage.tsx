@@ -9,6 +9,7 @@ import {
   getArenaKartuMateri,
   getArenaKartuCardById,
   getArabicFontSizeClass,
+  type ArenaKartuMateri,
   type PatternType,
 } from "../../utils/tilawatiTrainingDataAdapter";
 import { useRhythmMemoryAudio } from "../../hooks/useRhythmMemoryAudio";
@@ -106,9 +107,10 @@ export default function KartuPracticePage() {
   const markCardAsCompleted = useEconomyStore((s) => s.markCardAsCompleted);
 
   const isAlreadyCompleted = useMemo(() => {
+    if (!currentCard) return false;
     const list = completedArenaCards?.[currentJilid] || [];
     return list.includes(currentCard.id);
-  }, [completedArenaCards, currentJilid, currentCard.id]);
+  }, [completedArenaCards, currentJilid, currentCard]);
 
   // Audio hook
   const { playCardSound, stopAudio, preloadAudio } = useRhythmMemoryAudio();
@@ -133,7 +135,7 @@ export default function KartuPracticePage() {
   }, [preloadAudio, stopAudio]);
 
   // Get correct answer from patternType
-  const correctAnswer = currentCard.patternType;
+  const correctAnswer = currentCard?.patternType;
   const correctLabel = correctAnswer ? PATTERN_TO_ANSWER[correctAnswer] : "";
 
   // Handle flip card
@@ -150,6 +152,7 @@ export default function KartuPracticePage() {
 
   // Handle play audio with safe audioUrl check
   const handlePlayAudio = useCallback(() => {
+    if (!currentCard) return;
     triggerBibiReaction("click");
     soundManager.playSfx("pop");
     setIsPlayingAudio(true);
@@ -163,7 +166,7 @@ export default function KartuPracticePage() {
     });
 
     const duration =
-      (60 / currentCard.bpm) * currentCard.beatsCount * 1000 + 1200;
+      (60 / currentCard.bpm!) * currentCard.beatsCount! * 1000 + 1200;
     setTimeout(() => {
       setIsPlayingAudio(false);
     }, duration);
@@ -178,6 +181,7 @@ export default function KartuPracticePage() {
   // Handle answer check
   const handleCheckAnswer = () => {
     if (selectedAnswer === null) return;
+    if (!currentCard) return;
 
     if (selectedAnswer === correctAnswer) {
       setShowResult("correct");
@@ -193,6 +197,7 @@ export default function KartuPracticePage() {
 
   // Handle next card (after correct answer)
   const handleNextCard = () => {
+    if (!currentCard) return;
     const currentIndex = allCards.findIndex((c) => c.id === currentCard.id);
     if (currentIndex >= 0 && currentIndex < allCards.length - 1) {
       const nextCard = allCards[currentIndex + 1];
@@ -210,6 +215,7 @@ export default function KartuPracticePage() {
 
   // Handle previous card
   const handlePrevCard = () => {
+    if (!currentCard) return;
     const currentIndex = allCards.findIndex((c) => c.id === currentCard.id);
     if (currentIndex > 0) {
       setIsFlipped(false);
@@ -230,6 +236,7 @@ export default function KartuPracticePage() {
 
   // Mark card completed (fallback when patternType unavailable)
   const handleMarkCompleted = () => {
+    if (!currentCard) return;
     markCardAsCompleted(currentJilid, currentCard.id);
     setIsFlipped(false);
     setSelectedAnswer(null);

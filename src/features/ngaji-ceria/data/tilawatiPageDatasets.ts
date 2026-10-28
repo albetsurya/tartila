@@ -1,7 +1,9 @@
 import { getTilawatiJilidPages, applyTimelineEdits } from "./tilawatiQuizData";
-import type { PageQuizData } from "./tilawatiQuizTypes";
+import type { PageQuizData, QuizQuestion } from "./tilawatiQuizTypes";
+export type { PageQuizData } from "./tilawatiQuizTypes";
 import { loadTimelineEdits, type TimelineEdits } from "../utils/timelineEditsLoader";
 import { TILAWATI_JILID_1_PAGES } from "./tilawatiQuizJilid1";
+import { getQuestionAudioUrl } from "./tilawatiAudioQuestionMap";
 
 // Cache per-jilid: Jilid 1 statik, 2-6 lazy-loaded
 const JILID_DATASET_CACHE: Record<number, Record<number, PageQuizData>> = {
@@ -13,10 +15,10 @@ const JILID_DATASET_CACHE: Record<number, Record<number, PageQuizData>> = {
  * Jilid 2-6 dimuat lewat dynamic import pertama kali.
  */
 export async function loadTilawatiDataset(jilid: number): Promise<Record<number, PageQuizData>> {
-  // Jilid 1 sudah di cache
+  // Jilid 1: lazy apply timeline edits (populated TIMELINE_EDITS) like jilid 2-6.
+  // JILID_DATASET_CACHE[1] is raw (no audio URLs), so use the processed loader.
   if (jilid === 1) {
-    const base = applyTimelineEdits(1, JILID_DATASET_CACHE[1]!, {});
-    return base;
+    return getTilawatiJilidPages(1);
   }
 
   // Jilid 2-6: lazy load
@@ -39,4 +41,18 @@ export function getTilawatiDataset(jilid: number): Record<number, PageQuizData> 
 /** Memuat semua timeline edits sekaligus. Berguna untuk pre-fetching di level layar. */
 export async function loadTilawatiDatasets(): Promise<TimelineEdits> {
   return loadTimelineEdits();
+}
+
+/**
+ * Ambil pertanyaan halaman dengan audio URL ter-resolve, untuk editor timeline.
+ * Jilid 1 sinkron (statically cached); Jilid 2–6 dimuat lewat lazy loader.
+ */
+export async function getTilawatiPageQuestions(jilid: number, hal: number): Promise<QuizQuestion[]> {
+  const pages = await loadTilawatiDataset(jilid);
+  const page = pages[hal];
+  if (!page) return [];
+  return page.questions.map((question, index) => ({
+    ...question,
+    audioUrl: getQuestionAudioUrl(question, jilid, hal, index, Boolean(page.questions[0]?.isOpening)),
+  }));
 }
