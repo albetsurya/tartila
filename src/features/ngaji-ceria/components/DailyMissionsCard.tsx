@@ -18,22 +18,42 @@ import { AppModal } from "@/components/ui/AppModal";
 import { PetiHartaSvg } from "@/components/ui/Illustrations";
 import { useNgajiProgress } from "../pages/games/_shared/progression";
 import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
-import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
-// Helper untuk memilih ikon berdasarkan tipe misi (Permanen Kontras Gelap di Light, Terang di Dark)
 const getMissionIcon = (id: string, isCompletedOnYellow?: boolean) => {
   if (isCompletedOnYellow) {
-    if (id.includes("game"))
+    if (id.includes("game")) {
       return <Gamepad size={18} className="text-[#134E4A]" stroke="#134E4A" />;
-    if (id.includes("streak"))
+    }
+    if (id.includes("streak")) {
       return <Fire size={18} className="text-[#134E4A]" stroke="#134E4A" />;
+    }
     return <BookOpen size={18} className="text-[#134E4A]" stroke="#134E4A" />;
   }
-  if (id.includes("game"))
-    return <Gamepad size={18} className="text-[#134E4A] dark:text-[#FBBF24]" stroke="currentColor" />;
-  if (id.includes("streak"))
-    return <Fire size={18} className="text-[#134E4A] dark:text-[#FB7185]" stroke="currentColor" />;
-  return <BookOpen size={18} className="text-[#134E4A] dark:text-[#2DD4BF]" stroke="currentColor" />;
+  if (id.includes("game")) {
+    return (
+      <Gamepad
+        size={18}
+        className="text-[#134E4A] dark:text-[#FBBF24]"
+        stroke="currentColor"
+      />
+    );
+  }
+  if (id.includes("streak")) {
+    return (
+      <Fire
+        size={18}
+        className="text-[#134E4A] dark:text-[#FB7185]"
+        stroke="currentColor"
+      />
+    );
+  }
+  return (
+    <BookOpen
+      size={18}
+      className="text-[#134E4A] dark:text-[#2DD4BF]"
+      stroke="currentColor"
+    />
+  );
 };
 
 export function DailyMissionsCard() {
@@ -46,36 +66,38 @@ export function DailyMissionsCard() {
 
   return (
     <>
-      {/* KONTAINER UTAMA: Bergaya papan petualangan */}
-      <div className="relative overflow-hidden rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[#FFFBEB] dark:bg-[var(--bg-card)] p-4 shadow-[5px_5px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
-        {/* Ornamen Background (Peta/Bintang) */}
-        <div className="pointer-events-none absolute -right-4 -top-4 opacity-10">
-          <Sparkles size={100} />
+      <div className="relative overflow-hidden rounded-[22px] border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FFFBEB] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200 dark:bg-[var(--bg-card)] sm:p-5">
+        <div
+          className="pointer-events-none absolute -right-3 -top-4 text-[#134E4A] opacity-[0.06]"
+          aria-hidden="true"
+        >
+          <Sparkles size={92} />
         </div>
 
-        {/* HEADER */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
-              {/* Menggunakan PetiHartaSvg berukuran kecil di header */}
-              <PetiHartaSvg size={32} className="text-[#134E4A]" stroke="#134E4A" />
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] sm:h-12 sm:w-12">
+              <PetiHartaSvg
+                size={30}
+                className="text-[#134E4A]"
+                stroke="#134E4A"
+              />
             </div>
-            <div>
-              <h3 className="font-display text-base font-black text-[var(--text-main,#134E4A)]">
+            <div className="min-w-0">
+              <h3 className="font-display text-base font-black text-[var(--text-main,#134E4A)] sm:text-lg">
                 Papan Misi
               </h3>
-              <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/60">
+              <p className="mt-0.5 text-xs leading-snug text-[var(--text-main,#134E4A)]/60 sm:text-sm">
                 Selesaikan misi, raih hadiahnya!
               </p>
             </div>
           </div>
-          <span className="rounded-lg bg-[#FF6B6B] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
-            Reset Hari Ini
+          <span className="shrink-0 rounded-lg border border-[var(--border-color,#134E4A)]/15 bg-[#FF6B6B] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white sm:px-2.5 sm:text-[11px]">
+            Harian
           </span>
         </div>
 
-        {/* LIST MISI */}
-        <div className="relative z-10 mt-4 space-y-3">
+        <div className="relative z-10 mt-4 space-y-2.5 sm:space-y-3">
           {DAILY_MISSIONS.map((mission, idx) => {
             const current = getMissionCurrentProgress(mission);
             const completed = current >= mission.target;
@@ -88,51 +110,52 @@ export function DailyMissionsCard() {
             return (
               <motion.button
                 key={mission.id}
+                type="button"
                 onClick={() => setSelectedMission(mission)}
-                whileTap={{ scale: 0.97 }}
-                initial={{ opacity: 0, y: 10 }}
+                whileTap={{ scale: 0.99 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className={`w-full flex flex-col gap-2.5 rounded-2xl p-3.5 transition-all text-left ${
+                transition={{ delay: idx * 0.06, duration: 0.22 }}
+                className={`flex w-full flex-col gap-2.5 rounded-xl p-3 text-left transition-colors sm:p-3.5 ${
                   claimed
-                    ? "border-[2px] border-[var(--border-color,#134E4A)]/30 bg-gray-100 dark:bg-gray-800/40 opacity-60"
+                    ? "border border-[var(--border-color,#134E4A)]/10 bg-gray-100/80 opacity-75 dark:bg-gray-800/40"
                     : completed
-                      ? "border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]"
-                      : "border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] hover:-translate-y-0.5"
+                      ? "border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                      : "border border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] hover:border-[var(--border-color,#134E4A)]/40"
                 }`}
               >
-                <div className="flex items-center justify-between gap-3 w-full">
-                  <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex w-full items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
                     <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] ${
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
                         claimed
-                          ? "bg-gray-200 dark:bg-gray-800 border-gray-400 dark:border-gray-600 text-gray-400"
+                          ? "border-gray-300 bg-gray-200 text-gray-400 dark:border-gray-600 dark:bg-gray-800"
                           : completed
-                            ? "bg-white border-[#134E4A] text-[#134E4A]"
-                            : "bg-[#FEF08A] dark:bg-[var(--bg-card)] border-[#134E4A] dark:border-[#2DD4BF] text-[#134E4A] dark:text-white"
+                            ? "border-[#134E4A] bg-white text-[#134E4A]"
+                            : "border-[#134E4A]/15 bg-[#FEF08A] text-[#134E4A] dark:border-[#2DD4BF]/40 dark:bg-[var(--bg-card)] dark:text-white"
                       }`}
                     >
                       {getMissionIcon(mission.id, completed)}
                     </div>
                     <div className="min-w-0">
                       <p
-                        className={`font-display text-xs font-black ${
+                        className={`font-display text-sm font-black leading-tight ${
                           claimed
-                            ? "line-through text-gray-400 dark:text-gray-500"
+                            ? "text-gray-400 line-through dark:text-gray-500"
                             : completed
                               ? "text-[#134E4A]"
-                              : "text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                              : "text-[var(--text-main,#134E4A)]"
                         }`}
                       >
                         {mission.title}
                       </p>
                       <p
-                        className={`text-[10px] font-bold mt-0.5 truncate ${
+                        className={`mt-1 line-clamp-2 text-xs leading-snug ${
                           claimed
                             ? "text-gray-400 dark:text-gray-500"
                             : completed
-                              ? "text-[#134E4A]/80"
-                              : "text-gray-600 dark:text-gray-300"
+                              ? "text-[#134E4A]/75"
+                              : "text-[var(--text-main,#134E4A)]/60"
                         }`}
                       >
                         {mission.description}
@@ -140,37 +163,44 @@ export function DailyMissionsCard() {
                     </div>
                   </div>
 
-                  {/* BADGE AKSI */}
                   <div className="shrink-0">
                     {claimed ? (
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-[#0D9488]/10 px-2 py-1 text-[10px] font-black text-[#0D9488]">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-[#0D9488]/10 px-2 py-1.5 text-[10px] font-black text-[#0D9488]">
                         <Check size={12} /> Selesai
                       </span>
                     ) : completed ? (
                       <motion.span
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                        className="inline-flex items-center gap-1.5 rounded-lg border-[2px] border-[var(--border-color,#134E4A)] bg-[#F59E0B] px-2.5 py-1.5 text-[10px] font-black text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                        animate={{ scale: [1, 1.035, 1] }}
+                        transition={{ repeat: Infinity, duration: 2.2 }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-color,#134E4A)]/20 bg-[#F59E0B] px-2 py-1.5 text-[10px] font-black text-white"
                       >
-                        <Sparkles size={12} /> KLAIM
+                        <Sparkles size={12} /> Klaim
                       </motion.span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#0D9488] dark:text-[#38BDF8] bg-[#CCFBF1] dark:bg-[#1E293B] px-2 py-1 rounded-lg border-2 border-[var(--border-color,#134E4A)]">
-                        +{mission.rewardCoins} <Coins size={12} className="text-[#F59E0B]" stroke="currentColor" />
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-[#CCFBF1] px-2 py-1.5 text-[10px] font-black text-[#0D766E] dark:bg-[#1E293B] dark:text-[#38BDF8]">
+                        +{mission.rewardCoins}{" "}
+                        <Coins
+                          size={12}
+                          className="text-[#F59E0B]"
+                          stroke="currentColor"
+                        />
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* PROGRESS BAR YANG LEBIH GEMUK */}
-                <div className="flex items-center gap-2 w-full mt-1">
+                <div className="flex w-full items-center gap-2">
                   <AnimatedProgressBar
                     value={progressPercent}
-                    height="h-3.5"
+                    height="h-2.5"
                     className="flex-1"
-                    barClassName={completed ? "bg-[#10B981] dark:bg-[#34D399]" : "bg-[#F59E0B]"}
+                    barClassName={
+                      completed
+                        ? "bg-[#10B981] dark:bg-[#34D399]"
+                        : "bg-[#F59E0B]"
+                    }
                   />
-                  <span className="text-[10px] font-black text-[var(--text-main,#134E4A)] min-w-[28px] text-right">
+                  <span className="min-w-[38px] text-right text-[11px] font-extrabold tabular-nums text-[var(--text-main,#134E4A)]/70">
                     {current}/{mission.target}
                   </span>
                 </div>
@@ -180,7 +210,6 @@ export function DailyMissionsCard() {
         </div>
       </div>
 
-      {/* MODAL DETAIL MISI */}
       <AppModal
         isOpen={!!selectedMission}
         onClose={() => setSelectedMission(null)}
@@ -189,70 +218,78 @@ export function DailyMissionsCard() {
       >
         {selectedMission && (
           <>
-            <div className="flex flex-col items-center text-center mt-2">
-              {/* Animasi Peti Harta (Menggunakan SVG ukuran 140) */}
+            <div className="mt-2 flex flex-col items-center text-center">
               <motion.div
-                animate={{ y: [0, -10, 0] }}
+                animate={{ y: [0, -5, 0] }}
                 transition={{
                   repeat: Infinity,
-                  duration: 2.5,
+                  duration: 3,
                   ease: "easeInOut",
                 }}
-                className="mb-2 drop-shadow-xl text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]"
+                className="mb-2 text-[#134E4A] drop-shadow-lg [--svg-primary:#134E4A] [--svg-secondary:#0D9488]"
               >
-                <PetiHartaSvg size={140} stroke="#134E4A" />
+                <PetiHartaSvg size={124} stroke="#134E4A" />
               </motion.div>
-
-              <p className="text-xs font-bold text-[#134E4A]/80 dark:text-gray-300 mt-2 px-2">
+              <p className="mt-2 px-2 text-sm leading-relaxed text-[#134E4A]/75 dark:text-gray-300">
                 {selectedMission.description}
               </p>
 
-              {/* Info Hadiah yang Lebih Mencolok */}
-              <div className="mt-5 flex items-center justify-center gap-3 w-full">
-                <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[#134E4A] dark:border-[var(--border-color,#134E4A)] rounded-2xl py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
-                  <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] border-2 border-[#134E4A] flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_#134E4A]">
-                    <Coins size={22} className="text-[#F59E0B]" stroke="#134E4A" />
+              <div className="mt-5 flex w-full items-stretch justify-center gap-3">
+                <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-[#134E4A]/80 bg-[var(--bg-card,#FFFFFF)] py-3 text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] dark:text-[var(--text-main,#FFFFFF)]">
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-[#134E4A]/15 bg-[#FEF3C7]">
+                    <Coins
+                      size={22}
+                      className="text-[#F59E0B]"
+                      stroke="#134E4A"
+                    />
                   </div>
-                  <span className="text-base font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                  <span className="text-lg font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
                     +{selectedMission.rewardCoins}
                   </span>
-                  <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-gray-300 uppercase tracking-widest mt-0.5">
+                  <span className="mt-0.5 text-[10px] font-extrabold uppercase tracking-widest text-[#134E4A]/60 dark:text-gray-300">
                     Koin
                   </span>
                 </div>
-                <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[#134E4A] dark:border-[var(--border-color,#134E4A)] rounded-2xl py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
-                  <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] border-2 border-[#134E4A] flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_#134E4A]">
-                    <Sparkles size={22} className="text-[#0D9488]" stroke="#134E4A" />
+                <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-[#134E4A]/80 bg-[var(--bg-card,#FFFFFF)] py-3 text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] dark:text-[var(--text-main,#FFFFFF)]">
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-[#134E4A]/15 bg-[#CCFBF1]">
+                    <Sparkles
+                      size={22}
+                      className="text-[#0D9488]"
+                      stroke="#134E4A"
+                    />
                   </div>
-                  <span className="text-base font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                  <span className="text-lg font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
                     +{selectedMission.rewardXp}
                   </span>
-                  <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-gray-300 uppercase tracking-widest mt-0.5">
+                  <span className="mt-0.5 text-[10px] font-extrabold uppercase tracking-widest text-[#134E4A]/60 dark:text-gray-300">
                     EXP
                   </span>
                 </div>
               </div>
 
-              {/* Progress Bar Modal */}
-              <div className="w-full mt-6">
-                <div className="flex justify-between text-[10px] font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mb-1.5 uppercase tracking-wider">
-                  <span>Progres Misi</span>
-                  <span>
+              <div className="mt-6 w-full">
+                <div className="mb-2 flex justify-between text-xs font-extrabold text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                  <span>Progres misi</span>
+                  <span className="tabular-nums">
                     {getMissionCurrentProgress(selectedMission)} /{" "}
                     {selectedMission.target}
                   </span>
                 </div>
                 <AnimatedProgressBar
-                  value={Math.min(100, (getMissionCurrentProgress(selectedMission) / selectedMission.target) * 100)}
-                  height="h-4"
-                  className="border-[3px] shadow-inner"
+                  value={Math.min(
+                    100,
+                    (getMissionCurrentProgress(selectedMission) /
+                      selectedMission.target) *
+                      100,
+                  )}
+                  height="h-3.5"
+                  className="overflow-hidden rounded-full border border-[#134E4A]/15"
                   barClassName="bg-[#10B981] dark:bg-[#34D399]"
                 />
               </div>
             </div>
 
-            {/* TOMBOL AKSI MODAL */}
-            <div className="mt-7">
+            <div className="mt-6">
               {(() => {
                 const current = getMissionCurrentProgress(selectedMission);
                 const completed = current >= selectedMission.target;
@@ -261,10 +298,11 @@ export function DailyMissionsCard() {
                 if (claimed) {
                   return (
                     <button
+                      type="button"
                       disabled
-                      className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-gray-200 text-[#134E4A]/50 font-black text-sm flex items-center justify-center gap-2 cursor-not-allowed shadow-[3px_3px_0px_#134E4A]"
+                      className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A]/15 bg-gray-100 px-4 py-3 text-sm font-black text-[#134E4A]/50 dark:bg-gray-800"
                     >
-                      <Check size={18} /> Hadiah Diklaim
+                      <Check size={18} /> Hadiah diklaim
                     </button>
                   );
                 }
@@ -272,33 +310,39 @@ export function DailyMissionsCard() {
                 if (completed) {
                   return (
                     <motion.button
-                      animate={{ scale: [1, 1.03, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                      whileHover={{ scale: 1.04, rotate: [0, -1.5, 1.5, -1.5, 0] }}
-                      whileTap={{ scale: 0.95, y: 2 }}
+                      type="button"
+                      animate={{ scale: [1, 1.02, 1] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2,
+                        ease: "easeInOut",
+                      }}
+                      whileHover={{ y: -1 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         claimMission(selectedMission);
                         setRefresh((r) => r + 1);
                         setSelectedMission(null);
                       }}
-                      className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-[#F59E0B] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer"
+                      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A] bg-[#F59E0B] px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[3px_3px_0px_#134E4A] transition-all active:shadow-none"
                     >
-                      <Sparkles size={18} /> Klaim Hadiah!
+                      <Sparkles size={18} /> Klaim hadiah!
                     </motion.button>
                   );
                 }
 
                 return (
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedMission(null);
                       if ((selectedMission as any).to) {
                         window.location.href = (selectedMission as any).to;
                       }
                     }}
-                    className="w-full py-4 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_#134E4A] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-wide"
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[3px_3px_0px_#134E4A] transition-all active:translate-y-0.5 active:shadow-none"
                   >
-                    Kerjakan Sekarang
+                    Kerjakan sekarang
                   </button>
                 );
               })()}

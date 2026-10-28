@@ -178,8 +178,8 @@ export const ModulMetronomeGuide: React.FC = () => {
               onClick={() => setSelectedLessonId(lesson.id)}
               className={`shrink-0 px-3 py-1.5 rounded-xl border-2 font-display font-black text-xs transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#FEF08A] text-[#134E4A] border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] scale-[1.02]'
-                  : 'bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)]/80 border-[var(--border-color,#134E4A)]/40 hover:border-[var(--border-color,#134E4A)]'
+                  ? 'bg-[#FEF08A] text-[#134E4A] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] scale-[1.02]'
+                  : 'bg-white text-[#134E4A]/80 border-[#134E4A]/40 hover:border-[#134E4A]'
               }`}
             >
               {lesson.title}
@@ -189,10 +189,10 @@ export const ModulMetronomeGuide: React.FC = () => {
       </div>
 
       {/* 2. Visual Bouncing Ball & Runway Ketukan Siklus Tilawati */}
-      <div className="relative overflow-hidden rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-gradient-to-b from-[#CCFBF1] to-[#FEF3C7] dark:from-[#134E4A] dark:to-[#042F2C] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] text-center">
+      <div className="relative overflow-hidden rounded-3xl border-[3px] border-[#134E4A] bg-[#FEF9C3] p-5 shadow-[4px_4px_0px_#134E4A] text-center">
         {/* Header Visual */}
         <div className="flex items-center justify-between mb-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-gray-800 text-[#134E4A] dark:text-teal-200 text-xs font-black border-2 border-[var(--border-color,#134E4A)]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#134E4A] text-xs font-black border-2 border-[#134E4A]">
             <span className="w-2 h-2 rounded-full bg-[#0D9488] animate-ping" />
             Ketukan ke-{currentBeatInCycle} dari 6
           </span>
@@ -233,7 +233,7 @@ export const ModulMetronomeGuide: React.FC = () => {
               type="button"
               onClick={() => setMetronomeSound(!metronomeSound)}
               aria-label={metronomeSound ? 'Heningkan Metronom' : 'Bunyikan Metronom'}
-              className="p-1.5 rounded-xl bg-white dark:bg-gray-800 border-2 border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] active:scale-95 transition-transform cursor-pointer"
+              className="p-1.5 rounded-xl bg-white border-2 border-[#134E4A] text-[#134E4A] shadow-[1px_1px_0px_#134E4A] active:scale-95 transition-transform cursor-pointer"
             >
               {metronomeSound ? <Volume2Svg size={16} /> : <VolumeXSvg size={16} />}
             </button>
@@ -265,7 +265,7 @@ export const ModulMetronomeGuide: React.FC = () => {
             </div>
             {/* Bayangan bola di lantai */}
             <div
-              className="w-10 h-2 rounded-full bg-black/20 mt-1"
+              className="w-10 h-2 rounded-full bg-[#0D9488]/20 mt-1"
               style={{
                 transform: `scale(${Math.max(0.3, 1 - Math.abs(bounceY) / 75)})`,
                 opacity: Math.max(0.2, 1 - Math.abs(bounceY) / 60),
@@ -274,7 +274,7 @@ export const ModulMetronomeGuide: React.FC = () => {
           </div>
 
           {/* Runway / Tumpuan 3 Tahap Siklus Tilawati (6 Ketukan: 1-2 Datar, 3-4 Naik, 5-6 Turun) */}
-          <div className="w-full max-w-sm grid grid-cols-3 gap-2 sm:gap-3 pt-6 border-t-2 border-[var(--border-color,#134E4A)]/30">
+          <div className="w-full max-w-sm grid grid-cols-3 gap-2 sm:gap-3 pt-6 border-t-2 border-[#134E4A]/30">
             {[
               {
                 stage: 1,
@@ -310,8 +310,8 @@ export const ModulMetronomeGuide: React.FC = () => {
                   key={p.stage}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-2xl border-2 transition-all ${
                     isHit
-                      ? `${p.color} border-[var(--border-color,#134E4A)] text-[#134E4A] font-black scale-105 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]`
-                      : 'bg-white/80 dark:bg-gray-800/80 border-[var(--border-color,#134E4A)]/40 text-[var(--text-main,#134E4A)]/60'
+                      ? `${p.color} border-[#134E4A] text-[#134E4A] font-black scale-105 shadow-[2px_2px_0px_#134E4A]`
+                      : 'bg-white/80 border-[#134E4A]/40 text-[#134E4A]/60'
                   }`}
                 >
                   <span className="text-xs font-black inline-flex items-center gap-1">{p.label} {p.icon}</span>
@@ -324,7 +324,7 @@ export const ModulMetronomeGuide: React.FC = () => {
 
         {/* Keterangan Karakteristik Nada */}
         <div className="mt-2 text-center">
-          <span className="inline-flex items-center gap-1 text-[11px] font-black px-3 py-0.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-white text-[#134E4A] dark:bg-gray-800 dark:text-white shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
+          <span className="inline-flex items-center gap-1 text-[11px] font-black px-3 py-0.5 rounded-full border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
             {activeToneInCycle === 'Datar' ? (
               <>
                 <ArrowRightSvg size={12} />
@@ -346,19 +346,19 @@ export const ModulMetronomeGuide: React.FC = () => {
       </div>
 
       {/* 3. Kartu Teks Arab & Audio Player dengan Karaoke Highlight */}
-      <div className="bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-3xl p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] space-y-4">
-        <div className="flex items-center justify-between border-b-2 border-gray-100 dark:border-gray-800 pb-3">
+      <div className="bg-white border-[3px] border-[#134E4A] rounded-3xl p-5 shadow-[4px_4px_0px_#134E4A] space-y-4">
+        <div className="flex items-center justify-between border-b-2 border-[#134E4A]/20 pb-3">
           <div>
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#0D9488]/10 text-[#0D9488]">
               {activeLesson.subtitle}
             </span>
-            <h3 className="font-display font-black text-base text-[var(--text-main,#134E4A)] mt-0.5">
+            <h3 className="font-display font-black text-base text-[#134E4A] mt-0.5">
               {activeLesson.title}
             </h3>
           </div>
 
           <span
-            className={`text-xs font-black px-2.5 py-1 rounded-xl border-2 border-[var(--border-color,#134E4A)] ${
+            className={`text-xs font-black px-2.5 py-1 rounded-xl border-2 border-[#134E4A] ${
               activeLesson.tone === 'datar'
                 ? 'bg-sky-100 text-sky-800'
                 : activeLesson.tone === 'naik'
@@ -371,7 +371,7 @@ export const ModulMetronomeGuide: React.FC = () => {
         </div>
 
         {/* Teks Arab Utama dengan Karaoke Effect saat Audio Qari Berjalan */}
-        <div className="py-5 px-3 text-center bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)]/20 rounded-2xl">
+        <div className="py-5 px-3 text-center bg-[#F0FDF4] border-2 border-[#134E4A]/20 rounded-2xl">
           <div
             dir="rtl"
             className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 leading-loose"
@@ -397,8 +397,8 @@ export const ModulMetronomeGuide: React.FC = () => {
                   key={idx}
                   className={`font-arabic text-4xl sm:text-5xl font-black transition-all duration-200 px-3 py-1 rounded-2xl ${
                     isWordActive
-                      ? 'text-amber-500 scale-110 bg-[#FEF08A] dark:bg-amber-900/80 ring-3 ring-amber-400 shadow-[0_4px_12px_rgba(245,158,11,0.4)]'
-                      : 'text-[var(--text-main,#134E4A)] scale-100'
+                      ? 'text-amber-600 scale-110 bg-[#FEF08A] ring-3 ring-amber-400 shadow-[2px_2px_0px_#F59E0B]'
+                      : 'text-[#134E4A] scale-100'
                   }`}
                 >
                   {token}
@@ -407,7 +407,7 @@ export const ModulMetronomeGuide: React.FC = () => {
             })}
           </div>
 
-          <p className="mt-3 text-sm font-black text-[var(--text-main,#134E4A)]/80 tracking-wider">
+          <p className="mt-3 text-sm font-black text-[#134E4A]/80 tracking-wider">
             {activeLesson.transliteration}
           </p>
         </div>
@@ -422,7 +422,7 @@ export const ModulMetronomeGuide: React.FC = () => {
         <button
           type="button"
           onClick={toggleAudio}
-          className={`w-full py-3.5 px-4 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] font-display font-black text-sm flex items-center justify-center gap-2 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer ${
+          className={`w-full py-3.5 px-4 rounded-2xl border-[3px] border-[#134E4A] font-display font-black text-sm flex items-center justify-center gap-2 shadow-[3px_3px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer ${
             isPlayingAudio
               ? 'bg-[#FF6B6B] text-white animate-pulse'
               : 'bg-[#0D9488] text-white hover:bg-[#0F766E]'
@@ -434,8 +434,8 @@ export const ModulMetronomeGuide: React.FC = () => {
       </div>
 
       {/* 4. Pengatur Kecepatan BPM */}
-      <div className="bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-2xl p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] flex items-center justify-between gap-2">
-        <span className="font-display font-black text-xs text-[var(--text-main,#134E4A)]">
+      <div className="bg-white border-[3px] border-[#134E4A] rounded-2xl p-3.5 shadow-[3px_3px_0px_#134E4A] flex items-center justify-between gap-2">
+        <span className="font-display font-black text-xs text-[#134E4A]">
           Kecepatan Ketukan:
         </span>
 
@@ -451,8 +451,8 @@ export const ModulMetronomeGuide: React.FC = () => {
               onClick={() => setPreferredBpm(item.bpm)}
               className={`px-2.5 py-1 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
                 preferredBpm === item.bpm
-                  ? 'bg-[#0D9488] text-white border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]'
-                  : 'bg-transparent text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)]/30 hover:bg-black/5'
+                  ? 'bg-[#0D9488] text-white border-[#134E4A] shadow-[1px_1px_0px_#134E4A]'
+                  : 'bg-transparent text-[#134E4A] border-[#134E4A]/30 hover:bg-[#0D9488]/10'
               }`}
             >
               {item.label}

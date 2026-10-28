@@ -1,760 +1,301 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  LAB_IRAMA_EAR_TRAINING_POOL,
-  generateEarTrainingSession,
-  type EarTrainingItem,
-  type TilawatiTone,
-} from '../../data/labIramaData';
-import {
-  calculateIramaRank,
-  RANK_METADATA,
-} from './timingJudge';
-import { useLabIramaStore } from '../../hooks/useLabIramaStore';
+import { useState, useEffect, useRef } from 'react';
+import { getHeaderSamples, type PatternType } from '../../utils/tilawatiTrainingDataAdapter';
+import { PatternArrow, type PatternArrowType } from './PatternArrow';
 import { soundManager } from '../../services/soundManager';
-import { SparkleBurst } from '../../pages/games/_shared/SparkleBurst';
 import { getAudioUrl } from '../../utils/audioUrl';
 import {
   PlaySvg,
-  SparklesSvg,
-  CheckSvg,
-  RotateCcwSvg,
-  CoinSvg,
   HeadphoneSvg,
-  HelpCircleSvg,
-  AlertTriangleSvg,
-  ArrowRightSvg,
-  ArrowUpRightSvg,
-  ArrowDownRightSvg,
-  XSvg,
+  SparklesSvg,
   StarSvg,
+  RotateCcwSvg,
 } from '../../../../components/ui/CustomIcons';
-import { EqualizerIcon } from '@/components/ui/EqualizerIcon';
-import { AnimatedProgressBar } from '../../../../components/ui/AnimatedProgressBar';
 
 interface ModulEarTrainingProps {
   onComplete?: () => void;
 }
 
-export const ModulEarTraining: React.FC<ModulEarTrainingProps> = ({ onComplete }) => {
-  const [questions, setQuestions] = useState<EarTrainingItem[]>([]);
+interface PatternQuestion {
+  id: string;
+  audioUrl: string;
+  correctPattern: PatternArrowType;
+}
+
+const ARROW_PATTERN_TYPES: PatternArrowType[] = [
+  '1-datar',
+  '2-datar-turun',
+  '3-datar-naik-turun',
+  '4-datar-naik-naik-turun',
+];
+
+const PATTERN_LABELS: Record<PatternArrowType, string> = {
+  '1-datar': '1 Nada',
+  '2-datar-turun': '2 Nada',
+  '3-datar-naik-turun': '3 Nada',
+  '4-datar-naik-naik-turun': '4 Nada',
+};
+
+function isArrowPattern(value: PatternType): value is PatternArrowType {
+  return ARROW_PATTERN_TYPES.includes(value as PatternArrowType);
+}
+
+function buildQuestions(): PatternQuestion[] {
+  const jilidList = [1, 2, 3, 4, 5];
+  const collected: PatternQuestion[] = [];
+  const seenPattern = new Set<PatternArrowType>();
+
+  for (const jilid of jilidList) {
+    for (const item of getHeaderSamples(jilid)) {
+      if (!isArrowPattern(item.patternType)) continue;
+      if (seenPattern.has(item.patternType)) continue;
+
+      seenPattern.add(item.patternType);
+      collected.push({
+        id: item.id,
+        audioUrl: item.audioUrl,
+        correctPattern: item.patternType,
+      });
+    }
+  }
+
+  if (collected.length >= 2) return collected;
+
+  // Fallback sementara bila data adapter belum memuat audio.
+  return [
+    {
+      id: 'fallback-1',
+      audioUrl: '/audio/tilawati/jilid_1/hal1/hal1_header_datar.ogg',
+      correctPattern: '1-datar',
+    },
+    {
+      id: 'fallback-3',
+      audioUrl: '/audio/tilawati/jilid_1/hal1/hal1_header_full.ogg',
+      correctPattern: '3-datar-naik-turun',
+    },
+  ];
+}
+
+export const ModulEarTraining = ({ onComplete }: ModulEarTrainingProps) => {
+  const [questions] = useState<PatternQuestion[]>(() => buildQuestions());
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
-
-  // Mekanik Susun Pola: User mengisi kotak-kotak sesuai jumlah nada siklus
-  const [userPattern, setUserPattern] = useState<(TilawatiTone | null)[]>([]);
-  const [hasWrongAttempt, setHasWrongAttempt] = useState(false);
-  const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
-  const [isShaking, setIsShaking] = useState(false);
-
+  const [selectedPattern, setSelectedPattern] = useState<PatternArrowType | null>(null);
+  const [answerStatus, setAnswerStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
-  const [burstKey, setBurstKey] = useState<string>('');
-  const [isSessionFinished, setIsSessionFinished] = useState(false);
-  const [earnedCoins, setEarnedCoins] = useState(0);
-  const [isNewRecord, setIsNewRecord] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const rafIdRef = useRef<number | null>(null);
-  const recordEarTraining = useLabIramaStore((s) => s.recordEarTraining);
+  const feedbackTimerRef = useRef<number | null>(null);
 
-  const stopTracking = () => {
-    if (rafIdRef.current) {
-      cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = null;
+  const currentQ: PatternQuestion | undefined = questions[currentIndex];
+
+  const clearFeedbackTimer = () => {
+    if (feedbackTimerRef.current !== null) {
+      window.clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = null;
     }
   };
 
-  const startTracking = (audio: HTMLAudioElement) => {
-    stopTracking();
-    const track = () => {
-      if (!audio.paused && !audio.ended && audio.duration) {
-        setAudioProgress(audio.currentTime / audio.duration);
-        rafIdRef.current = requestAnimationFrame(track);
-      }
-    };
-    rafIdRef.current = requestAnimationFrame(track);
-  };
-
-  // Inisialisasi 5 soal acak seimbang
-  const startNewSession = () => {
-    const sessionQuestions = generateEarTrainingSession(5);
-    setQuestions(sessionQuestions);
-    setCurrentIndex(0);
-    setScore(0);
-    setCorrectCount(0);
-    setUserPattern(
-      sessionQuestions[0]
-        ? new Array(sessionQuestions[0].siklusNada.length).fill(null)
-        : []
-    );
-    setHasWrongAttempt(false);
-    setIsAnswerRevealed(false);
-    setIsSessionFinished(false);
-    setIsShaking(false);
-    setAudioProgress(0);
-  };
-
-  useEffect(() => {
-    startNewSession();
-    return () => {
-      stopTracking();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  const currentQ = questions[currentIndex];
-
-  // Putar audio tiap soal berganti & inisialisasi kotak drop zone
-  useEffect(() => {
-    if (!currentQ || isSessionFinished) return;
-
-    setUserPattern(new Array(currentQ.siklusNada.length).fill(null));
-    setHasWrongAttempt(false);
-    setIsAnswerRevealed(false);
-    setAudioProgress(0);
-    stopTracking();
-
+  const stopAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current = null;
     }
+    setIsPlayingAudio(false);
+  };
+
+  const playQuestionAudio = () => {
+    stopAudio();
+
+    if (!currentQ?.audioUrl) return;
 
     const resolvedUrl = getAudioUrl(currentQ.audioUrl) ?? currentQ.audioUrl;
     const audio = new Audio(resolvedUrl);
     audioRef.current = audio;
-    audio.volume = 0.95;
-
-    audio.ontimeupdate = () => {
-      if (audio.duration) {
-        setAudioProgress(audio.currentTime / audio.duration);
-      }
-    };
 
     audio.onended = () => {
-      setIsPlayingAudio(false);
-      stopTracking();
-      setAudioProgress(0);
+      if (audioRef.current === audio) setIsPlayingAudio(false);
     };
 
     audio.onerror = () => {
-      setIsPlayingAudio(false);
-      stopTracking();
-      setAudioProgress(0);
+      if (audioRef.current === audio) setIsPlayingAudio(false);
     };
 
-    // Delay halus agar transisi soal terasa nyaman
-    const timer = setTimeout(() => {
-      audio
-        .play()
-        .then(() => {
-          setIsPlayingAudio(true);
-          startTracking(audio);
-        })
-        .catch(() => setIsPlayingAudio(false));
-    }, 400);
-
-    return () => {
-      clearTimeout(timer);
-      stopTracking();
-      audio.pause();
-    };
-  }, [currentIndex, currentQ, isSessionFinished]);
-
-  const playCurrentAudio = () => {
-    if (!currentQ) return;
-    stopTracking();
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    const resolvedUrl = getAudioUrl(currentQ.audioUrl) ?? currentQ.audioUrl;
-    const audio = new Audio(resolvedUrl);
-    audioRef.current = audio;
-    audio.volume = 0.95;
-
-    audio.ontimeupdate = () => {
-      if (audio.duration) {
-        setAudioProgress(audio.currentTime / audio.duration);
-      }
-    };
-
-    audio.onended = () => {
-      setIsPlayingAudio(false);
-      stopTracking();
-      setAudioProgress(0);
-    };
-
-    audio.onerror = () => {
-      setIsPlayingAudio(false);
-      stopTracking();
-      setAudioProgress(0);
-    };
-
-    soundManager.playSfx('tap');
     audio
       .play()
-      .then(() => {
-        setIsPlayingAudio(true);
-        startTracking(audio);
-      })
+      .then(() => setIsPlayingAudio(true))
       .catch(() => setIsPlayingAudio(false));
   };
 
-  // Tambahkan nada terpilih ke kotak kosong pertama
-  const handleAddTone = (tone: TilawatiTone) => {
-    if (isAnswerRevealed || !currentQ) return;
+  useEffect(() => {
+    if (isFinished || !currentQ) return;
 
-    const firstEmptyIndex = userPattern.findIndex((t) => t === null);
-    if (firstEmptyIndex === -1) {
-      // Semua kotak sudah terisi, tidak bisa menambah lagi kecuali direset / dihapus
-      soundManager.playSfx('tap');
+    setSelectedPattern(null);
+    setAnswerStatus('idle');
+    playQuestionAudio();
+
+    return stopAudio;
+  }, [currentIndex, isFinished]);
+
+  useEffect(() => {
+    return () => {
+      clearFeedbackTimer();
+      stopAudio();
+    };
+  }, []);
+
+  const handleSelectPattern = (type: PatternArrowType) => {
+    if (!currentQ || selectedPattern || isFinished) return;
+
+    soundManager.playSfx('tap');
+    setSelectedPattern(type);
+
+    if (type === currentQ.correctPattern) {
+      soundManager.playSfx('correct');
+      setAnswerStatus('correct');
+      setScore((prev) => prev + 20);
+      setCorrectCount((prev) => prev + 1);
+
+      feedbackTimerRef.current = window.setTimeout(() => {
+        if (currentIndex < questions.length - 1) {
+          setCurrentIndex((prev) => prev + 1);
+        } else {
+          setIsFinished(true);
+          onComplete?.();
+        }
+      }, 1000);
+
       return;
     }
 
-    const nextPattern = [...userPattern];
-    nextPattern[firstEmptyIndex] = tone;
-    setUserPattern(nextPattern);
-    soundManager.playSfx('tap');
+    soundManager.playSfx('wrong');
+    setAnswerStatus('wrong');
+
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setSelectedPattern(null);
+      setAnswerStatus('idle');
+    }, 800);
   };
 
-  // Hapus nada dari kotak tertentu
-  const handleRemoveSlot = (index: number) => {
-    if (isAnswerRevealed) return;
-    const nextPattern = [...userPattern];
-    nextPattern[index] = null;
-    setUserPattern(nextPattern);
-    soundManager.playSfx('tap');
+  const handleRestart = () => {
+    clearFeedbackTimer();
+    stopAudio();
+    setScore(0);
+    setCorrectCount(0);
+    setCurrentIndex(0);
+    setSelectedPattern(null);
+    setAnswerStatus('idle');
+    setIsFinished(false);
   };
 
-  // Kosongkan semua kotak
-  const handleResetPattern = () => {
-    if (isAnswerRevealed || !currentQ) return;
-    setUserPattern(new Array(currentQ.siklusNada.length).fill(null));
-    soundManager.playSfx('tap');
-  };
-
-  // Periksa susunan pola nada
-  const handleCheckAnswer = () => {
-    if (!currentQ || isAnswerRevealed) return;
-
-    const isAllFilled = !userPattern.includes(null);
-    if (!isAllFilled) return;
-
-    const isMatch = userPattern.every(
-      (tone, idx) => tone === currentQ.siklusNada[idx]
-    );
-
-    if (isMatch) {
-      // Benar!
-      soundManager.playSfx('correct');
-      setBurstKey(`burst-${Date.now()}`);
-      setIsAnswerRevealed(true);
-
-      // Hanya beri skor jika tebakan pertama langsung tepat
-      if (!hasWrongAttempt) {
-        setScore((prev) => prev + 20);
-        setCorrectCount((prev) => prev + 1);
-      }
-    } else {
-      // Salah
-      soundManager.playSfx('wrong');
-      setIsShaking(true);
-      setHasWrongAttempt(true);
-      setTimeout(() => setIsShaking(false), 500);
-    }
-  };
-
-  const handleNext = () => {
-    soundManager.playSfx('tap');
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      // Sesi selesai
-      const totalScore = score;
-      const accuracy = Math.round((correctCount / questions.length) * 100);
-      const res = recordEarTraining(totalScore, accuracy);
-      setEarnedCoins(res.coinsEarned);
-      setIsNewRecord(res.isNewRecord);
-      setIsSessionFinished(true);
-      soundManager.playSfx('victory');
-      onComplete?.();
-    }
-  };
-
-  if (!currentQ && !isSessionFinished) return null;
-
-  // Layar Hasil Akhir Sesi
-  if (isSessionFinished) {
-    const accuracy = Math.round((correctCount / questions.length) * 100);
-    const rankKey = calculateIramaRank(accuracy);
-    const rankInfo = RANK_METADATA[rankKey];
-
+  if (isFinished) {
     return (
-      <div className="bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-3xl p-6 shadow-[5px_5px_0px_var(--shadow-color,#134E4A)] text-center space-y-5">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FEF08A] border-[3px] border-[var(--border-color,#134E4A)] flex items-center justify-center text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
-          <SparklesSvg size={36} />
-        </div>
-
-        <div>
-          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-[#0D9488]/10 text-[#0D9488]">
-            Hasil Susun Pola Nada
-          </span>
-          <h2 className="font-display font-black text-2xl text-[var(--text-main,#134E4A)] mt-1">
-            {rankInfo.label}
-          </h2>
-          <p className="font-arabic text-3xl text-[#0D9488] font-black mt-1">
-            {rankInfo.arab}
-          </p>
-          <p className="text-xs font-bold text-[var(--text-main,#134E4A)]/70 max-w-xs mx-auto mt-2 leading-relaxed">
-            {rankInfo.desc}
+      <div className="max-w-md mx-auto p-4 space-y-4 rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
+        <div className="text-center space-y-2">
+          <div className="inline-flex rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] p-2 shadow-[3px_3px_0px_#134E4A]">
+            <SparklesSvg size={32} />
+          </div>
+          <h2 className="text-xl font-black text-[#134E4A]">Sesi Selesai</h2>
+          <p className="text-sm font-bold text-[#134E4A]/70">
+            Skor: <span className="text-[#0D9488]">{score}</span> · Benar:{' '}
+            <span className="text-[#0D9488]">{correctCount}</span>/{questions.length}
           </p>
         </div>
 
-        {/* Skor & Koin */}
-        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
-          <div className="bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)] rounded-2xl p-3">
-            <span className="text-[10px] font-black uppercase text-gray-500">Skor Benar</span>
-            <p className="font-display font-black text-2xl text-[#134E4A]">
-              {correctCount} / {questions.length}
-            </p>
-          </div>
-          <div className="bg-[#FEF9C3] border-2 border-[var(--border-color,#134E4A)] rounded-2xl p-3">
-            <span className="text-[10px] font-black uppercase text-amber-800">Bonus Koin</span>
-            <p className="font-display font-black text-2xl text-amber-700 flex items-center justify-center gap-1">
-              <span>+{earnedCoins}</span>
-              <CoinSvg size={20} />
-            </p>
-          </div>
-        </div>
-
-        {isNewRecord && (
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A]">
-            <SparklesSvg size={14} /> REKOR BARU TERCIPTA!
-          </div>
-        )}
-
-        {/* Tombol Aksi */}
-        <div className="space-y-2 pt-2">
-          <button
-            type="button"
-            onClick={startNewSession}
-            className="w-full py-3.5 rounded-2xl bg-[#0D9488] text-white font-display font-black text-sm border-[3px] border-[var(--border-color,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
-          >
-            Latihan Lagi (5 Soal Baru)
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleRestart}
+          className="w-full py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2"
+        >
+          <RotateCcwSvg size={18} /> Main Lagi
+        </button>
       </div>
     );
   }
 
-  // Hitung pembagian kata untuk karaoke animation
-  const rawTokens = (currentQ.arabicText || currentQ.arabic || '')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  const nonPunctuationTokens = rawTokens.filter((t) => t !== '·' && t !== '=');
-  const totalWords = nonPunctuationTokens.length;
+  if (!currentQ) return null;
 
-  const activeWordIndex =
-    isPlayingAudio && totalWords > 0
-      ? Math.min(totalWords - 1, Math.floor(audioProgress * totalWords))
-      : -1;
-
-  const activeToneIndex =
-    isPlayingAudio && currentQ.siklusNada.length > 0
-      ? Math.min(
-          currentQ.siklusNada.length - 1,
-          Math.floor(audioProgress * currentQ.siklusNada.length)
-        )
-      : -1;
-
-  const isAllFilled = !userPattern.includes(null);
-  let wordCounter = 0;
+  const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
 
   return (
-    <div className="space-y-4">
-      {/* Sparkle Burst saat jawaban benar */}
-      {burstKey && <SparkleBurst burstKey={burstKey} />}
-
-      {/* Header Soal & Progress */}
-      <div className="flex items-center justify-between px-1">
-        <span className="font-display font-black text-xs text-[var(--text-main,#134E4A)]">
-          Soal {currentIndex + 1} dari {questions.length}
+    <div className="max-w-md mx-auto p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-black text-[#134E4A]">
+          Soal {currentIndex + 1}/{questions.length}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#FEF08A] text-[#134E4A] border-2 border-[var(--border-color,#134E4A)] inline-flex items-center gap-1">
-            <StarSvg size={14} fill="#FDE047" stroke="#134E4A" /> {score} Poin
-          </span>
-        </div>
+        <span className="flex items-center gap-1 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-xs font-black text-[#134E4A]">
+          <StarSvg size={14} fill="#FDE047" stroke="#134E4A" /> {score}
+        </span>
       </div>
 
-      {/* Progress Bar */}
-      <AnimatedProgressBar
-        value={((currentIndex + 1) / questions.length) * 100}
-        height="h-3"
-        barClassName="bg-[#0D9488]"
-      />
+      <div className="h-3 overflow-hidden rounded-full border-2 border-[#134E4A] bg-white">
+        <div className="h-full bg-[#0D9488]" style={{ width: `${progressPercent}%` }} />
+      </div>
 
-      {/* Kartu Audio & Karaoke Teks Arab (Single Source of Truth) */}
-      <div className="bg-[var(--bg-card,#FFFFFF)] border-[3px] border-[var(--border-color,#134E4A)] rounded-3xl p-5 sm:p-6 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] text-center space-y-4">
-        {/* Badge Metadata */}
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#0D9488]/10 text-[#0D9488]">
-            Jilid {currentQ.jilid} · Hal {currentQ.hal}
-            {currentQ.baris ? ` · Baris ${currentQ.baris}` : ''}
-          </span>
-          <span
-            className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
-              currentQ.category === 'siklus-3'
-                ? 'bg-teal-50 text-teal-800 border-teal-300 dark:bg-teal-900/40 dark:text-teal-200'
-                : currentQ.category === 'siklus-2'
-                ? 'bg-sky-50 text-sky-800 border-sky-300 dark:bg-sky-900/40 dark:text-sky-200'
-                : 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-900/40 dark:text-amber-200'
-            }`}
-          >
-            {currentQ.category === 'siklus-3'
-              ? 'Siklus Penuh (3 Nada)'
-              : currentQ.category === 'siklus-2'
-              ? 'Siklus Pendek (2 Nada)'
-              : 'Nada Tunggal (1 Nada)'}
-          </span>
-        </div>
+      <div className="space-y-3 rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 text-center shadow-[4px_4px_0px_#134E4A]">
+        <span className="inline-block rounded-full bg-[#0D9488]/10 px-2.5 py-0.5 text-[10px] font-black uppercase text-[#0D9488]">
+          Tebak Pola Nada
+        </span>
 
-        {/* Teks Arab dengan Efek Karaoke Sinkron Waktu Audio */}
-        <div className="relative py-6 px-3 bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)]/25 rounded-2xl flex flex-col items-center justify-center min-h-[140px]">
-          <div
-            dir="rtl"
-            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 leading-relaxed max-w-full"
-          >
-            {rawTokens.map((token, idx) => {
-              const isPunctuation = token === '·' || token === '=';
-              if (isPunctuation) {
-                return (
-                  <span
-                    key={idx}
-                    className="text-gray-400 font-black text-xl px-1 select-none"
-                  >
-                    {token}
-                  </span>
-                );
-              }
+        <p className="text-sm font-bold text-[#134E4A]/70">
+          Dengarkan audio qari, lalu pilih pola irama yang tepat.
+        </p>
 
-              const currentWordIdx = wordCounter++;
-              const isWordActive = isPlayingAudio && activeWordIndex === currentWordIdx;
-
-              return (
-                <span
-                  key={idx}
-                  className={`font-arabic text-3xl sm:text-4xl font-black transition-all duration-200 px-3 py-1.5 rounded-2xl ${
-                    isWordActive
-                      ? 'text-amber-500 scale-110 bg-[#FEF08A] dark:bg-amber-900/80 ring-3 ring-amber-400 shadow-[0_4px_12px_rgba(245,158,11,0.4)]'
-                      : 'text-[var(--text-main,#134E4A)] scale-100'
-                  }`}
-                >
-                  {token}
-                </span>
-              );
-            })}
-          </div>
-
-          <p className="mt-3 text-xs sm:text-sm font-bold text-[var(--text-main,#134E4A)]/80 tracking-wide">
-            {currentQ.transliteration}
-          </p>
-
-          {/* Dinamis Monitor Alunan Nada Saat Audio Qari Berjalan */}
-          <div className="mt-4 pt-3 border-t border-[var(--border-color,#134E4A)]/15 w-full flex items-center justify-center gap-2 flex-wrap">
-            <span className="text-[11px] font-black text-[var(--text-main,#134E4A)]/70 inline-flex items-center gap-1">
-              {isPlayingAudio ? (
-                <>
-                  <HeadphoneSvg size={14} /> Mendengarkan Alunan:
-                </>
-              ) : (
-                'Siklus Nada:'
-              )}
-            </span>
-            <div className="flex items-center gap-1.5">
-              {currentQ.siklusNada.map((tone, idx) => {
-                const isToneActive = isPlayingAudio && activeToneIndex === idx;
-                return (
-                  <React.Fragment key={idx}>
-                    {idx > 0 && (
-                      <span className="text-xs font-black text-[var(--text-main,#134E4A)]/40 inline-flex items-center">
-                        <ArrowRightSvg size={10} />
-                      </span>
-                    )}
-                    <span
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-black border transition-all inline-flex items-center gap-1 ${
-                        isToneActive
-                          ? tone === 'Datar'
-                            ? 'bg-[#38BDF8] text-white border-[#0284C7] scale-110 ring-2 ring-sky-400 shadow-sm animate-pulse'
-                            : tone === 'Naik'
-                            ? 'bg-[#FACC15] text-[#134E4A] border-[#CA8A04] scale-110 ring-2 ring-amber-400 shadow-sm animate-pulse'
-                            : 'bg-[#FB7185] text-white border-[#E11D48] scale-110 ring-2 ring-rose-400 shadow-sm animate-pulse'
-                          : isAnswerRevealed
-                          ? 'bg-white dark:bg-gray-800 text-[#134E4A] border-gray-300 dark:border-gray-600'
-                          : 'bg-white/70 dark:bg-gray-800/70 text-gray-400 border-dashed border-gray-300'
-                      }`}
-                    >
-                      {isAnswerRevealed || isToneActive ? (
-                        <>
-                          {tone === 'Datar' ? (
-                            <ArrowRightSvg size={11} />
-                          ) : tone === 'Naik' ? (
-                            <ArrowUpRightSvg size={11} />
-                          ) : (
-                            <ArrowDownRightSvg size={11} />
-                          )}
-                          <span>{tone}</span>
-                        </>
-                      ) : (
-                        `Kotak ${idx + 1}`
-                      )}
-                    </span>
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Tombol Putar Ulang Audio Qari */}
         <button
           type="button"
-          onClick={playCurrentAudio}
-          className="w-full py-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-[var(--border-color,#134E4A)] font-display font-black text-xs text-[var(--text-main,#134E4A)] flex items-center justify-center gap-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:scale-98 transition-transform cursor-pointer"
+          onClick={playQuestionAudio}
+          className="w-full py-3 rounded-2xl border-2 border-[#134E4A] bg-white font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:scale-98 transition-transform cursor-pointer flex items-center justify-center gap-2"
         >
           {isPlayingAudio ? (
-            <EqualizerIcon isPlaying={true} size={14} barClassName="bg-[#134E4A]" />
+            <HeadphoneSvg size={16} />
           ) : (
-            <PlaySvg size={14} />
+            <PlaySvg size={16} />
           )}
-          <span>{isPlayingAudio ? 'Sedang Memutar Audio...' : 'Putar Ulang Suara Qari'}</span>
-          {!isPlayingAudio && <HeadphoneSvg size={14} />}
+          {isPlayingAudio ? 'Memutar Audio Qari...' : 'Putar Audio Qari'}
         </button>
-
-        {/* Feedback Penjelasan Saat Terjawab */}
-        <AnimatePresence>
-          {isAnswerRevealed && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-3.5 rounded-2xl border-2 text-xs font-bold text-left leading-relaxed flex items-start gap-2.5 ${
-                !hasWrongAttempt
-                  ? 'bg-[#DCFCE7] border-[#15803D]/40 text-[#14532D]'
-                  : 'bg-[#FEF3C7] border-[#B45309]/40 text-[#78350F]'
-              }`}
-            >
-              <CheckSvg
-                size={18}
-                className={`shrink-0 mt-0.5 ${!hasWrongAttempt ? 'text-[#15803D]' : 'text-[#B45309]'}`}
-              />
-              <div>
-                <p className="font-black text-sm">
-                  {!hasWrongAttempt
-                    ? 'Luar Biasa, Tepat Sekali!'
-                    : 'Susunan Nada yang Tepat:'}{' '}
-                  ({currentQ.siklusNada.join(' → ')})
-                </p>
-                <p className="text-[11px] mt-1 leading-relaxed opacity-95">
-                  {currentQ.explanation}
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
-      {/* Bagian Interaktif: Susun Pola Nada */}
-      {!isAnswerRevealed ? (
-        <div className="space-y-4">
-          {/* Instruksi */}
-          <div className="text-center space-y-1">
-            <p className="font-display font-black text-sm text-[var(--text-main,#134E4A)]">
-              Susun Pola Nada Irama Tilawati:
-            </p>
-            <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/70">
-              Pilih nada dari Bank Nada di bawah untuk mengisi {currentQ.siklusNada.length} kotak urutan!
-            </p>
-          </div>
+      <div className="grid grid-cols-2 gap-3">
+        {ARROW_PATTERN_TYPES.map((type) => {
+          const isSelected = selectedPattern === type;
+          const isCorrectAnswer = currentQ.correctPattern === type;
+          const showCorrect = isCorrectAnswer && answerStatus === 'correct';
+          const showWrong = isSelected && answerStatus === 'wrong';
 
-          {/* DROP ZONE (Kotak-Kotak Urutan Jawaban) */}
-          <motion.div
-            animate={isShaking ? { x: [-8, 8, -6, 6, 0] } : { x: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex items-center justify-center gap-2 sm:gap-3"
-          >
-            {userPattern.map((placedTone, slotIdx) => (
-              <React.Fragment key={slotIdx}>
-                {slotIdx > 0 && (
-                  <span className="text-base font-black text-[#134E4A]/40 shrink-0 select-none inline-flex items-center">
-                    <ArrowRightSvg size={14} />
-                  </span>
-                )}
-
-                {placedTone ? (
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleRemoveSlot(slotIdx)}
-                    title="Klik untuk menghapus nada ini"
-                    className={`flex-1 min-w-[90px] max-w-[130px] py-3 px-2 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] flex flex-col items-center justify-center gap-1 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] relative cursor-pointer ${
-                      placedTone === 'Datar'
-                        ? 'bg-[#38BDF8] text-white'
-                        : placedTone === 'Naik'
-                        ? 'bg-[#FACC15] text-[#134E4A]'
-                        : 'bg-[#FB7185] text-white'
-                    }`}
-                  >
-                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-[#134E4A] border-2 border-[#134E4A] flex items-center justify-center shadow-xs">
-                      <XSvg size={10} />
-                    </span>
-                    <span className="text-2xl inline-flex items-center">
-                      {placedTone === 'Datar' ? (
-                        <ArrowRightSvg size={24} />
-                      ) : placedTone === 'Naik' ? (
-                        <ArrowUpRightSvg size={24} />
-                      ) : (
-                        <ArrowDownRightSvg size={24} />
-                      )}
-                    </span>
-                    <span className="font-display font-black text-xs sm:text-sm">
-                      {placedTone}
-                    </span>
-                    <span className="text-[9px] font-bold opacity-80">
-                      Urutan {slotIdx + 1}
-                    </span>
-                  </motion.button>
-                ) : (
-                  <div
-                    className="flex-1 min-w-[90px] max-w-[130px] py-3.5 px-2 rounded-2xl border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-white/70 dark:bg-gray-800/70 flex flex-col items-center justify-center gap-1 shadow-inner text-center select-none"
-                  >
-                    <span className="text-xl opacity-60 inline-flex items-center">
-                      <HelpCircleSvg size={22} />
-                    </span>
-                    <span className="font-display font-black text-xs text-[var(--text-main,#134E4A)]/70 dark:text-gray-300">
-                      Kotak {slotIdx + 1}
-                    </span>
-                    <span className="text-[9px] font-bold text-[var(--text-main,#134E4A)]/50 dark:text-gray-400">
-                      (Ketuk Nada)
-                    </span>
-                  </div>
-                )}
-              </React.Fragment>
-            ))}
-          </motion.div>
-
-          {/* Feedback jika susunan salah */}
-          {hasWrongAttempt && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-3 rounded-2xl bg-[#FEE2E2] border-2 border-[#DC2626]/40 text-[#991B1B] text-xs font-bold text-center leading-relaxed flex items-center justify-center gap-1.5"
-            >
-              <AlertTriangleSvg size={14} className="shrink-0" />
-              <span>Urutan nada belum tepat dengan alunan qari. Coba dengarkan lagi dan atur ulang kotaknya ya!</span>
-            </motion.div>
-          )}
-
-          {/* BANK NADA (Tombol Pilihan Nada) */}
-          <div className="space-y-2 pt-1">
-            <span className="block text-center text-[11px] font-black text-[var(--text-main,#134E4A)] uppercase tracking-wider">
-              Bank Nada Tilawati
-            </span>
-
-            <div className="grid grid-cols-3 gap-2.5">
-              {/* Datar */}
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleAddTone('Datar')}
-                className="py-3.5 px-2 rounded-2xl font-display font-black text-xs sm:text-sm border-[3px] border-[var(--border-color,#134E4A)] bg-[#38BDF8] hover:bg-[#0284C7] text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all"
-              >
-                <ArrowRightSvg size={22} />
-                <span>Datar</span>
-                <span className="text-[9px] font-bold opacity-90">(Lurus)</span>
-              </motion.button>
-
-              {/* Naik */}
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleAddTone('Naik')}
-                className="py-3.5 px-2 rounded-2xl font-display font-black text-xs sm:text-sm border-[3px] border-[var(--border-color,#134E4A)] bg-[#FACC15] hover:bg-[#EAB308] text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all"
-              >
-                <ArrowUpRightSvg size={22} />
-                <span>Naik</span>
-                <span className="text-[9px] font-bold opacity-90">(Meninggi)</span>
-              </motion.button>
-
-              {/* Turun */}
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleAddTone('Turun')}
-                className="py-3.5 px-2 rounded-2xl font-display font-black text-xs sm:text-sm border-[3px] border-[var(--border-color,#134E4A)] bg-[#FB7185] hover:bg-[#F43F5E] text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all"
-              >
-                <ArrowDownRightSvg size={22} />
-                <span>Turun</span>
-                <span className="text-[9px] font-bold opacity-90">(Melandai)</span>
-              </motion.button>
-            </div>
-          </div>
-
-          {/* Tombol Periksa Jawaban & Reset */}
-          <div className="pt-2 flex flex-col sm:flex-row gap-2">
+          return (
             <button
+              key={type}
               type="button"
-              onClick={handleResetPattern}
-              disabled={userPattern.every((t) => t === null)}
-              className="py-3.5 px-4 rounded-2xl bg-white dark:bg-gray-800 text-[var(--text-main,#134E4A)] border-2 border-[var(--border-color,#134E4A)] font-display font-black text-xs shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <RotateCcwSvg size={14} />
-              Kosongkan Kotak
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCheckAnswer}
-              disabled={!isAllFilled}
-              className={`flex-1 py-4 px-4 rounded-2xl font-display font-black text-sm border-[3px] border-[var(--border-color,#134E4A)] transition-all ${
-                isAllFilled
-                  ? 'bg-[#0D9488] hover:bg-[#0F766E] text-white shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none cursor-pointer'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 border-gray-400 cursor-not-allowed shadow-none'
+              onClick={() => handleSelectPattern(type)}
+              disabled={Boolean(selectedPattern)}
+              className={`flex flex-col items-center gap-2 rounded-2xl border-[3px] bg-white p-3 text-center transition-all shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none cursor-pointer ${
+                showCorrect
+                  ? 'ring-4 ring-green-500 border-green-500'
+                  : showWrong
+                    ? 'ring-4 ring-rose-500 border-rose-500 animate-pulse'
+                    : 'border-[#134E4A]'
               }`}
             >
-              {isAllFilled ? (
-                <span className="inline-flex items-center gap-1.5 justify-center">
-                  <span>Periksa Susunan Nada</span>
-                  <SparklesSvg size={14} />
-                </span>
-              ) : (
-                `Isi Semua Kotak (${userPattern.filter(Boolean).length}/${userPattern.length})`
-              )}
+              <PatternArrow type={type} />
+              <span className="text-xs font-black text-[#134E4A]">
+                {PATTERN_LABELS[type]}
+              </span>
             </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={handleNext}
-          className="w-full py-4 rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-base border-[3px] border-[var(--border-color,#134E4A)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer inline-flex items-center justify-center gap-2"
-        >
-          {currentIndex < questions.length - 1 ? (
-            <>
-              <span>Soal Berikutnya</span>
-              <ArrowRightSvg size={16} />
-            </>
-          ) : (
-            <>
-              <span>Lihat Hasil Akhir</span>
-              <SparklesSvg size={16} />
-            </>
-          )}
-        </button>
+          );
+        })}
+      </div>
+
+      {answerStatus === 'wrong' && (
+        <p className="rounded-2xl border-2 border-[#F87171] bg-[#FEE2E2] p-3 text-center text-xs font-bold text-[#991B1B]">
+          Pola yang kamu pilih belum tepat. Coba dengar audio lagi ya!
+        </p>
+      )}
+
+      {answerStatus === 'correct' && (
+        <p className="rounded-2xl border-2 border-[#4ADE80] bg-[#DCFCE7] p-3 text-center text-xs font-bold text-[#14532D]">
+          Tepat! Pola nada sudah sesuai.
+        </p>
       )}
     </div>
   );

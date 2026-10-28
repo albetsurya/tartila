@@ -1,31 +1,40 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { NgajiCeriaLayout } from '../../components/NgajiCeriaLayout';
 import { ExploreHeader, ExploreStatBadge } from '../../components/ExploreHeader';
+import { PatternArrowButton, type ArrowType, type PatternType } from '../../components/lab-irama/PatternArrowButton';
 import {
-  RHYTHM_MEMORY_LEVELS,
-  getRhythmMemoryPairs,
-  getArabicFontSizeClass,
-  RhythmMemoryCardItem,
-} from '../../data/rhythmMemoryData';
-import { RhythmTapZone } from '../../components/rhythm-memory/RhythmTapZone';
+  getRhythmMemoryLevels,
+  getRhythmMemoryLevelInfo,
+  getBaseTone,
+  type TrainingItem,
+} from '../../utils/tilawatiTrainingDataAdapter';
 import { useRhythmMemoryAudio } from '../../hooks/useRhythmMemoryAudio';
-import {
-  StarSvg,
-  ChevronRight,
-  RotateCcwSvg,
-  TargetSvg,
-  FireSvg,
-  SparklesSvg,
-  MusicSvg,
-  TrophySvg,
-  CheckSvg,
-} from '@/components/ui/CustomIcons';
-import { soundManager } from '../../services/soundManager';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
-import type { HitResult } from '../../components/lab-irama/timingJudge';
+import { soundManager } from '../../services/soundManager';
+import { patternTypeToArrows } from '../../utils/rhythmMemoryPattern';
 import { AppModal } from '@/components/ui/AppModal';
+import { CheckSvg, FireSvg, RotateCcwSvg, StarSvg } from '@/components/ui/CustomIcons';
+
+// Kamus: kode panah ditampilkan di bank panah dan kotak jawaban.
+const ARROW_LABEL: Record<ArrowType, string> = {
+  datar: 'Datar',
+  naik: 'Naik',
+  turun: 'Turun',
+};
+
+const ARROW_SYMBOL: Record<ArrowType, string> = {
+  datar: '→',
+  naik: '↗',
+  turun: '↘',
+};
+
+const ARROW_COLOR_CLASS: Record<ArrowType, string> = {
+  datar: 'text-[#0D9488]',
+  naik: 'text-[#F59E0B]',
+  turun: 'text-[#FF6B6B]',
+};
 
 export default function RhythmMemoryPage() {
   const navigate = useNavigate();
@@ -36,196 +45,154 @@ export default function RhythmMemoryPage() {
     return parsed >= 1 && parsed <= 6 ? parsed : 1;
   }, [jilidParam]);
 
-  const levelInfo = useMemo(() => {
-    return (
-      RHYTHM_MEMORY_LEVELS.find((l) => l.jilid === currentJilid) ||
-      RHYTHM_MEMORY_LEVELS[0]
-    );
+  const { levels } = useMemo(() => {
+    return { levels: getRhythmMemoryLevels(currentJilid, 12) };
   }, [currentJilid]);
 
-  // Audio Hook
+  const { title, subtitle, badgeBg, borderColor } =
+    getRhythmMemoryLevelInfo(currentJilid);
+
+  // Audio hooks (dari adapter yang sudah ada)
   const { playCardSound, stopAudio, preloadAudio } = useRhythmMemoryAudio();
 
-  // State Permainan
-  const [cards, setCards] = useState<RhythmMemoryCardItem[]>(() =>
-    getRhythmMemoryPairs(currentJilid, 6)
-  );
-  const [matchedPairIds, setMatchedPairIds] = useState<string[]>([]);
-  const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
-  const [firstOpenIndex, setFirstOpenIndex] = useState<number | null>(null);
-  const [activeTappingIndex, setActiveTappingIndex] = useState<number | null>(null);
-  const [shakeIndex, setShakeIndex] = useState<number | null>(null);
-  const [isCheckingMismatch, setIsCheckingMismatch] = useState<boolean>(false);
+  // State permainan
+  const [answer, setAnswer] = useState<ArrowType[]>([]);
+  const [phase, setPhase] = useState<'idle' | 'listening' | 'answered'>('idle');
+  const [feedback, setFeedback] = useState<'idle' | 'success' | 'fail'>('idle');
+  const [checkError, setCheckError] = useState<string | null>(null);
+  const [levelIndex, setLevelIndex] = useState(0);
 
-  const [score, setScore] = useState<number>(0);
-  const [streak, setStreak] = useState<number>(0);
-  const [moves, setMoves] = useState<number>(0);
-  const [isComplete, setIsComplete] = useState<boolean>(false);
-  const [gameHint, setGameHint] = useState<string>('Pilih kartu untuk mendengar iramanya!');
+  // Bikin level dari adapter
+  const levelItems = levels[levelIndex] ?? [];
+  const representativeItem = levelItems.find(
+    (item) => item.audioUrl && item.patternType !== '1-datar',
+  ) ?? levelItems[0];
 
-  // Reset Permainan
-  const handleResetGame = useCallback(() => {
+  // Pola yang benar (murni dari data adapter)
+  const correctPattern = useMemo(() => {
+    if (representativeItem?.patternType) {
+      return patternTypeToArrows(representativeItem.patternType);
+    }
+    return [];
+  }, [representativeItem]);
+
+  // Audio yang diputar saat level dimuat/dirubah
+  const audioUrl = representativeItem?.audioUrl ?? null;
+  const audioBpm = representativeItem?.bpm ?? 65;
+  const audioBeatsCount = representativeItem?.beatsCount ?? 2;
+  const audioTone = getBaseTone(representativeItem?.patternType ?? '1-datar');
+
+  // Reset level
+  const resetLevel = useCallback(() => {
     stopAudio();
     triggerBibiReaction('click');
     soundManager.playSfx('pop');
-    setCards(getRhythmMemoryPairs(currentJilid, 6));
-    setMatchedPairIds([]);
-    setFlippedIndices([]);
-    setFirstOpenIndex(null);
-    setActiveTappingIndex(null);
-    setShakeIndex(null);
-    setIsCheckingMismatch(false);
-    setScore(0);
-    setStreak(0);
-    setMoves(0);
-    setIsComplete(false);
-    setGameHint('Pilih kartu untuk mendengar iramanya!');
-  }, [currentJilid, stopAudio]);
+    setAnswer([]);
+    setPhase('idle');
+    setFeedback('idle');
+    setCheckError(null);
+  }, [stopAudio]);
 
-  // Reset saat jilid berubah
-  useEffect(() => {
-    handleResetGame();
-  }, [currentJilid, handleResetGame]);
+  // Ketika jilid berubah -> reset ke level 0
+  const prevJilidRef = React.useRef(currentJilid);
+  React.useEffect(() => {
+    if (currentJilid !== prevJilidRef.current) {
+      prevJilidRef.current = currentJilid;
+      resetLevel();
+      setLevelIndex(0);
+      void preloadAudio();
+    }
+  }, [currentJilid, resetLevel, preloadAudio]);
 
-  // Preload audio context on mount
-  useEffect(() => {
+  // Preload audio saat mount
+  React.useEffect(() => {
     void preloadAudio();
   }, [preloadAudio]);
 
-  // Handler Klik Kartu
-  const handleCardClick = (idx: number) => {
-    if (isCheckingMismatch) return;
-    if (activeTappingIndex !== null) return; // Sedang ada kartu yang dalam fase ketuk
-
-    const clickedCard = cards[idx];
-    if (!clickedCard) return;
-
-    // Abaikan jika kartu sudah matched atau sudah terbuka
-    if (matchedPairIds.includes(clickedCard.pairId)) return;
-    if (flippedIndices.includes(idx)) return;
-
-    triggerBibiReaction('click');
-    soundManager.playSfx('pop');
-
-    // Buka kartu & set sebagai kartu aktif yang harus diketuk
-    setFlippedIndices((prev) => [...prev, idx]);
-    setActiveTappingIndex(idx);
-    setGameHint('Dengarkan lagunya, lalu ketuk tombol sesuai irama!');
-
-    // Putar audio & nada qari
+  // Putar audio sesuai audioUrl yang ada
+  const handlePlayAudio = useCallback(() => {
+    if (phase !== 'idle' && phase !== 'answered') return;
+    stopAudio();
+    triggerBibiReaction('play');
     void playCardSound({
-      audioUrl: clickedCard.item.audioUrl,
-      tone: clickedCard.item.tone,
-      bpm: clickedCard.item.bpm,
-      beatsCount: clickedCard.item.beatsCount,
+      audioUrl,
+      tone: audioTone,
+      bpm: audioBpm,
+      beatsCount: audioBeatsCount,
     });
-  };
+    setPhase('listening');
+    setFeedback('idle');
+  }, [audioUrl, audioTone, audioBpm, audioBeatsCount, playCardSound, stopAudio]);
 
-  // Handler Ketukan Berhasil
-  const handleTapSuccess = (result: HitResult) => {
-    if (activeTappingIndex === null) return;
+  // Tambah panah ke kotak jawaban
+  const handleAddArrow = useCallback(
+    (arrow: ArrowType) => {
+      if (phase !== 'idle') return;
+      setAnswer((prev) => [...prev, arrow]);
+    },
+    [phase]
+  );
 
-    const currentCard = cards[activeTappingIndex];
-    if (!currentCard) return;
+  // Hapus panah terakhir
+  const handleRemoveArrow = useCallback(() => {
+    if (phase !== 'idle') return;
+    setAnswer((prev) => prev.slice(0, -1));
+    setFeedback('idle');
+  }, [phase]);
 
-    const bonusScore = result.judgment === 'perfect' ? 100 : 60;
-    setScore((s) => s + bonusScore);
-
-    // Kasus 1: Ini adalah kartu pertama dari pasangan
-    if (firstOpenIndex === null) {
-      setFirstOpenIndex(activeTappingIndex);
-      setActiveTappingIndex(null);
-      setGameHint('Bagus! Sekarang buka kartu kedua untuk mencari pasangannya!');
+  // Periksa jawaban
+  const handleCheck = useCallback(() => {
+    if (phase !== 'idle') return;
+    if (answer.length === 0) {
+      setCheckError('Belum ada jawaban. Tambah panah dari bank panah dulu.');
+      setFeedback('fail');
       return;
     }
-
-    // Kasus 2: Ini adalah kartu kedua! Evaluasi apakah cocok dengan kartu pertama
-    const firstIdx = firstOpenIndex;
-    const secondIdx = activeTappingIndex;
-    const firstCard = cards[firstIdx];
-    setMoves((m) => m + 1);
-
-    if (firstCard.pairId === currentCard.pairId) {
-      // MATCH!
+    setCheckError(null);
+    if (JSON.stringify(answer) === JSON.stringify(correctPattern)) {
       triggerBibiReaction('success');
       soundManager.playSfx('correct');
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      setScore((s) => s + 150 + newStreak * 25);
-      setMatchedPairIds((prev) => {
-        const next = [...prev, firstCard.pairId];
-        if (next.length === 6) {
-          setTimeout(() => {
-            setIsComplete(true);
-            soundManager.playSfx('victory');
-          }, 600);
-        }
-        return next;
-      });
-      setFirstOpenIndex(null);
-      setActiveTappingIndex(null);
-      setGameHint('Luar biasa, kartu cocok! Lanjutkan pasangan berikutnya!');
+      setPhase('answered');
+      setFeedback('success');
     } else {
-      // BEDA PASANGAN
+      triggerBibiReaction('error');
       soundManager.playSfx('wrong');
-      setIsCheckingMismatch(true);
-      setStreak(0);
-      setGameHint('Belum cocok! Ingat-ingat letak kartunya ya!');
-
-      setTimeout(() => {
-        // Tutup kembali kedua kartu
-        setFlippedIndices((prev) =>
-          prev.filter((i) => i !== firstIdx && i !== secondIdx)
-        );
-        setFirstOpenIndex(null);
-        setActiveTappingIndex(null);
-        setIsCheckingMismatch(false);
-      }, 1000);
+      setPhase('answered');
+      setFeedback('fail');
     }
-  };
+  }, [answer, correctPattern, phase]);
 
-  // Handler Ketukan Meleset / Gagal
-  const handleTapFail = (_result: HitResult) => {
-    if (activeTappingIndex === null) return;
+  // Main lagi (reset semua)
+  const handleResetAll = useCallback(() => {
+    resetLevel();
+    setLevelIndex(0);
+  }, [resetLevel]);
 
-    const failedIdx = activeTappingIndex;
-    setShakeIndex(failedIdx);
-    setGameHint('Ketukan meleset! Ayo dengarkan iramanya dan coba lagi!');
-
-    setTimeout(() => {
-      // Kartu kembali tertutup
-      setFlippedIndices((prev) => prev.filter((i) => i !== failedIdx));
-      setActiveTappingIndex(null);
-      setShakeIndex(null);
-      stopAudio();
-    }, 700);
-  };
-
-  const activeCardItem =
-    activeTappingIndex !== null ? cards[activeTappingIndex]?.item : null;
+  const isCorrect = feedback === 'success';
+  const isWrong = feedback === 'fail';
 
   return (
     <NgajiCeriaLayout
-      title={`Rhythm Memory - Jilid ${currentJilid}`}
+      title="Rhythm Memory - Jilid"
       hideHeader={true}
       themeScope="lab-irama"
       onBack={() => navigate('/member/ngaji-ceria/training')}
     >
-      <div className="relative min-h-[100dvh] w-full bg-[#042f2e] overflow-x-hidden pb-44 sm:pb-48 select-none">
-        {/* Latar Belakang Panggung Irama */}
+      <div className="relative min-h-[100dvh] w-full bg-[#F0FDF4] overflow-x-hidden pb-44 sm:pb-48 select-none">
+        {/* Latar belakang mint (hard shadow, bright) */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-25"
+          className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 50% 25%, #10B981 0, transparent 65%)',
+              'radial-gradient(circle at 50% 50%, #ECFDF5 0, transparent 70%)',
           }}
         />
 
         <div className="relative z-20">
-          {/* Header Eksplorasi Terstandarisasi */}
+          {/* Header eksplorasi */}
           <ExploreHeader
-            title={`Rhythm Memory: Jilid ${currentJilid}`}
-            subtitle={levelInfo.subtitle}
+            title={`Kenangan Irama - Jilid ${currentJilid}`}
+            subtitle={subtitle}
             onBack={() => navigate('/member/ngaji-ceria/training')}
             themeScope="lab-irama"
             themeColorClass="bg-[#064e3b]"
@@ -235,282 +202,263 @@ export default function RhythmMemoryPage() {
             backClass="bg-[#fef3c7] text-[#064e3b] border-[#34d399] shadow-[2px_2px_0px_#022c22] hover:bg-[#fde68a]"
             extraBadge={
               <ExploreStatBadge
-                icon={<StarSvg size={18} fill="#fde047" className="shrink-0" />}
-                value={`${matchedPairIds.length}/6`}
-                title={`Pasangan: ${matchedPairIds.length} dari 6`}
+                icon={<StarSvg size={16} />}
+                value={`Level ${levelIndex + 1} / ${levels.length}`}
+                title={`Level ${levelIndex + 1} dari ${levels.length}`}
                 className="bg-[#fef3c7] text-[#064e3b] border-[#34d399] shadow-[2px_2px_0px_#022c22]"
               />
             }
-            rightAction={
-              <button
-                type="button"
-                onClick={() => navigate('/member/ngaji-ceria/rhythm-memory')}
-                className="inline-flex items-center gap-1 rounded-xl border-2 border-[#34d399] bg-[#fef3c7] px-2.5 py-1 text-xs font-black text-[#064e3b] shadow-[2px_2px_0px_#022c22] active:translate-y-[1px] hover:bg-[#fde68a] transition-all cursor-pointer shrink-0"
-              >
-                <span>Ganti Jilid</span>
-                <ChevronRight size={12} />
-              </button>
-            }
           />
 
-          {/* HUD STATUS & SKOR */}
-          <section className="px-4 pt-3 max-w-md mx-auto">
-            <div className="flex items-center justify-between rounded-2xl bg-[#022c22]/90 border-2 border-[#10b981]/50 px-3 py-2 text-[#fef3c7] shadow-sm">
-              <div className="flex items-center gap-1.5 text-xs font-black">
-                <TargetSvg size={14} className="text-amber-300" stroke="#fde047" />
-                <span>Langkah: {moves}</span>
+          {/* HUD level & score */}
+          <section className="px-4 pt-3 max-w-xl mx-auto">
+            <div className="flex items-center justify-between rounded-2xl bg-white border-[3px] border-[#134E4A] px-3 py-2 shadow-[4px_4px_0px_#134E4A]">
+              <div className="flex items-center gap-2 text-[13px] font-black text-[#134E4A]">
+                <span className={`w-2.5 h-2.5 rounded-full ${badgeBg}`} />
+                {title}
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-black">
-                <FireSvg size={14} className="text-emerald-400" />
-                <span>Streak: {streak}</span>
+              <div className="flex items-center gap-2 text-[13px] font-black text-[#134E4A]">
+                <span className="flex items-center gap-1">
+                  <span className={`w-2.5 h-2.5 rounded-full ${borderColor}`} />
+                  Level {levelIndex + 1} / {levels.length}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span
+                    className={`w-2 h-2 rounded-full ${feedback === 'success' ? 'bg-[#16A34A]' : feedback === 'fail' ? 'bg-[#FF6B6B]' : 'bg-[#F59E0B]'}`}
+                  />
+                  <span className="font-bold">{answer.length} / {correctPattern.length}</span>
+                </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-black">
-                <SparklesSvg size={14} className="text-yellow-300" />
-                <span>Skor: {score}</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleResetGame}
-                className="inline-flex items-center gap-1 rounded-lg bg-[#fef3c7] text-[#064e3b] px-2 py-0.5 text-[10px] font-black border border-[#34d399] active:translate-y-[1px] hover:bg-[#fde68a]"
-              >
-                <RotateCcwSvg size={11} /> Acak
-              </button>
             </div>
 
-            {/* PITA PETUNJUK DINAMIS */}
+            {/* Pita hint */}
             <div className="mt-2 text-center">
-              <span className="inline-block px-3 py-1 rounded-full bg-[#064e3b] border border-[#10b981]/40 text-[11px] font-bold text-[#a7f3d0] shadow-xs">
-                {gameHint}
+              <span className="inline-block px-3 py-1 rounded-full bg-white border-[3px] border-[#134E4A] text-[11px] font-black text-[#64748B] shadow-[3px_3px_0px_#134E4A]">
+                {checkError ?? 'Temukan urutan panah dari suara iramanya.'
+                }
               </span>
             </div>
           </section>
 
-          {/* GRID 12 KARTU (3 KOLOM X 4 BARIS) NEO-BRUTALISM DENGAN ANIMASI FLIP */}
-          <section className="px-4 pt-3 max-w-md mx-auto">
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-              {cards.map((card, index) => {
-                const isMatched = matchedPairIds.includes(card.pairId);
-                const isFlipped = flippedIndices.includes(index);
-                const isFaceUp = isMatched || isFlipped;
-                const isTapping = activeTappingIndex === index;
-                const isShaking = shakeIndex === index;
+          {/* 1) PUTAR AUDIO */}
+          <section className="px-4 pt-4 max-w-xl mx-auto">
+            <button
+              type="button"
+              onClick={handlePlayAudio}
+              disabled={
+                phase === 'listening' || !audioUrl && correctPattern.length === 0
+              }
+              className={`
+                inline-flex items-center justify-center gap-3
+                w-full rounded-2xl border-[3px] border-[#0D9488] bg-[#0D9488] px-6 py-4 font-black text-white shadow-[4px_4px_0px_#0D9488]
+                active:translate-y-[2px] active:shadow-none
+                disabled:cursor-not-allowed disabled:opacity-60
+                transition-all hover:scale-[1.02]
+              `}
+            >
+              <span className="text-3xl">▶</span>
+              <span>
+                {phase === 'listening'
+                  ? 'Mengputar...'
+                  : audioUrl
+                  ? 'Putar Audio Irama'
+                  : 'Sinetron (sinyal)'}
+              </span>
+              {phase === 'listening' && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+            </button>
+            {!audioUrl && levelItems.length > 0 && (
+              <p className="mt-2 text-center text-[11px] font-black text-[#64748B]">
+                Audio belum tersedia. Menampilkan pola dari data level.
+              </p>
+            )}
+          </section>
 
-                return (
-                  <div
-                    key={card.id}
-                    className="aspect-[3/4] w-full"
-                    style={{ perspective: '1000px' }}
-                  >
-                    <motion.div
-                      className="relative w-full h-full cursor-pointer select-none"
-                      style={{ transformStyle: 'preserve-3d' }}
-                      animate={{
-                        rotateY: isFaceUp ? 180 : 0,
-                        scale: isMatched ? [1, 1.05, 1] : isTapping ? [1, 1.04, 1] : 1,
-                        x: isShaking ? [-6, 6, -5, 5, -2, 2, 0] : 0,
-                      }}
-                      transition={{
-                        rotateY: { type: 'spring', stiffness: 280, damping: 22 },
-                        scale: { duration: 0.25 },
-                        x: { duration: 0.4 },
-                      }}
-                      whileHover={
-                        !isFaceUp && !isMatched ? { y: -3, scale: 1.02 } : undefined
-                      }
-                      whileTap={
-                        !isFaceUp && !isMatched ? { scale: 0.94 } : undefined
-                      }
-                      onClick={() => handleCardClick(index)}
+          {/* 2) KOTAK JAWABAN */}
+          <section className="px-4 pt-2 max-w-xl mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-[10px] font-black text-[#64748B] uppercase tracking-widest">
+                Kotak Jawaban
+              </span>
+              <div
+                className={`flex flex-wrap items-center justify-center gap-2 rounded-2xl border-[3px] p-3 shadow-[4px_4px_0px_#134E4A] transition-all ${
+                  feedback === 'fail'
+                    ? 'border-[#FF6B6B] bg-[#FFF0F0] shadow-[4px_4px_0px_#FF6B6B]'
+                    : feedback === 'success'
+                    ? 'border-[#16A34A] bg-[#DCFCE7] shadow-[4px_4px_0px_#16A34A]'
+                    : 'border-[#134E4A] bg-white'
+                }`}
+                aria-label="Kotak jawaban"
+              >
+                {answer.length === 0 ? (
+                  <span className="text-xs font-black text-[#9CA3AF]">
+                    Belum ada jawaban. Klik panah di bawah.
+                  </span>
+                ) : (
+                  answer.map((arrow, idx) => (
+                    <span
+                      key={idx}
+                      className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border-[3px] border-[#134E4A] font-black text-sm shadow-[3px_3px_0px_#134E4A] ${
+                        ARROW_COLOR_CLASS[arrow]
+                      }`}
                     >
-                      {/* SISI BELAKANG: KARTU TERTUTUP (TEAL & MOTIF BINTANG EMAS) */}
-                      <div
-                        className="absolute inset-0 w-full h-full rounded-2xl border-[3.5px] border-[#134E4A] bg-[#0D9488] shadow-[4px_4px_0px_#134E4A] flex flex-col items-center justify-between p-2 overflow-hidden"
-                        style={{
-                          backfaceVisibility: 'hidden',
-                          WebkitBackfaceVisibility: 'hidden',
-                        }}
-                      >
-                        <div className="absolute inset-1.5 border-2 border-dashed border-[#FEF08A]/40 rounded-xl pointer-events-none" />
-
-                        <div className="w-full flex justify-between items-center z-10 px-0.5">
-                          <span className="text-[#FDE047] text-[10px]">✦</span>
-                          <span className="text-[9px] font-black text-[#FEF08A]/85 tracking-widest uppercase">
-                            JILID {currentJilid}
-                          </span>
-                          <span className="text-[#FDE047] text-[10px]">✦</span>
-                        </div>
-
-                        {/* Logo Nada & Bintang */}
-                        <div className="z-10 flex items-center justify-center my-auto">
-                          <div className="w-10 h-10 rounded-2xl bg-[#042F2E]/40 border-2 border-[#FDE047]/70 flex items-center justify-center rotate-45 shadow-xs">
-                            <div className="-rotate-45 flex items-center justify-center text-[#FDE047]">
-                              <MusicSvg size={18} stroke="#FDE047" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="w-full flex justify-between items-center z-10 px-0.5">
-                          <span className="text-[8px] font-bold text-[#FEF08A]/60">
-                            #{String(index + 1).padStart(2, '0')}
-                          </span>
-                          <span className="text-[#FDE047] text-[10px]">✦</span>
-                        </div>
-                      </div>
-
-                      {/* SISI DEPAN: KARTU TERBUKA (TEKS ARAB & STATUS KETUKAN) */}
-                      <div
-                        className={`absolute inset-0 w-full h-full rounded-2xl border-[3.5px] p-2 flex flex-col items-center justify-between overflow-hidden transition-colors ${
-                          isMatched
-                            ? 'bg-[#F0FDF4] border-[#10B981] shadow-[-4px_4px_0px_#065F46]'
-                            : isTapping
-                            ? 'bg-[#FFFBEB] border-[#F59E0B] shadow-[-4px_4px_0px_#78350F]'
-                            : 'bg-white border-[#134E4A] shadow-[-4px_4px_0px_#134E4A]'
-                        }`}
-                        style={{
-                          backfaceVisibility: 'hidden',
-                          WebkitBackfaceVisibility: 'hidden',
-                          transform: 'rotateY(180deg)',
-                        }}
-                      >
-                        {/* Header Mini Kartu */}
-                        <div className="w-full flex items-center justify-between z-10">
-                          <span
-                            className={`text-[8px] font-black ${
-                              isMatched
-                                ? 'text-[#10B981]'
-                                : isTapping
-                                ? 'text-[#D97706]'
-                                : 'text-[#134E4A]/50'
-                            }`}
-                          >
-                            #{String(index + 1).padStart(2, '0')}
-                          </span>
-
-                          {isMatched ? (
-                            <span className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
-                              <CheckSvg size={10} />
-                            </span>
-                          ) : isTapping ? (
-                            <span className="px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[8px] font-black animate-pulse">
-                              KETUK
-                            </span>
-                          ) : null}
-                        </div>
-
-                        {/* Teks Arab Dinamis */}
-                        <div
-                          className="flex items-center justify-center flex-1 w-full p-1 text-center select-none"
-                          dir="rtl"
-                        >
-                          <span
-                            className={`font-arabic font-bold leading-loose drop-shadow-xs max-w-full break-words text-center ${
-                              isMatched
-                                ? 'text-[#065F46]'
-                                : isTapping
-                                ? 'text-[#92400E]'
-                                : 'text-[#134E4A]'
-                            } ${getArabicFontSizeClass(card.item.arabic)}`}
-                          >
-                            {card.item.arabic}
-                          </span>
-                        </div>
-
-                        {/* Transliterasi & Ketukan */}
-                        <div className="w-full text-center">
-                          <span className="text-[9px] font-bold text-[#64748B] line-clamp-1">
-                            {card.item.transliteration}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </div>
-                );
-              })}
+                      <span className={`text-lg leading-none ${ARROW_COLOR_CLASS[arrow]}`}>
+                        {ARROW_SYMBOL[arrow]}
+                      </span>
+                      <span className="text-[10px] font-black text-white/80">{ARROW_LABEL[arrow]}</span>
+                    </span>
+                  ))
+                )}
+              </div>
             </div>
           </section>
 
-          {/* TAP ZONE METRONOM HORIZONTAL (MUNCUL SAAT KARTU AKTIF MEMBUTUHKAN KETUKAN) */}
-          <AnimatePresence>
-            {activeTappingIndex !== null && activeCardItem && (
-              <RhythmTapZone
-                active={activeTappingIndex !== null}
-                bpm={activeCardItem.bpm}
-                beatsCount={activeCardItem.beatsCount}
-                durationMs={activeCardItem.durationMs}
-                cardArabicText={activeCardItem.arabic}
-                transliteration={activeCardItem.transliteration}
-                tone={activeCardItem.tone}
-                onSuccess={handleTapSuccess}
-                onFail={handleTapFail}
+          {/* 3) BANK PANAH */}
+          <section className="px-4 pt-2 pb-4 max-w-xl mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <span className="text-[10px] font-black text-[#64748B] uppercase tracking-widest">
+                Bank Panah
+              </span>
+              <PatternArrowButton
+                type={('datar' as PatternType)}
+                onClick={() => handleAddArrow('datar')}
+                disabled={phase !== 'idle'}
               />
-            )}
+              <PatternArrowButton
+                type={('naik' as PatternType)}
+                onClick={() => handleAddArrow('naik')}
+                disabled={phase !== 'idle'}
+              />
+              <PatternArrowButton
+                type={('turun' as PatternType)}
+                onClick={() => handleAddArrow('turun')}
+                disabled={phase !== 'idle'}
+              />
+            </div>
+          </section>
+
+          {/* 4) KONTROL */}
+          <section className="px-4 pb-2 max-w-xl mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleRemoveArrow}
+                disabled={answer.length === 0 || phase !== 'idle'}
+                className="inline-flex items-center gap-1.5 rounded-xl border-[3px] border-[#FF6B6B] bg-[#FF6B6B] px-4 py-2.5 font-black text-white shadow-[4px_4px_0px_#FF6B6B] active:translate-y-[2px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 transition-all hover:scale-[1.02]"
+              >
+                <span className="text-lg">⌫</span>
+                <span className="text-xs font-black">Hapus</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCheck}
+                disabled={
+                  phase !== 'idle' ||
+                  answer.length !== correctPattern.length ||
+                  correctPattern.length === 0
+                }
+                className="inline-flex items-center gap-1.5 rounded-xl border-[3px] border-[#0D9488] bg-[#0D9488] px-5 py-2.5 font-black text-white shadow-[4px_4px_0px_#0D9488] active:translate-y-[2px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 transition-all hover:scale-[1.02]"
+              >
+                <span className="text-lg">✓</span>
+                <span className="text-sm font-black">Periksa Jawaban</span>
+              </button>
+
+              {phase === 'answered' && (
+                <button
+                  type="button"
+                  onClick={handleResetAll}
+                  className="inline-flex items-center gap-1.5 rounded-xl border-[3px] border-[#0D9488] bg-[#0D9488] px-5 py-2.5 font-black text-white shadow-[4px_4px_0px_#0D9488] active:translate-y-[2px] active:shadow-none transition-all hover:scale-[1.02]"
+                >
+                  <span className="text-lg">↺</span>
+                  <span className="text-sm font-black">Coba Lagi</span>
+                </button>
+              )}
+            </div>
+
+            {/* Navigasi level */}
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setLevelIndex((i) => Math.max(0, i - 1))}
+                disabled={levelIndex === 0}
+                className="inline-flex items-center gap-1 rounded-xl border-[3px] border-[#64748B] bg-white px-3 py-1.5 font-black text-[#374151] shadow-[2px_2px_0px_#64748B] disabled:cursor-not-allowed disabled:opacity-40 transition-all hover:bg-[#F9FAFB]"
+              >
+                <span className="text-base">‹</span>
+                <span className="text-xs font-black">Sebelum</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLevelIndex((i) => Math.min(levels.length - 1, i + 1))}
+                disabled={levelIndex >= levels.length - 1}
+                className="inline-flex items-center gap-1 rounded-xl border-[3px] border-[#64748B] bg-white px-3 py-1.5 font-black text-[#374151] shadow-[2px_2px_0px_#64748B] disabled:cursor-not-allowed disabled:opacity-40 transition-all hover:bg-[#F9FAFB]"
+              >
+                <span className="text-base">›</span>
+                <span className="text-xs font-black">Berikutnya</span>
+              </button>
+            </div>
+          </section>
+
+          {/* Feedback benar/salah */}
+          <AnimatePresence>
+            {isCorrect ? (
+              <div className="px-4 pb-6 max-w-xl mx-auto">
+                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-[3px] border-[#16A34A] bg-[#DCFCE7] px-5 py-4 text-center shadow-[4px_4px_0px_#16A34A] spring">
+                  <span className="text-4xl">✅</span>
+                  <span className="text-[13px] font-black text-[#16A34A]">
+                    Benar! Irama {correctPattern.join(' → ')} berhasil.
+                  </span>
+                </div>
+              </div>
+            ) : isWrong ? (
+              <div className="px-4 pb-6 max-w-xl mx-auto">
+                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-[3px] border-[#FF6B6B] bg-[#FFF0F0] px-5 py-4 text-center shadow-[4px_4px_0px_#FF6B6B] shake">
+                  <span className="text-4xl">❌</span>
+                  <span className="text-[13px] font-black text-[#991B1B]">
+                    Salah. Ulangi dari nol (Coba Lagi).
+                  </span>
+                </div>
+              </div>
+            ) : null}
           </AnimatePresence>
         </div>
+
+        {/* Modal permainan selesai */}
+        <AppModal
+          isOpen={phase === 'answered'}
+          onClose={() => navigate('/member/ngaji-ceria/training')}
+          title={isCorrect ? 'Sembuh! Irama benar' : 'Salah! Coba lagi'}
+          variant={isCorrect ? 'warm' : 'cool'}
+        >
+          <div className="w-20 h-20 rounded-2xl bg-[#16A34A] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
+            {isCorrect ? <CheckSvg size={44} /> : <FireSvg size={44} />}
+          </div>
+          <p className="text-xs font-black text-[#134E4A]">
+            {isCorrect
+              ? `Level ${levelIndex + 1} ${subtitle}. Lanjut ke level berikutnya.`
+              : 'Urutan yang benar belum tepat. Coba lagi.'}
+          </p>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleResetAll}
+              className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#0D9488] hover:bg-[#0B7285] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <CheckSvg size={14} />
+              <span>Tahan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/member/ngaji-ceria/training')}
+              className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1"
+            >
+              <RotateCcwSvg size={13} />
+              <span>Kembali</span>
+            </button>
+          </div>
+        </AppModal>
       </div>
-
-      {/* DIALOG KEMENANGAN (VICTORY MODAL) */}
-      <AppModal
-        isOpen={isComplete}
-        onClose={() => navigate('/member/ngaji-ceria/training')}
-        title="Mumtaz! Luar Biasa!"
-        variant="warm"
-      >
-        <div className="w-20 h-20 rounded-2xl bg-[#065F46] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
-          <TrophySvg size={44} />
-        </div>
-
-        <p className="text-xs text-[#92400E] font-medium mb-4 text-center">
-          Kamu berhasil menyelesaikan seluruh irama & kartu Tilawati Jilid {currentJilid}!
-        </p>
-
-        <div className="flex justify-around bg-[#FDE68A] border-2 border-[#B45309] rounded-2xl p-3 mb-5">
-          <div>
-            <span className="block text-[10px] font-bold text-[#78350F] uppercase">
-              Total Skor
-            </span>
-            <span className="text-xl font-black text-[#78350F]">
-              {score}
-            </span>
-          </div>
-          <div className="border-r border-[#B45309]/30" />
-          <div>
-            <span className="block text-[10px] font-bold text-[#78350F] uppercase">
-              Langkah
-            </span>
-            <span className="text-xl font-black text-[#78350F]">
-              {moves}
-            </span>
-          </div>
-          <div className="border-r border-[#B45309]/30" />
-          <div>
-            <span className="block text-[10px] font-bold text-[#78350F] uppercase">
-              Streak
-            </span>
-            <span className="text-xl font-black text-[#78350F] flex items-center justify-center gap-0.5">
-              <span>{streak}</span>
-              <FireSvg size={16} className="text-[#EA580C]" />
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={handleResetGame}
-            className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            <span>Main Lagi</span>
-            <RotateCcwSvg size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/member/ngaji-ceria/training')}
-            className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
-          >
-            Kembali ke Pusat Latihan
-          </button>
-        </div>
-      </AppModal>
     </NgajiCeriaLayout>
   );
 }
