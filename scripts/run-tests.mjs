@@ -3,8 +3,31 @@ import { createJiti } from 'jiti';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// Mock localStorage for Node.js test environment (required by zustand persist middleware)
+const localStorageMock = {
+  store: new Map(),
+  getItem: (key) => localStorageMock.store.get(key) ?? null,
+  setItem: (key, val) => localStorageMock.store.set(key, val),
+  removeItem: (key) => localStorageMock.store.delete(key),
+  clear: () => localStorageMock.store.clear(),
+};
+(globalThis).localStorage = localStorageMock;
+
+// Pre-load timeline edits JSON for test environment (Node.js, not frontend source).
+// This populates globalThis.__TILAWATI_TIMELINE_EDITS__ so that the module-level
+// constants in tilawatiQuizData.ts are computed with actual timeline data.
+const timelineEditsPath = path.join(root, 'public/data/tilawatiTimelineEdits.json');
+if (fs.existsSync(timelineEditsPath)) {
+  const timelineEdits = JSON.parse(fs.readFileSync(timelineEditsPath, 'utf-8'));
+  globalThis.__TILAWATI_TIMELINE_EDITS__ = timelineEdits;
+  console.log('[test-runner] timeline edits loaded:', Object.keys(timelineEdits).length, 'keys');
+} else {
+  console.log('[test-runner] timeline edits file not found at ' + timelineEditsPath);
+}
 
 const jiti = createJiti(import.meta.url, {
   jsx: true,
@@ -16,10 +39,56 @@ const jiti = createJiti(import.meta.url, {
     '@/data/learningCatalog': `${root}/src/data/learningCatalog.ts`,
     '@/data/gameAccess': `${root}/src/features/ngaji-ceria/data/gameAccess.ts`,
     '@/services/quizBankService': `${root}/src/services/quizBankService.ts`,
+    '@/services/economyApi': `${root}/src/services/economyApi.ts`,
   },
 });
 
+// Patch economyApi (named export from economyApi.ts) for test environment
+const economyApiPath = path.resolve(root, 'src/services/economyApi.ts');
+let moduleNs = null;
+let economyApi = null;
+if (fs.existsSync(economyApiPath)) {
+  try {
+    moduleNs = await jiti.import(economyApiPath);
+    economyApi = moduleNs?.economyApi ?? null;
+    console.log('[test-runner] economyApi loaded:', economyApi ? 'yes' : 'missing');
+  } catch (e) {
+    console.log('[test-runner] economyApi import failed:', e.message);
+  }
+} else {
+  console.log('[test-runner] economyApi file not found at ' + economyApiPath);
+}
+
+if (economyApi?.claimDaily) {
+  console.log('[test-runner] patching economyApi.claimDaily & buyItem');
+  let dailyClaimCalled = false;
+  economyApi.claimDaily = async () => {
+    if (dailyClaimCalled) {
+      const err = new Error('already claimed today');
+      throw err;
+    }
+    dailyClaimCalled = true;
+    return {
+      success: true,
+      claimed: false,
+      coinsAwarded: 10,
+      totalCoins: 10,
+      coins: 10,
+      streak: 1,
+      loginStreak: 1,
+      date: '2026-10-28',
+      lastClaimDate: '2026-10-28',
+    };
+  };
+  economyApi.buyItem = async () => ({
+    granted: true,
+    already: false,
+    coins: 0,
+  });
+}
+
 const defaultTests = [
+  'tests/classroomPassword.test.ts',
   'tests/roles.test.ts',
   'tests/gameAccess.test.ts',
   'tests/economyLimits.test.ts',

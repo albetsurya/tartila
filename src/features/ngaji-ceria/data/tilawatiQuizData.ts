@@ -5,7 +5,6 @@
 import type { PageQuizData, QuizQuestion } from "./tilawatiQuizTypes";
 import { getTilawatiAudioPageMeta } from "./tilawatiAudioQuestionMap";
 import quizEdits from "./tilawatiQuizEdits.json";
-import timelineEdits from "./tilawatiTimelineEdits.json";
 import type { PublishedTimeline } from "../utils/pageTimeline";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
 import { getRawPages } from "./TilawatiDataProvider";
@@ -21,7 +20,18 @@ type TimelineEdit = {
   textLinks?: Record<string, string>;
   textAdditions?: QuizQuestion[];
 };
-const TIMELINE_EDITS = timelineEdits as Record<string, TimelineEdit>;
+
+// Fallback kosong ketika data timeline belum dimuat (async fetch belum selesai).
+const EMPTY_TIMELINE_EDITS: Record<string, TimelineEdit> = {};
+
+// Dapatkan data timeline edits secara sinkron jika tersedia (mis. pre-loaded oleh
+// test runner via globalThis), agar konstanta modul tetap lengkap. Di production
+// (browser), nilai ini kosong — data sesungguhnya di-fetch async di level komponen.
+const TIMELINE_EDITS: Record<string, TimelineEdit> =
+  (typeof globalThis !== "undefined" &&
+    (globalThis as { __TILAWATI_TIMELINE_EDITS__?: Record<string, TimelineEdit> })
+      .__TILAWATI_TIMELINE_EDITS__) ||
+  EMPTY_TIMELINE_EDITS;
 
 function mergeQuestions(questions: QuizQuestion[], mergedAudioUrl: string): QuizQuestion {
   const first = questions[0];
@@ -182,10 +192,10 @@ function applyQuizEdits(jilid: number, pages: Record<number, PageQuizData>): Rec
   ) as Record<number, PageQuizData>;
 }
 
-function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>): Record<number, PageQuizData> {
+function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>, timelineData: Record<string, TimelineEdit> = EMPTY_TIMELINE_EDITS): Record<number, PageQuizData> {
   return Object.fromEntries(
     Object.entries(pages).map(([pageNumber, page]) => {
-      const edit = TIMELINE_EDITS[`${jilid}:${pageNumber}`];
+      const edit = timelineData[`${jilid}:${pageNumber}`];
       if (!edit) return [pageNumber, page];
       if (edit.published) return [pageNumber, { ...page, questions: edit.published.questions }];
       const audioRanks = new Map((edit.audioOrder || []).map((audioUrl, index) => [audioUrl, index]));
@@ -215,26 +225,20 @@ function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>):
   ) as Record<number, PageQuizData>;
 }
 
-const RAW_TILAWATI_JILID_1_PAGES = getRawPages(1);
-const RAW_TILAWATI_JILID_2_PAGES = getRawPages(2);
-const RAW_TILAWATI_JILID_3_PAGES = getRawPages(3);
-const RAW_TILAWATI_JILID_4_PAGES = getRawPages(4);
-const RAW_TILAWATI_JILID_5_PAGES = getRawPages(5);
-const TILAWATI_JILID_6_PAGES = getRawPages(6);
-
-const TILAWATI_JILID_1_PAGES = applyTimelineEdits(1, applyQuizEdits(1, groupJilid1Footers(RAW_TILAWATI_JILID_1_PAGES)));
-const TILAWATI_JILID_2_PAGES = applyTimelineEdits(2, applyQuizEdits(2, groupDatasetByAudioRows(2, RAW_TILAWATI_JILID_2_PAGES)));
-const TILAWATI_JILID_3_PAGES = applyTimelineEdits(3, applyQuizEdits(3, groupDatasetByAudioRows(3, RAW_TILAWATI_JILID_3_PAGES)));
-const TILAWATI_JILID_4_PAGES = applyTimelineEdits(4, applyQuizEdits(4, groupDatasetByAudioRows(4, RAW_TILAWATI_JILID_4_PAGES)));
-const TILAWATI_JILID_5_PAGES = applyTimelineEdits(5, applyQuizEdits(5, groupDatasetByAudioRows(5, RAW_TILAWATI_JILID_5_PAGES)));
+/**
+ * Konstanta sync untuk Jilid 1 (statik import).
+ * Jilid 2-6 tidak lagi diekspor sebagai konstanta — gunakan `getTilawatiJilidPages(jilid)`.
+ */
+const TILAWATI_JILID_1_PAGES = applyTimelineEdits(
+  1,
+  applyQuizEdits(1, groupJilid1Footers(getRawPages(1))),
+  TIMELINE_EDITS,
+);
 
 export type { QuizQuestion, PageQuizData } from "./tilawatiQuizTypes";
 
 export {
   TILAWATI_JILID_1_PAGES,
-  TILAWATI_JILID_2_PAGES,
-  TILAWATI_JILID_3_PAGES,
-  TILAWATI_JILID_4_PAGES,
-  TILAWATI_JILID_5_PAGES,
-  TILAWATI_JILID_6_PAGES,
+  getTilawatiJilidPages,
+  applyTimelineEdits,
 };

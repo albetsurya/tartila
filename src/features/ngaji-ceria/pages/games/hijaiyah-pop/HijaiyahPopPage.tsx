@@ -20,6 +20,7 @@ import { ComboBadge } from "../_shared/ComboBadge";
 import { FallingFruit } from "./components/FallingFruit";
 import { TargetBanner } from "../_shared/TargetBanner";
 import { playLetterAudio } from "../_shared/gameAudio";
+import { playSfx } from "../_shared/audio";
 import { useBalloonGame, type BalloonData } from "./hooks/useBalloonGame";
 
 function Game() {
@@ -72,6 +73,7 @@ function Game() {
     async (fruit: BalloonData) => {
       // Jalankan logika game pop terlebih dahulu
       game.pop(fruit.id);
+      playSfx('pop');
 
       if (!game.fieldRef.current) return;
       const rect = game.fieldRef.current.getBoundingClientRect();

@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ExploreHeader } from "../../components/ExploreHeader";
+import { loadTimelineEdits } from "../../utils/timelineEditsLoader";
+import type { TimelineEdits } from "../../utils/timelineEditsLoader";
 import {
   getArenaKartuMateri,
   getArenaKartuCardById,
@@ -30,7 +32,6 @@ const PATTERN_TO_ANSWER: Record<PatternType, string> = {
 };
 
 export default function KartuPracticePage() {
-  console.log("🔥 HALAMAN DIRENDER ULANG");
   const navigate = useNavigate();
   const { jilid: jilidParam, cardId: cardIdParam } = useParams<{
     jilid?: string;
@@ -42,17 +43,41 @@ export default function KartuPracticePage() {
     return parsed >= 1 && parsed <= 6 ? parsed : 1;
   }, [jilidParam]);
 
+  // Timeline Editor data (SSOT) — fetched once on mount
+  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(
+    undefined,
+  );
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void loadTimelineEdits()
+      .then((data) => {
+        if (alive) setTimelineData(data);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingTimeline(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const allCards = useMemo(() => {
-    return getArenaKartuMateri(currentJilid);
-  }, [currentJilid]);
+    return getArenaKartuMateri(currentJilid, timelineData);
+  }, [currentJilid, timelineData]);
 
   const currentCard = useMemo(() => {
     if (cardIdParam) {
-      const found = getArenaKartuCardById(currentJilid, cardIdParam);
+      const found = getArenaKartuCardById(
+        currentJilid,
+        cardIdParam,
+        timelineData,
+      );
       if (found) return found;
     }
     return allCards[0];
-  }, [currentJilid, cardIdParam, allCards]);
+  }, [currentJilid, cardIdParam, allCards, timelineData]);
 
   const completedArenaCards = useEconomyStore((s) => s.completedArenaCards);
   const markCardAsCompleted = useEconomyStore((s) => s.markCardAsCompleted);
@@ -235,6 +260,11 @@ export default function KartuPracticePage() {
           {/* Cards Grid - Show only when not flipped */}
           {!isFlipped && (
             <section className="px-4 pt-4 flex justify-center">
+              {isLoadingTimeline && (
+                <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
+                  Memuat data Timeline Editor...
+                </div>
+              )}
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

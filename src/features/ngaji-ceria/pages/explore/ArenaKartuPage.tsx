@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { NgajiCeriaLayout } from '../../components/NgajiCeriaLayout';
 import { ExploreHeader, ExploreStatBadge } from '../../components/ExploreHeader';
+import { loadTimelineEdits } from '../../utils/timelineEditsLoader';
+import type { TimelineEdits } from '../../utils/timelineEditsLoader';
 import {
   getArenaKartuMateri,
   getArabicFontSizeClass,
@@ -36,10 +38,28 @@ export default function ArenaKartuPage() {
     return getArenaKartuLevelInfo(currentJilid);
   }, [currentJilid]);
 
+  // Timeline Editor data (SSOT) — fetched once on mount
+  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(undefined);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void loadTimelineEdits()
+      .then((data) => {
+        if (alive) setTimelineData(data);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingTimeline(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // 12 Kartu Materi untuk jilid ini
   const cards = useMemo(() => {
-    return getArenaKartuMateri(currentJilid);
-  }, [currentJilid]);
+    return getArenaKartuMateri(currentJilid, timelineData);
+  }, [currentJilid, timelineData]);
 
   // State Progres dari Zustand Store & LocalStorage
   const completedArenaCards = useEconomyStore((s) => s.completedArenaCards);
@@ -155,6 +175,11 @@ export default function ArenaKartuPage() {
 
           {/* GRID 12 KARTU PAPAN PROGRES (3 KOLOM X 4 BARIS) */}
           <section className="px-4 pt-4 max-w-4xl mx-auto">
+            {isLoadingTimeline && (
+              <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
+                Memuat data Timeline Editor...
+              </div>
+            )}
             {cards.length === 0 ? (
               <div className="text-center py-12 text-[#A7F3D0] font-black text-lg">
                 Segera Hadir untuk Jilid ini
