@@ -30,7 +30,9 @@ import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import {
   usePublishedTilawati,
   useTilawatiAudio,
+  type TimelineEditsIndex,
 } from "../services/tilawatiAudio";
+import { loadTimelineEdits } from "../utils/timelineEditsLoader";
 import { getNgajiActivity } from "../hooks/useNgajiCeriaStore";
 import { soundManager } from "../services/soundManager";
 import { awardProgress } from "./games/_shared/progression";
@@ -296,6 +298,10 @@ export default function NgajiCeriaQuizPage() {
   const [isTaawudzPhase, setIsTaawudzPhase] = useState(true);
   const taawudzShownRef = useRef(false);
 
+  // Timeline edits (async fetch from /data/tilawatiTimelineEdits.json).
+  // Audio playback waits for this data so published timeline segments resolve.
+  const [timelineData, setTimelineData] = useState<TimelineEditsIndex | null>(null);
+
   // Batasi soal aktif sesuai level kuis.
   // Level 2 melanjutkan dari soal Level 1 (jangan ulangi soal).
   // Filter soal materi Rost (type === "material" / isListenOnly / isOpening) karena
@@ -363,13 +369,23 @@ export default function NgajiCeriaQuizPage() {
     jilid: activeJilid,
     pageNumber: activePageNum,
     questionIndex: currentIdx,
-  });
+  }, timelineData ?? undefined);
   const isAudioPlaying = tilawatiAudio.isPlaying;
   useEffect(() => {
     if (!access.isOpen || access.isComingSoon) return;
     soundManager.playBgm("quiz", 0.18);
     return () => soundManager.stopBgm();
   }, [access.isOpen, access.isComingSoon]);
+
+  // Fetch timeline edits (async, module-cached). Needed for audio resolution.
+  useEffect(() => {
+    if (timelineData !== null) return;
+    let alive = true;
+    void loadTimelineEdits()
+      .then((data) => { if (alive) setTimelineData(data); })
+      .catch(() => { if (alive) setTimelineData({}); });
+    return () => { alive = false; };
+  }, [])
 
 // Reset state when page number changes
   useEffect(() => {
@@ -512,11 +528,12 @@ export default function NgajiCeriaQuizPage() {
 
   const handlePlayAudio = useCallback(() => {
     if (!question || !access.isOpen || access.isComingSoon) return;
+    if (timelineData === null) return; // Wait for timeline data before playing
     // Stop any currently playing audio (harmless no-op if already stopped)
     tilawatiAudio.stop();
     tapFeedback();
     void tilawatiAudio.play();
-  }, [question?.id, isAudioPlaying, access.isOpen]);
+  }, [question?.id, isAudioPlaying, access.isOpen, timelineData]);
 
   if (!access.isOpen || access.isComingSoon) {
     return (

@@ -1,5 +1,7 @@
 import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
 import type { QuizQuestion } from "../data/tilawatiQuizTypes";
+import type { TimelineEdits } from "./timelineEditsLoader";
+import type { TimelineAudioClip } from "./pageTimeline";
 
 export type PatternType =
   | "1-datar"
@@ -19,7 +21,7 @@ export interface TrainingItem {
   patternType: PatternType;
   audioUrl: string;
   isOpening: boolean;
-  source: "dataset"; // untuk audit
+  source: "dataset" | "timeline"; // untuk audit
   /** Optional timing params - legacy hardcodes, populate from level config */
   bpm?: number;
   beatsCount?: number;
@@ -43,7 +45,36 @@ export function derivePatternType(hintTone: string): PatternType {
 }
 
 // Ambil semua item untuk jilid+hal tertentu
-export function getTrainingItems(jilid: number, hal: number): TrainingItem[] {
+// Prefer timeline published data (from Timeline Editor) over raw dataset when present.
+export function getTrainingItems(jilid: number, hal: number, timelineData?: TimelineEdits): TrainingItem[] {
+  // Prefer published timeline (from Timeline Editor) over raw dataset.
+  const published = timelineData?.[`${jilid}:${hal}`]?.published;
+  if (published?.timeline) {
+    const result: TrainingItem[] = [];
+    for (const clip of published.timeline.clips) {
+      if (!clip.outputUrl || !clip.outputUrl.startsWith('/audio/tilawati/')) continue;
+      const text = published.timeline.texts.find((t) => t.clipId === clip.id);
+      if (!text || !text.arabic || text.arabic.trim() === '') continue;
+      if (!text.transliterationParts || text.transliterationParts.length === 0) continue;
+      result.push({
+        id: `${jilid}:${hal}:${clip.id}`,
+        jilid,
+        hal,
+        arabic: text.arabic,
+        transliteration: text.transliterationParts.join(' '),
+        hintTone: text.hintTone,
+        patternType: derivePatternType(text.hintTone),
+        audioUrl: clip.outputUrl,
+        isOpening: Boolean(text.isOpening),
+        source: 'timeline',
+        bpm: 65,
+        beatsCount: 2,
+        durationMs: 2000,
+      });
+    }
+    return result;
+  }
+
   const dataset = getTilawatiDataset(jilid);
   const page = dataset?.[hal];
   if (!page?.questions) return [];
@@ -64,16 +95,16 @@ export function getTrainingItems(jilid: number, hal: number): TrainingItem[] {
 }
 
 // Ambil semua item di jilid tertentu (untuk daftar halaman)
-export function getAllTrainingItems(jilid: number): TrainingItem[] {
+export function getAllTrainingItems(jilid: number, timelineData?: TimelineEdits): TrainingItem[] {
   const dataset = getTilawatiDataset(jilid);
   const pages = Object.keys(dataset ?? {}).map(Number).sort((a, b) => a - b);
-  return pages.flatMap((hal) => getTrainingItems(jilid, hal));
+  return pages.flatMap((hal) => getTrainingItems(jilid, hal, timelineData));
 }
 
 // Ambil header clips (untuk Lab Irama) — soal dengan isOpening atau 
 // hintTone "Datar — Naik — Turun (3x)"
-export function getHeaderSamples(jilid: number): TrainingItem[] {
-  const items = getAllTrainingItems(jilid);
+export function getHeaderSamples(jilid: number, timelineData?: TimelineEdits): TrainingItem[] {
+  const items = getAllTrainingItems(jilid, timelineData);
   const headers = items.filter((it) => it.isOpening || it.hintTone.includes('3x'));
   if (headers.length > 0) return headers;
   // Fallback: 1 item per tone (datar/naik/turun) dari data yang ada.
@@ -430,8 +461,8 @@ function shuffleArray<T>(array: T[]): T[] {
  * Build 12 ArenaKartuMateri cards for a jilid from SSOT.
  * TODO: Replace default instruction/timing with SSOT-derived values
  */
-export function getArenaKartuMateri(jilid: number): ArenaKartuMateri[] {
-  const items = getAllTrainingItems(jilid);
+export function getArenaKartuMateri(jilid: number, timelineData?: TimelineEdits): ArenaKartuMateri[] {
+  const items = getAllTrainingItems(jilid, timelineData);
   const levelBpm = getArenaKartuLevelInfo(jilid).bpm;
   // Take first 12 items with audio, slice to 12 cards
   const selected = items.slice(0, 12);
@@ -459,9 +490,10 @@ export function getArenaKartuMateri(jilid: number): ArenaKartuMateri[] {
  */
 export function getArenaKartuCardById(
   jilid: number,
-  cardId: string
+  cardId: string,
+  timelineData?: TimelineEdits,
 ): ArenaKartuMateri | undefined {
-  return getArenaKartuMateri(jilid).find((c) => c.id === cardId);
+  return getArenaKartuMateri(jilid, timelineData).find((c) => c.id === cardId);
 }
 
 /**
@@ -470,9 +502,10 @@ export function getArenaKartuCardById(
  */
 export function getArenaKartuPairs(
   jilid: number,
-  count: number = 6
+  count: number = 6,
+  timelineData?: TimelineEdits,
 ): ArenaKartuCardItem[] {
-  const items = getAllTrainingItems(jilid);
+  const items = getAllTrainingItems(jilid, timelineData);
   const levelBpm = getArenaKartuLevelInfo(jilid).bpm;
   let pool = items.slice(0, 12);
   let poolCopy = shuffleArray(pool);

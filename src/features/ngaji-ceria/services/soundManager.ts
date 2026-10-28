@@ -14,7 +14,7 @@
 export type SfxName =
   | "tap" | "pop" | "correct" | "wrong" | "streak"
   | "powerup" | "victory" | "defeat" | "gameover"
-  | "punch" | "block";
+  | "punch" | "block" | "shuffle";
 
 // Freesound fallback — butuh VITE_FREE_SOUND_API_KEY dari freesound.org
 export const freesound = new (await import('./freesoundService')).FreesoundService;
@@ -34,6 +34,8 @@ const SFX_FILES: Record<SfxName, string | null> = {
   // Disintesis prosedural (lihat synthPunch/synthBlock).
   punch: null,
   block: null,
+  // Baru: shuffle SFX untuk memory game
+  shuffle: null,
 };
 
 const BGM_FILES: Record<BgmTrack, string> = {
