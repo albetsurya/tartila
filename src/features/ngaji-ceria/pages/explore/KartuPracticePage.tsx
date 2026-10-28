@@ -32,7 +32,6 @@ const PATTERN_TO_ANSWER: Record<PatternType, string> = {
 };
 
 export default function KartuPracticePage() {
-  console.log("🔥 HALAMAN DIRENDER ULANG");
   const navigate = useNavigate();
   const { jilid: jilidParam, cardId: cardIdParam } = useParams<{
     jilid?: string;
@@ -45,7 +44,9 @@ export default function KartuPracticePage() {
   }, [jilidParam]);
 
   // Timeline Editor data (SSOT) — fetched once on mount
-  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(undefined);
+  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(
+    undefined,
+  );
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
 
   useEffect(() => {
@@ -68,7 +69,11 @@ export default function KartuPracticePage() {
 
   const currentCard = useMemo(() => {
     if (cardIdParam) {
-      const found = getArenaKartuCardById(currentJilid, cardIdParam, timelineData);
+      const found = getArenaKartuCardById(
+        currentJilid,
+        cardIdParam,
+        timelineData,
+      );
       if (found) return found;
     }
     return allCards[0];
