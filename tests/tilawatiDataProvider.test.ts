@@ -3,9 +3,17 @@ import {
   formatQuestionsForWebSocket,
   getSpecificPageForAssignment,
   getRandomQuestions,
+  loadJilidPages,
 } from '../src/features/ngaji-ceria/data/TilawatiDataProvider';
 
 const WAQAF = /[○ۚۖۗۘۙ]/;
+
+async function preloadJilid6(): Promise<void> {
+  if (!globalThis.__tilawatiJilid6Preloaded) {
+    globalThis.__tilawatiJilid6Preloaded = true;
+    await loadJilidPages(6);
+  }
+}
 
 export const tests = {
   'getRandomQuestions filters opening, empty, and digit-only questions': () => {
@@ -19,13 +27,15 @@ export const tests = {
     }
   },
 
-  'getRandomQuestions preserves waqaf symbols': () => {
+  'getRandomQuestions preserves waqaf symbols': async () => {
+    await preloadJilid6();
     const questions = getRandomQuestions(6, 200);
     const withWaqaf = questions.filter((question) => WAQAF.test(question.arabic + question.options.join('')));
     assert.ok(withWaqaf.length > 0, 'simbol waqaf harus dipertahankan');
   },
 
-  'getSpecificPageForAssignment returns clean error for empty page': () => {
+  'getSpecificPageForAssignment returns clean error for empty page': async () => {
+    await preloadJilid6();
     const empty = getSpecificPageForAssignment(6, 42);
     assert.equal(empty.ok, false);
     if (!empty.ok) {

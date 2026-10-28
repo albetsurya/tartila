@@ -2,14 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { latinToArabic } from "../utils/translit";
 import { sanitizeAudioUrl } from "../utils/audioUrl";
-import {
-  TILAWATI_JILID_1_PAGES,
-  TILAWATI_JILID_2_PAGES,
-  TILAWATI_JILID_3_PAGES,
-  TILAWATI_JILID_4_PAGES,
-  TILAWATI_JILID_5_PAGES,
-} from "../data/tilawatiQuizData";
 import type { PageQuizData, QuizQuestion } from "../data/tilawatiQuizTypes";
+import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
 import {
   Play,
@@ -21,15 +15,6 @@ import {
 } from "../../../components/ui/CustomIcons";
 
 export type CekAudioVariant = "member" | "admin";
-
-const QUIZ_DATASETS: Record<number, Record<number, PageQuizData>> = {
-  1: TILAWATI_JILID_1_PAGES,
-  2: TILAWATI_JILID_2_PAGES,
-  3: TILAWATI_JILID_3_PAGES,
-  4: TILAWATI_JILID_4_PAGES,
-  5: TILAWATI_JILID_5_PAGES,
-};
-const AUDIO_TEST_STORAGE_KEY = "ngaji-ceria:tilawati-audio-tested:v1";
 
 type NoteOption =
   | "Datar"
@@ -154,6 +139,8 @@ type TimelineClip = {
   isPublished?: boolean;
 };
 
+const AUDIO_TEST_STORAGE_KEY = "ngaji-ceria:tilawati-audio-tested:v1";
+
 export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   const admin = variant === "admin";
   const timelineLocalHref = admin
@@ -174,6 +161,28 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   );
   const [jilid, setJilid] = useState(initialJilid);
   const [hal, setHal] = useState(initialHal);
+
+  const [datasets, setDatasets] = useState<Record<number, Record<number, PageQuizData>>>({});
+  const [isLoadingDatasets, setIsLoadingDatasets] = useState(true);
+
+  // Preload dataset jilid 1-5 (Jilid 2-6 lazy-loaded)
+  useEffect(() => {
+    let alive = true;
+    Promise.all([1, 2, 3, 4, 5].map((j) => loadTilawatiDataset(j)))
+      .then((results) => {
+        if (alive) {
+          setDatasets(Object.fromEntries(results.map((d, i) => [i + 1, d])));
+        }
+      })
+      .finally(() => {
+        if (alive) setIsLoadingDatasets(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const pageData = datasets[jilid]?.[hal] ?? null;
 
   useEffect(() => {
     const paramJilid = Number(searchParams.get("jilid"));
@@ -239,8 +248,6 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   // Check if current page is kelipatan 6 (Latihan-latihan bacaan)
   const isKelipatanEnam = hal % 6 === 0;
 
-  // Page dataset based on active jilid. Jilid 6 is intentionally not enabled yet.
-  const pageData = QUIZ_DATASETS[jilid]?.[hal] ?? null;
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
