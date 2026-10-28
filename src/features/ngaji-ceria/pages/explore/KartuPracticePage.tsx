@@ -63,21 +63,44 @@ export default function KartuPracticePage() {
     };
   }, []);
 
-  const allCards = useMemo(() => {
-    return getArenaKartuMateri(currentJilid, timelineData);
-  }, [currentJilid, timelineData]);
+  // Kartu untuk jilid ini (async — dimuat via dataset lazy loader)
+  const [allCards, setAllCards] = useState<ArenaKartuMateri[]>([]);
+  const [currentCard, setCurrentCard] = useState<ArenaKartuMateri | undefined>(
+    undefined,
+  );
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
 
-  const currentCard = useMemo(() => {
-    if (cardIdParam) {
-      const found = getArenaKartuCardById(
-        currentJilid,
-        cardIdParam,
-        timelineData,
-      );
-      if (found) return found;
-    }
-    return allCards[0];
-  }, [currentJilid, cardIdParam, allCards, timelineData]);
+  // Load semua kartu + tentukan kartu aktif (cardIdParam jika ada, selain itu kartu pertama)
+  useEffect(() => {
+    let alive = true;
+
+    void getArenaKartuMateri(currentJilid, timelineData)
+      .then((cards) => {
+        if (!alive) return;
+        setAllCards(cards);
+        if (cardIdParam) {
+          return void getArenaKartuCardById(
+            currentJilid,
+            cardIdParam,
+            timelineData,
+          )
+            .then((found) => {
+              if (alive && found) setCurrentCard(found);
+            })
+            .catch(() => {
+              if (alive && cards.length > 0) setCurrentCard(cards[0]);
+            });
+        }
+        if (cards.length > 0) setCurrentCard(cards[0]);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingCards(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [currentJilid, timelineData, cardIdParam]);
 
   const completedArenaCards = useEconomyStore((s) => s.completedArenaCards);
   const markCardAsCompleted = useEconomyStore((s) => s.markCardAsCompleted);
@@ -216,304 +239,312 @@ export default function KartuPracticePage() {
   const isCorrect = showResult === "correct";
   const isWrong = showResult === "wrong";
   const canGoPrevious =
-    !isFlipped && allCards.findIndex((c) => c.id === currentCard.id) > 0;
+    !isFlipped && allCards.findIndex((c) => c.id === currentCard?.id) > 0;
+
+  let renderContent;
+  if (isLoadingCards) {
+    renderContent = (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-[#FEF3C7] font-black text-lg">Memuat kartu...</div>
+      </div>
+    );
+  } else if (currentCard) {
+    renderContent = (
+      <>
+        {/* Header */}
+        <ExploreHeader
+          title={`Kartu #${currentCard.cardIndex}`}
+          subtitle={`Jilid ${currentJilid} • ${isAlreadyCompleted ? "Dikuasai" : "Latihan"}`}
+          onBack={() =>
+            navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}`)
+          }
+          themeScope="arena-kartu"
+          themeColorClass="bg-[#065F46]"
+          borderColorClass="border-[#B45309]"
+          shadowClass="shadow-[0_4px_0px_#78350F]"
+          textColorClass="text-[#FEF3C7]"
+          backClass="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F] hover:bg-[#FDE68A]"
+        />
+
+        {/* Cards Grid - Show only when not flipped */}
+        {!isFlipped && (
+          <section className="px-4 pt-4 flex justify-center">
+            {isLoadingTimeline && (
+              <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
+                Memuat data Timeline Editor...
+              </div>
+            )}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", damping: 20, stiffness: 260 }}
+              onClick={handleFlip}
+              className={`relative cursor-pointer overflow-hidden rounded-3xl border-[4px] w-full max-w-sm p-6 text-center shadow-[6px_6px_0px_#78350F] transition-all ${
+                isAlreadyCompleted
+                  ? "bg-[#F0FDF4] border-[#10B981] hover:shadow-[8px_8px_0px_#065F46] cursor-pointer"
+                  : "bg-[#FEF3C7] border-[#B45309] hover:shadow-[8px_8px_0px_#78350F]"
+              }`}
+            >
+              {/* Card Header */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-[#B45309] px-2.5 py-1 text-xs font-black uppercase text-[#FEF3C7] shadow-xs">
+                  Kartu #{String(currentCard.cardIndex).padStart(2, "0")}
+                </span>
+                {isAlreadyCompleted ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#10B981] px-2.5 py-0.5 text-xs font-black text-white shadow-xs">
+                    <CheckSvg size={13} /> Selesai
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#F59E0B] px-2.5 py-0.5 text-[11px] font-black text-[#78350F] shadow-xs">
+                    Baru
+                  </span>
+                )}
+              </div>
+
+              {/* Front: Arabic Text */}
+              <div
+                className="my-6 py-4 flex items-center justify-center min-h-[140px]"
+                dir="rtl"
+              >
+                <span
+                  className={`font-arabic font-bold text-5xl sm:text-6xl leading-loose select-none drop-shadow-xs ${getArabicFontSizeClass(
+                    currentCard.text,
+                  )}`}
+                >
+                  {currentCard.text}
+                </span>
+              </div>
+
+              {/* Transliteration */}
+              <div className="text-center">
+                <h3 className="font-display font-black text-xl text-[#78350F]">
+                  {currentCard.transliteration}
+                </h3>
+                <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#92400E] mt-1">
+                  <span className="px-2 py-0.5 rounded-md bg-[#FDE68A] border border-[#B45309]/30">
+                    Nada: {currentCard.tone?.toUpperCase() ?? "DATAR"}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-[#FDE68A] border border-[#B45309]/30">
+                    {currentCard.beatsCount} Ketukan
+                  </span>
+                </div>
+              </div>
+
+              {/* Tap to flip hint */}
+              <div className="mt-4 text-center">
+                <span className="text-[10px] font-black text-[#92400E] uppercase tracking-wider">
+                  Klik atau ketuk untuk dengar & jawab pertanyaan
+                </span>
+              </div>
+            </motion.div>
+          </section>
+        )}
+
+        {/* Back Side - After Flip */}
+        {isFlipped && (
+          <section className="px-4 pt-4 max-w-md mx-auto flex flex-col gap-4">
+            {/* Back Header */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-black text-[#FEF3C7]/80 uppercase tracking-wider">
+                Sisi Belakang
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsFlipped(false)}
+                className="inline-flex items-center gap-1 rounded-lg bg-[#065F46] border border-[#B45309] px-2.5 py-1 text-xs font-black text-[#FEF3C7] shadow-xs hover:bg-[#0D9488] transition-all cursor-pointer select-none"
+              >
+                <span>Kembali</span>
+                <ChevronRight size={10} />
+              </button>
+            </div>
+
+            {/* Arabic Text (Back Side) */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-4"
+              dir="rtl"
+            >
+              <span
+                className={`font-arabic font-bold text-4xl sm:text-5xl leading-loose select-none drop-shadow-xs ${
+                  isAlreadyCompleted ? "text-[#065F46]" : "text-[#7C2D12]"
+                } ${getArabicFontSizeClass(currentCard.text)}`}
+              >
+                {currentCard.text}
+              </span>
+            </motion.div>
+
+            {/* Audio Player */}
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={handlePlayAudio}
+                className="w-full py-4 rounded-2xl border-[3.5px] border-[#042F2E] bg-[#10B981] hover:bg-[#059669] active:translate-y-1 active:shadow-none text-white font-black text-base sm:text-lg shadow-[0_5px_0px_#042F2E] flex items-center justify-center gap-2.5 transition-all cursor-pointer select-none"
+              >
+                <EqualizerIcon
+                  isPlaying={isPlayingAudio}
+                  size={22}
+                  barClassName="bg-white"
+                />
+                <span>
+                  {isPlayingAudio
+                    ? "Mendengarkan Qari..."
+                    : "Dengar Bacaan Qari"}
+                </span>
+                {listenCount > 0 && (
+                  <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-bold">
+                    {listenCount}x
+                  </span>
+                )}
+              </button>
+
+              {/* Transliteration Latin */}
+              <div className="text-center py-3">
+                <h3 className="font-display font-black text-2xl text-[#FEF3C7]">
+                  {currentCard.transliteration}
+                </h3>
+                <p className="text-xs text-[#FDE047] mt-1">
+                  Transliterasi Latin
+                </p>
+              </div>
+            </div>
+
+            {/* Mini Quiz Section */}
+            <div className="pt-2">
+              <h4 className="text-center text-sm font-black text-[#FEF3C7] mb-3">
+                Pola irama apa yang digunakan pada bacaan ini?
+              </h4>
+
+              {currentCard.patternType ? (
+                <div className="grid grid-cols-3 gap-3 justify-items-center">
+                  {Object.entries(PATTERN_TO_ANSWER).map(
+                    ([patternType, label]) => (
+                      <PatternArrowButton
+                        key={patternType}
+                        type={patternType as PatternType}
+                        onClick={() =>
+                          handleSelectAnswer(patternType as PatternType)
+                        }
+                        active={selectedAnswer === patternType}
+                        disabled={showResult !== "idle"}
+                        label={label}
+                      />
+                    ),
+                  )}
+                </div>
+              ) : (
+                <div className="px-5 py-4 rounded-2xl border-[3px] text-center">
+                  <span className="text-sm font-black text-[#92400E]">
+                    Kuis belum tersedia untuk kartu ini
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Button: Periksa Jawaban or Tandai Selesai */}
+            <div className="flex justify-center">
+              {currentCard.patternType ? (
+                <StickerButton
+                  onClick={handleCheckAnswer}
+                  disabled={selectedAnswer === null || showResult !== "idle"}
+                  className="px-6 py-3 rounded-xl border-[3px] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none"
+                >
+                  <span>Periksa Jawaban</span>
+                  <CheckSvg size={14} />
+                </StickerButton>
+              ) : (
+                <StickerButton
+                  onClick={handleMarkCompleted}
+                  className="px-6 py-3 rounded-xl border-[3px] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[4px_4px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[2px] text-white"
+                >
+                  <span>Tandai Selesai</span>
+                  <CheckSvg size={14} />
+                </StickerButton>
+              )}
+            </div>
+
+            {/* Feedback */}
+            <AnimatePresence>
+              {showResult !== "idle" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className={`
+                    px-5 py-4 rounded-2xl border-[3px] text-center shadow-[4px_4px_0px_#134E4A]
+                    flex flex-col items-center gap-2
+                    ${
+                      isCorrect
+                        ? "bg-[#DCFCE7] border-[#16A34A] shadow-[4px_4px_0px_#16A34A] spring"
+                        : "bg-[#FFF0F0] border-[#FF6B6B] shadow-[4px_4px_0px_#FF6B6B] shake"
+                    }`}
+                >
+                  <span className="text-3xl font-black">
+                    {isCorrect ? "✅ Benar!" : "❌ Salah!"}
+                  </span>
+                  <span className="text-xs font-medium text-[#92400E]">
+                    {isCorrect
+                      ? `Irama ${correctLabel} tepat! Anda telah menguasai Kartu #${currentCard.cardIndex}.`
+                      : `Irama yang benar: ${correctLabel}. Coba lagi!`}
+                  </span>
+                  {isWrong && (
+                    <StickerButton
+                      onClick={handleReset}
+                      variant="secondary"
+                      className="text-xs font-black text-[#991B1B] underline hover:text-[#991B1B]/80 p-1"
+                    >
+                      Coba Lagi
+                    </StickerButton>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-3 pt-2">
+              <StickerButton
+                onClick={handlePrevCard}
+                disabled={!canGoPrevious}
+                variant="secondary"
+                className="flex-1 rounded-xl border-[3px] px-3 py-2 text-xs font-black transition-all cursor-pointer select-none hover:bg-[#FDE68A]"
+              >
+                <span className="text-[#78350F]">Kartu Sebelumnya</span>
+                <ChevronRight size={12} />
+              </StickerButton>
+              <StickerButton
+                onClick={handleNextCard}
+                className="flex-1 rounded-xl border-[3px] px-3 py-2 text-xs font-black text-white transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[2px_2px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[1px]"
+              >
+                <span>Kartu Berikutnya</span>
+                <ArrowRightSvg size={12} />
+              </StickerButton>
+            </div>
+          </section>
+        )}
+      </>
+    );
+  } else {
+    renderContent = (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-[#FEF3C7] font-black text-lg">
+          Kartu tidak ditemukan
+        </div>
+      </div>
+    );
+  }
 
   return (
     <NgajiCeriaLayout
-      title={`Latihan Kartu #${currentCard.cardIndex} - Jilid ${currentJilid}`}
+      title={
+        isLoadingCards
+          ? `Memuat Kartu - Jilid ${currentJilid}`
+          : `Latihan Kartu #${currentCard?.cardIndex ?? "?"} - Jilid ${currentJilid}`
+      }
       hideHeader={true}
       themeScope="arena-kartu"
       onBack={() => navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}`)}
     >
-      <div className="relative min-h-[100dvh] w-full bg-[#065F46] overflow-x-hidden pb-44 select-none">
-        {/* Background Felt Green */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 50% 30%, #10B98122 0, transparent 65%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-50"
-          style={{
-            boxShadow: "inset 0 0 0 10px #B45309, inset 0 0 0 14px #78350F",
-          }}
-        />
-
-        <div className="relative z-20">
-          {/* Header */}
-          <ExploreHeader
-            title={`Kartu #${currentCard.cardIndex}`}
-            subtitle={`Jilid ${currentJilid} • ${isAlreadyCompleted ? "Dikuasai" : "Latihan"}`}
-            onBack={() =>
-              navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}`)
-            }
-            themeScope="arena-kartu"
-            themeColorClass="bg-[#065F46]"
-            borderColorClass="border-[#B45309]"
-            shadowClass="shadow-[0_4px_0px_#78350F]"
-            textColorClass="text-[#FEF3C7]"
-            backClass="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F] hover:bg-[#FDE68A]"
-          />
-
-          {/* Cards Grid - Show only when not flipped */}
-          {!isFlipped && (
-            <section className="px-4 pt-4 flex justify-center">
-              {isLoadingTimeline && (
-                <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
-                  Memuat data Timeline Editor...
-                </div>
-              )}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", damping: 20, stiffness: 260 }}
-                onClick={handleFlip}
-                className={`relative cursor-pointer overflow-hidden rounded-3xl border-[4px] w-full max-w-sm p-6 text-center shadow-[6px_6px_0px_#78350F] transition-all ${
-                  isAlreadyCompleted
-                    ? "bg-[#F0FDF4] border-[#10B981] hover:shadow-[8px_8px_0px_#065F46] cursor-pointer"
-                    : "bg-[#FEF3C7] border-[#B45309] hover:shadow-[8px_8px_0px_#78350F]"
-                }`}
-              >
-                {/* Card Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-[#B45309] px-2.5 py-1 text-xs font-black uppercase text-[#FEF3C7] shadow-xs">
-                    Kartu #{String(currentCard.cardIndex).padStart(2, "0")}
-                  </span>
-                  {isAlreadyCompleted ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#10B981] px-2.5 py-0.5 text-xs font-black text-white shadow-xs">
-                      <CheckSvg size={13} /> Selesai
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#F59E0B] px-2.5 py-0.5 text-[11px] font-black text-[#78350F] shadow-xs">
-                      Baru
-                    </span>
-                  )}
-                </div>
-
-                {/* Front: Arabic Text */}
-                <div
-                  className="my-6 py-4 flex items-center justify-center min-h-[140px]"
-                  dir="rtl"
-                >
-                  <span
-                    className={`font-arabic font-bold text-5xl sm:text-6xl leading-loose select-none drop-shadow-xs ${getArabicFontSizeClass(
-                      currentCard.text,
-                    )}`}
-                  >
-                    {currentCard.text}
-                  </span>
-                </div>
-
-                {/* Transliteration */}
-                <div className="text-center">
-                  <h3 className="font-display font-black text-xl text-[#78350F]">
-                    {currentCard.transliteration}
-                  </h3>
-                  <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#92400E] mt-1">
-                    <span className="px-2 py-0.5 rounded-md bg-[#FDE68A] border border-[#B45309]/30">
-                      Nada: {currentCard.tone?.toUpperCase() ?? "DATAR"}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md bg-[#FDE68A] border border-[#B45309]/30">
-                      {currentCard.beatsCount} Ketukan
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tap to flip hint */}
-                <div className="mt-4 text-center">
-                  <span className="text-[10px] font-black text-[#92400E] uppercase tracking-wider">
-                    Klik atau ketuk untuk dengar & jawab pertanyaan
-                  </span>
-                </div>
-              </motion.div>
-            </section>
-          )}
-
-          {/* Back Side - After Flip */}
-          {isFlipped && (
-            <section className="px-4 pt-4 max-w-md mx-auto flex flex-col gap-4">
-              {/* Back Header */}
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-black text-[#FEF3C7]/80 uppercase tracking-wider">
-                  Sisi Belakang
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsFlipped(false)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-[#065F46] border border-[#B45309] px-2.5 py-1 text-xs font-black text-[#FEF3C7] shadow-xs hover:bg-[#0D9488] transition-all cursor-pointer select-none"
-                >
-                  <span>Kembali</span>
-                  <ChevronRight size={10} />
-                </button>
-              </div>
-
-              {/* Arabic Text (Back Side) */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-4"
-                dir="rtl"
-              >
-                <span
-                  className={`font-arabic font-bold text-4xl sm:text-5xl leading-loose select-none drop-shadow-xs ${
-                    isAlreadyCompleted ? "text-[#065F46]" : "text-[#7C2D12]"
-                  } ${getArabicFontSizeClass(currentCard.text)}`}
-                >
-                  {currentCard.text}
-                </span>
-              </motion.div>
-
-              {/* Audio Player */}
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={handlePlayAudio}
-                  className="w-full py-4 rounded-2xl border-[3.5px] border-[#042F2E] bg-[#10B981] hover:bg-[#059669] active:translate-y-1 active:shadow-none text-white font-black text-base sm:text-lg shadow-[0_5px_0px_#042F2E] flex items-center justify-center gap-2.5 transition-all cursor-pointer select-none"
-                >
-                  <EqualizerIcon
-                    isPlaying={isPlayingAudio}
-                    size={22}
-                    barClassName="bg-white"
-                  />
-                  <span>
-                    {isPlayingAudio
-                      ? "Mendengarkan Qari..."
-                      : "Dengar Bacaan Qari"}
-                  </span>
-                  {listenCount > 0 && (
-                    <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-bold">
-                      {listenCount}x
-                    </span>
-                  )}
-                </button>
-
-                {/* Transliteration Latin */}
-                <div className="text-center py-3">
-                  <h3 className="font-display font-black text-2xl text-[#FEF3C7]">
-                    {currentCard.transliteration}
-                  </h3>
-                  <p className="text-xs text-[#FDE047] mt-1">
-                    Transliterasi Latin
-                  </p>
-                </div>
-              </div>
-
-              {/* Mini Quiz Section */}
-              <div className="pt-2">
-                <h4 className="text-center text-sm font-black text-[#FEF3C7] mb-3">
-                  Pola irama apa yang digunakan pada bacaan ini?
-                </h4>
-
-                {currentCard.patternType ? (
-                  <div className="grid grid-cols-3 gap-3 justify-items-center">
-                    {Object.entries(PATTERN_TO_ANSWER).map(
-                      ([patternType, label]) => (
-                        <PatternArrowButton
-                          key={patternType}
-                          type={patternType as PatternType}
-                          onClick={() =>
-                            handleSelectAnswer(patternType as PatternType)
-                          }
-                          active={selectedAnswer === patternType}
-                          disabled={showResult !== "idle"}
-                          label={label}
-                        />
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <div className="px-5 py-4 rounded-2xl border-[3px] text-center">
-                    <span className="text-sm font-black text-[#92400E]">
-                      Kuis belum tersedia untuk kartu ini
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Button: Periksa Jawaban or Tandai Selesai */}
-              <div className="flex justify-center">
-                {currentCard.patternType ? (
-                  <StickerButton
-                    onClick={handleCheckAnswer}
-                    disabled={selectedAnswer === null || showResult !== "idle"}
-                    className="px-6 py-3 rounded-xl border-[3px] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none"
-                  >
-                    <span>Periksa Jawaban</span>
-                    <CheckSvg size={14} />
-                  </StickerButton>
-                ) : (
-                  <StickerButton
-                    onClick={handleMarkCompleted}
-                    className="px-6 py-3 rounded-xl border-[3px] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[4px_4px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[2px] text-white"
-                  >
-                    <span>Tandai Selesai</span>
-                    <CheckSvg size={14} />
-                  </StickerButton>
-                )}
-              </div>
-
-              {/* Feedback */}
-              <AnimatePresence>
-                {showResult !== "idle" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className={`
-                      px-5 py-4 rounded-2xl border-[3px] text-center shadow-[4px_4px_0px_#134E4A]
-                      flex flex-col items-center gap-2
-                      ${
-                        isCorrect
-                          ? "bg-[#DCFCE7] border-[#16A34A] shadow-[4px_4px_0px_#16A34A] spring"
-                          : "bg-[#FFF0F0] border-[#FF6B6B] shadow-[4px_4px_0px_#FF6B6B] shake"
-                      }`}
-                  >
-                    <span className="text-3xl font-black">
-                      {isCorrect ? "✅ Benar!" : "❌ Salah!"}
-                    </span>
-                    <span className="text-xs font-medium text-[#92400E]">
-                      {isCorrect
-                        ? `Irama ${correctLabel} tepat! Anda telah menguasai Kartu #${currentCard.cardIndex}.`
-                        : `Irama yang benar: ${correctLabel}. Coba lagi!`}
-                    </span>
-                    {isWrong && (
-                      <StickerButton
-                        onClick={handleReset}
-                        variant="secondary"
-                        className="text-xs font-black text-[#991B1B] underline hover:text-[#991B1B]/80 p-1"
-                      >
-                        Coba Lagi
-                      </StickerButton>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Navigation Buttons */}
-              <div className="flex gap-3 pt-2">
-                <StickerButton
-                  onClick={handlePrevCard}
-                  disabled={!canGoPrevious}
-                  variant="secondary"
-                  className="flex-1 rounded-xl border-[3px] px-3 py-2 text-xs font-black transition-all cursor-pointer select-none hover:bg-[#FDE68A]"
-                >
-                  <span className="text-[#78350F]">Kartu Sebelumnya</span>
-                  <ChevronRight size={12} />
-                </StickerButton>
-                <StickerButton
-                  onClick={handleNextCard}
-                  className="flex-1 rounded-xl border-[3px] px-3 py-2 text-xs font-black text-white transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[2px_2px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[1px]"
-                >
-                  <span>Kartu Berikutnya</span>
-                  <ArrowRightSvg size={12} />
-                </StickerButton>
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
+      {renderContent}
     </NgajiCeriaLayout>
   );
 }

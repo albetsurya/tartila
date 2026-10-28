@@ -56,9 +56,22 @@ export default function ArenaKartuPage() {
     };
   }, []);
 
-  // 12 Kartu Materi untuk jilid ini
-  const cards = useMemo(() => {
-    return getArenaKartuMateri(currentJilid, timelineData);
+  // 12 Kartu Materi untuk jilid ini (async — dimuat via dataset lazy loader)
+  const [cards, setCards] = useState<ArenaKartuMateri[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void getArenaKartuMateri(currentJilid, timelineData)
+      .then((result) => {
+        if (alive) setCards(result);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingCards(false);
+      });
+    return () => {
+      alive = false;
+    };
   }, [currentJilid, timelineData]);
 
   // State Progres dari Zustand Store & LocalStorage
@@ -71,7 +84,9 @@ export default function ArenaKartuPage() {
     return cards.filter((c) => completedList.includes(c.id)).length;
   }, [cards, completedList]);
 
-  const progressPercent = Math.round((completedCount / cards.length) * 100);
+  const progressPercent = cards.length > 0
+    ? Math.round((completedCount / cards.length) * 100)
+    : 0;
 
   // Handler Klik Kartu -> Navigasi ke Halaman Latihan
   const handleCardClick = (card: ArenaKartuMateri) => {
@@ -180,7 +195,11 @@ export default function ArenaKartuPage() {
                 Memuat data Timeline Editor...
               </div>
             )}
-            {cards.length === 0 ? (
+            {isLoadingCards && !isLoadingTimeline ? (
+              <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
+                Memuat kartu jilid...
+              </div>
+            ) : cards.length === 0 ? (
               <div className="text-center py-12 text-[#A7F3D0] font-black text-lg">
                 Segera Hadir untuk Jilid ini
               </div>

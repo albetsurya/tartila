@@ -7,7 +7,7 @@ import { getTilawatiAudioPageMeta } from "./tilawatiAudioQuestionMap";
 import quizEdits from "./tilawatiQuizEdits.json";
 import type { PublishedTimeline } from "../utils/pageTimeline";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
-import { getRawPages } from "./TilawatiDataProvider";
+import { getRawPages, loadJilidPages } from "./TilawatiDataProvider";
 
 const audioUrl = (jilid: number, pageNumber: number, filename: string): string =>
   `/audio/tilawati/jilid_${jilid}/hal${pageNumber}/${filename}`;
@@ -229,6 +229,21 @@ function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>, 
  * Konstanta sync untuk Jilid 1 (statik import).
  * Jilid 2-6 tidak lagi diekspor sebagai konstanta — gunakan `getTilawatiJilidPages(jilid)`.
  */
+/**
+ * Lazy loader untuk dataset kuis Tilawati per jilid.
+ * Dipanggil pertama kali saat konsumen butuh data jilid tertentu.
+ * Jilid 2-6 dimuat lewat dynamic import di TilawatiDataProvider.ts.
+ */
+async function getTilawatiJilidPages(jilid: number): Promise<Record<number, PageQuizData>> {
+  // Pastikan jilid sudah dimuat ke cache (Jilid 2-6 lazy via dynamic import)
+  if (jilid > 1) await loadJilidPages(jilid);
+  const rawPages = getRawPages(jilid);
+  const processed = jilid === 1
+    ? applyQuizEdits(1, groupJilid1Footers(rawPages))
+    : applyQuizEdits(jilid, groupDatasetByAudioRows(jilid, rawPages));
+  return applyTimelineEdits(jilid, processed, TIMELINE_EDITS);
+}
+
 const TILAWATI_JILID_1_PAGES = applyTimelineEdits(
   1,
   applyQuizEdits(1, groupJilid1Footers(getRawPages(1))),

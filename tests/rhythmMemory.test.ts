@@ -13,9 +13,9 @@ import RhythmMemorySelectPage from '../src/features/ngaji-ceria/pages/explore/Rh
 import TilawatiTrainingPage from '../src/features/ngaji-ceria/pages/explore/TilawatiTrainingPage';
 
 export const tests = {
-  'RHYTHM_MEMORY_LEVELS: memiliki konfigurasi lengkap untuk Jilid 1 sampai 6': () => {
+  'RHYTHM_MEMORY_LEVELS: memiliki konfigurasi lengkap untuk Jilid 1 sampai 6': async () => {
     for (let j = 1; j <= 6; j++) {
-      const levels = getRhythmMemoryLevels(j);
+      const levels = await getRhythmMemoryLevels(j);
       // Jilid 6: audioUrl kosong -> tidak ada item training, lewati
       if (levels.length === 0) continue;
 
@@ -38,8 +38,8 @@ export const tests = {
     }
   },
 
-  'getRhythmMemoryPairs: menghasilkan 12 kartu (6 pasang) dengan pairId yang valid': () => {
-    const cards = getArenaKartuPairs(1, 6);
+  'getRhythmMemoryPairs: menghasilkan 12 kartu (6 pasang) dengan pairId yang valid': async () => {
+    const cards = await getArenaKartuPairs(1, 6);
     assert.equal(cards.length, 12, 'Harus menghasilkan tepat 12 kartu');
 
     const pairCounts = new Map<string, number>();
@@ -116,9 +116,9 @@ export const tests = {
     assert.ok(React.isValidElement(React.createElement(TilawatiTrainingPage)));
   },
 
-  'getArenaKartuMateri: setiap kartu memiliki patternType yang valid (salah satu dari 6 tipe)': () => {
+  'getArenaKartuMateri: setiap kartu memiliki patternType yang valid (salah satu dari 6 tipe)': async () => {
     for (let j = 1; j <= 6; j++) {
-      const cards = getArenaKartuMateri(j);
+      const cards = await getArenaKartuMateri(j);
       // Jilid 6: audioUrl kosong -> tidak ada kartu, lewati
       if (cards.length === 0) continue;
 

@@ -101,35 +101,36 @@ export const tests = {
     assert.equal(useTilawatiMemoryStore.getState().getUnlockedLevel(1), 1);
   },
 
-  'Tilawati Memory Match: menghasilkan pasangan kartu dinamis sesuai level (8, 12, 16, 20 kartu)': () => {
+  'Tilawati Memory Match: menghasilkan pasangan kartu dinamis sesuai level (8, 12, 16, 20 kartu)': async () => {
     for (let j = 1; j <= 6; j++) {
-      const hasData = getArenaKartuPairs(j, 4).some(c => c.text.length > 0);
+      const pairs = await getArenaKartuPairs(j, 4);
+      const hasData = pairs.some(c => c.text.length > 0);
       if (!hasData) continue; // Jilid tanpa audioUrl tetap dilanjutkan
 
       // Level 1: 4 pasang -> 8 kartu
-      const cardsL1 = getArenaKartuPairs(j, 4);
+      const cardsL1 = await getArenaKartuPairs(j, 4);
       assert.equal(cardsL1.length, 8, `Jilid ${j} Level 1 harus menghasilkan 8 kartu`);
 
       // Level 2: 6 pasang -> 12 kartu
-      const cardsL2 = getArenaKartuPairs(j, 6);
+      const cardsL2 = await getArenaKartuPairs(j, 6);
       assert.equal(cardsL2.length, 12, `Jilid ${j} Level 2 harus menghasilkan 12 kartu`);
 
       // Level 3: 8 pasang -> 16 kartu
-      const cardsL3 = getArenaKartuPairs(j, 8);
+      const cardsL3 = await getArenaKartuPairs(j, 8);
       assert.equal(cardsL3.length, 16, `Jilid ${j} Level 3 harus menghasilkan 16 kartu`);
 
       // Level 4: 10 pasang -> 20 kartu
-      const cardsL4 = getArenaKartuPairs(j, 10);
+      const cardsL4 = await getArenaKartuPairs(j, 10);
       assert.equal(cardsL4.length, 20, `Jilid ${j} Level 4 harus menghasilkan 20 kartu`);
 
       // Validasi integritas kartu di Level 4
       const pairCounts = new Map<string, number>();
-      cardsL4.forEach((c) => {
+      for (const c of cardsL4) {
         assert.ok(c.id, 'ID kartu tidak boleh kosong');
         assert.ok(c.pairId, 'Pair ID tidak boleh kosong');
         assert.ok(c.text.length > 0, 'Teks Arab tidak boleh kosong');
         pairCounts.set(c.pairId, (pairCounts.get(c.pairId) || 0) + 1);
-      });
+      }
       assert.equal(pairCounts.size, 10, `Harus ada 10 pasangan unik`);
       for (const [pairId, count] of pairCounts.entries()) {
         assert.equal(count, 2, `Setiap pairId (${pairId}) harus memiliki tepat 2 kartu kembar`);
@@ -173,9 +174,9 @@ export const tests = {
     assert.ok(React.isValidElement(React.createElement(TilawatiMemorySelectPage)));
   },
 
-  'getArenaKartuMateri: setiap kartu memiliki patternType yang valid (salah satu dari 6 tipe)': () => {
+  'getArenaKartuMateri: setiap kartu memiliki patternType yang valid (salah satu dari 6 tipe)': async () => {
     for (let j = 1; j <= 6; j++) {
-      const cards = getArenaKartuMateri(j);
+      const cards = await getArenaKartuMateri(j);
       // Jilid 6: audioUrl kosong -> tidak ada kartu, lewati
       if (cards.length === 0) continue;
 

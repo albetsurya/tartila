@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
-import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
+import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { StickerCard } from "../../../components/ui/StickerCard";
 import {
   BookOpen,
@@ -30,11 +30,32 @@ export default function NgajiCeriaHistoryPage() {
   const { currentJilid, progressPercentage } = useNgajiCeriaProgress();
   const currentJilidNumber = Number(currentJilid.replace("jilid-", "")) || 1;
 
+  const [datasets, setDatasets] = useState<
+    Record<number, Record<number, import("../data/tilawatiPageDatasets").PageQuizData>>
+  >({});
+
+  // Preload semua dataset jilid 1-6
+  useEffect(() => {
+    let alive = true;
+    const jilids = [1, 2, 3, 4, 5, 6];
+    Promise.all(jilids.map((jilid) => loadTilawatiDataset(jilid)))
+      .then((results) => {
+        if (alive) setDatasets(Object.fromEntries(results.map((d, i) => [jilids[i], d])));
+      })
+      .finally(() => {
+        if (alive) {
+        }
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const displayName = user?.name ? user.name.split(" ")[0] : "Santri";
 
   const perJilid = useMemo<JilidProgress[]>(() => {
     return [1, 2, 3, 4, 5, 6].map((jilid) => {
-      const pages = Object.keys(getTilawatiDataset(jilid));
+      const pages = Object.keys(datasets[jilid] || {});
       const total = pages.length;
       let done = 0;
       let earned = 0;

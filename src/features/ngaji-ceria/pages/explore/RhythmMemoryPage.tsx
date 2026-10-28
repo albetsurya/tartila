@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { NgajiCeriaLayout } from '../../components/NgajiCeriaLayout';
@@ -45,8 +45,21 @@ export default function RhythmMemoryPage() {
     return parsed >= 1 && parsed <= 6 ? parsed : 1;
   }, [jilidParam]);
 
-  const { levels } = useMemo(() => {
-    return { levels: getRhythmMemoryLevels(currentJilid, 12) };
+  const [levels, setLevels] = useState<TrainingItem[][]>([]);
+  const [isLoadingLevels, setIsLoadingLevels] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void getRhythmMemoryLevels(currentJilid, 12)
+      .then((result) => {
+        if (alive) setLevels(result);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingLevels(false);
+      });
+    return () => {
+      alive = false;
+    };
   }, [currentJilid]);
 
   const { title, subtitle, badgeBg, borderColor } =
