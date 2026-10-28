@@ -6,7 +6,8 @@ export type PatternType =
   | "1-naik"
   | "1-turun"
   | "2-datar-turun"
-  | "3-datar-naik-turun";
+  | "3-datar-naik-turun"
+  | "4-datar-naik-naik-turun";
 
 export interface TrainingItem {
   id: string; // `${jilid}:${hal}:${questionId}`
@@ -28,6 +29,11 @@ export interface TrainingItem {
 // Pattern derivation — mapping lengkap
 export function derivePatternType(hintTone: string): PatternType {
   const t = hintTone.toLowerCase();
+  // Check for 4-pattern: datar, naik twice, then turun
+  // Count occurrences of "naik"
+  const naikCount = (t.match(/naik/g) || []).length;
+  if (t.includes("datar") && naikCount >= 2 && t.includes("turun"))
+    return "4-datar-naik-naik-turun";
   if (t.includes("datar") && t.includes("naik") && t.includes("turun"))
     return "3-datar-naik-turun";
   if (t.includes("datar") && t.includes("turun")) return "2-datar-turun";
@@ -378,6 +384,7 @@ export interface ArenaKartuMateri {
   transliteration: string;
   audioUrl?: string;
   tone?: "datar" | "naik" | "turun";
+  patternType?: PatternType;
   beatsCount: number;
   bpm: number;
   instruction?: string;
@@ -428,8 +435,14 @@ export function getArenaKartuMateri(jilid: number): ArenaKartuMateri[] {
   const levelBpm = getArenaKartuLevelInfo(jilid).bpm;
   // Take first 12 items with audio, slice to 12 cards
   const selected = items.slice(0, 12);
+
+  if (selected.some((it) => !it.patternType)) {
+    console.warn('[adapter] getArenaKartuMateri: sebagian item tanpa patternType');
+  }
+
   return selected.map((item, idx) => ({
-    id: item.id,
+    id: `j${jilid}-c${idx + 1}`,
+    patternType: item.patternType,
     cardIndex: idx + 1,
     text: item.arabic,
     transliteration: item.transliteration,
