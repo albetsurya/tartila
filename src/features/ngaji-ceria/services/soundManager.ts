@@ -16,6 +16,9 @@ export type SfxName =
   | "powerup" | "victory" | "defeat" | "gameover"
   | "punch" | "block";
 
+// Freesound fallback — butuh VITE_FREE_SOUND_API_KEY dari freesound.org
+export const freesound = new (await import('./freesoundService')).FreesoundService;
+
 export type BgmTrack = "menu" | "quiz" | "battle";
 
 const SFX_FILES: Record<SfxName, string | null> = {
@@ -153,25 +156,50 @@ class SoundManager {
     names.forEach((name) => { void this.loadBuffer(name); });
   }
 
-  /** Mainkan SFX instan; fallback ke sintesis bila file hilang. */
+  /** Mainkan SFX instan; fallback ke Freesound jika file lokal tidak ditemukan. */
   playSfx(name: SfxName, volume = 1) {
     if (this.muted) return;
     const ctx = this.ensureCtx();
     if (!ctx) return;
-    if (name === "punch") {
-      this.synthPunch(ctx, volume);
-      return;
+
+    // Coba file lokal pertama
+    const localFile = SFX_FILES[name];
+    if (localFile) {
+      void this.loadBuffer(name).then((buffer) => {
+        if (this.muted) return;
+        if (!buffer) {
+          // File lokal tidak ditemukan, coba Freesound fallback
+          this.playFreesoundFallback(name, volume, ctx);
+        } else {
+          try {
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            const gain = ctx.createGain();
+            gain.gain.value = volume;
+            source.connect(gain).connect(ctx.destination);
+            source.start();
+          } catch { /* abaikan */ }
+        }
+      });
+    } else {
+      // Tidak ada file lokal, langsung ke Freesound
+      this.playFreesoundFallback(name, volume, ctx);
     }
-    if (name === "block") {
-      this.synthBlock(ctx, volume);
-      return;
-    }
-    void this.loadBuffer(name).then((buffer) => {
+  }
+
+  private async playFreesoundFallback(name: SfxName, volume: number, ctx: AudioContext) {
+    try {
+      const result = await freesound.findFallbackSfx(name);
+      if (!result || !result.url) return;
+
+      // Fetch audio dari Freesound preview URL
+      const response = await fetch(result.url);
+      if (!response.ok) return;
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = await ctx.decodeAudioData(arrayBuffer);
+
       if (this.muted) return;
-      if (!buffer) {
-        this.synthBlip(ctx, name, volume);
-        return;
-      }
       try {
         const source = ctx.createBufferSource();
         source.buffer = buffer;
@@ -180,7 +208,9 @@ class SoundManager {
         source.connect(gain).connect(ctx.destination);
         source.start();
       } catch { /* abaikan */ }
-    });
+    } catch (err) {
+      console.error('[Freesound fallback] error:', err);
+    }
   }
 
   private synthBlip(ctx: AudioContext, name: SfxName, volume: number) {

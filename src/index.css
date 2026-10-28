@@ -98,3 +98,24 @@ h3 {
   font-family: var(--font-display); /* Akan memanggil Gabarito */
   letter-spacing: -0.01em; /* Sedikit dirapatkan untuk judul agar terlihat solid */
 }
+
+/* ============================================================
+   MOBILE TEXT SELECTION DISABLE
+   ============================================================ */
+
+@media (max-width: 768px) {
+  body, #root, button, a, div {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input, textarea {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    user-select: auto;
+    -webkit-touch-callout: default;
+  }
+}

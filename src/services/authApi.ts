@@ -93,4 +93,20 @@ export const authApi = {
     );
     return data.user;
   },
+
+  // Silent token refresh - calls backend refresh endpoint.
+  // Returns new token if successful, null otherwise.
+  // TODO: Backend Go must implement POST /api/v1/auth/refresh with HttpOnly refresh cookie.
+  async refreshToken(): Promise<string | null> {
+    try {
+      const data = await callREST<{ token?: string }>("POST", "/api/v1/auth/refresh");
+      if (data?.token) {
+        storeSessionToken(data.token);
+        return data.token;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
 };

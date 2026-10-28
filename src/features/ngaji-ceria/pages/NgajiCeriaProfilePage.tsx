@@ -29,10 +29,7 @@ import { TilaMascot } from "@/components/ui/TilaMascot";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
 import { AvatarSantriAccessory } from "@/components/ui/Illustrations";
 import { AVATAR_ACCESSORY_SHOP_ITEMS } from "../pages/WarungSantriPage";
-import {
-  getMascotName,
-  resolveMascotGender,
-} from "@/utils/mascotHelper";
+import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
 import { isAdminRole, classroomRoleForUser } from "@/lib/roles";
 import { stopAllAudio } from "../utils/audioPlayer";
 
@@ -102,6 +99,27 @@ function getAvatarAccessoryName(id: string): string {
   return found?.name || id;
 }
 
+/**
+ * Helper untuk memastikan aksesoris default sesuai gender:
+ * - Santri Putri: "hairbow" (Pita Rambut), bukan "peci"
+ * - Santri Putra: "peci", bukan "hairbow"
+ */
+function resolveGenderAccessory(
+  accessory: string | null | undefined,
+  gender: TilaGender,
+): AvatarSantriAccessory {
+  const resolvedGender = resolveMascotGender(gender);
+  if (!accessory || accessory === "none") return "none";
+
+  if (resolvedGender === "girl" && accessory === "peci") {
+    return "hairbow";
+  }
+  if (resolvedGender === "boy" && accessory === "hairbow") {
+    return "peci";
+  }
+  return accessory as AvatarSantriAccessory;
+}
+
 export default function NgajiCeriaProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -121,9 +139,27 @@ export default function NgajiCeriaProfilePage() {
 
   const avatarMode = useEconomyStore((s) => s.avatarMode || "avatar");
   const setAvatarMode = useEconomyStore((s) => s.setAvatarMode);
-  const equippedAvatarAccessory = useEconomyStore((s) => s.equippedAvatarAccessory);
-  const setEquippedAvatarAccessory = useEconomyStore((s) => s.setEquippedAvatarAccessory);
-  const ownedAvatarAccessories = useEconomyStore((s) => s.ownedAvatarAccessories || []);
+  const equippedAvatarAccessory = useEconomyStore(
+    (s) => s.equippedAvatarAccessory,
+  );
+  const setEquippedAvatarAccessory = useEconomyStore(
+    (s) => s.setEquippedAvatarAccessory,
+  );
+  const ownedAvatarAccessories = useEconomyStore(
+    (s) => s.ownedAvatarAccessories || [],
+  );
+
+  // Gabungkan aksesoris yang dimiliki dengan aksesoris gratis bawaan ("peci" & "hairbow")
+  const effectiveOwnedAccessories = useMemo(() => {
+    const set = new Set<string>(["peci", "hairbow", ...ownedAvatarAccessories]);
+    return Array.from(set);
+  }, [ownedAvatarAccessories]);
+
+  // Aksesoris yang ditampilkan pada kartu profil (otomatis menyesuaikan jika gender girl tapi masih memakai peci)
+  const resolvedEquippedAccessory = useMemo(
+    () => resolveGenderAccessory(equippedAvatarAccessory, tilaGender),
+    [equippedAvatarAccessory, tilaGender],
+  );
 
   const showMascot = useEconomyStore((s) => s.showMascot);
   const setShowMascot = useEconomyStore((s) => s.setShowMascot);
@@ -137,8 +173,11 @@ export default function NgajiCeriaProfilePage() {
   const classroomRole = classroomRoleForUser(user);
 
   const [genderDraft, setGenderDraft] = useState<TilaGender>(tilaGender);
-  const [avatarModeDraft, setAvatarModeDraft] = useState<"photo" | "avatar">("avatar");
-  const [accessoryDraft, setAccessoryDraft] = useState<AvatarSantriAccessory | null>(null);
+  const [avatarModeDraft, setAvatarModeDraft] = useState<"photo" | "avatar">(
+    "avatar",
+  );
+  const [accessoryDraft, setAccessoryDraft] =
+    useState<AvatarSantriAccessory | null>(null);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
@@ -188,11 +227,40 @@ export default function NgajiCeriaProfilePage() {
     if (modal === "edit") {
       setNameDraft(displayName);
       const userNorm = user?.gender ? normalizeGender(user.gender) : null;
-      setGenderDraft(userNorm === "P" || tilaGender === "girl" ? "girl" : "boy");
+      const initialGender: TilaGender =
+        userNorm === "P" || tilaGender === "girl" ? "girl" : "boy";
+      setGenderDraft(initialGender);
       setAvatarModeDraft(avatarMode);
-      setAccessoryDraft(equippedAvatarAccessory as AvatarSantriAccessory | null);
+
+      const resolvedAcc = resolveGenderAccessory(
+        equippedAvatarAccessory,
+        initialGender,
+      );
+      setAccessoryDraft(resolvedAcc === "none" ? null : resolvedAcc);
     }
     setActiveModal(modal);
+  };
+
+  // Handler saat mengganti gender di modal Edit Profil agar aksesoris default ikut menyesuaikan
+  const handleSelectGenderDraft = (newGender: TilaGender) => {
+    setGenderDraft(newGender);
+    if (newGender === "girl" && accessoryDraft === "peci") {
+      setAccessoryDraft("hairbow");
+    } else if (newGender === "boy" && accessoryDraft === "hairbow") {
+      setAccessoryDraft("peci");
+    } else if (accessoryDraft) {
+      // Cek apakah aksesoris saat ini eksklusif untuk gender tertentu di shop
+      const shopItem = AVATAR_ACCESSORY_SHOP_ITEMS.find(
+        (i) => i.id === accessoryDraft,
+      );
+      if (
+        shopItem &&
+        shopItem.gender !== "all" &&
+        shopItem.gender !== newGender
+      ) {
+        setAccessoryDraft(newGender === "girl" ? "hairbow" : "peci");
+      }
+    }
   };
 
   const handleLogout = async () => {
@@ -206,16 +274,35 @@ export default function NgajiCeriaProfilePage() {
     }
   };
 
+  // Sinkronisasi gender user & koreksi otomatis jika santri putri masih tersetting "peci" di store
   useEffect(() => {
+    let targetGender = tilaGender;
     if (user?.gender) {
       const norm = normalizeGender(user.gender);
       if (norm === "L" && tilaGender !== "boy") {
+        targetGender = "boy";
         setTilaGender("boy");
       } else if (norm === "P" && tilaGender !== "girl") {
+        targetGender = "girl";
         setTilaGender("girl");
       }
     }
-  }, [user?.gender, tilaGender, setTilaGender]);
+
+    if (targetGender === "girl" && equippedAvatarAccessory === "peci") {
+      setEquippedAvatarAccessory("hairbow");
+    } else if (
+      targetGender === "boy" &&
+      equippedAvatarAccessory === "hairbow"
+    ) {
+      setEquippedAvatarAccessory("peci");
+    }
+  }, [
+    user?.gender,
+    tilaGender,
+    equippedAvatarAccessory,
+    setTilaGender,
+    setEquippedAvatarAccessory,
+  ]);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
@@ -232,7 +319,10 @@ export default function NgajiCeriaProfilePage() {
     }
     setAvatarMode(avatarModeDraft);
     if (avatarModeDraft === "avatar") {
-      setEquippedAvatarAccessory(accessoryDraft);
+      const finalAcc = accessoryDraft
+        ? resolveGenderAccessory(accessoryDraft, genderDraft)
+        : null;
+      setEquippedAvatarAccessory(finalAcc === "none" ? null : finalAcc);
     }
     setActiveModal(null);
   };
@@ -355,7 +445,7 @@ export default function NgajiCeriaProfilePage() {
                 <AvatarSantriSvg
                   size={58}
                   gender={resolveMascotGender(tilaGender)}
-                  accessory={(equippedAvatarAccessory || "none") as AvatarSantriAccessory}
+                  accessory={resolvedEquippedAccessory}
                   mood="happy"
                   className="shrink-0"
                 />
@@ -405,7 +495,11 @@ export default function NgajiCeriaProfilePage() {
           <section className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {/* Level */}
             <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
-              <GraduationCapSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <GraduationCapSvg
+                size={20}
+                className="shrink-0 text-[#134E4A]"
+                stroke="#134E4A"
+              />
               <div>
                 <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
                   Level
@@ -418,7 +512,11 @@ export default function NgajiCeriaProfilePage() {
 
             {/* Bintang */}
             <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
-              <StarSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <StarSvg
+                size={20}
+                className="shrink-0 text-[#134E4A]"
+                stroke="#134E4A"
+              />
               <div>
                 <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
                   Bintang
@@ -431,7 +529,11 @@ export default function NgajiCeriaProfilePage() {
 
             {/* Koin */}
             <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
-              <CoinsSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <CoinsSvg
+                size={20}
+                className="shrink-0 text-[#134E4A]"
+                stroke="#134E4A"
+              />
               <div>
                 <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
                   Koin
@@ -444,7 +546,11 @@ export default function NgajiCeriaProfilePage() {
 
             {/* Kuota Hati */}
             <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
-              <HeartSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <HeartSvg
+                size={20}
+                className="shrink-0 text-[#134E4A]"
+                stroke="#134E4A"
+              />
               <div>
                 <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
                   Hati
@@ -457,7 +563,11 @@ export default function NgajiCeriaProfilePage() {
 
             {/* Tiket Game */}
             <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
-              <TicketSvg size={20} className="shrink-0 text-[#134E4A]" stroke="#134E4A" />
+              <TicketSvg
+                size={20}
+                className="shrink-0 text-[#134E4A]"
+                stroke="#134E4A"
+              />
               <div>
                 <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
                   Tiket
@@ -518,7 +628,10 @@ export default function NgajiCeriaProfilePage() {
             >
               <div className="flex items-center gap-2.5">
                 <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
-                  <StoreSvg size={20} className="text-[#166534] dark:text-[#4ade80]" />
+                  <StoreSvg
+                    size={20}
+                    className="text-[#166534] dark:text-[#4ade80]"
+                  />
                 </div>
                 <div className="min-w-0">
                   <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
@@ -544,7 +657,10 @@ export default function NgajiCeriaProfilePage() {
               >
                 <div className="flex items-center gap-2.5">
                   <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
-                    <GraduationCapSvg size={20} className="text-[#0891B2] dark:text-[#38bdf8]" />
+                    <GraduationCapSvg
+                      size={20}
+                      className="text-[#0891B2] dark:text-[#38bdf8]"
+                    />
                   </div>
                   <div className="min-w-0">
                     <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
@@ -570,7 +686,10 @@ export default function NgajiCeriaProfilePage() {
               >
                 <div className="flex items-center gap-2.5">
                   <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
-                    <UsersSvg size={20} className="text-[#0891B2] dark:text-[#38bdf8]" />
+                    <UsersSvg
+                      size={20}
+                      className="text-[#0891B2] dark:text-[#38bdf8]"
+                    />
                   </div>
                   <div className="min-w-0">
                     <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
@@ -712,7 +831,11 @@ export default function NgajiCeriaProfilePage() {
                         <div
                           className={`flex h-11 w-11 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] shrink-0`}
                         >
-                          <Icon size={22} className="text-[#134E4A]" stroke="#134E4A" />
+                          <Icon
+                            size={22}
+                            className="text-[#134E4A]"
+                            stroke="#134E4A"
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
                           <span className="block font-black text-xs text-[var(--text-main,#134E4A)]">
@@ -726,7 +849,9 @@ export default function NgajiCeriaProfilePage() {
 
                       <div
                         className={`relative w-11 h-6 rounded-full border-2 border-[var(--border-color,#134E4A)] p-0.5 transition-colors shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] ${
-                          item.toggleValue ? "bg-[#0D9488]" : "bg-gray-200 dark:bg-gray-700"
+                          item.toggleValue
+                            ? "bg-[#0D9488]"
+                            : "bg-gray-200 dark:bg-gray-700"
                         }`}
                       >
                         <div
@@ -752,7 +877,11 @@ export default function NgajiCeriaProfilePage() {
                       <div
                         className={`flex h-11 w-11 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] shrink-0`}
                       >
-                        <Icon size={22} className="text-[#134E4A]" stroke="#134E4A" />
+                        <Icon
+                          size={22}
+                          className="text-[#134E4A]"
+                          stroke="#134E4A"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <span className="block font-black text-xs text-[var(--text-main,#134E4A)]">
@@ -814,7 +943,8 @@ export default function NgajiCeriaProfilePage() {
 
       {/* --- MODALS --- */}
       {activeModal === "edit" && (
-        <AppModal isOpen={true}
+        <AppModal
+          isOpen={true}
           title="Edit Profil"
           variant="warm"
           onClose={() => setActiveModal(null)}
@@ -823,7 +953,8 @@ export default function NgajiCeriaProfilePage() {
             {/* Pratinjau Avatar Langsung */}
             <div className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-[#134E4A]/30 bg-amber-50/50">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 mb-2">
-                Pratinjau {avatarModeDraft === "photo" ? "Foto Profil" : "Avatar"}
+                Pratinjau{" "}
+                {avatarModeDraft === "photo" ? "Foto Profil" : "Avatar"}
               </span>
 
               {avatarModeDraft === "photo" ? (
@@ -850,11 +981,16 @@ export default function NgajiCeriaProfilePage() {
               {/* Peringatan jika Foto Profil dipilih namun photo_url kosong */}
               {avatarModeDraft === "photo" && !user?.photo_url && (
                 <div className="mt-3 w-full rounded-xl border-2 border-[#B45309] bg-[#FEF3C7] p-2.5 text-left text-xs font-bold text-[#78350F] flex items-start gap-2 shadow-[2px_2px_0px_#B45309]">
-                  <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#B45309]" />
+                  <AlertCircle
+                    size={16}
+                    className="shrink-0 mt-0.5 text-[#B45309]"
+                  />
                   <div>
                     <p className="font-black">Belum Ada Foto Profil</p>
                     <p className="text-[11px] opacity-90 mt-0.5">
-                      Akunmu belum memiliki foto profil. Foto dapat diambil otomatis dari akun Google saat masuk, atau gunakan mode Avatar.
+                      Akunmu belum memiliki foto profil. Foto dapat diambil
+                      otomatis dari akun Google saat masuk, atau gunakan mode
+                      Avatar.
                     </p>
                   </div>
                 </div>
@@ -915,7 +1051,7 @@ export default function NgajiCeriaProfilePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setGenderDraft("boy")}
+                  onClick={() => handleSelectGenderDraft("boy")}
                   className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all cursor-pointer ${
                     genderDraft === "boy"
                       ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
@@ -928,7 +1064,7 @@ export default function NgajiCeriaProfilePage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setGenderDraft("girl")}
+                  onClick={() => handleSelectGenderDraft("girl")}
                   className={`rounded-2xl border-[3px] border-[#134E4A] p-3 text-center transition-all cursor-pointer ${
                     genderDraft === "girl"
                       ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
@@ -948,81 +1084,76 @@ export default function NgajiCeriaProfilePage() {
                 <label className="mb-1.5 block text-xs font-black uppercase text-[#134E4A]">
                   Aksesoris Avatar
                 </label>
-                {ownedAvatarAccessories.length === 0 ? (
-                  <div className="rounded-2xl border-2 border-dashed border-[#134E4A]/40 bg-amber-50/60 p-4 text-center space-y-2">
-                    <p className="text-xs font-bold text-[#134E4A]/80">
-                      Belum ada aksesoris avatar yang dimiliki.
-                    </p>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAccessoryDraft(null)}
+                      className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                        !accessoryDraft || accessoryDraft === "none"
+                          ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
+                          : "bg-white hover:bg-slate-50"
+                      }`}
+                    >
+                      <AvatarSantriSvg
+                        size={40}
+                        gender={resolveMascotGender(genderDraft)}
+                        accessory={null}
+                      />
+                      <span>Tanpa</span>
+                    </button>
+                    {effectiveOwnedAccessories
+                      .filter((accId) => {
+                        // Filter eksplisit untuk aksesoris gratis bawaan
+                        if (accId === "peci") return genderDraft === "boy";
+                        if (accId === "hairbow") return genderDraft === "girl";
+
+                        const item = AVATAR_ACCESSORY_SHOP_ITEMS.find(
+                          (i) => i.id === accId,
+                        );
+                        if (!item) return true;
+                        return (
+                          item.gender === "all" || item.gender === genderDraft
+                        );
+                      })
+                      .map((accId) => (
+                        <button
+                          key={accId}
+                          type="button"
+                          onClick={() =>
+                            setAccessoryDraft(accId as AvatarSantriAccessory)
+                          }
+                          className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs capitalize transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                            accessoryDraft === accId
+                              ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
+                              : "bg-white hover:bg-slate-50"
+                          }`}
+                        >
+                          <AvatarSantriSvg
+                            size={40}
+                            gender={resolveMascotGender(genderDraft)}
+                            accessory={accId}
+                          />
+                          <span>{getAvatarAccessoryName(accId)}</span>
+                        </button>
+                      ))}
+                  </div>
+                  <div className="text-center pt-1">
                     <button
                       type="button"
                       onClick={() => {
                         setActiveModal(null);
-                        navigate("/member/ngaji-ceria/warung-santri?tab=avatar");
+                        navigate(
+                          "/member/ngaji-ceria/warung-santri?tab=avatar",
+                        );
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none hover:bg-[#FDE047] transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 text-xs font-black text-[#0D9488] hover:underline cursor-pointer"
                     >
-                      <StoreSvg size={14} /> Buka Warung Santri
+                      <StoreSvg size={13} /> Belanja aksesoris lainnya di Warung
+                      Santri
                     </button>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setAccessoryDraft(null)}
-                        className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs transition-all cursor-pointer flex flex-col items-center gap-1 ${
-                          !accessoryDraft || accessoryDraft === "none"
-                            ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
-                            : "bg-white hover:bg-slate-50"
-                        }`}
-                      >
-                        <AvatarSantriSvg
-                          size={40}
-                          gender={resolveMascotGender(genderDraft)}
-                          accessory={null}
-                        />
-                        <span>Tanpa</span>
-                      </button>
-                      {ownedAvatarAccessories
-                        .filter((accId) => {
-                          const item = AVATAR_ACCESSORY_SHOP_ITEMS.find((i) => i.id === accId);
-                          if (!item) return true;
-                          return item.gender === "all" || item.gender === genderDraft;
-                        })
-                        .map((accId) => (
-                          <button
-                            key={accId}
-                            type="button"
-                            onClick={() => setAccessoryDraft(accId as AvatarSantriAccessory)}
-                            className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs capitalize transition-all cursor-pointer flex flex-col items-center gap-1 ${
-                              accessoryDraft === accId
-                                ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
-                                : "bg-white hover:bg-slate-50"
-                            }`}
-                          >
-                            <AvatarSantriSvg
-                              size={40}
-                              gender={resolveMascotGender(genderDraft)}
-                              accessory={accId}
-                            />
-                            <span>{getAvatarAccessoryName(accId)}</span>
-                          </button>
-                        ))}
-                    </div>
-                    <div className="text-center pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveModal(null);
-                          navigate("/member/ngaji-ceria/warung-santri?tab=avatar");
-                        }}
-                        className="inline-flex items-center gap-1.5 text-xs font-black text-[#0D9488] hover:underline cursor-pointer"
-                      >
-                        <StoreSvg size={13} /> Belanja aksesoris lainnya di Warung Santri
-                      </button>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -1048,7 +1179,8 @@ export default function NgajiCeriaProfilePage() {
       )}
 
       {activeModal === "password" && (
-        <AppModal isOpen={true}
+        <AppModal
+          isOpen={true}
           title="Ganti Kata Sandi"
           onClose={() => setActiveModal(null)}
         >
@@ -1114,7 +1246,8 @@ export default function NgajiCeriaProfilePage() {
       )}
 
       {activeModal === "feedback" && (
-        <AppModal isOpen={true}
+        <AppModal
+          isOpen={true}
           title="Kritik & Saran"
           variant="warm"
           onClose={() => setActiveModal(null)}
@@ -1169,15 +1302,16 @@ export default function NgajiCeriaProfilePage() {
       )}
 
       {activeModal === "install" && (
-        <AppModal isOpen={true}
+        <AppModal
+          isOpen={true}
           title="Install Tartila"
           variant="warm"
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-3 text-center">
             <p className="text-xs font-semibold text-[#134E4A]/80 leading-relaxed">
-              Pasang aplikasi Tartila di layar utama agar kamu bisa belajar ngaji
-              dengan lebih cepat dan nyaman setiap hari!
+              Pasang aplikasi Tartila di layar utama agar kamu bisa belajar
+              ngaji dengan lebih cepat dan nyaman setiap hari!
             </p>
             {installPrompt ? (
               <button
@@ -1189,7 +1323,8 @@ export default function NgajiCeriaProfilePage() {
               </button>
             ) : (
               <p className="text-[11px] font-bold text-[#134E4A]/60 bg-gray-50 p-3 rounded-xl border-2 border-dashed border-[#134E4A]/20">
-                Buka menu browser (titik tiga) lalu pilih "Tambahkan ke Layar Utama".
+                Buka menu browser (titik tiga) lalu pilih "Tambahkan ke Layar
+                Utama".
               </p>
             )}
             <button
@@ -1204,15 +1339,16 @@ export default function NgajiCeriaProfilePage() {
       )}
 
       {activeModal === "logout" && (
-        <AppModal isOpen={true}
+        <AppModal
+          isOpen={true}
           title="Keluar Akun?"
           variant="warm"
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-3 text-center">
             <p className="text-xs font-semibold text-[#134E4A]/80">
-              Apakah kamu yakin ingin keluar dari akun Tartila? Progress harianmu
-              tetap tersimpan aman.
+              Apakah kamu yakin ingin keluar dari akun Tartila? Progress
+              harianmu tetap tersimpan aman.
             </p>
             <div className="flex gap-2 pt-2">
               <button
@@ -1236,14 +1372,15 @@ export default function NgajiCeriaProfilePage() {
       )}
 
       {activeModal === "delete" && (
-        <AppModal isOpen={true}
+        <AppModal
+          isOpen={true}
           title="Hapus Akun"
           onClose={() => setActiveModal(null)}
         >
           <div className="space-y-3 text-center">
             <p className="text-xs font-semibold text-[#991B1B]">
-              Tindakan ini permanen. Seluruh data koin, bintang, dan riwayat belajar
-              kamu akan dihapus.
+              Tindakan ini permanen. Seluruh data koin, bintang, dan riwayat
+              belajar kamu akan dihapus.
             </p>
             <div className="flex gap-2 pt-2">
               <button

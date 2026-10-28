@@ -17,6 +17,13 @@ export function ModelMaterialCard({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [localPlaying, setLocalPlaying] = useState(false);
 
+  // Sync isAudioPlaying prop to local state for immediate visual feedback
+  useEffect(() => {
+    if (isAudioPlaying) {
+      setLocalPlaying(true);
+    }
+  }, [isAudioPlaying]);
+
   useEffect(() => {
     return () => {
       audioRef.current?.pause();
@@ -68,7 +75,7 @@ export function ModelMaterialCard({
           }`}
         >
           {isPlaying ? (
-            <EqualizerIcon isPlaying={true} size={16} barClassName="bg-white" />
+            <EqualizerIcon isPlaying={isPlaying} size={16} barClassName="bg-white" />
           ) : (
             <Volume2 size={16} />
           )}

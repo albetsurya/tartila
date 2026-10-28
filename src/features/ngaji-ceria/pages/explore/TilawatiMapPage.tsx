@@ -20,12 +20,20 @@ import {
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { PanduanMembacaModal } from "../../components/PanduanMembacaModal";
 import { OutOfEnergyModal } from "../../components/OutOfEnergyModal";
-import { ExploreHeader, ExploreStatBadge } from "../../components/ExploreHeader";
+import {
+  ExploreHeader,
+  ExploreStatBadge,
+} from "../../components/ExploreHeader";
 import { JuicyStar } from "@/components/ui/JuicyIcons";
 import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
-import { AvatarAnakBersorakSvg } from "../../../../components/ui/Illustrations";
+import {
+  AvatarAnakBersorakSvg,
+  AvatarSantriAccessory,
+  AvatarSantriSvg,
+} from "../../../../components/ui/Illustrations";
+import { resolveMascotGender } from "@/utils/mascotHelper";
 
 const TILAWATI_PAGES = [
   {
@@ -256,6 +264,7 @@ export default function TilawatiMapPage() {
   const [energyEmpty, setEnergyEmpty] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
   const consumeHeart = useEconomyStore((s: any) => s.consumeHeart);
+  const tilaGender = useEconomyStore((s) => s.tilaGender);
   const stars = useNgajiCeriaStore((s) => s.stars);
   const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
   const [selectedNode, setSelectedNode] = useState<
@@ -302,18 +311,23 @@ export default function TilawatiMapPage() {
     if (!isPractice) {
       const success = await consumeHeart();
       if (!success) {
+        setSelectedNode(null);
         setEnergyEmpty(true);
         return;
       }
     }
     triggerBibiReaction("play");
     const targetNode = selectedNode;
-    setSelectedNode(null);
-    navigate(
-      `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${targetNode.page}${
-        isPractice ? "&practice=true" : ""
-      }`,
-    );
+    try {
+      setSelectedNode(null);
+      navigate(
+        `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${targetNode.page}${
+          isPractice ? "&practice=true" : ""
+        }`,
+      );
+    } catch {
+      setSelectedNode(targetNode);
+    }
   };
 
   return (
@@ -358,7 +372,12 @@ export default function TilawatiMapPage() {
         }
         extraBadge={
           <ExploreStatBadge
-            icon={<JuicyStar size={18} className="text-[#F59E0B] fill-[#F59E0B] shrink-0" />}
+            icon={
+              <JuicyStar
+                size={18}
+                className="text-[#F59E0B] fill-[#F59E0B] shrink-0"
+              />
+            }
             value={`${totalStars}/93`}
             title={`Total Bintang: ${totalStars}/93`}
           />
@@ -533,8 +552,6 @@ export default function TilawatiMapPage() {
           ))}
         </div>
 
-
-
         <div
           className="relative max-w-md mx-auto w-full z-10"
           style={{ height: totalHeight }}
@@ -574,36 +591,59 @@ export default function TilawatiMapPage() {
                 }}
               >
                 {isFirst && (
-                  <div className="absolute -top-[75px] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
+                  <div className="absolute -top-[85px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
+                    {/* PIN AVATAR DENGAN ANIMASI */}
                     <motion.div
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                      initial={{ scale: 0, y: 20, opacity: 0 }}
+                      animate={{
+                        scale: 1,
+                        opacity: 1,
+                        y: [0, -10, 0],
+                        rotate: [-4, 4, -4], 
                       }}
-                      className={`relative w-[52px] h-[52px] drop-shadow-[3px_3px_0px_${theme.nodeBorder}] z-10`}
+                      transition={{
+                        y: {
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        },
+                        rotate: {
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        },
+                        // Efek pantulan (spring) saat pertama kali muncul
+                        scale: { type: "spring", bounce: 0.6, duration: 0.8 },
+                        opacity: { duration: 0.3 },
+                      }}
+                      className={`relative w-[56px] h-[56px] drop-shadow-[3px_3px_0px_${theme.nodeBorder}] z-10`}
                     >
                       <div
                         className={`w-full h-full ${theme.islandBg} border-[3px] ${theme.nodeBorder} rounded-full rounded-br-none rotate-45 flex items-center justify-center`}
                       >
-                        <div className="w-[82%] h-[82%] rounded-full overflow-hidden -rotate-45 bg-white border-2 border-black/10">
-                          <AvatarAnakBersorakSvg
-                            size={44}
-                            className="w-full h-full"
+                        <div className="w-[88%] h-[88%] rounded-full overflow-hidden -rotate-45 bg-white flex items-center justify-center">
+                          <AvatarSantriSvg
+                            size={46}
+                            gender={resolveMascotGender(tilaGender)}
+                            mood="happy"
+                            className="shrink-0 scale-110 mt-1"
                           />
                         </div>
                       </div>
                     </motion.div>
 
+                    {/* BAYANGAN (SHADOW) YANG BERDENYUT SINKRON DENGAN PIN */}
                     <motion.div
-                      animate={{ scale: [1, 0.6, 1], opacity: [0.3, 0.1, 0.3] }}
+                      animate={{
+                        scale: [1, 0.7, 1], // Bayangan mengecil saat pin naik
+                        opacity: [0.4, 0.15, 0.4], // Bayangan memudar saat pin naik
+                      }}
                       transition={{
-                        duration: 2,
+                        duration: 2.5, // SAMA dengan durasi 'y' pada pin agar sinkron
                         repeat: Infinity,
                         ease: "easeInOut",
                       }}
-                      className="w-6 h-1.5 bg-black/40 rounded-[100%] blur-[1.5px] mt-[-8px] z-0"
+                      className="w-7 h-2 bg-black/50 rounded-[100%] blur-[1.5px] mt-1.5 z-0"
                     />
                   </div>
                 )}
@@ -709,7 +749,8 @@ export default function TilawatiMapPage() {
               <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] mb-4">
                 <div className="text-left">
                   <p className="text-xs font-black text-[#134E4A] flex items-center gap-1.5">
-                    <Compass size={14} className="text-[#0D9488]" /> Mode Latihan
+                    <Compass size={14} className="text-[#0D9488]" /> Mode
+                    Latihan
                   </p>
                   <p className="text-[10px] font-bold text-[#134E4A]/60">
                     Bebas tanpa nyawa & tanpa perolehan bintang
@@ -729,6 +770,7 @@ export default function TilawatiMapPage() {
               </div>
 
               <button
+                type="button"
                 onClick={() => handleStartLearning()}
                 className={`w-full ${
                   isPracticeMode ? "bg-[#0D9488]" : theme.nodeBg
@@ -736,7 +778,9 @@ export default function TilawatiMapPage() {
                   theme.nodeBorder
                 } shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
               >
-                {isPracticeMode ? "Mulai Latihan (Bebas Nyawa)" : "Mulai Belajar (1 Hati)"}{" "}
+                {isPracticeMode
+                  ? "Mulai Latihan (Bebas Nyawa)"
+                  : "Mulai Belajar (1 Hati)"}{" "}
                 <Play size={14} className="fill-white" />
               </button>
             </>

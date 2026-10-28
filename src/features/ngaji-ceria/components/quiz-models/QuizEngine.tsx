@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ModelAudioMatching } from "./ModelAudioMatching";
 import { ModelArrangeLetters } from "./ModelArrangeLetters";
 import { ModelFillInTheBlank } from "./ModelFillInTheBlank";
@@ -26,6 +26,10 @@ export function QuizEngine({
   // Model diacak sekali per pertanyaan (stabil antar re-render).
   // `material` tidak diacak karena merupakan langkah belajar, bukan soal.
   // Sertakan status audio agar jika audio selesai di-resolve, model audio dapat ikut dipilih.
+  // Membungkus onPlayAudio ke ref agar tidak menjadi dependensi yang berubah tiap render
+  const onPlayAudioRef = useRef(onPlayAudio);
+  onPlayAudioRef.current = onPlayAudio;
+
   const hasAudio = Boolean(question.audioUrl);
   const modelKey = `${questionIndex ?? -1}:${question.id}:${question.type}:${hasAudio ? "audio" : "noaudio"}`;
   const assignedModel = useMemo(
@@ -68,18 +72,14 @@ export function QuizEngine({
   const shared = { onAnswerSubmit, onNext, onPlayAudio, isAudioPlaying };
 
   useEffect(() => {
-    // Auto-play: Tipe soal SELAIN "Tebak Bacaan" (multiple-choice-text) dan Audio Choice
-    // WAJIB memutar audio soal secara otomatis saat soal muncul.
-    if (
-      assignedModel !== "multiple-choice-text" &&
-      assignedModel !== "multiple-choice-audio" &&
-      assignedModel !== "audio-matching" &&
-      question.audioUrl &&
-      onPlayAudio
-    ) {
-      onPlayAudio();
+    // Auto-play: SEMUA model SEKALI audio-matching.
+    // Model audio-matching menunggu klik user, sisanya auto-play saat dimuat.
+    // HANYA bergantung pada question.id — assignedModel didapat dari useMemo
+    // yang sudah bergantung pada question, jadi akan update otomatis saat question berubah.
+    if (assignedModel !== "audio-matching" && assignedModel !== "material" && question.audioUrl && onPlayAudioRef.current) {
+      onPlayAudioRef.current();
     }
-  }, [assignedModel, question.id, question.audioUrl, onPlayAudio]);
+  }, [question.id]);
 
   return (
     <div

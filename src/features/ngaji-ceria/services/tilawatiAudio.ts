@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import timelineEdits from "../data/tilawatiTimelineEdits.json";
 import type { QuizQuestion } from "../data/tilawatiQuizTypes";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
@@ -137,9 +137,9 @@ async function playCandidate(candidate: AudioCandidate, token: number): Promise<
     activeAudio = audio;
     audio.volume = 0.9;
     cancelPlayback = () => resolve(false);
-    audio.onended = () => resolve(true);
-    audio.onerror = () => resolve(false);
-    void audio.play().catch((error: DOMException) => error.name === "NotAllowedError" ? reject(error) : resolve(false));
+    audio.onended = () => resolve(token === generation);
+    audio.onerror = () => resolve(token === generation);
+    void audio.play().catch((error: DOMException) => error.name === "NotAllowedError" ? reject(error) : resolve(token === generation));
   });
 }
 
@@ -161,12 +161,44 @@ export function usePublishedTilawati(jilid: number, page: number) {
 
 export function useTilawatiAudio(request: TilawatiAudioRequest) {
   const published = usePublishedTilawati(request.jilid, request.pageNumber);
-  const resolution = useMemo(() => resolveTilawatiAudio(request, published), [request.question, request.jilid, request.pageNumber, request.questionIndex, request.audioUrl, request.arabic, request.startAt, request.duration, request.allowPageFallback, published]);
+  // Stable resolution: only recompute when question ID or page data changes,
+  // not on every render (request.question object reference changes each render)
+  const resolution = useMemo(() => resolveTilawatiAudio(request, published), [
+    request.question?.id,
+    request.question?.arabic,
+    request.question?.isOpening,
+    request.jilid,
+    request.pageNumber,
+    request.questionIndex,
+    request.audioUrl,
+    request.arabic,
+    request.startAt,
+    request.duration,
+    request.allowPageFallback,
+    published,
+  ]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState("");
+  const prevQuestionIdRef = useRef(request.question?.id);
+
   const stop = useCallback(() => { stopTilawatiAudio(); setIsPlaying(false); }, []);
+
+  // Stop audio only when question actually changes (by id), not on every render
+  // This prevents audio looping when user interacts with Bank Huruf letters
+  useEffect(() => {
+    if (prevQuestionIdRef.current !== request.question?.id) {
+      setIsPlaying(false);
+      stopTilawatiAudio();
+      prevQuestionIdRef.current = request.question?.id;
+    }
+    return () => stopTilawatiAudio();
+  }, [request.question?.id]);
   const play = useCallback(async () => {
     stopTilawatiAudio();
+    // Cancel any text-to-speech to prevent audio stack conflicts
+    if (typeof speechSynthesis !== "undefined") {
+      speechSynthesis.cancel();
+    }
     if (soundManager.muted) return;
     const token = generation;
     setIsPlaying(true); setError(""); soundManager.duckBgm(true);
@@ -183,12 +215,10 @@ export function useTilawatiAudio(request: TilawatiAudioRequest) {
       soundManager.duckBgm(false);
       setIsPlaying(false);
       if (!success) setError(blocked ? "Ketuk Baca untuk memutar audio." : "Audio belum tersedia. Coba lagi saat koneksi pulih.");
+    } else if (token !== generation) {
+      // Playback was cancelled or interrupted
+      setIsPlaying(false);
     }
   }, [resolution]);
-  useEffect(() => {
-    setIsPlaying(false);
-    return () => stopTilawatiAudio();
-  }, [resolution]);
-  useEffect(() => soundManager.subscribe(() => { if (soundManager.muted) setIsPlaying(false); }), []);
   return { ...resolution, published, isPlaying, error, play, stop };
 }
