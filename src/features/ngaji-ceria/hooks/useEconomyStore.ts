@@ -11,6 +11,7 @@ import {
 } from '@/utils/mascotHelper';
 import { MASCOT_STORAGE_KEY } from '@/constants/mascot';
 import { normalizeRole, isUstadzRole } from '@/lib/roles';
+import { setRoomPassword, verifyRoomPassword } from '@/services/classroomService';
 import { activityDate } from '../utils/activityDate';
 import { hydrateActivity } from './useNgajiCeriaStore';
 import type { MascotSkin } from '../data/shopData';
@@ -644,7 +645,6 @@ export const useEconomyStore = create<EconomyState>()(
         .insert({
           ustadz_id: userId,
           name: name,
-          password_hash: password ? await hashPassword(password) : null,
           max_participants: get().participantLimit,
           is_active: true,
           created_at: new Date().toISOString(),
@@ -661,6 +661,11 @@ export const useEconomyStore = create<EconomyState>()(
         role_in_room: 'ustadz',
         joined_at: new Date().toISOString(),
       });
+
+      // Hash bcrypt dibuat di database, bukan di browser.
+      if (password) {
+        await setRoomPassword(room.id, password);
+      }
 
       // rooms_created masih dihitung lokal; endpoint Go untuk ustadz room belum ada.
 
@@ -698,12 +703,11 @@ export const useEconomyStore = create<EconomyState>()(
       if (roomError) throw roomError;
       if (!room || !room.is_active) return false;
 
-      // Cek password jika room terproteksi
-      if (room.password_hash && password) {
-        const isValid = await verifyPassword(password, room.password_hash);
-        if (!isValid) return false; // Password salah
-      } else if (room.password_hash && !password) {
-        return false; // Room protected tapi no password provided
+      // Cek password jika room terproteksi. Hash dibandingkan di database,
+      // jadi kolom password_hash tidak pernah dibaca ke browser.
+      if (room.has_password) {
+        const isValid = await verifyRoomPassword(room.join_code, password ?? '');
+        if (!isValid) return false; // Password salah atau tidak diberikan
       }
 
       // Cek participant limit
@@ -1467,13 +1471,3 @@ export const useEconomyStore = create<EconomyState>()(
   )
 );
 
-// Helper functions for password hashing (client-side simplified)
-const hashPassword = async (password: string): Promise<string> => {
-  // Di production, gunakan proper password hashing
-  // Di sini hanya mock untuk development
-  return btoa(password); // Base64 simple untuk development
-};
-
-const verifyPassword = async (password: string, hashed: string): Promise<boolean> => {
-  return (await hashPassword(password)) === hashed;
-};
