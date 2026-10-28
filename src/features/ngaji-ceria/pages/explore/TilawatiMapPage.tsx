@@ -34,6 +34,7 @@ import {
   AvatarSantriSvg,
 } from "../../../../components/ui/Illustrations";
 import { resolveMascotGender } from "@/utils/mascotHelper";
+import { StickerButton } from "@/components/ui";
 
 const TILAWATI_PAGES = [
   {
@@ -599,7 +600,7 @@ export default function TilawatiMapPage() {
                         scale: 1,
                         opacity: 1,
                         y: [0, -10, 0],
-                        rotate: [-4, 4, -4], 
+                        rotate: [-4, 4, -4],
                       }}
                       transition={{
                         y: {
@@ -683,7 +684,6 @@ export default function TilawatiMapPage() {
             );
           })}
         </div>
-
         <AppBottomSheet
           isOpen={!!selectedNode}
           onClose={() => setSelectedNode(null)}
@@ -769,20 +769,19 @@ export default function TilawatiMapPage() {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => handleStartLearning()}
-                className={`w-full ${
-                  isPracticeMode ? "bg-[#0D9488]" : theme.nodeBg
-                } text-white font-black text-sm py-4 rounded-2xl border-[3px] ${
-                  theme.nodeBorder
-                } shadow-[3px_3px_0px_${theme.nodeBorder}] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2`}
+              {/* 🟢 TOMBOL REUSABLE STICKER BUTTON 🟢 */}
+              <StickerButton
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={() => handleStartLearning(isPracticeMode)}
+                className={isPracticeMode ? "bg-[#0D9488] text-white" : ""}
               >
                 {isPracticeMode
                   ? "Mulai Latihan (Bebas Nyawa)"
                   : "Mulai Belajar (1 Hati)"}{" "}
-                <Play size={14} className="fill-white" />
-              </button>
+                <Play size={16} className="fill-white" />
+              </StickerButton>
             </>
           )}
         </AppBottomSheet>

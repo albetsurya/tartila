@@ -12,7 +12,7 @@ import {
 import { AppModal } from "@/components/ui/AppModal";
 import { useNgajiCeriaStore } from "../hooks/useNgajiCeriaStore";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
-import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
+import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { AvatarWithBadge } from "../../../components/ui/AvatarWithBadge";
 import { normalizeGender } from "../../../utils/format";
 import {
@@ -132,6 +132,26 @@ export default function NgajiCeriaProfilePage() {
   const currentJilidNumber = Number(currentJilid.replace("jilid-", "")) || 1;
 
   const stars = useNgajiCeriaStore((state) => state.stars);
+  const [datasets, setDatasets] = useState<
+    Record<number, Record<number, import("../data/tilawatiPageDatasets").PageQuizData>>
+  >({});
+
+  // Preload semua dataset jilid 1-6
+  useEffect(() => {
+    let alive = true;
+    const jilids = [1, 2, 3, 4, 5, 6];
+    Promise.all(jilids.map((jilid) => loadTilawatiDataset(jilid)))
+      .then((results) => {
+        if (alive) setDatasets(Object.fromEntries(results.map((d, i) => [jilids[i], d])));
+      })
+      .finally(() => {
+        if (alive) {
+        }
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const equippedAccessory = useEconomyStore((s) => s.equippedAccessory);
   const tilaGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const setTilaGender = useEconomyStore((s) => s.setTilaGender);
@@ -189,7 +209,7 @@ export default function NgajiCeriaProfilePage() {
   const earned = useMemo(() => {
     const set = new Set(progress.achievements);
     for (let jilid = 1; jilid <= 6; jilid++) {
-      const pages = Object.keys(getTilawatiDataset(jilid));
+      const pages = Object.keys(datasets[jilid] || {});
       if (
         pages.length &&
         pages.every((page) => stars[`jilid-${jilid}-hal-${page}`] > 0)
@@ -402,23 +422,23 @@ export default function NgajiCeriaProfilePage() {
 
   return (
     <NgajiCeriaLayout hideHeader>
-      <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] pb-24 transition-colors duration-200">
+      <div className="mx-auto min-h-full w-full max-w-3xl bg-[var(--bg-app,#F0FDF4)] pb-24 text-[var(--text-main,#134E4A)] transition-colors duration-200">
         {/* 1. Header Banner Profil */}
-        <header className="rounded-b-[28px] bg-[#134E4A] px-5 pb-12 pt-safe text-white relative overflow-hidden border-b-[3px] border-[var(--border-color,#134E4A)]">
-          <div className="pt-4 relative z-10 flex items-center justify-between">
+        <header className="relative overflow-hidden rounded-b-[28px] border-b-[3px] border-[#134E4A] bg-[#134E4A] px-5 pb-12 pt-safe text-white sm:px-6">
+          <div className="relative z-10 mx-auto flex max-w-2xl items-center justify-between gap-3 pt-4">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF6B6B]">
+              <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[#FEF08A]">
                 Ruang Santri
               </span>
-              <h1 className="font-display text-xl font-black">
+              <h1 className="font-display text-xl font-black leading-tight sm:text-2xl">
                 Profil Belajarku
               </h1>
             </div>
-            <div className="rounded-xl border-2 border-white/20 bg-white/10 px-2.5 py-1 text-right">
-              <p className="text-[9px] font-black uppercase tracking-wider text-white/70">
+            <div className="shrink-0 rounded-xl border-2 border-white/30 bg-white/10 px-3 py-2 text-right shadow-[2px_2px_0px_rgba(0,0,0,0.16)]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-white/80">
                 Streak
               </p>
-              <p className="text-xs font-black text-[#FBBF24] flex items-center justify-end gap-1">
+              <p className="flex items-center justify-end gap-1 text-sm font-black text-[#FEF08A]">
                 <FireSvg size={14} className="text-[#EA580C]" />
                 <span>{effectiveStreak} Hari</span>
               </p>
@@ -426,15 +446,15 @@ export default function NgajiCeriaProfilePage() {
           </div>
         </header>
 
-        <div className="space-y-4 px-4">
+        <div className="mx-auto max-w-2xl space-y-5 px-4 sm:space-y-6 sm:px-5">
           {/* 1. Avatar Card */}
-          <section className="-mt-8 relative z-20 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3.5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
-            <div className="flex items-center gap-3">
+          <section className="relative z-20 -mt-8 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-4 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
+            <div className="flex items-center gap-3 sm:gap-4">
               {avatarMode === "photo" ? (
                 <AvatarWithBadge
                   src={user?.photo_url}
                   name={displayName}
-                  size={58}
+                  size={64}
                   shape="circle"
                   role={user?.role}
                   groupId={user?.group_id}
@@ -443,7 +463,7 @@ export default function NgajiCeriaProfilePage() {
                 />
               ) : (
                 <AvatarSantriSvg
-                  size={58}
+                  size={64}
                   gender={resolveMascotGender(tilaGender)}
                   accessory={resolvedEquippedAccessory}
                   mood="happy"
@@ -452,11 +472,11 @@ export default function NgajiCeriaProfilePage() {
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <h2 className="truncate text-base font-black text-[var(--text-main,#134E4A)]">
+                  <h2 className="truncate text-base font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-lg">
                     {displayName}
                   </h2>
                   <span
-                    className={`inline-block rounded-md px-1.5 py-0.5 text-[8px] font-black tracking-wider text-white border border-[#134E4A] ${
+                    className={`inline-flex items-center rounded-md border border-[#134E4A] px-2 py-1 text-[10px] font-black tracking-wide text-white ${
                       isSuperAdmin
                         ? "bg-[#FF6B6B]"
                         : isVip
@@ -471,19 +491,19 @@ export default function NgajiCeriaProfilePage() {
                         : "SANTRI AKTIF"}
                   </span>
                   {isUnlimited && (
-                    <span className="inline-block rounded-md bg-[#FEF08A] text-[#134E4A] px-1 py-0.5 text-[8px] font-black border border-[#134E4A]">
+                    <span className="inline-flex items-center rounded-md border border-[#134E4A] bg-[#FEF08A] px-2 py-1 text-[10px] font-black text-[#134E4A]">
                       ∞ UNLIMITED
                     </span>
                   )}
                 </div>
-                <p className="truncate text-[11px] font-bold text-[var(--text-main,#134E4A)]/60 mt-0.5">
+                <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/70 sm:text-sm">
                   {email}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => openModal("edit")}
-                className="shrink-0 rounded-xl p-2 bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-y-[1px] active:shadow-none dark:hover:bg-white/5"
                 title="Edit Profil"
               >
                 <PencilSvg size={16} />
@@ -491,88 +511,88 @@ export default function NgajiCeriaProfilePage() {
             </div>
           </section>
 
-          {/* 2. Quick Stats: 1 Baris Horizontal Scrollable */}
-          <section className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {/* 2. Statistik Belajar: responsif tanpa scroll horizontal */}
+          <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
             {/* Level */}
-            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+            <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-2.5 py-3 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] sm:gap-2.5 sm:px-3">
               <GraduationCapSvg
                 size={20}
                 className="shrink-0 text-[#134E4A]"
                 stroke="#134E4A"
               />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                <p className="text-[10px] font-black uppercase leading-none text-[var(--text-main,#134E4A)]/60 sm:text-[11px]">
                   Level
                 </p>
-                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                <p className="mt-1 text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-[15px]">
                   Tilawati {currentJilidNumber}
                 </p>
               </div>
             </div>
 
             {/* Bintang */}
-            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+            <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-2.5 py-3 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] sm:gap-2.5 sm:px-3">
               <StarSvg
                 size={20}
                 className="shrink-0 text-[#134E4A]"
                 stroke="#134E4A"
               />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                <p className="text-[10px] font-black uppercase leading-none text-[var(--text-main,#134E4A)]/60 sm:text-[11px]">
                   Bintang
                 </p>
-                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                <p className="mt-1 text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-[15px]">
                   <AnimatedCounter value={earnedStars} />/{TOTAL_STARS}
                 </p>
               </div>
             </div>
 
             {/* Koin */}
-            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+            <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-2.5 py-3 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] sm:gap-2.5 sm:px-3">
               <CoinsSvg
                 size={20}
                 className="shrink-0 text-[#134E4A]"
                 stroke="#134E4A"
               />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                <p className="text-[10px] font-black uppercase leading-none text-[var(--text-main,#134E4A)]/60 sm:text-[11px]">
                   Koin
                 </p>
-                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                <p className="mt-1 text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-[15px]">
                   <AnimatedCounter value={progress.coins || 0} />
                 </p>
               </div>
             </div>
 
             {/* Kuota Hati */}
-            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+            <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-2.5 py-3 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] sm:gap-2.5 sm:px-3">
               <HeartSvg
                 size={20}
                 className="shrink-0 text-[#134E4A]"
                 stroke="#134E4A"
               />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                <p className="text-[10px] font-black uppercase leading-none text-[var(--text-main,#134E4A)]/60 sm:text-[11px]">
                   Hati
                 </p>
-                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                <p className="mt-1 text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-[15px]">
                   {isUnlimited ? "∞ (VIP)" : `${hearts}/5`}
                 </p>
               </div>
             </div>
 
             {/* Tiket Game */}
-            <div className="shrink-0 flex items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488]">
+            <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-2.5 py-3 text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] sm:gap-2.5 sm:px-3">
               <TicketSvg
                 size={20}
                 className="shrink-0 text-[#134E4A]"
                 stroke="#134E4A"
               />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 leading-none">
+                <p className="text-[10px] font-black uppercase leading-none text-[var(--text-main,#134E4A)]/60 sm:text-[11px]">
                   Tiket
                 </p>
-                <p className="text-xs font-black text-[var(--text-main,#134E4A)] leading-tight">
+                <p className="mt-1 text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-[15px]">
                   {isUnlimited ? "∞ (VIP)" : `${tickets}/3`}
                 </p>
               </div>
@@ -580,7 +600,7 @@ export default function NgajiCeriaProfilePage() {
           </section>
 
           {/* 3. Menu Utama (Grid 2x2) */}
-          <section className="grid grid-cols-2 gap-3">
+          <section className="grid grid-cols-2 gap-3 sm:gap-4">
             {/* Card 1: Kamar Maskot */}
             <div
               role="button"
@@ -591,10 +611,10 @@ export default function NgajiCeriaProfilePage() {
                   navigate("/member/ngaji-ceria/kamar-tila");
                 }
               }}
-              className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+              className="flex min-h-[88px] cursor-pointer items-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)]"
             >
               <div className="flex items-center gap-2.5">
-                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
                   <div className="transform scale-[0.55] translate-y-1.5">
                     <TilaMascot
                       size={64}
@@ -604,10 +624,10 @@ export default function NgajiCeriaProfilePage() {
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                  <h3 className="truncate font-display text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                     Kamar {mascotName}
                   </h3>
-                  <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                  <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/75">
                     Skin &amp; Aksesoris
                   </p>
                 </div>
@@ -624,20 +644,20 @@ export default function NgajiCeriaProfilePage() {
                   navigate("/member/ngaji-ceria/warung-santri");
                 }
               }}
-              className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#DCFCE7] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+              className="flex min-h-[88px] cursor-pointer items-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#DCFCE7] p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)]"
             >
               <div className="flex items-center gap-2.5">
-                <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
                   <StoreSvg
                     size={20}
                     className="text-[#166534] dark:text-[#4ade80]"
                   />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                  <h3 className="truncate font-display text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                     Warung Santri
                   </h3>
-                  <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                  <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/75">
                     Beli Item &amp; Kostum
                   </p>
                 </div>
@@ -653,20 +673,20 @@ export default function NgajiCeriaProfilePage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") navigate("/ustadz");
                 }}
-                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#ECFEFF] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+                className="flex min-h-[88px] cursor-pointer items-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#ECFEFF] p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)]"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
                     <GraduationCapSvg
                       size={20}
                       className="text-[#0891B2] dark:text-[#38bdf8]"
                     />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                    <h3 className="truncate font-display text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                       Panel Ustadz
                     </h3>
-                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                    <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/75">
                       Kelola Kelas &amp; Nilai
                     </p>
                   </div>
@@ -682,20 +702,20 @@ export default function NgajiCeriaProfilePage() {
                     navigate("/member/ngaji-ceria/kelas");
                   }
                 }}
-                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#ECFEFF] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+                className="flex min-h-[88px] cursor-pointer items-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#ECFEFF] p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)]"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
                     <UsersSvg
                       size={20}
                       className="text-[#0891B2] dark:text-[#38bdf8]"
                     />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                    <h3 className="truncate font-display text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                       Kelas Saya
                     </h3>
-                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                    <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/75">
                       Gabung Kelas Ngaji
                     </p>
                   </div>
@@ -712,17 +732,17 @@ export default function NgajiCeriaProfilePage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") navigate("/admin");
                 }}
-                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FFE4E6] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+                className="flex min-h-[88px] cursor-pointer items-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FFE4E6] p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)]"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
                     <ShieldSvg size={20} className="text-[#E11D48]" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                    <h3 className="truncate font-display text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                       Panel Admin
                     </h3>
-                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                    <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/75">
                       Kelola Aplikasi
                     </p>
                   </div>
@@ -738,17 +758,17 @@ export default function NgajiCeriaProfilePage() {
                     navigate("/member/ngaji-ceria/leaderboard");
                   }
                 }}
-                className="cursor-pointer rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF3C7] dark:bg-[var(--bg-card)] p-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] hover:opacity-95"
+                className="flex min-h-[88px] cursor-pointer items-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF3C7] p-3.5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)]"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
+                  <div className="h-10 w-10 shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
                     <TrophySvg size={20} className="text-[#D97706]" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate font-display text-xs font-black text-[var(--text-main,#134E4A)]">
+                    <h3 className="truncate font-display text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                       Peringkat
                     </h3>
-                    <p className="text-[10px] font-bold text-[var(--text-main,#134E4A)]/70 truncate">
+                    <p className="mt-1 truncate text-xs font-semibold text-[var(--text-main,#134E4A)]/75">
                       Leaderboard Santri
                     </p>
                   </div>
@@ -757,16 +777,13 @@ export default function NgajiCeriaProfilePage() {
             )}
           </section>
 
-          {/* 4. Referral Card (Ringkas) */}
-          <ReferralSection />
-
           {/* Lemari Lencana (Ringkas & Horizontal) */}
-          <section className="rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3.5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
+          <section className="rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-display text-xs font-black uppercase text-[var(--text-main,#134E4A)] tracking-wider">
+              <h3 className="font-display text-sm font-black uppercase tracking-wider text-[var(--text-main,#134E4A)]">
                 Lemari Lencana
               </h3>
-              <span className="text-[10px] font-black text-[var(--text-main,#134E4A)]/70 bg-[#CCFBF1] dark:bg-[#1E293B] px-2 py-0.5 rounded-md border border-[var(--border-color,#134E4A)]/30">
+              <span className="rounded-md border border-[var(--border-color,#134E4A)]/30 bg-[#CCFBF1] px-2 py-1 text-[11px] font-black text-[var(--text-main,#134E4A)]/80 dark:bg-[#1E293B]">
                 {earned.size}/{Object.keys(ACHIEVEMENT_LABELS).length} Terbuka
               </span>
             </div>
@@ -792,7 +809,7 @@ export default function NgajiCeriaProfilePage() {
                     ) : (
                       <LockSvg size={14} />
                     )}
-                    <span className="truncate max-w-[120px] text-[10px]">
+                    <span className="max-w-[140px] truncate text-xs">
                       {badge.title}
                     </span>
                   </div>
@@ -802,9 +819,9 @@ export default function NgajiCeriaProfilePage() {
           </section>
 
           {/* 5. Pengaturan & Menu Terpadu (SATU Card List Besar - Neo-Brutalism Solid) */}
-          <section className="rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] overflow-hidden transition-colors duration-200">
-            <div className="bg-[#134E4A] px-4 py-2.5 text-white border-b-2 border-[var(--border-color,#134E4A)]">
-              <h3 className="font-display text-xs font-black uppercase tracking-wider">
+          <section className="overflow-hidden rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-colors duration-200">
+            <div className="border-b-2 border-[#134E4A] bg-[#134E4A] px-4 py-3 text-white">
+              <h3 className="font-display text-sm font-black uppercase tracking-wider sm:text-base">
                 Pengaturan &amp; Aktivitas
               </h3>
             </div>
@@ -817,7 +834,9 @@ export default function NgajiCeriaProfilePage() {
                   return (
                     <div
                       key={item.key}
-                      role="button"
+                      role="switch"
+                      aria-checked={item.toggleValue}
+                      aria-label={item.title}
                       tabIndex={0}
                       onClick={item.onToggle}
                       onKeyDown={(e) => {
@@ -825,11 +844,11 @@ export default function NgajiCeriaProfilePage() {
                           item.onToggle();
                         }
                       }}
-                      className="flex w-full items-center justify-between p-3.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer select-none text-left"
+                      className="flex min-h-[76px] w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0D9488] dark:hover:bg-white/5"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div
-                          className={`flex h-11 w-11 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] shrink-0`}
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[1.5px_1.5px_0px_#134E4A]`}
                         >
                           <Icon
                             size={22}
@@ -838,10 +857,10 @@ export default function NgajiCeriaProfilePage() {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="block font-black text-xs text-[var(--text-main,#134E4A)]">
+                          <span className="block text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                             {item.title}
                           </span>
-                          <span className="block truncate text-[10px] font-bold text-gray-500 dark:text-gray-400 mt-0.5">
+                          <span className="mt-1 block text-xs font-medium leading-snug text-[var(--text-main,#134E4A)]/65 sm:text-[13px]">
                             {item.subtitle}
                           </span>
                         </div>
@@ -871,11 +890,11 @@ export default function NgajiCeriaProfilePage() {
                     key={item.key}
                     type="button"
                     onClick={item.action}
-                    className="flex w-full items-center justify-between p-3.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left cursor-pointer"
+                    className="flex min-h-[76px] w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0D9488] dark:hover:bg-white/5"
                   >
                     <div className="flex items-center gap-3.5 min-w-0 flex-1">
                       <div
-                        className={`flex h-11 w-11 items-center justify-center rounded-2xl border-[2.5px] border-[#134E4A] dark:border-white/80 ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[2.5px_2.5px_0px_#134E4A] dark:shadow-[2.5px_2.5px_0px_#000000] shrink-0`}
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] ${item.iconBg} text-[#134E4A] [--svg-primary:#134E4A] [--svg-secondary:#0D9488] shadow-[1.5px_1.5px_0px_#134E4A]`}
                       >
                         <Icon
                           size={22}
@@ -884,10 +903,10 @@ export default function NgajiCeriaProfilePage() {
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span className="block font-black text-xs text-[var(--text-main,#134E4A)]">
+                        <span className="block text-sm font-black leading-tight text-[var(--text-main,#134E4A)]">
                           {item.title}
                         </span>
-                        <span className="block truncate text-[10px] font-bold text-gray-500 dark:text-gray-400 mt-0.5">
+                        <span className="mt-1 block text-xs font-medium leading-snug text-[var(--text-main,#134E4A)]/65 sm:text-[13px]">
                           {item.subtitle}
                         </span>
                       </div>
@@ -902,8 +921,11 @@ export default function NgajiCeriaProfilePage() {
             </div>
           </section>
 
+          {/* Referral sebagai fitur pendukung setelah progres dan pengaturan utama */}
+          <ReferralSection />
+
           {/* 6. Logout & Akun (Paling Bawah) */}
-          <section className="pt-2 space-y-2.5">
+          <section className="space-y-3 pt-2">
             {user ? (
               <button
                 type="button"
@@ -928,14 +950,14 @@ export default function NgajiCeriaProfilePage() {
               <button
                 type="button"
                 onClick={() => openModal("delete")}
-                className="text-[11px] font-bold text-[#FF6B6B] hover:underline"
+                className="rounded-lg px-3 py-2 text-xs font-bold text-[#D94848] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B6B]"
               >
                 Hapus Akun Saya
               </button>
             </div>
           </section>
 
-          <p className="pt-1 pb-4 text-center text-[10px] font-bold text-[#134E4A]/50 tracking-wider">
+          <p className="pb-4 pt-1 text-center text-xs font-semibold tracking-wide text-[var(--text-main,#134E4A)]/55">
             Streak {effectiveStreak} hari • Pangkat {rank.title}
           </p>
         </div>
@@ -949,7 +971,7 @@ export default function NgajiCeriaProfilePage() {
           variant="warm"
           onClose={() => setActiveModal(null)}
         >
-          <div className="space-y-4">
+          <div className="max-h-[min(72dvh,680px)] space-y-4 overflow-y-auto pr-1 sm:pr-2">
             {/* Pratinjau Avatar Langsung */}
             <div className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-[#134E4A]/30 bg-amber-50/50">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 mb-2">
@@ -1006,7 +1028,7 @@ export default function NgajiCeriaProfilePage() {
                 <button
                   type="button"
                   onClick={() => setAvatarModeDraft("photo")}
-                  className={`rounded-2xl border-[3px] border-[#134E4A] py-2.5 px-3 text-center transition-all font-display font-black text-xs cursor-pointer ${
+                  className={`rounded-2xl border-[3px] border-[#134E4A] py-2.5 px-3 text-center transition-all font-display font-black text-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 ${
                     avatarModeDraft === "photo"
                       ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
                       : "bg-white hover:bg-slate-50 opacity-70"
@@ -1017,7 +1039,7 @@ export default function NgajiCeriaProfilePage() {
                 <button
                   type="button"
                   onClick={() => setAvatarModeDraft("avatar")}
-                  className={`rounded-2xl border-[3px] border-[#134E4A] py-2.5 px-3 text-center transition-all font-display font-black text-xs cursor-pointer ${
+                  className={`rounded-2xl border-[3px] border-[#134E4A] py-2.5 px-3 text-center transition-all font-display font-black text-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 ${
                     avatarModeDraft === "avatar"
                       ? "bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
                       : "bg-white hover:bg-slate-50 opacity-70"
@@ -1089,7 +1111,7 @@ export default function NgajiCeriaProfilePage() {
                     <button
                       type="button"
                       onClick={() => setAccessoryDraft(null)}
-                      className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                      className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs transition-all cursor-pointer flex flex-col items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 ${
                         !accessoryDraft || accessoryDraft === "none"
                           ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
                           : "bg-white hover:bg-slate-50"
@@ -1123,7 +1145,7 @@ export default function NgajiCeriaProfilePage() {
                           onClick={() =>
                             setAccessoryDraft(accId as AvatarSantriAccessory)
                           }
-                          className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs capitalize transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                          className={`p-2.5 rounded-2xl border-[2.5px] border-[#134E4A] text-center font-black text-xs capitalize transition-all cursor-pointer flex flex-col items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 ${
                             accessoryDraft === accId
                               ? "bg-[#FEF08A] shadow-[2.5px_2.5px_0px_#134E4A]"
                               : "bg-white hover:bg-slate-50"

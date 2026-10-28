@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
+import { playVoiceFeedback } from '../../../utils/voiceFeedback';
 import { getBest, setBest } from '../_shared/storage';
 import { GameStartSheet } from '../_shared/GameStartSheet';
 import { GameHud } from '../_shared/GameHud';
@@ -299,6 +300,7 @@ export default function TilawatiMemoryPage() {
       } else {
         // BEDA: Jeda 1000ms (1 detik) lalu tutup kembali
         soundManager.playSfx('wrong');
+        playVoiceFeedback('wrong');
         setStreak(0);
         setIsChecking(true);
         setTimeout(() => {

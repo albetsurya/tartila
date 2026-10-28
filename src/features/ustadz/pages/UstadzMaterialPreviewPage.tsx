@@ -26,7 +26,7 @@ import {
   type MateriPokok,
   type JilidNumber,
 } from "@/data/learningCatalog";
-import { getTilawatiDataset } from "@/features/ngaji-ceria/data/tilawatiPageDatasets";
+import { loadTilawatiDataset } from "@/features/ngaji-ceria/data/tilawatiPageDatasets";
 import type { PageQuizData, QuizQuestion as TilawatiQuestion } from "@/features/ngaji-ceria/data/tilawatiQuizTypes";
 import {
   TAJWID_RULES,
@@ -251,21 +251,39 @@ function TilawatiPreview({
 }: TilawatiPreviewProps) {
   const [jilid, setJilid] = useState<number>(initialJilid || 1);
   const [page, setPage] = useState<number>(1);
+  const [dataset, setDataset] = useState<Record<number, import("@/features/ngaji-ceria/data/tilawatiQuizTypes").PageQuizData>>({});
+  const [isLoadingDataset, setIsLoadingDataset] = useState(false);
 
-  const dataset = useMemo(() => getTilawatiDataset(jilid), [jilid]);
+  // Load dataset saat jilid berubah
+  useEffect(() => {
+    let alive = true;
+    setIsLoadingDataset(true);
+    void loadTilawatiDataset(jilid)
+      .then((data) => {
+        if (alive) setDataset(data);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingDataset(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [jilid]);
+
   const pageNumbers = useMemo(() => {
     const keys = Object.keys(dataset).map(Number).sort((a, b) => a - b);
     return keys.length > 0 ? keys : [1];
   }, [dataset]);
 
-  const currentPageData: PageQuizData | undefined = dataset[page];
+  const currentPageData: import("@/features/ngaji-ceria/data/tilawatiQuizTypes").PageQuizData | undefined = dataset[page];
 
   // Ketika jilid berubah, reset ke halaman pertama
   const handleJilidChange = (nextJilid: number) => {
     setJilid(nextJilid);
-    const nextDataset = getTilawatiDataset(nextJilid);
-    const keys = Object.keys(nextDataset).map(Number).sort((a, b) => a - b);
-    setPage(keys[0] ?? 1);
+    void loadTilawatiDataset(nextJilid).then((nextDataset) => {
+      const keys = Object.keys(nextDataset || {}).map(Number).sort((a, b) => a - b);
+      setPage(keys[0] ?? 1);
+    });
   };
 
   const handlePrevPage = () => {

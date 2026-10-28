@@ -1,12 +1,15 @@
-import { getTilawatiDataset } from "../data/tilawatiPageDatasets";
+import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import type { QuizQuestion } from "../data/tilawatiQuizTypes";
+import type { TimelineEdits } from "./timelineEditsLoader";
+import type { TimelineAudioClip } from "./pageTimeline";
 
 export type PatternType =
   | "1-datar"
   | "1-naik"
   | "1-turun"
   | "2-datar-turun"
-  | "3-datar-naik-turun";
+  | "3-datar-naik-turun"
+  | "4-datar-naik-naik-turun";
 
 export interface TrainingItem {
   id: string; // `${jilid}:${hal}:${questionId}`
@@ -18,7 +21,7 @@ export interface TrainingItem {
   patternType: PatternType;
   audioUrl: string;
   isOpening: boolean;
-  source: "dataset"; // untuk audit
+  source: "dataset" | "timeline"; // untuk audit
   /** Optional timing params - legacy hardcodes, populate from level config */
   bpm?: number;
   beatsCount?: number;
@@ -28,6 +31,11 @@ export interface TrainingItem {
 // Pattern derivation — mapping lengkap
 export function derivePatternType(hintTone: string): PatternType {
   const t = hintTone.toLowerCase();
+  // Check for 4-pattern: datar, naik twice, then turun
+  // Count occurrences of "naik"
+  const naikCount = (t.match(/naik/g) || []).length;
+  if (t.includes("datar") && naikCount >= 2 && t.includes("turun"))
+    return "4-datar-naik-naik-turun";
   if (t.includes("datar") && t.includes("naik") && t.includes("turun"))
     return "3-datar-naik-turun";
   if (t.includes("datar") && t.includes("turun")) return "2-datar-turun";
@@ -37,8 +45,37 @@ export function derivePatternType(hintTone: string): PatternType {
 }
 
 // Ambil semua item untuk jilid+hal tertentu
-export function getTrainingItems(jilid: number, hal: number): TrainingItem[] {
-  const dataset = getTilawatiDataset(jilid);
+// Prefer timeline published data (from Timeline Editor) over raw dataset when present.
+export async function getTrainingItems(jilid: number, hal: number, timelineData?: TimelineEdits): Promise<TrainingItem[]> {
+  // Prefer published timeline (from Timeline Editor) over raw dataset.
+  const published = timelineData?.[`${jilid}:${hal}`]?.published;
+  if (published?.timeline) {
+    const result: TrainingItem[] = [];
+    for (const clip of published.timeline.clips) {
+      if (!clip.outputUrl || !clip.outputUrl.startsWith('/audio/tilawati/')) continue;
+      const text = published.timeline.texts.find((t) => t.clipId === clip.id);
+      if (!text || !text.arabic || text.arabic.trim() === '') continue;
+      if (!text.transliterationParts || text.transliterationParts.length === 0) continue;
+      result.push({
+        id: `${jilid}:${hal}:${clip.id}`,
+        jilid,
+        hal,
+        arabic: text.arabic,
+        transliteration: text.transliterationParts.join(' '),
+        hintTone: text.hintTone,
+        patternType: derivePatternType(text.hintTone),
+        audioUrl: clip.outputUrl,
+        isOpening: Boolean(text.isOpening),
+        source: 'timeline',
+        bpm: 65,
+        beatsCount: 2,
+        durationMs: 2000,
+      });
+    }
+    return result;
+  }
+
+  const dataset = await loadTilawatiDataset(jilid);
   const page = dataset?.[hal];
   if (!page?.questions) return [];
   return page.questions
@@ -58,16 +95,17 @@ export function getTrainingItems(jilid: number, hal: number): TrainingItem[] {
 }
 
 // Ambil semua item di jilid tertentu (untuk daftar halaman)
-export function getAllTrainingItems(jilid: number): TrainingItem[] {
-  const dataset = getTilawatiDataset(jilid);
+export async function getAllTrainingItems(jilid: number, timelineData?: TimelineEdits): Promise<TrainingItem[]> {
+  const dataset = await loadTilawatiDataset(jilid);
   const pages = Object.keys(dataset ?? {}).map(Number).sort((a, b) => a - b);
-  return pages.flatMap((hal) => getTrainingItems(jilid, hal));
+  const results = await Promise.all(pages.map((hal) => getTrainingItems(jilid, hal, timelineData)));
+  return results.flat();
 }
 
 // Ambil header clips (untuk Lab Irama) — soal dengan isOpening atau 
 // hintTone "Datar — Naik — Turun (3x)"
-export function getHeaderSamples(jilid: number): TrainingItem[] {
-  const items = getAllTrainingItems(jilid);
+export async function getHeaderSamples(jilid: number, timelineData?: TimelineEdits): Promise<TrainingItem[]> {
+  const items = await getAllTrainingItems(jilid, timelineData);
   const headers = items.filter((it) => it.isOpening || it.hintTone.includes('3x'));
   if (headers.length > 0) return headers;
   // Fallback: 1 item per tone (datar/naik/turun) dari data yang ada.
@@ -273,16 +311,16 @@ export const ARENA_KARTU_LEVELS: ArenaKartuLevelInfo[] = [
     bpm: 65,
     texts: [
       "اَخَّرَ قَدَّمَ رَتَّلَ يَسَّرَ",
-      "يُعَجِّلُ يُكَذِّبُ يُبَشِّرُ يُضِلُّ",
-      "عُطِّلَتْ سُجِّرَتْ ثُوِّبَتْ سُعِّرَتْ",
+      "يُعَجِّلُ يُكَذِّبُ يُبَشِّرُ يُضِلُّ",
+      "عُطِّلَتْ سُجِّرَتْ ثُوِّبَتْ سُعِّرَتْ",
       "صَفًّا حَقًّا سَحَّارٍ قَهَّارٍ",
-      "رُكَّعًا سُجَّدًا قَيِّمًا عِتِيًّا",
+      "رُكَّعًا سُجِّدًا قَيِّمًا عِتِيًّا",
       "مَآ أامُرُهُ وَمَا أُمِرُوَ",
       "بِمَآ أَنْتُمْ عَلٰٓى أاثَارِهِمْ",
-      "لَآ أَعْبُدُ اِلَّآ اامَانِيَّ",
-      "لَا يَعْلَمُوْنَ الْكِتٰبَ اِلَّآ اامَانِيَّ",
-      "لَآ اِلٰهَ اِلَّا هُوَ رَبُّ الْعَرْشِ الْعَظِيْمِ",
-      "وَمَآ أُمِرُوْا اِلَّا لِيَعْبُدُوْا اِلٰهًا",
+      "لَآ أَعْبُدُ اِلَّآ اامَانِيَّ",
+      "لَا يَعْلَمُوْنَ الْكِتٰبَ اِلَّآ اامَانِيَّ",
+      "لَآ اِلٰهَ اِلَّا هُوَ رَبُّ الْعَرْشِ الْعَظِيْمِ",
+      "وَمَآ أُمِرُوْا اِلَّا لِيَعْبُدُوْا اِلٰهًا",
       "فَهُمْ عَلٰٓى أاثَارِهِمْ يُهْرَعُوْنَ",
     ],
   },
@@ -296,18 +334,18 @@ export const ARENA_KARTU_LEVELS: ArenaKartuLevelInfo[] = [
     borderColor: "border-[#DC2626]",
     bpm: 60,
     texts: [
-      "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
-      "لِمَنْ يَّخْشٰى لِقَوْمٍ يَّعْلَمُوْنَ",
-      "وَمَنْ يُّبَدِّلْ لِقَوْمٍ يَّتَفَكِّرُوْنَ",
-      "اَنْ يَّنْزِلَ لِقَوْمٍ يُّؤْمِنُوْنَ",
-      "مَنْ yَّقُوْلُ اِذَنْ yَّسْمَعُوْنَ",
-      "لِمَنْ yَّشَآءُ اَرْجُلٌ yَّمْشُوْنَ",
-      "وَمِنَ النَّاسِ مَنْ yَّتَّخِذُ مِنْ دُوْنِ اللّٰهِ اَنْدَادًا",
-      "وَمَنْ yَّعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا yَّرَهٗ",
-      "اَيَحْسَبُ الْاِنْسَانُ اَنْ yُّتْرَكَ سُدًى",
-      "عَسَى اللّٰهُ اَنْ yَّأْتِيَنِيْ بِهِمْ جَمِيْعًا",
-      "فَذُوْقُوْا فَلَنْ نَّزِيْدَكُمْ اِلَّا عَذَابًا",
-      "لَا يُؤْمِنُوْنَ بِالْاٰخِرَةِ حِجَابًا مَّسْتُوْرًا",
+      "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+      "لِمَنْ يَّخْشٰى لِقَوْمٍ يَّعْلَمُوْنَ",
+      "وَمَنْ يُّبَدِّلْ لِقَوْمٍ يَّتَفَكَّرُوْنَ",
+      "اَنْ يَّنْزِلَ لِقَوْمٍ يُّؤْمِنُوْنَ",
+      "مَنْ yَّقُوْلُ اِذَنْ yَّسْمَعُوْنَ",
+      "لِمَنْ yَّشَآءُ اَرْجُلٌ yَّمْشُوْنَ",
+      "وَمِنَ النَّاسِ مَنْ yَّتَّخِذُ مِنْ دُوْنِ اللّٰهِ اَنْدَادًا",
+      "وَمَنْ yَّعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا yَّرَهٗ",
+      "اَيَحْسَبُ الْاِنْسَانُ اَنْ yَّتْرَكَ سُدًى",
+      "عَسَى اللّٰهُ اَنْ yَّأْتِيَنِيْ بِهِمْ جَمِيْعًا",
+      "فَذُوْقُوْا فَلَنْ نَّزِيْدَكُمْ اِلَّا عَذَابًا",
+      "لَا يُؤْمِنُوْنَ بِالْاٰخِرَةِ حِجَابًا مَّسْتُوْرًا",
     ],
   },
   {
@@ -320,18 +358,18 @@ export const ARENA_KARTU_LEVELS: ArenaKartuLevelInfo[] = [
     borderColor: "border-[#7C3AED]",
     bpm: 60,
     texts: [
-      "قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
       "قُلْ هُوَاللَّهُ أَحَدٌ",
-      "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",
-      "وَالْعَصْرِ إِنَّ الْإِنسَانَ لَفِي خُسْرٍ",
-      "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-      "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ",
+      "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",
+      "وَالْعَصْرِ إِنَّ الْإِنسَانَ لَفِي خُسْرٍ",
+      "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ",
       "لَمْ يَلِدْ وَلَمْ يُولَدْ",
       "مَلِكِ النَّاسِ",
-      "إِلَٰهِ النَّاسِ",
-      "مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ",
-      "فَصَلِّ لِرَبِّكَ وَانْحَرْ",
-      "إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ",
+      "إِلَٰهِ النَّاسِ",
+      "مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ",
+      "فَصَلِّ لِرَبِّكَ وَانْحَرْ",
+      "إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ",
     ],
   },
 ];
@@ -349,8 +387,8 @@ export function getRhythmMemoryLevelInfo(jilid: number): RhythmMemoryLevelInfo {
  * @param jilid nomor jilid
  * @param chunkSize jumlah kartu per level (default 12)
  */
-export function getRhythmMemoryLevels(jilid: number, chunkSize = 12): TrainingItem[][] {
-  const items = getAllTrainingItems(jilid);
+export async function getRhythmMemoryLevels(jilid: number, chunkSize = 12): Promise<TrainingItem[][]> {
+  const items = await getAllTrainingItems(jilid);
   const levels: TrainingItem[][] = [];
   for (let i = 0; i < items.length; i += chunkSize) {
     levels.push(items.slice(i, i + chunkSize));
@@ -361,8 +399,8 @@ export function getRhythmMemoryLevels(jilid: number, chunkSize = 12): TrainingIt
 /**
  * Ambil 1 level (chunk) Rhythm Memory untuk jilid tertentu.
  */
-export function getRhythmMemoryLevel(jilid: number, levelIndex: number, chunkSize = 12): TrainingItem[] {
-  const levels = getRhythmMemoryLevels(jilid, chunkSize);
+export async function getRhythmMemoryLevel(jilid: number, levelIndex: number, chunkSize = 12): Promise<TrainingItem[]> {
+  const levels = await getRhythmMemoryLevels(jilid, chunkSize);
   return levels[levelIndex] ?? [];
 }
 
@@ -378,6 +416,7 @@ export interface ArenaKartuMateri {
   transliteration: string;
   audioUrl?: string;
   tone?: "datar" | "naik" | "turun";
+  patternType?: PatternType;
   beatsCount: number;
   bpm: number;
   instruction?: string;
@@ -416,20 +455,23 @@ function shuffleArray<T>(array: T[]): T[] {
   return result;
 }
 
-// Re-export Lab Irama data module for compatibility
-// (Data moved from labIramaData.ts into this adapter as the new SSOT)
-
 /**
  * Build 12 ArenaKartuMateri cards for a jilid from SSOT.
  * TODO: Replace default instruction/timing with SSOT-derived values
  */
-export function getArenaKartuMateri(jilid: number): ArenaKartuMateri[] {
-  const items = getAllTrainingItems(jilid);
+export async function getArenaKartuMateri(jilid: number, timelineData?: TimelineEdits): Promise<ArenaKartuMateri[]> {
+  const items = await getAllTrainingItems(jilid, timelineData);
   const levelBpm = getArenaKartuLevelInfo(jilid).bpm;
   // Take first 12 items with audio, slice to 12 cards
   const selected = items.slice(0, 12);
+
+  if (selected.some((it) => !it.patternType)) {
+    console.warn('[adapter] getArenaKartuMateri: sebagian item tanpa patternType');
+  }
+
   return selected.map((item, idx) => ({
-    id: item.id,
+    id: `j${jilid}-c${idx + 1}`,
+    patternType: item.patternType,
     cardIndex: idx + 1,
     text: item.arabic,
     transliteration: item.transliteration,
@@ -444,22 +486,24 @@ export function getArenaKartuMateri(jilid: number): ArenaKartuMateri[] {
 /**
  * Get a specific card by id.
  */
-export function getArenaKartuCardById(
+export async function getArenaKartuCardById(
   jilid: number,
-  cardId: string
-): ArenaKartuMateri | undefined {
-  return getArenaKartuMateri(jilid).find((c) => c.id === cardId);
+  cardId: string,
+  timelineData?: TimelineEdits,
+): Promise<ArenaKartuMateri | undefined> {
+  return (await getArenaKartuMateri(jilid, timelineData)).find((c) => c.id === cardId);
 }
 
 /**
  * Generate pair cards for arena kartu memory match game.
  * Uses first 6 unique items, duplicated into 12 cards.
  */
-export function getArenaKartuPairs(
+export async function getArenaKartuPairs(
   jilid: number,
-  count: number = 6
-): ArenaKartuCardItem[] {
-  const items = getAllTrainingItems(jilid);
+  count: number = 6,
+  timelineData?: TimelineEdits,
+): Promise<ArenaKartuCardItem[]> {
+  const items = await getAllTrainingItems(jilid, timelineData);
   const levelBpm = getArenaKartuLevelInfo(jilid).bpm;
   let pool = items.slice(0, 12);
   let poolCopy = shuffleArray(pool);

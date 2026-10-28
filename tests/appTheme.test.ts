@@ -9,7 +9,7 @@ export const tests = {
     assert.equal(APP_THEMES_LIST.find((t) => t.id === 'default')?.price, 0);
   },
 
-  'useEconomyStore: manajemen kepemilikan dan penggantian tema aplikasi': () => {
+  'useEconomyStore: manajemen kepemilikan dan penggantian tema aplikasi': async () => {
     // Reset state tema aplikasi
     useEconomyStore.setState({
       ownedAppThemes: ['default'],
@@ -25,7 +25,7 @@ export const tests = {
     assert.equal(useEconomyStore.getState().equippedAppTheme, 'default');
 
     // Beli tema 'night' (free mode = true)
-    const success = store.buyAppTheme('night', 300, true, false);
+    const success = await store.buyAppTheme('night', 300, false);
     assert.equal(success, true);
     assert.ok(useEconomyStore.getState().ownedAppThemes.includes('night'));
     // Karena autoEquip = false, equippedAppTheme masih 'default'

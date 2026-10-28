@@ -16,21 +16,19 @@ import {
   stopAllAudio,
 } from "../utils/audioPlayer";
 import {
-  TILAWATI_JILID_1_PAGES,
-  TILAWATI_JILID_2_PAGES,
-  TILAWATI_JILID_3_PAGES,
-  TILAWATI_JILID_4_PAGES,
-  TILAWATI_JILID_5_PAGES,
-  TILAWATI_JILID_6_PAGES,
+  PageQuizData,
   QuizQuestion,
 } from "../data/tilawatiQuizData";
+import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { awardStars } from "../hooks/useNgajiCeriaStore";
 import { useJilidAccess } from "../components/GameLockGuard";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import {
   usePublishedTilawati,
   useTilawatiAudio,
+  type TimelineEditsIndex,
 } from "../services/tilawatiAudio";
+import { loadTimelineEdits } from "../utils/timelineEditsLoader";
 import { getNgajiActivity } from "../hooks/useNgajiCeriaStore";
 import { soundManager } from "../services/soundManager";
 import { awardProgress } from "./games/_shared/progression";
@@ -44,15 +42,7 @@ import { GameHud } from "./games/_shared/GameHud";
 import { GameResultModal } from "./games/_shared/GameResultModal";
 import { useGameStore } from "../hooks/useGameStore";
 
-const QUIZ_DATASETS = {
-  1: TILAWATI_JILID_1_PAGES,
-  2: TILAWATI_JILID_2_PAGES,
-  3: TILAWATI_JILID_3_PAGES,
-  4: TILAWATI_JILID_4_PAGES,
-  5: TILAWATI_JILID_5_PAGES,
-  6: TILAWATI_JILID_6_PAGES,
-} as const;
-type SupportedJilid = keyof typeof QUIZ_DATASETS;
+type SupportedJilid = 1 | 2 | 3 | 4 | 5 | 6;
 
 /** Mengocok salinan array (Fisher–Yates) tanpa mengubah sumbernya. */
 function shuffleArray<T>(items: T[]): T[] {
@@ -262,7 +252,27 @@ export default function NgajiCeriaQuizPage() {
   const jilidParam = parseInt(searchParams.get("jilid") || "1", 10);
   const activeJilid: SupportedJilid =
     jilidParam >= 1 && jilidParam <= 6 ? (jilidParam as SupportedJilid) : 1;
-  const activeDataset = QUIZ_DATASETS[activeJilid];
+
+  // Async preload semua dataset jilid 1-6 (Jilid 2-6 lazy-loaded via dynamic import)
+  const [datasets, setDatasets] = useState<Record<number, Record<number, PageQuizData>>>({});
+  const [isLoadingDatasets, setIsLoadingDatasets] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    Promise.all([1, 2, 3, 4, 5, 6].map((jilid) => loadTilawatiDataset(jilid)))
+      .then((results) => {
+        if (alive) {
+          setDatasets(Object.fromEntries(results.map((d, i) => [i + 1, d])));
+        }
+      })
+      .finally(() => {
+        if (alive) setIsLoadingDatasets(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const activeDataset = datasets[activeJilid] || {};
   const pageCount = Object.keys(activeDataset).length;
   const pageParam = parseInt(searchParams.get("hal") || "1", 10);
   const activePageNum =
@@ -295,6 +305,10 @@ export default function NgajiCeriaQuizPage() {
   const [isOpening, setIsOpening] = useState(true);
   const [isTaawudzPhase, setIsTaawudzPhase] = useState(true);
   const taawudzShownRef = useRef(false);
+
+  // Timeline edits (async fetch from /data/tilawatiTimelineEdits.json).
+  // Audio playback waits for this data so published timeline segments resolve.
+  const [timelineData, setTimelineData] = useState<TimelineEditsIndex | null>(null);
 
   // Batasi soal aktif sesuai level kuis.
   // Level 2 melanjutkan dari soal Level 1 (jangan ulangi soal).
@@ -363,13 +377,23 @@ export default function NgajiCeriaQuizPage() {
     jilid: activeJilid,
     pageNumber: activePageNum,
     questionIndex: currentIdx,
-  });
+  }, timelineData ?? undefined);
   const isAudioPlaying = tilawatiAudio.isPlaying;
   useEffect(() => {
     if (!access.isOpen || access.isComingSoon) return;
     soundManager.playBgm("quiz", 0.18);
     return () => soundManager.stopBgm();
   }, [access.isOpen, access.isComingSoon]);
+
+  // Fetch timeline edits (async, module-cached). Needed for audio resolution.
+  useEffect(() => {
+    if (timelineData !== null) return;
+    let alive = true;
+    void loadTimelineEdits()
+      .then((data) => { if (alive) setTimelineData(data); })
+      .catch(() => { if (alive) setTimelineData({}); });
+    return () => { alive = false; };
+  }, [])
 
 // Reset state when page number changes
   useEffect(() => {
@@ -512,11 +536,12 @@ export default function NgajiCeriaQuizPage() {
 
   const handlePlayAudio = useCallback(() => {
     if (!question || !access.isOpen || access.isComingSoon) return;
+    if (timelineData === null) return; // Wait for timeline data before playing
     // Stop any currently playing audio (harmless no-op if already stopped)
     tilawatiAudio.stop();
     tapFeedback();
     void tilawatiAudio.play();
-  }, [question?.id, isAudioPlaying, access.isOpen]);
+  }, [question?.id, isAudioPlaying, access.isOpen, timelineData]);
 
   if (!access.isOpen || access.isComingSoon) {
     return (
@@ -555,6 +580,28 @@ export default function NgajiCeriaQuizPage() {
               Masuk untuk Akses Penuh
             </button>
           )}
+        </div>
+      </NgajiCeriaLayout>
+    );
+  }
+
+  if (isLoadingDatasets) {
+    return (
+      <NgajiCeriaLayout
+        title={`Jilid ${activeJilid}`}
+        showBack
+        onBack={handleExit}
+      >
+        <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0D9488]/10 text-[#0D9488]">
+            <TilawatiSvg size={28} />
+          </div>
+          <h1 className="font-display text-xl font-black text-[#134E4A]">
+            Memuat soal...
+          </h1>
+          <p className="max-w-xs text-sm leading-relaxed text-[#134E4A]/70">
+            Menunggu dataset jilid {activeJilid} siap.
+          </p>
         </div>
       </NgajiCeriaLayout>
     );

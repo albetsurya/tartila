@@ -93,19 +93,27 @@ function ok<T>(data: T): ClassroomResult<T> {
   return { ok: true, data };
 }
 
-/** Password kelas: base64 sederhana, konsisten dengan useEconomyStore.
- *  TODO(backend): ganti hash yang layak bcrypt/argon2 di sisi server. */
-async function hashPassword(password: string): Promise<string> {
-  return window.btoa(password);
+/** Password kelas di-hash bcrypt di database, jadi hash tak pernah dibaca
+ *  ke browser. Fungsi ini hasilkan hash lewat RPC SECURITY DEFINER. */
+export async function setRoomPassword(roomId: string, password: string): Promise<boolean> {
+  const { error } = await supabase.rpc('set_room_password', {
+    p_room_id: roomId,
+    p_password: password,
+  });
+  return !error;
 }
 
-async function verifyPassword(
+/** Verifikasi password kelas di database. Kelas tanpa password selalu lolos. */
+export async function verifyRoomPassword(
+  joinCode: string,
   password: string,
-  hashed: string | null,
 ): Promise<boolean> {
-  if (!hashed) return true;
-  const candidate = await hashPassword(password);
-  return candidate === hashed;
+  const { data, error } = await supabase.rpc('verify_room_password', {
+    p_join_code: joinCode,
+    p_password: password,
+  });
+  if (error) return false;
+  return data === true;
 }
 
 interface RoomRow {
@@ -115,7 +123,7 @@ interface RoomRow {
   description: string | null;
   target_jilid: number | null;
   join_code: string;
-  password_hash: string | null;
+  has_password: boolean | null;
   max_participants: number | null;
   is_active: boolean | null;
   archived: boolean | null;
@@ -133,7 +141,7 @@ function toRoom(row: RoomRow): ClassroomRoom {
     description: row.description,
     targetJilid: row.target_jilid ?? 1,
     joinCode: row.join_code,
-    hasPassword: row.password_hash !== null,
+    hasPassword: row.has_password ?? false,
     maxParticipants: row.max_participants ?? 10,
     isActive: row.is_active ?? true,
     archived: row.archived ?? false,
@@ -144,7 +152,7 @@ function toRoom(row: RoomRow): ClassroomRoom {
 }
 
 const ROOM_COLUMNS =
-  'id, ustadz_id, name, description, target_jilid, join_code, password_hash, max_participants, is_active, archived, created_at, duel_enabled';
+  'id, ustadz_id, name, description, target_jilid, join_code, has_password, max_participants, is_active, archived, created_at, duel_enabled';
 
 function mapDbError(error: { code?: string; message?: string }): ClassroomErrorCode {
   if (error.code === '23505') return 'conflict';
@@ -166,12 +174,8 @@ export async function createClassroom(
   const targetJilid = Math.min(Math.max(input.targetJilid ?? 1, 1), 5);
 
   let lastError = 'Gagal membuat kelas.';
+  const wantsPassword = Boolean(input.password && input.password.length > 0);
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const passwordHash =
-      input.password && input.password.length > 0
-        ? await hashPassword(input.password)
-        : null;
-
     const { data, error } = await supabase
       .from('ustadz_rooms')
       .insert({
@@ -180,7 +184,6 @@ export async function createClassroom(
         description: input.description ?? null,
         target_jilid: targetJilid,
         join_code: generateJoinCode(),
-        password_hash: passwordHash,
         max_participants: input.maxParticipants,
         is_active: true,
         archived: false,
@@ -207,6 +210,12 @@ export async function createClassroom(
 
     if (participantError) {
       return fail(mapDbError(participantError), participantError.message);
+    }
+
+    if (wantsPassword) {
+      // Hash dibuat di DB. Kegagalan di sini menyisakan kelas tanpa password;
+      // pemilik kelas bisa simpan ulang password lewat tombol edit.
+      await setRoomPassword(data.id, input.password as string);
     }
 
     return ok(toRoom(data));
@@ -373,7 +382,7 @@ export async function joinClassroomByCode(
   if (roomError) return fail(mapDbError(roomError), roomError.message);
   if (!roomRow) return fail('not-found', 'Kode join tidak ditemukan.');
 
-  if (!(await verifyPassword(input.password ?? '', roomRow.password_hash))) {
+  if (!(await verifyRoomPassword(joinCode, input.password ?? ''))) {
     return fail('wrong-password', 'Password kelas salah.');
   }
 

@@ -206,7 +206,12 @@ function generateSecMsGecV2(trustedClientToken, unixSeconds) {
   return `${hex8(bswap(c0))}${hex8(bswap(c1))}-${state.map(hex8).join("")}`;
 }
 
-const TRUSTED_TOKEN = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
+// Konstanta publik protokol Edge Read Aloud. Bukan kredensial, tapi jangan literal di repo publik.
+const TRUSTED_TOKEN = process.env.MICROSOFT_TTS_KEY;
+if (!TRUSTED_TOKEN) {
+  console.error("MICROSOFT_TTS_KEY is not set.");
+  process.exit(1);
+}
 
 async function synthesizeSentence(text, outputPath) {
   return new Promise((resolve, reject) => {

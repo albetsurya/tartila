@@ -1,14 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { NgajiCeriaLayout } from '../../components/NgajiCeriaLayout';
 import { ExploreHeader, ExploreStatBadge } from '../../components/ExploreHeader';
+import { loadTimelineEdits } from '../../utils/timelineEditsLoader';
+import type { TimelineEdits } from '../../utils/timelineEditsLoader';
 import {
-  ARENA_KARTU_DATA,
   getArenaKartuMateri,
   getArabicFontSizeClass,
-  ArenaKartuMateri,
-} from '../../data/arenaKartuData';
+  getArenaKartuLevelInfo,
+  type ArenaKartuMateri,
+} from '../../utils/tilawatiTrainingDataAdapter';
 import { useEconomyStore } from '../../hooks/useEconomyStore';
 import {
   StarSvg,
@@ -33,16 +35,44 @@ export default function ArenaKartuPage() {
   }, [jilidParam]);
 
   const levelInfo = useMemo(() => {
-    return (
-      ARENA_KARTU_DATA.find((l) => l.jilid === currentJilid) ||
-      ARENA_KARTU_DATA[0]
-    );
+    return getArenaKartuLevelInfo(currentJilid);
   }, [currentJilid]);
 
-  // 12 Kartu Materi untuk jilid ini
-  const cards = useMemo(() => {
-    return getArenaKartuMateri(currentJilid);
-  }, [currentJilid]);
+  // Timeline Editor data (SSOT) — fetched once on mount
+  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(undefined);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void loadTimelineEdits()
+      .then((data) => {
+        if (alive) setTimelineData(data);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingTimeline(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // 12 Kartu Materi untuk jilid ini (async — dimuat via dataset lazy loader)
+  const [cards, setCards] = useState<ArenaKartuMateri[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    void getArenaKartuMateri(currentJilid, timelineData)
+      .then((result) => {
+        if (alive) setCards(result);
+      })
+      .finally(() => {
+        if (alive) setIsLoadingCards(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [currentJilid, timelineData]);
 
   // State Progres dari Zustand Store & LocalStorage
   const completedArenaCards = useEconomyStore((s) => s.completedArenaCards);
@@ -54,7 +84,9 @@ export default function ArenaKartuPage() {
     return cards.filter((c) => completedList.includes(c.id)).length;
   }, [cards, completedList]);
 
-  const progressPercent = Math.round((completedCount / cards.length) * 100);
+  const progressPercent = cards.length > 0
+    ? Math.round((completedCount / cards.length) * 100)
+    : 0;
 
   // Handler Klik Kartu -> Navigasi ke Halaman Latihan
   const handleCardClick = (card: ArenaKartuMateri) => {
@@ -102,8 +134,8 @@ export default function ArenaKartuPage() {
             extraBadge={
               <ExploreStatBadge
                 icon={<StarSvg size={18} fill="#FDE047" className="shrink-0" />}
-                value={`${completedCount}/12`}
-                title={`Progres: ${completedCount} dari 12 Kartu`}
+                value={`${completedCount}/${cards.length}`}
+                title={`Progres: ${completedCount} dari ${cards.length} Kartu`}
                 className="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F]"
               />
             }
@@ -136,7 +168,7 @@ export default function ArenaKartuPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <span className="text-sm sm:text-base font-black text-[#FDE047]">
-                    {completedCount} / 12 Kartu
+                    {completedCount} / {cards.length} Kartu
                   </span>
                   <span className="block text-[10px] font-bold text-[#A7F3D0]">
                     ({progressPercent}%)
@@ -158,6 +190,20 @@ export default function ArenaKartuPage() {
 
           {/* GRID 12 KARTU PAPAN PROGRES (3 KOLOM X 4 BARIS) */}
           <section className="px-4 pt-4 max-w-4xl mx-auto">
+            {isLoadingTimeline && (
+              <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
+                Memuat data Timeline Editor...
+              </div>
+            )}
+            {isLoadingCards && !isLoadingTimeline ? (
+              <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
+                Memuat kartu jilid...
+              </div>
+            ) : cards.length === 0 ? (
+              <div className="text-center py-12 text-[#A7F3D0] font-black text-lg">
+                Segera Hadir untuk Jilid ini
+              </div>
+            ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
               {cards.map((card, index) => {
                 const isCompleted = completedList.includes(card.id);
@@ -254,6 +300,7 @@ export default function ArenaKartuPage() {
                 );
               })}
             </div>
+            )}
           </section>
 
           {/* BOTTOM BAR AKSI PAPAN PROGRES */}

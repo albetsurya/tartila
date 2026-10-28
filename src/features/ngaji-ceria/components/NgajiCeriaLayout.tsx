@@ -14,10 +14,7 @@ import {
   type PageTipConfig,
 } from "../../../components/ui/TilaCompanion";
 import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
-import {
-  TicketSvg,
-  ChevronLeftSvg,
-} from "../../../components/ui/CustomIcons";
+import { TicketSvg, ChevronLeftSvg } from "../../../components/ui/CustomIcons";
 import {
   JuicyHeart,
   JuicyStar,
@@ -31,29 +28,26 @@ import type { NotificationRole } from "@/services/notificationService";
 export type { PageTipConfig };
 
 export type ImmersiveRealm =
-  | 'juz-amma'
-  | 'tajwid'
-  | 'doa'
-  | 'tahfidz'
-  | 'tilawati'
-  | 'arena-kartu'
-  | 'jurnal-ibadah'
-  | 'lab-irama';
+  | "juz-amma"
+  | "tajwid"
+  | "doa"
+  | "tahfidz"
+  | "tilawati"
+  | "arena-kartu"
+  | "jurnal-ibadah"
+  | "lab-irama";
 
-export type ThemeScope =
-  | 'global'
-  | 'immersive'
-  | ImmersiveRealm;
+export type ThemeScope = "global" | "immersive" | ImmersiveRealm;
 
 const REALM_BG_CLASSES: Record<ImmersiveRealm, string> = {
-  'juz-amma': 'bg-[#1E1B4B]',
-  'tajwid': 'bg-[#FEF9C3]',
-  'doa': 'bg-[#FFFBEB]',
-  'tahfidz': 'bg-[#042F2E]',
-  'arena-kartu': 'bg-[#065F46]',
-  'tilawati': 'bg-[#E0F2FE]',
-  'jurnal-ibadah': 'bg-[#D1FAE5]',
-  'lab-irama': 'bg-[#111827]',
+  "juz-amma": "bg-[#1E1B4B]",
+  tajwid: "bg-[#FEF9C3]",
+  doa: "bg-[#FFFBEB]",
+  tahfidz: "bg-[#042F2E]",
+  "arena-kartu": "bg-[#065F46]",
+  tilawati: "bg-[#E0F2FE]",
+  "jurnal-ibadah": "bg-[#D1FAE5]",
+  "lab-irama": "bg-[#F0FDF4]",
 };
 
 const MAIN_TABS = [
@@ -79,8 +73,13 @@ interface NgajiCeriaLayoutProps {
 
 function PageContentFallback() {
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#F0FDF4]">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0D9488]/30 border-t-[#0D9488]" />
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#F0FDF4]/95">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-[#134E4A]/15 bg-white/90 px-6 py-5 shadow-sm">
+        <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-[#0D9488]/20 border-t-[#0D9488]" />
+        <span className="text-xs font-bold text-[#134E4A]/70">
+          Menyiapkan petualangan...
+        </span>
+      </div>
     </div>
   );
 }
@@ -109,9 +108,10 @@ export function NgajiCeriaLayout({
   const tickets = useEconomyStore((s) => s.tickets);
   const isVip = useEconomyStore((s) => s.isVip);
   const syncTime = useEconomyStore((s) => s.syncTime);
-  const equippedAppTheme = useEconomyStore((s) => s.equippedAppTheme) || "default";
+  const equippedAppTheme =
+    useEconomyStore((s) => s.equippedAppTheme) || "default";
   const storeCoins = useEconomyStore((s) => s.coins);
-  const currentCoins = storeCoins > 0 ? storeCoins : (progress.coins || 0);
+  const currentCoins = storeCoins > 0 ? storeCoins : progress.coins || 0;
 
   const isDirectRealmScope =
     themeScope !== "global" && themeScope !== "immersive";
@@ -138,12 +138,10 @@ export function NgajiCeriaLayout({
                     : undefined);
 
   const isImmersive =
-    themeScope === "immersive" ||
-    isDirectRealmScope ||
-    Boolean(immersiveRealm);
+    themeScope === "immersive" || isDirectRealmScope || Boolean(immersiveRealm);
 
   const activeThemeScopeAttr = isImmersive
-    ? (resolvedRealm || (themeScope !== "global" ? themeScope : "immersive"))
+    ? resolvedRealm || (themeScope !== "global" ? themeScope : "immersive")
     : undefined;
 
   const containerBgClass =
@@ -155,7 +153,8 @@ export function NgajiCeriaLayout({
     syncTime();
   }, [syncTime]);
 
-  const isDarkTheme = equippedAppTheme === "night" || equippedAppTheme === "neon";
+  const isDarkTheme =
+    equippedAppTheme === "night" || equippedAppTheme === "neon";
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -209,38 +208,35 @@ export function NgajiCeriaLayout({
     <div
       data-theme-scope={activeThemeScopeAttr}
       data-realm={isImmersive ? resolvedRealm : undefined}
-      className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} ${containerBgClass} ${isImmersive ? "theme-isolated" : ""} text-[var(--text-main,#134E4A)] flex flex-col justify-between selection:bg-teal-emerald/20 relative overflow-x-clip font-sans transition-colors duration-200`}
+      className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} ${containerBgClass} ${isImmersive ? "theme-isolated" : ""} flex relative flex-col justify-between overflow-x-clip font-sans text-[var(--text-main,#134E4A)] selection:bg-teal-emerald/20 transition-colors duration-200`}
     >
       {!hideHeader && !hideNav && (
-        <header
-          className="sticky top-0 z-[60] shrink-0 pt-safe transition-colors duration-200 bg-[var(--bg-card,#FFFFFF)] border-b-2 border-[var(--border-color,#134E4A)] shadow-[0px_2px_0px_var(--shadow-color,#134E4A))] text-[var(--text-main,#134E4A)]"
-        >
-          {/* Container utama header responsif jika dua baris (Mobile, Tablet, Desktop) */}
-          <div className="relative z-10 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-6">
-            {/* BARIS 1: Identitas (logo/judul) + lonceng notifikasi */}
-            <div className="flex h-11 items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+        <header className="sticky top-0 z-[60] shrink-0 border-b border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card,#FFFFFF)]/95 pt-safe text-[var(--text-main,#134E4A)] shadow-[0_2px_8px_rgba(19,78,74,0.05)] backdrop-blur-md transition-colors duration-200">
+          <div className="relative z-10 mx-auto w-full max-w-md px-3 sm:max-w-3xl sm:px-6 lg:max-w-5xl">
+            <div className="flex min-h-12 items-center justify-between gap-2 py-1">
+              <div className="flex min-w-0 shrink items-center gap-2">
                 {showBackButton && (
                   <button
+                    type="button"
                     onClick={handleBack}
                     aria-label="Kembali ke halaman sebelumnya"
                     title="Kembali"
-                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border-2 hover:opacity-90 transition-all active:translate-y-0.5 bg-[var(--bg-card,#FFFFFF)] border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)] shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)] shrink-0 cursor-pointer"
+                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:opacity-90 active:translate-y-0.5"
                   >
                     <ChevronLeftSvg size={20} />
                   </button>
                 )}
                 {title === "Tartila" && (
-                  <TartilaFaviconSvg variant="sticker" size={44} />
+                  <TartilaFaviconSvg variant="sticker" size={40} />
                 )}
                 <span
-                  className={`font-display font-black text-xl md:text-2xl tracking-tight truncate max-w-[160px] sm:max-w-[220px] md:max-w-none text-[var(--text-main,#134E4A)] ${title === "Tartila" ? "max-sm:hidden" : ""}`}
+                  className={`max-w-[160px] truncate font-display text-lg font-black tracking-tight text-[var(--text-main,#134E4A)] sm:max-w-[220px] sm:text-xl md:max-w-none ${title === "Tartila" ? "max-sm:hidden" : ""}`}
                 >
                   {title}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex shrink-0 items-center gap-2">
                 {rightAction}
                 <NotificationBell
                   userRole={userRole}
@@ -249,53 +245,56 @@ export function NgajiCeriaLayout({
               </div>
             </div>
 
-            {/* BARIS 2: Deretan badge ringkas (Hati, Tiket, XP, Koin) - Streak dihapus sesuai standarisasi */}
             {!isUstadzAccount && (
-              <div className="mt-1 flex w-full flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar pb-1.5">
+              <div className="no-scrollbar -mx-1 flex w-full flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-2 pt-0.5">
                 <div
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FFF0F0]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
+                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FFF0F0]"}`}
                   title={
                     isUnlimited
                       ? "Hati Tanpa Batas (Superadmin/VIP)"
                       : `Hati: ${hearts}/5`
                   }
                 >
-                  <JuicyHeart size={18} value={hearts} />
-                  <span className="min-w-[1.9rem] text-center tabular-nums">
-                    {isUnlimited ? "∞" : <AnimatedCounter value={hearts} duration={0.4} />}
+                  <JuicyHeart size={17} value={hearts} />
+                  <span className="min-w-[1.5rem] text-center tabular-nums">
+                    {isUnlimited ? (
+                      "∞"
+                    ) : (
+                      <AnimatedCounter value={hearts} duration={0.4} />
+                    )}
                   </span>
                 </div>
 
                 <div
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF3C7]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
+                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF3C7]"}`}
                   title={
                     isUnlimited
                       ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
                       : `Tiket: ${tickets}/3`
                   }
                 >
-                  <TicketSvg size={18} />
-                  <span className="min-w-[1.9rem] text-center tabular-nums">
+                  <TicketSvg size={17} />
+                  <span className="min-w-[1.8rem] text-center tabular-nums">
                     {isUnlimited ? "∞" : `${tickets}/3`}
                   </span>
                 </div>
 
                 <div
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#CCFBF1]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
+                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#CCFBF1]"}`}
                   title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
                 >
-                  <JuicyStar size={18} />
-                  <span className="min-w-[3rem] text-center tabular-nums">
+                  <JuicyStar size={17} />
+                  <span className="min-w-[2.6rem] text-center tabular-nums">
                     <AnimatedCounter value={progress.xp} /> XP
                   </span>
                 </div>
 
                 <div
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] font-black text-xs sm:text-sm border-2 whitespace-nowrap select-none ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF08A]"} text-[var(--text-main,#134E4A)] border-[var(--border-color,#134E4A)] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]`}
+                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF08A]"}`}
                   title={`Koin: ${currentCoins}`}
                 >
-                  <JuicyCoin size={18} value={currentCoins} />
-                  <span className="min-w-[2.1rem] text-center tabular-nums">
+                  <JuicyCoin size={17} value={currentCoins} />
+                  <span className="min-w-[1.8rem] text-center tabular-nums">
                     <AnimatedCounter value={currentCoins} />
                   </span>
                 </div>
@@ -307,14 +306,14 @@ export function NgajiCeriaLayout({
 
       <main
         id="main-scroll-container"
-        className={`flex-1 min-h-0 w-full relative ${
+        className={`relative min-h-0 w-full flex-1 ${
           hideNav
-            ? "max-w-none h-full overflow-hidden pb-0"
+            ? "h-full max-w-none overflow-hidden pb-0"
             : hideHeader
-              ? "max-w-none h-full w-full pb-0"
+              ? "h-full w-full max-w-none pb-0"
               : isMainTab
-                ? "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-28 min-h-[50vh]"
-                : "max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-4 md:px-6 pb-10 min-h-[50vh]"
+                ? "mx-auto min-h-[50vh] w-full max-w-md px-2 pb-28 sm:max-w-3xl sm:px-4 md:px-6 lg:max-w-5xl"
+                : "mx-auto min-h-[50vh] w-full max-w-md px-2 pb-10 sm:max-w-3xl sm:px-4 md:px-6 lg:max-w-5xl"
         }`}
       >
         {hideNav ? (
@@ -326,7 +325,7 @@ export function NgajiCeriaLayout({
             initial="initial"
             animate="animate"
             exit="exit"
-            className="w-full relative min-h-[50vh]"
+            className="relative min-h-[50vh] w-full"
           >
             <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
           </motion.div>

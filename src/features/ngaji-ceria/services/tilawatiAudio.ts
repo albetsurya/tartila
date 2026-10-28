@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import timelineEdits from "../data/tilawatiTimelineEdits.json";
 import type { QuizQuestion } from "../data/tilawatiQuizTypes";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
 import { getFallbackAudioUrl } from "../utils/audioFallback";
@@ -9,7 +8,8 @@ import { getPublishedTimeline } from "./tilawatiEditorApi";
 import { soundManager } from "./soundManager";
 import { getAudioUrl } from "../utils/audioUrl";
 
-const EDITS = timelineEdits as Record<string, { published?: PublishedTimeline }>;
+export type TimelineEditRef = { published?: PublishedTimeline };
+export type TimelineEditsIndex = Record<string, TimelineEditRef>;
 export interface TilawatiAudioRequest {
   question?: QuizQuestion;
   jilid: number;
@@ -31,9 +31,17 @@ export interface TilawatiAudioResolution {
 export const normalizeArabic = (text: string) => text.normalize("NFKD").replace(/[\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g, "").replace(/[^\u0621-\u064a]/g, "");
 
 /** Pasangan teks→klip dipakai dahulu; satu sumber dapat dipotong menjadi banyak klip. */
-export function resolveTilawatiAudio(request: TilawatiAudioRequest, cloud?: PublishedTimeline | null): TilawatiAudioResolution {
+/**
+ * Resolves a Tilawati audio clip URL for a quiz request.
+ *
+ * `cloud` is the author-published timeline (fetched from the backend API).
+ * `timelineData` is the module-level published timeline data (loaded async in
+ * the browser via `loadTimelineEdits()`, or injected in tests). It serves as a
+ * fallback when the server published timeline is not yet available.
+ */
+export function resolveTilawatiAudio(request: TilawatiAudioRequest, cloud?: PublishedTimeline | null, timelineData: TimelineEditsIndex = {}): TilawatiAudioResolution {
   const { question, jilid, pageNumber, questionIndex } = request;
-  const timeline = (cloud ?? EDITS[`${jilid}:${pageNumber}`]?.published ?? null)?.timeline;
+  const timeline = (cloud ?? timelineData[`${jilid}:${pageNumber}`]?.published ?? null)?.timeline;
   const questionUrl = request.audioUrl || (question ? getQuestionAudioUrl(question, jilid, pageNumber, questionIndex, Boolean(question.isOpening)) : "");
   const arabic = normalizeArabic(request.arabic || question?.arabic || "");
   const text = timeline?.texts.find((item) => question && String(item.id) === String(question.id))
@@ -159,11 +167,14 @@ export function usePublishedTilawati(jilid: number, page: number) {
   return value.key === `${jilid}:${page}` ? value.published : null;
 }
 
-export function useTilawatiAudio(request: TilawatiAudioRequest) {
+export function useTilawatiAudio(
+  request: TilawatiAudioRequest,
+  timelineData?: TimelineEditsIndex,
+): TilawatiAudioResolution & { published: PublishedTimeline | null; isPlaying: boolean; error: string; play: () => void; stop: () => void } {
   const published = usePublishedTilawati(request.jilid, request.pageNumber);
   // Stable resolution: only recompute when question ID or page data changes,
   // not on every render (request.question object reference changes each render)
-  const resolution = useMemo(() => resolveTilawatiAudio(request, published), [
+  const resolution = useMemo(() => resolveTilawatiAudio(request, published, timelineData), [
     request.question?.id,
     request.question?.arabic,
     request.question?.isOpening,
@@ -176,6 +187,7 @@ export function useTilawatiAudio(request: TilawatiAudioRequest) {
     request.duration,
     request.allowPageFallback,
     published,
+    timelineData,
   ]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState("");

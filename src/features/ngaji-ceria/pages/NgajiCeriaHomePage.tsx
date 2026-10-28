@@ -14,7 +14,6 @@ import {
   getTimeUntilDailyResetWib,
 } from "../utils/activityDate";
 import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
-import { MASCOT_NAME } from "@/constants/mascot";
 import {
   GiftSvg,
   StarSvg,
@@ -31,7 +30,6 @@ import {
   CheckSvg,
   ChevronRightSvg,
   PlaySvg,
-  DrumSvg,
   ClockSvg,
   LockSvg,
   Loader2Svg,
@@ -62,18 +60,8 @@ interface DailyRewardItem {
 }
 
 const DAILY_REWARDS: DailyRewardItem[] = [
-  {
-    day: 1,
-    coins: 10,
-    label: "10 Koin",
-    image: <CoinSvg size={24} />,
-  },
-  {
-    day: 2,
-    coins: 15,
-    label: "15 Koin",
-    image: <CoinSvg size={24} />,
-  },
+  { day: 1, coins: 10, label: "10 Koin", image: <CoinSvg size={24} /> },
+  { day: 2, coins: 15, label: "15 Koin", image: <CoinSvg size={24} /> },
   {
     day: 3,
     coins: 20,
@@ -81,12 +69,7 @@ const DAILY_REWARDS: DailyRewardItem[] = [
     label: "20 Koin + 1 Hati",
     image: <HeartSvg size={24} />,
   },
-  {
-    day: 4,
-    coins: 25,
-    label: "25 Koin",
-    image: <CoinSvg size={24} />,
-  },
+  { day: 4, coins: 25, label: "25 Koin", image: <CoinSvg size={24} /> },
   {
     day: 5,
     coins: 30,
@@ -94,12 +77,7 @@ const DAILY_REWARDS: DailyRewardItem[] = [
     label: "30 Koin + 1 Tiket",
     image: <TicketSvg size={24} />,
   },
-  {
-    day: 6,
-    coins: 40,
-    label: "40 Koin",
-    image: <CoinSvg size={24} />,
-  },
+  { day: 6, coins: 40, label: "40 Koin", image: <CoinSvg size={24} /> },
   {
     day: 7,
     coins: 100,
@@ -139,7 +117,9 @@ export default function NgajiCeriaHomePage() {
   const applyStreakMultiplier = useEconomyStore((s) => s.applyStreakMultiplier);
   const streakMultiplier = useEconomyStore((s) => s.streakMultiplier);
   const avatarMode = useEconomyStore((s) => s.avatarMode || "avatar");
-  const equippedAvatarAccessory = useEconomyStore((s) => s.equippedAvatarAccessory);
+  const equippedAvatarAccessory = useEconomyStore(
+    (s) => s.equippedAvatarAccessory,
+  );
   const tilaGender = useEconomyStore((s) => s.tilaGender);
 
   const todayDateKey = getTodayDateKey();
@@ -151,17 +131,15 @@ export default function NgajiCeriaHomePage() {
   const [isClaiming, setIsClaiming] = useState(false);
   const autoModalTriggeredRef = useRef(false);
 
-  // Selalu sinkronkan data profil dari Backend Go saat user ada
   useEffect(() => {
     if (user) {
       useEconomyStore.getState().initialize();
     }
   }, [user]);
 
-  // Perhitungan kalender mingguan streak (Senin - Minggu) dengan Fixed Reset Time 04:00 WIB
   const now = new Date();
   const effectiveWib = new Date(now.getTime() + 3 * 3600 * 1000);
-  const todayDayIdx = (effectiveWib.getUTCDay() + 6) % 7; // 0 = Senin, 1 = Selasa, ..., 6 = Minggu
+  const todayDayIdx = (effectiveWib.getUTCDay() + 6) % 7;
   const todayStr = activityDate(now);
   const yesterdayStr = yesterdayActivityDate(now);
 
@@ -189,14 +167,11 @@ export default function NgajiCeriaHomePage() {
     const history = Array<boolean>(7).fill(false);
     if (effectiveStreak <= 0) return history;
 
-    // Hari ini aktif jika isClaimedToday bernilai true ATAU user sudah ada aktivitas mengaji hari ini
     const isTodayActive = isClaimedToday || lastPlayedAt === todayStr;
     const isYesterdayActive =
       lastClaim === yesterdayStr || lastPlayedAt === yesterdayStr;
     if (!isTodayActive && !isYesterdayActive) return history;
 
-    // Jika sudah aktif hari ini, titik tumpu (anchor) adalah hari ini (todayDayIdx).
-    // Jika belum klaim/mengaji hari ini tapi streak masih jalan dari kemarin, anchor adalah kemarin.
     const anchorIdx = isTodayActive ? todayDayIdx : (todayDayIdx - 1 + 7) % 7;
 
     for (let i = 0; i < Math.min(7, effectiveStreak); i++) {
@@ -215,19 +190,14 @@ export default function NgajiCeriaHomePage() {
   ]);
 
   useEffect(() => {
-    // 1. JANGAN munculkan modal jika status autentikasi atau profil masih memuat dari server
     if (isAuthLoading || isLoadingProfile) return;
-
-    // 2. Cegah trigger ganda jika sudah pernah diproses di sesi/komponen ini
     if (autoModalTriggeredRef.current) return;
 
-    // 3. JANGAN munculkan modal jika user belum login atau server menyatakan sudah klaim hari ini
     if (!user || dailyClaimed || todayClaimed) {
       autoModalTriggeredRef.current = true;
       return;
     }
 
-    // 4. Munculkan modal otomatis HANYA jika server memastikan user belum klaim hari ini
     autoModalTriggeredRef.current = true;
     setIsManualOpen(false);
     setShowDailyModal(true);
@@ -296,17 +266,17 @@ export default function NgajiCeriaHomePage() {
 
       <NgajiCeriaLayout title={<TartilaLogo />}>
         <div
-          className={`px-4 py-5 md:px-6 md:py-8 space-y-5 md:space-y-7 bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] min-h-full rounded-t-3xl transition-colors duration-200 ${
+          className={`space-y-5 px-3 py-5 sm:px-4 md:space-y-7 md:px-6 md:py-8 ${
             isLoading ? "opacity-0" : "opacity-100"
-          }`}
+          } min-h-full rounded-t-3xl bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] transition-opacity duration-200`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <section className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-color,#134E4A)]/10 bg-[var(--bg-card,#FFFFFF)] px-3 py-3 shadow-sm sm:px-4">
+            <div className="flex min-w-0 items-center gap-3">
               {avatarMode === "photo" ? (
                 <AvatarWithBadge
                   src={user?.photo_url || NGAJI_CERIA_ASSETS.avatarAnak}
                   name={displayName}
-                  size={56}
+                  size={52}
                   shape="rounded-2xl"
                   role={user?.role}
                   groupId={user?.group_id}
@@ -314,180 +284,350 @@ export default function NgajiCeriaHomePage() {
                 />
               ) : (
                 <AvatarSantriSvg
-                  size={56}
+                  size={52}
                   gender={resolveMascotGender(tilaGender)}
-                  accessory={(equippedAvatarAccessory || "none") as AvatarSantriAccessory}
+                  accessory={
+                    (equippedAvatarAccessory || "none") as AvatarSantriAccessory
+                  }
                   mood="happy"
                   className="shrink-0"
                 />
               )}
-              <div>
-                <p className="text-xs font-black text-[var(--text-main,#134E4A)]/70 uppercase tracking-widest mb-0.5">
+              <div className="min-w-0">
+                <p className="mb-0.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--text-main,#134E4A)]/60 sm:text-xs">
                   Assalamu'alaikum,
                 </p>
-                <h2 className="font-display font-black text-xl md:text-2xl text-[var(--text-main,#134E4A)] leading-tight">
+                <h2 className="truncate font-display text-lg font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-xl">
                   {displayName}
                 </h2>
+                <p className="mt-0.5 text-xs font-medium text-[var(--text-main,#134E4A)]/60">
+                  Siap melanjutkan belajar hari ini?
+                </p>
               </div>
             </div>
 
             {user ? (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95, y: 2 }}
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 450, damping: 25 }}
                 onClick={() => {
                   setIsManualOpen(true);
                   setShowDailyModal(true);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-2.5 md:px-4 md:py-3 rounded-xl border-[3px] border-[var(--border-color,#134E4A)] text-xs md:text-sm font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all shrink-0 cursor-pointer ${
+                className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] px-3 py-2 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-colors sm:px-4 sm:text-sm ${
                   todayClaimed
-                    ? "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-                    : "bg-[#FEF08A] text-[#134E4A]"
+                    ? "bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)]/70"
+                    : "bg-[#FEF08A] text-[#134E4A] hover:bg-[#FDE047]"
                 }`}
               >
-                <GiftSvg size={16} />
-                {todayClaimed ? "Hadiah" : "Klaim!"}
+                <GiftSvg size={17} />
+                {todayClaimed ? "Hadiah" : "Klaim hadiah"}
               </motion.button>
             ) : (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95, y: 2 }}
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 450, damping: 25 }}
                 onClick={() => navigate("/login")}
-                className="flex items-center gap-1.5 px-3 py-2.5 md:px-4 md:py-3 rounded-xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] text-xs md:text-sm font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all shrink-0 cursor-pointer"
+                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] px-3 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] sm:px-4 sm:text-sm"
               >
                 Masuk
               </motion.button>
             )}
-          </div>
+          </section>
 
-          <div className="relative">
-            <div className="absolute -top-4 -left-2 z-0 rotate-12">
-              <div className="w-10 h-10 bg-[#FEF08A] border-[3px] border-[#134E4A] rounded-full flex items-center justify-center shadow-[2px_2px_0px_#134E4A]">
-                <StarSvg size={20} />
-              </div>
-            </div>
-            <div className="absolute -bottom-3 -right-2 z-0 -rotate-12">
-              <div className="w-12 h-12 bg-[#FF6B6B] border-[3px] border-[#134E4A] rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#134E4A]">
-                <TilawatiSvg size={24} />
-              </div>
+          <section className="relative isolate overflow-hidden rounded-[24px] border-[3px] border-[#134E4A] bg-[#134E4A] p-4 shadow-[4px_4px_0px_#0D9488] sm:p-6 md:p-7">
+            <div
+              className="pointer-events-none absolute inset-0 overflow-hidden"
+              aria-hidden="true"
+            >
+              <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/[0.06]" />
+              <div className="absolute -bottom-12 -right-6 h-36 w-36 rounded-full border-[18px] border-white/[0.04]" />
+              <span className="absolute left-[42%] top-8 h-2 w-2 rounded-full bg-[#FEF08A]/70" />
+              <span className="absolute right-[30%] top-16 h-3 w-3 rounded-full bg-[#FF6B6B]/60" />
             </div>
 
-            <div className="relative z-10 bg-[#134E4A] rounded-[24px] p-5 md:p-8 border-[3px] border-[#0D9488] shadow-[4px_4px_0px_#FF6B6B] overflow-hidden">
-              <div className="absolute inset-0 pointer-events-none z-0">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-bl-full" />
-                <svg
-                  className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5"
-                  viewBox="0 0 100 100"
-                  fill="currentColor"
+            <div className="relative z-10">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-lg border border-white/20 bg-[#FF6B6B] px-2.5 py-1 text-[11px] font-black text-white sm:text-xs">
+                  TILAWATI {currentJilidNumber}
+                </span>
+                <span className="rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-bold text-[#FEF08A]">
+                  Halaman {currentPage}
+                </span>
+              </div>
+
+              <h3 className="mb-2 max-w-[18rem] font-display text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
+                Lanjutkan petualanganmu!
+              </h3>
+              <p className="mb-5 max-w-sm text-sm leading-relaxed text-white/75">
+                Sedikit demi sedikit, bacaanmu semakin lancar. Ayo lanjutkan
+                dari halaman terakhir.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97, y: 1 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                  onClick={() => {
+                    triggerBibiReaction("play");
+                    navigate(
+                      `/member/ngaji-ceria/quiz/play?jilid=${currentJilidNumber}&hal=${currentPage}`,
+                    );
+                  }}
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#092F2C] bg-[#0D9488] px-4 py-3 text-sm font-black text-white shadow-[3px_3px_0px_#092F2C] transition-colors hover:bg-[#0F766E] sm:flex-none sm:px-6 sm:text-base"
                 >
-                  <circle cx="50" cy="50" r="40" />
-                  <circle cx="20" cy="80" r="25" />
-                  <circle cx="80" cy="80" r="25" />
-                </svg>
-                <div className="absolute top-1/2 left-1/4 w-2 h-2 bg-[#FEF08A] rounded-full opacity-50" />
-                <div className="absolute top-1/3 left-1/2 w-3 h-3 bg-[#FF6B6B] rounded-full opacity-50" />
-              </div>
+                  <PlaySvg size={17} />
+                  Lanjut Ngaji
+                </motion.button>
 
-              <div className="relative z-20">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-[#FF6B6B] text-white text-[11px] md:text-xs font-black px-2.5 py-1 rounded-md border-2 border-white/20 rotate-2 shadow-sm">
-                    TILAWATI {currentJilidNumber}
-                  </span>
-                  <span className="text-[#FEF08A] text-xs font-bold bg-black/30 px-2 py-0.5 rounded-md border border-white/10">
-                    Hal. {currentPage}
-                  </span>
-                </div>
-
-                <h3 className="font-display font-black text-2xl md:text-3xl lg:text-4xl text-white leading-tight mb-4 max-w-[80%] drop-shadow-sm">
-                  Lanjutkan <br /> Petualanganmu!
-                </h3>
-
-                <div className="flex items-center gap-3 md:gap-5">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                    onClick={() => {
-                      triggerBibiReaction("play");
-                      navigate(
-                        `/member/ngaji-ceria/quiz/play?jilid=${currentJilidNumber}&hal=${currentPage}`,
-                      );
-                    }}
-                    className="flex-1 max-w-xs py-3 md:py-3.5 rounded-xl bg-[#0D9488] text-white font-black text-sm md:text-base flex items-center justify-center gap-2 border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] transition-all hover:bg-[#0F766E] cursor-pointer"
-                  >
-                    <PlaySvg size={16} />
-                    Lanjut Ngaji
-                  </motion.button>
-
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border-[3px] border-[#FEF08A] flex items-center justify-center bg-[#134E4A] shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,0.3)] relative">
+                <div
+                  className="flex items-center gap-3"
+                  aria-label={`Progres belajar ${progressPercentage}%`}
+                >
+                  <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[#FEF08A] bg-[#0E3B37] sm:h-16 sm:w-16">
                     <svg
-                      className="absolute inset-0 w-full h-full -rotate-90"
+                      className="absolute inset-0 h-full w-full -rotate-90"
                       viewBox="0 0 100 100"
+                      aria-hidden="true"
                     >
                       <circle
                         cx="50"
                         cy="50"
-                        r="45"
+                        r="43"
                         fill="none"
-                        stroke="#1F2937"
+                        stroke="#FFFFFF"
+                        strokeOpacity="0.15"
                         strokeWidth="8"
                       />
                       <motion.circle
                         cx="50"
                         cy="50"
-                        r="45"
+                        r="43"
                         fill="none"
                         stroke="#FEF08A"
                         strokeWidth="8"
-                        initial={{ strokeDasharray: "0 282" }}
+                        initial={{ strokeDasharray: "0 270" }}
                         animate={{
-                          strokeDasharray: `${progressPercentage * 2.82} 282`,
+                          strokeDasharray: `${(progressPercentage / 100) * 270} 270`,
                         }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <span className="text-sm font-black text-[#FEF08A] relative z-10">
+                    <span className="relative z-10 text-sm font-black text-[#FEF08A]">
                       <AnimatedCounter
                         value={progressPercentage}
                         formatFn={(v) => `${v}%`}
                       />
                     </span>
                   </div>
+                  <div className="min-w-0 text-white">
+                    <p className="text-xs font-bold text-white/65">
+                      Progres belajar
+                    </p>
+                    <p className="mt-0.5 text-sm font-extrabold">
+                      Terus bertumbuh!
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="bg-[#FEF3C7] dark:bg-[var(--bg-card)] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-[var(--bg-card,#FFFFFF)] border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center">
-                  <FireSvg size={24} stroke="#134E4A" />
+          <section aria-label="Navigasi utama">
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div>
+                <h3 className="font-display text-base font-black text-[var(--text-main,#134E4A)] sm:text-lg">
+                  Mau ke mana hari ini?
+                </h3>
+                <p className="mt-0.5 text-xs text-[var(--text-main,#134E4A)]/60 sm:text-sm">
+                  Pilih petualangan yang ingin kamu jelajahi.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              {[
+                {
+                  label: "Jilid",
+                  to: "/member/ngaji-ceria/explore/tilawati",
+                  icon: <TilawatiSvg size={25} />,
+                  iconBg: "bg-[#CCFBF1]",
+                },
+                {
+                  label: "Jelajah",
+                  to: "/member/ngaji-ceria/map",
+                  icon: <GamepadSvg size={24} />,
+                  iconBg: "bg-[#FEF08A]",
+                },
+                {
+                  label: "Laporan",
+                  to: "/member/ngaji-ceria/profile",
+                  icon: <StarSvg size={24} />,
+                  iconBg: "bg-[#DBEAFE]",
+                },
+                {
+                  label: "Rank",
+                  to: "/member/ngaji-ceria/leaderboard",
+                  icon: <CrownSvg size={24} />,
+                  iconBg: "bg-[#FDE68A]",
+                },
+              ].map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={() => {
+                    triggerBibiReaction("click");
+                    navigate(action.to);
+                  }}
+                  className="group flex min-h-[104px] min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[var(--bg-card,#FFFFFF)] px-1.5 py-3 text-center shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none sm:min-h-[116px] sm:rounded-[20px] sm:py-4"
+                >
+                  <span
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#134E4A]/10 ${action.iconBg} text-[#134E4A] sm:h-12 sm:w-12`}
+                  >
+                    {action.icon}
+                  </span>
+                  <span className="text-[11px] font-extrabold leading-tight text-[var(--text-main,#134E4A)] sm:text-xs">
+                    {action.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <SectionHeader
+              title="Petualangan Tilawati"
+              action={{
+                label: "Semua",
+                onClick: () => navigate("/member/ngaji-ceria/explore/tilawati"),
+              }}
+            />
+            <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 pt-3">
+              {[1, 2, 3, 4, 5, 6].map((jilid) => {
+                const isActive = jilid === currentJilidNumber;
+                const isCompleted = jilid < currentJilidNumber;
+                const isLocked = jilid > currentJilidNumber;
+
+                return (
+                  <button
+                    key={jilid}
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => {
+                      if (!isLocked) {
+                        triggerBibiReaction("click");
+                        navigate("/member/ngaji-ceria/explore/tilawati");
+                      }
+                    }}
+                    className={`relative flex min-h-[142px] w-36 shrink-0 snap-start flex-col justify-between rounded-2xl border-2 p-3.5 text-left transition-all sm:w-40 sm:p-4 ${
+                      isActive
+                        ? "border-[#134E4A] bg-[var(--bg-card,#FFFFFF)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none"
+                        : isCompleted
+                          ? "border-[#10B981] bg-[#ECFDF5] shadow-[2px_2px_0px_#10B981] active:translate-y-0.5 active:shadow-none dark:bg-[#064E3B]"
+                          : "cursor-not-allowed border-dashed border-[var(--border-color,#134E4A)]/25 bg-gray-50/70 opacity-70 dark:bg-gray-800/40"
+                    }`}
+                  >
+                    <div className="absolute right-2 top-2">
+                      {isActive && (
+                        <span className="rounded-md bg-[#0D9488] px-1.5 py-1 text-[9px] font-black text-white">
+                          AKTIF
+                        </span>
+                      )}
+                      {isCompleted && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-[#10B981] px-1.5 py-1 text-[9px] font-black text-white">
+                          <CheckSvg size={10} /> SELESAI
+                        </span>
+                      )}
+                      {isLocked && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-gray-200 px-1.5 py-1 text-[9px] font-black text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                          <LockSvg size={10} /> KUNCI
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-5">
+                      <div
+                        className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${isLocked ? "bg-gray-200 text-gray-400 dark:bg-gray-700" : isCompleted ? "bg-[#D1FAE5] text-[#047857]" : "bg-[#CCFBF1] text-[#134E4A]"}`}
+                      >
+                        <TilawatiSvg size={23} />
+                      </div>
+                      <p
+                        className={`font-display text-sm font-black ${isLocked ? "text-gray-400" : "text-[var(--text-main,#134E4A)]"}`}
+                      >
+                        Tilawati {jilid}
+                      </p>
+                    </div>
+
+                    {isActive && (
+                      <div className="mt-3">
+                        <AnimatedProgressBar
+                          value={progressPercentage}
+                          className="mt-1"
+                          barClassName="bg-[#0D9488]"
+                        />
+                        <p className="mt-1.5 text-[10px] font-bold text-[var(--text-main,#134E4A)]/60">
+                          {progressPercentage}% selesai
+                        </p>
+                      </div>
+                    )}
+                    {isCompleted && (
+                      <div className="mt-3">
+                        <AnimatedProgressBar
+                          value={100}
+                          className="mt-1"
+                          barClassName="bg-[#10B981]"
+                        />
+                        <p className="mt-1.5 text-[10px] font-bold text-[#047857] dark:text-emerald-300">
+                          Jilid selesai
+                        </p>
+                      </div>
+                    )}
+                    {isLocked && (
+                      <div className="mt-3 h-2 rounded-full bg-gray-200 dark:bg-gray-700" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section>
+            <DailyMissionsCard />
+          </section>
+
+          <section className="rounded-2xl border border-[var(--border-color,#134E4A)]/10 bg-[var(--bg-card,#FFFFFF)] p-4 shadow-sm sm:p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FEF3C7] text-[#134E4A]">
+                  <FireSvg size={23} stroke="#134E4A" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-[var(--text-main,#134E4A)]">
+                  <h4 className="text-sm font-black text-[var(--text-main,#134E4A)] sm:text-base">
                     Streak Mengaji
                   </h4>
-                  <p className="text-[10px] font-bold text-[#B45309]">
+                  <p className="mt-0.5 text-xs font-bold text-[#B45309]">
                     Bonus {streakMultiplier}x Koin
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-[#EA580C]">
+                <span className="text-2xl font-black leading-none text-[#EA580C]">
                   {effectiveStreak}
                 </span>
-                <span className="text-[10px] font-bold text-[#B45309] ml-1">
-                  Hari
+                <span className="ml-1 text-xs font-bold text-[var(--text-main,#134E4A)]/60">
+                  hari
                 </span>
               </div>
             </div>
 
-            {/* Barisan Ikon Api 7 Hari (Senin - Minggu) */}
-            <div className="flex items-center justify-between gap-1 px-1 mt-2">
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
               {WEEK_DAYS.map((day, idx) => {
                 const isDone = Boolean(streakHistory[idx]);
                 const isToday = idx === todayDayIdx;
@@ -495,17 +635,16 @@ export default function NgajiCeriaHomePage() {
                 return (
                   <div
                     key={idx}
-                    className="flex flex-1 flex-col items-center gap-1.5 min-w-0"
+                    className="flex min-w-0 flex-col items-center gap-1.5"
                   >
-                    {/* Lingkaran Ikon Api */}
                     <div
                       title={`${day.full}${isDone ? ": Streak Aktif" : isToday ? ": Hari Ini" : ""}`}
-                      className={`relative w-9 h-9 rounded-full border-[3px] border-[var(--border-color,#134E4A)] flex items-center justify-center transition-all ${
+                      className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--border-color,#134E4A)] sm:h-10 sm:w-10 ${
                         isDone
-                          ? "bg-[#FEF08A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                          ? "bg-[#FEF08A] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]"
                           : isToday
-                            ? "bg-white dark:bg-gray-800 ring-2 ring-[#EA580C] ring-offset-2 ring-offset-[#FEF3C7] dark:ring-offset-gray-900"
-                            : "bg-white/80 dark:bg-gray-800/80"
+                            ? "bg-white ring-2 ring-[#EA580C] ring-offset-2 ring-offset-[var(--bg-card,#FFFFFF)] dark:bg-gray-800"
+                            : "bg-[var(--bg-app,#F0FDF4)]"
                       }`}
                     >
                       <img
@@ -519,415 +658,154 @@ export default function NgajiCeriaHomePage() {
                             ? `Streak ${day.full} Aktif`
                             : `${day.full} Belum Aktif`
                         }
-                        className={`w-5 h-5 object-contain transition-transform ${
-                          isDone
-                            ? "scale-110 drop-shadow-[0_2px_3px_rgba(234,88,12,0.35)]"
-                            : "opacity-35 grayscale"
-                        }`}
+                        className={`h-5 w-5 object-contain transition-transform ${isDone ? "scale-110 drop-shadow-[0_2px_3px_rgba(234,88,12,0.25)]" : "opacity-35 grayscale"}`}
                       />
                     </div>
-
-                    {/* Label Nama Hari (Selalu tampil konsisten di bawah lingkaran) */}
                     <span
-                      className={`text-[10px] font-black transition-colors ${
-                        isToday
-                          ? "text-[#EA580C]"
-                          : isDone
-                            ? "text-[var(--text-main,#134E4A)]"
-                            : "text-[var(--text-main,#134E4A)]/50 dark:text-gray-400"
-                      }`}
+                      className={`text-[10px] font-extrabold ${isToday ? "text-[#EA580C]" : isDone ? "text-[var(--text-main,#134E4A)]" : "text-[var(--text-main,#134E4A)]/50"}`}
                     >
                       {day.short}
                     </span>
-
-                    {/* Indikator Titik Hari Ini */}
-                    {isToday && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA580C] -mt-0.5" />
+                    {isToday ? (
+                      <span className="h-1 w-1 rounded-full bg-[#EA580C]" />
+                    ) : (
+                      <span className="h-1 w-1" />
                     )}
                   </div>
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* TARTILA ARENA BANNER (REAL-TIME MULTIPLAYER & UJIAN) */}
-          <div className="relative rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF3C7] dark:bg-[var(--bg-card)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] overflow-hidden">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="space-y-1 max-w-[70%]">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white text-[10px] font-black shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]">
-                  <SparklesSvg size={12} /> ARENA KUIS REAL-TIME
+          <section className="overflow-hidden rounded-3xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FEF3C7] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)] sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0 space-y-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/70 bg-[#0D9488] px-2.5 py-1 text-[10px] font-black text-white sm:text-xs">
+                  <SparklesSvg size={13} /> ARENA KUIS REAL-TIME
                 </span>
-                <h3 className="font-display text-xl md:text-2xl font-black text-[var(--text-main,#134E4A)] leading-tight">
+                <h3 className="font-display text-xl font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-2xl">
                   Tartila Arena
                 </h3>
-                <p className="text-xs font-bold text-[var(--text-main,#134E4A)]/80 dark:text-gray-200">
-                  Uji kemampuan tilawati &amp; tajwid secara real-time. Gabung
-                  dengan PIN atau buat room sendiri untuk bermain bersama teman.
+                <p className="max-w-xl text-sm leading-relaxed text-[var(--text-main,#134E4A)]/75 dark:text-gray-200">
+                  Uji kemampuan Tilawati dan tajwid bersama teman. Gabung dengan
+                  PIN atau buat room sendiri.
                 </p>
               </div>
-
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
                 <button
                   type="button"
                   onClick={() => navigate("/arena/join")}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white font-black text-xs md:text-sm shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:scale-95 transition-all hover:bg-[#0F766E]"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] px-4 py-2.5 text-sm font-black text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
                 >
-                  <GamepadSvg size={16} /> Gabung PIN
+                  <GamepadSvg size={17} /> Gabung PIN
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/arena/host/create")}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] font-black text-xs md:text-sm shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:scale-95 transition-all hover:bg-black/5"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-2.5 text-sm font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
                 >
-                  <CrownSvg size={16} />{" "}
+                  <CrownSvg size={17} />
                   {Boolean(user?.is_ustadz || isUstadzUser(user))
                     ? "Buat Room Ujian"
                     : "Buat Room Main"}
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-2.5 md:gap-4">
-            {[
-              {
-                label: "Jilid",
-                to: "/member/ngaji-ceria/explore/tilawati",
-                svg: (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6Z"
-                      fill="#2DD4BF"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 5C9 3.5 5 3.5 5 6V17C5 17 9 15 12 17C15 15 19 17 19 17V6C19 3.5 15 3.5 12 5Z"
-                      fill="#FFFFFF"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 5V17"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                label: "Jelajah",
-                to: "/member/ngaji-ceria/map",
-                svg: (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M3 6L8 4L16 6L21 4V18L16 20L8 18L3 20V6Z"
-                      fill="#FEF08A"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M8 4V18M16 6V20"
-                      stroke="#134E4A"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M12 16C12 16 17 12 17 8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8C7 12 12 16 12 16Z"
-                      fill="#FF6B6B"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="12" cy="8" r="2.5" fill="#FFFFFF" />
-                  </svg>
-                ),
-              },
-              {
-                label: "Laporan",
-                to: "/member/ngaji-ceria/profile",
-                svg: (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="4"
-                      y="4"
-                      width="16"
-                      height="17"
-                      rx="2.5"
-                      fill="#FFFFFF"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                    />
-                    <path
-                      d="M9 3.5H15C15.5523 3.5 16 3.94772 16 4.5V6H8V4.5C8 3.94772 8.44772 3.5 9 3.5Z"
-                      fill="#38BDF8"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M8 16V13M12 16V9M16 16V11"
-                      stroke="#0D9488"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                label: "Rank",
-                to: "/member/ngaji-ceria/leaderboard",
-                svg: (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6 3H18V8C18 11.3137 15.3137 14 12 14C8.68629 14 6 11.3137 6 8V3Z"
-                      fill="#FBBF24"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 14V18M8 18H16V21H8V18Z"
-                      fill="#FF6B6B"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M6 6H3V8C3 10.2091 4.79086 12 7 12M18 6H21V8C21 10.2091 19.2091 12 17 12"
-                      stroke="#134E4A"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ),
-              },
-            ].map((action) => (
-              <button
-                key={action.label}
-                onClick={() => {
-                  triggerBibiReaction("click");
-                  navigate(action.to);
-                }}
-                className="flex flex-col items-center justify-center py-3 px-1 md:py-4 md:px-3 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
-              >
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--bg-app,#F0FDF4)] border-2 border-[var(--border-color,#134E4A)] flex items-center justify-center mb-1.5">
-                  {action.svg}
-                </div>
-                <span className="text-[11px] md:text-xs font-black text-[var(--text-main,#134E4A)] text-center leading-tight">
-                  {action.label}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div>
-            <DailyMissionsCard />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-5">
-            <button
-              onClick={() => {
-                triggerBibiReaction("click");
-                navigate("/member/ngaji-ceria/warung-santri");
-              }}
-              className="text-left bg-[#FFE4E6] dark:bg-[var(--bg-card)] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] p-3.5 md:p-5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-3 relative overflow-hidden cursor-pointer"
-            >
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-[#134E4A] dark:border-[#2DD4BF] flex items-center justify-center shrink-0 z-10 shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)]">
-                <StoreSvg
-                  size={20}
-                  stroke="#134E4A"
-                  className="text-[#134E4A] dark:text-[#2DD4BF]"
-                />
-              </div>
-              <div className="relative z-10">
-                <p className="text-sm md:text-base font-black text-[var(--text-main,#134E4A)] leading-tight">
-                  Warung
-                </p>
-                <p className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-gray-300">
-                  Tukar Koin
-                </p>
-              </div>
-              <div className="absolute -right-2 -bottom-2 opacity-10 pointer-events-none">
-                <StoreSvg size={48} />
-              </div>
-            </button>
-
-            <button
-              onClick={() => {
-                triggerBibiReaction("click");
-                navigate("/member/ngaji-ceria/premium");
-              }}
-              className="text-left bg-[#FEF3C7] dark:bg-[var(--bg-card)] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] p-3.5 md:p-5 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-3 relative overflow-hidden cursor-pointer"
-            >
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-[#134E4A] dark:border-[#FBBF24] flex items-center justify-center shrink-0 z-10 shadow-[1.5px_1.5px_0px_var(--shadow-color,#134E4A)]">
-                <CrownSvg
-                  size={20}
-                  stroke="#134E4A"
-                  className="text-[#D97706] dark:text-[#FBBF24]"
-                />
-              </div>
-              <div className="relative z-10">
-                <p className="text-sm md:text-base font-black text-[var(--text-main,#134E4A)] leading-tight">
-                  VIP Pass
-                </p>
-                <p className="text-[10px] md:text-xs font-bold text-[#B45309] dark:text-[#FDE047]">
-                  Bebas Batas
-                </p>
-              </div>
-              <div className="absolute -right-2 -bottom-2 opacity-10 pointer-events-none">
-                <CrownSvg size={48} />
-              </div>
-            </button>
-          </div>
-
-          <section>
-            <SectionHeader
-              title="Petualangan Tilawati"
-              action={{
-                label: "Semua",
-                onClick: () => navigate("/member/ngaji-ceria/explore/tilawati"),
-              }}
-            />
-            {/* PERUBAHAN: Kembali ke scroll horizontal dengan snap yang mulus */}
-            <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide snap-x snap-mandatory">
-              {[1, 2, 3, 4, 5, 6].map((jilid) => {
-                const isActive = jilid === currentJilidNumber;
-                const isCompleted = jilid < currentJilidNumber;
-                const isLocked = jilid > currentJilidNumber;
-
-                return (
-                  <div
-                    key={jilid}
-                    onClick={() => {
-                      if (!isLocked) {
-                        triggerBibiReaction("click");
-                        navigate("/member/ngaji-ceria/explore/tilawati");
-                      }
-                    }}
-                    className={`shrink-0 snap-start w-36 sm:w-40 rounded-2xl p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] relative border-[3px] transition-all flex flex-col justify-between ${
-                      isActive
-                        ? "bg-[var(--bg-card,#FFFFFF)] border-[var(--border-color,#134E4A)] cursor-pointer active:translate-y-[2px] active:shadow-none"
-                        : isCompleted
-                          ? "bg-[#DCFCE7] dark:bg-[#064E3B] border-[var(--border-color,#134E4A)] cursor-pointer active:translate-y-[2px] active:shadow-none"
-                          : "bg-gray-50 dark:bg-gray-800/40 border-dashed border-[var(--border-color,#134E4A)]/30 opacity-75"
-                    }`}
-                  >
-                    <div className="absolute top-2 right-2 z-10">
-                      {isActive && (
-                        <span className="bg-[#0D9488] text-white text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-[var(--border-color,#134E4A)]">
-                          AKTIF
-                        </span>
-                      )}
-                      {isCompleted && (
-                        <span className="bg-[#10B981] text-white text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-[var(--border-color,#134E4A)] flex items-center gap-1">
-                          <CheckSvg size={10} /> SELESAI
-                        </span>
-                      )}
-                      {isLocked && (
-                        <span className="bg-gray-200 text-gray-500 text-[10px] font-black px-2 py-0.5 rounded-md border-2 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 flex items-center gap-1">
-                          <LockSvg size={10} /> KUNCI
-                        </span>
-                      )}
-                    </div>
-
-                    <div>
-                      <TilawatiSvg
-                        size={24}
-                        className={`mb-3 ${isLocked ? "opacity-60" : ""}`}
-                      />
-                      <p
-                        className={`font-display font-black text-sm ${isLocked ? "text-gray-400" : "text-[var(--text-main,#134E4A)]"}`}
-                      >
-                        Tilawati {jilid}
-                      </p>
-                    </div>
-
-                    {isActive && (
-                      <AnimatedProgressBar
-                        value={progressPercentage}
-                        className="mt-3"
-                        barClassName="bg-[#0D9488]"
-                      />
-                    )}
-                    {isCompleted && (
-                      <AnimatedProgressBar
-                        value={100}
-                        className="mt-3"
-                        barClassName="bg-[#10B981]"
-                      />
-                    )}
-                    {isLocked && (
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full border-2 border-gray-300 dark:border-gray-600 mt-3" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </section>
 
-          <section className="bg-[var(--bg-card,#FFFFFF)] rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] p-4">
-            <div className="flex items-center justify-between mb-3 border-b-2 border-dashed border-gray-200 dark:border-gray-700 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#FFF0F0] dark:bg-[#1E293B] border-2 border-[#FF6B6B]/30 flex items-center justify-center">
-                  <HandsPrayingSvg size={16} />
+          <section className="rounded-2xl border border-[var(--border-color,#134E4A)]/10 bg-[var(--bg-card,#FFFFFF)] p-4 shadow-sm sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-dashed border-[var(--border-color,#134E4A)]/15 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF0F0] text-[#134E4A] dark:bg-[#1E293B]">
+                  <HandsPrayingSvg size={18} />
                 </div>
-                <h4 className="font-display font-black text-sm text-[var(--text-main,#134E4A)]">
-                  Doa Hari Ini
-                </h4>
+                <div>
+                  <h4 className="font-display text-sm font-black text-[var(--text-main,#134E4A)]">
+                    Doa Hari Ini
+                  </h4>
+                  <p className="text-xs text-[var(--text-main,#134E4A)]/55">
+                    Mulai aktivitas dengan basmalah.
+                  </p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => navigate("/member/ngaji-ceria/explore/doa")}
-                className="text-[11px] font-black text-[#0D9488] dark:text-[#38BDF8] flex items-center gap-0.5"
+                className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-black text-[#0D9488] hover:bg-[#CCFBF1]/50 dark:text-[#38BDF8]"
               >
-                Semua <ChevronRightSvg size={12} />
+                Semua <ChevronRightSvg size={14} />
               </button>
             </div>
-
-            <div className="bg-[var(--bg-app,#F0FDF4)] rounded-xl border-2 border-[#0D9488]/30 p-5 text-center">
+            <div className="rounded-xl border border-[#0D9488]/20 bg-[var(--bg-app,#F0FDF4)] px-3 py-4 text-center sm:py-5">
               <p
-                className="font-arabic text-2xl leading-loose text-[var(--text-main,#134E4A)]"
+                className="font-arabic text-2xl leading-loose text-[var(--text-main,#134E4A)] sm:text-3xl"
                 dir="rtl"
               >
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </p>
             </div>
-            <p className="mt-3 text-center text-xs font-bold text-[#0D9488] italic">
+            <p className="mt-3 text-center text-xs font-semibold italic text-[#0D9488]">
               "Bismillahirrahmanirrahim"
             </p>
           </section>
 
-          <div className="h-24" aria-hidden="true" />
+          <section className="grid grid-cols-2 gap-3 sm:gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                triggerBibiReaction("click");
+                navigate("/member/ngaji-ceria/warung-santri");
+              }}
+              className="group relative flex min-h-[88px] items-center gap-3 overflow-hidden rounded-2xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FFE4E6] p-3 text-left shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none dark:bg-[var(--bg-card)] sm:p-4"
+            >
+              <span className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#134E4A]/20 bg-white text-[#134E4A] dark:bg-slate-800 dark:text-[#2DD4BF] sm:h-11 sm:w-11">
+                <StoreSvg size={21} />
+              </span>
+              <span className="relative z-10 min-w-0">
+                <span className="block text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-base">
+                  Warung
+                </span>
+                <span className="mt-1 block text-xs font-medium text-[var(--text-main,#134E4A)]/60">
+                  Tukar koin
+                </span>
+              </span>
+              <span
+                className="pointer-events-none absolute -bottom-3 -right-3 opacity-[0.08] transition-transform group-hover:scale-110"
+                aria-hidden="true"
+              >
+                <StoreSvg size={56} />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerBibiReaction("click");
+                navigate("/member/ngaji-ceria/premium");
+              }}
+              className="group relative flex min-h-[88px] items-center gap-3 overflow-hidden rounded-2xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FEF3C7] p-3 text-left shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none dark:bg-[var(--bg-card)] sm:p-4"
+            >
+              <span className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#134E4A]/20 bg-white text-[#D97706] dark:bg-slate-800 dark:text-[#FBBF24] sm:h-11 sm:w-11">
+                <CrownSvg size={21} />
+              </span>
+              <span className="relative z-10 min-w-0">
+                <span className="block text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-base">
+                  VIP Pass
+                </span>
+                <span className="mt-1 block text-xs font-medium text-[#B45309] dark:text-[#FDE047]">
+                  Bebas batas
+                </span>
+              </span>
+              <span
+                className="pointer-events-none absolute -bottom-3 -right-3 opacity-[0.08] transition-transform group-hover:scale-110"
+                aria-hidden="true"
+              >
+                <CrownSvg size={56} />
+              </span>
+            </button>
+          </section>
+
+          <div className="h-6" aria-hidden="true" />
         </div>
 
         <AppModal
@@ -939,27 +817,26 @@ export default function NgajiCeriaHomePage() {
           }}
           title="Hadiah Login Harian"
         >
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center text-center">
             <motion.div
-              animate={{ scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }}
+              animate={{ scale: [1, 1.04, 1], rotate: [0, -2, 2, 0] }}
               transition={{
                 repeat: Infinity,
-                duration: 1.5,
+                duration: 2.2,
                 ease: "easeInOut",
               }}
-              className="w-16 h-16 rounded-2xl bg-[var(--bg-element,#FEF08A)] border-[3px] border-[var(--border-color,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] flex items-center justify-center mb-2"
+              className="mb-2 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-element,#FEF08A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]"
             >
-              <PetiHartaSvg size={48} />
+              <PetiHartaSvg size={46} />
             </motion.div>
-            <p className="text-xs font-bold text-[var(--text-main,#134E4A)]/60 mt-1">
+            <p className="mt-1 text-sm font-semibold text-[var(--text-main,#134E4A)]/65">
               Istiqomah mengaji setiap hari!
             </p>
-
-            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-element,#FEF3C7)] px-3 py-1 text-[11px] font-black text-[var(--text-main,#B45309)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
-              <FireSvg size={22} />
-              <span>Streak: {effectiveStreak} Hari</span>
+            <div className="mt-3 inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/20 bg-[var(--bg-element,#FEF3C7)] px-3 py-1.5 text-xs font-extrabold text-[var(--text-main,#B45309)]">
+              <FireSvg size={19} />
+              <span>Streak: {effectiveStreak} hari</span>
               {streakMultiplier > 1 && (
-                <span className="bg-[#EA580C] text-white px-1.5 py-0.5 rounded-full text-[9px] font-black">
+                <span className="rounded-full bg-[#EA580C] px-2 py-0.5 text-[10px] font-black text-white">
                   Bonus {streakMultiplier}x!
                 </span>
               )}
@@ -978,52 +855,46 @@ export default function NgajiCeriaHomePage() {
               return (
                 <motion.div
                   key={r.day}
-                  animate={isCurrent ? { scale: [1, 1.04, 1] } : undefined}
+                  animate={isCurrent ? { scale: [1, 1.025, 1] } : undefined}
                   transition={
                     isCurrent
-                      ? {
-                          repeat: Infinity,
-                          duration: 2,
-                          ease: "easeInOut",
-                        }
+                      ? { repeat: Infinity, duration: 2.4, ease: "easeInOut" }
                       : undefined
                   }
-                  className={`rounded-2xl border-[2px] p-2 text-center flex flex-col items-center justify-between transition-all ${
+                  className={`flex min-h-[112px] flex-col items-center justify-between rounded-xl border p-2 text-center transition-colors ${
                     idx === 6
-                      ? "col-span-2 flex-row justify-center gap-3 p-3 text-left"
+                      ? "col-span-2 min-h-[100px] flex-row justify-center gap-3 px-4 text-left"
                       : ""
                   } ${
                     isClaimed
-                      ? "border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[var(--bg-element)] opacity-75 shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]"
+                      ? "border-[#0D9488]/30 bg-[#CCFBF1]/70 opacity-80 dark:bg-[var(--bg-element)]"
                       : isCurrent
-                        ? "border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] dark:bg-[var(--bg-element)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] -translate-y-0.5 ring-2 ring-[#0D9488]"
-                        : "border-dashed border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] opacity-70"
+                        ? "border-2 border-[#134E4A] bg-[#FEF08A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-element)]"
+                        : "border-dashed border-[var(--border-color,#134E4A)]/20 bg-[var(--bg-card)] opacity-75"
                   }`}
                 >
-                  <div>
-                    <span className="text-[10px] font-black text-[var(--text-main,#134E4A)]/70 uppercase block">
+                  <div className={idx === 6 ? "flex items-center gap-3" : ""}>
+                    <span className="block text-[10px] font-black uppercase tracking-wide text-[var(--text-main,#134E4A)]/65">
                       Hari {r.day}
                     </span>
-                    <div className="w-8 h-8 flex items-center justify-center my-1 mx-auto">
+                    <div className="my-1 flex h-8 w-8 items-center justify-center text-[var(--text-main,#134E4A)]">
                       {r.image}
                     </div>
-                    <span className="flex items-center justify-center gap-0.5 text-[11px] font-black text-[var(--text-main,#134E4A)]">
-                      <span>+{finalCoins}</span>
-                      <CoinSvg size={12} />
+                    <span className="flex items-center justify-center gap-0.5 text-xs font-black text-[var(--text-main,#134E4A)]">
+                      +{finalCoins} <CoinSvg size={12} />
                     </span>
                   </div>
-
-                  <div className={idx === 6 ? "mt-1" : ""}>
+                  <div className={idx === 6 ? "mt-0" : "mt-1.5"}>
                     {isClaimed ? (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-[#0D9488] bg-[var(--bg-card)] px-1.5 py-0.5 rounded-md border border-[#0D9488]">
-                        <CheckSvg size={10} /> Sudah
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--bg-card)] px-1.5 py-1 text-[10px] font-black text-[#0D9488]">
+                        <CheckSvg size={11} /> Sudah
                       </span>
                     ) : isCurrent ? (
-                      <span className="text-[9px] font-black text-white bg-[#0D9488] px-1.5 py-0.5 rounded-md border border-[var(--border-color,#134E4A)]">
+                      <span className="rounded-md bg-[#0D9488] px-2 py-1 text-[10px] font-black text-white">
                         Klaim!
                       </span>
                     ) : (
-                      <span className="text-[9px] font-black text-[var(--text-main,#134E4A)]/40 inline-flex items-center justify-center">
+                      <span className="inline-flex items-center justify-center text-[var(--text-main,#134E4A)]/40">
                         <GiftSvg size={12} />
                       </span>
                     )}
@@ -1033,28 +904,24 @@ export default function NgajiCeriaHomePage() {
             })}
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5">
             {todayClaimed ? (
               <button
                 type="button"
                 disabled
-                className="w-full py-3 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-gray-200 dark:bg-gray-800 text-[var(--text-main,#134E4A)]/50 font-black text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
+                className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)]/20 bg-gray-100 px-4 py-3 text-sm font-black text-[var(--text-main,#134E4A)]/50 dark:bg-gray-800"
               >
-                <CheckSvg size={16} /> Sudah Diklaim Hari Ini
+                <CheckSvg size={17} /> Sudah Diklaim Hari Ini
               </button>
             ) : (
               <motion.button
                 type="button"
                 disabled={isClaiming}
                 onClick={handleClaim}
-                whileHover={isClaiming ? undefined : { scale: 1.02 }}
-                whileTap={isClaiming ? undefined : { scale: 0.95, y: 2 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 450,
-                  damping: 25,
-                }}
-                className="w-full py-3.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white font-black text-sm shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                whileHover={isClaiming ? undefined : { y: -1 }}
+                whileTap={isClaiming ? undefined : { scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] px-4 py-3 text-sm font-black text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#0F766E] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <SparklesSvg size={18} />
                 {isClaiming ? (
@@ -1063,7 +930,7 @@ export default function NgajiCeriaHomePage() {
                       size={18}
                       style={{ animation: "spin 1s linear infinite" }}
                     />
-                    <span>Mengklaim Hadiah...</span>
+                    <span>Mengklaim hadiah...</span>
                   </>
                 ) : (
                   <>
@@ -1078,22 +945,21 @@ export default function NgajiCeriaHomePage() {
             )}
           </div>
 
-          <div className="mt-3.5 flex flex-col items-center gap-1.5 text-center">
-            <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/70">
-              Reset harian terjadi setiap pukul 04:00 Pagi.
+          <div className="mt-4 flex flex-col items-center gap-2 text-center">
+            <p className="text-xs font-medium text-[var(--text-main,#134E4A)]/65">
+              Reset harian terjadi setiap pukul 04:00 WIB.
             </p>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/30 bg-[var(--bg-card)] px-3 py-1 text-[10px] font-black text-[#0D9488] shadow-sm">
+            <div className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card)] px-3 py-1.5 text-xs font-bold text-[#0D9488]">
               <span className="inline-flex items-center gap-1">
-                <ClockSvg size={13} /> Sisa waktu klaim hari ini:
+                <ClockSvg size={14} /> Sisa waktu klaim hari ini:
               </span>
-              <span className="tabular-nums font-mono font-black text-[var(--text-main,#134E4A)]">
+              <span className="font-mono font-black tabular-nums text-[var(--text-main,#134E4A)]">
                 {timeUntilReset}
               </span>
             </div>
           </div>
         </AppModal>
 
-        {/* Modal Onboarding Peran (Santri vs Ustadz) */}
         <OnboardingModal />
       </NgajiCeriaLayout>
     </>

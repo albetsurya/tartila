@@ -8,12 +8,17 @@ import {
   parseJilid6Ayah,
 } from '../src/features/ngaji-ceria/data/tilawatiJilid6Audio';
 import { getQuestionAudioUrl } from '../src/features/ngaji-ceria/data/tilawatiAudioQuestionMap';
-import { getRawPages } from '../src/features/ngaji-ceria/data/TilawatiDataProvider';
+import { getRawPages, loadJilidPages } from '../src/features/ngaji-ceria/data/TilawatiDataProvider';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+async function ensureJilid6Loaded(): Promise<void> {
+  await loadJilidPages(6);
+}
+
 export const tests = {
-  'getJilid6AudioUrl menghasilkan URL audio yang berkas-nya ada di disk': () => {
+  'getJilid6AudioUrl menghasilkan URL audio yang berkas-nya ada di disk': async () => {
+    await ensureJilid6Loaded();
     let checked = 0;
     for (const [pageStr, files] of Object.entries(JILID_6_AUDIO_FILES)) {
       const page = Number(pageStr);
@@ -29,7 +34,8 @@ export const tests = {
     assert.ok(checked > 150, `Terlalu sedikit berkas audio terverifikasi: ${checked}`);
   },
 
-  'getQuestionAudioUrl mengembalikan audio Jilid 6': () => {
+  'getQuestionAudioUrl mengembalikan audio Jilid 6': async () => {
+    await ensureJilid6Loaded();
     const pages = getRawPages(6);
     let withAudio = 0;
     let total = 0;

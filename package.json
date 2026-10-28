@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test": "node scripts/run-tests.mjs",
     "preview": "vite preview",
+    "generate:audio": "node scripts/generate_tts_audio.js",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NgajiCeriaLayout } from '../components/NgajiCeriaLayout';
 import { LabIramaTabNav } from '../components/lab-irama/LabIramaTabNav';
+import { PatternArrow } from '../components/lab-irama/PatternArrow';
 import { ModulMetronomeGuide } from '../components/lab-irama/ModulMetronomeGuide';
 import { ModulEarTraining } from '../components/lab-irama/ModulEarTraining';
 import { ModulTapTheBeat } from '../components/lab-irama/ModulTapTheBeat';
@@ -49,11 +50,11 @@ export default function LabIramaPage() {
         subtitle="Latihan Nada Rost & Ketukan Tilawati"
         onBack={handleBack}
         themeScope="lab-irama"
-        themeColorClass="bg-[#111827]"
-        borderColorClass="border-[#F59E0B]"
-        shadowClass="shadow-[0_4px_0px_#78350F]"
+        themeColorClass="bg-[#0D9488]"
+        borderColorClass="border-[#134E4A]"
+        shadowClass="shadow-[0_4px_0px_#134E4A]"
         textColorClass="text-white"
-        backClass="bg-[#FDE047] text-[#111827] border-[#111827] shadow-[2px_2px_0px_#111827] hover:bg-[#FACC15]"
+        backClass="bg-white text-[#134E4A] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-[#E0F2FE]"
         backContent={<ChevronLeftSvg size={20} stroke="#000000" className="text-black shrink-0" />}
         extraBadge={
           highestScore > 0 ? (
@@ -66,21 +67,21 @@ export default function LabIramaPage() {
         }
       />
 
-      <div className="max-w-md mx-auto w-full px-4 py-4 space-y-4 pb-32">
-        {/* 1. Hero Banner Arcade Neon Emas */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1F2937] to-[#111827] border-[3px] border-[var(--border-color,#F59E0B)] p-4 text-white shadow-[4px_4px_0px_var(--shadow-color,#F59E0B)]">
+      <div className="max-w-md mx-auto w-full px-4 py-4 space-y-4 pb-32 bg-[#F0FDF4]">
+        {/* 1. Hero Banner Neo-Brutalism Terang */}
+        <section className="relative overflow-hidden rounded-3xl bg-white border-[3px] border-[#134E4A] p-4 text-[#134E4A] shadow-[4px_4px_0px_#134E4A]">
           <div className="relative z-10 flex items-center gap-3">
-            <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#F59E0B]/20 border-2 border-[#F59E0B]/50 flex items-center justify-center shadow-sm rotate-3 [--svg-primary:#FDE047]">
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#FEF08A] border-[3px] border-[#134E4A] flex items-center justify-center shadow-[3px_3px_0px_#134E4A] rotate-3 [--svg-primary:#134E4A]">
               <DrumSvg size={32} />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F59E0B] text-[#111827] text-[10px] font-black uppercase tracking-wider mb-1 shadow-xs">
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#0D9488] text-white text-[10px] font-black uppercase tracking-wider mb-1 border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                 <SparklesSvg size={12} /> Fitur Mandiri
               </div>
-              <h1 className="font-display font-black text-xl leading-tight text-[#F8FAFC]">
+              <h1 className="font-display font-black text-xl leading-tight text-[#134E4A]">
                 Lab Irama & Ketukan
               </h1>
-              <p className="text-[11px] text-amber-200/90 font-bold leading-tight mt-0.5">
+              <p className="text-[11px] text-[#134E4A]/70 font-bold leading-tight mt-0.5">
                 Latih kepekaan lagu Rost & ketukan mad Tilawati tanpa rekaman.
               </p>
             </div>
@@ -89,25 +90,53 @@ export default function LabIramaPage() {
 
         {/* 2. Mini Rekor Badges */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-[var(--bg-card,#1F2937)] border-2 border-[var(--border-color,#F59E0B)] rounded-2xl p-2.5 shadow-[2px_2px_0px_var(--shadow-color,#F59E0B)] flex items-center gap-2 [--svg-primary:#FDE047]">
+          <div className="bg-white border-[3px] border-[#134E4A] rounded-2xl p-2.5 shadow-[4px_4px_0px_#134E4A] flex items-center gap-2 [--svg-primary:#0D9488]">
             <EarSvg size={22} />
             <div>
-              <span className="text-[9px] font-black uppercase text-amber-300/80">Rekor Tebak</span>
-              <p className="font-display font-black text-sm text-[var(--text-main,#F8FAFC)]">
+              <span className="text-[9px] font-black uppercase text-[#0D9488]">Rekor Tebak</span>
+              <p className="font-display font-black text-sm text-[#134E4A]">
                 {bestEarScore > 0 ? `${bestEarScore} Poin` : 'Belum Ada'}
               </p>
             </div>
           </div>
 
-          <div className="bg-[var(--bg-card,#1F2937)] border-2 border-[var(--border-color,#F59E0B)] rounded-2xl p-2.5 shadow-[2px_2px_0px_var(--shadow-color,#F59E0B)] flex items-center gap-2 [--svg-primary:#FDE047]">
+          <div className="bg-white border-[3px] border-[#134E4A] rounded-2xl p-2.5 shadow-[4px_4px_0px_#134E4A] flex items-center gap-2 [--svg-primary:#0D9488]">
             <ZapSvg size={22} />
             <div>
-              <span className="text-[9px] font-black uppercase text-amber-300/80">Rekor Ketuk</span>
-              <p className="font-display font-black text-sm text-[var(--text-main,#F8FAFC)]">
+              <span className="text-[9px] font-black uppercase text-[#0D9488]">Rekor Ketuk</span>
+              <p className="font-display font-black text-sm text-[#134E4A]">
                 {bestTapScore > 0 ? `${bestTapScore} (${tapMaxCombo}x <FireSvg size={14} className="inline-block" />)` : 'Belum Ada'}
               </p>
             </div>
           </div>
+        </div>
+
+        {/* 2b. Visual Pola Nada (PatternArrow) */}
+        <div className="grid grid-cols-4 gap-3 p-4 bg-white border-[3px] border-[#134E4A] rounded-2xl shadow-[4px_4px_0px_#134E4A]">
+           <div className="text-center">
+             <div className="flex justify-center">
+               <PatternArrow type="1-datar" />
+             </div>
+             <p className="text-xs font-bold mt-2 text-[#134E4A]">1 Nada</p>
+           </div>
+           <div className="text-center">
+             <div className="flex justify-center">
+               <PatternArrow type="2-datar-turun" />
+             </div>
+             <p className="text-xs font-bold mt-2 text-[#134E4A]">2 Nada</p>
+           </div>
+           <div className="text-center">
+             <div className="flex justify-center">
+               <PatternArrow type="3-datar-naik-turun" />
+             </div>
+             <p className="text-xs font-bold mt-2 text-[#134E4A]">3 Nada</p>
+           </div>
+           <div className="text-center">
+             <div className="flex justify-center">
+               <PatternArrow type="4-datar-naik-naik-turun" />
+             </div>
+             <p className="text-xs font-bold mt-2 text-[#134E4A]">4 Nada</p>
+           </div>
         </div>
 
         {/* 3. Segmented Tab Navigation */}
