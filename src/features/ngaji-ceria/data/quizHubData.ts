@@ -25,16 +25,24 @@ import {
   PANDUAN_KSATRIA_QUESTIONS,
   LORONG_WAKTU_QUESTIONS,
   PUNCAK_ARAFAH_QUESTIONS,
+  buildLevels,
   getCategoryUnlockedLevel as getAdventureUnlockedLevel,
   saveCategoryLevelCompleted as saveAdventureLevel,
   QUIZ_PROGRESS_STORAGE_KEY,
   type QuizAdventureLevel,
 } from "./quizAdventureData";
+import { DOA_HARIAN_QUESTIONS } from "./doaHarianData";
+import { SEJARAH_NABI_QUESTIONS } from "./sejarahNabiData";
+
+export { DOA_HARIAN_QUESTIONS } from "./doaHarianData";
+export { SEJARAH_NABI_QUESTIONS } from "./sejarahNabiData";
 
 export type QuizHubCategory =
   | "tilawati"
   | "juz-amma"
   | "kisah-doa"
+  | "doa-harian"
+  | "sejarah-nabi"
   | "bahasa-arab"
   | "misi-5-waktu"
   | "peta-iman"
@@ -55,131 +63,6 @@ export interface QuizCategoryInfo {
   bgBadge: string;
   levels?: QuizAdventureLevel[];
 }
-
-export const QUIZ_HUB_CATEGORIES: QuizCategoryInfo[] = [
-  {
-    id: "tilawati",
-    title: "Tilawati",
-    tag: "Makhraj & Harakat",
-    description:
-      "Kenali makhraj huruf hijaiyah, harakat, dan hukum tajwid dasar.",
-    color: "#059669",
-    borderColor: "#065F46",
-    bgBadge: "#D1FAE5",
-  },
-  {
-    id: "juz-amma",
-    title: "Juz 'Amma",
-    tag: "Potongan Ayat",
-    description:
-      "Sambung dan lengkapi potongan ayat surat-surat pendek Al-Qur'an.",
-    color: "#0284C7",
-    borderColor: "#0369A1",
-    bgBadge: "#E0F2FE",
-  },
-  {
-    id: "kisah-doa",
-    title: "Kisah Nabi & Doa",
-    tag: "Sirah & Adab",
-    description: "Pelajari kisah para Nabi, malaikat, dan doa harian penting.",
-    color: "#D97706",
-    borderColor: "#B45309",
-    bgBadge: "#FEF3C7",
-  },
-  {
-    id: "bahasa-arab",
-    title: "Bahasa Arab",
-    tag: "Mufradat & Scramble",
-    description:
-      "Kosakata Durus al-Lughah, benda sehari-hari, dan susun kalimat.",
-    color: "#7C3AED",
-    borderColor: "#6D28D9",
-    bgBadge: "#EDE9FE",
-  },
-  // ============================================
-  // NEW: 8 Adventure Quiz Categories
-  // ============================================
-  {
-    id: "misi-5-waktu",
-    title: "Misi 5 Waktu",
-    tag: "Ibadah Sholat",
-    description: "Petualangan menegakkan sholat.",
-    color: "#EA580C",
-    borderColor: "#C2410C",
-    bgBadge: "#FFEDD5",
-    levels: MISI_5_WAKTU_LEVELS,
-  },
-  {
-    id: "peta-iman",
-    title: "Peta Iman",
-    tag: "Aqidah & Rukun Iman",
-    description: "Mengenal dasar tauhid dan rukun iman.",
-    color: "#7C3AED",
-    borderColor: "#6D28D9",
-    bgBadge: "#EDE9FE",
-    levels: PETA_IMAN_LEVELS,
-  },
-  {
-    id: "air-kehidupan",
-    title: "Air Kehidupan",
-    tag: "Thaharah & Wudu",
-    description: "Misi bersuci dengan wudu.",
-    color: "#0284C7",
-    borderColor: "#0369A1",
-    bgBadge: "#E0F2FE",
-    levels: AIR_KEHIDUPAN_LEVELS,
-  },
-  {
-    id: "tameng-ramadan",
-    title: "Tameng Ramadan",
-    tag: "Ibadah Puasa",
-    description: "Petualangan puasa di bulan Ramadan.",
-    color: "#DC2626",
-    borderColor: "#B91C1C",
-    bgBadge: "#FEE2E2",
-    levels: TAMENG_RAMADAN_LEVELS,
-  },
-  {
-    id: "misi-berbagi",
-    title: "Misi Berbagi",
-    tag: "Zakat & Sedekah",
-    description: "Belajar zakat dan sedekah.",
-    color: "#059669",
-    borderColor: "#047857",
-    bgBadge: "#D1FAE5",
-    levels: MISI_BERBAGI_LEVELS,
-  },
-  {
-    id: "panduan-ksatria",
-    title: "Panduan Ksatria",
-    tag: "Fikih & Adab",
-    description: "Fikih ibadah dan adab harian.",
-    color: "#B45309",
-    borderColor: "#92400E",
-    bgBadge: "#FEF3C7",
-    levels: PANDUAN_KSATRIA_LEVELS,
-  },
-  {
-    id: "lorong-waktu",
-    title: "Lorong Waktu",
-    tag: "Sejarah & Sirah",
-    description: "Menelusuri sejarah Islam dan para nabi.",
-    color: "#DB2777",
-    borderColor: "#BE185D",
-    bgBadge: "#FCE7F3",
-    levels: LORONG_WAKTU_LEVELS,
-  },
-  {
-    id: "puncak-arafah",
-    title: "Puncak Arafah",
-    tag: "Haji & Umrah",
-    description: "Mengenal ibadah haji dan umrah.",
-    color: "#0D9488",
-    borderColor: "#0F766E",
-    bgBadge: "#CCFBF1",
-    levels: PUNCAK_ARAFAH_LEVELS,
-  },
-];
 
 // 1. Bank Soal Kategori Tilawati — diambil dari dataset inti Tilawati via Provider.
 function toTilawatiQuestionData(question: QuizQuestion): QuestionData {
@@ -2690,11 +2573,12 @@ const CHRONICLE_QUESTIONS: QuestionData[] = CHRONICLES.map((ch) => {
 
 KISAH_DOA_QUESTIONS.push(...ANGEL_QUESTIONS, ...CHRONICLE_QUESTIONS);
 
-// Peta Kategori ke Bank Soal
 export const QUIZ_HUB_QUESTIONS: Record<QuizHubCategory, QuestionData[]> = {
   tilawati: TILAWATI_QUESTIONS,
   "juz-amma": JUZ_AMMA_QUESTIONS,
   "kisah-doa": KISAH_DOA_QUESTIONS,
+  "doa-harian": DOA_HARIAN_QUESTIONS,
+  "sejarah-nabi": SEJARAH_NABI_QUESTIONS,
   "bahasa-arab": ARABIC_VOCAB_QUESTIONS,
   "misi-5-waktu": MISI_5_WAKTU_QUESTIONS,
   "peta-iman": PETA_IMAN_QUESTIONS,
@@ -2704,6 +2588,201 @@ export const QUIZ_HUB_QUESTIONS: Record<QuizHubCategory, QuestionData[]> = {
   "panduan-ksatria": PANDUAN_KSATRIA_QUESTIONS,
   "lorong-waktu": LORONG_WAKTU_QUESTIONS,
   "puncak-arafah": PUNCAK_ARAFAH_QUESTIONS,
+};
+
+// ============================================
+// LEVEL ID MAPPINGS & STANDARDIZED LEVELS
+// ============================================
+export const JUZ_AMMA_LEVEL_IDS: Record<number, string[]> = {
+  1: JUZ_AMMA_QUESTIONS.slice(0, 20).map((q) => q.id),
+  2: JUZ_AMMA_QUESTIONS.slice(20, 40).map((q) => q.id),
+  3: JUZ_AMMA_QUESTIONS.slice(40, 60).map((q) => q.id),
+  4: JUZ_AMMA_QUESTIONS.slice(60, 80).map((q) => q.id),
+  5: JUZ_AMMA_QUESTIONS.slice(80, 100).map((q) => q.id),
+  6: JUZ_AMMA_QUESTIONS.slice(100, 121).map((q) => q.id),
+};
+
+export const DOA_HARIAN_LEVEL_IDS: Record<number, string[]> = {
+  1: DOA_HARIAN_QUESTIONS.slice(0, 20).map((q) => q.id),
+  2: DOA_HARIAN_QUESTIONS.slice(20, 40).map((q) => q.id),
+  3: DOA_HARIAN_QUESTIONS.slice(40, 60).map((q) => q.id),
+  4: DOA_HARIAN_QUESTIONS.slice(60, 80).map((q) => q.id),
+  5: DOA_HARIAN_QUESTIONS.slice(80, 100).map((q) => q.id),
+  6: DOA_HARIAN_QUESTIONS.slice(100, 120).map((q) => q.id),
+};
+
+export const SEJARAH_NABI_LEVEL_IDS: Record<number, string[]> = {
+  1: SEJARAH_NABI_QUESTIONS.slice(0, 20).map((q) => q.id),
+  2: SEJARAH_NABI_QUESTIONS.slice(20, 40).map((q) => q.id),
+  3: SEJARAH_NABI_QUESTIONS.slice(40, 60).map((q) => q.id),
+  4: SEJARAH_NABI_QUESTIONS.slice(60, 80).map((q) => q.id),
+  5: SEJARAH_NABI_QUESTIONS.slice(80, 100).map((q) => q.id),
+  6: SEJARAH_NABI_QUESTIONS.slice(100, 120).map((q) => q.id),
+};
+
+export const BAHASA_ARAB_LEVEL_IDS: Record<number, string[]> = {
+  1: ARABIC_VOCAB_QUESTIONS.slice(0, 20).map((q) => q.id),
+  2: ARABIC_VOCAB_QUESTIONS.slice(20, 40).map((q) => q.id),
+  3: ARABIC_VOCAB_QUESTIONS.slice(40, 60).map((q) => q.id),
+  4: ARABIC_VOCAB_QUESTIONS.slice(60, 80).map((q) => q.id),
+  5: ARABIC_VOCAB_QUESTIONS.slice(80, 100).map((q) => q.id),
+  6: ARABIC_VOCAB_QUESTIONS.slice(100, 120).map((q) => q.id),
+};
+
+export const JUZ_AMMA_LEVELS = buildLevels(JUZ_AMMA_QUESTIONS);
+export const DOA_HARIAN_LEVELS = buildLevels(DOA_HARIAN_QUESTIONS);
+export const SEJARAH_NABI_LEVELS = buildLevels(SEJARAH_NABI_QUESTIONS);
+export const BAHASA_ARAB_LEVELS = buildLevels(ARABIC_VOCAB_QUESTIONS);
+
+export const QUIZ_HUB_CATEGORIES: QuizCategoryInfo[] = [
+  {
+    id: "tilawati",
+    title: "Tilawati",
+    tag: "Makhraj & Harakat",
+    description:
+      "Kenali makhraj huruf hijaiyah, harakat, dan hukum tajwid dasar.",
+    color: "#059669",
+    borderColor: "#065F46",
+    bgBadge: "#D1FAE5",
+  },
+  {
+    id: "juz-amma",
+    title: "Juz 'Amma",
+    tag: "Potongan Ayat",
+    description:
+      "Sambung dan lengkapi potongan ayat surat-surat pendek Al-Qur'an.",
+    color: "#0284C7",
+    borderColor: "#0369A1",
+    bgBadge: "#E0F2FE",
+    levels: JUZ_AMMA_LEVELS,
+  },
+  {
+    id: "doa-harian",
+    title: "Doa Harian",
+    tag: "Adab & Munajat",
+    description: "Kumpulan doa harian, munajat nabi, dzikir, dan adab berdoa.",
+    color: "#D97706",
+    borderColor: "#B45309",
+    bgBadge: "#FEF3C7",
+    levels: DOA_HARIAN_LEVELS,
+  },
+  {
+    id: "sejarah-nabi",
+    title: "Sejarah Nabi",
+    tag: "Kisah & Sirah",
+    description:
+      "Kisah 25 nabi, sirah nabawiyah, dan keteladanan para sahabat.",
+    color: "#0D9488",
+    borderColor: "#0F766E",
+    bgBadge: "#CCFBF1",
+    levels: SEJARAH_NABI_LEVELS,
+  },
+  {
+    id: "bahasa-arab",
+    title: "Bahasa Arab",
+    tag: "Mufradat & Scramble",
+    description:
+      "Kosakata Durus al-Lughah, benda sehari-hari, dan susun kalimat.",
+    color: "#7C3AED",
+    borderColor: "#6D28D9",
+    bgBadge: "#EDE9FE",
+    levels: BAHASA_ARAB_LEVELS,
+  },
+  {
+    id: "misi-5-waktu",
+    title: "Sholat",
+    tag: "Ibadah Sholat",
+    description: "Pelajari tata cara, gerakan, dan bacaan sholat fardhu.",
+    color: "#EA580C",
+    borderColor: "#C2410C",
+    bgBadge: "#FFEDD5",
+    levels: MISI_5_WAKTU_LEVELS,
+  },
+  {
+    id: "peta-iman",
+    title: "Tauhid",
+    tag: "Aqidah & Rukun Iman",
+    description:
+      "Pahami dasar-dasar tauhid, rukun iman, dan sifat-sifat Allah.",
+    color: "#7C3AED",
+    borderColor: "#6D28D9",
+    bgBadge: "#EDE9FE",
+    levels: PETA_IMAN_LEVELS,
+  },
+  {
+    id: "air-kehidupan",
+    title: "Wudu & Thaharah",
+    tag: "Bersuci & Wudu",
+    description: "Kuasai urutan wudu dan tata cara bersuci sesuai sunnah.",
+    color: "#0284C7",
+    borderColor: "#0369A1",
+    bgBadge: "#E0F2FE",
+    levels: AIR_KEHIDUPAN_LEVELS,
+  },
+  {
+    id: "tameng-ramadan",
+    title: "Puasa",
+    tag: "Ibadah Puasa",
+    description: "Pelajari rukun, sunnah, dan hal-hal yang membatalkan puasa.",
+    color: "#DC2626",
+    borderColor: "#B91C1C",
+    bgBadge: "#FEE2E2",
+    levels: TAMENG_RAMADAN_LEVELS,
+  },
+  {
+    id: "misi-berbagi",
+    title: "Zakat & Sedekah",
+    tag: "Ibadah Sosial",
+    description:
+      "Pahami konsep zakat, infak, dan sedekah untuk berbagi rezeki.",
+    color: "#059669",
+    borderColor: "#047857",
+    bgBadge: "#D1FAE5",
+    levels: MISI_BERBAGI_LEVELS,
+  },
+  {
+    id: "panduan-ksatria",
+    title: "Fikih Harian",
+    tag: "Fikih & Adab",
+    description: "Praktikkan adab dan fikih dasar dalam aktivitas sehari-hari.",
+    color: "#B45309",
+    borderColor: "#92400E",
+    bgBadge: "#FEF3C7",
+    levels: PANDUAN_KSATRIA_LEVELS,
+  },
+  {
+    id: "lorong-waktu",
+    title: "Sejarah Islam",
+    tag: "Peradaban Islam",
+    description:
+      "Jelajahi peristiwa penting dan peradaban Islam dari masa ke masa.",
+    color: "#DB2777",
+    borderColor: "#BE185D",
+    bgBadge: "#FCE7F3",
+    levels: LORONG_WAKTU_LEVELS,
+  },
+  {
+    id: "puncak-arafah",
+    title: "Haji & Umrah",
+    tag: "Ibadah Haji",
+    description:
+      "Kenali rukun, wajib, dan tata cara pelaksanaan haji serta umrah.",
+    color: "#0D9488",
+    borderColor: "#0F766E",
+    bgBadge: "#CCFBF1",
+    levels: PUNCAK_ARAFAH_LEVELS,
+  },
+];
+
+const BANK_SIZE = 40;
+
+const LEVEL_ID_MAPS: Partial<
+  Record<QuizHubCategory, Record<number, string[]>>
+> = {
+  "juz-amma": JUZ_AMMA_LEVEL_IDS,
+  "doa-harian": DOA_HARIAN_LEVEL_IDS,
+  "sejarah-nabi": SEJARAH_NABI_LEVEL_IDS,
+  "bahasa-arab": BAHASA_ARAB_LEVEL_IDS,
 };
 
 /**
@@ -2735,52 +2814,62 @@ export function shuffleWithSeed<T>(items: readonly T[], seed: number): T[] {
 
 /**
  * Mengambil soal untuk Pusat Kuis dengan opsi mode, seed, dan level.
+ * Gameplay: "Bank 40, Main 20" - default limit = 20, BANK_SIZE = 40.
  */
 export function getQuizHubQuestions(
   category: QuizHubCategory = "bahasa-arab",
   mode: "all" | "mcq" | "scramble" = "all",
   seed?: number,
-  limit = 5,
+  limit = 20,
   level?: number,
 ): QuestionData[] {
   const catInfo = QUIZ_HUB_CATEGORIES.find((c) => c.id === category);
+  const fullBank =
+    category === "tilawati"
+      ? getRandomQuestions(1, Math.max(limit * 2, 40)).map(
+          toTilawatiQuestionData,
+        )
+      : QUIZ_HUB_QUESTIONS[category] || ARABIC_VOCAB_QUESTIONS;
 
-  // Jika level diberikan, cek apakah kategori punya levels eksplisit
   let rawPool: QuestionData[] = [];
-  if (level && catInfo?.levels) {
+
+  // 1. Level ID mapping first
+  if (level && LEVEL_ID_MAPS[category]?.[level]) {
+    const targetIds = new Set(LEVEL_ID_MAPS[category]![level]);
+    rawPool = fullBank.filter((q) => targetIds.has(q.id));
+  }
+
+  // 2. catInfo.levels check (e.g. adventure categories)
+  if (rawPool.length === 0 && level && catInfo?.levels) {
     const lvlData = catInfo.levels.find((l) => l.level === level);
     if (lvlData && lvlData.questions.length > 0) {
       rawPool = [...lvlData.questions];
     }
   }
 
-  // Fallback: jika tidak ada questions khusus level, pakai bank utama dan potong
+  // 3. Fallback slicing to BANK_SIZE
   if (rawPool.length === 0) {
-    rawPool =
-      category === "tilawati"
-        ? getRandomQuestions(1, Math.max(limit * 2, 10)).map(toTilawatiQuestionData)
-        : QUIZ_HUB_QUESTIONS[category] || ARABIC_VOCAB_QUESTIONS;
-
-    // Jika level diberikan, potong menjadi chunk sebesar (total / 6) untuk kategori lama
-    if (level && level >= 1 && level <= 6 && rawPool.length > 6) {
-      const chunkSize = Math.max(5, Math.floor(rawPool.length / 6));
-      const start = (level - 1) * chunkSize;
-      const end = start + chunkSize;
-      const sliced = rawPool.slice(start, end);
-      if (sliced.length > 0) {
-        rawPool = sliced;
-      }
+    if (level && level >= 1 && level <= 6 && fullBank.length > BANK_SIZE) {
+      const startIndex =
+        ((level - 1) * 20) % Math.max(1, fullBank.length - BANK_SIZE + 1);
+      rawPool = fullBank.slice(startIndex, startIndex + BANK_SIZE);
+    } else {
+      rawPool = fullBank.slice(0, BANK_SIZE);
     }
   }
 
+  // 4. Mode filtering
   let filtered = rawPool;
   if (mode === "scramble") {
-    filtered = rawPool.filter(
+    const scrambleOnly = rawPool.filter(
       (q) =>
         q.type === "word-scramble" ||
         (q.correctWords && q.correctWords.length > 0),
     );
-    // Jika tidak cukup soal scramble di kategori ini, sertakan dari seluruh kategori
+    if (scrambleOnly.length > 0) {
+      filtered = scrambleOnly;
+    }
+    // Jika masih kurang dari limit, ambil tambahan scramble dari seluruh bank
     if (filtered.length < limit) {
       const allScramble = Object.values(QUIZ_HUB_QUESTIONS)
         .flat()
@@ -2792,16 +2881,18 @@ export function getQuizHubQuestions(
       filtered = Array.from(new Set([...filtered, ...allScramble]));
     }
   } else if (mode === "mcq") {
-    filtered = rawPool.filter((q) => q.type !== "word-scramble");
+    const mcqOnly = rawPool.filter((q) => q.type !== "word-scramble");
+    if (mcqOnly.length > 0) {
+      filtered = mcqOnly;
+    }
   }
 
-  // Jika seed diberikan (Tantang Teman / Versus Mode), gunakan deterministic shuffle
+  // 5. Shuffle dan kembalikan sesuai limit
   if (typeof seed === "number" && !isNaN(seed)) {
     return shuffleWithSeed(filtered, seed).slice(0, limit);
   }
 
-  // Pengacakan standar
-  return [...filtered].sort(() => Math.random() - 0.5).slice(0, limit);
+  return shuffleArray(filtered).slice(0, limit);
 }
 
 // Re-export adventure level utilities
