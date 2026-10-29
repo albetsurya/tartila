@@ -64,6 +64,7 @@ import {
   FireSvg,
   CameraSvg,
   BookOpenSvg,
+  GamepadSvg,
 } from "@/components/ui/CustomIcons";
 
 // Custom Icon Kamera bergaya Neo-Brutalism (Dapat dipindahkan ke CustomIcons.tsx)
@@ -563,17 +564,17 @@ export default function NgajiCeriaProfilePage() {
             </div>
           </section>
 
-          {/* 2. Statistik: Terpisah Petualangan Ceria & Kurikulum Tilawati */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* A. Blok "Petualangan Ngaji Ceria" (Game) */}
             <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-display text-xs font-black uppercase tracking-wider text-[#134E4A]">
-                  🎮 Petualangan Ceria
+              <div className="mb-2.5 flex items-center justify-between">
+                <h3 className="flex items-center gap-1.5 font-display text-xs font-black uppercase tracking-wider text-[#134E4A]">
+                  <GamepadSvg size={16} className="text-[#0D9488]" />{" "}
+                  Petualangan Ceria
                 </h3>
               </div>
               <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                {/* Kartu 1: Rank */}
+                {/* Kartu 1: Rank & XP */}
                 <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[#134E4A] bg-white px-2.5 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:gap-2.5 sm:px-3">
                   <MedalSvg
                     size={20}
@@ -597,8 +598,8 @@ export default function NgajiCeriaProfilePage() {
                     className="shrink-0 text-[#134E4A]"
                     stroke="#134E4A"
                   />
-                  <div>
-                    <p className="text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
                       <AnimatedCounter value={earnedStars} />/{TOTAL_STARS}
                     </p>
                     <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
@@ -614,8 +615,8 @@ export default function NgajiCeriaProfilePage() {
                     className="shrink-0 text-[#134E4A]"
                     stroke="#134E4A"
                   />
-                  <div>
-                    <p className="text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
                       <AnimatedCounter value={progress.coins || 0} />
                     </p>
                     <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
@@ -631,8 +632,8 @@ export default function NgajiCeriaProfilePage() {
                     className="shrink-0 text-[#134E4A]"
                     stroke="#134E4A"
                   />
-                  <div>
-                    <p className="text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
                       {isUnlimited ? "∞" : `${hearts}/5`}
                     </p>
                     <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
@@ -648,8 +649,8 @@ export default function NgajiCeriaProfilePage() {
                     className="shrink-0 text-[#134E4A]"
                     stroke="#134E4A"
                   />
-                  <div>
-                    <p className="text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
                       {isUnlimited ? "∞" : `${tickets}/3`}
                     </p>
                     <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
@@ -662,9 +663,10 @@ export default function NgajiCeriaProfilePage() {
 
             {/* B. Blok "Kurikulum Tilawati" (Belajar) */}
             <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-display text-xs font-black uppercase tracking-wider text-[#134E4A]">
-                  📖 Kurikulum Tilawati
+              <div className="mb-2.5 flex items-center justify-between">
+                <h3 className="flex items-center gap-1.5 font-display text-xs font-black uppercase tracking-wider text-[#134E4A]">
+                  <BookOpenSvg size={16} className="text-[#0D9488]" /> Kurikulum
+                  Tilawati
                 </h3>
               </div>
               <section className="grid grid-cols-2 gap-2.5">
@@ -675,8 +677,8 @@ export default function NgajiCeriaProfilePage() {
                     className="shrink-0 text-[#0D9488]"
                     stroke="#134E4A"
                   />
-                  <div>
-                    <p className="text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
                       Tilawati {currentJilidNumber}
                     </p>
                     <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
@@ -692,12 +694,12 @@ export default function NgajiCeriaProfilePage() {
                     className="shrink-0 text-[#0D9488]"
                     stroke="#134E4A"
                   />
-                  <div>
-                    <p className="text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
-                      <AnimatedCounter value={completedPagesCount} /> Halaman Selesai
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
+                      <AnimatedCounter value={completedPagesCount} /> Halaman
                     </p>
                     <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
-                      Progres Tilawati
+                      Selesai Belajar
                     </p>
                   </div>
                 </div>
@@ -754,10 +756,7 @@ export default function NgajiCeriaProfilePage() {
             >
               <div className="flex items-center gap-2.5">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[1.5px_1.5px_0px_#134E4A]">
-                  <StoreSvg
-                    size={20}
-                    className="text-[#166534]"
-                  />
+                  <StoreSvg size={20} className="text-[#166534]" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="truncate font-display text-sm font-black leading-tight text-[#134E4A]">
@@ -813,10 +812,7 @@ export default function NgajiCeriaProfilePage() {
               >
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[1.5px_1.5px_0px_#134E4A]">
-                    <GraduationCapSvg
-                      size={20}
-                      className="text-[#0891B2]"
-                    />
+                    <GraduationCapSvg size={20} className="text-[#0891B2]" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="truncate font-display text-sm font-black leading-tight text-[#134E4A]">
@@ -842,10 +838,7 @@ export default function NgajiCeriaProfilePage() {
               >
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[1.5px_1.5px_0px_#134E4A]">
-                    <UsersSvg
-                      size={20}
-                      className="text-[#0891B2]"
-                    />
+                    <UsersSvg size={20} className="text-[#0891B2]" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="truncate font-display text-sm font-black leading-tight text-[#134E4A]">

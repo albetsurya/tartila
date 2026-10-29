@@ -524,7 +524,6 @@ export default function NgajiCeriaQuizPage() {
   };
 
   const handleAnswerSubmit = (isCorrect: boolean) => {
-    playSoundEffect(isCorrect ? "correct" : "wrong");
     if (isCorrect) setScore((prev) => prev + 1);
   };
 

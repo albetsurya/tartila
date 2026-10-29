@@ -179,6 +179,10 @@ export default function QuizHubPage() {
         return <QuranSvg size={28} />;
       case "kisah-doa":
         return <HandsPrayingSvg size={28} />;
+      case "doa-harian":
+        return <HandsPrayingSvg size={28} />;
+      case "sejarah-nabi":
+        return <PillarSvg size={28} />;
       case "bahasa-arab":
         return <PencilSvg size={28} />;
       case "misi-5-waktu":

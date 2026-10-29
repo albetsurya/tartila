@@ -237,13 +237,13 @@ export default function KartuPracticePage() {
   let renderContent;
   if (isLoadingCards) {
     renderContent = (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex flex-1 items-center justify-center min-h-[60vh]">
         <div className="text-[#FEF3C7] font-black text-lg">Memuat kartu...</div>
       </div>
     );
   } else if (currentCard) {
     renderContent = (
-      <>
+      <div className="flex flex-col flex-1 w-full max-w-md mx-auto">
         <ExploreHeader
           title={`Kartu #${currentCard.cardIndex}`}
           subtitle={`Jilid ${currentJilid} • ${isAlreadyCompleted ? "Dikuasai" : "Latihan"}`}
@@ -258,8 +258,9 @@ export default function KartuPracticePage() {
           backClass="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F] hover:bg-[#FDE68A]"
         />
 
+        {/* Wrapper untuk memastikan kartu berada tepat di tengah layar */}
         <div
-          className="px-4 pt-4 pb-8 overflow-x-hidden"
+          className="flex-1 flex items-center justify-center px-4 py-8 min-h-[calc(100dvh-140px)]"
           style={{ perspective: 1200 }}
         >
           {isLoadingTimeline && (
@@ -270,6 +271,9 @@ export default function KartuPracticePage() {
 
           <AnimatePresence mode="wait">
             {!isFlipped ? (
+              /* =============================== */
+              /* SISI DEPAN KARTU                */
+              /* =============================== */
               <motion.section
                 key={`front-${currentCard.id}`}
                 initial={{ scale: 1.25, rotateY: -90, opacity: 0 }}
@@ -286,13 +290,13 @@ export default function KartuPracticePage() {
                   damping: 22,
                 }}
                 style={{ transformStyle: "preserve-3d" }}
-                className="flex justify-center"
+                className="w-full flex justify-center"
               >
                 <motion.div
                   whileHover={{ y: -4, scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={handleFlip}
-                  className={`relative cursor-pointer overflow-hidden rounded-3xl border-[4px] w-full max-w-sm p-6 text-center shadow-[6px_6px_0px_#78350F] transition-shadow ${
+                  className={`relative cursor-pointer overflow-hidden rounded-3xl border-[4px] w-full p-6 text-center shadow-[6px_6px_0px_#78350F] transition-shadow ${
                     isAlreadyCompleted
                       ? "bg-[#F0FDF4] border-[#10B981] hover:shadow-[8px_8px_0px_#065F46]"
                       : "bg-[#FEF3C7] border-[#B45309] hover:shadow-[8px_8px_0px_#78350F]"
@@ -314,11 +318,11 @@ export default function KartuPracticePage() {
                   </div>
 
                   <div
-                    className="my-6 py-4 flex items-center justify-center min-h-[140px]"
+                    className="my-8 py-4 flex items-center justify-center min-h-[160px]"
                     dir="rtl"
                   >
                     <span
-                      className={`font-arabic font-bold text-5xl sm:text-6xl leading-loose select-none drop-shadow-xs ${getArabicFontSizeClass(
+                      className={`font-arabic font-bold text-5xl sm:text-6xl leading-loose select-none drop-shadow-sm ${getArabicFontSizeClass(
                         currentCard.text,
                       )}`}
                     >
@@ -332,14 +336,18 @@ export default function KartuPracticePage() {
                     </h3>
                   </div>
 
-                  <div className="mt-4 text-center">
-                    <span className="inline-block px-3 py-1 rounded-full bg-[#B45309]/10 text-[10px] font-black text-[#92400E] uppercase tracking-wider animate-pulse">
-                      Klik atau ketuk untuk dengar & jawab pertanyaan
+                  <div className="mt-8 text-center">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/50 border-2 border-[#B45309]/30 text-[11px] font-black text-[#92400E] uppercase tracking-wider animate-pulse">
+                      <span className="w-2 h-2 rounded-full bg-[#B45309] animate-ping" />
+                      Ketuk Kartu Ini
                     </span>
                   </div>
                 </motion.div>
               </motion.section>
             ) : (
+              /* =============================== */
+              /* SISI BELAKANG KARTU (KUIS)      */
+              /* =============================== */
               <motion.section
                 key={`back-${currentCard.id}`}
                 initial={{ rotateY: -90, scale: 0.85, opacity: 0 }}
@@ -356,10 +364,10 @@ export default function KartuPracticePage() {
                   damping: 20,
                 }}
                 style={{ transformStyle: "preserve-3d" }}
-                className="max-w-md mx-auto flex flex-col gap-4"
+                className="w-full flex flex-col gap-4 bg-[#065F46]/40 border-[3px] border-[#10B981]/30 rounded-3xl p-4 sm:p-5 shadow-xl backdrop-blur-sm"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-black text-[#FEF3C7]/80 uppercase tracking-wider">
+                <div className="flex items-center justify-between pb-2 border-b border-[#10B981]/30">
+                  <span className="text-[11px] font-black text-[#FEF3C7]/80 uppercase tracking-wider">
                     Sisi Belakang
                   </span>
                   <button
@@ -375,13 +383,11 @@ export default function KartuPracticePage() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-4"
+                  className="text-center py-2"
                   dir="rtl"
                 >
                   <span
-                    className={`font-arabic font-bold text-4xl sm:text-5xl leading-loose select-none drop-shadow-xs ${
-                      isAlreadyCompleted ? "text-[#065F46]" : "text-[#7C2D12]"
-                    } ${getArabicFontSizeClass(currentCard.text)}`}
+                    className={`font-arabic font-bold text-4xl sm:text-5xl leading-loose select-none drop-shadow-md text-[#FEF3C7] ${getArabicFontSizeClass(currentCard.text)}`}
                   >
                     {currentCard.text}
                   </span>
@@ -391,11 +397,11 @@ export default function KartuPracticePage() {
                   <button
                     type="button"
                     onClick={handlePlayAudio}
-                    className="w-full py-4 rounded-2xl border-[3.5px] border-[#042F2E] bg-[#10B981] hover:bg-[#059669] active:translate-y-1 active:shadow-none text-white font-black text-base sm:text-lg shadow-[0_5px_0px_#042F2E] flex items-center justify-center gap-2.5 transition-all cursor-pointer select-none"
+                    className="w-full py-3.5 rounded-2xl border-[3.5px] border-[#042F2E] bg-[#10B981] hover:bg-[#059669] active:translate-y-1 active:shadow-none text-white font-black text-sm sm:text-base shadow-[0_5px_0px_#042F2E] flex items-center justify-center gap-2.5 transition-all cursor-pointer select-none"
                   >
                     <EqualizerIcon
                       isPlaying={isPlayingAudio}
-                      size={22}
+                      size={20}
                       barClassName="bg-white"
                     />
                     <span>
@@ -404,29 +410,29 @@ export default function KartuPracticePage() {
                         : "Dengar Bacaan Qari"}
                     </span>
                     {listenCount > 0 && (
-                      <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-bold">
+                      <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-bold">
                         {listenCount}x
                       </span>
                     )}
                   </button>
 
-                  <div className="text-center py-3">
-                    <h3 className="font-display font-black text-2xl text-[#FEF3C7]">
+                  <div className="text-center py-2 bg-[#042F2E]/60 rounded-xl border border-[#10B981]/20">
+                    <h3 className="font-display font-black text-xl text-[#FEF3C7]">
                       {currentCard.transliteration}
                     </h3>
-                    <p className="text-xs text-[#FDE047] mt-1">
+                    <p className="text-[10px] text-[#FDE047]/80 mt-0.5">
                       Transliterasi Latin
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <h4 className="text-center text-sm font-black text-[#FEF3C7] mb-3">
+                  <h4 className="text-center text-[13px] font-black text-[#FEF3C7] mb-3">
                     Pola irama apa yang digunakan pada bacaan ini?
                   </h4>
 
                   {currentCard.patternType ? (
-                    <div className="grid grid-cols-3 gap-3 justify-items-center">
+                    <div className="grid grid-cols-3 gap-2.5 justify-items-center">
                       {Object.entries(PATTERN_TO_ANSWER).map(
                         ([patternType, label]) => (
                           <PatternArrowButton
@@ -443,7 +449,7 @@ export default function KartuPracticePage() {
                       )}
                     </div>
                   ) : (
-                    <div className="px-5 py-4 rounded-2xl border-[3px] text-center">
+                    <div className="px-5 py-4 rounded-2xl border-[3px] text-center bg-[#FEF3C7]">
                       <span className="text-sm font-black text-[#92400E]">
                         Kuis belum tersedia untuk kartu ini
                       </span>
@@ -451,14 +457,14 @@ export default function KartuPracticePage() {
                   )}
                 </div>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center mt-2">
                   {currentCard.patternType ? (
                     <StickerButton
                       onClick={handleCheckAnswer}
                       disabled={
                         selectedAnswer === null || showResult !== "idle"
                       }
-                      className="px-6 py-3 rounded-xl border-[3px] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none"
+                      className="px-6 py-3 rounded-xl border-[3px] border-[#134E4A] bg-[#FEF08A] text-[#134E4A] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none shadow-[3px_3px_0px_#134E4A] disabled:opacity-50 disabled:shadow-none active:translate-y-[2px]"
                     >
                       <span>Periksa Jawaban</span>
                       <CheckSvg size={14} />
@@ -466,7 +472,7 @@ export default function KartuPracticePage() {
                   ) : (
                     <StickerButton
                       onClick={handleMarkCompleted}
-                      className="px-6 py-3 rounded-xl border-[3px] font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[4px_4px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[2px] text-white"
+                      className="px-6 py-3 rounded-xl border-[3px] border-[#0D9488] bg-[#10B981] text-white font-black text-sm flex items-center gap-2 transition-all cursor-pointer select-none shadow-[4px_4px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[2px]"
                     >
                       <span>Tandai Selesai</span>
                       <CheckSvg size={14} />
@@ -481,27 +487,27 @@ export default function KartuPracticePage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       className={`
-                        px-5 py-4 rounded-2xl border-[3px] text-center shadow-[4px_4px_0px_#134E4A]
-                        flex flex-col items-center gap-2
+                        px-4 py-3 rounded-2xl border-[3px] text-center shadow-[4px_4px_0px_#134E4A]
+                        flex flex-col items-center gap-1
                         ${
                           isCorrect
-                            ? "bg-[#DCFCE7] border-[#16A34A] shadow-[4px_4px_0px_#16A34A] spring"
-                            : "bg-[#FFF0F0] border-[#FF6B6B] shadow-[4px_4px_0px_#FF6B6B] shake"
+                            ? "bg-[#DCFCE7] border-[#16A34A] shadow-[4px_4px_0px_#16A34A]"
+                            : "bg-[#FFF0F0] border-[#FF6B6B] shadow-[4px_4px_0px_#FF6B6B]"
                         }`}
                     >
-                      <span className="text-3xl font-black">
+                      <span className="text-xl font-black">
                         {isCorrect ? "✅ Benar!" : "❌ Salah!"}
                       </span>
-                      <span className="text-xs font-medium text-[#92400E]">
+                      <span className="text-[11px] font-bold text-[#92400E]">
                         {isCorrect
-                          ? `Irama ${correctLabel} tepat! Anda telah menguasai Kartu #${currentCard.cardIndex}.`
-                          : `Irama yang benar: ${correctLabel}. Coba lagi!`}
+                          ? `Irama ${correctLabel} tepat!`
+                          : `Irama yang benar: ${correctLabel}.`}
                       </span>
                       {isWrong && (
                         <StickerButton
                           onClick={handleReset}
                           variant="secondary"
-                          className="text-xs font-black text-[#991B1B] underline hover:text-[#991B1B]/80 p-1"
+                          className="mt-1 text-[10px] font-black text-[#991B1B] underline hover:text-[#991B1B]/80 p-0"
                         >
                           Coba Lagi
                         </StickerButton>
@@ -510,21 +516,21 @@ export default function KartuPracticePage() {
                   )}
                 </AnimatePresence>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-2.5 pt-2">
                   <StickerButton
                     onClick={handlePrevCard}
                     disabled={!canGoPrevious}
                     variant="secondary"
-                    className="flex-1 rounded-xl border-[3px] px-3 py-2 text-xs font-black transition-all cursor-pointer select-none hover:bg-[#FDE68A]"
+                    className="flex-1 rounded-xl border-[2px] px-2 py-2 text-[11px] font-black transition-all cursor-pointer select-none hover:bg-[#FDE68A]"
                   >
-                    <span className="text-[#78350F]">Kartu Sebelumnya</span>
+                    <span className="text-[#78350F]">Sebelumnya</span>
                     <ChevronRight size={12} />
                   </StickerButton>
                   <StickerButton
                     onClick={handleNextCard}
-                    className="flex-1 rounded-xl border-[3px] px-3 py-2 text-xs font-black text-white transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[2px_2px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[1px]"
+                    className="flex-1 rounded-xl border-[2px] px-2 py-2 text-[11px] font-black text-white transition-all cursor-pointer select-none bg-[#10B981] border-[#0D9488] shadow-[2px_2px_0px_#0D9488] hover:bg-[#059669] active:translate-y-[1px]"
                   >
-                    <span>Kartu Berikutnya</span>
+                    <span>Berikutnya</span>
                     <ArrowRightSvg size={12} />
                   </StickerButton>
                 </div>
@@ -532,11 +538,11 @@ export default function KartuPracticePage() {
             )}
           </AnimatePresence>
         </div>
-      </>
+      </div>
     );
   } else {
     renderContent = (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex flex-1 items-center justify-center min-h-[60vh]">
         <div className="text-[#FEF3C7] font-black text-lg">
           Kartu tidak ditemukan
         </div>

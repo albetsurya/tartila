@@ -50,7 +50,7 @@ export default function QuizHubPlayPage() {
 
   // Ambil bank soal
   const questions = useMemo(() => {
-    return getQuizHubQuestions(validCategory, mode, seedNumber, 5, levelNumber);
+    return getQuizHubQuestions(validCategory, mode, seedNumber, 20, levelNumber);
   }, [validCategory, mode, seedNumber, levelNumber]);
 
   const totalQuestions = questions.length;

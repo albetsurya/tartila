@@ -59,10 +59,10 @@ export interface GameMetaInfo {
 
 export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "quiz-hub": {
-    title: "Pusat Kuis",
-    genre: "Kuis · Duolingo-Style",
+    title: "Arena Kuis", // <-- Diubah dari "Pusat Kuis"
+    genre: "Kuis · Tantangan Kata",
     description:
-      "Pusat kuis interaktif, susun kata Arab, mufradat, dan tantang teman!",
+      "Uji kepintaranmu mengeja huruf, menyusun kata Arab, dan tantang temanmu di papan peringkat!",
     cover: <QuizHubCoverSvg size={76} />,
     path: "/quiz-hub",
     bestKey: "quiz-hub",
@@ -73,7 +73,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     title: "Harakat Slasher",
     genre: "Arkade · Refleks",
     description:
-      "Tebas huruf harakat target ala ninja buah dan hindari pengecoh!",
+      "Ayunkan pedangmu, tebas harakat yang tepat, dan hindari jebakan pengecoh sebelum waktu habis!",
     cover: <HarakatRushCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
@@ -84,7 +84,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     title: "Harakat Slasher",
     genre: "Arkade · Refleks",
     description:
-      "Tebas huruf harakat target ala ninja buah dan hindari pengecoh!",
+      "Ayunkan pedangmu, tebas harakat yang tepat, dan hindari jebakan pengecoh sebelum waktu habis!",
     cover: <HarakatRushCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
@@ -95,7 +95,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     title: "Tilawati Memori",
     genre: "Memori · 6 Jilid",
     description:
-      "Cocokkan pasangan huruf dan kata Arab sebelum batas waktu habis!",
+      "Asah ingatanmu! Temukan pasangan kartu huruf dan kata Arab secepat mungkin sebelum waktu habis.",
     cover: (
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#10B981] shadow-[2px_2px_0px_#065F46]">
         <CardsSvg size={36} />
@@ -110,7 +110,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     title: "Tilawati Memori",
     genre: "Memori · 6 Jilid",
     description:
-      "Cocokkan pasangan huruf dan kata Arab sebelum batas waktu habis!",
+      "Asah ingatanmu! Temukan pasangan kartu huruf dan kata Arab secepat mungkin sebelum waktu habis.",
     cover: (
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#10B981] shadow-[2px_2px_0px_#065F46]">
         <CardsSvg size={36} />
@@ -124,7 +124,8 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "ayat-scramble": {
     title: "Ayat Scramble",
     genre: "Puzzle · Ayat",
-    description: "Susun kembali potongan kata menjadi ayat Al-Qur'an utuh.",
+    description:
+      "Acak-acak kata ini! Susun kembali potongan ayat menjadi bacaan Al-Qur'an yang sempurna.",
     cover: <AyatScrambleCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/ayat-scramble",
     bestKey: "ayat-scramble:normal",
@@ -134,7 +135,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     title: "Hijaiyah 2048",
     genre: "Puzzle · Geser Huruf",
     description:
-      "Gabungkan huruf hijaiyah kembar hingga mencapai huruf tertinggi.",
+      "Geser dan gabungkan huruf hijaiyah sejenis. Siapa cepat, dialah yang mencapai huruf tertinggi!",
     cover: <Hijaiyah2048CoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-2048",
     bestKey: "hijaiyah-2048",
@@ -142,8 +143,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "quiz-ngaji": {
     title: "Quiz Ngaji",
-    genre: "Kuis · 3 Game",
-    description: "Speedrun, saf royale, dan menara lentera Juz Amma.",
+    genre: "Kuis · Juz Amma",
+    description:
+      "Uji hafalan Juz Amma-mu! Mainkan mode Speedrun, Royale, dan Menara Lentera di sini.",
     cover: <QuranQuizRoyaleCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/quiz-ngaji",
     bestKey: "quran-quiz-royale",
@@ -152,7 +154,8 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "hijaiyah-pop": {
     title: "Hijaiyah Pop",
     genre: "Arkade · Ketangkasan",
-    description: "Pecahkan buah dan balon huruf hijaiyah secepat kilat.",
+    description:
+      "Ketuk dan pecahkan balon huruf hijaiyah secepat kilat. Jangan sampai salah sasaran!",
     cover: <HijaiyahPopCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-pop",
     bestKey: "hijaiyah-pop",
@@ -160,8 +163,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "ritme-ngaji": {
     title: "Ritme Ngaji",
-    genre: "Hub · 6 Game",
-    description: "Rhythm, harakat, makhraj, dan aksi arkade hijaiyah.",
+    genre: "Musik · Ketukan Nada",
+    description:
+      "Gabungkan ketukan irama, harakat, dan makhraj dalam satu petualangan musik islami.",
     cover: <HarakatRushCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/ritme-ngaji",
     bestKey: "harakat-rush",
@@ -169,8 +173,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "puzzle-huruf": {
     title: "Puzzle Huruf",
-    genre: "Hub · 4 Game",
-    description: "Wordle, susun ayat, 2048, dan perburuan ayat.",
+    genre: "Puzzle · Otak",
+    description:
+      "Tantang logikamu dengan tebak kata, susun ayat, gabung huruf, dan buru kata tersembunyi.",
     cover: <AyatScrambleCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/puzzle-huruf",
     bestKey: "ayat-scramble:normal",
@@ -178,8 +183,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "tajwid-lab": {
     title: "Tajwid Lab",
-    genre: "Hub · 3 Game",
-    description: "Duel kartu, pertahanan base, dan tetris hukum tajwid.",
+    genre: "Strategi · Hukum Tajwid",
+    description:
+      "Kuasai hukum tajwid lewat pertarungan kartu, pertahanan markas, dan susun blok tajwid.",
     cover: <TajwidArenaCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/tajwid-lab",
     bestKey: "tajwid-arena",
@@ -187,8 +193,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "petualangan-santri": {
     title: "Petualangan Santri",
-    genre: "Hub · 7 Game",
-    description: "Jejak santri, doa dungeon, malaikat, nabi, & ibadah.",
+    genre: "RPG · Kisah Islami",
+    description:
+      "Jelajahi lorong waktu, temui para nabi dan malaikat, serta kumpulkan doa dalam petualangan epik.",
     cover: <AdabRpgCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/petualangan-santri",
     bestKey: "adab-rpg",
@@ -197,8 +204,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "makhraj-master": {
     title: "Makhraj Master",
-    genre: "Rhythm · Tajwid",
-    description: "Empat lane rhythm dengan judgement Perfect dan Good.",
+    genre: "Musik · Tajwid",
+    description:
+      "Ikuti irama makhraj huruf dengan tepat. Raih kombo sempurna dan jadilah Master Makhraj!",
     cover: <MakhrajMasterCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/makhraj-master",
     bestKey: "makhraj-master",
@@ -206,8 +214,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "hijaiyah-beats": {
     title: "Hijaiyah Beats",
-    genre: "Rhythm · Huruf",
-    description: "Mode normal atau endless untuk mengikuti bentuk huruf.",
+    genre: "Musik · Huruf",
+    description:
+      "Ketuk nada sesuai bentuk huruf hijaiyah. Mainkan mode Normal atau tantang dirimu di mode Endless!",
     cover: <HijaiyahBeatsCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-beats",
     bestKey: "hijaiyah-beats",
@@ -216,7 +225,8 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "doa-dungeon": {
     title: "Doa Dungeon",
     genre: "RPG · Petualangan",
-    description: "Eksplorasi dungeon dengan menghafal doa-doa harian.",
+    description:
+      "Masuki gua penuh misteri. Kalahkan rintangan dengan menghafal doa-doa harian!",
     cover: <DoaDungeonCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/doa-dungeon",
     bestKey: "doa-dungeon",
@@ -224,8 +234,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "sholat-hero": {
     title: "Sholat Hero",
-    genre: "Edukasi · Ibadah",
-    description: "Praktikkan gerakan dan bacaan sholat secara interaktif.",
+    genre: "Edukasi · Gerakan",
+    description:
+      "Jadilah pahlawan ibadah! Pelajari gerakan dan bacaan sholat dengan cara yang seru.",
     cover: <SholatHeroCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/sholat-hero",
     bestKey: "sholat-hero",
@@ -233,8 +244,9 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   },
   "wudhu-flow": {
     title: "Wudhu Flow",
-    genre: "Edukasi · Bersuci",
-    description: "Urutkan langkah wudhu yang benar sesuai sunnah Nabi.",
+    genre: "Edukasi · Urutan",
+    description:
+      "Bersih itu sebagian dari iman. Susun langkah wudhu dengan cepat dan tepat!",
     cover: <WudhuFlowCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/wudhu-flow",
     bestKey: "wudhu-flow",

@@ -14,8 +14,8 @@ import { useRhythmMemoryAudio } from '../../hooks/useRhythmMemoryAudio';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '../../services/soundManager';
 import { patternTypeToArrows } from '../../utils/rhythmMemoryPattern';
-import { AppModal } from '@/components/ui/AppModal';
-import { CheckSvg, FireSvg, RotateCcwSvg, StarSvg } from '@/components/ui/CustomIcons';
+import { AnswerFeedbackSheet } from '../../components/AnswerFeedbackSheet';
+import { StarSvg } from '@/components/ui/CustomIcons';
 
 // Kamus: kode panah ditampilkan di bank panah dan kotak jawaban.
 const ARROW_LABEL: Record<ArrowType, string> = {
@@ -164,12 +164,10 @@ export default function RhythmMemoryPage() {
     setCheckError(null);
     if (JSON.stringify(answer) === JSON.stringify(correctPattern)) {
       triggerBibiReaction('success');
-      soundManager.playSfx('correct');
       setPhase('answered');
       setFeedback('success');
     } else {
       triggerBibiReaction('error');
-      soundManager.playSfx('wrong');
       setPhase('answered');
       setFeedback('fail');
     }
@@ -437,40 +435,22 @@ export default function RhythmMemoryPage() {
           </AnimatePresence>
         </div>
 
-        {/* Modal permainan selesai */}
-        <AppModal
+        {/* Bottom Sheet Feedback Jawaban */}
+        <AnswerFeedbackSheet
           isOpen={phase === 'answered'}
-          onClose={() => navigate('/member/ngaji-ceria/training')}
-          title={isCorrect ? 'Sembuh! Irama benar' : 'Salah! Coba lagi'}
-          variant={isCorrect ? 'warm' : 'cool'}
-        >
-          <div className="w-20 h-20 rounded-2xl bg-[#16A34A] border-3 border-[#134E4A] flex items-center justify-center text-white shadow-md mx-auto mb-3">
-            {isCorrect ? <CheckSvg size={44} /> : <FireSvg size={44} />}
-          </div>
-          <p className="text-xs font-black text-[#134E4A]">
-            {isCorrect
-              ? `Level ${levelIndex + 1} ${subtitle}. Lanjut ke level berikutnya.`
-              : 'Urutan yang benar belum tepat. Coba lagi.'}
-          </p>
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={handleResetAll}
-              className="w-full py-3 rounded-xl border-2 border-[#042F2E] bg-[#0D9488] hover:bg-[#0B7285] text-white font-black text-sm shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <CheckSvg size={14} />
-              <span>Tahan</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/member/ngaji-ceria/training')}
-              className="w-full py-2.5 rounded-xl border-2 border-[#B45309] bg-[#FEF08A] hover:bg-[#FDE047] text-[#78350F] font-black text-xs shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1"
-            >
-              <RotateCcwSvg size={13} />
-              <span>Kembali</span>
-            </button>
-          </div>
-        </AppModal>
+          isCorrect={isCorrect}
+          onNext={() => {
+            if (levelIndex < levels.length - 1) {
+              setLevelIndex((i) => i + 1);
+              resetLevel();
+            } else {
+              navigate('/member/ngaji-ceria/training');
+            }
+          }}
+          onRetry={resetLevel}
+          onReset={resetLevel}
+          onClose={() => setPhase('idle')}
+        />
       </div>
     </NgajiCeriaLayout>
   );
