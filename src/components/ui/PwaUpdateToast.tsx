@@ -9,7 +9,7 @@ export interface PwaUpdateToastProps {
 
 export function PwaUpdateToast({ onDismiss, onReload }: PwaUpdateToastProps) {
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex flex-col gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A] sm:left-auto sm:right-4 sm:w-[calc(100%-2rem)] sm:max-w-sm">
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-auto md:right-24 w-auto z-50 flex flex-col gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A] min-w-[240px]">
       <div className="flex items-start justify-between gap-3">
         <p className="font-black text-sm leading-snug text-[#134E4A]">
           Pembaruan aplikasi tersedia. Muat ulang agar perubahan disimpankan?
