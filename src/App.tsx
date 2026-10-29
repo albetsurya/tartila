@@ -19,6 +19,8 @@ import { NgajiCeriaBottomNav } from "./features/ngaji-ceria/components/NgajiCeri
 import { CeriaGameLoading } from "./features/ngaji-ceria/components/CeriaGameLoading";
 import ScrollToTop from "./components/ScrollToTop";
 import { useEconomyStore } from "./features/ngaji-ceria/hooks/useEconomyStore";
+import { PwaUpdateToast } from "./components/ui/PwaUpdateToast";
+import { usePWAUpdate } from "./hooks/usePWAUpdate";
 
 // Core primary tab pages imported statically for instant transitions & zero layout flashing
 import NgajiCeriaHomePage from "./features/ngaji-ceria/pages/NgajiCeriaHomePage";
@@ -940,13 +942,23 @@ export default function App() {
     </AuthProvider>
   );
 
-  if (googleClientId) {
-    return (
-      <GoogleOAuthProvider clientId={googleClientId}>
-        {appContent}
-      </GoogleOAuthProvider>
-    );
-  }
+  const { needRefresh, updateServiceWorker, dismiss } = usePWAUpdate();
 
-  return appContent;
+  return (
+    <>
+      {needRefresh && (
+        <PwaUpdateToast
+          onDismiss={dismiss}
+          onReload={() => updateServiceWorker(true)}
+        />
+      )}
+      {googleClientId ? (
+        <GoogleOAuthProvider clientId={googleClientId}>
+          {appContent}
+        </GoogleOAuthProvider>
+      ) : (
+        appContent
+      )}
+    </>
+  );
 }

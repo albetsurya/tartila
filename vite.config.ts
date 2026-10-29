@@ -671,7 +671,7 @@ export default defineConfig(async ({ mode }): Promise<UserConfig> => {
       tailwindcss(),
       tilawatiEditorPlugin(),
       VitePWA({
-        registerType: "autoUpdate",
+        registerType: "prompt",
         manifest: false,
         includeAssets: [
           "favicon.ico",
@@ -711,7 +711,7 @@ export default defineConfig(async ({ mode }): Promise<UserConfig> => {
           navigateFallbackDenylist: [/^\/api/],
           cleanupOutdatedCaches: true,
           clientsClaim: true,
-          skipWaiting: true,
+          skipWaiting: false,
           maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         },
         devOptions: {
