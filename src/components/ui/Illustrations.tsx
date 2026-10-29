@@ -6288,10 +6288,17 @@ function DoodleFacialFeatures({
 function BoyCharacterLayers({
   variant,
   mood,
+  accessory,
 }: {
   variant: AvatarSantriVariant;
   mood: "idle" | "happy" | "cheer";
+  accessory: AvatarSantriAccessory | string | null;
 }) {
+  // Daftar aksesoris penutup kepala
+  const isWearingHat = ["peci", "turban", "wizardhat", "bandana"].includes(
+    accessory || "none",
+  );
+
   return (
     <g>
       {/* --- PAKAIAN COWOK BERDASARKAN VARIANT --- */}
@@ -6509,67 +6516,223 @@ function BoyCharacterLayers({
 
       <DoodleFacialFeatures mood={mood} isGirl={false} variant={variant} />
 
-      {/* --- GAYA RAMBUT COWOK BERDASARKAN VARIANT --- */}
-      {variant === 1 && (
-        /* RAMBUT COWOK 1: Spiky Messy Hitam Pekat (Panel Kiri Atas) */
-        <path
-          d="M 33 55 C 28 45 24 38 33 34 C 28 25 38 22 45 24 C 48 14 58 14 63 20 C 70 12 79 15 78 23 C 88 20 96 26 91 33 C 100 36 99 45 95 55 C 91 42 84 38 78 44 C 73 36 65 37 61 44 C 55 36 47 38 43 45 C 38 40 35 44 33 55 Z"
-          fill={INK}
-          stroke={INK}
-          strokeWidth={STROKE_MAIN}
-          strokeLinejoin="round"
-        />
-      )}
+      {/* --- GAYA RAMBUT COWOK --- */}
+      {!isWearingHat ? (
+        /* JIKA TIDAK PAKAI TOPI: Rambut Full */
+        <>
+          {variant === 1 && (
+            <g>
+              <path
+                d="M 31 56
+                   L 22 50 L 29 45
+                   L 19 37 L 31 33
+                   C 25 24 19 18 19 18
+                   C 28 16 36 18 42 22
+                   L 40 11 L 53 19
+                   L 63 8 L 69 19
+                   C 77 13 88 12 94 15
+                   L 87 23
+                   C 96 22 105 26 109 32
+                   L 96 35
+                   C 103 39 107 45 105 49
+                   L 96 47 L 97 56
+                   L 92 43
+                   C 87 38 78 37 72 43
+                   L 68 38 L 64 44 L 60 38
+                   C 53 37 42 38 36 44
+                   Z"
+                fill={INK}
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 55 17 C 50 11 43 10 38 13
+                   M 72 17 C 79 10 88 9 95 13
+                   M 27 49 C 22 51 19 55 20 58"
+                fill="none"
+                stroke={INK}
+                strokeWidth={STROKE_DETAIL}
+                strokeLinecap="round"
+              />
+            </g>
+          )}
 
-      {variant === 2 && (
-        /* RAMBUT COWOK 2: Soft Blonde/Cream Belah Tengah Kasual (Panel Kiri Tengah) */
-        <g>
-          <path
-            d="M 31 56 C 27 34 39 17 64 17 C 89 17 101 34 97 56 C 93 45 87 40 81 48 C 78 37 70 36 64 45 C 58 36 50 37 47 48 C 41 40 35 45 31 56 Z"
-            fill="#E9D8A6"
-            stroke={INK}
-            strokeWidth={STROKE_MAIN}
-            strokeLinejoin="round"
-          />
-          <path
-            d="M 52 24 Q 64 31 76 24"
-            fill="none"
-            stroke={INK}
-            strokeWidth={STROKE_DETAIL}
-            strokeLinecap="round"
-          />
-        </g>
-      )}
+          {variant === 2 && (
+            <g>
+              <path
+                d="M 32 65 L 28 73 L 34 71 L 35 78 L 42 71 Z
+                   M 96 65 L 100 73 L 94 71 L 93 78 L 86 71 Z"
+                fill="#EAE0B7"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 31 55
+                   C 25 47 24 35 31 26
+                   C 36 19 44 16 50 18
+                   L 48 14
+                   C 55 13 61 14 64 16
+                   C 69 13 81 15 90 21
+                   C 99 28 103 40 97 55
+                   L 93 45 L 86 45
+                   L 82 33 L 77 45
+                   L 69 45
+                   L 64 26 L 58 45
+                   L 50 45
+                   L 45 34 L 41 45
+                   L 35 45 Z"
+                fill="#EAE0B7"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 61 16 L 64 23
+                   M 34 41 L 41 42
+                   M 49 42 L 58 43
+                   M 69 43 L 78 42
+                   M 86 42 L 94 41"
+                fill="none"
+                stroke={INK}
+                strokeWidth={STROKE_DETAIL}
+                strokeLinecap="round"
+              />
+            </g>
+          )}
 
-      {variant === 3 && (
-        /* RAMBUT COWOK 3: Fluffy Warm-Gold + Klip Hijau & Highlight Putih (Panel Kanan Bawah) */
-        <g>
-          <path
-            d="M 30 57 C 25 36 37 16 64 16 C 91 16 103 36 98 57 C 94 46 88 41 82 49 C 77 38 69 37 64 46 C 57 37 48 39 44 49 C 38 42 34 46 30 57 Z"
-            fill="#F3C65F"
-            stroke={INK}
-            strokeWidth={STROKE_MAIN}
-            strokeLinejoin="round"
-          />
-          {/* Highlight Putih */}
-          <path
-            d="M 75 23 C 81 24 86 29 88 34 C 82 33 77 31 74 27 Z"
-            fill="#FFFFFF"
-            opacity="0.85"
-          />
-          {/* Jepit/Patch Hijau di Sisi Kiri Rambut */}
-          <rect
-            x="33"
-            y="34"
-            width="10"
-            height="4.5"
-            rx="1"
-            transform="rotate(-15 33 34)"
-            fill="#52B788"
-            stroke={INK}
-            strokeWidth="1.8"
-          />
-        </g>
+          {variant === 3 && (
+            <g>
+              <path
+                d="M 32 64 L 26 73 L 33 72 L 32 81 L 41 74 L 40 82 L 46 74 Z
+                   M 96 64 L 102 73 L 95 72 L 96 81 L 87 74 L 88 82 L 82 74 Z"
+                fill="#F4D365"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 32 56
+                   L 25 51 L 29 46
+                   L 22 40 L 29 35
+                   C 26 27 33 19 44 17
+                   L 41 13 L 50 15
+                   C 55 13 60 14 63 17
+                   L 61 10 L 66 15 L 71 11 L 69 17
+                   C 78 14 89 17 95 24
+                   L 102 22 L 98 29
+                   C 104 33 106 39 100 43
+                   L 105 49 L 96 51 L 96 56
+                   C 93 48 90 42 86 46
+                   C 84 36 75 32 67 39
+                   L 64 49 L 60 39
+                   C 52 32 43 36 41 46
+                   C 37 42 34 48 32 56 Z"
+                fill="#F4D365"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 63 18 C 61 24 62 31 64 38
+                   M 54 25 C 57 28 59 32 60 36
+                   M 73 25 C 70 28 68 32 67 36"
+                fill="none"
+                stroke={INK}
+                strokeWidth={STROKE_DETAIL}
+                strokeLinecap="round"
+              />
+              <g transform="rotate(14 31 35)">
+                <rect
+                  x="25"
+                  y="32"
+                  width="12"
+                  height="5.5"
+                  rx="1.2"
+                  fill="#68B684"
+                  stroke={INK}
+                  strokeWidth="1.8"
+                />
+                <line
+                  x1="26"
+                  y1="34.75"
+                  x2="36"
+                  y2="34.75"
+                  stroke={INK}
+                  strokeWidth="1.2"
+                />
+              </g>
+            </g>
+          )}
+        </>
+      ) : (
+        /* JIKA PAKAI TOPI: Hanya Tampilkan Rambut yang Mengintip (Poni & Sideburns) */
+        <>
+          {variant === 1 && (
+            <g>
+              {/* Poni berantakan di bawah topi */}
+              <path
+                d="M 34 45 L 32 55 L 37 52 L 40 60 L 46 52 L 50 58 L 55 50 L 60 57 L 64 48 L 68 57 L 73 50 L 78 58 L 82 52 L 88 60 L 91 52 L 96 55 L 94 45 C 80 40 48 40 34 45 Z"
+                fill={INK}
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              {/* Sideburns/Cambang di samping telinga */}
+              <path
+                d="M 33 55 L 31 65 L 35 62 Z M 95 55 L 97 65 L 93 62 Z"
+                fill={INK}
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+            </g>
+          )}
+
+          {variant === 2 && (
+            <g>
+              {/* Poni belah tengah di bawah topi */}
+              <path
+                d="M 33 52 C 43 42 85 42 95 52 L 92 60 L 87 54 L 83 60 L 78 50 L 73 57 L 68 48 L 64 55 L 60 48 L 55 57 L 50 50 L 45 60 L 41 54 L 36 60 Z"
+                fill="#EAE0B7"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              {/* Sideburns */}
+              <path
+                d="M 33 55 L 29 65 L 35 62 Z M 95 55 L 99 65 L 93 62 Z"
+                fill="#EAE0B7"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+            </g>
+          )}
+
+          {variant === 3 && (
+            <g>
+              {/* Ekor rambut panjang di belakang leher (Nape) */}
+              <path
+                d="M 32 62 L 26 73 L 33 71 L 32 81 L 41 74 L 40 82 L 46 72 Z M 96 62 L 102 73 L 95 71 L 96 81 L 87 74 L 88 82 L 82 72 Z"
+                fill="#F4D365"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+              {/* Poni berantakan di bawah topi */}
+              <path
+                d="M 35 50 C 45 42 85 42 93 50 L 90 58 L 85 52 L 81 58 L 75 48 L 68 55 L 64 46 L 60 55 L 54 48 L 48 56 L 42 50 L 38 56 Z"
+                fill="#F4D365"
+                stroke={INK}
+                strokeWidth={STROKE_MAIN}
+                strokeLinejoin="round"
+              />
+            </g>
+          )}
+        </>
       )}
     </g>
   );
@@ -6590,7 +6753,6 @@ function GirlCharacterLayers({
       {variant === 1 && (
         /* ====================================================================
            CEWEK 1: Pashmina Syar'i Warm-Apricot + Overall Motif Hijau
-           (Adaptasi Syar'i dari Panel Kanan Atas)
            ==================================================================== */
         <g>
           {/* Siluet Belakang Khimar */}
@@ -6645,7 +6807,7 @@ function GirlCharacterLayers({
             strokeWidth={STROKE_DETAIL}
             strokeLinecap="round"
           />
-          {/* Tali & Bib Overall Hijau-Putih di Atas Gamis/Khimar (Persis Panel Kanan Atas) */}
+          {/* Tali & Bib Overall Hijau-Putih di Atas Gamis/Khimar */}
           <rect
             x="40"
             y="95"
@@ -6705,7 +6867,6 @@ function GirlCharacterLayers({
       {variant === 2 && (
         /* ====================================================================
            CEWEK 2: Khimar Syar'i Terracotta/Coral + Pin Bintang + Gamis Hitam
-           (Adaptasi Syar'i dari Karakter Kiri di Panel Tengah Biru)
            ==================================================================== */
         <g>
           {/* Siluet Belakang Khimar */}
@@ -6779,7 +6940,7 @@ function GirlCharacterLayers({
             fill="#FFD7CA"
             opacity="0.75"
           />
-          {/* 2 Pin Bintang Hijau di Sisi Kiri Kerudung (Persis Panel Tengah) */}
+          {/* 2 Pin Bintang Hijau di Sisi Kiri Kerudung */}
           <path
             d="M 35 35 L 37.5 40.5 L 43 43 L 37.5 45.5 L 35 51 L 32.5 45.5 L 27 43 L 32.5 40.5 Z"
             fill="#52B788"
@@ -6800,7 +6961,6 @@ function GirlCharacterLayers({
       {variant === 3 && (
         /* ====================================================================
            CEWEK 3: Khimar Syar'i Hitam Monokrom + Jaket Hoodie Modest + Kacamata Bulat
-           (Adaptasi Syar'i dari Karakter Kanan Berkacamata di Panel Tengah Biru)
            ==================================================================== */
         <g>
           {/* Siluet Belakang Khimar Hitam */}
@@ -6876,7 +7036,7 @@ function GirlCharacterLayers({
             strokeLinecap="round"
           />
 
-          {/* Detail Hoodie Putih & Plaket Tengah Modest (Persis Karakter Kanan Panel Tengah) */}
+          {/* Detail Hoodie Putih & Plaket Tengah Modest */}
           <path
             d="M 38 92 C 38 86 48 86 55 92 L 64 98 L 73 92 C 80 86 90 86 90 92 C 92 100 82 104 73 102 L 73 134 L 55 134 L 55 102 C 46 104 36 100 38 92 Z"
             fill="#FFFFFF"
@@ -6946,17 +7106,17 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const clipId = `comic-panel-clip-${uid}`;
 
-  // Palet Warna Latar Panel Komik Sesuai Gambar Referensi
+  // Palet Warna Latar Panel Komik
   const panelColors = {
     boy: {
-      1: "#F4D35E", // Mustard Yellow (Panel Kiri Atas)
-      2: "#E56B6F", // Coral Red (Panel Kiri Tengah)
-      3: "#68B66B", // Retro Green (Panel Kanan Bawah)
+      1: "#F4D35E", // Mustard Yellow
+      2: "#E56B6F", // Coral Red
+      3: "#68B66B", // Retro Green
     },
     girl: {
-      1: "#E56B6F", // Coral Red (Panel Kanan Atas)
-      2: "#38A3C5", // Sky Blue (Panel Tengah Kiri)
-      3: "#38A3C5", // Sky Blue (Panel Tengah Kanan)
+      1: "#E56B6F", // Coral Red
+      2: "#38A3C5", // Sky Blue
+      3: "#38A3C5", // Sky Blue
     },
   };
 
@@ -6990,7 +7150,7 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
         fill={panelBg}
       />
 
-      {/* Ornamen Sparkle & Garis Ekspresi Latar Khusus Panel Biru (Variant 2 & 3 Putri) */}
+      {/* Ornamen Sparkle & Garis Ekspresi Latar */}
       <g clipPath={`url(#${clipId})`}>
         {isGirl && variant === 2 && (
           <path
@@ -7007,11 +7167,15 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
           />
         )}
 
-        {/* Render Karakter Cowok / Cewek (Variant 1, 2, atau 3) */}
+        {/* Render Karakter Cowok / Cewek */}
         {isGirl ? (
           <GirlCharacterLayers variant={variant} mood={mood} />
         ) : (
-          <BoyCharacterLayers variant={variant} mood={mood} />
+          <BoyCharacterLayers
+            variant={variant}
+            mood={mood}
+            accessory={accessory}
+          />
         )}
 
         {/* Layer Aksesoris Opsional */}
