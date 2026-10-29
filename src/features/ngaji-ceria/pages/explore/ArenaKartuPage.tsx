@@ -1,17 +1,20 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { NgajiCeriaLayout } from '../../components/NgajiCeriaLayout';
-import { ExploreHeader, ExploreStatBadge } from '../../components/ExploreHeader';
-import { loadTimelineEdits } from '../../utils/timelineEditsLoader';
-import type { TimelineEdits } from '../../utils/timelineEditsLoader';
+import React, { useMemo, useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import {
+  ExploreHeader,
+  ExploreStatBadge,
+} from "../../components/ExploreHeader";
+import { loadTimelineEdits } from "../../utils/timelineEditsLoader";
+import type { TimelineEdits } from "../../utils/timelineEditsLoader";
 import {
   getArenaKartuMateri,
   getArabicFontSizeClass,
   getArenaKartuLevelInfo,
   type ArenaKartuMateri,
-} from '../../utils/tilawatiTrainingDataAdapter';
-import { useEconomyStore } from '../../hooks/useEconomyStore';
+} from "../../utils/tilawatiTrainingDataAdapter";
+import { useEconomyStore } from "../../hooks/useEconomyStore";
 import {
   StarSvg,
   CheckSvg,
@@ -20,15 +23,14 @@ import {
   ClipboardListSvg,
   LockSvg,
   HelpCircleSvg,
-} from '@/components/ui/CustomIcons';
-import { triggerBibiReaction } from '@/utils/bibiEvent';
-import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
+} from "@/components/ui/CustomIcons";
+import { triggerBibiReaction } from "@/utils/bibiEvent";
+import { soundManager } from "@/features/ngaji-ceria/services/soundManager";
 
 export default function ArenaKartuPage() {
   const navigate = useNavigate();
   const { jilid: jilidParam } = useParams<{ jilid?: string }>();
 
-  // Ambil jilid dari URL (default 1 jika tidak ada / tidak valid)
   const currentJilid = useMemo(() => {
     const parsed = Number(jilidParam);
     return parsed >= 1 && parsed <= 6 ? parsed : 1;
@@ -38,8 +40,9 @@ export default function ArenaKartuPage() {
     return getArenaKartuLevelInfo(currentJilid);
   }, [currentJilid]);
 
-  // Timeline Editor data (SSOT) — fetched once on mount
-  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(undefined);
+  const [timelineData, setTimelineData] = useState<TimelineEdits | undefined>(
+    undefined,
+  );
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
 
   useEffect(() => {
@@ -56,7 +59,6 @@ export default function ArenaKartuPage() {
     };
   }, []);
 
-  // 12 Kartu Materi untuk jilid ini (async — dimuat via dataset lazy loader)
   const [cards, setCards] = useState<ArenaKartuMateri[]>([]);
   const [isLoadingCards, setIsLoadingCards] = useState(true);
 
@@ -74,7 +76,6 @@ export default function ArenaKartuPage() {
     };
   }, [currentJilid, timelineData]);
 
-  // State Progres dari Zustand Store & LocalStorage
   const completedArenaCards = useEconomyStore((s) => s.completedArenaCards);
   const completedList = useMemo(() => {
     return completedArenaCards?.[currentJilid] || [];
@@ -84,15 +85,45 @@ export default function ArenaKartuPage() {
     return cards.filter((c) => completedList.includes(c.id)).length;
   }, [cards, completedList]);
 
-  const progressPercent = cards.length > 0
-    ? Math.round((completedCount / cards.length) * 100)
-    : 0;
+  const progressPercent =
+    cards.length > 0 ? Math.round((completedCount / cards.length) * 100) : 0;
 
-  // Handler Klik Kartu -> Navigasi ke Halaman Latihan
-  const handleCardClick = (card: ArenaKartuMateri) => {
-    triggerBibiReaction('click');
-    soundManager.playSfx('pop');
-    navigate(`/member/ngaji-ceria/arena-kartu/${currentJilid}/practice/${card.id}`);
+  const [selectedCard, setSelectedCard] = useState<ArenaKartuMateri | null>(
+    null,
+  );
+  const [cardOrigin, setCardOrigin] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+
+  const handleCardClick = (
+    card: ArenaKartuMateri,
+    e: React.MouseEvent<HTMLDivElement>,
+  ) => {
+    if (selectedCard) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const cardCenterX = rect.left + rect.width / 2;
+    const cardCenterY = rect.top + rect.height / 2;
+
+    setCardOrigin({
+      x: cardCenterX - centerX,
+      y: cardCenterY - centerY,
+    });
+
+    triggerBibiReaction("click");
+    soundManager.playSfx("pop");
+    setSelectedCard(card);
+  };
+
+  const handleAnimationComplete = () => {
+    if (selectedCard) {
+      navigate(
+        `/member/ngaji-ceria/arena-kartu/${currentJilid}/practice/${selectedCard.id}`,
+      );
+    }
   };
 
   return (
@@ -100,31 +131,28 @@ export default function ArenaKartuPage() {
       title={`Papan Progres Arena Kartu - Jilid ${currentJilid}`}
       hideHeader={true}
       themeScope="arena-kartu"
-      onBack={() => navigate('/member/ngaji-ceria/training')}
+      onBack={() => navigate("/member/ngaji-ceria/training")}
     >
-      {/* Background Meja Kasino Felt Hijau */}
       <div className="relative min-h-[100dvh] w-full bg-[#065F46] overflow-x-hidden pb-44 sm:pb-48 select-none">
-        {/* Efek Meja Felt & Lampu Panggung */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 50% 30%, #10B98122 0, transparent 65%)',
+              "radial-gradient(circle at 50% 30%, #10B98122 0, transparent 65%)",
           }}
         />
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
-            boxShadow: 'inset 0 0 0 10px #B45309, inset 0 0 0 14px #78350F',
+            boxShadow: "inset 0 0 0 10px #B45309, inset 0 0 0 14px #78350F",
           }}
         />
 
         <div className="relative z-20">
-          {/* Header Terstandarisasi dengan Tombol Ganti Jilid */}
           <ExploreHeader
             title={`Papan Progres: Jilid ${currentJilid}`}
             subtitle={levelInfo.subtitle}
-            onBack={() => navigate('/member/ngaji-ceria/training')}
+            onBack={() => navigate("/member/ngaji-ceria/training")}
             themeScope="arena-kartu"
             themeColorClass="bg-[#065F46]"
             borderColorClass="border-[#B45309]"
@@ -142,7 +170,7 @@ export default function ArenaKartuPage() {
             rightAction={
               <button
                 type="button"
-                onClick={() => navigate('/member/ngaji-ceria/arena-kartu')}
+                onClick={() => navigate("/member/ngaji-ceria/arena-kartu")}
                 className="inline-flex items-center gap-1 rounded-xl border-2 border-[#B45309] bg-[#FEF3C7] px-2.5 py-1 text-xs font-black text-[#7C2D12] shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] hover:bg-[#FDE68A] transition-all cursor-pointer shrink-0"
               >
                 <span>Ganti Jilid</span>
@@ -151,7 +179,6 @@ export default function ArenaKartuPage() {
             }
           />
 
-          {/* PROGRESS COUNTER & BANNER PERINGKAT (NEO-BRUTALISM) */}
           <section className="px-4 pt-4 max-w-4xl mx-auto">
             <div className="rounded-2xl bg-[#042F2E]/90 border-[3px] border-[#10B981]/50 p-3.5 sm:p-4 text-[#FEF3C7] shadow-[4px_4px_0px_#022C22]">
               <div className="flex items-center justify-between gap-2 mb-2">
@@ -162,7 +189,8 @@ export default function ArenaKartuPage() {
                       Progres Materi Jilid {currentJilid}
                     </h2>
                     <span className="text-[10px] text-[#A7F3D0] font-medium">
-                      Buka kartu dan latih ketukan irama tilawati untuk menguasainya!
+                      Buka kartu dan latih ketukan irama tilawati untuk
+                      menguasainya!
                     </span>
                   </div>
                 </div>
@@ -176,19 +204,17 @@ export default function ArenaKartuPage() {
                 </div>
               </div>
 
-              {/* Progress Bar Visual */}
               <div className="h-3 w-full rounded-full bg-[#022C22] border-2 border-[#10B981]/60 overflow-hidden p-0.5">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-[#FDE047] via-[#10B981] to-[#34D399]"
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
                 />
               </div>
             </div>
           </section>
 
-          {/* GRID 12 KARTU PAPAN PROGRES (3 KOLOM X 4 BARIS) */}
           <section className="px-4 pt-4 max-w-4xl mx-auto">
             {isLoadingTimeline && (
               <div className="py-6 text-center text-[10px] font-black text-[#A7F3D0]">
@@ -204,123 +230,122 @@ export default function ArenaKartuPage() {
                 Segera Hadir untuk Jilid ini
               </div>
             ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-              {cards.map((card, index) => {
-                const isCompleted = completedList.includes(card.id);
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {cards.map((card, index) => {
+                  const isCompleted = completedList.includes(card.id);
+                  const isSelected = selectedCard?.id === card.id;
 
-                return (
-                  <motion.div
-                    key={card.id}
-                    initial={{ opacity: 0, scale: 0.9, y: 15 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{
-                      delay: index * 0.03,
-                      type: 'spring',
-                      stiffness: 280,
-                      damping: 22,
-                    }}
-                    whileHover={{ y: -3, scale: 1.02 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleCardClick(card)}
-                    className={`relative cursor-pointer overflow-hidden rounded-2xl border-[3.5px] p-3 text-center transition-all select-none flex flex-col justify-between aspect-[3/4] ${
-                      isCompleted
-                        ? 'bg-[#F0FDF4] border-[#10B981] shadow-[4px_4px_0px_#065F46] hover:shadow-[6px_6px_0px_#065F46]'
-                        : 'bg-[#0D9488] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] hover:shadow-[6px_6px_0px_#134E4A]'
-                    }`}
-                  >
-                    {/* Header Mini Kartu */}
-                    <div className="w-full flex items-center justify-between z-10">
-                      <span
-                        className={`text-[9px] font-black uppercase tracking-wider ${
-                          isCompleted ? 'text-[#10B981]' : 'text-[#FEF08A]/90'
-                        }`}
-                      >
-                        #{String(card.cardIndex).padStart(2, '0')}
-                      </span>
+                  return (
+                    <motion.div
+                      key={card.id}
+                      initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                      animate={{
+                        opacity: isSelected ? 0 : 1,
+                        scale: isSelected ? 0.95 : 1,
+                        y: 0,
+                      }}
+                      transition={{
+                        delay: isSelected ? 0 : index * 0.03,
+                        type: "spring",
+                        stiffness: 280,
+                        damping: 22,
+                      }}
+                      whileHover={{ y: -3, scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={(e) => handleCardClick(card, e)}
+                      className={`relative cursor-pointer overflow-hidden rounded-2xl border-[3.5px] p-3 text-center transition-colors select-none flex flex-col justify-between aspect-[3/4] ${
+                        isCompleted
+                          ? "bg-[#F0FDF4] border-[#10B981] shadow-[4px_4px_0px_#065F46] hover:shadow-[6px_6px_0px_#065F46]"
+                          : "bg-[#0D9488] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] hover:shadow-[6px_6px_0px_#134E4A]"
+                      }`}
+                    >
+                      <div className="w-full flex items-center justify-between z-10">
+                        <span
+                          className={`text-[9px] font-black uppercase tracking-wider ${
+                            isCompleted ? "text-[#10B981]" : "text-[#FEF08A]/90"
+                          }`}
+                        >
+                          #{String(card.cardIndex).padStart(2, "0")}
+                        </span>
+
+                        {isCompleted ? (
+                          <span className="w-5 h-5 rounded-full bg-[#10B981] text-white flex items-center justify-center text-[10px] font-black shadow-xs">
+                            <CheckSvg size={12} />
+                          </span>
+                        ) : (
+                          <span className="w-5 h-5 rounded-full bg-[#042F2E]/60 border border-[#FEF08A]/40 text-[#FEF08A] flex items-center justify-center shadow-xs">
+                            <LockSvg size={11} />
+                          </span>
+                        )}
+                      </div>
 
                       {isCompleted ? (
-                        <span className="w-5 h-5 rounded-full bg-[#10B981] text-white flex items-center justify-center text-[10px] font-black shadow-xs">
-                          <CheckSvg size={12} />
-                        </span>
-                      ) : (
-                        <span className="w-5 h-5 rounded-full bg-[#042F2E]/60 border border-[#FEF08A]/40 text-[#FEF08A] flex items-center justify-center shadow-xs">
-                          <LockSvg size={11} />
-                        </span>
-                      )}
-                    </div>
-
-                    {/* KONTEN KARTU: TERBUKA (TEKS ARAB) VS TERTUTUP (GEMBOK/TANDA TANYA) */}
-                    {isCompleted ? (
-                      /* KARTU TERBUKA (SUDAH DIKUASAI) */
-                      <div className="flex-1 flex flex-col items-center justify-center my-1">
-                        <div
-                          className="flex items-center justify-center w-full my-auto"
-                          dir="rtl"
-                        >
-                          <span
-                            className={`font-arabic font-bold text-[#065F46] leading-loose drop-shadow-xs max-w-full break-words select-none ${getArabicFontSizeClass(
-                              card.text
-                            )}`}
+                        <div className="flex-1 flex flex-col items-center justify-center my-1">
+                          <div
+                            className="flex items-center justify-center w-full my-auto"
+                            dir="rtl"
                           >
-                            {card.text}
+                            <span
+                              className={`font-arabic font-bold text-[#065F46] leading-loose drop-shadow-xs max-w-full break-words select-none ${getArabicFontSizeClass(
+                                card.text,
+                              )}`}
+                            >
+                              {card.text}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-[#047857] line-clamp-1">
+                            {card.transliteration}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-[#047857] line-clamp-1">
-                          {card.transliteration}
-                        </span>
-                      </div>
-                    ) : (
-                      /* KARTU TERTUTUP (BELUM DIKUASAI) */
-                      <div className="flex-1 flex flex-col items-center justify-center my-auto">
-                        <div className="w-12 h-12 rounded-2xl bg-[#042F2E]/50 border-2 border-[#FEF08A]/60 flex items-center justify-center rotate-45 shadow-xs mb-2">
-                          <div className="-rotate-45 text-[#FDE047]">
-                            <HelpCircleSvg size={22} />
+                      ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center my-auto">
+                          <div className="w-12 h-12 rounded-2xl bg-[#042F2E]/50 border-2 border-[#FEF08A]/60 flex items-center justify-center rotate-45 shadow-xs mb-2">
+                            <div className="-rotate-45 text-[#FDE047]">
+                              <HelpCircleSvg size={22} />
+                            </div>
                           </div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#FEF08A]/80">
+                            Terkunci
+                          </span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-[#FEF08A]/80">
-                          Terkunci
-                        </span>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Footer Kartu Mini Action */}
-                    <div className="w-full pt-1.5 border-t border-black/10">
-                      <div
-                        className={`inline-flex items-center justify-center gap-1 w-full py-1 rounded-lg text-[9px] font-black uppercase transition-colors ${
-                          isCompleted
-                            ? 'bg-[#DCFCE7] text-[#15803D]'
-                            : 'bg-[#FEF08A] text-[#78350F]'
-                        }`}
-                      >
-                        <span>{isCompleted ? 'Latih Lagi' : 'Buka & Latih'}</span>
-                        <ChevronRight size={10} />
+                      <div className="w-full pt-1.5 border-t border-black/10">
+                        <div
+                          className={`inline-flex items-center justify-center gap-1 w-full py-1 rounded-lg text-[9px] font-black uppercase transition-colors ${
+                            isCompleted
+                              ? "bg-[#DCFCE7] text-[#15803D]"
+                              : "bg-[#FEF08A] text-[#78350F]"
+                          }`}
+                        >
+                          <span>
+                            {isCompleted ? "Latih Lagi" : "Buka & Latih"}
+                          </span>
+                          <ChevronRight size={10} />
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
             )}
           </section>
 
-          {/* BOTTOM BAR AKSI PAPAN PROGRES */}
           <div className="fixed bottom-20 sm:bottom-24 left-0 right-0 z-50 px-4 pointer-events-none">
             <div className="mx-auto max-w-md pointer-events-auto">
               <div className="flex items-center gap-2 rounded-2xl bg-[#1E1B4B] border-[3px] border-[#FDE68A] p-2.5 shadow-[0_5px_0px_#0F172A]">
-                {/* 1. Tombol Kembali ke Pusat Latihan */}
                 <button
                   type="button"
-                  onClick={() => navigate('/member/ngaji-ceria/training')}
+                  onClick={() => navigate("/member/ngaji-ceria/training")}
                   className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border-2 border-[#78350F] bg-[#FEF08A] hover:bg-[#FDE047] active:translate-y-[1px] active:shadow-none px-3 py-2.5 text-xs font-black text-[#78350F] shadow-[2px_2px_0px_#78350F] transition-all cursor-pointer select-none"
                 >
                   <BookOpen size={15} />
                   <span>Pusat Latihan</span>
                 </button>
 
-                {/* 2. Tombol Ganti Jilid */}
                 <button
                   type="button"
-                  onClick={() => navigate('/member/ngaji-ceria/arena-kartu')}
+                  onClick={() => navigate("/member/ngaji-ceria/arena-kartu")}
                   className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border-2 border-[#042F2E] bg-[#10B981] hover:bg-[#059669] active:translate-y-[1px] active:shadow-none px-3 py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#042F2E] transition-all cursor-pointer select-none"
                 >
                   <span>Ganti Jilid</span>
@@ -331,6 +356,122 @@ export default function ArenaKartuPage() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {selectedCard && (
+          <motion.div
+            className="fixed inset-0 z-[999] flex items-center justify-center pointer-events-auto overflow-hidden"
+            style={{ perspective: 1200 }}
+            initial={{ backgroundColor: "rgba(2, 44, 34, 0)" }}
+            animate={{ backgroundColor: "rgba(2, 44, 34, 0.85)" }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div
+              className="absolute inset-0 backdrop-blur-md"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.35 }}
+            />
+
+            <motion.div
+              initial={{
+                x: cardOrigin.x,
+                y: cardOrigin.y,
+                scale: 0.65,
+                rotateY: 0,
+                rotateZ: 0,
+                opacity: 1,
+              }}
+              animate={{
+                x: [cardOrigin.x, 0, 0],
+                y: [cardOrigin.y, 0, 0],
+                scale: [0.65, 1.15, 4.8],
+                rotateY: [0, 180, 180],
+                rotateZ: [0, -3, 0],
+                opacity: [1, 1, 0],
+              }}
+              transition={{
+                duration: 0.95,
+                times: [0, 0.52, 1],
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              onAnimationComplete={handleAnimationComplete}
+              className="relative w-60 sm:w-64 aspect-[3/4]"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div
+                className={`absolute inset-0 rounded-3xl border-[4px] p-4 flex flex-col justify-between items-center shadow-2xl ${
+                  completedList.includes(selectedCard.id)
+                    ? "bg-[#F0FDF4] border-[#10B981]"
+                    : "bg-[#0D9488] border-[#134E4A]"
+                }`}
+                style={{ backfaceVisibility: "hidden" }}
+              >
+                <div className="w-full flex items-center justify-between">
+                  <span
+                    className={`text-xs font-black uppercase ${
+                      completedList.includes(selectedCard.id)
+                        ? "text-[#10B981]"
+                        : "text-[#FEF08A]"
+                    }`}
+                  >
+                    #{String(selectedCard.cardIndex).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <div className="my-auto flex flex-col items-center">
+                  {completedList.includes(selectedCard.id) ? (
+                    <span
+                      dir="rtl"
+                      className="font-arabic font-bold text-3xl text-[#065F46]"
+                    >
+                      {selectedCard.text}
+                    </span>
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-[#042F2E]/50 border-2 border-[#FEF08A]/60 flex items-center justify-center rotate-45">
+                      <div className="-rotate-45 text-[#FDE047]">
+                        <HelpCircleSvg size={28} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full py-1 rounded-lg bg-black/10 text-[10px] font-black text-center text-white/90 uppercase">
+                  Membuka Kartu...
+                </div>
+              </div>
+
+              <div
+                className="absolute inset-0 rounded-3xl border-[4px] border-[#B45309] bg-[#FEF3C7] p-6 flex flex-col items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                style={{
+                  backfaceVisibility: "hidden",
+                  transform: "rotateY(180deg)",
+                }}
+              >
+                <div className="w-16 h-16 rounded-2xl bg-[#FDE68A] border-[3px] border-[#B45309] flex items-center justify-center mb-3 shadow-[3px_3px_0px_#78350F]">
+                  <StarSvg
+                    size={34}
+                    fill="#F59E0B"
+                    className="text-[#B45309]"
+                  />
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#B45309] text-[#FEF3C7] text-[10px] font-black uppercase tracking-wider mb-2">
+                  Kartu #{String(selectedCard.cardIndex).padStart(2, "0")}
+                </span>
+                <div dir="rtl" className="my-2 text-center">
+                  <span className="font-arabic font-bold text-4xl text-[#78350F]">
+                    {selectedCard.text}
+                  </span>
+                </div>
+                <p className="font-display font-black text-sm text-[#92400E] mt-1">
+                  {selectedCard.transliteration}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </NgajiCeriaLayout>
   );
 }

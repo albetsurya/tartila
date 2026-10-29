@@ -16,6 +16,8 @@ import {
   getQuizHubQuestions,
   QUIZ_HUB_CATEGORIES,
   QuizHubCategory,
+  ADVENTURE_LEVEL_DEFINITIONS,
+  saveCategoryLevelCompleted,
 } from "../data/quizHubData";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { playSoundEffect } from "../utils/audioPlayer";
@@ -36,10 +38,20 @@ export default function QuizHubPlayPage() {
   const isVersus = Boolean(seedNumber && !isNaN(seedNumber));
   const challengerName = searchParams.get("challenger") || "Teman Santri";
 
+  const rawLevel = searchParams.get("level");
+  const levelNumber = rawLevel ? parseInt(rawLevel, 10) : undefined;
+  const currentLevelDef = levelNumber
+    ? ADVENTURE_LEVEL_DEFINITIONS.find((l) => l.level === levelNumber)
+    : undefined;
+  const nextLevelDef =
+    levelNumber && levelNumber < 6
+      ? ADVENTURE_LEVEL_DEFINITIONS.find((l) => l.level === levelNumber + 1)
+      : undefined;
+
   // Ambil bank soal
   const questions = useMemo(() => {
-    return getQuizHubQuestions(validCategory, mode, seedNumber, 5);
-  }, [validCategory, mode, seedNumber]);
+    return getQuizHubQuestions(validCategory, mode, seedNumber, 5, levelNumber);
+  }, [validCategory, mode, seedNumber, levelNumber]);
 
   const totalQuestions = questions.length;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,6 +78,9 @@ export default function QuizHubPlayPage() {
       // Selesai kuis
       setIsFinished(true);
       playSoundEffect("win");
+      if (levelNumber) {
+        saveCategoryLevelCompleted(validCategory, levelNumber);
+      }
       if (!awarded) {
         setAwarded(true);
         // Hadiah koin: 10 koin per jawaban benar
@@ -141,12 +156,12 @@ export default function QuizHubPlayPage() {
         {!isFinished ? (
           <div className="w-full flex-1 flex flex-col justify-center">
             {/* Tag Kategori Soal */}
-            <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
               <span
                 className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border-2 border-[#0F172A]"
                 style={{ backgroundColor: categoryInfo.bgBadge, color: categoryInfo.borderColor }}
               >
-                {categoryInfo.title} · {categoryInfo.tag}
+                {categoryInfo.title} {currentLevelDef ? `· Lvl ${levelNumber}: ${currentLevelDef.name}` : `· ${categoryInfo.tag}`}
               </span>
             </div>
 
@@ -207,6 +222,20 @@ export default function QuizHubPlayPage() {
 
             {/* Action Buttons */}
             <div className="w-full max-w-xs space-y-3">
+              {nextLevelDef && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate(`/quiz-hub/play?category=${validCategory}&level=${(levelNumber || 1) + 1}`);
+                    handleRestart();
+                  }}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-[#22C55E] hover:bg-[#16A34A] border-3 border-[#0F172A] shadow-[3px_3px_0px_#0F172A] font-black text-sm text-white flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5 active:shadow-none"
+                >
+                  <SparklesSvg size={18} />
+                  <span>Lanjut: Level {(levelNumber || 1) + 1} ({nextLevelDef.name})</span>
+                </button>
+              )}
+
               {isVersus && (
                 <button
                   type="button"

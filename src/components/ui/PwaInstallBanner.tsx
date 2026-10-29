@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { DownloadSvg } from "./CustomIcons";
 import { StickerButton } from "./StickerButton";
-import { dismissBanner, subscribePwaInstall, triggerInstall } from "@/lib/pwaInstall";
+import {
+  dismissBanner,
+  subscribePwaInstall,
+  triggerInstall,
+} from "@/lib/pwaInstall";
 
 const BOTTOM_NAV_ROUTES = [
   "/member/ngaji-ceria",
@@ -55,7 +59,11 @@ export function PwaInstallBanner() {
 
         {/* Icon */}
         <div className="w-10 h-10 rounded-xl bg-[#F0FDF4] border-[3px] border-[#134E4A] flex items-center justify-center flex-shrink-0">
-          <img src="/icon.svg" alt="Logo Tartila" className="w-6 h-6 object-contain" />
+          <img
+            src="/icon.svg"
+            alt="Logo Tartila"
+            className="w-6 h-6 object-contain"
+          />
         </div>
 
         {/* Text */}
@@ -64,7 +72,7 @@ export function PwaInstallBanner() {
             Pasang Tartila
           </p>
           <p className="text-xs text-[#134E4A]/70 leading-snug mt-0.5 whitespace-nowrap">
-            Offline &amp; cepat
+            Akses cepat &amp; ringan
           </p>
         </div>
 

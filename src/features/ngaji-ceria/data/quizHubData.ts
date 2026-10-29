@@ -7,11 +7,43 @@ import { JUZ_AMMA_VERSES } from "../pages/games/juz-amma-speedrun/data/juz-amma-
 import { ANGEL_MISSIONS } from "../pages/games/malaikat-mission/data/missions";
 import { CHRONICLES } from "../pages/games/nabi-chronicles/data/chronicles";
 
+// Import adventure quiz data
+import {
+  MISI_5_WAKTU_LEVELS,
+  PETA_IMAN_LEVELS,
+  AIR_KEHIDUPAN_LEVELS,
+  TAMENG_RAMADAN_LEVELS,
+  MISI_BERBAGI_LEVELS,
+  PANDUAN_KSATRIA_LEVELS,
+  LORONG_WAKTU_LEVELS,
+  PUNCAK_ARAFAH_LEVELS,
+  MISI_5_WAKTU_QUESTIONS,
+  PETA_IMAN_QUESTIONS,
+  AIR_KEHIDUPAN_QUESTIONS,
+  TAMENG_RAMADAN_QUESTIONS,
+  MISI_BERBAGI_QUESTIONS,
+  PANDUAN_KSATRIA_QUESTIONS,
+  LORONG_WAKTU_QUESTIONS,
+  PUNCAK_ARAFAH_QUESTIONS,
+  getCategoryUnlockedLevel as getAdventureUnlockedLevel,
+  saveCategoryLevelCompleted as saveAdventureLevel,
+  QUIZ_PROGRESS_STORAGE_KEY,
+  type QuizAdventureLevel,
+} from "./quizAdventureData";
+
 export type QuizHubCategory =
   | "tilawati"
   | "juz-amma"
   | "kisah-doa"
-  | "bahasa-arab";
+  | "bahasa-arab"
+  | "misi-5-waktu"
+  | "peta-iman"
+  | "air-kehidupan"
+  | "tameng-ramadan"
+  | "misi-berbagi"
+  | "panduan-ksatria"
+  | "lorong-waktu"
+  | "puncak-arafah";
 
 export interface QuizCategoryInfo {
   id: QuizHubCategory;
@@ -21,6 +53,7 @@ export interface QuizCategoryInfo {
   color: string;
   borderColor: string;
   bgBadge: string;
+  levels?: QuizAdventureLevel[];
 }
 
 export const QUIZ_HUB_CATEGORIES: QuizCategoryInfo[] = [
@@ -62,6 +95,89 @@ export const QUIZ_HUB_CATEGORIES: QuizCategoryInfo[] = [
     color: "#7C3AED",
     borderColor: "#6D28D9",
     bgBadge: "#EDE9FE",
+  },
+  // ============================================
+  // NEW: 8 Adventure Quiz Categories
+  // ============================================
+  {
+    id: "misi-5-waktu",
+    title: "Misi 5 Waktu",
+    tag: "Ibadah Sholat",
+    description: "Petualangan menegakkan sholat.",
+    color: "#EA580C",
+    borderColor: "#C2410C",
+    bgBadge: "#FFEDD5",
+    levels: MISI_5_WAKTU_LEVELS,
+  },
+  {
+    id: "peta-iman",
+    title: "Peta Iman",
+    tag: "Aqidah & Rukun Iman",
+    description: "Mengenal dasar tauhid dan rukun iman.",
+    color: "#7C3AED",
+    borderColor: "#6D28D9",
+    bgBadge: "#EDE9FE",
+    levels: PETA_IMAN_LEVELS,
+  },
+  {
+    id: "air-kehidupan",
+    title: "Air Kehidupan",
+    tag: "Thaharah & Wudu",
+    description: "Misi bersuci dengan wudu.",
+    color: "#0284C7",
+    borderColor: "#0369A1",
+    bgBadge: "#E0F2FE",
+    levels: AIR_KEHIDUPAN_LEVELS,
+  },
+  {
+    id: "tameng-ramadan",
+    title: "Tameng Ramadan",
+    tag: "Ibadah Puasa",
+    description: "Petualangan puasa di bulan Ramadan.",
+    color: "#DC2626",
+    borderColor: "#B91C1C",
+    bgBadge: "#FEE2E2",
+    levels: TAMENG_RAMADAN_LEVELS,
+  },
+  {
+    id: "misi-berbagi",
+    title: "Misi Berbagi",
+    tag: "Zakat & Sedekah",
+    description: "Belajar zakat dan sedekah.",
+    color: "#059669",
+    borderColor: "#047857",
+    bgBadge: "#D1FAE5",
+    levels: MISI_BERBAGI_LEVELS,
+  },
+  {
+    id: "panduan-ksatria",
+    title: "Panduan Ksatria",
+    tag: "Fikih & Adab",
+    description: "Fikih ibadah dan adab harian.",
+    color: "#B45309",
+    borderColor: "#92400E",
+    bgBadge: "#FEF3C7",
+    levels: PANDUAN_KSATRIA_LEVELS,
+  },
+  {
+    id: "lorong-waktu",
+    title: "Lorong Waktu",
+    tag: "Sejarah & Sirah",
+    description: "Menelusuri sejarah Islam dan para nabi.",
+    color: "#DB2777",
+    borderColor: "#BE185D",
+    bgBadge: "#FCE7F3",
+    levels: LORONG_WAKTU_LEVELS,
+  },
+  {
+    id: "puncak-arafah",
+    title: "Puncak Arafah",
+    tag: "Haji & Umrah",
+    description: "Mengenal ibadah haji dan umrah.",
+    color: "#0D9488",
+    borderColor: "#0F766E",
+    bgBadge: "#CCFBF1",
+    levels: PUNCAK_ARAFAH_LEVELS,
   },
 ];
 
@@ -2580,6 +2696,14 @@ export const QUIZ_HUB_QUESTIONS: Record<QuizHubCategory, QuestionData[]> = {
   "juz-amma": JUZ_AMMA_QUESTIONS,
   "kisah-doa": KISAH_DOA_QUESTIONS,
   "bahasa-arab": ARABIC_VOCAB_QUESTIONS,
+  "misi-5-waktu": MISI_5_WAKTU_QUESTIONS,
+  "peta-iman": PETA_IMAN_QUESTIONS,
+  "air-kehidupan": AIR_KEHIDUPAN_QUESTIONS,
+  "tameng-ramadan": TAMENG_RAMADAN_QUESTIONS,
+  "misi-berbagi": MISI_BERBAGI_QUESTIONS,
+  "panduan-ksatria": PANDUAN_KSATRIA_QUESTIONS,
+  "lorong-waktu": LORONG_WAKTU_QUESTIONS,
+  "puncak-arafah": PUNCAK_ARAFAH_QUESTIONS,
 };
 
 /**
@@ -2610,18 +2734,44 @@ export function shuffleWithSeed<T>(items: readonly T[], seed: number): T[] {
 }
 
 /**
- * Mengambil soal untuk Pusat Kuis dengan opsi mode & seed tantang teman.
+ * Mengambil soal untuk Pusat Kuis dengan opsi mode, seed, dan level.
  */
 export function getQuizHubQuestions(
   category: QuizHubCategory = "bahasa-arab",
   mode: "all" | "mcq" | "scramble" = "all",
   seed?: number,
   limit = 5,
+  level?: number,
 ): QuestionData[] {
-  const rawPool =
-    category === "tilawati"
-      ? getRandomQuestions(1, Math.max(limit * 2, 10)).map(toTilawatiQuestionData)
-      : QUIZ_HUB_QUESTIONS[category] || ARABIC_VOCAB_QUESTIONS;
+  const catInfo = QUIZ_HUB_CATEGORIES.find((c) => c.id === category);
+
+  // Jika level diberikan, cek apakah kategori punya levels eksplisit
+  let rawPool: QuestionData[] = [];
+  if (level && catInfo?.levels) {
+    const lvlData = catInfo.levels.find((l) => l.level === level);
+    if (lvlData && lvlData.questions.length > 0) {
+      rawPool = [...lvlData.questions];
+    }
+  }
+
+  // Fallback: jika tidak ada questions khusus level, pakai bank utama dan potong
+  if (rawPool.length === 0) {
+    rawPool =
+      category === "tilawati"
+        ? getRandomQuestions(1, Math.max(limit * 2, 10)).map(toTilawatiQuestionData)
+        : QUIZ_HUB_QUESTIONS[category] || ARABIC_VOCAB_QUESTIONS;
+
+    // Jika level diberikan, potong menjadi chunk sebesar (total / 6) untuk kategori lama
+    if (level && level >= 1 && level <= 6 && rawPool.length > 6) {
+      const chunkSize = Math.max(5, Math.floor(rawPool.length / 6));
+      const start = (level - 1) * chunkSize;
+      const end = start + chunkSize;
+      const sliced = rawPool.slice(start, end);
+      if (sliced.length > 0) {
+        rawPool = sliced;
+      }
+    }
+  }
 
   let filtered = rawPool;
   if (mode === "scramble") {
@@ -2653,3 +2803,12 @@ export function getQuizHubQuestions(
   // Pengacakan standar
   return [...filtered].sort(() => Math.random() - 0.5).slice(0, limit);
 }
+
+// Re-export adventure level utilities
+export {
+  ADVENTURE_LEVEL_DEFINITIONS,
+  getCategoryUnlockedLevel,
+  saveCategoryLevelCompleted,
+  QUIZ_PROGRESS_STORAGE_KEY,
+  type QuizAdventureLevel,
+} from "./quizAdventureData";
