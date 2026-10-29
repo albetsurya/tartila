@@ -179,12 +179,6 @@ export function NgajiCeriaLayout({
         ? "tartila_admin"
         : "member";
 
-  useEffect(() => {
-    if (hideNav) return;
-    soundManager.playBgm("menu", 0.18);
-    return () => soundManager.stopBgm();
-  }, [hideNav]);
-
   const isModuleHome =
     location.pathname === "/member/ngaji-ceria" ||
     location.pathname === "/member/ngaji-ceria/";

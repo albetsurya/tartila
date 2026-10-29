@@ -18,6 +18,7 @@ export type MascotSkin =
 
 export type CurrencyKind = "coin" | "ticket";
 export type SkinRarity = "Common" | "Rare" | "Epic" | "Legendary" | "Mythic";
+export type ItemGender = "all" | "boy" | "girl";
 
 export interface SkinItem {
   id: string;
