@@ -247,16 +247,13 @@ Platform Tartila memiliki arsitektur audio 4 lapis yang bekerja secara harmonis 
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ 1. Voice Feedback (Web Speech API TTS) — Prioritas Tertinggi │
-│    Suara pujian/penyemangat kuis dalam bahasa Indonesia      │
-├──────────────────────────────────────────────────────────────┤
-│ 2. Murottal & Ayat Reciter (useAudioPlayer)                  │
+│ 1. Murottal & Ayat Reciter (useAudioPlayer) — Utama         │
 │    Player audio tunggal untuk Tilawati, Tajwid, & Doa        │
 ├──────────────────────────────────────────────────────────────┤
-│ 3. Sound Effects (soundManager SFX)                          │
+│ 2. Sound Effects (soundManager SFX)                          │
 │    Efek audio Kenney CC0 & procedural synthesis via Web Audio│
 ├──────────────────────────────────────────────────────────────┤
-│ 4. Background Music (soundManager BGM)                       │
+│ 3. Background Music (soundManager BGM)                       │
 │    Looping musik menu/quiz/battle dengan auto-ducking        │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -267,10 +264,8 @@ Platform Tartila memiliki arsitektur audio 4 lapis yang bekerja secara harmonis 
    - Saat narasi atau audio pelajaran berbunyi, BGM diturunkan volumenya ke 10% (`this.bgmVolume * 0.1`) agar suara pengucap huruf terdengar jernih.
 2. **Player Tunggal (`useAudioPlayer`)**:
    - Hook `useAudioPlayer` mengelola satu instance `HTMLAudioElement` global per halaman. Menekan tombol "Dengar" pada ayat baru otomatis menghentikan audio ayat sebelumnya.
-3. **Konflik Suara Kuis Audio (`ModelMultipleChoiceAudio`)**:
-   - **Aturan Baku**: Sebelum `playVoiceFeedback("correct")` dieksekusi, audio soal murottal **wajib di-pause terlebih dahulu** (`audioRef.current?.pause()` dan `setIsPlaying(false)`).
-4. **Pembatalan Speech Synthesis**:
-   - `playVoiceFeedback` selalu memanggil `window.speechSynthesis.cancel()` sebelum memutar frasa baru untuk mencegah antrean suara menumpuk saat anak mengklik tombol dengan cepat.
+3. **Penyelarasan Suara Kuis Audio (`ModelMultipleChoiceAudio`)**:
+   - **Aturan Baku**: Sebelum umpan balik kuis dieksekusi, audio soal murottal **wajib di-pause terlebih dahulu** (`audioRef.current?.pause()` dan `setIsPlaying(false)`).
 
 ### 4.3 Mekanisme Autoplay Audio pada Kuis (Quiz Engine)
 
