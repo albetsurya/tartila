@@ -338,6 +338,10 @@ func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 		if score < 0 {
 			score = 0
 		}
+		// Clamp keras: skor submit_score dari client tidak boleh melebihi 1000.
+		if score > 1000 {
+			score = 1000
+		}
 		player, playerExists := room.Players[c.PlayerID]
 		if !playerExists {
 			return
