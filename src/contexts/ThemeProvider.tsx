@@ -19,15 +19,13 @@ function readStoredTheme(): Theme | null {
   return null;
 }
 
-function getSystemTheme(): Theme {
-  if (typeof window === "undefined" || !window.matchMedia) return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
 function resolveInitialTheme(): Theme {
-  return readStoredTheme() ?? getSystemTheme();
+  // Baca class "dark" yang sudah dipasang oleh inline script di index.html
+  // (yang juga mempertimbangkan tartila_app_theme night/neon).
+  if (typeof window !== "undefined") {
+    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  }
+  return "light";
 }
 
 function applyThemeClass(theme: Theme) {
