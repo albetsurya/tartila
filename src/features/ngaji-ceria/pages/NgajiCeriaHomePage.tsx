@@ -825,14 +825,14 @@ export default function NgajiCeriaHomePage() {
                 duration: 2.2,
                 ease: "easeInOut",
               }}
-              className="mb-2 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-element,#FEF08A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]"
+              className="mb-2 flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
             >
               <PetiHartaSvg size={46} />
             </motion.div>
-            <p className="mt-1 text-sm font-semibold text-[var(--text-main,#134E4A)]/65">
+            <p className="mt-1 text-sm font-semibold text-[#134E4A]/65">
               Istiqomah mengaji setiap hari!
             </p>
-            <div className="mt-3 inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/20 bg-[var(--bg-element,#FEF3C7)] px-3 py-1.5 text-xs font-extrabold text-[var(--text-main,#B45309)]">
+            <div className="mt-3 inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border-2 border-[#134E4A] bg-[#FEF3C7] px-3 py-1.5 text-xs font-extrabold text-[#B45309]">
               <FireSvg size={19} />
               <span>Streak: {effectiveStreak} hari</span>
               {streakMultiplier > 1 && (
@@ -843,7 +843,8 @@ export default function NgajiCeriaHomePage() {
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-4 gap-2">
+          {/* GRID 3 KOLOM UNTUK LAYOUT BARU */}
+          <div className="mt-5 grid grid-cols-3 gap-2.5">
             {DAILY_REWARDS.map((r, idx) => {
               const isClaimed =
                 idx + 1 < activeDay || (idx + 1 === activeDay && todayClaimed);
@@ -852,49 +853,97 @@ export default function NgajiCeriaHomePage() {
                 r.coins * (isCurrent ? streakMultiplier : 1),
               );
 
+              // KHUSUS HARI 7 (Banner Full-Width)
+              if (idx === 6) {
+                return (
+                  <motion.div
+                    key={r.day}
+                    animate={isCurrent ? { scale: [1, 1.02, 1] } : undefined}
+                    transition={
+                      isCurrent
+                        ? { repeat: Infinity, duration: 2.4 }
+                        : undefined
+                    }
+                    className={`col-span-3 flex flex-row items-center justify-between rounded-2xl border-[3px] p-3 transition-colors ${
+                      isClaimed
+                        ? "border-[#134E4A] bg-[#CCFBF1]"
+                        : isCurrent
+                          ? "border-[#134E4A] bg-[#FEF08A] shadow-[4px_4px_0px_#134E4A]"
+                          : "border-dashed border-[#134E4A]/30 bg-slate-50 opacity-80"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 whitespace-nowrap">
+                      <div className="flex flex-col items-start">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#0D9488]">
+                          HADIAH UTAMA
+                        </span>
+                        <span className="text-sm font-black text-[#134E4A]">
+                          Hari 7
+                        </span>
+                      </div>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border-2 border-[#134E4A]">
+                        {r.image}
+                      </div>
+                      <span className="flex items-center gap-1 text-sm font-black text-[#134E4A]">
+                        +{finalCoins} <CoinSvg size={16} />
+                      </span>
+                    </div>
+
+                    <div>
+                      {isClaimed ? (
+                        <span className="inline-flex items-center gap-1 rounded-lg border-2 border-[#134E4A] bg-white px-2 py-1 text-[11px] font-black text-[#0D9488]">
+                          <CheckSvg size={12} /> Sudah
+                        </span>
+                      ) : isCurrent ? (
+                        <span className="rounded-lg border-2 border-[#134E4A] bg-[#0D9488] px-3 py-1.5 text-[11px] font-black text-white shadow-[2px_2px_0px_#134E4A]">
+                          Klaim!
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center rounded-lg border-2 border-[#134E4A]/20 bg-white px-3 py-1.5 text-[#134E4A]/40">
+                          <GiftSvg size={14} />
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              }
+
+              // KARTU HARI 1-6 (Gaya Sticker)
               return (
                 <motion.div
                   key={r.day}
-                  animate={isCurrent ? { scale: [1, 1.025, 1] } : undefined}
+                  animate={isCurrent ? { scale: [1, 1.03, 1] } : undefined}
                   transition={
-                    isCurrent
-                      ? { repeat: Infinity, duration: 2.4, ease: "easeInOut" }
-                      : undefined
+                    isCurrent ? { repeat: Infinity, duration: 2.4 } : undefined
                   }
-                  className={`flex min-h-[112px] flex-col items-center justify-between rounded-xl border p-2 text-center transition-colors ${
-                    idx === 6
-                      ? "col-span-2 min-h-[100px] flex-row justify-center gap-3 px-4 text-left"
-                      : ""
-                  } ${
+                  className={`flex min-h-[115px] flex-col items-center justify-between rounded-2xl border-[3px] p-2 text-center transition-colors ${
                     isClaimed
-                      ? "border-[#0D9488]/30 bg-[#CCFBF1]/70 opacity-80 dark:bg-[var(--bg-element)]"
+                      ? "border-[#134E4A] bg-[#CCFBF1]"
                       : isCurrent
-                        ? "border-2 border-[#134E4A] bg-[#FEF08A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-element)]"
-                        : "border-dashed border-[var(--border-color,#134E4A)]/20 bg-[var(--bg-card)] opacity-75"
+                        ? "border-[#134E4A] bg-[#FEF08A] shadow-[3px_3px_0px_#134E4A]"
+                        : "border-dashed border-[#134E4A]/30 bg-slate-50 opacity-80"
                   }`}
                 >
-                  <div className={idx === 6 ? "flex items-center gap-3" : ""}>
-                    <span className="block text-[10px] font-black uppercase tracking-wide text-[var(--text-main,#134E4A)]/65">
-                      Hari {r.day}
-                    </span>
-                    <div className="my-1 flex h-8 w-8 items-center justify-center text-[var(--text-main,#134E4A)]">
-                      {r.image}
-                    </div>
-                    <span className="flex items-center justify-center gap-0.5 text-xs font-black text-[var(--text-main,#134E4A)]">
-                      +{finalCoins} <CoinSvg size={12} />
-                    </span>
+                  <span className="block text-[10px] font-black uppercase tracking-wide text-[#134E4A]/70">
+                    Hari {r.day}
+                  </span>
+                  <div className="my-1 flex h-8 w-8 items-center justify-center text-[#134E4A]">
+                    {r.image}
                   </div>
-                  <div className={idx === 6 ? "mt-0" : "mt-1.5"}>
+                  <span className="flex items-center justify-center gap-0.5 text-xs font-black text-[#134E4A]">
+                    +{finalCoins} <CoinSvg size={13} />
+                  </span>
+                  <div className="mt-2">
                     {isClaimed ? (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--bg-card)] px-1.5 py-1 text-[10px] font-black text-[#0D9488]">
+                      <span className="inline-flex items-center gap-1 rounded-lg border-2 border-[#134E4A] bg-white px-1.5 py-0.5 text-[10px] font-black text-[#0D9488]">
                         <CheckSvg size={11} /> Sudah
                       </span>
                     ) : isCurrent ? (
-                      <span className="rounded-md bg-[#0D9488] px-2 py-1 text-[10px] font-black text-white">
+                      <span className="rounded-lg border-2 border-[#134E4A] bg-[#0D9488] px-2 py-0.5 text-[10px] font-black text-white shadow-[2px_2px_0px_#134E4A]">
                         Klaim!
                       </span>
                     ) : (
-                      <span className="inline-flex items-center justify-center text-[var(--text-main,#134E4A)]/40">
+                      <span className="inline-flex items-center justify-center rounded-lg border-2 border-[#134E4A]/20 bg-white px-2 py-0.5 text-[#134E4A]/40">
                         <GiftSvg size={12} />
                       </span>
                     )}
@@ -904,12 +953,12 @@ export default function NgajiCeriaHomePage() {
             })}
           </div>
 
-          <div className="mt-5">
+          <div className="mt-6">
             {todayClaimed ? (
               <button
                 type="button"
                 disabled
-                className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)]/20 bg-gray-100 px-4 py-3 text-sm font-black text-[var(--text-main,#134E4A)]/50 dark:bg-gray-800"
+                className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border-[3px] border-[#134E4A]/20 bg-slate-100 px-4 py-3 text-sm font-black text-[#134E4A]/50"
               >
                 <CheckSvg size={17} /> Sudah Diklaim Hari Ini
               </button>
@@ -918,10 +967,10 @@ export default function NgajiCeriaHomePage() {
                 type="button"
                 disabled={isClaiming}
                 onClick={handleClaim}
-                whileHover={isClaiming ? undefined : { y: -1 }}
-                whileTap={isClaiming ? undefined : { scale: 0.98 }}
+                whileHover={isClaiming ? undefined : { y: -2 }}
+                whileTap={isClaiming ? undefined : { scale: 0.98, y: 0 }}
                 transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] px-4 py-3 text-sm font-black text-white shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#0F766E] disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] px-4 py-3 text-sm font-black text-white shadow-[4px_4px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <SparklesSvg size={18} />
                 {isClaiming ? (
@@ -945,15 +994,15 @@ export default function NgajiCeriaHomePage() {
             )}
           </div>
 
-          <div className="mt-4 flex flex-col items-center gap-2 text-center">
-            <p className="text-xs font-medium text-[var(--text-main,#134E4A)]/65">
+          <div className="mt-5 flex flex-col items-center gap-2 text-center">
+            <p className="text-xs font-bold text-[#134E4A]/60">
               Reset harian terjadi setiap pukul 04:00 WIB.
             </p>
-            <div className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card)] px-3 py-1.5 text-xs font-bold text-[#0D9488]">
+            <div className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border-2 border-[#134E4A]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#0D9488]">
               <span className="inline-flex items-center gap-1">
                 <ClockSvg size={14} /> Sisa waktu klaim hari ini:
               </span>
-              <span className="font-mono font-black tabular-nums text-[var(--text-main,#134E4A)]">
+              <span className="font-mono font-black tabular-nums text-[#134E4A]">
                 {timeUntilReset}
               </span>
             </div>

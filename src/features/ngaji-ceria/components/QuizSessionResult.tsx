@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   RefreshCw,
@@ -7,7 +6,6 @@ import {
 } from "../../../components/ui/CustomIcons";
 import { TilaMascot } from "../../../components/ui/TilaMascot";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
-import { playVoiceFeedback } from "../utils/voiceFeedback";
 
 interface QuizSessionResultProps {
   open: boolean;
@@ -35,12 +33,6 @@ export function QuizSessionResult({
   onContinue,
 }: QuizSessionResultProps) {
   const percent = total > 0 ? Math.round((score / total) * 100) : 0;
-
-  useEffect(() => {
-    if (open) {
-      playVoiceFeedback("complete");
-    }
-  }, [open]);
 
   return (
     <AnimatePresence>

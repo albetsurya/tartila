@@ -149,11 +149,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const syncProfileWithBackend = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await authApi.syncProfile(session.access_token);
+      if (session?.access_token && session.user?.email) {
+        await authApi.syncProfile(session.user.email, session.access_token);
       }
-    } catch {
-      // Backend Go belum siap / endpoint belum tersedia.
+    } catch (err) {
+      console.warn("[Auth] Gagal sinkronisasi profil ke Backend Go:", err);
+      // Opsional: Retry 1x setelah 1000ms jika error-nya network error
+      // setTimeout(() => { syncProfileWithBackend(); }, 1000);
     }
   };
 

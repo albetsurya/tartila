@@ -186,19 +186,23 @@ export default function NgajiCeriaMapPage() {
         </section>
 
         {/* Search & Chips */}
-        <section className="relative z-20 -mt-8 px-4">
-          <div className="flex items-center gap-2.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
-            <SearchSvg size={22} className="text-[var(--text-main,#134E4A)]" />
+        <section className="relative z-20 -mt-7 px-3 sm:-mt-8 sm:px-4 md:px-6">
+          <label className="flex min-h-12 items-center gap-3 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3.5 py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] sm:px-4 sm:shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
+            <SearchSvg
+              size={21}
+              className="shrink-0 text-[var(--text-main,#134E4A)]"
+            />
             <input
               type="text"
+              aria-label="Cari doa, surah, atau materi"
               placeholder="Cari doa, surah, atau materi..."
-              className="w-full bg-transparent text-sm font-bold text-[var(--text-main,#134E4A)] placeholder:text-[var(--text-main,#134E4A)]/40 focus:outline-none"
+              className="w-full min-w-0 bg-transparent text-sm font-bold text-[var(--text-main,#134E4A)] placeholder:text-[var(--text-main,#134E4A)]/50 focus:outline-none focus-visible:ring-0 sm:text-base"
             />
-          </div>
+          </label>
 
-          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="whitespace-nowrap text-[11px] font-black text-[#D97706] dark:text-[#FDE047]">
-              Rekomendasi:
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide">
+            <span className="shrink-0 whitespace-nowrap text-xs font-black text-[#B45309] dark:text-[#FDE047]">
+              Rekomendasi
             </span>
             {RECOMMENDATIONS.map((rec) => {
               const RecIcon = rec.icon;
@@ -209,16 +213,15 @@ export default function NgajiCeriaMapPage() {
                   onClick={() =>
                     handleNavigate(`/member/ngaji-ceria/explore/doa/${rec.id}`)
                   }
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                  className="inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2"
                 >
-                  <RecIcon size={15} />
+                  <RecIcon size={16} />
                   <span>{rec.label}</span>
                 </button>
               );
             })}
           </div>
         </section>
-
         {/* Bento Grid Menu Responsif (Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols) */}
         <section className="mt-6 px-4 md:px-6">
           <motion.div
@@ -298,29 +301,37 @@ export default function NgajiCeriaMapPage() {
         </section>
 
         {/* Doa Cepat (Bottom) */}
-        <section className="mt-8 px-4">
-          <div className="rounded-[28px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6B6B]">
-                  Akses Cepat
+        <section className="mx-auto mt-8 max-w-5xl px-3 sm:px-4 md:px-6">
+          <div className="rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] sm:rounded-[28px] sm:p-5 sm:shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <span className="text-[11px] font-black uppercase tracking-wide text-[#D9485F] dark:text-[#FDA4AF]">
+                  Akses cepat
                 </span>
-                <h3 className="font-display text-lg font-black text-[var(--text-main,#134E4A)]">
+                <h3 className="mt-0.5 font-display text-lg font-black text-[var(--text-main,#134E4A)] sm:text-xl">
                   Doa Kilat
                 </h3>
+                <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-main,#134E4A)]/70 sm:text-sm">
+                  Pilih doa yang ingin kamu pelajari hari ini.
+                </p>
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   handleNavigate("/member/ngaji-ceria/explore/doa")
                 }
-                className="flex items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] px-3 py-1.5 text-[11px] font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#DCFCE7] active:translate-y-[2px] active:shadow-none"
+                className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] px-3 py-2 text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:text-sm"
               >
-                Semua <ArrowRightSvg size={13} className="text-[var(--text-main,#134E4A)]" />
+                Semua{" "}
+                <ArrowRightSvg
+                  size={14}
+                  className="text-[var(--text-main,#134E4A)]"
+                />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
               {[
                 { id: "sebelum-tidur", icon: MoonSvg, title: "Sebelum Tidur" },
                 { id: "bangun-tidur", icon: SunSvg, title: "Bangun Tidur" },
@@ -334,22 +345,23 @@ export default function NgajiCeriaMapPage() {
                   icon: SparklesSvg,
                   title: "Sesudah Makan",
                 },
-              ].map((doa, idx) => {
+              ].map((doa) => {
                 const Icon = doa.icon;
                 return (
                   <button
-                    key={idx}
+                    key={doa.id}
+                    type="button"
                     onClick={() =>
                       handleNavigate(
                         `/member/ngaji-ceria/explore/doa/${doa.id}`,
                       )
                     }
-                    className="flex items-center gap-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#F8FAFC] active:translate-y-[2px] active:shadow-none"
+                    className="flex min-h-12 min-w-0 items-center gap-2.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-2.5 text-left text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 hover:bg-[#F8FAFC] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:gap-3 sm:p-3"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#CCFBF1] border-2 border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)]">
-                      <Icon size={16} stroke="#134E4A" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[#CCFBF1] text-[#134E4A] dark:bg-[#1E293B] dark:text-[#99F6E4]">
+                      <Icon size={17} stroke="#134E4A" />
                     </div>
-                    <span className="text-[11px] font-black text-[var(--text-main,#134E4A)] leading-tight text-left">
+                    <span className="min-w-0 text-xs font-black leading-snug sm:text-sm">
                       {doa.title}
                     </span>
                   </button>

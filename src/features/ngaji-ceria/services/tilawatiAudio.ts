@@ -207,10 +207,6 @@ export function useTilawatiAudio(
   }, [request.question?.id]);
   const play = useCallback(async () => {
     stopTilawatiAudio();
-    // Cancel any text-to-speech to prevent audio stack conflicts
-    if (typeof speechSynthesis !== "undefined") {
-      speechSynthesis.cancel();
-    }
     if (soundManager.muted) return;
     const token = generation;
     setIsPlaying(true); setError(""); soundManager.duckBgm(true);

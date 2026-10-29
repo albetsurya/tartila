@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { AudioMatchingOption, AudioMatchingQuestion, QuizModelBaseProps } from "./types";
 import { getAudioUrl } from "../../utils/audioUrl";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 
@@ -104,12 +103,6 @@ export function ModelAudioMatching({
 
     audioRef.current?.pause();
     setPlayingId(null);
-
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {

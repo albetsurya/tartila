@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { StickerButton, StickerCard, SectionHeader } from "@/components/ui";
@@ -608,6 +608,142 @@ function ThemeShopList({
   );
 }
 
+/**
+ * Skin card statis — render TilaMascot dengan animation="none" agar ringan di grid 16 item.
+ * Dibungkus React.memo agar tidak re-render masif saat filter rarity berubah.
+ */
+interface SkinCardProps {
+  item: SkinItem;
+  isOwned: boolean;
+  isEquipped: boolean;
+  isTicket: boolean;
+  affordable: boolean;
+  isSuperAdmin: boolean;
+  isUnlimited: boolean;
+  onPreview: (item: SkinItem) => void;
+  onBuy: (item: SkinItem) => void;
+}
+
+const SkinCard = memo(function SkinCard({
+  item,
+  isOwned,
+  isEquipped,
+  isTicket,
+  affordable,
+  isSuperAdmin,
+  isUnlimited,
+  onPreview,
+  onBuy,
+}: SkinCardProps) {
+  const isMythic = item.rarity === "Mythic";
+  const isLegendary = item.rarity === "Legendary";
+  const isEpic = item.rarity === "Epic";
+
+  const cardBorderClass = isMythic
+    ? "border-[3px] border-amber-400 dark:border-amber-400 bg-white shadow-[4px_4px_0px_#9333EA] ring-2 ring-amber-400/50 hover:shadow-[6px_6px_0px_#9333EA]"
+    : isLegendary
+      ? "border-[3px] border-amber-500 dark:border-amber-400 bg-white shadow-[4px_4px_0px_#D97706] ring-1 ring-amber-400/40 hover:shadow-[6px_6px_0px_#D97706]"
+      : isEpic
+        ? "border-[3px] border-purple-500 dark:border-purple-400 bg-white shadow-[4px_4px_0px_#7C3AED] ring-1 ring-purple-400/40 hover:shadow-[6px_6px_0px_#7C3AED]"
+        : "border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A] hover:shadow-[6px_6px_0px_#134E4A]";
+
+  return (
+    <motion.div
+      className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all hover:translate-y-[-2px] ${cardBorderClass}`}
+    >
+      {/* Header Card: Name & Badges */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <span
+            className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md border-2 ${item.badgeBg}`}
+          >
+            {item.rarity || item.badgeText || "KLASIK"}
+          </span>
+          {isEquipped ? (
+            <span className="text-[10px] font-black bg-[#134E4A] text-white px-2.5 py-0.5 rounded-md border-2 border-[#134E4A] flex items-center gap-1 shadow-[1px_1px_0px_#134E4A]">
+              <CheckSvg size={12} /> Dipakai
+            </span>
+          ) : isOwned ? (
+            <span className="text-[10px] font-black bg-[#CCFBF1] dark:bg-[#064E3B]/60 text-[#0F766E] dark:text-[#5EEAD4] px-2.5 py-0.5 rounded-md border-2 border-[#0F766E]">
+              Dimiliki
+            </span>
+          ) : null}
+        </div>
+
+        <h3 className="font-display text-lg font-black text-[#134E4A]">
+          {item.name}
+        </h3>
+        <p className="text-[11px] font-bold text-[#134E4A]/70 mt-0.5">
+          {item.desc}
+        </p>
+      </div>
+
+      {/* Mascot Preview — animation="none" agar tetap ringan di grid 16 item */}
+      <div
+        className="relative my-4 flex h-40 w-full items-center justify-center rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] overflow-hidden shadow-[2px_2px_0px_#134E4A] cursor-pointer"
+        onClick={() => onPreview(item)}
+      >
+        <div className="scale-95 transform">
+          <TilaMascot
+            size={110}
+            skin={item.skinKey}
+            mood={isEquipped ? "happy" : "idle"}
+            direction="front"
+            animation="none"
+          />
+        </div>
+      </div>
+
+      {/* Footer: Effect & Action Button */}
+      <div className="pt-2 border-t-2 border-dashed border-[#134E4A]/20 space-y-3">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-[#134E4A]/80">
+          <SparklesSvg size={14} className="text-[#059669] dark:text-[#34D399] shrink-0" />
+          <span>
+            Efek: <span className="font-black text-[#134E4A]">{item.effect}</span>
+          </span>
+        </div>
+
+        {isEquipped ? (
+          <div className="w-full py-2.5 px-3 rounded-xl bg-[#134E4A] text-white text-xs font-black border-[2px] border-[#134E4A] flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#134E4A]">
+            <CheckSvg size={14} /> Sedang Dipakai
+          </div>
+        ) : isOwned ? (
+          <StickerButton
+            variant="primary"
+            size="md"
+            className="w-full"
+            onClick={() => onBuy(item)}
+          >
+            Pakaikan
+          </StickerButton>
+        ) : (
+          <StickerButton
+            variant={affordable ? "primary" : "secondary"}
+            size="md"
+            pulse={affordable}
+            className="w-full"
+            disabled={!affordable}
+            onClick={() => onBuy(item)}
+          >
+            <div className="flex items-center justify-center gap-1.5">
+              {isTicket ? (
+                <TicketSvg size={16} />
+              ) : (
+                <CoinSvg size={16} />
+              )}
+              <span>
+                {isSuperAdmin || isUnlimited
+                  ? "Buka Gratis (VIP)"
+                  : `${item.price} ${isTicket ? "Tiket" : "Koin"}`}
+              </span>
+            </div>
+          </StickerButton>
+        )}
+      </div>
+    </motion.div>
+  );
+});
+
 export default function WarungSantriPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -673,6 +809,11 @@ export default function WarungSantriPage() {
   const buySkin = useEconomyStore((s) => s.buySkin);
   const equipSkin = useEconomyStore((s) => s.equipSkin);
   const [skinRarityFilter, setSkinRarityFilter] = useState<"all" | SkinRarity>("all");
+  const [previewSkin, setPreviewSkin] = useState<SkinItem | null>(null);
+
+  const handlePreviewSkin = useCallback((item: SkinItem) => {
+    setPreviewSkin(item);
+  }, []);
 
   const tilaGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotName = getMascotName(tilaGender);
@@ -952,6 +1093,11 @@ export default function WarungSantriPage() {
     }
   };
 
+  const handleBuyAndPreview = useCallback((item: SkinItem) => {
+    setPreviewSkin(null);
+    void handleBuySkin(item);
+  }, [handleBuySkin]);
+
   return (
     <div className="min-h-screen bg-[var(--bg-app)] relative overflow-hidden flex flex-col transition-colors">
       {/* HEADER MANUAL (STICKER NEO-BRUTALISM) */}
@@ -1212,110 +1358,19 @@ export default function WarungSantriPage() {
                   isUnlimited ||
                   (isTicket ? tickets >= item.price : coins >= item.price);
 
-                const isMythic = item.rarity === "Mythic";
-                const isLegendary = item.rarity === "Legendary";
-                const isEpic = item.rarity === "Epic";
-
-                const cardBorderClass = isMythic
-                  ? "border-[3px] border-amber-400 dark:border-amber-400 bg-[var(--bg-card)] shadow-[4px_4px_0px_#9333EA] ring-2 ring-amber-400/50 hover:shadow-[6px_6px_0px_#9333EA]"
-                  : isLegendary
-                  ? "border-[3px] border-amber-500 dark:border-amber-400 bg-[var(--bg-card)] shadow-[4px_4px_0px_#D97706] ring-1 ring-amber-400/40 hover:shadow-[6px_6px_0px_#D97706]"
-                  : isEpic
-                  ? "border-[3px] border-purple-500 dark:border-purple-400 bg-[var(--bg-card)] shadow-[4px_4px_0px_#7C3AED] ring-1 ring-purple-400/40 hover:shadow-[6px_6px_0px_#7C3AED]"
-                  : "border-[3px] border-[var(--border-color)] bg-[var(--bg-card)] shadow-[4px_4px_0px_var(--shadow-color)] hover:shadow-[6px_6px_0px_var(--shadow-color)]";
-
                 return (
-                  <motion.div
+                  <SkinCard
                     key={item.id}
-                    variants={staggerItemVariants}
-                    className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all hover:translate-y-[-2px] ${cardBorderClass}`}
-                  >
-                    {/* Header Card: Name & Badges */}
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                        <span
-                          className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md border-2 ${item.badgeBg}`}
-                        >
-                          {item.rarity || item.badgeText || "KLASIK"}
-                        </span>
-                        {isEquipped ? (
-                          <span className="text-[10px] font-black bg-[#134E4A] text-white px-2.5 py-0.5 rounded-md border-2 border-[var(--border-color)] flex items-center gap-1 shadow-[1px_1px_0px_var(--shadow-color)]">
-                            <CheckSvg size={12} /> Dipakai
-                          </span>
-                        ) : isOwned ? (
-                          <span className="text-[10px] font-black bg-[#CCFBF1] dark:bg-[#064E3B]/60 text-[#0F766E] dark:text-[#5EEAD4] px-2.5 py-0.5 rounded-md border-2 border-[#0F766E]">
-                            Dimiliki
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <h3 className="font-display text-lg font-black text-[var(--text-main)]">
-                        {item.name}
-                      </h3>
-                      <p className="text-[11px] font-bold text-[var(--text-main)]/70 mt-0.5">
-                        {item.desc}
-                      </p>
-                    </div>
-
-                    {/* Mascot Interactive Preview */}
-                    <div className="relative my-4 flex h-40 w-full items-center justify-center rounded-xl border-[2px] border-[var(--border-color)] bg-[var(--bg-app)] overflow-hidden shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="scale-95 transform">
-                        <TilaMascot
-                          size={110}
-                          skin={item.skinKey}
-                          mood={isEquipped ? "happy" : "idle"}
-                          direction="front"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Footer: Effect & Action Button */}
-                    <div className="pt-2 border-t-2 border-dashed border-[var(--border-color)]/20 space-y-3">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-main)]/80">
-                        <SparklesSvg size={14} className="text-[#059669] dark:text-[#34D399] shrink-0" />
-                        <span>
-                          Efek: <span className="font-black text-[var(--text-main)]">{item.effect}</span>
-                        </span>
-                      </div>
-
-                      {isEquipped ? (
-                        <div className="w-full py-2.5 px-3 rounded-xl bg-[#134E4A] text-white text-xs font-black border-[2px] border-[var(--border-color)] flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]">
-                          <CheckSvg size={14} /> Sedang Dipakai
-                        </div>
-                      ) : isOwned ? (
-                        <StickerButton
-                          variant="primary"
-                          size="md"
-                          className="w-full"
-                          onClick={() => handleBuySkin(item)}
-                        >
-                          Pakaikan
-                        </StickerButton>
-                      ) : (
-                        <StickerButton
-                          variant={affordable ? "primary" : "secondary"}
-                          size="md"
-                          pulse={affordable}
-                          className="w-full"
-                          disabled={!affordable}
-                          onClick={() => handleBuySkin(item)}
-                        >
-                          <div className="flex items-center justify-center gap-1.5">
-                            {isTicket ? (
-                              <TicketSvg size={16} />
-                            ) : (
-                              <CoinSvg size={16} />
-                            )}
-                            <span>
-                              {isSuperAdmin || isUnlimited
-                                ? "Buka Gratis (VIP)"
-                                : `${item.price} ${isTicket ? "Tiket" : "Koin"}`}
-                            </span>
-                          </div>
-                        </StickerButton>
-                      )}
-                    </div>
-                  </motion.div>
+                    item={item}
+                    isOwned={isOwned}
+                    isEquipped={isEquipped}
+                    isTicket={isTicket}
+                    affordable={affordable}
+                    isSuperAdmin={isSuperAdmin}
+                    isUnlimited={isUnlimited}
+                    onPreview={handlePreviewSkin}
+                    onBuy={handleBuyAndPreview}
+                  />
                 );
               })}
             </motion.div>
@@ -1879,6 +1934,90 @@ export default function WarungSantriPage() {
               >
                 Nanti Saja
               </button>
+            </div>
+          </div>
+        )}
+      </AppModal>
+
+      {/* Pratinjau Skin Maskot (Modal) — render TilaMascot penuh */}
+      <AppModal
+        isOpen={!!previewSkin}
+        onClose={() => setPreviewSkin(null)}
+        title="Pratinjau Skin"
+        variant="warm"
+      >
+        {previewSkin && (
+          <div className="flex flex-col items-center">
+            <div className="relative mb-4 flex h-48 w-48 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] shadow-[6px_6px_0px_#134E4A] bg-[#F0FDF4]">
+              <TilaMascot
+                size={160}
+                skin={previewSkin.skinKey}
+                mood="happy"
+                direction="front"
+                animation="none"
+              />
+            </div>
+            <div className="text-center">
+              <h3 className="font-display text-xl font-black text-[#134E4A]">
+                {previewSkin.name}
+              </h3>
+              <span
+                className={`text-[10px] font-black uppercase px-3 py-1 rounded-md border-2 ${previewSkin.badgeBg}`}
+              >
+                {previewSkin.rarity || previewSkin.badgeText || "KLASIK"}
+              </span>
+              <p className="text-sm font-bold text-[#134E4A] mt-1">
+                {previewSkin.desc}
+              </p>
+              <p className="text-xs font-bold text-[#0F766E] mt-1">
+                Efek: {previewSkin.effect}
+              </p>
+              <div className="mt-3 flex items-center justify-center gap-2">
+                {previewSkin.previewColors.body && (
+                  <div
+                    className="h-4 w-4 rounded-full border border-[#134E4A]"
+                    style={{ backgroundColor: previewSkin.previewColors.body }}
+                  />
+                )}
+                {previewSkin.previewColors.accent && (
+                  <div
+                    className="h-4 w-4 rounded-full border border-[#134E4A]"
+                    style={{ backgroundColor: previewSkin.previewColors.accent }}
+                  />
+                )}
+                {previewSkin.previewColors.belly && (
+                  <div
+                    className="h-4 w-4 rounded-full border border-[#134E4A]"
+                    style={{ backgroundColor: previewSkin.previewColors.belly }}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <StickerButton
+                variant="primary"
+                size="md"
+                className="flex-1"
+                onClick={() => {
+                  void handleBuySkin(previewSkin);
+                  setPreviewSkin(null);
+                }}
+              >
+                <div className="flex items-center justify-center gap-1.5">
+                  <CoinSvg size={16} />
+                  {isSuperAdmin || isUnlimited
+                    ? "Buka Gratis (VIP)"
+                    : `${previewSkin.price} ${previewSkin.currency || "Koin"}`}
+                </div>
+              </StickerButton>
+              <StickerButton
+                variant="secondary"
+                size="md"
+                className="flex-1"
+                onClick={() => setPreviewSkin(null)}
+              >
+                Tutup
+              </StickerButton>
             </div>
           </div>
         )}

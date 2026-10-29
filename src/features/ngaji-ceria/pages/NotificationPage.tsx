@@ -24,6 +24,7 @@ import {
   type ServerNotification,
 } from "../../../services/notificationApi";
 import { duelService } from "../../../services/duelService";
+import { AppModal } from "../../../components/ui/AppModal";
 
 const USER_ROLE = "member";
 
@@ -72,12 +73,21 @@ function formatServerTime(iso: string) {
   return formatRelativeTime(ts);
 }
 
+function isServerNotification(
+  n: Notification | ServerNotification,
+): n is ServerNotification {
+  return typeof (n as ServerNotification).createdAt === "string";
+}
+
 export default function NotificationPage() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [serverNotifications, setServerNotifications] = useState<
     ServerNotification[]
   >([]);
+  const [selectedNotif, setSelectedNotif] = useState<
+    Notification | ServerNotification | null
+  >(null);
 
   const refresh = useCallback(() => {
     const list = getNotifications().filter(
@@ -113,22 +123,25 @@ export default function NotificationPage() {
       markAsRead(item.id);
       refresh();
     }
-    if (item.actionUrl) {
-      navigate(item.actionUrl);
-    }
+    setSelectedNotif(item);
+    window.dispatchEvent(new Event("tartila:notification"));
   };
 
   const handleLocalMarkAllRead = () => {
     tapFeedback();
     markAllAsRead(USER_ROLE);
     refresh();
+    window.dispatchEvent(new Event("tartila:notification"));
   };
 
   const handleServerMarkAllRead = () => {
     tapFeedback();
     notificationApi
       .markAllRead()
-      .then(() => refresh())
+      .then(() => {
+        refresh();
+        window.dispatchEvent(new Event("tartila:notification"));
+      })
       .catch(() => {});
   };
 
@@ -153,7 +166,10 @@ export default function NotificationPage() {
       .then((result) => {
         notificationApi
           .markRead(item.id)
-          .then(() => refresh())
+          .then(() => {
+            refresh();
+            window.dispatchEvent(new Event("tartila:notification"));
+          })
           .catch(() => refresh());
         if (action === "accept" && result?.roomId) {
           navigate("/member/ngaji-ceria/games", {
@@ -288,6 +304,8 @@ export default function NotificationPage() {
                         .then(() => refresh())
                         .catch(() => {});
                     }
+                    setSelectedNotif(item);
+                    window.dispatchEvent(new Event("tartila:notification"));
                   }}
                   className={`relative w-full cursor-pointer rounded-2xl border-[3px] p-4 text-left transition-all active:translate-y-[1.5px] active:shadow-none ${
                     item.isRead
@@ -375,6 +393,70 @@ export default function NotificationPage() {
           </div>
         )}
       </div>
+      {selectedNotif && (() => {
+        const hasAction =
+          "actionUrl" in selectedNotif && selectedNotif.actionUrl;
+        return (
+          <AppModal
+            isOpen
+            onClose={() => setSelectedNotif(null)}
+            title={selectedNotif.title}
+            variant="cool"
+          >
+            <div className="flex gap-3">
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[3px] border-[#134E4A] ${
+                  (TYPE_STYLES[selectedNotif.type] || TYPE_STYLES["info"]).iconBg
+                } ${(TYPE_STYLES[selectedNotif.type] || TYPE_STYLES["info"]).iconColor}`}
+              >
+                {getNotifIcon(selectedNotif.type, 20)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-sm font-black text-[#134E4A]">
+                  {selectedNotif.title}
+                </p>
+                <p className="mt-1 text-sm font-bold text-[#134E4A]">
+                  {selectedNotif.message}
+                </p>
+                <p className="mt-1.5 text-[10px] font-black text-[#134E4A]/50">
+                  {isServerNotification(selectedNotif)
+                    ? formatServerTime(selectedNotif.createdAt)
+                    : formatRelativeTime(selectedNotif.timestamp)}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              {hasAction ? (
+                <>
+                  <StickerButton
+                    variant="primary"
+                    onClick={() => {
+                      const url = selectedNotif.actionUrl;
+                      setSelectedNotif(null);
+                      if (url) navigate(url);
+                    }}
+                  >
+                    Buka Halaman
+                  </StickerButton>
+                  <StickerButton
+                    variant="secondary"
+                    onClick={() => setSelectedNotif(null)}
+                  >
+                    Tutup
+                  </StickerButton>
+                </>
+              ) : (
+                <StickerButton
+                  variant="primary"
+                  onClick={() => setSelectedNotif(null)}
+                >
+                  Tutup
+                </StickerButton>
+              )}
+            </div>
+          </AppModal>
+        );
+      })()}
     </NgajiCeriaLayout>
   );
 }

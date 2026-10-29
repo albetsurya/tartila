@@ -45,13 +45,13 @@ export const authApi = {
     return data.user;
   },
 
-  // Kirim JWT Supabase ke Backend Go agar profil user (role default 'member')
+  // Kirim JWT Supabase + email user ke Backend Go agar profil (role default 'member')
   // di-upsert ke public.users (Bagian 8.3). Fire-and-forget dari pemanggil.
-  async syncProfile(supabaseJwt: string): Promise<void> {
+  async syncProfile(email: string, supabaseJwt: string): Promise<void> {
     await callREST(
       "POST",
       "/api/v1/auth/sync-profile",
-      {},
+      { email },
       undefined,
       supabaseJwt
     );

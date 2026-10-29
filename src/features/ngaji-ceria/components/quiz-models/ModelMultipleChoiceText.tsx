@@ -4,7 +4,6 @@ import { Volume2 } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceTextQuestion, QuizModelBaseProps } from "./types";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
@@ -63,12 +62,6 @@ export function ModelMultipleChoiceText({
     const isCorrect = selected === question.correctAnswer;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
-
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {

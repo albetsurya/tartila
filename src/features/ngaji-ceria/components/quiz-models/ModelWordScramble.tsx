@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { WordScrambleQuestion, QuizModelBaseProps } from "./types";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 import { SparklesSvg, RotateCcwSvg as ResetIcon } from "@/components/ui/CustomIcons";
 
@@ -85,12 +84,6 @@ export function ModelWordScramble({
     const isCorrect = placedSentence === correctSentence;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
-
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {

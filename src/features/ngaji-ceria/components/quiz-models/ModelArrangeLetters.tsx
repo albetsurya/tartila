@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ArrangeLettersQuestion, QuizModelBaseProps } from "./types";
 import { getAudioUrl } from "../../utils/audioUrl";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
 function CloseIcon({ className = "w-3 h-3" }: { className?: string }) {
@@ -193,12 +192,6 @@ export function ModelArrangeLetters({
 
     audioRef.current?.pause();
     setIsPlaying(false);
-
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {

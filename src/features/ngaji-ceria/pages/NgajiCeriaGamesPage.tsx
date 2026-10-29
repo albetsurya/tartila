@@ -1,9 +1,16 @@
 import { motion } from "framer-motion";
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
+import {
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/lib/animationVariants";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
-import { TrophySvg, GamepadSvg, CardsSvg } from "../../../components/ui/CustomIcons";
+import {
+  TrophySvg,
+  GamepadSvg,
+  CardsSvg,
+} from "../../../components/ui/CustomIcons";
 import { useGameAccess } from "../components/GameLockGuard";
 import { LoginPromptModal } from "../components/LoginPromptModal";
 import { isGameOpen, canonicalGameId } from "../data/gameAccess";
@@ -50,28 +57,23 @@ export interface GameMetaInfo {
   isQuizBased?: boolean;
 }
 
-/**
- * Registry visual & rute untuk game/hub Tartila.
- * Tampilan aktual kartu sepenuhnya dikontrol oleh data database (is_active, display_type, sort_order).
- */
 export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
-  // 0. Pusat Kuis (Quiz Hub)
   "quiz-hub": {
     title: "Pusat Kuis",
     genre: "Kuis · Duolingo-Style",
-    description: "Pusat kuis interaktif, susun kata Arab, mufradat, dan tantang teman!",
+    description:
+      "Pusat kuis interaktif, susun kata Arab, mufradat, dan tantang teman!",
     cover: <QuizHubCoverSvg size={76} />,
     path: "/quiz-hub",
     bestKey: "quiz-hub",
     isNew: true,
     isQuizBased: true,
   },
-
-  // 1. Harakat Slasher
   "harakat-rush": {
     title: "Harakat Slasher",
     genre: "Arkade · Refleks",
-    description: "Tebas huruf harakat target ala ninja buah dan hindari pengecoh!",
+    description:
+      "Tebas huruf harakat target ala ninja buah dan hindari pengecoh!",
     cover: <HarakatRushCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
@@ -81,19 +83,19 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "harakat-slasher": {
     title: "Harakat Slasher",
     genre: "Arkade · Refleks",
-    description: "Tebas huruf harakat target ala ninja buah dan hindari pengecoh!",
+    description:
+      "Tebas huruf harakat target ala ninja buah dan hindari pengecoh!",
     cover: <HarakatRushCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
     isNew: true,
     isQuizBased: false,
   },
-
-  // 2. Tilawati Memori
   "tilawati-memory": {
     title: "Tilawati Memori",
     genre: "Memori · 6 Jilid",
-    description: "Cocokkan pasangan huruf dan kata Arab sebelum batas waktu habis!",
+    description:
+      "Cocokkan pasangan huruf dan kata Arab sebelum batas waktu habis!",
     cover: (
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#10B981] shadow-[2px_2px_0px_#065F46]">
         <CardsSvg size={36} />
@@ -107,7 +109,8 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "memory-match": {
     title: "Tilawati Memori",
     genre: "Memori · 6 Jilid",
-    description: "Cocokkan pasangan huruf dan kata Arab sebelum batas waktu habis!",
+    description:
+      "Cocokkan pasangan huruf dan kata Arab sebelum batas waktu habis!",
     cover: (
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#065F46] border-2 border-[#10B981] shadow-[2px_2px_0px_#065F46]">
         <CardsSvg size={36} />
@@ -118,8 +121,6 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     isNew: true,
     isQuizBased: true,
   },
-
-  // 3. Ayat Scramble
   "ayat-scramble": {
     title: "Ayat Scramble",
     genre: "Puzzle · Ayat",
@@ -129,19 +130,16 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "ayat-scramble:normal",
     isQuizBased: true,
   },
-
-  // 4. Hijaiyah 2048
   "hijaiyah-2048": {
     title: "Hijaiyah 2048",
     genre: "Puzzle · Geser Huruf",
-    description: "Gabungkan huruf hijaiyah kembar hingga mencapai huruf tertinggi.",
+    description:
+      "Gabungkan huruf hijaiyah kembar hingga mencapai huruf tertinggi.",
     cover: <Hijaiyah2048CoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-2048",
     bestKey: "hijaiyah-2048",
     isQuizBased: false,
   },
-
-  // 5. Quiz Ngaji
   "quiz-ngaji": {
     title: "Quiz Ngaji",
     genre: "Kuis · 3 Game",
@@ -151,8 +149,6 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "quran-quiz-royale",
     isQuizBased: true,
   },
-
-  // 6. Hijaiyah Pop
   "hijaiyah-pop": {
     title: "Hijaiyah Pop",
     genre: "Arkade · Ketangkasan",
@@ -162,8 +158,6 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "hijaiyah-pop",
     isQuizBased: false,
   },
-
-  // Game / Hub pendukung lainnya jika diaktifkan admin melalui CMS
   "ritme-ngaji": {
     title: "Ritme Ngaji",
     genre: "Hub · 6 Game",
@@ -262,7 +256,7 @@ function resolveGameEntry(item: ActiveGameItem): GameEntry {
   const path =
     item.display_type === "hub"
       ? `/member/ngaji-ceria/games/${item.game_id}`
-      : meta?.path ?? `/member/ngaji-ceria/games/${item.game_id}`;
+      : (meta?.path ?? `/member/ngaji-ceria/games/${item.game_id}`);
   const best = meta?.bestKey ? getBest(meta.bestKey) : 0;
 
   return {
@@ -282,26 +276,16 @@ export default function NgajiCeriaGamesPage() {
   const navigate = useNavigate();
   const { tier } = useGameAccess("games");
   const [promptOpen, setPromptOpen] = useState(false);
-
-  // Tarik data game aktif dari database melalui hook useActiveGames
   const { activeGames, isLoading } = useActiveGames();
-
-  // Render dinamis: filter game aktif (is_active = true) dan urutkan sesuai sort_order
   const gamesToDisplay = useMemo(() => {
-    // Saring game yang aktif dan bukan sub-game di dalam hub jika bertipe hub
     const filtered = activeGames.filter((g) => {
       if (!g.is_active) return false;
-      // Jika parent_hub_id terisi dan bukan standalone, game masuk ke dalam hub
       if (g.parent_hub_id && g.display_type !== "standalone") return false;
       return true;
     });
-
-    // Urutkan berdasarkan sort_order menaik
     const sorted = [...filtered].sort(
       (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
     );
-
-    // Hindari duplikasi jika ada alias kanonis ganda
     const seen = new Set<string>();
     const uniqueEntries: GameEntry[] = [];
 
@@ -326,41 +310,60 @@ export default function NgajiCeriaGamesPage() {
 
   return (
     <NgajiCeriaLayout title="Mini Games" showBack>
-      <div className="space-y-6 rounded-t-3xl bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] px-4 py-5 md:px-6 md:py-8 min-h-full pb-32 transition-colors duration-200">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-[#0D9488]">
-              Koleksi Mini Games · Edukasi & Asah Otak
-            </p>
-            <h2 className="font-display text-2xl md:text-3xl font-black text-[var(--text-main,#134E4A)]">
-              Mini Games
+      <div className="mx-auto min-h-full w-full space-y-5 rounded-t-3xl bg-[var(--bg-app,#F0FDF4)] px-3 py-5 pb-32 text-[var(--text-main,#134E4A)] transition-colors duration-200 sm:space-y-6 sm:px-4 sm:py-6 md:px-6 md:py-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <span className="mb-2 inline-flex items-center rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[#CCFBF1] px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] dark:bg-[#1E293B] dark:text-[#99F6E4]">
+              Koleksi Permainan
+            </span>
+            <h2 className="font-display text-2xl font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-3xl">
+              Jelajahi Permainan
             </h2>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-[var(--text-main,#134E4A)]/75">
+              Pilih permainan untuk melatih kemampuan, mengasah ingatan, dan
+              belajar sambil bermain.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/member/ngaji-ceria/leaderboard")}
-              className="flex items-center gap-2 rounded-xl bg-[var(--bg-card,#FFFFFF)] px-3 py-2 border-[2px] border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer hover:opacity-90"
-              title="Buka Papan Skor Global"
-            >
-              <TrophySvg size={16} className="text-[#B45309]" />
-              <span className="text-xs md:text-sm font-black text-[var(--text-main,#134E4A)]">
-                Papan Skor
-              </span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/member/ngaji-ceria/leaderboard")}
+            className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl border-[2px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-2.5 text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:w-auto"
+            title="Buka Papan Skor Global"
+          >
+            <TrophySvg size={18} className="shrink-0 text-[#B45309]" />
+            <span className="text-sm font-black">Papan Skor</span>
+          </button>
         </div>
 
-        {/* Games Grid Dinamis (Tarik dari Database CMS) */}
-        {gamesToDisplay.length === 0 && !isLoading ? (
-          <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-white/70 border-2 border-dashed border-[#134E4A]/30 text-center">
-            <GamepadSvg size={48} className="text-[#134E4A]/40 mb-2" />
-            <p className="text-sm font-black text-[#134E4A]">
-              Belum ada game yang diaktifkan.
+        {isLoading ? (
+          <div
+            aria-label="Memuat daftar permainan"
+            aria-live="polite"
+            className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
+          >
+            {Array.from({ length: 4 }, (_, index) => (
+              <div
+                key={index}
+                className="min-h-[250px] animate-pulse rounded-[22px] border-[3px] border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card,#FFFFFF)] p-3 shadow-[3px_3px_0px_rgba(19,78,74,0.12)]"
+              >
+                <div className="mx-auto mt-3 h-20 w-20 rounded-2xl bg-[var(--bg-app,#F0FDF4)]" />
+                <div className="mx-auto mt-5 h-4 w-3/4 rounded-md bg-[var(--bg-app,#F0FDF4)]" />
+                <div className="mx-auto mt-2 h-3 w-1/2 rounded-md bg-[var(--bg-app,#F0FDF4)]" />
+                <div className="mt-5 h-10 rounded-xl bg-[var(--bg-app,#F0FDF4)]" />
+              </div>
+            ))}
+          </div>
+        ) : gamesToDisplay.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-3xl border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)] p-6 text-center shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] sm:p-8">
+            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
+              <GamepadSvg size={42} />
+            </div>
+            <p className="text-base font-black text-[var(--text-main,#134E4A)] sm:text-lg">
+              Belum ada game yang diaktifkan
             </p>
-            <p className="text-xs text-[#134E4A]/70 mt-1">
-              Aktifkan game melalui Panel Admin Katalog Game.
+            <p className="mt-1 max-w-sm text-sm leading-relaxed text-[var(--text-main,#134E4A)]/70">
+              Aktifkan game melalui Panel Admin Katalog Game untuk
+              menampilkannya di sini.
             </p>
           </div>
         ) : (
@@ -368,12 +371,16 @@ export default function NgajiCeriaGamesPage() {
             variants={staggerContainerVariants}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5"
+            className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
           >
             {gamesToDisplay.map((game, index) => {
               const locked = tier === "guest" && !isGameOpen(game.id, tier);
               return (
-                <motion.div key={game.id} variants={staggerItemVariants}>
+                <motion.div
+                  key={game.id}
+                  variants={staggerItemVariants}
+                  className="h-full min-w-0"
+                >
                   <GameCard
                     title={game.title}
                     genre={game.genre}
@@ -390,28 +397,27 @@ export default function NgajiCeriaGamesPage() {
               );
             })}
 
-            {/* Coming Soon Card */}
             <motion.div
               variants={staggerItemVariants}
-              className="relative flex flex-col items-center w-full rounded-[24px] border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 p-3 opacity-70 bg-[var(--bg-card,#FFFFFF)]/60 text-[var(--text-main,#134E4A)] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]/40"
+              className="relative flex h-full min-h-[250px] w-full flex-col items-center rounded-[22px] border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)] p-3 text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_rgba(19,78,74,0.18)]"
             >
-              <div className="relative z-10 mt-4 flex h-24 w-full items-center justify-center">
-                <div className="absolute inset-0 m-auto h-20 w-20 rounded-full bg-white dark:bg-white/10 border-[2.5px] border-[var(--border-color,#134E4A)]/40 shadow-sm" />
+              <div className="relative z-10 mt-3 flex h-24 w-full items-center justify-center">
+                <div className="absolute inset-0 m-auto h-20 w-20 rounded-full border-[2.5px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-[#CCFBF1] dark:bg-[#1E293B]" />
                 <GamepadSvg
                   size={36}
                   className="relative z-10 opacity-40 text-[var(--text-main,#134E4A)]"
                 />
               </div>
-              <div className="mt-3 flex w-full flex-col items-center text-center z-10">
-                <h3 className="font-display text-[15px] font-black leading-tight text-[var(--text-main,#134E4A)]">
+              <div className="z-10 mt-3 flex w-full flex-col items-center text-center">
+                <h3 className="font-display text-center text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-base">
                   Segera Hadir
                 </h3>
-                <p className="mt-0.5 text-[10px] font-bold text-[var(--text-main,#134E4A)]/70">
+                <p className="mt-1 text-xs font-bold text-[var(--text-main,#134E4A)]/70">
                   Game Baru
                 </p>
               </div>
-              <div className="mt-3 w-full z-10">
-                <span className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-2 text-xs font-black">
+              <div className="z-10 mt-3 w-full">
+                <span className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)]/25 bg-gray-100 py-2 text-xs font-black text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                   Tunggu Ya
                 </span>
               </div>
