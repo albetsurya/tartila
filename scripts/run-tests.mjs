@@ -110,6 +110,7 @@ const defaultTests = [
   'tests/answerFeedbackSheet.test.ts',
   'tests/tilawatiAdventure.test.ts',
   'tests/quizModelsOverhaul.test.ts',
+  'tests/quizHub.test.ts',
   'tests/arenaKartu.test.ts',
   'tests/rhythmMemory.test.ts',
   'tests/tilawatiMemory.test.ts',
