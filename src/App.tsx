@@ -20,6 +20,7 @@ import { CeriaGameLoading } from "./features/ngaji-ceria/components/CeriaGameLoa
 import ScrollToTop from "./components/ScrollToTop";
 import { useEconomyStore } from "./features/ngaji-ceria/hooks/useEconomyStore";
 import { PwaUpdateToast } from "./components/ui/PwaUpdateToast";
+import { PwaInstallBanner } from "./components/ui/PwaInstallBanner";
 import { usePWAUpdate } from "./hooks/usePWAUpdate";
 
 // Core primary tab pages imported statically for instant transitions & zero layout flashing
@@ -952,6 +953,7 @@ export default function App() {
           onReload={() => updateServiceWorker(true)}
         />
       )}
+      <PwaInstallBanner />
       {googleClientId ? (
         <GoogleOAuthProvider clientId={googleClientId}>
           {appContent}
