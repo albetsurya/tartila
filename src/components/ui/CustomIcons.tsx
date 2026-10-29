@@ -209,8 +209,26 @@ export const GamepadSvg: React.FC<SvgProps> = ({
         strokeLinejoin="round"
       />
       {/* D-Pad Kiri Kuning/Krem */}
-      <rect x="6.5" y="12.5" width="6" height="2.5" rx="0.5" fill="#FEF08A" stroke={strokeColor} strokeWidth="1.5" />
-      <rect x="8.25" y="10.75" width="2.5" height="6" rx="0.5" fill="#FEF08A" stroke={strokeColor} strokeWidth="1.5" />
+      <rect
+        x="6.5"
+        y="12.5"
+        width="6"
+        height="2.5"
+        rx="0.5"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="1.5"
+      />
+      <rect
+        x="8.25"
+        y="10.75"
+        width="2.5"
+        height="6"
+        rx="0.5"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="1.5"
+      />
       {/* Tombol Kanan Merah (#EF4444) & Kuning (#FBBF24) */}
       <circle
         cx="18.5"
@@ -308,7 +326,11 @@ export const ProfileVectorSvg = ProfileSvg;
 
 // --- HEADER STATS & EKONOMI ICONS ---
 
-export const CoinSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => {
+export const CoinSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "var(--svg-primary)";
   return (
     <svg
@@ -356,7 +378,11 @@ export const CoinSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke 
   );
 };
 
-export const HeartSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => {
+export const HeartSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "var(--svg-primary)";
   return (
     <svg
@@ -385,7 +411,11 @@ export const HeartSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke
   );
 };
 
-export const FireSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => {
+export const FireSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "var(--svg-primary)";
   return (
     <svg
@@ -510,7 +540,15 @@ export const CrownSvg: React.FC<SvgProps> = ({
         stroke={strokeColor}
         strokeWidth="1.5"
       />
-      <line x1="4" y1="18" x2="20" y2="18" stroke={strokeColor} strokeWidth="2.5" strokeLinecap="round" />
+      <line
+        x1="4"
+        y1="18"
+        x2="20"
+        y2="18"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 };
@@ -549,7 +587,14 @@ export const GiftSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
       strokeLinejoin="round"
     />
     {/* Pita Vertikal */}
-    <line x1="12" y1="6" x2="12" y2="21" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <line
+      x1="12"
+      y1="6"
+      x2="12"
+      y2="21"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
     {/* Pita Busur Atas */}
     <path
       d="M12 6C10 4 8 4 8 5C8 6 12 6 12 6ZM12 6C14 4 16 4 16 5C16 6 12 6 12 6Z"
@@ -1733,7 +1778,11 @@ export const SnowflakeSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-export const StarSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => (
+export const StarSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => (
   <svg
     width={size}
     height={size}
@@ -2783,7 +2832,14 @@ export const CalendarSvg: React.FC<SvgProps> = ({
       stroke="var(--svg-primary)"
       strokeWidth="2.5"
     />
-    <line x1="3" y1="9" x2="21" y2="9" stroke="var(--svg-primary)" strokeWidth="2" />
+    <line
+      x1="3"
+      y1="9"
+      x2="21"
+      y2="9"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <line
       x1="8"
       y1="2"
@@ -2999,7 +3055,10 @@ export const EyeOff = EyeSlashSvg;
 export const EyeSlash = EyeSlashSvg;
 export const MoreVertical = MoreVerticalSvg;
 
-export const PaletteSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+export const PaletteSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
   <svg
     width={size}
     height={size}
@@ -3016,10 +3075,38 @@ export const PaletteSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) =>
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <circle cx="7.5" cy="8.5" r="1.5" fill="#FF6B6B" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <circle cx="12" cy="6.5" r="1.5" fill="var(--svg-secondary)" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <circle cx="16.5" cy="8.5" r="1.5" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <circle cx="17.5" cy="13.5" r="1.5" fill="#F59E0B" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <circle
+      cx="7.5"
+      cy="8.5"
+      r="1.5"
+      fill="#FF6B6B"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
+    <circle
+      cx="12"
+      cy="6.5"
+      r="1.5"
+      fill="var(--svg-secondary)"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
+    <circle
+      cx="16.5"
+      cy="8.5"
+      r="1.5"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
+    <circle
+      cx="17.5"
+      cy="13.5"
+      r="1.5"
+      fill="#F59E0B"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
   </svg>
 );
 export const Palette = PaletteSvg;
@@ -3662,11 +3749,49 @@ export const ScissorsSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <circle cx="6" cy="6" r="3" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <circle cx="6" cy="18" r="3" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <line x1="20" y1="4" x2="8.12" y2="15.88" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="14.47" y1="14.48" x2="20" y2="20" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="8.12" y1="8.12" x2="12" y2="12" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <circle
+      cx="6"
+      cy="6"
+      r="3"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <circle
+      cx="6"
+      cy="18"
+      r="3"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <line
+      x1="20"
+      y1="4"
+      x2="8.12"
+      y2="15.88"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="14.47"
+      y1="14.48"
+      x2="20"
+      y2="20"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="8.12"
+      y1="8.12"
+      x2="12"
+      y2="12"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3691,7 +3816,15 @@ export const AlertTriangleSvg: React.FC<SvgProps> = ({
       strokeWidth="2.2"
       strokeLinejoin="round"
     />
-    <line x1="12" y1="9" x2="12" y2="13" stroke="var(--svg-primary)" strokeWidth="2.2" strokeLinecap="round" />
+    <line
+      x1="12"
+      y1="9"
+      x2="12"
+      y2="13"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    />
     <circle cx="12" cy="17" r="1.2" fill="var(--svg-primary)" />
   </svg>
 );
@@ -3710,9 +3843,36 @@ export const ChartBarSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <rect x="3" y="12" width="4" height="9" rx="1" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <rect x="10" y="7" width="4" height="14" rx="1" fill="#FBBF24" stroke="var(--svg-primary)" strokeWidth="2" />
-    <rect x="17" y="3" width="4" height="18" rx="1" fill="#34D399" stroke="var(--svg-primary)" strokeWidth="2" />
+    <rect
+      x="3"
+      y="12"
+      width="4"
+      height="9"
+      rx="1"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <rect
+      x="10"
+      y="7"
+      width="4"
+      height="14"
+      rx="1"
+      fill="#FBBF24"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <rect
+      x="17"
+      y="3"
+      width="4"
+      height="18"
+      rx="1"
+      fill="#34D399"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
   </svg>
 );
 
@@ -3737,10 +3897,40 @@ export const FileTextSvg: React.FC<SvgProps> = ({
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <polyline points="14 2 14 8 20 8" fill="#E2E8F0" stroke="var(--svg-primary)" strokeWidth="2" strokeLinejoin="round" />
-    <line x1="16" y1="13" x2="8" y2="13" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="16" y1="17" x2="8" y2="17" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="10" y1="9" x2="8" y2="9" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <polyline
+      points="14 2 14 8 20 8"
+      fill="#E2E8F0"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="16"
+      y1="13"
+      x2="8"
+      y2="13"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="16"
+      y1="17"
+      x2="8"
+      y2="17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="10"
+      y1="9"
+      x2="8"
+      y2="9"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3758,7 +3948,13 @@ export const PrinterSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <polyline points="6 9 6 2 18 2 18 9" fill="#E2E8F0" stroke="var(--svg-primary)" strokeWidth="2" strokeLinejoin="round" />
+    <polyline
+      points="6 9 6 2 18 2 18 9"
+      fill="#E2E8F0"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
     <path
       d="M6 18H4C2.9 18 2 17.1 2 16V11C2 9.9 2.9 9 4 9H20C21.1 9 22 9.9 22 11V16C22 17.1 21.1 18 20 18H18"
       fill="#38BDF8"
@@ -3766,7 +3962,16 @@ export const PrinterSvg: React.FC<SvgProps> = ({
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <rect x="6" y="14" width="12" height="8" rx="1" fill="#FFFFFF" stroke="var(--svg-primary)" strokeWidth="2" />
+    <rect
+      x="6"
+      y="14"
+      width="12"
+      height="8"
+      rx="1"
+      fill="#FFFFFF"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="18" cy="12" r="1" fill="var(--svg-primary)" />
   </svg>
 );
@@ -3816,9 +4021,27 @@ export const BackpackSvg: React.FC<SvgProps> = ({
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <path d="M8 4V2C8 1.4 8.4 1 9 1H15C15.6 1 16 1.4 16 2V4" stroke="var(--svg-primary)" strokeWidth="2" />
-    <rect x="7" y="13" width="10" height="6" rx="1" fill="#FBBF24" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M8 8H16" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M8 4V2C8 1.4 8.4 1 9 1H15C15.6 1 16 1.4 16 2V4"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <rect
+      x="7"
+      y="13"
+      width="10"
+      height="6"
+      rx="1"
+      fill="#FBBF24"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M8 8H16"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3836,10 +4059,40 @@ export const SwordsSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" strokeLinejoin="round" />
-    <line x1="13" y1="19" x2="19" y2="13" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="16" y1="16" x2="20" y2="20" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="19" y1="21" x2="21" y2="19" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <polyline
+      points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="13"
+      y1="19"
+      x2="19"
+      y2="13"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="16"
+      y1="16"
+      x2="20"
+      y2="20"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="19"
+      y1="21"
+      x2="21"
+      y2="19"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3857,8 +4110,21 @@ export const UfoSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="12" cy="14" rx="10" ry="4" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M6 13C6 9 8.7 6 12 6C15.3 6 18 9 18 13" fill="#A7F3D0" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse
+      cx="12"
+      cy="14"
+      rx="10"
+      ry="4"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M6 13C6 9 8.7 6 12 6C15.3 6 18 9 18 13"
+      fill="#A7F3D0"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="8" cy="14" r="1" fill="var(--svg-accent)" />
     <circle cx="12" cy="14" r="1" fill="var(--svg-accent)" />
     <circle cx="16" cy="14" r="1" fill="var(--svg-accent)" />
@@ -3896,14 +4162,44 @@ export const HarakatSlasherSvg: React.FC<SvgProps> = ({
     {...props}
   >
     {/* Slash Trail */}
-    <path d="M3 21 C 9 15, 15 9, 21 3" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" />
-    <path d="M4 20 C 10 14, 16 8, 20 4" stroke="#FDE047" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M3 21 C 9 15, 15 9, 21 3"
+      stroke="#EF4444"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <path
+      d="M4 20 C 10 14, 16 8, 20 4"
+      stroke="#FDE047"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
     {/* Katana Blade */}
-    <path d="M4 20 L 19 5 C 20 4, 21 4, 22 5 C 22 6, 22 7, 21 8 L 6 22 Z" fill="#F1F5F9" stroke="var(--svg-primary)" strokeWidth="1.5" strokeLinejoin="round" />
+    <path
+      d="M4 20 L 19 5 C 20 4, 21 4, 22 5 C 22 6, 22 7, 21 8 L 6 22 Z"
+      fill="#F1F5F9"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
     {/* Tsuba */}
-    <ellipse cx="6" cy="18" rx="2" ry="3.5" transform="rotate(-45 6 18)" fill="#F59E0B" stroke="var(--svg-primary)" strokeWidth="1" />
+    <ellipse
+      cx="6"
+      cy="18"
+      rx="2"
+      ry="3.5"
+      transform="rotate(-45 6 18)"
+      fill="#F59E0B"
+      stroke="var(--svg-primary)"
+      strokeWidth="1"
+    />
     {/* Tsuka */}
-    <path d="M5 19 L 2 22" stroke="#1E293B" strokeWidth="2.5" strokeLinecap="round" />
+    <path
+      d="M5 19 L 2 22"
+      stroke="#1E293B"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
   </svg>
 );
 export const HarakatSlasher = HarakatSlasherSvg;
@@ -3969,8 +4265,16 @@ export const EarSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <path d="M6 8a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0z" stroke="var(--svg-primary)" strokeWidth="2.5" />
-    <path d="M14 12a2 2 0 0 1 2-2h4" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path
+      d="M6 8a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0z"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
+    <path
+      d="M14 12a2 2 0 0 1 2-2h4"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
   </svg>
 );
 
@@ -3994,8 +4298,19 @@ export const ArrowUpRightSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <line x1="7" y1="17" x2="17" y2="7" stroke="var(--svg-primary)" strokeWidth="2.5" />
-    <polyline points="7 7 17 7 17 17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <line
+      x1="7"
+      y1="17"
+      x2="17"
+      y2="7"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
+    <polyline
+      points="7 7 17 7 17 17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
   </svg>
 );
 
@@ -4019,8 +4334,19 @@ export const ArrowDownRightSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <line x1="7" y1="7" x2="17" y2="17" stroke="var(--svg-primary)" strokeWidth="2.5" />
-    <polyline points="17 7 17 17 7 17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <line
+      x1="7"
+      y1="7"
+      x2="17"
+      y2="17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
+    <polyline
+      points="17 7 17 17 7 17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
   </svg>
 );
 
@@ -4044,12 +4370,40 @@ export const DrumSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <ellipse cx="12" cy="6" rx="8" ry="3" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse
+      cx="12"
+      cy="6"
+      rx="8"
+      ry="3"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <path d="M4 6v12" stroke="var(--svg-primary)" strokeWidth="2" />
     <path d="M20 6v12" stroke="var(--svg-primary)" strokeWidth="2" />
-    <ellipse cx="12" cy="18" rx="8" ry="3" stroke="var(--svg-primary)" strokeWidth="2" />
-    <line x1="9" y1="6" x2="9.01" y2="18" stroke="var(--svg-primary)" strokeWidth="2" />
-    <line x1="15" y1="6" x2="15.01" y2="18" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse
+      cx="12"
+      cy="18"
+      rx="8"
+      ry="3"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <line
+      x1="9"
+      y1="6"
+      x2="9.01"
+      y2="18"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <line
+      x1="15"
+      y1="6"
+      x2="15.01"
+      y2="18"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
   </svg>
 );
 
@@ -4073,8 +4427,17 @@ export const LeafSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 6.1 20 10.6 20 16.5" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M2.2 21.8l19.6-19.6" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M11 20A7 7 0 0 1 9.8 6.1C15.5 6.1 20 10.6 20 16.5"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M2.2 21.8l19.6-19.6"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -4098,7 +4461,13 @@ export const TargetSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <circle cx="12" cy="12" r="10" stroke="var(--svg-primary)" strokeWidth="2" />
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="12" cy="12" r="6" stroke="var(--svg-primary)" strokeWidth="2" />
     <circle cx="12" cy="12" r="2" fill="var(--svg-primary)" />
   </svg>
@@ -4124,8 +4493,19 @@ export const ClockSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <circle cx="12" cy="12" r="10" stroke="var(--svg-primary)" strokeWidth="2" />
-    <polyline points="12 6 12 12 16 14" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <polyline
+      points="12 6 12 12 16 14"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -4149,9 +4529,21 @@ export const BrickSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <rect x="2" y="2" width="20" height="20" rx="2" stroke="var(--svg-primary)" strokeWidth="2" />
+    <rect
+      x="2"
+      y="2"
+      width="20"
+      height="20"
+      rx="2"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <path d="M2 10h20M2 14h20" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <path d="M8 2v4M16 2v4M8 20v-4M16 20v-4" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <path
+      d="M8 2v4M16 2v4M8 20v-4M16 20v-4"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
   </svg>
 );
 
@@ -4175,8 +4567,20 @@ export const GameCardSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <rect x="2" y="4" width="20" height="16" rx="3" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M6 8h12M6 12h12M6 16h8" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <rect
+      x="2"
+      y="4"
+      width="20"
+      height="16"
+      rx="3"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M6 8h12M6 12h12M6 16h8"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
     <circle cx="18" cy="12" r="2" fill="var(--svg-primary)" />
   </svg>
 );
@@ -4201,7 +4605,11 @@ export const MapPinSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path
+      d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="12" cy="10" r="3" fill="var(--svg-primary)" />
   </svg>
 );
@@ -4231,5 +4639,43 @@ export const TelescopeSvg: React.FC<SvgProps> = ({
     <path d="M17 14 10 7" stroke="var(--svg-primary)" strokeWidth="2" />
     <path d="M10 22 3 14" stroke="var(--svg-primary)" strokeWidth="2" />
     <circle cx="12" cy="12" r="3" stroke="var(--svg-primary)" strokeWidth="2" />
+  </svg>
+);
+
+export const CameraSvg: React.FC<
+  {
+    size?: number;
+    className?: string;
+    stroke?: string;
+  } & React.SVGProps<SVGSVGElement>
+> = ({ size = 20, className = "", stroke = "#134E4A", ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    className={className}
+    {...props}
+  >
+    {/* Body Kamera */}
+    <path
+      d="M 4 8 C 2.895 8 2 8.895 2 10 V 18 C 2 19.105 2.895 20 4 20 H 20 C 21.105 20 22 19.105 22 18 V 10 C 22 8.895 21.105 8 20 8 H 17.5 L 15.8 5.4 C 15.4 4.8 14.8 4.5 14.1 4.5 H 9.9 C 9.2 4.5 8.6 4.8 8.2 5.4 L 6.5 8 H 4 Z"
+      fill="#FFFFFF"
+      stroke={stroke}
+      strokeWidth="2.2"
+      strokeLinejoin="round"
+    />
+    {/* Lensa Kamera */}
+    <circle
+      cx="12"
+      cy="14"
+      r="3.5"
+      fill="#0D9488"
+      stroke={stroke}
+      strokeWidth="2.2"
+    />
+    {/* Titik Flash */}
+    <circle cx="18" cy="11" r="1" fill={stroke} />
   </svg>
 );

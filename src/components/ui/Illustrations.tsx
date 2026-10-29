@@ -5677,7 +5677,7 @@ export const QuizHubCoverSvg: React.FC<SvgProps> = ({
 );
 
 // ============================================================================
-// AVATAR SANTRI SYSTEM (Neo-Brutalism Chibi Edition)
+// AVATAR SANTRI SYSTEM (6 Unique Characters - Retro Indie Doodle Syar'i)
 // ============================================================================
 
 export type AvatarSantriAccessory =
@@ -5698,12 +5698,23 @@ export type AvatarSantriAccessory =
   | "medal"
   | "bandana";
 
+export type AvatarSantriVariant = 1 | 2 | 3;
+
 export interface AvatarSantriSvgProps extends SvgProps {
   gender?: "boy" | "girl";
+  variant?: AvatarSantriVariant;
   accessory?: AvatarSantriAccessory | string | null;
   mood?: "idle" | "happy" | "cheer";
 }
 
+const INK = "#18181B"; // Crisp medium-thin black outline
+const SKIN = "#FFF3EA"; // Soft warm porcelain-peach skin
+const STROKE_MAIN = "2.3"; // Ketebalan garis utama
+const STROKE_DETAIL = "1.7"; // Ketebalan garis lipatan & detail dalam
+
+// ============================================================================
+// LAYER AKSESORIS TAMBAHAN (Opsional)
+// ============================================================================
 function AvatarAccessoryLayer({
   accessory,
 }: {
@@ -5715,28 +5726,29 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <path
-          d="M 32 46 C 32 22 46 16 64 16 C 82 16 96 22 96 46 C 84 38 44 38 32 46 Z"
+          d="M 33 44 C 33 22 46 17 64 17 C 82 17 95 22 95 44 C 82 38 46 38 33 44 Z"
           fill="#FFFFFF"
-          stroke="#134E4A"
-          strokeWidth="4.5"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 32 38 Q 64 34 96 38 L 95 45 Q 64 41 33 45 Z"
+          fill="#F4F4F5"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
           strokeLinejoin="round"
         />
         <rect
-          x="33"
-          y="38"
-          width="62"
-          height="8"
-          rx="4"
-          fill="#FFFFFF"
-          stroke="#134E4A"
-          strokeWidth="4"
-        />
-        <path
-          d="M 64 23 L 66 28 L 71 28 L 67 31 L 68 36 L 64 33 L 60 36 L 61 31 L 57 28 L 62 28 Z"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="2"
-          strokeLinejoin="round"
+          x="71"
+          y="26"
+          width="11"
+          height="5.5"
+          rx="1"
+          transform="rotate(7 71 26)"
+          fill="#52B788"
+          stroke={INK}
+          strokeWidth="1.8"
         />
       </g>
     );
@@ -5744,28 +5756,28 @@ function AvatarAccessoryLayer({
 
   if (accessory === "hairbow") {
     return (
-      <g transform="translate(88 32) rotate(15)">
+      <g transform="translate(84 34) rotate(14)">
         <polygon
-          points="-16,0 -3,-8 -3,8"
-          fill="#F472B6"
-          stroke="#134E4A"
-          strokeWidth="3"
+          points="-13,0 -2,-6.5 -2,6.5"
+          fill="#FF8FA3"
+          stroke={INK}
+          strokeWidth="2"
           strokeLinejoin="round"
         />
         <polygon
-          points="16,0 3,-8 3,8"
-          fill="#F472B6"
-          stroke="#134E4A"
-          strokeWidth="3"
+          points="13,0 2,-6.5 2,6.5"
+          fill="#FF8FA3"
+          stroke={INK}
+          strokeWidth="2"
           strokeLinejoin="round"
         />
         <circle
           cx="0"
           cy="0"
-          r="4.5"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="3"
+          r="3.5"
+          fill="#E56B6F"
+          stroke={INK}
+          strokeWidth="2"
         />
       </g>
     );
@@ -5775,48 +5787,48 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <path
-          d="M 32 44 Q 64 54 96 44"
+          d="M 34 40 Q 64 47 94 40"
           fill="none"
-          stroke="#059669"
-          strokeWidth="6"
+          stroke="#52B788"
+          strokeWidth="3.5"
           strokeLinecap="round"
         />
         <circle
-          cx="38"
-          cy="44"
-          r="7"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="3"
+          cx="41"
+          cy="41"
+          r="6"
+          fill="#E76F51"
+          stroke={INK}
+          strokeWidth="2"
         />
-        <circle cx="38" cy="44" r="2.5" fill="#FBBF24" />
+        <circle cx="41" cy="41" r="2" fill="#F4D35E" />
         <circle
-          cx="55"
-          cy="48"
-          r="8"
+          cx="56"
+          cy="44"
+          r="6.5"
           fill="#FFFFFF"
-          stroke="#134E4A"
-          strokeWidth="3"
+          stroke={INK}
+          strokeWidth="2"
         />
-        <circle cx="55" cy="48" r="3" fill="#FBBF24" />
+        <circle cx="56" cy="44" r="2.2" fill="#F4D35E" />
         <circle
-          cx="73"
-          cy="48"
-          r="8"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="3"
-        />
-        <circle cx="73" cy="48" r="3" fill="#FFFFFF" />
-        <circle
-          cx="90"
+          cx="72"
           cy="44"
-          r="7"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="3"
+          r="6.5"
+          fill="#F4D35E"
+          stroke={INK}
+          strokeWidth="2"
         />
-        <circle cx="90" cy="44" r="2.5" fill="#FBBF24" />
+        <circle cx="72" cy="44" r="2.2" fill="#FFFFFF" />
+        <circle
+          cx="87"
+          cy="41"
+          r="6"
+          fill="#E76F51"
+          stroke={INK}
+          strokeWidth="2"
+        />
+        <circle cx="87" cy="41" r="2" fill="#F4D35E" />
       </g>
     );
   }
@@ -5824,47 +5836,35 @@ function AvatarAccessoryLayer({
   if (accessory === "glasses") {
     return (
       <g>
-        <rect
-          x="35"
-          y="53"
-          width="24"
-          height="18"
-          rx="8"
+        <circle
+          cx="49"
+          cy="62"
+          r="10.5"
           fill="#FFFFFF"
-          fillOpacity="0.25"
-          stroke="#134E4A"
-          strokeWidth="4"
+          fillOpacity="0.18"
+          stroke={INK}
+          strokeWidth="2"
         />
-        <rect
-          x="69"
-          y="53"
-          width="24"
-          height="18"
-          rx="8"
+        <circle
+          cx="79"
+          cy="62"
+          r="10.5"
           fill="#FFFFFF"
-          fillOpacity="0.25"
-          stroke="#134E4A"
-          strokeWidth="4"
+          fillOpacity="0.18"
+          stroke={INK}
+          strokeWidth="2"
         />
         <path
-          d="M 59 61 Q 64 58 69 61"
+          d="M 59.5 62 Q 64 59.5 68.5 62"
           fill="none"
-          stroke="#134E4A"
-          strokeWidth="4"
+          stroke={INK}
+          strokeWidth="2"
           strokeLinecap="round"
         />
         <path
-          d="M 35 60 L 29 58"
-          fill="none"
-          stroke="#134E4A"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-        <path
-          d="M 93 60 L 99 58"
-          fill="none"
-          stroke="#134E4A"
-          strokeWidth="4"
+          d="M 38.5 60 L 34 58.5 M 89.5 60 L 94 58.5"
+          stroke={INK}
+          strokeWidth="2"
           strokeLinecap="round"
         />
       </g>
@@ -5873,37 +5873,13 @@ function AvatarAccessoryLayer({
 
   if (accessory === "crown") {
     return (
-      <g transform="translate(0, -4)">
+      <g transform="translate(0, -3)">
         <path
-          d="M 36 38 L 32 16 L 48 28 L 64 12 L 80 28 L 96 16 L 92 38 Z"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="4"
+          d="M 40 37 L 37 19 L 51 28 L 64 15 L 77 28 L 91 19 L 88 37 Z"
+          fill="#F4D35E"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
           strokeLinejoin="round"
-        />
-        <circle
-          cx="32"
-          cy="16"
-          r="4"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="2.5"
-        />
-        <circle
-          cx="64"
-          cy="12"
-          r="5"
-          fill="#3B82F6"
-          stroke="#134E4A"
-          strokeWidth="2.5"
-        />
-        <circle
-          cx="96"
-          cy="16"
-          r="4"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="2.5"
         />
       </g>
     );
@@ -5911,29 +5887,22 @@ function AvatarAccessoryLayer({
 
   if (accessory === "wizardhat") {
     return (
-      <g transform="translate(0, -24)">
+      <g transform="translate(0, -21)">
         <path
-          d="M 64 16 L 36 60 L 92 60 Z"
-          fill="#A855F7"
-          stroke="#134E4A"
-          strokeWidth="4"
+          d="M 64 16 L 39 57 L 89 57 Z"
+          fill="#8E7DBE"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
           strokeLinejoin="round"
         />
         <ellipse
           cx="64"
-          cy="62"
-          rx="44"
-          ry="8"
-          fill="#A855F7"
-          stroke="#134E4A"
-          strokeWidth="4"
-        />
-        <polygon
-          points="64,40 66,45 71,45 67,48 68,53 64,50 60,53 61,48 57,45 62,45"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="2"
-          strokeLinejoin="round"
+          cy="59"
+          rx="38"
+          ry="6.5"
+          fill="#8E7DBE"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
         />
       </g>
     );
@@ -5943,31 +5912,31 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <path
-          d="M 28 64 C 28 30 44 20 64 20 C 84 20 100 30 100 64"
+          d="M 28 63 C 28 28 43 18 64 18 C 85 18 100 28 100 63"
           fill="none"
-          stroke="#334155"
-          strokeWidth="6.5"
+          stroke={INK}
+          strokeWidth="4.2"
           strokeLinecap="round"
         />
         <rect
-          x="20"
-          y="52"
-          width="13"
-          height="24"
-          rx="6"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="4"
+          x="21"
+          y="51"
+          width="11"
+          height="22"
+          rx="5.5"
+          fill="#52B788"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
         />
         <rect
-          x="95"
-          y="52"
-          width="13"
-          height="24"
-          rx="6"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="4"
+          x="96"
+          y="51"
+          width="11"
+          height="22"
+          rx="5.5"
+          fill="#52B788"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
         />
       </g>
     );
@@ -5977,26 +5946,20 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <rect
-          x="33"
-          y="52"
-          width="62"
-          height="20"
-          rx="10"
-          fill="#60A5FA"
-          stroke="#134E4A"
-          strokeWidth="4"
+          x="36"
+          y="51"
+          width="56"
+          height="19"
+          rx="8.5"
+          fill="#74C69D"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
         />
         <path
-          d="M 42 63 Q 48 67 54 63 M 74 63 Q 80 67 86 63"
+          d="M 44 61 Q 49 65 55 61 M 73 61 Q 79 65 84 61"
           fill="none"
-          stroke="#134E4A"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M 33 60 L 27 57 M 95 60 L 101 57"
-          stroke="#134E4A"
-          strokeWidth="3.5"
+          stroke={INK}
+          strokeWidth="2.2"
           strokeLinecap="round"
         />
       </g>
@@ -6007,17 +5970,17 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <path
-          d="M 34 88 Q 64 100 94 88 Q 98 102 92 110 Q 64 120 36 110 Q 30 102 34 88 Z"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="4"
+          d="M 37 88 Q 64 98 91 88 Q 94 100 88 107 Q 64 115 40 107 Q 34 100 37 88 Z"
+          fill="#F4D35E"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
           strokeLinejoin="round"
         />
         <path
-          d="M 72 104 L 78 124 L 64 122 L 62 106"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="3.5"
+          d="M 69 102 L 75 122 L 62 120 L 60 103"
+          fill="#F4D35E"
+          stroke={INK}
+          strokeWidth="2.2"
           strokeLinejoin="round"
         />
       </g>
@@ -6026,28 +5989,20 @@ function AvatarAccessoryLayer({
 
   if (accessory === "turban") {
     return (
-      <g transform="translate(0, -18)">
+      <g transform="translate(0, -15)">
         <path
-          d="M 28 56 Q 22 22 64 18 Q 106 22 100 56 Q 64 66 28 56 Z"
-          fill="#FAFAF9"
-          stroke="#134E4A"
-          strokeWidth="4.5"
+          d="M 30 55 Q 24 22 64 18 Q 104 22 98 55 Q 64 63 30 55 Z"
+          fill="#FFFFFF"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
           strokeLinejoin="round"
         />
         <path
-          d="M 32 50 Q 64 58 96 50 M 40 36 Q 64 28 88 36"
+          d="M 36 47 Q 64 54 92 47 M 42 35 Q 64 28 86 35"
           fill="none"
-          stroke="#CBD5E1"
-          strokeWidth="4"
+          stroke={INK}
+          strokeWidth={STROKE_DETAIL}
           strokeLinecap="round"
-        />
-        <circle
-          cx="64"
-          cy="32"
-          r="5"
-          fill="#10B981"
-          stroke="#134E4A"
-          strokeWidth="2.5"
         />
       </g>
     );
@@ -6057,42 +6012,35 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <rect
-          x="34"
-          y="54"
-          width="26"
-          height="17"
-          rx="5"
-          fill="#134E4A"
-          stroke="#134E4A"
-          strokeWidth="3.5"
+          x="37"
+          y="53"
+          width="23"
+          height="15"
+          rx="4"
+          fill={INK}
+          stroke={INK}
+          strokeWidth="2.2"
         />
         <rect
           x="68"
-          y="54"
-          width="26"
-          height="17"
-          rx="5"
-          fill="#134E4A"
-          stroke="#134E4A"
-          strokeWidth="3.5"
+          y="53"
+          width="23"
+          height="15"
+          rx="4"
+          fill={INK}
+          stroke={INK}
+          strokeWidth="2.2"
         />
         <path
-          d="M 38 58 L 44 66 M 72 58 L 78 66"
+          d="M 42 56 L 47 64 M 73 56 L 78 64"
           stroke="#FFFFFF"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          opacity="0.7"
-        />
-        <path
-          d="M 60 59 L 68 59"
-          stroke="#134E4A"
-          strokeWidth="4"
+          strokeWidth="2.4"
           strokeLinecap="round"
         />
         <path
-          d="M 34 58 L 28 54 M 94 58 L 100 54"
-          stroke="#134E4A"
-          strokeWidth="3.5"
+          d="M 60 59 L 68 59 M 37 58 L 33 56 M 91 58 L 95 56"
+          stroke={INK}
+          strokeWidth="2.2"
           strokeLinecap="round"
         />
       </g>
@@ -6103,35 +6051,21 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <path
-          d="M 44 90 Q 64 106 84 90"
+          d="M 49 90 Q 64 112 79 90"
           fill="none"
-          stroke="#FBBF24"
-          strokeWidth="5"
+          stroke="#52B788"
+          strokeWidth="3"
           strokeLinecap="round"
         />
-        <circle
-          cx="44"
-          cy="90"
-          r="3.5"
-          fill="#F59E0B"
-          stroke="#134E4A"
-          strokeWidth="1.5"
-        />
-        <circle
-          cx="64"
-          cy="98"
-          r="4"
-          fill="#F59E0B"
-          stroke="#134E4A"
-          strokeWidth="1.5"
-        />
-        <circle
-          cx="84"
-          cy="90"
-          r="3.5"
-          fill="#F59E0B"
-          stroke="#134E4A"
-          strokeWidth="1.5"
+        <rect
+          x="58"
+          y="103"
+          width="12"
+          height="14"
+          rx="2"
+          fill="#FFFFFF"
+          stroke={INK}
+          strokeWidth="2"
         />
       </g>
     );
@@ -6139,12 +6073,19 @@ function AvatarAccessoryLayer({
 
   if (accessory === "star") {
     return (
-      <g transform="translate(86 38) rotate(12)">
-        <polygon
-          points="0,-11 3,-3 11,-3 5,2 7,10 0,5 -7,10 -5,2 -11,-3 -3,-3"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="3"
+      <g>
+        <path
+          d="M 38 35 L 40.5 40.5 L 46 43 L 40.5 45.5 L 38 51 L 35.5 45.5 L 30 43 L 35.5 40.5 Z"
+          fill="#52B788"
+          stroke={INK}
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 31 46 L 32.5 49.5 L 36 51 L 32.5 52.5 L 31 56 L 29.5 52.5 L 26 51 L 29.5 49.5 Z"
+          fill="#52B788"
+          stroke={INK}
+          strokeWidth="1.6"
           strokeLinejoin="round"
         />
       </g>
@@ -6156,25 +6097,17 @@ function AvatarAccessoryLayer({
       <g>
         <path
           d="M 52 90 L 60 108 M 76 90 L 68 108"
-          stroke="#3B82F6"
-          strokeWidth="4.5"
+          stroke="#4895EF"
+          strokeWidth="3.2"
           strokeLinecap="round"
         />
         <circle
           cx="64"
-          cy="111"
-          r="9"
-          fill="#FBBF24"
-          stroke="#134E4A"
-          strokeWidth="3.5"
-        />
-        <circle
-          cx="64"
-          cy="111"
-          r="4"
-          fill="#FF6B6B"
-          stroke="#134E4A"
-          strokeWidth="2"
+          cy="112"
+          r="8"
+          fill="#F4D35E"
+          stroke={INK}
+          strokeWidth="2.2"
         />
       </g>
     );
@@ -6184,18 +6117,21 @@ function AvatarAccessoryLayer({
     return (
       <g>
         <path
-          d="M 32 45 C 34 31 48 27 64 27 C 80 27 94 31 96 45"
-          fill="none"
-          stroke="#EF4444"
-          strokeWidth="7.5"
-          strokeLinecap="round"
-        />
-        <polygon
-          points="86,32 94,22 98,32"
-          fill="#EF4444"
-          stroke="#134E4A"
-          strokeWidth="2.5"
+          d="M 33 44 C 35 32 48 28 64 28 C 80 28 93 32 95 44 L 94 50 C 80 41 48 41 34 50 Z"
+          fill="#FFFFFF"
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
           strokeLinejoin="round"
+        />
+        <rect
+          x="71"
+          y="34"
+          width="10.5"
+          height="5"
+          transform="rotate(8 71 34)"
+          fill="#52B788"
+          stroke={INK}
+          strokeWidth="1.8"
         />
       </g>
     );
@@ -6204,147 +6140,141 @@ function AvatarAccessoryLayer({
   return null;
 }
 
-// Komponen Mata & Wajah Chibi sesuai gambar referensi
-function ChibiFacialFeatures({
+// ============================================================================
+// FITUR WAJAH DOODLE (Menyesuaikan Alis & Ekspresi tiap Variant)
+// ============================================================================
+function DoodleFacialFeatures({
   mood,
   isGirl,
+  variant = 1,
 }: {
   mood: "idle" | "happy" | "cheer";
   isGirl?: boolean;
+  variant?: AvatarSantriVariant;
 }) {
+  // Cowok Variant 1 punya alis tebal tegas khas panel kiri atas
+  const browWidth = !isGirl && variant === 1 ? "4.5" : isGirl ? "2.1" : "2.8";
+
   return (
     <g>
-      {/* Alis Ekspresif */}
+      {/* Alis */}
       <path
-        d="M 39 49 Q 46 45 53 48"
+        d="M 41 48.5 Q 48 46 54 48.5"
         fill="none"
-        stroke="#451A03"
-        strokeWidth="3.5"
+        stroke={INK}
+        strokeWidth={browWidth}
         strokeLinecap="round"
       />
       <path
-        d="M 75 48 Q 82 45 89 49"
+        d="M 74 48.5 Q 80 46 87 48.5"
         fill="none"
-        stroke="#451A03"
-        strokeWidth="3.5"
+        stroke={INK}
+        strokeWidth={browWidth}
         strokeLinecap="round"
       />
 
-      {/* Mata Besar Chibi */}
+      {/* Mata Indie Doodle */}
       {mood === "happy" ? (
         <>
           <path
-            d="M 39 61 Q 46 53 53 61"
+            d="M 42 62 Q 49 55 55 62"
             fill="none"
-            stroke="#134E4A"
-            strokeWidth="4"
+            stroke={INK}
+            strokeWidth="2.6"
             strokeLinecap="round"
           />
           <path
-            d="M 75 61 Q 82 53 89 61"
+            d="M 73 62 Q 79 55 86 62"
             fill="none"
-            stroke="#134E4A"
-            strokeWidth="4"
+            stroke={INK}
+            strokeWidth="2.6"
             strokeLinecap="round"
           />
         </>
       ) : (
         <>
-          {/* Bulu mata kecil */}
           <path
-            d={
-              isGirl
-                ? "M 37 56 L 34 53 M 39 54 L 37 51 M 91 56 L 94 53 M 89 54 L 91 51"
-                : "M 38 56 L 35 54 M 90 56 L 93 54"
-            }
-            stroke="#134E4A"
-            strokeWidth="2.5"
+            d="M 40 59.5 Q 49 53.5 56 59"
+            fill="none"
+            stroke={INK}
+            strokeWidth="2.4"
             strokeLinecap="round"
           />
-          {/* Sclera / Putih Mata */}
-          <ellipse
-            cx="46"
-            cy="61"
-            rx="7.5"
-            ry="8"
-            fill="#FFFFFF"
-            stroke="#134E4A"
-            strokeWidth="3"
+          <path
+            d="M 72 59 Q 79 53.5 88 59.5"
+            fill="none"
+            stroke={INK}
+            strokeWidth="2.4"
+            strokeLinecap="round"
           />
-          <ellipse
-            cx="82"
-            cy="61"
-            rx="7.5"
-            ry="8"
-            fill="#FFFFFF"
-            stroke="#134E4A"
-            strokeWidth="3"
-          />
-          {/* Iris Coklat */}
-          <circle cx="47" cy="61.5" r="5.5" fill="#78350F" />
-          <circle cx="81" cy="61.5" r="5.5" fill="#78350F" />
-          {/* Pupil Hitam */}
-          <circle cx="47" cy="61.5" r="3" fill="#134E4A" />
-          <circle cx="81" cy="61.5" r="3" fill="#134E4A" />
-          {/* Kilau Mata (Catchlights) */}
-          <circle cx="44.5" cy="58.5" r="2.2" fill="#FFFFFF" />
-          <circle cx="78.5" cy="58.5" r="2.2" fill="#FFFFFF" />
-          <circle cx="49" cy="64" r="1" fill="#FFFFFF" />
-          <circle cx="83" cy="64" r="1" fill="#FFFFFF" />
+          <ellipse cx="49" cy="62.5" rx="4.6" ry="5.4" fill={INK} />
+          <ellipse cx="79" cy="62.5" rx="4.6" ry="5.4" fill={INK} />
         </>
       )}
 
-      {/* Hidung Mungil */}
+      {/* Hidung Titik Mungil */}
       <path
-        d="M 62 67 Q 64 69.5 66 67"
-        fill="none"
-        stroke="#D97706"
-        strokeWidth="2.5"
+        d="M 63.8 67.5 L 64.2 68.8"
+        stroke={INK}
+        strokeWidth="2"
         strokeLinecap="round"
       />
 
-      {/* Rona Pipi + Garis Arsir (Blush Hatch) khas gambar referensi */}
-      <ellipse cx="38" cy="70" rx="6.5" ry="4" fill="#FB7185" opacity="0.55" />
-      <ellipse cx="90" cy="70" rx="6.5" ry="4" fill="#FB7185" opacity="0.55" />
-      <path
-        d="M 35 69 L 37 72 M 38 68.5 L 40 71.5 M 41 69 L 43 72"
-        stroke="#E11D48"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        opacity="0.6"
+      {/* Soft Blush + Garis Arsir (//) */}
+      <ellipse
+        cx="41"
+        cy="69.5"
+        rx="6.5"
+        ry="3.8"
+        fill="#F4978E"
+        opacity="0.45"
+      />
+      <ellipse
+        cx="87"
+        cy="69.5"
+        rx="6.5"
+        ry="3.8"
+        fill="#F4978E"
+        opacity="0.45"
       />
       <path
-        d="M 87 69 L 89 72 M 90 68.5 L 92 71.5 M 93 69 L 95 72"
-        stroke="#E11D48"
-        strokeWidth="1.3"
+        d="M 38.5 68.5 L 39.8 71 M 41.8 68.2 L 43 70.8"
+        stroke="#E56B6F"
+        strokeWidth="1.1"
         strokeLinecap="round"
-        opacity="0.6"
+        opacity="0.55"
+      />
+      <path
+        d="M 85 68.2 L 86.2 70.8 M 88.2 68.5 L 89.5 71"
+        stroke="#E56B6F"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        opacity="0.55"
       />
 
-      {/* Mulut Ekspresif */}
-      {mood === "cheer" || mood === "happy" ? (
-        <g>
-          <path
-            d="M 55 73 Q 64 74 73 73 C 73 84 55 84 55 73 Z"
-            fill="#991B1B"
-            stroke="#134E4A"
-            strokeWidth="3"
-            strokeLinejoin="round"
-          />
-          {/* Gigi atas */}
-          <path d="M 57 73.5 H 71 V 76.5 H 57 Z" fill="#FFFFFF" />
-          {/* Lidah */}
-          <path
-            d="M 59 80 Q 64 77 69 80 C 67 82.5 61 82.5 59 80 Z"
-            fill="#FB7185"
-          />
-        </g>
+      {/* Mulut */}
+      {mood === "cheer" ? (
+        <path
+          d="M 60 73 Q 64 72.5 68 73 C 69 80 59 80 60 73 Z"
+          fill="#E56B6F"
+          stroke={INK}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+      ) : mood === "happy" ? (
+        <path
+          d="M 60.5 73.5 Q 64 77 67.5 73.5"
+          fill="none"
+          stroke={INK}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
       ) : (
         <path
-          d="M 57 74 Q 64 80 71 74"
+          d="M 62.5 74.5 Q 64 75.5 65.5 74.5"
           fill="none"
-          stroke="#134E4A"
-          strokeWidth="3.2"
+          stroke={INK}
+          strokeWidth="2"
           strokeLinecap="round"
         />
       )}
@@ -6352,19 +6282,685 @@ function ChibiFacialFeatures({
   );
 }
 
+// ============================================================================
+// 3 KARAKTER COWOK (SANTRI PUTRA MODEST STREETWEAR)
+// ============================================================================
+function BoyCharacterLayers({
+  variant,
+  mood,
+}: {
+  variant: AvatarSantriVariant;
+  mood: "idle" | "happy" | "cheer";
+}) {
+  return (
+    <g>
+      {/* --- PAKAIAN COWOK BERDASARKAN VARIANT --- */}
+      {variant === 1 && (
+        /* COWOK 1: Crewneck Hitam + Tipografi Blok Oranye (Adaptasi Panel Kiri Atas) */
+        <g>
+          <path
+            d="M 15 134 C 19 98 36 90 64 90 C 92 90 109 98 113 134 Z"
+            fill={INK}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Kerah Turtleneck / Mockneck */}
+          <path
+            d="M 50 86 L 78 86 L 80 95 Q 64 99 48 95 Z"
+            fill={INK}
+            stroke="#3F3F46"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          {/* Blok Grafis Dekoratif di Dada ("SANTRI" Block Style) */}
+          <rect
+            x="33"
+            y="108"
+            width="14"
+            height="18"
+            rx="2"
+            fill="#E76F51"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+          <polygon
+            points="51,126 58,108 65,126"
+            fill="#E76F51"
+            stroke={INK}
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <polygon
+            points="67,126 73,108 80,126"
+            fill="#E76F51"
+            stroke={INK}
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <rect
+            x="83"
+            y="108"
+            width="12"
+            height="18"
+            rx="2"
+            fill="#E76F51"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+        </g>
+      )}
+
+      {variant === 2 && (
+        /* COWOK 2: Crewneck Putih + Strap Tas Selempang (Adaptasi Panel Kiri Tengah & Tengah Atas) */
+        <g>
+          <path
+            d="M 15 134 C 19 98 36 90 64 90 C 92 90 109 98 113 134 Z"
+            fill="#FFFFFF"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Kerah Rib Hijau */}
+          <path
+            d="M 47 90 Q 64 101 81 90 Q 84 94 81 97 Q 64 108 47 97 Q 44 94 47 90 Z"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Strap Tas Selempang Hitam & Gesper Hijau */}
+          <path
+            d="M 31 95 L 44 134 L 54 134 L 41 91 Z"
+            fill={INK}
+            stroke={INK}
+            strokeWidth="2"
+          />
+          <rect
+            x="35"
+            y="107"
+            width="12"
+            height="9"
+            rx="1.5"
+            transform="rotate(-18 35 107)"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="2"
+          />
+          {/* Patch Oranye di Dada Kanan */}
+          <rect
+            x="68"
+            y="110"
+            width="18"
+            height="10"
+            rx="2"
+            fill="#E76F51"
+            stroke={INK}
+            strokeWidth="2"
+          />
+        </g>
+      )}
+
+      {variant === 3 && (
+        /* COWOK 3: Outer Koko/Jaket Putih Kerah Coklat + Inner Tan (Adaptasi Panel Kanan Bawah) */
+        <g>
+          <path
+            d="M 15 134 C 19 98 36 90 64 90 C 92 90 109 98 113 134 Z"
+            fill="#FFFFFF"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Baju Dalam Warna Warm Tan */}
+          <path
+            d="M 48 91 L 56 134 L 72 134 L 80 91 Z"
+            fill="#D4A373"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Kerah Lipat Outer */}
+          <polygon
+            points="48,90 36,105 53,115"
+            fill="#CCB79B"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <polygon
+            points="80,90 92,105 75,115"
+            fill="#CCB79B"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          {/* Pin Gantungan Kuning & Patch Kecil */}
+          <circle
+            cx="45"
+            cy="121"
+            r="5"
+            fill="#F4D35E"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+          <rect
+            x="78"
+            y="122"
+            width="13"
+            height="6"
+            rx="1"
+            fill="#F4A261"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+        </g>
+      )}
+
+      {/* --- LEHER, TELINGA (TANPA ANTING), & WAJAH --- */}
+      <rect
+        x="56"
+        y="77"
+        width="16"
+        height="16"
+        fill={SKIN}
+        stroke={INK}
+        strokeWidth={STROKE_MAIN}
+      />
+      <path d="M 56 77 H 72 V 88 Q 64 91 56 88 Z" fill={INK} />
+
+      <circle
+        cx="33"
+        cy="63"
+        r="7.5"
+        fill={SKIN}
+        stroke={INK}
+        strokeWidth={STROKE_MAIN}
+      />
+      <path
+        d="M 31 60.5 Q 34.5 63 32 65.5"
+        fill="none"
+        stroke={INK}
+        strokeWidth={STROKE_DETAIL}
+        strokeLinecap="round"
+      />
+      <circle
+        cx="95"
+        cy="63"
+        r="7.5"
+        fill={SKIN}
+        stroke={INK}
+        strokeWidth={STROKE_MAIN}
+      />
+      <path
+        d="M 97 60.5 Q 93.5 63 96 65.5"
+        fill="none"
+        stroke={INK}
+        strokeWidth={STROKE_DETAIL}
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M 35 55 C 35 34 46 28 64 28 C 82 28 93 34 93 55 C 93 74 80 84 64 84 C 48 84 35 74 35 55 Z"
+        fill={SKIN}
+        stroke={INK}
+        strokeWidth={STROKE_MAIN}
+        strokeLinejoin="round"
+      />
+
+      <DoodleFacialFeatures mood={mood} isGirl={false} variant={variant} />
+
+      {/* --- GAYA RAMBUT COWOK BERDASARKAN VARIANT --- */}
+      {variant === 1 && (
+        /* RAMBUT COWOK 1: Spiky Messy Hitam Pekat (Panel Kiri Atas) */
+        <path
+          d="M 33 55 C 28 45 24 38 33 34 C 28 25 38 22 45 24 C 48 14 58 14 63 20 C 70 12 79 15 78 23 C 88 20 96 26 91 33 C 100 36 99 45 95 55 C 91 42 84 38 78 44 C 73 36 65 37 61 44 C 55 36 47 38 43 45 C 38 40 35 44 33 55 Z"
+          fill={INK}
+          stroke={INK}
+          strokeWidth={STROKE_MAIN}
+          strokeLinejoin="round"
+        />
+      )}
+
+      {variant === 2 && (
+        /* RAMBUT COWOK 2: Soft Blonde/Cream Belah Tengah Kasual (Panel Kiri Tengah) */
+        <g>
+          <path
+            d="M 31 56 C 27 34 39 17 64 17 C 89 17 101 34 97 56 C 93 45 87 40 81 48 C 78 37 70 36 64 45 C 58 36 50 37 47 48 C 41 40 35 45 31 56 Z"
+            fill="#E9D8A6"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 52 24 Q 64 31 76 24"
+            fill="none"
+            stroke={INK}
+            strokeWidth={STROKE_DETAIL}
+            strokeLinecap="round"
+          />
+        </g>
+      )}
+
+      {variant === 3 && (
+        /* RAMBUT COWOK 3: Fluffy Warm-Gold + Klip Hijau & Highlight Putih (Panel Kanan Bawah) */
+        <g>
+          <path
+            d="M 30 57 C 25 36 37 16 64 16 C 91 16 103 36 98 57 C 94 46 88 41 82 49 C 77 38 69 37 64 46 C 57 37 48 39 44 49 C 38 42 34 46 30 57 Z"
+            fill="#F3C65F"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Highlight Putih */}
+          <path
+            d="M 75 23 C 81 24 86 29 88 34 C 82 33 77 31 74 27 Z"
+            fill="#FFFFFF"
+            opacity="0.85"
+          />
+          {/* Jepit/Patch Hijau di Sisi Kiri Rambut */}
+          <rect
+            x="33"
+            y="34"
+            width="10"
+            height="4.5"
+            rx="1"
+            transform="rotate(-15 33 34)"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+        </g>
+      )}
+    </g>
+  );
+}
+
+// ============================================================================
+// 3 KARAKTER CEWEK (SANTRI PUTRI SYAR'I BERBEDA GAYA HIJAB & BUSANA)
+// ============================================================================
+function GirlCharacterLayers({
+  variant,
+  mood,
+}: {
+  variant: AvatarSantriVariant;
+  mood: "idle" | "happy" | "cheer";
+}) {
+  return (
+    <g>
+      {variant === 1 && (
+        /* ====================================================================
+           CEWEK 1: Pashmina Syar'i Warm-Apricot + Overall Motif Hijau
+           (Adaptasi Syar'i dari Panel Kanan Atas)
+           ==================================================================== */
+        <g>
+          {/* Siluet Belakang Khimar */}
+          <path
+            d="M 15 134 C 16 96 22 76 26 56 C 26 26 41 19 64 19 C 87 19 102 26 102 56 C 106 76 112 96 113 134 Z"
+            fill="#F4A261"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Gamis Dasar Hitam */}
+          <path
+            d="M 13 134 C 16 102 30 92 64 92 C 98 92 112 102 115 134 Z"
+            fill={INK}
+          />
+          {/* Bayangan Dalam Kerudung */}
+          <ellipse cx="64" cy="66" rx="31" ry="26" fill={INK} />
+          {/* Leher & Bayangan Dagu */}
+          <rect x="56" y="76" width="16" height="15" fill={SKIN} />
+          <path d="M 56 76 H 72 V 87 Q 64 90 56 87 Z" fill={INK} />
+          {/* Wajah */}
+          <path
+            d="M 36 55 C 36 35 46 28 64 28 C 82 28 92 35 92 55 C 92 74 79 83 64 83 C 49 83 36 74 36 55 Z"
+            fill={SKIN}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Ciput Rapi */}
+          <path
+            d="M 38 44 Q 64 33 90 44 C 85 28 43 28 38 44 Z"
+            fill="#FFF8F0"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <DoodleFacialFeatures mood={mood} isGirl={true} variant={1} />
+          {/* Layer Depan Khimar Syar'i Menutup Dada */}
+          <path
+            d="M 64 19 C 40 19 26 30 26 56 C 25 78 20 96 19 120 Q 42 126 64 122 Q 86 126 109 120 C 108 96 103 78 102 56 C 102 30 88 19 64 19 Z M 89 56 C 89 73 78 83 64 83 C 50 83 39 73 39 56 C 39 39 49 32 64 32 C 79 32 89 39 89 56 Z"
+            fill="#F9C784"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            fillRule="evenodd"
+            strokeLinejoin="round"
+          />
+          {/* Lipatan Halus Dagu & Dada */}
+          <path
+            d="M 45 86 Q 64 95 83 86 M 32 98 Q 64 110 96 98"
+            fill="none"
+            stroke={INK}
+            strokeWidth={STROKE_DETAIL}
+            strokeLinecap="round"
+          />
+          {/* Tali & Bib Overall Hijau-Putih di Atas Gamis/Khimar (Persis Panel Kanan Atas) */}
+          <rect
+            x="40"
+            y="95"
+            width="9"
+            height="24"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="2"
+          />
+          <rect
+            x="79"
+            y="95"
+            width="9"
+            height="24"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="2"
+          />
+          <path
+            d="M 35 114 L 93 114 L 95 134 L 33 134 Z"
+            fill="#FFFFFF"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Motif Bercak Hijau Lucu pada Overall */}
+          <circle cx="46" cy="123" r="6" fill="#52B788" />
+          <circle cx="64" cy="126" r="7" fill="#52B788" />
+          <circle cx="81" cy="122" r="6.5" fill="#52B788" />
+          <circle cx="55" cy="118" r="4" fill="#52B788" />
+          {/* 2 Klip Hijau Ikonik di Kanan Atas Kerudung */}
+          <rect
+            x="75"
+            y="27"
+            width="9.5"
+            height="4.2"
+            rx="1"
+            transform="rotate(-28 75 27)"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="1.7"
+          />
+          <rect
+            x="80"
+            y="33"
+            width="9.5"
+            height="4.2"
+            rx="1"
+            transform="rotate(-28 80 33)"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="1.7"
+          />
+        </g>
+      )}
+
+      {variant === 2 && (
+        /* ====================================================================
+           CEWEK 2: Khimar Syar'i Terracotta/Coral + Pin Bintang + Gamis Hitam
+           (Adaptasi Syar'i dari Karakter Kiri di Panel Tengah Biru)
+           ==================================================================== */
+        <g>
+          {/* Siluet Belakang Khimar */}
+          <path
+            d="M 14 134 C 15 94 22 74 26 55 C 26 25 41 18 64 18 C 87 18 102 25 102 55 C 106 74 113 94 114 134 Z"
+            fill="#E06D53"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Bayangan Dalam Kerudung */}
+          <ellipse cx="64" cy="66" rx="31" ry="26" fill={INK} />
+          {/* Leher & Bayangan Dagu */}
+          <rect x="56" y="76" width="16" height="15" fill={SKIN} />
+          <path d="M 56 76 H 72 V 87 Q 64 90 56 87 Z" fill={INK} />
+          {/* Wajah */}
+          <path
+            d="M 36 55 C 36 35 46 28 64 28 C 82 28 92 35 92 55 C 92 74 79 83 64 83 C 49 83 36 74 36 55 Z"
+            fill={SKIN}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Ciput Rapi */}
+          <path
+            d="M 38 44 Q 64 33 90 44 C 85 28 43 28 38 44 Z"
+            fill="#FFE5D9"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <DoodleFacialFeatures mood={mood} isGirl={true} variant={2} />
+          {/* Khimar Syar'i Terracotta Menutup Dada dengan Lipatan Anggun */}
+          <path
+            d="M 64 18 C 40 18 26 29 26 55 C 24 80 18 102 16 134 L 112 134 C 110 102 104 80 102 55 C 102 29 88 18 64 18 Z M 89 56 C 89 73 78 83 64 83 C 50 83 39 73 39 56 C 39 39 49 32 64 32 C 79 32 89 39 89 56 Z"
+            fill="#F2846E"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            fillRule="evenodd"
+            strokeLinejoin="round"
+          />
+          {/* Outer Vest / Abaya Hitam di Bagian Bawah Dada */}
+          <path
+            d="M 20 110 Q 64 122 108 110 L 112 134 L 16 134 Z"
+            fill={INK}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+          />
+          {/* Patch Coral di Dada ("SANTRI") */}
+          <rect
+            x="48"
+            y="119"
+            width="32"
+            height="11"
+            rx="2"
+            fill="#E76F51"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+          {/* Lipatan Drape Khimar Menyilang & Juntaian Lipatan Samping */}
+          <path
+            d="M 44 87 Q 64 96 84 87 M 26 98 Q 64 114 102 96"
+            fill="none"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinecap="round"
+          />
+          {/* Highlight Lembut di Kanan Atas Khimar */}
+          <path
+            d="M 71 24 C 79 25 85 31 87 37 C 80 36 75 34 70 29 Z"
+            fill="#FFD7CA"
+            opacity="0.75"
+          />
+          {/* 2 Pin Bintang Hijau di Sisi Kiri Kerudung (Persis Panel Tengah) */}
+          <path
+            d="M 35 35 L 37.5 40.5 L 43 43 L 37.5 45.5 L 35 51 L 32.5 45.5 L 27 43 L 32.5 40.5 Z"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 29 47 L 30.5 50.5 L 34 52 L 30.5 53.5 L 29 57 L 27.5 53.5 L 24 52 L 27.5 50.5 Z"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </g>
+      )}
+
+      {variant === 3 && (
+        /* ====================================================================
+           CEWEK 3: Khimar Syar'i Hitam Monokrom + Jaket Hoodie Modest + Kacamata Bulat
+           (Adaptasi Syar'i dari Karakter Kanan Berkacamata di Panel Tengah Biru)
+           ==================================================================== */
+        <g>
+          {/* Siluet Belakang Khimar Hitam */}
+          <path
+            d="M 15 134 C 17 94 23 74 27 55 C 27 25 42 18 64 18 C 86 18 101 25 101 55 C 105 74 111 94 113 134 Z"
+            fill={INK}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Leher & Bayangan Dagu */}
+          <rect x="56" y="76" width="16" height="15" fill={SKIN} />
+          <path d="M 56 76 H 72 V 87 Q 64 90 56 87 Z" fill={INK} />
+          {/* Wajah */}
+          <path
+            d="M 36 55 C 36 35 46 28 64 28 C 82 28 92 35 92 55 C 92 74 79 83 64 83 C 49 83 36 74 36 55 Z"
+            fill={SKIN}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          {/* Ciput Rapi Abu Muda */}
+          <path
+            d="M 38 44 Q 64 33 90 44 C 85 28 43 28 38 44 Z"
+            fill="#E4E4E7"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <DoodleFacialFeatures mood={mood} isGirl={true} variant={3} />
+          {/* Kacamata Bulat Tipis Bawaan Karakter 3 */}
+          <circle
+            cx="49"
+            cy="62"
+            r="10.5"
+            fill="#FFFFFF"
+            fillOpacity="0.18"
+            stroke={INK}
+            strokeWidth="2"
+          />
+          <circle
+            cx="79"
+            cy="62"
+            r="10.5"
+            fill="#FFFFFF"
+            fillOpacity="0.18"
+            stroke={INK}
+            strokeWidth="2"
+          />
+          <path
+            d="M 59.5 62 Q 64 59.5 68.5 62"
+            fill="none"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+
+          {/* Layer Depan Khimar Syar'i Hitam Membingkai Wajah & Menutup Dada */}
+          <path
+            d="M 64 18 C 40 18 27 29 27 55 C 26 78 20 98 18 134 L 110 134 C 108 98 102 78 101 55 C 101 29 88 18 64 18 Z M 89 56 C 89 73 78 83 64 83 C 50 83 39 73 39 56 C 39 39 49 32 64 32 C 79 32 89 39 89 56 Z"
+            fill={INK}
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            fillRule="evenodd"
+            strokeLinejoin="round"
+          />
+          {/* Lipatan Halus Khimar Hitam (Garis Abu Gelap agar Terlihat Berdimensi) */}
+          <path
+            d="M 44 87 Q 64 96 84 87 M 32 100 Q 64 112 96 100"
+            fill="none"
+            stroke="#3F3F46"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+
+          {/* Detail Hoodie Putih & Plaket Tengah Modest (Persis Karakter Kanan Panel Tengah) */}
+          <path
+            d="M 38 92 C 38 86 48 86 55 92 L 64 98 L 73 92 C 80 86 90 86 90 92 C 92 100 82 104 73 102 L 73 134 L 55 134 L 55 102 C 46 104 36 100 38 92 Z"
+            fill="#FFFFFF"
+            stroke={INK}
+            strokeWidth={STROKE_MAIN}
+            strokeLinejoin="round"
+          />
+          <line x1="64" y1="98" x2="64" y2="134" stroke={INK} strokeWidth="2" />
+          {/* Tali Hoodie Kecil */}
+          <line
+            x1="59"
+            y1="102"
+            x2="59"
+            y2="115"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <line
+            x1="69"
+            y1="102"
+            x2="69"
+            y2="115"
+            stroke={INK}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          {/* Label Hijau Mint di Sisi Kanan Dada */}
+          <rect
+            x="78"
+            y="116"
+            width="15"
+            height="6.5"
+            rx="1"
+            fill="#52B788"
+            stroke={INK}
+            strokeWidth="1.8"
+          />
+          {/* Jepit Pita Putih Kecil di Kanan Atas Khimar Hitam */}
+          <polygon
+            points="78,34 84,30 83,37 89,35 85,42 79,38"
+            fill="#FFFFFF"
+            stroke={INK}
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </g>
+      )}
+    </g>
+  );
+}
+
+// ============================================================================
+// KOMPONEN UTAMA AVATAR SANTRI SVG
+// ============================================================================
 export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
   size = 128,
   className = "",
   style,
   gender = "boy",
+  variant = 1,
   accessory = "none",
   mood = "idle",
   ...props
 }) => {
   const isGirl = gender === "girl";
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const clipId = `avatar-clip-${uid}`;
-  const dotsId = `avatar-dots-${uid}`;
+  const clipId = `comic-panel-clip-${uid}`;
+
+  // Palet Warna Latar Panel Komik Sesuai Gambar Referensi
+  const panelColors = {
+    boy: {
+      1: "#F4D35E", // Mustard Yellow (Panel Kiri Atas)
+      2: "#E56B6F", // Coral Red (Panel Kiri Tengah)
+      3: "#68B66B", // Retro Green (Panel Kanan Bawah)
+    },
+    girl: {
+      1: "#E56B6F", // Coral Red (Panel Kanan Atas)
+      2: "#38A3C5", // Sky Blue (Panel Tengah Kiri)
+      3: "#38A3C5", // Sky Blue (Panel Tengah Kanan)
+    },
+  };
+
+  const panelBg = isGirl ? panelColors.girl[variant] : panelColors.boy[variant];
 
   return (
     <svg
@@ -6374,385 +6970,122 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
       height={size}
       fill="none"
       role="img"
-      aria-label={`Avatar Santri ${isGirl ? "Putri" : "Putra"}`}
+      aria-label={`Avatar Santri ${isGirl ? "Putri" : "Putra"} Variant ${variant}`}
       className={className}
       style={style}
       {...props}
     >
       <defs>
-        <pattern
-          id={dotsId}
-          x="0"
-          y="0"
-          width="10"
-          height="10"
-          patternUnits="userSpaceOnUse"
-        >
-          <circle cx="2" cy="2" r="1.5" fill="#0D9488" opacity="0.15" />
-        </pattern>
         <clipPath id={clipId}>
-          <circle cx="64" cy="68" r="52" />
+          <path d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z" />
         </clipPath>
       </defs>
 
-      {/* Frame Lingkaran Neo-Brutalism */}
-      <circle cx="64" cy="74" r="52" fill="#134E4A" />
-      <circle
-        cx="64"
-        cy="68"
-        r="52"
-        fill="#F0FDF4"
-        stroke="#134E4A"
-        strokeWidth="5"
-      />
-      <circle cx="64" cy="68" r="52" fill={`url(#${dotsId})`} />
+      {/* Margin Kertas Komik Putih */}
+      <rect x="4" y="2" width="120" height="136" rx="3" fill="#FFFFFF" />
 
+      {/* Background Panel Solid */}
+      <path
+        d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z"
+        fill={panelBg}
+      />
+
+      {/* Ornamen Sparkle & Garis Ekspresi Latar Khusus Panel Biru (Variant 2 & 3 Putri) */}
       <g clipPath={`url(#${clipId})`}>
-        {/* Bagian Belakang Kerudung (Khusus Putri) */}
-        {isGirl && (
+        {isGirl && variant === 2 && (
           <path
-            d="M 22 120 C 18 72 24 18 64 18 C 104 18 110 72 106 120 Z"
-            fill="#F43F5E"
-            stroke="#134E4A"
-            strokeWidth="4.5"
-            strokeLinejoin="round"
+            d="M 103 78 L 106 85 L 113 88 L 106 91 L 103 98 L 100 91 L 93 88 L 100 85 Z"
+            fill="#FFFFFF"
+          />
+        )}
+        {isGirl && variant === 3 && (
+          <path
+            d="M 96 20 L 101 15 M 101 24 L 108 21"
+            stroke="#FFFFFF"
+            strokeWidth="2.5"
+            strokeLinecap="round"
           />
         )}
 
-        {/* Baju / Bahu */}
-        <path
-          d="M 22 122 C 26 94 42 88 64 88 C 86 88 102 94 106 122 Z"
-          fill={isGirl ? "#FB7185" : "#0D9488"}
-          stroke="#134E4A"
-          strokeWidth="4.5"
-          strokeLinejoin="round"
-        />
-
-        {/* Kerah Baju Koko (Putra) */}
-        {!isGirl && (
-          <>
-            <path
-              d="M 52 88 L 64 102 L 76 88"
-              fill="#FFFFFF"
-              stroke="#134E4A"
-              strokeWidth="4"
-              strokeLinejoin="round"
-            />
-            <line
-              x1="64"
-              y1="102"
-              x2="64"
-              y2="120"
-              stroke="#134E4A"
-              strokeWidth="3.5"
-            />
-          </>
+        {/* Render Karakter Cowok / Cewek (Variant 1, 2, atau 3) */}
+        {isGirl ? (
+          <GirlCharacterLayers variant={variant} mood={mood} />
+        ) : (
+          <BoyCharacterLayers variant={variant} mood={mood} />
         )}
 
-        {/* Leher */}
-        <rect
-          x="55"
-          y="78"
-          width="18"
-          height="15"
-          rx="7"
-          fill="#FDBA74"
-          stroke="#134E4A"
-          strokeWidth="4"
-        />
-
-        {/* Telinga Chibi + Detail Dalam (Putra) */}
-        {!isGirl && (
-          <>
-            <circle
-              cx="30"
-              cy="63"
-              r="7.5"
-              fill="#FDBA74"
-              stroke="#134E4A"
-              strokeWidth="4"
-            />
-            <path
-              d="M 28 61 Q 31 63 29 66"
-              fill="none"
-              stroke="#EA580C"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-            />
-            <circle
-              cx="98"
-              cy="63"
-              r="7.5"
-              fill="#FDBA74"
-              stroke="#134E4A"
-              strokeWidth="4"
-            />
-            <path
-              d="M 100 61 Q 97 63 99 66"
-              fill="none"
-              stroke="#EA580C"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-            />
-          </>
-        )}
-
-        {/* Wajah Squircle (Pipi Chubby Chibi) */}
-        <path
-          d="M 32 54 C 32 32 45 26 64 26 C 83 26 96 32 96 54 C 96 76 82 86 64 86 C 46 86 32 76 32 54 Z"
-          fill="#FED7AA"
-          stroke="#134E4A"
-          strokeWidth="4.5"
-          strokeLinejoin="round"
-        />
-
-        {/* Fitur Wajah (Mata, Hidung, Pipi, Mulut) */}
-        <ChibiFacialFeatures mood={mood} isGirl={isGirl} />
-
-        {/* Rambut Bervolume & Berponi (Putra) */}
-        {!isGirl && (
-          <g>
-            <path
-              d="M 30 58 C 25 36 38 16 64 16 C 90 16 103 36 98 58 C 95 45 89 41 85 47 C 80 37 71 39 66 49 C 60 38 49 39 44 49 C 39 42 33 46 30 58 Z"
-              fill="#78350F"
-              stroke="#134E4A"
-              strokeWidth="4.5"
-              strokeLinejoin="round"
-            />
-            {/* Highlight & Tekstur Helai Rambut */}
-            <path
-              d="M 44 28 Q 64 20 84 28"
-              fill="none"
-              stroke="#B45309"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 58 16 Q 64 10 72 15"
-              fill="none"
-              stroke="#134E4A"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-          </g>
-        )}
-
-        {/* Kerudung / Hijab Chibi (Putri) */}
-        {isGirl && (
-          <g>
-            {/* Ciput / Inner Ninja + Anak Rambut Sedikit */}
-            <path
-              d="M 35 46 Q 64 32 93 46 C 88 28 40 28 35 46 Z"
-              fill="#9F1239"
-              stroke="#134E4A"
-              strokeWidth="3.5"
-              strokeLinejoin="round"
-            />
-            {/* Lipatan Kerudung Membingkai Wajah & Menutup Dada */}
-            <path
-              d="M 24 60 C 24 22 104 22 104 60 C 104 94 88 112 64 114 C 40 112 24 94 24 60 Z M 93 58 C 93 38 80 32 64 32 C 48 32 35 38 35 58 C 35 76 47 85 64 85 C 81 85 93 76 93 58 Z"
-              fill="#FB7185"
-              stroke="#134E4A"
-              strokeWidth="4.5"
-              fillRule="evenodd"
-              strokeLinejoin="round"
-            />
-            {/* Lipatan Leher Kerudung */}
-            <path
-              d="M 42 92 Q 64 102 86 92"
-              fill="none"
-              stroke="#134E4A"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-            />
-            {/* Bros Bunga Mungil di Bahu Kerudung */}
-            <circle
-              cx="80"
-              cy="101"
-              r="5.5"
-              fill="#FBBF24"
-              stroke="#134E4A"
-              strokeWidth="2.5"
-            />
-            <circle cx="80" cy="101" r="2" fill="#FFFFFF" />
-          </g>
-        )}
-
-        {/* Pin Bintang di Baju Putra */}
-        {!isGirl && (
-          <g>
-            <circle
-              cx="80"
-              cy="105"
-              r="6"
-              fill="#FF6B6B"
-              stroke="#134E4A"
-              strokeWidth="2.5"
-            />
-            <circle cx="80" cy="105" r="2" fill="#FFFFFF" />
-          </g>
-        )}
-
-        {/* Layer Aksesoris */}
+        {/* Layer Aksesoris Opsional */}
         <AvatarAccessoryLayer accessory={accessory} />
       </g>
+
+      {/* Garis Tepi Panel Komik Hand-Drawn */}
+      <path
+        d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z"
+        fill="none"
+        stroke={INK}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 };
 
+// ============================================================================
+// EXPORT 6 KOMPONEN KARAKTER SPESIFIK (3 COWOK & 3 CEWEK)
+// ============================================================================
+
+// --- 3 Karakter Cowok ---
 export const AvatarSantriBoySvg: React.FC<
   Omit<AvatarSantriSvgProps, "gender">
 > = (props) => <AvatarSantriSvg {...props} gender="boy" />;
 
+export const AvatarSantriBoy1Svg: React.FC<
+  Omit<AvatarSantriSvgProps, "gender" | "variant">
+> = (props) => <AvatarSantriSvg {...props} gender="boy" variant={1} />;
+
+export const AvatarSantriBoy2Svg: React.FC<
+  Omit<AvatarSantriSvgProps, "gender" | "variant">
+> = (props) => <AvatarSantriSvg {...props} gender="boy" variant={2} />;
+
+export const AvatarSantriBoy3Svg: React.FC<
+  Omit<AvatarSantriSvgProps, "gender" | "variant">
+> = (props) => <AvatarSantriSvg {...props} gender="boy" variant={3} />;
+
+// --- 3 Karakter Cewek ---
 export const AvatarSantriGirlSvg: React.FC<
   Omit<AvatarSantriSvgProps, "gender">
 > = (props) => <AvatarSantriSvg {...props} gender="girl" />;
 
+export const AvatarSantriGirl1Svg: React.FC<
+  Omit<AvatarSantriSvgProps, "gender" | "variant">
+> = (props) => <AvatarSantriSvg {...props} gender="girl" variant={1} />;
+
+export const AvatarSantriGirl2Svg: React.FC<
+  Omit<AvatarSantriSvgProps, "gender" | "variant">
+> = (props) => <AvatarSantriSvg {...props} gender="girl" variant={2} />;
+
+export const AvatarSantriGirl3Svg: React.FC<
+  Omit<AvatarSantriSvgProps, "gender" | "variant">
+> = (props) => <AvatarSantriSvg {...props} gender="girl" variant={3} />;
+
 // ============================================================================
-// KARAKTER PENDUKUNG (Diperbarui dengan gaya Chibi Neo-Brutalism yang senada)
+// KARAKTER PENDUKUNG LAINNYA (Tetap Tersedia & Kompatibel)
 // ============================================================================
 
-export const AvatarAnakBersorakSvg: React.FC<SvgProps> = ({
-  size = 128,
-  className = "",
-  style,
-  ...props
-}) => {
-  return (
-    <AvatarSantriSvg
-      size={size}
-      className={className}
-      style={style}
-      gender="boy"
-      mood="cheer"
-      accessory="star"
-      {...props}
-    />
-  );
-};
+export const AvatarAnakBersorakSvg: React.FC<SvgProps> = (props) => (
+  <AvatarSantriSvg {...props} gender="boy" variant={3} mood="cheer" />
+);
 
-export const AvatarUstadzSvg: React.FC<SvgProps> = ({
-  size = 128,
-  className = "",
-  style,
-  ...props
-}) => {
-  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const clipId = `ustadz-clip-${uid}`;
+export const AvatarUstadzSvg: React.FC<SvgProps> = (props) => (
+  <AvatarSantriSvg
+    {...props}
+    gender="boy"
+    variant={2}
+    mood="happy"
+    accessory="peci"
+  />
+);
 
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 128 140"
-      width={size}
-      height={size}
-      fill="none"
-      role="img"
-      aria-label="Ustadz"
-      className={className}
-      style={style}
-      {...props}
-    >
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx="64" cy="68" r="52" />
-        </clipPath>
-      </defs>
-
-      <circle cx="64" cy="74" r="52" fill="#134E4A" />
-      <circle
-        cx="64"
-        cy="68"
-        r="52"
-        fill="#CCFBF1"
-        stroke="#134E4A"
-        strokeWidth="5"
-      />
-
-      <g clipPath={`url(#${clipId})`}>
-        {/* Baju Gamis / Koko Putih & Sorban Bahu */}
-        <path
-          d="M 22 122 C 26 94 42 88 64 88 C 86 88 102 94 106 122 Z"
-          fill="#FFFFFF"
-          stroke="#134E4A"
-          strokeWidth="4.5"
-        />
-        <path
-          d="M 34 90 L 44 122 M 94 90 L 84 122"
-          stroke="#0D9488"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
-
-        <rect
-          x="55"
-          y="78"
-          width="18"
-          height="15"
-          rx="7"
-          fill="#FDBA74"
-          stroke="#134E4A"
-          strokeWidth="4"
-        />
-
-        {/* Telinga */}
-        <circle
-          cx="30"
-          cy="63"
-          r="7.5"
-          fill="#FDBA74"
-          stroke="#134E4A"
-          strokeWidth="4"
-        />
-        <circle
-          cx="98"
-          cy="63"
-          r="7.5"
-          fill="#FDBA74"
-          stroke="#134E4A"
-          strokeWidth="4"
-        />
-
-        {/* Wajah */}
-        <path
-          d="M 32 54 C 32 32 45 26 64 26 C 83 26 96 32 96 54 C 96 76 82 86 64 86 C 46 86 32 76 32 54 Z"
-          fill="#FED7AA"
-          stroke="#134E4A"
-          strokeWidth="4.5"
-        />
-
-        {/* Janggut Tipis Rapih */}
-        <path
-          d="M 36 68 C 38 84 50 88 64 88 C 78 88 90 84 92 68 C 88 78 78 82 64 82 C 50 82 40 78 36 68 Z"
-          fill="#334155"
-          stroke="#134E4A"
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-
-        <ChibiFacialFeatures mood="idle" />
-        <AvatarAccessoryLayer accessory="glasses" />
-        <AvatarAccessoryLayer accessory="peci" />
-      </g>
-    </svg>
-  );
-};
-
-export const AvatarUstadzahSvg: React.FC<SvgProps> = ({
-  size = 128,
-  className = "",
-  style,
-  ...props
-}) => {
-  return (
-    <AvatarSantriSvg
-      size={size}
-      className={className}
-      style={style}
-      gender="girl"
-      mood="idle"
-      accessory="glasses"
-      {...props}
-    />
-  );
-};
+export const AvatarUstadzahSvg: React.FC<SvgProps> = (props) => (
+  <AvatarSantriSvg {...props} gender="girl" variant={3} mood="happy" />
+);
