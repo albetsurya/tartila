@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, StarSvg, SparklesSvg, ChevronRightSvg } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { playSfx } from "../pages/games/_shared/audio";
 
 export interface AnswerFeedbackSheetProps {
   isOpen: boolean;
@@ -23,6 +24,12 @@ export function AnswerFeedbackSheet({
   onClose,
   mascotMessage,
 }: AnswerFeedbackSheetProps) {
+  useEffect(() => {
+    if (isOpen) {
+      void playSfx(isCorrect ? "answer-correct" : "answer-wrong");
+    }
+  }, [isOpen, isCorrect]);
+
   return (
     <AppBottomSheet
       isOpen={isOpen}

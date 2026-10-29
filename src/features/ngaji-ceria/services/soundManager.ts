@@ -1,19 +1,19 @@
 /**
  * Manajer audio terpusat Ngaji Ceria (item roadmap 7–8).
  *
- * - SFX: file Kenney CC0 di public/audio/ngaji-ceria/sfx/*.ogg,
- *   dimainkan instan via Web Audio API (pool buffer di memori).
- *   punch/block disintesis prosedural (tidak ada di pack Kenney).
- * - BGM: loop HTMLAudio per trek (menu/quiz/battle) dengan cross-fade
- *   dan auto-ducking saat audio Tilawati berbunyi. File BGM ditaruh di
- *   public/audio/ngaji-ceria/bgm/{menu,quiz,battle}.ogg — bila belum ada,
- *   pemutaran diam-diam dilewati (tanpa error).
+ * - SFX & BGM: file CC0 dari uisfx-main (pack rubber) di
+ *   public/audio/ngaji-ceria/{sfx,bgm}/*.ogg.
+ *   SFX dimainkan instan via Web Audio API (pool buffer di memori).
+ *   BGM adalah loop HTMLAudio per trek (menu/quiz/battle) dengan cross-fade
+ *   dan auto-ducking saat audio Tilawati berbunyi.
  * - Mute persisten di localStorage, dipakai toggle suara global & in-game.
  */
 
 export type SfxName =
   | "tap" | "pop" | "correct" | "wrong" | "streak"
   | "powerup" | "victory" | "defeat" | "gameover"
+  // Kuis & Progress: correct/wrong, level-up, badge, reward, coin
+  | "answer-correct" | "answer-wrong" | "level-up" | "badge-earned" | "chest-open" | "coin-collect"
   | "punch" | "block" | "shuffle";
 
 // Freesound fallback — butuh VITE_FREE_SOUND_API_KEY dari freesound.org
@@ -31,6 +31,13 @@ const SFX_FILES: Record<SfxName, string | null> = {
   victory: "victory.ogg",
   defeat: "defeat.ogg",
   gameover: "gameover.ogg",
+  // Kuis & Progress
+  "answer-correct": "answer-correct.ogg",
+  "answer-wrong": "answer-wrong.ogg",
+  "level-up": "level-up.ogg",
+  "badge-earned": "badge-earned.ogg",
+  "chest-open": "chest-open.ogg",
+  "coin-collect": "coin-collect.ogg",
   // Disintesis prosedural (lihat synthPunch/synthBlock).
   punch: null,
   block: null,

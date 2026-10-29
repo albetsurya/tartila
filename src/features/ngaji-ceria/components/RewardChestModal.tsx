@@ -54,7 +54,10 @@ export function RewardChestModal() {
   const handleChestClick = () => {
     if (opened) return;
     tapFeedback([10, 30, 20]);
-    playSfx("powerup");
+    playSfx("chest-open");
+    setTimeout(() => {
+      playSfx("coin-collect");
+    }, 300);
     setOpened(true);
   };
 
