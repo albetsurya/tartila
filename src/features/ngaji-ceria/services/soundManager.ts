@@ -1,11 +1,7 @@
 /**
- * Manajer audio terpusat Ngaji Ceria (item roadmap 7–8).
+ * Manajer audio terpusat Ngaji Ceria.
  *
- * - SFX & BGM: file CC0 dari uisfx-main (pack rubber) di
- *   public/audio/ngaji-ceria/{sfx,bgm}/*.ogg.
- *   SFX dimainkan instan via Web Audio API (pool buffer di memori).
- *   BGM adalah loop HTMLAudio per trek (menu/quiz/battle) dengan cross-fade
- *   dan auto-ducking saat audio Tilawati berbunyi.
+ * - SFX: dimainkan instan via Web Audio API (pool buffer di memori).
  * - Mute persisten di localStorage, dipakai toggle suara global & in-game.
  */
 
@@ -19,10 +15,8 @@ export type SfxName =
 // Freesound fallback — butuh VITE_FREE_SOUND_API_KEY dari freesound.org
 export const freesound = new (await import('./freesoundService')).FreesoundService;
 
-export type BgmTrack = "menu" | "quiz" | "battle";
-
 const SFX_FILES: Record<SfxName, string | null> = {
-  tap: "tap.ogg",
+  tap: "tap.mp3",
   pop: "pop.ogg",
   correct: "correct.ogg",
   wrong: "wrong.ogg",
@@ -32,23 +26,17 @@ const SFX_FILES: Record<SfxName, string | null> = {
   defeat: "defeat.ogg",
   gameover: "gameover.ogg",
   // Kuis & Progress
-  "answer-correct": "answer-correct.ogg",
+  "answer-correct": "answer-correct.mp3",
   "answer-wrong": "answer-wrong.ogg",
-  "level-up": "level-up.ogg",
+  "level-up": "level-up.mp3",
   "badge-earned": "badge-earned.ogg",
-  "chest-open": "chest-open.ogg",
-  "coin-collect": "coin-collect.ogg",
+  "chest-open": "chest-open.mp3",
+  "coin-collect": "coin-collect.mp3",
   // Disintesis prosedural (lihat synthPunch/synthBlock).
   punch: null,
   block: null,
   // Baru: shuffle SFX untuk memory game
   shuffle: null,
-};
-
-const BGM_FILES: Record<BgmTrack, string> = {
-  menu: "menu.ogg",
-  quiz: "quiz.ogg",
-  battle: "battle.ogg",
 };
 
 const MUTE_KEY = "ngajiceria:sound:muted";
@@ -68,12 +56,6 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   private buffers = new Map<string, AudioBuffer>();
   private loading = new Map<string, Promise<AudioBuffer | null>>();
-  private bgmAudio: HTMLAudioElement | null = null;
-  private bgmTrack: BgmTrack | null = null;
-  private bgmVolume = 0.25;
-  private ducked = false;
-  private bgmSynthGain: GainNode | null = null;
-  private bgmSynthTimer: number | null = null;
 
   constructor() {
     if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
@@ -86,11 +68,7 @@ class SoundManager {
   unlock() {
     if (this.muted) return;
     this.ensureCtx();
-    if (this.bgmAudio?.paused) void this.bgmAudio.play().catch(() => {});
-    else if (!this.bgmAudio && this.bgmTrack) this.playBgm(this.bgmTrack, this.bgmVolume);
   }
-
-  private get targetBgmVolume() { return this.muted ? 0 : this.bgmVolume * (this.ducked ? 0.1 : 1); }
 
   get isMuted() { return this.muted; }
 
@@ -108,8 +86,6 @@ class SoundManager {
     try {
       localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
     } catch { /* abaikan */ }
-    if (this.bgmAudio) this.bgmAudio.muted = muted;
-    if (this.bgmSynthGain) this.bgmSynthGain.gain.value = this.targetBgmVolume;
     if (!muted) this.unlock();
     this.emit();
   }
@@ -273,108 +249,6 @@ class SoundManager {
       osc.start();
       osc.stop(ctx.currentTime + 0.12);
     } catch { /* abaikan */ }
-  }
-
-  /** Putar BGM loop dengan cross-fade halus. File hilang -> diam tanpa error. */
-  playBgm(track: BgmTrack, volume = 0.25) {
-    if (this.muted) {
-      this.bgmTrack = track;
-      this.bgmVolume = volume;
-      return;
-    }
-    if (this.bgmTrack === track && this.bgmAudio) { this.unlock(); return; }
-    if (this.bgmSynthTimer !== null) window.clearInterval(this.bgmSynthTimer);
-    this.bgmSynthTimer = null;
-    this.bgmSynthGain?.disconnect();
-    this.bgmSynthGain = null;
-    this.bgmTrack = track;
-    this.bgmVolume = volume;
-    const previous = this.bgmAudio;
-    if (previous) {
-      const fade = setInterval(() => {
-        previous.volume = Math.max(0, previous.volume - 0.05);
-        if (previous.volume <= 0) {
-          clearInterval(fade);
-          previous.pause();
-        }
-      }, 60);
-    }
-    try {
-      const audio = new Audio(`${BASE}/bgm/${BGM_FILES[track]}`);
-      audio.loop = true;
-      audio.muted = this.muted;
-      audio.volume = 0;
-      audio.play().then(() => {
-        const fadeIn = setInterval(() => {
-          if (!this.bgmAudio || this.bgmAudio !== audio) {
-            clearInterval(fadeIn);
-            return;
-          }
-           const target = this.targetBgmVolume;
-          audio.volume = Math.min(target, audio.volume + 0.03);
-          if (audio.volume >= target) clearInterval(fadeIn);
-        }, 80);
-      }).catch((error: DOMException) => {
-        // Paket deployment boleh tidak membawa loop BGM; bunyikan pola pendek
-        // prosedural yang ringan sebagai fallback agar game tetap terasa hidup.
-        if (error.name !== "NotAllowedError" && this.bgmAudio === audio && !this.muted) this.playSynthBgm(track);
-      });
-      audio.onplay = () => { audio.volume = this.targetBgmVolume; };
-      this.bgmAudio = audio;
-    } catch { this.playSynthBgm(track); }
-  }
-
-  private playSynthBgm(track: BgmTrack) {
-    const ctx = this.ensureCtx();
-    if (!ctx || this.muted) return;
-    if (this.bgmSynthTimer !== null) window.clearInterval(this.bgmSynthTimer);
-    this.bgmSynthGain?.disconnect();
-    const gain = ctx.createGain();
-    gain.gain.value = this.targetBgmVolume;
-    gain.connect(ctx.destination);
-    this.bgmSynthGain = gain;
-    const patterns: Record<BgmTrack, number[]> = {
-      menu: [261.63, 329.63, 392, 329.63],
-      quiz: [293.66, 349.23, 440, 349.23],
-      battle: [220, 277.18, 329.63, 277.18],
-    };
-    const notes = patterns[track];
-    let index = 0;
-    const playNote = () => {
-      if (!this.bgmSynthGain || this.muted) return;
-      try {
-        const oscillator = ctx.createOscillator();
-        const noteGain = ctx.createGain();
-        oscillator.type = track === "battle" ? "triangle" : "sine";
-        oscillator.frequency.value = notes[index++ % notes.length];
-        noteGain.gain.setValueAtTime(0.08, ctx.currentTime);
-        noteGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.34);
-        oscillator.connect(noteGain).connect(gain);
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.36);
-      } catch { /* Web Audio opsional */ }
-    };
-    playNote();
-    this.bgmSynthTimer = window.setInterval(playNote, 420);
-  }
-
-  stopBgm() {
-    this.bgmTrack = null;
-    this.bgmAudio?.pause();
-    this.bgmAudio = null;
-    if (this.bgmSynthTimer !== null) window.clearInterval(this.bgmSynthTimer);
-    this.bgmSynthTimer = null;
-    this.bgmSynthGain?.disconnect();
-    this.bgmSynthGain = null;
-  }
-
-  /** Kecilkan BGM otomatis saat audio qari Tilawati berbunyi. */
-  duckBgm(duck: boolean) {
-    this.ducked = duck;
-    if (this.bgmAudio && !this.bgmAudio.paused) {
-      this.bgmAudio.volume = this.targetBgmVolume;
-    }
-    if (this.bgmSynthGain) this.bgmSynthGain.gain.value = this.targetBgmVolume;
   }
 }
 
