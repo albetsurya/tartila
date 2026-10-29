@@ -92,6 +92,7 @@ export type TilaPoseReaction =
   | "roll"
   | "cry"
   | "angry"
+  | "wake"
   | "play-invite"; // TAMBAHAN: Pose ajak main
 
 type CompanionReaction = TilaReactionType | TilaPoseReaction;
@@ -419,7 +420,6 @@ export function TilaCompanion({
   const location = useLocation();
 
   if (
-    location.pathname === "/member/ngaji-ceria/profile" ||
     location.pathname.startsWith("/member/ngaji-ceria/leaderboard") ||
     location.pathname.includes("/arena-kartu") ||
     location.pathname.includes("/explore/practice")
