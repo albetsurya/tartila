@@ -65,9 +65,6 @@ export type BibiCompanionProps = TilaCompanionProps;
 
 const HIDDEN_STORAGE_KEY = "tila-companion-hidden";
 
-// ─────────────────────────────────────────────
-// Pose & ekspresi baru yang bisa dipicu lewat event "tila-react"
-// ─────────────────────────────────────────────
 export type TilaPoseReaction =
   | "laugh"
   | "shock"
@@ -76,11 +73,9 @@ export type TilaPoseReaction =
   | "hold"
   | "sleep"
   | "spin"
-  | "wake"
   | "quiz-complete"
   | "complete"
   | "perfect"
-  // ── Pose Tambahan Baru ──
   | "pray"
   | "read"
   | "starry"
@@ -96,7 +91,8 @@ export type TilaPoseReaction =
   | "peck"
   | "roll"
   | "cry"
-  | "angry";
+  | "angry"
+  | "play-invite"; // TAMBAHAN: Pose ajak main
 
 type CompanionReaction = TilaReactionType | TilaPoseReaction;
 
@@ -105,7 +101,6 @@ interface PoseStep {
   anim?: TilaAnimation;
   speech?: string;
   holdItem?: TilaHoldItem;
-  /** Lama pose ini (ms) sebelum lanjut ke step berikutnya / kembali normal */
   duration: number;
 }
 
@@ -189,8 +184,6 @@ function buildPoseSteps(
           duration: 3400,
         },
       ];
-
-    // ── Implementasi Pose Baru ──
     case "pray":
       return [
         {
@@ -269,12 +262,7 @@ function buildPoseSteps(
       ];
     case "sing":
       return [
-        {
-          mood: "happy",
-          anim: "singing",
-          speech: "Lalala~",
-          duration: 4500,
-        },
+        { mood: "happy", anim: "singing", speech: "Lalala~", duration: 4500 },
       ];
     case "peek":
       return [
@@ -330,7 +318,16 @@ function buildPoseSteps(
           duration: 2500,
         },
       ];
-
+    // TAMBAHAN: Pose Ajak Main
+    case "play-invite":
+      return [
+        {
+          mood: "excited",
+          anim: "cheer",
+          speech: "Ayo main kuis atau game seru bareng aku!",
+          duration: 4000,
+        },
+      ];
     default:
       return null;
   }
@@ -352,7 +349,7 @@ export function isBottomNavTab(pathname: string): boolean {
   );
 }
 
-// Daftar pose "idle" yang menggemaskan & sopan (dipilih acak saat diam)
+// Tambahkan pose ajak main ke dalam daftar idle agar lebih interaktif
 const IDLE_POSES: TilaPoseReaction[] = [
   "read",
   "starry",
@@ -361,12 +358,13 @@ const IDLE_POSES: TilaPoseReaction[] = [
   "peek",
   "love",
   "confused",
+  "play-invite", // TAMBAHAN
+  "cheer", // TAMBAHAN
 ];
 
 export function isTilaCompanionExcluded(pathname: string): boolean {
   const normalized = pathname.replace(/\/$/, "");
 
-  // 1. Kamar Maskot
   if (
     normalized.includes("/kamar-tila") ||
     normalized.includes("/kamar-tito") ||
@@ -375,23 +373,18 @@ export function isTilaCompanionExcluded(pathname: string): boolean {
     return true;
   }
 
-  // 2. Panel Admin & Ustadz
   if (normalized.startsWith("/admin") || normalized.startsWith("/ustadz")) {
     return true;
   }
 
-  // 3. Saat kuis sedang berjalan
   if (normalized.includes("/quiz/play")) {
     return true;
   }
 
-  // 4. Lab Irama
   if (normalized.includes("/lab-irama")) {
     return true;
   }
 
-  // 5. Latihan ketuk irama & Game Rhythm / Memory Match (sembunyikan agar tidak menutupi kartu & tap zone)
-  // Papan Progres Arena Kartu (/arena-kartu & /arena-kartu/:jilid) TETAP menampilkan maskot
   if (
     normalized.includes("/practice") ||
     normalized.includes("/rhythm-memory") ||
@@ -401,12 +394,12 @@ export function isTilaCompanionExcluded(pathname: string): boolean {
     return true;
   }
 
-  // 6. Game interaktif layar penuh (e.g. Hijaiyah Pop atau rute permainan di dalam /games/...)
-  // Halaman Daftar Game / Game Hub (/member/ngaji-ceria/games) TETAP memunculkan maskot!
   if (
     normalized.includes("/games/hijaiyah-pop") ||
-    (normalized.includes("/games/") && normalized !== "/member/ngaji-ceria/games") ||
-    (normalized.startsWith("/member/ngaji-ceria/games/") && normalized !== "/member/ngaji-ceria/games")
+    (normalized.includes("/games/") &&
+      normalized !== "/member/ngaji-ceria/games") ||
+    (normalized.startsWith("/member/ngaji-ceria/games/") &&
+      normalized !== "/member/ngaji-ceria/games")
   ) {
     return true;
   }
@@ -522,15 +515,14 @@ export function TilaCompanion({
   const approachTimer = useRef<number | null>(null);
   const hideTimerRef = useRef<number | null>(null);
   const showTimerRef = useRef<number | null>(null);
+  const directionTimerRef = useRef<number | null>(null); // TAMBAHAN: Timer untuk auto-balik badan
 
-  // Refs untuk transisi maskot
   const skipVisibilityAnimationRef = useRef(false);
   const transitionTimerRef = useRef<number | null>(null);
   const transitionIdRef = useRef(0);
 
   const hasAppearedRef = useRef(false);
 
-  // Refs untuk pose baru
   const poseTimersRef = useRef<number[]>([]);
   const poseLockRef = useRef(false);
   const isHiddenRef = useRef(isHidden);
@@ -611,9 +603,10 @@ export function TilaCompanion({
 
   useEffect(() => {
     return () => {
-      if (transitionTimerRef.current !== null) {
+      if (transitionTimerRef.current !== null)
         window.clearTimeout(transitionTimerRef.current);
-      }
+      if (directionTimerRef.current !== null)
+        window.clearTimeout(directionTimerRef.current);
       poseTimersRef.current.forEach((id) => window.clearTimeout(id));
       poseTimersRef.current = [];
     };
@@ -662,7 +655,6 @@ export function TilaCompanion({
     flyToGuideRef.current = flyToGuide;
   }, [flyToGuide]);
 
-  // EFEK ANIMASI KEDATANGAN OTOMATIS (Halaman Baru)
   useEffect(() => {
     if (poseLockRef.current) {
       clearPoseTimers();
@@ -685,9 +677,6 @@ export function TilaCompanion({
       return;
     }
 
-    // PENTING: cabang ini hanya mereset animasi: JANGAN pernah
-    // memanggil setIsHidden(true) di sini, agar maskot tetap tampil
-    // saat pindah halaman (selama store menyatakan showMascot = true).
     if (isHidden || isNavTab) {
       zigzagX.set(0);
       flyY.set(0);
@@ -923,7 +912,6 @@ export function TilaCompanion({
     }, 220);
   };
 
-  // --- LOGIKA SCROLL & REAKSI CERDAS ---
   useEffect(() => {
     lastScrollY.current = window.scrollY;
     let scrollTimeout: number | null = null;
@@ -936,16 +924,12 @@ export function TilaCompanion({
 
       if (isHidden) return;
       if (boredomTimer.current) clearTimeout(boredomTimer.current);
-
-      // Jangan timpa pose yang sedang berjalan
       if (poseLockRef.current) return;
 
-      // Deteksi scroll cepat
       if (Math.abs(delta) > 100) {
         if (fastScrollTimeout) clearTimeout(fastScrollTimeout);
         fastScrollTimeout = window.setTimeout(() => {
           if (!poseLockRef.current) {
-            // Pusing kalau scroll terlalu cepat
             runPose([
               {
                 mood: "dizzy",
@@ -974,14 +958,12 @@ export function TilaCompanion({
         walkTimer.current = window.setTimeout(() => setAnim("float"), 800);
       }
 
-      // Milestone Scroll (Pesan Motivasi)
       if (reactiveSpeech && milestoneIndex.current < scrollMessages.length) {
         if (currentY > milestoneIndex.current * 800 && currentY > 400) {
           const nextMilestone = milestoneIndex.current;
           setSpeech(scrollMessages[nextMilestone]);
           setTalking(true);
 
-          // Jika mencapai bawah (pesan terakhir), lakukan Cheer
           if (nextMilestone === scrollMessages.length - 1) {
             runPose([
               {
@@ -1005,7 +987,6 @@ export function TilaCompanion({
       if (scrollTimeout) clearTimeout(scrollTimeout);
       scrollTimeout = window.setTimeout(() => {
         if (poseLockRef.current) return;
-        // Bosan jika diam lama
         runPose([
           {
             mood: "confused",
@@ -1025,15 +1006,11 @@ export function TilaCompanion({
     };
   }, [reactiveSpeech, isHidden, scale, mascotName, scrollMessages, runPose]);
 
-  // --- LOGIKA IDLE (DIAM) MENGGUNAKAN POSE ACAK YANG MENGEMASKAN ---
   useEffect(() => {
     if (isHidden || isHelpOpen) return;
 
-    // Timer idle yang memicu pose acak (sopan)
     idleTimer.current = window.setInterval(() => {
       if (poseLockRef.current) return;
-
-      // Pilih pose acak dari daftar IDLE_POSES
       const randomPose =
         IDLE_POSES[Math.floor(Math.random() * IDLE_POSES.length)];
       const steps = buildPoseSteps(randomPose, mascotName);
@@ -1041,7 +1018,7 @@ export function TilaCompanion({
       if (steps) {
         runPose(steps);
       }
-    }, 25000); // Setiap 25 detik jika tidak ada aktivitas
+    }, 25000);
 
     return () => {
       if (idleTimer.current) clearInterval(idleTimer.current);
@@ -1116,7 +1093,6 @@ export function TilaCompanion({
       window.clearTimeout(showTimerRef.current);
       showTimerRef.current = null;
     }
-
     if (hideTimerRef.current) {
       window.clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
@@ -1146,25 +1122,19 @@ export function TilaCompanion({
         zigzagX.get() - 30,
         -window.innerWidth - 150,
       ],
-      {
-        duration: flyDuration,
-        ease: "easeIn",
-      },
+      { duration: flyDuration, ease: "easeIn" },
     );
-
     animate(flyY, [flyY.get(), -40, -100], {
       duration: flyDuration,
       ease: "easeIn",
     });
-
     animate(scale, [scale.get(), 0.8, 0], {
       duration: flyDuration,
       ease: "easeIn",
     });
 
-    if (transitionTimerRef.current !== null) {
+    if (transitionTimerRef.current !== null)
       window.clearTimeout(transitionTimerRef.current);
-    }
 
     transitionTimerRef.current = window.setTimeout(() => {
       if (transitionId !== transitionIdRef.current) return;
@@ -1205,7 +1175,6 @@ export function TilaCompanion({
     setMood("excited");
     setTalking(true);
     setAnim("fly");
-
     setRotation((prev) => Math.round(prev / 180) * 180 + 90);
 
     const startX = window.innerWidth + 100;
@@ -1218,20 +1187,14 @@ export function TilaCompanion({
       duration: flyDuration,
       ease: "easeOut",
     });
-
-    animate(flyY, [-60, -20, 0], {
-      duration: flyDuration,
-      ease: "easeOut",
-    });
-
+    animate(flyY, [-60, -20, 0], { duration: flyDuration, ease: "easeOut" });
     animate(scale, [0.3, 0.8, 1.05, 1], {
       duration: flyDuration,
       ease: "easeOut",
     });
 
-    if (transitionTimerRef.current !== null) {
+    if (transitionTimerRef.current !== null)
       window.clearTimeout(transitionTimerRef.current);
-    }
 
     transitionTimerRef.current = window.setTimeout(() => {
       if (transitionId !== transitionIdRef.current) return;
@@ -1265,10 +1228,7 @@ export function TilaCompanion({
         onClick={isHidden ? handleCall : handleHide}
         disabled={isTransitioning}
         initial={{ opacity: 0, scale: 0.5 }}
-        animate={{
-          opacity: 1,
-          scale: isTransitioning ? 1.05 : 1,
-        }}
+        animate={{ opacity: 1, scale: isTransitioning ? 1.05 : 1 }}
         whileHover={!isTransitioning ? { y: -2 } : undefined}
         whileTap={!isTransitioning ? { scale: 0.95 } : undefined}
         aria-label={
@@ -1283,11 +1243,7 @@ export function TilaCompanion({
         aria-busy={isTransitioning}
         className={`fixed bottom-28 right-4 z-50 flex h-12 items-center justify-center gap-2 rounded-full border-[3px] border-[#134E4A] px-4 shadow-[3px_3px_0px_#134E4A] transition-colors ${
           isHidden ? "bg-[#FEF08A] text-[#134E4A]" : "bg-white text-[#134E4A]"
-        } ${
-          isTransitioning
-            ? "cursor-wait"
-            : "active:translate-y-[2px] active:shadow-none"
-        }`}
+        } ${isTransitioning ? "cursor-wait" : "active:translate-y-[2px] active:shadow-none"}`}
         title={
           isTransitioning
             ? isHidden
@@ -1446,9 +1402,7 @@ export function TilaCompanion({
           <StickerButton
             variant="secondary"
             fullWidth
-            onClick={() =>
-              handleAction("/member/ngaji-ceria/explore/doa")
-            }
+            onClick={() => handleAction("/member/ngaji-ceria/explore/doa")}
             className="justify-start"
           >
             <HandsPraying size={18} className="mr-2 text-[#FF6B6B]" /> Doa
@@ -1460,8 +1414,8 @@ export function TilaCompanion({
             onClick={() => handleAction("/member/ngaji-ceria/profile")}
             className="justify-start"
           >
-            <HelpCircle size={18} className="mr-2 text-[#0D9488]" />{" "}
-            Kritik & Saran
+            <HelpCircle size={18} className="mr-2 text-[#0D9488]" /> Kritik &
+            Saran
           </StickerButton>
           <StickerButton
             variant="danger"
@@ -1514,25 +1468,21 @@ export function TilaCompanion({
                   >
                     <div className="relative rounded-2xl border-[3px] border-[#134E4A] bg-white p-3 shadow-[3px_3px_0px_#134E4A]">
                       <div className="absolute -bottom-2 right-10 w-3 h-3 bg-white border-b-[3px] border-r-[3px] border-[#134E4A] rotate-45" />
-
                       <button
                         onClick={handleDismissTip}
                         className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#FF6B6B] text-white border-2 border-[#134E4A] flex items-center justify-center text-xs font-black active:scale-90"
                       >
                         <X size={12} className="stroke-[3]" />
                       </button>
-
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <Lightbulb size={12} className="text-[#FF6B6B]" />
                         <span className="text-[9px] font-black text-[#FF6B6B] uppercase tracking-wider">
                           {mascotName} Says
                         </span>
                       </div>
-
                       <p className="text-xs font-bold text-[#134E4A] leading-relaxed">
                         {currentTip.text}
                       </p>
-
                       <div className="flex gap-2 mt-2.5">
                         {tips.length > 1 && (
                           <button
