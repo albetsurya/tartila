@@ -47,48 +47,25 @@ export interface DailyRewardStatusResponse {
 
 export const userApi = {
   async getUserProfile(): Promise<UserProfileResponse> {
-    try {
-      return await callREST<UserProfileResponse>("GET", "/api/v1/user/profile");
-    } catch {
-      // Fallback without /v1 if root-scoped
-      return await callREST<UserProfileResponse>("GET", "/api/user/profile");
-    }
+    return await callREST<UserProfileResponse>("GET", "/api/v1/user/profile");
   },
 
   async updateUserMascot(gender: "boy" | "girl" | string): Promise<MascotUpdateResponse> {
     const norm = gender === "girl" ? "girl" : "boy";
-    try {
-      return await callREST<MascotUpdateResponse>("PATCH", "/api/v1/user/mascot", {
-        gender: norm,
-      });
-    } catch {
-      // Fallback without /v1
-      return await callREST<MascotUpdateResponse>("PATCH", "/api/user/mascot", {
-        gender: norm,
-      });
-    }
+    return await callREST<MascotUpdateResponse>("PATCH", "/api/v1/user/mascot", {
+      gender: norm,
+    });
   },
 
   async claimDailyReward(day?: number, coins?: number): Promise<ClaimDailyRewardResponse> {
-    try {
-      return await callREST<ClaimDailyRewardResponse>("POST", "/api/v1/user/claim-daily", {
-        day,
-        coins,
-      });
-    } catch {
-      return await callREST<ClaimDailyRewardResponse>("POST", "/api/user/claim-daily", {
-        day,
-        coins,
-      });
-    }
+    return await callREST<ClaimDailyRewardResponse>("POST", "/api/v1/user/claim-daily", {
+      day,
+      coins,
+    });
   },
 
   async getDailyRewardStatus(): Promise<DailyRewardStatusResponse> {
-    try {
-      return await callREST<DailyRewardStatusResponse>("GET", "/api/v1/user/daily-status");
-    } catch {
-      return await callREST<DailyRewardStatusResponse>("GET", "/api/user/daily-status");
-    }
+    return await callREST<DailyRewardStatusResponse>("GET", "/api/v1/user/daily-status");
   },
 
   async redeemVoucher(code: string) {

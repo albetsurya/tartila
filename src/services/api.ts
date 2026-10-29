@@ -51,8 +51,14 @@ async function retryWithFreshToken<T>(
     // Refresh failed or already retried - session truly expired
     // Hard redirect to login with clear token state
     clearToken();
+    if (sessionExpiryNotified) {
+      // sudah pernah notif di lifecycle ini, jangan redirect lagi
+      throw new ApiError("Session expired", undefined, { retryable: false });
+    }
     sessionExpiryNotified = true;
-    window.location.href = "/login";
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
     throw new ApiError("Session expired. Please log in again.", undefined, {
       retryable: false,
     });
