@@ -379,12 +379,6 @@ export default function NgajiCeriaQuizPage() {
     questionIndex: currentIdx,
   }, timelineData ?? undefined);
   const isAudioPlaying = tilawatiAudio.isPlaying;
-  useEffect(() => {
-    if (!access.isOpen || access.isComingSoon) return;
-    soundManager.playBgm("quiz", 0.18);
-    return () => soundManager.stopBgm();
-  }, [access.isOpen, access.isComingSoon]);
-
   // Fetch timeline edits (async, module-cached). Needed for audio resolution.
   useEffect(() => {
     if (timelineData !== null) return;

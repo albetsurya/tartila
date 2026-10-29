@@ -3,7 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { StickerButton, StickerCard, SectionHeader } from "@/components/ui";
 import { AppModal } from "@/components/ui/AppModal";
-import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
+import {
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/lib/animationVariants";
 import {
   CoinSvg,
   SparklesSvg,
@@ -47,13 +50,15 @@ import {
 } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeRole, isTartilaAdmin } from "@/lib/roles";
-import {
-  getProgress,
-  subscribeProgress,
-} from "./games/_shared/progression";
+import { getProgress, subscribeProgress } from "./games/_shared/progression";
 import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
 import { TilaMascot } from "@/components/ui/TilaMascot";
-import { SKIN_ITEMS, type SkinItem, type SkinRarity, RARITY_ORDER } from "../data/shopData";
+import {
+  SKIN_ITEMS,
+  type SkinItem,
+  type SkinRarity,
+  RARITY_ORDER,
+} from "../data/shopData";
 
 function useCoinsBalance(): number {
   const [coins, setCoins] = useState(() => getProgress().coins);
@@ -61,7 +66,14 @@ function useCoinsBalance(): number {
   return coins;
 }
 
-type ShopTab = "energi" | "skin" | "kostum" | "avatar" | "kamar" | "app" | "booster";
+type ShopTab =
+  | "energi"
+  | "skin"
+  | "kostum"
+  | "avatar"
+  | "kamar"
+  | "app"
+  | "booster";
 
 const TAB_ITEMS: Array<{
   key: ShopTab;
@@ -121,14 +133,14 @@ interface ThemeItem {
   iconComponent: React.ComponentType<{ size?: number; className?: string }>;
   iconColor: string;
   badgeBg: string;
-  swatch: string; // warna pratinjau (lingkaran kecil)
+  swatch: string;
 }
 
 const ROOM_THEMES: ThemeItem[] = [
   {
     id: "default",
-    name: "Kamar Klasik",
-    desc: "Kamar hangat khas Tartila: gratis untuk semua santri.",
+    name: "Classic Room",
+    desc: "Kamar klasik Tartila yang hangat: gratis untuk semua santri.",
     price: 0,
     iconComponent: HomeSvg,
     iconColor: "text-[#0D9488]",
@@ -137,8 +149,8 @@ const ROOM_THEMES: ThemeItem[] = [
   },
   {
     id: "galaksi",
-    name: "Galaksi Bima Sakti",
-    desc: "Tidur di antara planet dan bintang-bintang berkilau.",
+    name: "Milky Way Galaxy",
+    desc: "Tidur di antara planet dan bintang berkilau.",
     price: 500,
     iconComponent: MoonSvg,
     iconColor: "text-[#6D28D9]",
@@ -147,8 +159,8 @@ const ROOM_THEMES: ThemeItem[] = [
   },
   {
     id: "hutan",
-    name: "Hutan Rimba",
-    desc: "Suasana hijau hijauih dengan pohon dan rumput menjuntai.",
+    name: "Rainforest Jungle",
+    desc: "Suasana hijau segar dengan pepohonan rimbun.",
     price: 500,
     iconComponent: SparklesSvg,
     iconColor: "text-[#15803D]",
@@ -157,7 +169,7 @@ const ROOM_THEMES: ThemeItem[] = [
   },
   {
     id: "istana",
-    name: "Istana Pasir",
+    name: "Sand Palace",
     desc: "Karpet merah dan kastil mini ala bangsawan.",
     price: 800,
     iconComponent: StarSvg,
@@ -171,7 +183,7 @@ const APP_THEMES: ThemeItem[] = [
   {
     id: "default",
     name: "Emerald Classic",
-    desc: "The original Tartila experience. Fresh and natural.",
+    desc: "Pengalaman Tartila orisinal. Segar dan natural.",
     price: 0,
     iconComponent: SparklesSvg,
     iconColor: "text-[#0D9488]",
@@ -181,7 +193,7 @@ const APP_THEMES: ThemeItem[] = [
   {
     id: "sky",
     name: "Azure Sky",
-    desc: "Clear blue sky, fresh and calming.",
+    desc: "Langit biru cerah, segar dan menenangkan.",
     price: 250,
     iconComponent: SunSvg,
     iconColor: "text-[#0284C7]",
@@ -191,7 +203,7 @@ const APP_THEMES: ThemeItem[] = [
   {
     id: "rose",
     name: "Cherry Blossom",
-    desc: "Sweet pink aesthetic for a lovely mood.",
+    desc: "Estetika merah muda manis untuk suasana hati yang indah.",
     price: 250,
     iconComponent: HeartSvg,
     iconColor: "text-[#E11D48]",
@@ -199,19 +211,9 @@ const APP_THEMES: ThemeItem[] = [
     swatch: "#E11D48",
   },
   {
-    id: "night",
-    name: "Midnight Galaxy",
-    desc: "Deep dark mode with glowing stars.",
-    price: 300,
-    iconComponent: MoonSvg,
-    iconColor: "text-[#4F46E5]",
-    badgeBg: "bg-[#E0E7FF]",
-    swatch: "#4F46E5",
-  },
-  {
     id: "gold",
     name: "Royal Gold",
-    desc: "Luxurious gold accents for true champions.",
+    desc: "Aksen emas mewah untuk sang juara sejati.",
     price: 300,
     iconComponent: StarSvg,
     iconColor: "text-[#CA8A04]",
@@ -219,19 +221,9 @@ const APP_THEMES: ThemeItem[] = [
     swatch: "#CA8A04",
   },
   {
-    id: "neon",
-    name: "Cyber Neon",
-    desc: "Futuristic cyberpunk vibes with bright neon lights.",
-    price: 300,
-    iconComponent: ZapSvg,
-    iconColor: "text-[#38BDF8]",
-    badgeBg: "bg-[#111827]",
-    swatch: "#38BDF8",
-  },
-  {
     id: "retro",
     name: "Retro Arcade",
-    desc: "Classic vintage console style.",
+    desc: "Gaya konsol klasik vintage.",
     price: 300,
     iconComponent: StarSvg,
     iconColor: "text-[#B45309]",
@@ -241,7 +233,7 @@ const APP_THEMES: ThemeItem[] = [
   {
     id: "pastel",
     name: "Sweet Pastel",
-    desc: "Soft and colorful pastel dreams.",
+    desc: "Mimpi pastel yang lembut dan berwarna-warni.",
     price: 400,
     iconComponent: SparklesSvg,
     iconColor: "text-[#EC4899]",
@@ -254,7 +246,7 @@ const ACCESSORY_ITEMS = [
   {
     id: "turban",
     name: "Santri Turban",
-    desc: "White turban wrapped around head, fits all characters.",
+    desc: "Sorban putih dililitkan di kepala, cocok untuk semua karakter.",
     iconComponent: TurbanSvg,
     price: 150,
     accent: "cream",
@@ -262,7 +254,7 @@ const ACCESSORY_ITEMS = [
   {
     id: "wizardhat",
     name: "Wizard Hat",
-    desc: "Purple cone hat adorned with golden stars.",
+    desc: "Topi kerucut ungu berhias bintang emas.",
     iconComponent: WizardHatSvg,
     price: 250,
     accent: "purple",
@@ -270,7 +262,7 @@ const ACCESSORY_ITEMS = [
   {
     id: "headphone",
     name: "DJ Headphones",
-    desc: "Pink headphones for fun study sessions.",
+    desc: "Headphone merah muda untuk sesi belajar yang seru.",
     iconComponent: HeadphoneSvg,
     price: 300,
     accent: "pink",
@@ -278,7 +270,7 @@ const ACCESSORY_ITEMS = [
   {
     id: "sleepmask",
     name: "Sleep Mask",
-    desc: "Blue Zzz-patterned eye mask for Tito's rest.",
+    desc: "Penutup mata biru bermotif Zzz untuk istirahat Tito.",
     iconComponent: SleepMaskSvg,
     price: 100,
     accent: "sky",
@@ -296,108 +288,108 @@ export interface AvatarAccessoryShopItem {
 export const AVATAR_ACCESSORY_SHOP_ITEMS: AvatarAccessoryShopItem[] = [
   {
     id: "peci",
-    name: "Santri Peci",
-    desc: "Classic Nusantara santri peci.",
+    name: "Peci",
+    desc: "Peci santri klasik khas Nusantara.",
     price: 0,
-    gender: "all",
+    gender: "boy",
   },
   {
     id: "hairbow",
     name: "Santri Hair Bow",
-    desc: "Sweet hair bow with neat ribbon knot.",
+    desc: "Pita rambut manis dengan ikatan rapi.",
     price: 100,
     gender: "girl",
   },
   {
     id: "flowercrown",
     name: "Flower Crown",
-    desc: "Fresh flower crown circle, blooming bright.",
+    desc: "Karangan bunga segar yang bermekaran cerah.",
     price: 150,
     gender: "girl",
   },
   {
     id: "glasses",
-    name: "Scholar Glasses",
-    desc: "Reading glasses for diligent santri seeking knowledge.",
+    name: "Glasses",
+    desc: "Kacamata baca untuk santri tekun mencari ilmu.",
     price: 120,
     gender: "all",
   },
   {
     id: "crown",
-    name: "Champion Gold Crown",
-    desc: "Golden crown symbol of tilawah champion.",
+    name: "Champion Crown",
+    desc: "Mahkota emas lambang juara tilawah.",
     price: 300,
     gender: "all",
   },
   {
     id: "wizardhat",
-    name: "Night Star Wizard Hat",
-    desc: "Cone hat adorned with golden stars.",
+    name: "Wizard Hat",
+    desc: "Topi kerucut berhias bintang emas.",
     price: 200,
     gender: "all",
   },
   {
     id: "headphone",
-    name: "Murottal Headphones",
-    desc: "Comfy headphones for listening to melodious murottal.",
+    name: "Headphones",
+    desc: "Headphone nyaman untuk mendengar murottal merdu.",
     price: 250,
     gender: "all",
   },
   {
     id: "sleepmask",
-    name: "Eye Mask",
-    desc: "Blue eye mask with zzz pattern for post-tadarus rest.",
+    name: "Sleep Mask",
+    desc: "Penutup mata biru bermotif zzz untuk istirahat setelah tadarus.",
     price: 80,
     gender: "all",
   },
   {
     id: "scarf",
-    name: "Warm Scarf",
-    desc: "Knitted scarf protecting santri from cold subuh air.",
+    name: "Neck Scarf",
+    desc: "Syal rajut pelindung santri dari dinginnya udara subuh.",
     price: 100,
     gender: "all",
   },
   {
     id: "turban",
-    name: "Santri Turban",
-    desc: "Graceful and dignified wrapped head turban.",
+    name: "Arabian Turban",
+    desc: "Sorban lilitan kepala yang anggun dan berwibawa.",
     price: 180,
     gender: "boy",
   },
   {
     id: "sunglasses",
-    name: "Cool Sunglasses",
-    desc: "Casual sunglasses shielding from blazing sun.",
+    name: "Sunglasses",
+    desc: "Kacamata hitam kasual pelindung dari terik matahari.",
     price: 140,
     gender: "all",
   },
   {
     id: "chain",
-    name: "Star Necklace",
-    desc: "Gold star pendant necklace shining bright.",
+    name: "Gold Chain",
+    desc: "Kalung liontin bintang emas yang berkilau.",
     price: 220,
-    gender: "all",
+    gender: "girl",
   },
   {
     id: "star",
-    name: "Gold Star Pin",
-    desc: "Gold star pin marking exemplary santri.",
+    name: "Gold Star",
+    desc: "Pin bintang emas penanda santri teladan.",
     price: 160,
     gender: "all",
   },
   {
     id: "medal",
     name: "Honor Medal",
-    desc: "Special honor medal for Quran completion.",
+    desc: "Medali kehormatan khusus untuk khatam Al-Quran.",
     price: 280,
     gender: "all",
   },
   {
     id: "bandana",
-    name: "Spirit Bandana",
-    desc: "Red bandana igniting enthusiasm for Quran study.",
+    name: "Red Bandana",
+    desc: "Bandana merah penyala semangat belajar Al-Quran.",
     price: 110,
-    gender: "all",
+    gender: "girl",
   },
 ];
 
@@ -412,7 +404,7 @@ const ENERGY_ITEMS: Array<{
   {
     kind: "heart",
     name: "1 Study Heart",
-    desc: "For entering Tilawati study sessions.",
+    desc: "Untuk masuk sesi belajar Tilawati.",
     icon: HeartSvg,
     accent: "coral",
     max: HEART_MAX,
@@ -420,7 +412,7 @@ const ENERGY_ITEMS: Array<{
   {
     kind: "ticket",
     name: "1 Play Ticket",
-    desc: "For entering Mini Games.",
+    desc: "Untuk masuk Mini Games.",
     icon: TicketSvg,
     accent: "amber",
     max: TICKET_MAX,
@@ -430,48 +422,53 @@ const ENERGY_ITEMS: Array<{
 const COSTUME_ITEMS = [
   {
     id: "peci",
-    name: "Sacred Cap",
-    desc: "Black songkok with gold embroidery, for noble-hearted santri.",
+    name: "Peci",
+    desc: "Songkok hitam berhias sulam emas khas santri berjiwa luhur.",
     iconComponent: GraduationCapSvg,
     price: 200,
     accent: "teal",
     category: "boy" as const,
+    gender: "boy" as const,
   },
   {
     id: "hairbow",
-    name: "Grace Ribbon",
-    desc: "Beautiful soft pink ribbon, sweet and graceful.",
+    name: "Hair Bow",
+    desc: "Pita cantik berwarna merah muda yang manis dan anggun.",
     iconComponent: HairbowSvg,
     price: 200,
     accent: "coral",
     category: "girl" as const,
+    gender: "girl" as const,
   },
   {
     id: "flowercrown",
-    name: "Floral Crown",
-    desc: "Fresh multi-colored flower arrangement, cheerful and enchanting.",
+    name: "Flower Crown",
+    desc: "Karangan bunga aneka warna yang segar, ceria, dan mempesona.",
     iconComponent: CrownSvg,
     price: 300,
     accent: "amber",
     category: "girl" as const,
+    gender: "girl" as const,
   },
   {
     id: "glasses",
-    name: "Smart Glasses",
-    desc: "Stylish round glasses bringing diligent study spirit.",
+    name: "Glasses",
+    desc: "Kacamata bulat stylish pembawa semangat belajar tekun.",
     iconComponent: GlassesSvg,
     price: 500,
     accent: "sky",
     category: "all" as const,
+    gender: "all" as const,
   },
   {
     id: "crown",
-    name: "Champion's Crown",
-    desc: "Gleaming gold crown marking high-achieving steadfast santri.",
+    name: "Champion Crown",
+    desc: "Mahkota emas gemerlap tanda santri istiqomah berprestasi.",
     iconComponent: CrownSvg,
     price: 1000,
     accent: "amber",
     category: "all" as const,
+    gender: "all" as const,
   },
 ];
 
@@ -479,7 +476,7 @@ const BOOSTER_ITEMS = [
   {
     id: "double-exp",
     name: "Double EXP (2x)",
-    desc: "Get 2x EXP for every quiz you complete.",
+    desc: "Dapatkan 2x EXP untuk setiap kuis yang diselesaikan.",
     iconComponent: ZapSvg,
     price: 100,
     accent: "amber",
@@ -487,7 +484,7 @@ const BOOSTER_ITEMS = [
   {
     id: "full-heart",
     name: "Instant Full Hearts",
-    desc: "Instantly refill all 5 study Hearts without waiting.",
+    desc: "Isi ulang instan 5 Hati belajar tanpa menunggu.",
     iconComponent: HeartSvg,
     price: 300,
     accent: "coral",
@@ -495,14 +492,13 @@ const BOOSTER_ITEMS = [
   {
     id: "streak-freeze",
     name: "Streak Freeze",
-    desc: "Protect your steadfast streak from breaking if you miss a day.",
+    desc: "Lindungi streak istiqomahmu agar tidak putus jika absen sehari.",
     iconComponent: SnowflakeSvg,
     price: 150,
     accent: "sky",
   },
 ];
 
-/** Daftar item tema (Kamar / Téma Game): menyerupai UI Tab Kostum */
 function ThemeShopList({
   items,
   coinsBalance,
@@ -535,7 +531,6 @@ function ThemeShopList({
           return (
             <motion.div key={item.id} variants={staggerItemVariants}>
               <StickerCard className="flex items-center gap-3.5 p-4">
-                {/* Pratinjau warna + ikon */}
                 <div
                   className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] overflow-hidden"
                   style={{ backgroundColor: item.swatch }}
@@ -570,7 +565,7 @@ function ThemeShopList({
 
                 {isEquipped ? (
                   <span className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#134E4A] text-white text-xs font-black border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
-                    <CheckSvg size={12} /> Aktif
+                    <CheckSvg size={12} /> Dipakaikan
                   </span>
                 ) : isOwned ? (
                   <StickerButton
@@ -591,7 +586,7 @@ function ThemeShopList({
                     onClick={() => onToggle(item)}
                   >
                     {isSuperAdmin ? (
-                      <span className="text-[#0D9488]">GRATIS · Ambil</span>
+                      <span className="text-[#0D9488]">Gratis</span>
                     ) : (
                       <>
                         <CoinSvg size={14} /> {item.price}
@@ -608,10 +603,6 @@ function ThemeShopList({
   );
 }
 
-/**
- * Skin card statis — render TilaMascot dengan animation="none" agar ringan di grid 16 item.
- * Dibungkus React.memo agar tidak re-render masif saat filter rarity berubah.
- */
 interface SkinCardProps {
   item: SkinItem;
   isOwned: boolean;
@@ -651,7 +642,6 @@ const SkinCard = memo(function SkinCard({
     <motion.div
       className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all hover:translate-y-[-2px] ${cardBorderClass}`}
     >
-      {/* Header Card: Name & Badges */}
       <div>
         <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
           <span
@@ -661,7 +651,7 @@ const SkinCard = memo(function SkinCard({
           </span>
           {isEquipped ? (
             <span className="text-[10px] font-black bg-[#134E4A] text-white px-2.5 py-0.5 rounded-md border-2 border-[#134E4A] flex items-center gap-1 shadow-[1px_1px_0px_#134E4A]">
-              <CheckSvg size={12} /> Dipakai
+              <CheckSvg size={12} /> Dipakaikan
             </span>
           ) : isOwned ? (
             <span className="text-[10px] font-black bg-[#CCFBF1] dark:bg-[#064E3B]/60 text-[#0F766E] dark:text-[#5EEAD4] px-2.5 py-0.5 rounded-md border-2 border-[#0F766E]">
@@ -678,7 +668,6 @@ const SkinCard = memo(function SkinCard({
         </p>
       </div>
 
-      {/* Mascot Preview — animation="none" agar tetap ringan di grid 16 item */}
       <div
         className="relative my-4 flex h-40 w-full items-center justify-center rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] overflow-hidden shadow-[2px_2px_0px_#134E4A] cursor-pointer"
         onClick={() => onPreview(item)}
@@ -694,18 +683,21 @@ const SkinCard = memo(function SkinCard({
         </div>
       </div>
 
-      {/* Footer: Effect & Action Button */}
       <div className="pt-2 border-t-2 border-dashed border-[#134E4A]/20 space-y-3">
         <div className="flex items-center gap-1.5 text-xs font-bold text-[#134E4A]/80">
-          <SparklesSvg size={14} className="text-[#059669] dark:text-[#34D399] shrink-0" />
+          <SparklesSvg
+            size={14}
+            className="text-[#059669] dark:text-[#34D399] shrink-0"
+          />
           <span>
-            Efek: <span className="font-black text-[#134E4A]">{item.effect}</span>
+            Efek:{" "}
+            <span className="font-black text-[#134E4A]">{item.effect}</span>
           </span>
         </div>
 
         {isEquipped ? (
           <div className="w-full py-2.5 px-3 rounded-xl bg-[#134E4A] text-white text-xs font-black border-[2px] border-[#134E4A] flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#134E4A]">
-            <CheckSvg size={14} /> Sedang Dipakai
+            <CheckSvg size={14} /> Dipakaikan
           </div>
         ) : isOwned ? (
           <StickerButton
@@ -726,14 +718,10 @@ const SkinCard = memo(function SkinCard({
             onClick={() => onBuy(item)}
           >
             <div className="flex items-center justify-center gap-1.5">
-              {isTicket ? (
-                <TicketSvg size={16} />
-              ) : (
-                <CoinSvg size={16} />
-              )}
+              {isTicket ? <TicketSvg size={16} /> : <CoinSvg size={16} />}
               <span>
                 {isSuperAdmin || isUnlimited
-                  ? "Buka Gratis (VIP)"
+                  ? "Gratis (VIP)"
                   : `${item.price} ${isTicket ? "Tiket" : "Koin"}`}
               </span>
             </div>
@@ -778,37 +766,39 @@ export default function WarungSantriPage() {
   const [costumeFilter, setCostumeFilter] = useState<"all" | "boy" | "girl">(
     "all",
   );
-  const [avatarGenderFilter, setAvatarGenderFilter] = useState<"all" | "boy" | "girl">(
-    "all",
-  );
+  const [avatarGenderFilter, setAvatarGenderFilter] = useState<
+    "all" | "boy" | "girl"
+  >("all");
 
-  // Aksesoris Avatar Profil
-  const ownedAvatarAccessories = useEconomyStore((s) => s.ownedAvatarAccessories || []);
-  const equippedAvatarAccessory = useEconomyStore((s) => s.equippedAvatarAccessory);
+  const ownedAvatarAccessories = useEconomyStore(
+    (s) => s.ownedAvatarAccessories || [],
+  );
+  const equippedAvatarAccessory = useEconomyStore(
+    (s) => s.equippedAvatarAccessory,
+  );
   const buyAvatarAccessory = useEconomyStore((s) => s.buyAvatarAccessory);
   const equipAvatarAccessory = useEconomyStore((s) => s.equipAvatarAccessory);
 
   const activeBoosters = useEconomyStore((s: any) => s.activeBoosters);
   const buyBooster = useEconomyStore((s: any) => s.buyBooster);
 
-  // Kustomisasi Kamar
   const ownedRoomThemes = useEconomyStore((s) => s.ownedRoomThemes);
   const equippedRoomTheme = useEconomyStore((s) => s.equippedRoomTheme);
   const buyRoomTheme = useEconomyStore((s) => s.buyRoomTheme);
   const equipRoomTheme = useEconomyStore((s) => s.equipRoomTheme);
 
-  // Kustomisasi Tema Aplikasi
   const ownedAppThemes = useEconomyStore((s) => s.ownedAppThemes);
   const equippedAppTheme = useEconomyStore((s) => s.equippedAppTheme);
   const buyAppTheme = useEconomyStore((s) => s.buyAppTheme);
   const equipAppTheme = useEconomyStore((s) => s.equipAppTheme);
 
-  // Kustomisasi Skin Maskot
   const equippedSkin = useEconomyStore((s) => s.equippedSkin);
   const ownedSkins = useEconomyStore((s) => s.ownedSkins);
   const buySkin = useEconomyStore((s) => s.buySkin);
   const equipSkin = useEconomyStore((s) => s.equipSkin);
-  const [skinRarityFilter, setSkinRarityFilter] = useState<"all" | SkinRarity>("all");
+  const [skinRarityFilter, setSkinRarityFilter] = useState<"all" | SkinRarity>(
+    "all",
+  );
   const [previewSkin, setPreviewSkin] = useState<SkinItem | null>(null);
 
   const handlePreviewSkin = useCallback((item: SkinItem) => {
@@ -824,8 +814,6 @@ export default function WarungSantriPage() {
     scope: "kamar" | "app";
   } | null>(null);
 
-  // Privilege Superadmin / Tartila Admin: semua item Warung gratis (backend bypass koin).
-  // Admin Sambung Ngaji ('admin') tidak mendapat bypass gratis di Tartila.
   const isSuperAdmin = isTartilaAdmin(user?.role);
 
   const stock: Record<EnergyKind, number> = { heart: hearts, ticket: tickets };
@@ -838,9 +826,7 @@ export default function WarungSantriPage() {
       return;
     }
     if (purchasedToday(item.kind) >= SHOP_DAILY_LIMIT) {
-      setMessage(
-        `Batas ${SHOP_DAILY_LIMIT}x penukaran harian sudah tercapai.`,
-      );
+      setMessage(`Batas ${SHOP_DAILY_LIMIT}x penukaran harian sudah tercapai.`);
       return;
     }
     if (stock[item.kind] >= item.max) {
@@ -852,7 +838,6 @@ export default function WarungSantriPage() {
       return;
     }
 
-    // Koin & energi kini dikelola Backend Go lewat economyApi (GUIDELINES 11.3).
     const ok = await grantEnergy(item.kind);
     setMessage(
       ok
@@ -961,7 +946,8 @@ export default function WarungSantriPage() {
   };
 
   const handleToggleAvatarAccessory = async (item: AvatarAccessoryShopItem) => {
-    const isOwned = item.id === "peci" || ownedAvatarAccessories.includes(item.id);
+    const isOwned =
+      item.id === "peci" || ownedAvatarAccessories.includes(item.id);
 
     if (isOwned) {
       if (equippedAvatarAccessory === item.id) {
@@ -983,7 +969,9 @@ export default function WarungSantriPage() {
         equipAvatarAccessory(item.id);
         tapFeedback();
         playSfx("powerup");
-        setMessage(`Alhamdulillah! ${item.name} didapatkan gratis dan langsung dipakai!`);
+        setMessage(
+          `Alhamdulillah! ${item.name} didapatkan gratis dan langsung dipakai!`,
+        );
       } else {
         setMessage("Koin Hijaiyah-mu belum cukup.");
       }
@@ -1000,24 +988,17 @@ export default function WarungSantriPage() {
     if (success) {
       tapFeedback();
       playSfx("powerup");
-      setMessage(`Alhamdulillah! ${item.name} berhasil dibeli dan dipakai pada avatar!`);
+      setMessage(
+        `Alhamdulillah! ${item.name} berhasil dibeli dan dipakai pada avatar!`,
+      );
     } else {
       setMessage("Koin Hijaiyah-mu belum cukup.");
     }
   };
 
-  const handleToggleTheme = async (
-    item: ThemeItem,
-    scope: "kamar" | "app",
-  ) => {
-    const owned =
-      scope === "kamar"
-        ? ownedRoomThemes
-        : ownedAppThemes;
-    const equipped =
-      scope === "kamar"
-        ? equippedRoomTheme
-        : equippedAppTheme;
+  const handleToggleTheme = async (item: ThemeItem, scope: "kamar" | "app") => {
+    const owned = scope === "kamar" ? ownedRoomThemes : ownedAppThemes;
+    const equipped = scope === "kamar" ? equippedRoomTheme : equippedAppTheme;
 
     if (equipped === item.id) return;
 
@@ -1078,7 +1059,6 @@ export default function WarungSantriPage() {
       }
     }
 
-    // Backend Go sudah memproses tiket & VIP bypass pada POST /shop/buy.
     const success = await buySkin(item.id, item.price, item.currency || "coin");
     if (success) {
       setMessage(
@@ -1088,19 +1068,23 @@ export default function WarungSantriPage() {
       );
     } else {
       setMessage(
-        isTicket ? "Tiket Bermain-mu belum cukup." : "Koin Hijaiyah-mu belum cukup.",
+        isTicket
+          ? "Tiket Bermain-mu belum cukup."
+          : "Koin Hijaiyah-mu belum cukup.",
       );
     }
   };
 
-  const handleBuyAndPreview = useCallback((item: SkinItem) => {
-    setPreviewSkin(null);
-    void handleBuySkin(item);
-  }, [handleBuySkin]);
+  const handleBuyAndPreview = useCallback(
+    (item: SkinItem) => {
+      setPreviewSkin(null);
+      void handleBuySkin(item);
+    },
+    [handleBuySkin],
+  );
 
   return (
     <div className="min-h-screen bg-[var(--bg-app)] relative overflow-hidden flex flex-col transition-colors">
-      {/* HEADER MANUAL (STICKER NEO-BRUTALISM) */}
       <div className="sticky top-0 z-50 bg-[var(--bg-app)]/95 px-4 py-3 flex items-center justify-between border-b-[3px] border-[var(--border-color)] shadow-[0_2px_0px_var(--shadow-color)]">
         <button
           onClick={() => navigate("/member/ngaji-ceria")}
@@ -1114,9 +1098,7 @@ export default function WarungSantriPage() {
         <div className="w-10" />
       </div>
 
-      {/* KONTEN SCROLLABLE */}
       <div className="px-4 py-4 pb-20 flex-1 overflow-y-auto flex flex-col">
-        {/* BANNER PRIVILEGE SUPERADMIN */}
         {isSuperAdmin && (
           <div className="mb-4 flex items-center gap-3 rounded-2xl border-[3px] border-[#F59E0B] bg-[#FEF08A] dark:bg-[#78350F]/50 p-4 shadow-[4px_4px_0px_var(--shadow-color)]">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[#B45309] dark:text-[#FDE047]">
@@ -1133,7 +1115,6 @@ export default function WarungSantriPage() {
           </div>
         )}
 
-        {/* HEADER MASKOT & STATUS */}
         <div className="flex flex-col items-center justify-center text-center pt-2 pb-2">
           <PetiHartaSvg size={80} className="mb-2 drop-shadow-md" />
           <h2 className="font-display text-2xl font-black text-[var(--text-main)]">
@@ -1144,15 +1125,14 @@ export default function WarungSantriPage() {
             booster seru!
           </p>
 
-          {/* PANEL STATUS (Koin, Hati, Tiket) */}
           <div className="grid grid-cols-3 gap-2.5 w-full max-w-[320px] mx-auto">
-            {/* Koin */}
             <div className="flex flex-col items-center justify-center gap-1 rounded-xl border-[2px] border-[var(--border-color)] bg-[var(--bg-card)] py-2 shadow-[2px_2px_0px_var(--shadow-color)]">
               <CoinSvg size={20} />
-              <span className="text-xs font-black text-[var(--text-main)]">{coins}</span>
+              <span className="text-xs font-black text-[var(--text-main)]">
+                {coins}
+              </span>
             </div>
 
-            {/* Hati */}
             <div className="flex flex-col items-center justify-center gap-1 rounded-xl border-[2px] border-[var(--border-color)] bg-[var(--bg-card)] py-2 shadow-[2px_2px_0px_var(--shadow-color)]">
               <HeartSvg size={20} />
               <span className="text-xs font-black text-[var(--text-main)]">
@@ -1160,7 +1140,6 @@ export default function WarungSantriPage() {
               </span>
             </div>
 
-            {/* Tiket */}
             <div className="flex flex-col items-center justify-center gap-1 rounded-xl border-[2px] border-[var(--border-color)] bg-[var(--bg-card)] py-2 shadow-[2px_2px_0px_var(--shadow-color)]">
               <TicketSvg size={20} />
               <span className="text-xs font-black text-[var(--text-main)]">
@@ -1170,7 +1149,6 @@ export default function WarungSantriPage() {
           </div>
         </div>
 
-        {/* TAB NAVIGATION: SCROLLABLE HORIZONTAL (STICKER STYLE) */}
         <div className="mt-5 p-1.5 rounded-2xl bg-[var(--bg-card)] border-[3px] border-[var(--border-color)] shadow-[3px_3px_0px_var(--shadow-color)]">
           <div className="flex gap-2 overflow-x-auto pb-1 pt-1 px-1 scrollbar-thin [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TAB_ITEMS.map((tab) => {
@@ -1198,7 +1176,6 @@ export default function WarungSantriPage() {
           </div>
         </div>
 
-        {/* NOTIFIKASI */}
         {message && (
           <div
             role="status"
@@ -1208,12 +1185,13 @@ export default function WarungSantriPage() {
           </div>
         )}
 
-        {/* TAB 1: ENERGI */}
         {activeTab === "energi" && (
           <div className="space-y-4 mt-4">
-            {/* INFO BATAS HARIAN - HANYA UNTUK ENERGI */}
             <div className="flex items-center gap-2 rounded-xl border-[2px] border-[#0284C7] bg-[#E0F2FE] dark:bg-[#0369A1]/30 p-2.5 shadow-[2px_2px_0px_#0284C7]">
-              <Info size={16} className="shrink-0 text-[#0284C7] dark:text-[#38BDF8]" />
+              <Info
+                size={16}
+                className="shrink-0 text-[#0284C7] dark:text-[#38BDF8]"
+              />
               <p className="text-[10px] font-bold text-[#0284C7] dark:text-[#38BDF8]">
                 Maksimal {SHOP_DAILY_LIMIT} penukaran per item energi setiap
                 hari.
@@ -1286,7 +1264,7 @@ export default function WarungSantriPage() {
                         }}
                       >
                         {isSuperAdmin ? (
-                          <span className="text-[#0D9488]">GRATIS · Ambil</span>
+                          <span className="text-[#0D9488]">GRATIS</span>
                         ) : (
                           <>
                             <CoinSvg size={14} /> {price}
@@ -1301,7 +1279,6 @@ export default function WarungSantriPage() {
           </div>
         )}
 
-        {/* TAB: SKIN MASKOT (VEKTOR & AURA EKSKLUSIF) */}
         {activeTab === "skin" && (
           <div className="space-y-4 mt-4 pb-8">
             <SectionHeader
@@ -1310,7 +1287,6 @@ export default function WarungSantriPage() {
               accent="teal"
             />
 
-            {/* Filter Rarity Pills */}
             <div className="flex items-center gap-1.5 p-1 bg-[var(--bg-card)] rounded-2xl border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] w-full overflow-x-auto scrollbar-none">
               {(
                 [
@@ -1344,14 +1320,15 @@ export default function WarungSantriPage() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
             >
               {SKIN_ITEMS.filter((item) =>
-                skinRarityFilter === "all" ? true : item.rarity === skinRarityFilter,
+                skinRarityFilter === "all"
+                  ? true
+                  : item.rarity === skinRarityFilter,
               ).map((item) => {
                 const isOwned =
                   ownedSkins.includes(item.id) ||
                   ownedSkins.includes(item.skinKey) ||
                   item.id === "skin_default";
-                const isEquipped =
-                  (equippedSkin || "default") === item.skinKey;
+                const isEquipped = (equippedSkin || "default") === item.skinKey;
                 const isTicket = item.currency === "ticket";
                 const affordable =
                   isSuperAdmin ||
@@ -1377,7 +1354,6 @@ export default function WarungSantriPage() {
           </div>
         )}
 
-        {/* TAB 2: KOSTUM MASKOT */}
         {activeTab === "kostum" && (
           <div className="space-y-4 mt-4">
             <SectionHeader
@@ -1386,7 +1362,6 @@ export default function WarungSantriPage() {
               accent="coral"
             />
 
-            {/* Filter Pill Tabs */}
             <div className="flex items-center gap-1.5 p-1 bg-[var(--bg-card)] rounded-2xl border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] w-fit">
               <button
                 type="button"
@@ -1459,11 +1434,11 @@ export default function WarungSantriPage() {
                           </h3>
                           {item.category === "boy" ? (
                             <span className="text-[9px] font-extrabold bg-[#CCFBF1] dark:bg-[#064E3B]/60 text-[#0F766E] dark:text-[#5EEAD4] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                              Khusus Tito (Putra)
+                              Khusus Tito
                             </span>
                           ) : item.category === "girl" ? (
                             <span className="text-[9px] font-extrabold bg-[#FCE7F3] dark:bg-[#831843]/60 text-[#BE185D] dark:text-[#F472B6] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                              Khusus Tila (Putri)
+                              Khusus Tila
                             </span>
                           ) : (
                             <span className="text-[9px] font-extrabold bg-[#FEF08A] dark:bg-[#78350F]/60 text-[#134E4A] dark:text-[#FEF08A] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
@@ -1472,7 +1447,7 @@ export default function WarungSantriPage() {
                           )}
                           {isEquipped && (
                             <span className="text-[9px] font-extrabold bg-[#134E4A] text-white px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                              Dipakai
+                              Dipakaikan
                             </span>
                           )}
                           {isOwned && !isEquipped && (
@@ -1488,7 +1463,7 @@ export default function WarungSantriPage() {
 
                       {isEquipped ? (
                         <span className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#134E4A] text-white text-xs font-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)]">
-                          <CheckSvg size={12} /> Aktif
+                          <CheckSvg size={12} /> Dipakaikan
                         </span>
                       ) : isOwned ? (
                         <StickerButton
@@ -1497,7 +1472,7 @@ export default function WarungSantriPage() {
                           className="shrink-0"
                           onClick={() => handleBuyCostume(item)}
                         >
-                          Pakai
+                          Pakaikan
                         </StickerButton>
                       ) : (
                         <StickerButton
@@ -1511,9 +1486,7 @@ export default function WarungSantriPage() {
                           onClick={() => handleBuyCostume(item)}
                         >
                           {isSuperAdmin ? (
-                            <span className="text-[#0D9488]">
-                              GRATIS · Ambil
-                            </span>
+                            <span className="text-[#0D9488]">GRATIS</span>
                           ) : (
                             <>
                               <CoinSvg size={14} /> {item.price}
@@ -1526,7 +1499,6 @@ export default function WarungSantriPage() {
                 );
               })}
             </motion.div>
-            {/* Aksesoris Maskot Tambahan */}
             <SectionHeader
               title="Aksesoris Maskot"
               icon={<SparklesSvg size={16} />}
@@ -1571,7 +1543,7 @@ export default function WarungSantriPage() {
                         </span>
                         {isEquipped && (
                           <span className="text-[9px] font-extrabold bg-[#134E4A] text-white px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                            Dipakai
+                            Dipakaikan
                           </span>
                         )}
                         {isOwned && !isEquipped && (
@@ -1587,7 +1559,7 @@ export default function WarungSantriPage() {
 
                     {isEquipped ? (
                       <span className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#134E4A] text-white text-xs font-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)]">
-                        <CheckSvg size={12} /> Aktif
+                        <CheckSvg size={12} /> Dipakaikan
                       </span>
                     ) : (
                       <StickerButton
@@ -1597,17 +1569,19 @@ export default function WarungSantriPage() {
                             : "secondary"
                         }
                         size="sm"
-                        pulse={!isOwned && (isSuperAdmin || coins >= item.price)}
+                        pulse={
+                          !isOwned && (isSuperAdmin || coins >= item.price)
+                        }
                         className={`shrink-0 ${isSuperAdmin ? "border-[#F59E0B]" : ""}`}
-                        disabled={!isOwned && !isSuperAdmin && coins < item.price}
+                        disabled={
+                          !isOwned && !isSuperAdmin && coins < item.price
+                        }
                         onClick={() => handleToggleAccessoryItem(item)}
                       >
                         {isOwned ? (
-                          "Pakai"
+                          "Pakaikan"
                         ) : isSuperAdmin ? (
-                          <span className="text-[#0D9488]">
-                            GRATIS · Ambil
-                          </span>
+                          <span className="text-[#0D9488]">GRATIS</span>
                         ) : (
                           <>
                             <CoinSvg size={14} /> {item.price}
@@ -1622,12 +1596,11 @@ export default function WarungSantriPage() {
           </div>
         )}
 
-        {/* TAB: AKSESORIS AVATAR PROFIL */}
         {activeTab === "avatar" && (
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between gap-2">
               <SectionHeader
-                title="Aksesoris Avatar Profil"
+                title="Aksesoris Avatar"
                 icon={<GraduationCapSvg size={16} />}
                 accent="teal"
               />
@@ -1646,7 +1619,6 @@ export default function WarungSantriPage() {
               )}
             </div>
 
-            {/* Filter Gender */}
             <div className="flex items-center gap-1.5 p-1 bg-[var(--bg-card)] rounded-2xl border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] w-fit">
               <button
                 type="button"
@@ -1684,7 +1656,9 @@ export default function WarungSantriPage() {
             </div>
 
             <p className="text-xs font-bold text-[var(--text-main)]/70">
-              Kustomisasi penampilan avatar santri profilmu dengan aksesoris nusantara! Peci santri sudah tersedia gratis sebagai perlengkapan awal.
+              Kustomisasi penampilan avatar santri profilmu dengan aksesoris
+              nusantara! Peci santri sudah tersedia gratis sebagai perlengkapan
+              awal.
             </p>
 
             <motion.div
@@ -1694,12 +1668,16 @@ export default function WarungSantriPage() {
               className="space-y-3 pb-8"
             >
               {AVATAR_ACCESSORY_SHOP_ITEMS.filter((item) =>
-                avatarGenderFilter === "all" ? true : item.gender === avatarGenderFilter
+                avatarGenderFilter === "all"
+                  ? true
+                  : item.gender === "all" || item.gender === avatarGenderFilter,
               ).map((item) => {
                 const isPeci = item.id === "peci";
-                const isOwned = isPeci || ownedAvatarAccessories.includes(item.id);
+                const isOwned =
+                  isPeci || ownedAvatarAccessories.includes(item.id);
                 const isEquipped = equippedAvatarAccessory === item.id;
-                const affordable = isSuperAdmin || isOwned || coins >= item.price;
+                const affordable =
+                  isSuperAdmin || isOwned || coins >= item.price;
                 const avatarGender: "boy" | "girl" =
                   user?.gender === "female" || user?.gender === "perempuan"
                     ? "girl"
@@ -1727,7 +1705,7 @@ export default function WarungSantriPage() {
                           )}
                           {isEquipped && (
                             <span className="text-[9px] font-extrabold bg-[#134E4A] text-white px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                              Dipakai
+                              Dipakaikan
                             </span>
                           )}
                           {isOwned && !isEquipped && (
@@ -1743,7 +1721,7 @@ export default function WarungSantriPage() {
 
                       {isEquipped ? (
                         <span className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#134E4A] text-white text-xs font-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)]">
-                          <CheckSvg size={12} /> Aktif
+                          <CheckSvg size={12} /> Dipakaikan
                         </span>
                       ) : isOwned ? (
                         <StickerButton
@@ -1752,7 +1730,7 @@ export default function WarungSantriPage() {
                           className="shrink-0"
                           onClick={() => handleToggleAvatarAccessory(item)}
                         >
-                          Pakai
+                          Pakaikan
                         </StickerButton>
                       ) : (
                         <StickerButton
@@ -1766,13 +1744,13 @@ export default function WarungSantriPage() {
                           onClick={() => handleToggleAvatarAccessory(item)}
                         >
                           {isSuperAdmin ? (
-                            <span className="text-[#0D9488]">
-                              GRATIS · Ambil
-                            </span>
+                            <span className="text-[#0D9488]">GRATIS</span>
                           ) : (
                             <div className="flex items-center gap-1">
                               <CoinSvg size={14} />
-                              <span>{item.price === 0 ? "Gratis" : item.price}</span>
+                              <span>
+                                {item.price === 0 ? "Gratis" : item.price}
+                              </span>
                             </div>
                           )}
                         </StickerButton>
@@ -1785,7 +1763,6 @@ export default function WarungSantriPage() {
           </div>
         )}
 
-        {/* TAB: KUSTOMISASI KAMAR */}
         {activeTab === "kamar" && (
           <ThemeShopList
             items={ROOM_THEMES}
@@ -1797,7 +1774,6 @@ export default function WarungSantriPage() {
           />
         )}
 
-        {/* TAB: KUSTOMISASI TEMA APLIKASI */}
         {activeTab === "app" && (
           <ThemeShopList
             items={APP_THEMES}
@@ -1870,7 +1846,7 @@ export default function WarungSantriPage() {
                         onClick={() => handleBuyBooster(item)}
                       >
                         {isSuperAdmin ? (
-                          <span className="text-[#0D9488]">GRATIS · Ambil</span>
+                          <span className="text-[#0D9488]">GRATIS</span>
                         ) : (
                           <>
                             <CoinSvg size={14} /> {item.price}
@@ -1886,7 +1862,6 @@ export default function WarungSantriPage() {
         )}
       </div>
 
-      {/* Modal Sukses Pembelian Tema (Pakai Sekarang) */}
       <AppModal
         isOpen={!!purchasedThemeModal}
         onClose={() => setPurchasedThemeModal(null)}
@@ -1904,7 +1879,8 @@ export default function WarungSantriPage() {
               />
             </div>
             <p className="text-sm font-bold text-[var(--text-main,#134E4A)]/80 text-center">
-              Tema <strong>{purchasedThemeModal.item.name}</strong> berhasil kamu dapatkan! Mau langsung memakainya sekarang?
+              Tema <strong>{purchasedThemeModal.item.name}</strong> berhasil
+              kamu dapatkan! Mau langsung memakainya sekarang?
             </p>
             <div className="mt-6 flex flex-col gap-2">
               <StickerButton
@@ -1939,7 +1915,6 @@ export default function WarungSantriPage() {
         )}
       </AppModal>
 
-      {/* Pratinjau Skin Maskot (Modal) — render TilaMascot penuh */}
       <AppModal
         isOpen={!!previewSkin}
         onClose={() => setPreviewSkin(null)}
@@ -1982,7 +1957,9 @@ export default function WarungSantriPage() {
                 {previewSkin.previewColors.accent && (
                   <div
                     className="h-4 w-4 rounded-full border border-[#134E4A]"
-                    style={{ backgroundColor: previewSkin.previewColors.accent }}
+                    style={{
+                      backgroundColor: previewSkin.previewColors.accent,
+                    }}
                   />
                 )}
                 {previewSkin.previewColors.belly && (
@@ -2006,8 +1983,8 @@ export default function WarungSantriPage() {
                 <div className="flex items-center justify-center gap-1.5">
                   <CoinSvg size={16} />
                   {isSuperAdmin || isUnlimited
-                    ? "Buka Gratis (VIP)"
-                    : `${previewSkin.price} ${previewSkin.currency || "Koin"}`}
+                    ? "Gratis (VIP)"
+                    : `${previewSkin.price} ${previewSkin.currency === "ticket" ? "Tiket" : "Koin"}`}
                 </div>
               </StickerButton>
               <StickerButton
