@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import {
   SparklesSvg,
@@ -24,6 +24,7 @@ import type {
 } from "../../data/quiz/types";
 import { GAME_METADATA_REGISTRY } from "../NgajiCeriaGamesPage";
 import { arenaRoomService } from "@/services/arenaRoomService";
+import { listQuizzes, type Quiz } from "@/services/quizBankService";
 import { useAuth } from "@/contexts/AuthContext";
 import { isUstadzUser } from "@/lib/roles";
 import { getAudioUrl } from "../../utils/audioUrl";
@@ -52,8 +53,29 @@ interface CasualGamePack {
 const isQuizBasedPack = (pack: CasualGamePack): boolean =>
   GAME_METADATA_REGISTRY[pack.registryId ?? ""]?.isQuizBased !== false;
 
+const OPTION_IDS = ["A", "B", "C", "D"] as const;
+
+function quizToUniversalQuestions(quiz: Quiz): UniversalQuestion[] {
+  return quiz.questions.map((q, idx) => ({
+    id: q.id || `custom-q-${quiz.id}-${idx}`,
+    type: "multiple_choice",
+    category: "tilawati",
+    title: quiz.title || `Soal ${idx + 1}`,
+    prompt: q.prompt,
+    options: (q.options || []).map((optText, optIdx) => ({
+      id: OPTION_IDS[optIdx] || String.fromCharCode(65 + optIdx),
+      text: typeof optText === "string" ? optText : (optText as any)?.text || "",
+      isCorrect: optIdx === q.answerIndex,
+    })),
+    correctAnswer: OPTION_IDS[q.answerIndex] || "A",
+    timeLimitSeconds: 20,
+    points: 1000,
+  }));
+}
+
 export default function CreateRoomPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const isUstadz = Boolean(user?.is_ustadz || isUstadzUser(user));
 
@@ -123,7 +145,44 @@ export default function CreateRoomPage() {
     },
   ];
 
+  const [customPacks, setCustomPacks] = useState<CasualGamePack[]>([]);
   const [selectedPackId, setSelectedPackId] = useState<string>("pack-tilawati");
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchCustom = async () => {
+      try {
+        const quizzes = await listQuizzes();
+        if (cancelled) return;
+        const mapped: CasualGamePack[] = quizzes.map((q) => ({
+          id: `custom-quiz-${q.id}`,
+          title: q.title,
+          badge: "Kuis Sendiri",
+          description: `${q.questions.length} soal kuis buatan Anda.`,
+          icon: SparklesSvg,
+          iconBg: "bg-[#CCFBF1]",
+          category: "tilawati",
+          questions: quizToUniversalQuestions(q),
+        }));
+        setCustomPacks(mapped);
+
+        const stateQuizId = (location.state as any)?.selectedCustomQuizId;
+        if (stateQuizId) {
+          setSelectedPackId(`custom-quiz-${stateQuizId}`);
+        }
+      } catch (err) {
+        console.warn("[CreateRoomPage] Gagal memuat kuis custom:", err);
+      }
+    };
+    fetchCustom();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.state]);
+
+  const allCasualPacks = useMemo(() => {
+    return [...customPacks, ...CASUAL_PACKS];
+  }, [customPacks]);
 
   // ----------------------------------------------------
   // Ustadz Exam Form State
@@ -258,7 +317,7 @@ export default function CreateRoomPage() {
   // ----------------------------------------------------
   const handleCreateCasualRoom = async () => {
     const pack =
-      CASUAL_PACKS.find((p) => p.id === selectedPackId) || CASUAL_PACKS[0];
+      allCasualPacks.find((p) => p.id === selectedPackId) || allCasualPacks[0];
     setLoading(true);
     setErrorMsg("");
 
@@ -271,9 +330,13 @@ export default function CreateRoomPage() {
         questions: pack.questions,
       });
 
-      // Simpan session host di sessionStorage
+      // Simpan soal ke tabel room_questions
+      await arenaRoomService.saveRoomQuestions(room.id, pack.questions);
+
+      // Simpan session host & room_id di sessionStorage
       sessionStorage.setItem(`arena_is_host_${room.pin}`, "true");
       sessionStorage.setItem("arena_room_pin", room.pin);
+      sessionStorage.setItem("arena_room_id", room.id);
 
       // Redirect ke halaman lobi
       navigate(`/arena/lobby/${room.pin}`);
@@ -302,9 +365,13 @@ export default function CreateRoomPage() {
         questions: selectedQuestions,
       });
 
-      // Simpan session host di sessionStorage
+      // Simpan soal ke tabel room_questions
+      await arenaRoomService.saveRoomQuestions(room.id, selectedQuestions);
+
+      // Simpan session host & room_id di sessionStorage
       sessionStorage.setItem(`arena_is_host_${room.pin}`, "true");
       sessionStorage.setItem("arena_room_pin", room.pin);
+      sessionStorage.setItem("arena_room_id", room.id);
 
       // Redirect ke halaman lobi
       navigate(`/arena/lobby/${room.pin}`);
@@ -323,42 +390,42 @@ export default function CreateRoomPage() {
       <NgajiCeriaLayout title="Buat Room Main Bersama Teman">
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
           {/* Header Banner Kasual */}
-          <div className="rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF3C7] dark:bg-[var(--bg-card)] p-6 shadow-[5px_5px_0px_var(--shadow-color,#134E4A)] text-[var(--text-main,#134E4A)]">
+          <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FEF3C7] dark:bg-[#F0FDF4] p-6 shadow-[5px_5px_0px_#134E4A] text-[#134E4A] dark:text-[#FFFFFF]">
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#0D9488] text-white text-xs font-black shadow-[2px_2px_0px_#134E4A]">
                 <GamepadSvg size={14} stroke="#FFFFFF" /> ROOM MAIN KASUAL
               </span>
-              <span className="text-xs font-black text-[#134E4A]/60 dark:text-[var(--text-muted,#94A3B8)]">
+              <span className="text-xs font-black text-[#134E4A]/60 dark:text-[#94A3B8]">
                 Santai & Mabar
               </span>
             </div>
-            <h1 className="font-display text-2xl md:text-3xl font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+            <h1 className="font-display text-2xl md:text-3xl font-black text-[#134E4A] dark:text-[#FFFFFF]">
               Buat Room Main Bersama Teman
             </h1>
-            <p className="mt-1.5 text-xs md:text-sm font-bold text-[#134E4A]/80 dark:text-[var(--text-muted,#94A3B8)]">
+            <p className="mt-1.5 text-xs md:text-sm font-bold text-[#134E4A]/80 dark:text-[#94A3B8]">
               Pilih kuis yang ingin kamu mainkan, buat PIN, lalu bagikan ke
               teman-temanmu untuk mulai tebak-tebakan bersama!
             </p>
           </div>
 
           {/* Pemilihan Paket Kuis / Game Sederhana */}
-          <div className="rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-6 shadow-[5px_5px_0px_var(--shadow-color,#134E4A)] space-y-4">
+          <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-6 shadow-[5px_5px_0px_#134E4A] space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg md:text-xl font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] flex items-center gap-2">
+              <h2 className="font-display text-lg md:text-xl font-black text-[#134E4A] dark:text-[#FFFFFF] flex items-center gap-2">
                 <SparklesSvg
                   size={18}
                   stroke="#134E4A"
-                  className="text-[#134E4A] dark:text-[var(--text-main)]"
+                  className="text-[#134E4A] dark:text-[#134E4A]"
                 />{" "}
                 Pilih Game / Kuis
               </h2>
-              <span className="text-xs font-bold text-[#134E4A]/60 dark:text-[var(--text-muted,#94A3B8)]">
+              <span className="text-xs font-bold text-[#134E4A]/60 dark:text-[#94A3B8]">
                 10 Soal per ronde
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {CASUAL_PACKS.map((pack) => {
+              {allCasualPacks.map((pack) => {
                 const isSelected = selectedPackId === pack.id;
                 const quizBased = isQuizBasedPack(pack);
                 const PackIcon = pack.icon;
@@ -374,8 +441,8 @@ export default function CreateRoomPage() {
                     }}
                     className={`p-4 rounded-2xl border-[3px] text-left transition-all flex flex-col justify-between gap-3 disabled:opacity-50 disabled:cursor-not-allowed ${
                       isSelected
-                        ? "border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[#064e43] shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] -translate-y-1 text-[#134E4A] dark:text-[#E6FFFA]"
-                        : "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] hover:bg-[#F0FDF4] dark:hover:bg-slate-800 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] hover:-translate-y-0.5"
+                        ? "border-[#134E4A] bg-[#CCFBF1] dark:bg-[#064e43] shadow-[4px_4px_0px_#134E4A] -translate-y-1 text-[#134E4A] dark:text-[#E6FFFA]"
+                        : "border-[#134E4A] bg-[#FFFFFF] hover:bg-[#F0FDF4] dark:hover:bg-slate-800 shadow-[3px_3px_0px_#134E4A] hover:-translate-y-0.5"
                     }`}
                   >
                     <div>
@@ -399,15 +466,20 @@ export default function CreateRoomPage() {
                           {pack.badge}
                         </span>
                       </div>
-                      <h3 className="font-display font-black text-sm md:text-base text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                      <h3 className="font-display font-black text-sm md:text-base text-[#134E4A] dark:text-[#FFFFFF]">
                         {pack.title}
                       </h3>
-                      <p className="mt-1 text-xs font-bold text-[#134E4A]/70 dark:text-[var(--text-muted,#94A3B8)] line-clamp-2">
+                      <p className="mt-1 text-xs font-bold text-[#134E4A]/70 dark:text-[#94A3B8] line-clamp-2">
                         {pack.description}
                       </p>
                       {!quizBased && (
                         <span className="mt-1 inline-block w-fit px-2 py-0.5 rounded-md border-2 border-[#134E4A] bg-[#FEE2E2] text-[#991B1B] text-[10px] font-black">
                           Hanya tersedia untuk Single Player
+                        </span>
+                      )}
+                      {isSelected && pack.id.startsWith("custom-quiz-") && (
+                        <span className="mt-1 inline-block px-2 py-0.5 rounded-md border-2 border-[#134E4A] bg-[#0D9488] text-white text-[10px] font-black shadow-[1.5px_1.5px_0px_#134E4A]">
+                          Kuis Sendiri
                         </span>
                       )}
                     </div>
@@ -421,7 +493,7 @@ export default function CreateRoomPage() {
                           <CheckSvg size={14} stroke="#0D9488" /> Terpilih
                         </span>
                       ) : (
-                        <span className="text-[#134E4A]/40 dark:text-[var(--text-muted,#94A3B8)]">
+                        <span className="text-[#134E4A]/40 dark:text-[#94A3B8]">
                           Pilih Ini
                         </span>
                       )}
@@ -431,6 +503,16 @@ export default function CreateRoomPage() {
               })}
             </div>
           </div>
+
+          {/* Tombol Buat Kuis Sendiri (Custom Quiz) */}
+          <button
+            type="button"
+            onClick={() => navigate("/member/ngaji-ceria/quiz/create")}
+            className="w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] text-[#134E4A] font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0D9488] hover:text-white flex items-center justify-center gap-2"
+          >
+            <PlusSvg size={24} />
+            <span>Buat Kuis Sendiri</span>
+          </button>
 
           {/* Notifikasi Error */}
           {errorMsg && (
@@ -465,28 +547,28 @@ export default function CreateRoomPage() {
     <NgajiCeriaLayout title="Buat Room Ujian Resmi Ustadz">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Banner Header Ustadz */}
-        <div className="rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF3C7] dark:bg-[var(--bg-card)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
+        <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FEF3C7] dark:bg-[#F0FDF4] p-5 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#EA580C] text-white text-xs font-black shadow-[2px_2px_0px_#134E4A]">
                 <CrownSvg size={14} stroke="#FFFFFF" /> PANEL UJIAN USTADZ
               </span>
-              <h1 className="mt-2 text-2xl md:text-3xl font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+              <h1 className="mt-2 text-2xl md:text-3xl font-black text-[#134E4A] dark:text-[#FFFFFF]">
                 Buat Room Ujian Resmi TPQ
               </h1>
-              <p className="mt-1 text-sm font-bold text-[#134E4A]/80 dark:text-[var(--text-muted,#94A3B8)]">
+              <p className="mt-1 text-sm font-bold text-[#134E4A]/80 dark:text-[#94A3B8]">
                 Atur KKM kelulusan, anti-cheat tab-switch, dan tentukan bank
                 soal ujian santri.
               </p>
             </div>
-            <div className="rounded-2xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] text-center">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 dark:text-[var(--text-muted,#94A3B8)] block">
+            <div className="rounded-2xl border-2 border-[#134E4A] bg-[#FFFFFF] px-4 py-3 shadow-[3px_3px_0px_#134E4A] text-center">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 dark:text-[#94A3B8] block">
                 Paket Akun
               </span>
               <span className="font-display text-lg font-black text-[#0D9488] dark:text-[#2DD4BF] uppercase">
                 {userTier}
               </span>
-              <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-[var(--text-muted,#94A3B8)] block">
+              <span className="text-[10px] font-bold text-[#134E4A]/80 dark:text-[#94A3B8] block">
                 Maks {tierLimits.maxQ} Soal · {tierLimits.maxP} Santri
               </span>
             </div>
@@ -494,28 +576,28 @@ export default function CreateRoomPage() {
         </div>
 
         {/* Pengaturan Kuis & Ujian */}
-        <div className="rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] space-y-4">
-          <h2 className="text-lg font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] flex items-center gap-2">
+        <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#134E4A] space-y-4">
+          <h2 className="text-lg font-black text-[#134E4A] dark:text-[#FFFFFF] flex items-center gap-2">
             <SettingsSvg
               size={20}
               stroke="#134E4A"
-              className="text-[#134E4A] dark:text-[var(--text-main)]"
+              className="text-[#134E4A] dark:text-[#134E4A]"
             />{" "}
             Pengaturan Ujian
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-black uppercase text-[#134E4A]/70 dark:text-[var(--text-muted,#94A3B8)] mb-1">
+              <label className="block text-xs font-black uppercase text-[#134E4A]/70 dark:text-[#94A3B8] mb-1">
                 Tipe Pelaksanaan
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setRoomType("latihan")}
-                  className={`py-2 px-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] text-xs font-black transition-all ${
+                  className={`py-2 px-3 rounded-xl border-2 border-[#134E4A] text-xs font-black transition-all ${
                     roomType === "latihan"
-                      ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                      : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                      ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                      : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[#FFFFFF]"
                   }`}
                 >
                   Latihan Kelas
@@ -523,10 +605,10 @@ export default function CreateRoomPage() {
                 <button
                   type="button"
                   onClick={() => setRoomType("ujian_resmi")}
-                  className={`py-2 px-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] text-xs font-black transition-all ${
+                  className={`py-2 px-3 rounded-xl border-2 border-[#134E4A] text-xs font-black transition-all ${
                     roomType === "ujian_resmi"
-                      ? "bg-[#EA580C] text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                      : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                      ? "bg-[#EA580C] text-white shadow-[2px_2px_0px_#134E4A]"
+                      : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[#FFFFFF]"
                   }`}
                 >
                   Ujian Resmi
@@ -535,7 +617,7 @@ export default function CreateRoomPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-black uppercase text-[#134E4A]/70 dark:text-[var(--text-muted,#94A3B8)] mb-1">
+              <label className="block text-xs font-black uppercase text-[#134E4A]/70 dark:text-[#94A3B8] mb-1">
                 Standar KKM Kelulusan
               </label>
               <div className="flex items-center gap-3">
@@ -548,23 +630,23 @@ export default function CreateRoomPage() {
                   onChange={(e) => setKkm(Number(e.target.value))}
                   className="flex-1 accent-[#0D9488]"
                 />
-                <span className="w-12 text-center py-1.5 rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[#FEF3C7] dark:bg-slate-800 font-black text-sm text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]">
+                <span className="w-12 text-center py-1.5 rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] dark:bg-slate-800 font-black text-sm text-[#134E4A] dark:text-[#FFFFFF]">
                   {kkm}
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black uppercase text-[#134E4A]/70 dark:text-[var(--text-muted,#94A3B8)] mb-1">
+              <label className="block text-xs font-black uppercase text-[#134E4A]/70 dark:text-[#94A3B8] mb-1">
                 Acak Urutan Soal
               </label>
               <button
                 type="button"
                 onClick={() => setIsRandomized(!isRandomized)}
-                className={`w-full py-2 px-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] text-xs font-black flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-2 px-3 rounded-xl border-2 border-[#134E4A] text-xs font-black flex items-center justify-center gap-2 transition-all ${
                   isRandomized
-                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                    : "bg-gray-100 dark:bg-slate-800 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                    : "bg-gray-100 dark:bg-slate-800 text-[#134E4A] dark:text-[#FFFFFF]"
                 }`}
               >
                 {isRandomized ? (
@@ -579,16 +661,16 @@ export default function CreateRoomPage() {
         </div>
 
         {/* Tab Pemilihan Bank Soal & Input */}
-        <div className="rounded-3xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] space-y-4">
+        <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#134E4A] space-y-4">
           <div className="flex border-b-2 border-[#134E4A]/20 dark:border-white/10 pb-3 gap-2 flex-wrap justify-between items-center">
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("bank")}
-                className={`px-4 py-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] font-black text-xs transition-all ${
+                className={`px-4 py-2 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all ${
                   activeTab === "bank"
-                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                    : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                    : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[#FFFFFF]"
                 }`}
               >
                 Bank Soal ({availableBank.length})
@@ -596,10 +678,10 @@ export default function CreateRoomPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("manual")}
-                className={`px-4 py-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] font-black text-xs transition-all ${
+                className={`px-4 py-2 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all ${
                   activeTab === "manual"
-                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                    : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                    : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[#FFFFFF]"
                 }`}
               >
                 + Buat Soal Manual
@@ -607,17 +689,17 @@ export default function CreateRoomPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("audio")}
-                className={`px-4 py-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] font-black text-xs transition-all ${
+                className={`px-4 py-2 rounded-xl border-2 border-[#134E4A] font-black text-xs transition-all ${
                   activeTab === "audio"
-                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                    : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)]"
+                    ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                    : "bg-[#F0FDF4] dark:bg-slate-800 text-[#134E4A] dark:text-[#FFFFFF]"
                 }`}
               >
                 + Soal Tebak Audio
               </button>
             </div>
 
-            <span className="text-xs font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] bg-[#FEF3C7] dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-[var(--border-color,#134E4A)]">
+            <span className="text-xs font-black text-[#134E4A] dark:text-[#FFFFFF] bg-[#FEF3C7] dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-[#134E4A]">
               Terpilih: {selectedQuestions.length} Soal
             </span>
           </div>
@@ -631,10 +713,10 @@ export default function CreateRoomPage() {
                       key={cat}
                       type="button"
                       onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg border-2 border-[var(--border-color,#134E4A)] text-xs font-black capitalize transition-all ${
+                      className={`px-3 py-1.5 rounded-lg border-2 border-[#134E4A] text-xs font-black capitalize transition-all ${
                         selectedCategory === cat
-                          ? "bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                          : "bg-white dark:bg-slate-800 text-[#134E4A]/70 dark:text-[var(--text-muted,#94A3B8)]"
+                          ? "bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+                          : "bg-white dark:bg-slate-800 text-[#134E4A]/70 dark:text-[#94A3B8]"
                       }`}
                     >
                       Kategori {cat}
@@ -654,12 +736,12 @@ export default function CreateRoomPage() {
                       onClick={() => toggleQuestionSelection(q)}
                       className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 ${
                         isSelected
-                          ? "border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[#064e43] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]"
+                          ? "border-[#134E4A] bg-[#CCFBF1] dark:bg-[#064e43] shadow-[3px_3px_0px_#134E4A]"
                           : "border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#134E4A]"
                       }`}
                     >
                       <div
-                        className={`w-6 h-6 rounded-lg border-2 border-[var(--border-color,#134E4A)] flex items-center justify-center shrink-0 mt-0.5 ${
+                        className={`w-6 h-6 rounded-lg border-2 border-[#134E4A] flex items-center justify-center shrink-0 mt-0.5 ${
                           isSelected
                             ? "bg-[#0D9488] text-white"
                             : "bg-white dark:bg-slate-900"
@@ -669,14 +751,14 @@ export default function CreateRoomPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase bg-[#134E4A]/10 dark:bg-white/10 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-black uppercase bg-[#134E4A]/10 dark:bg-white/10 text-[#134E4A] dark:text-[#FFFFFF] px-1.5 py-0.5 rounded">
                             {q.type}
                           </span>
-                          <span className="text-xs font-bold text-[#134E4A]/60 dark:text-[var(--text-muted,#94A3B8)]">
+                          <span className="text-xs font-bold text-[#134E4A]/60 dark:text-[#94A3B8]">
                             {q.timeLimitSeconds}d
                           </span>
                         </div>
-                        <p className="text-xs font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mt-1 line-clamp-2">
+                        <p className="text-xs font-black text-[#134E4A] dark:text-[#FFFFFF] mt-1 line-clamp-2">
                           {q.prompt}
                         </p>
                       </div>
@@ -690,7 +772,7 @@ export default function CreateRoomPage() {
           {activeTab === "manual" && (
             <form onSubmit={handleAddManualQuestion} className="space-y-3">
               <div>
-                <label className="block text-xs font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mb-1">
+                <label className="block text-xs font-black text-[#134E4A] dark:text-[#FFFFFF] mb-1">
                   Pertanyaan Kuis *
                 </label>
                 <textarea
@@ -699,14 +781,14 @@ export default function CreateRoomPage() {
                   value={manualPrompt}
                   onChange={(e) => setManualPrompt(e.target.value)}
                   placeholder="Tulis soal kuis di sini..."
-                  className="w-full rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] p-2.5 text-xs font-bold shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] focus:outline-none"
+                  className="w-full rounded-xl border-2 border-[#134E4A] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[#FFFFFF] p-2.5 text-xs font-bold shadow-[2px_2px_0px_#134E4A] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                 {manualOptions.map((opt, idx) => (
                   <div key={opt.id} className="flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white flex items-center justify-center font-black text-sm shrink-0">
+                    <span className="w-8 h-8 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white flex items-center justify-center font-black text-sm shrink-0">
                       {opt.id}
                     </span>
                     <input
@@ -718,7 +800,7 @@ export default function CreateRoomPage() {
                         copy[idx].text = e.target.value;
                         setManualOptions(copy);
                       }}
-                      className="flex-1 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] px-3 py-1.5 text-sm font-bold shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] focus:outline-none"
+                      className="flex-1 rounded-xl border-2 border-[#134E4A] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[#FFFFFF] px-3 py-1.5 text-sm font-bold shadow-[1px_1px_0px_#134E4A] focus:outline-none"
                     />
                     <input
                       type="radio"
@@ -744,7 +826,7 @@ export default function CreateRoomPage() {
           {activeTab === "audio" && (
             <form onSubmit={handleAddAudioQuestion} className="space-y-3">
               <div>
-                <label className="block text-xs font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mb-1">
+                <label className="block text-xs font-black text-[#134E4A] dark:text-[#FFFFFF] mb-1">
                   Pertanyaan / Perintah *
                 </label>
                 <input
@@ -753,12 +835,12 @@ export default function CreateRoomPage() {
                   value={audioPrompt}
                   onChange={(e) => setAudioPrompt(e.target.value)}
                   placeholder="Dengarkan audio dan tebak ayat ini..."
-                  className="w-full rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] p-2.5 text-xs font-bold shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] focus:outline-none"
+                  className="w-full rounded-xl border-2 border-[#134E4A] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[#FFFFFF] p-2.5 text-xs font-bold shadow-[2px_2px_0px_#134E4A] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] mb-1">
+                <label className="block text-xs font-black text-[#134E4A] dark:text-[#FFFFFF] mb-1">
                   URL Audio (MP3 / EveryAyah / Local) *
                 </label>
                 <div className="flex gap-2">
@@ -766,7 +848,7 @@ export default function CreateRoomPage() {
                     type="url"
                     value={audioUrl}
                     onChange={(e) => setAudioUrl(e.target.value)}
-                    className="flex-1 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] px-3 py-2 text-xs font-mono shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] focus:outline-none"
+                    className="flex-1 rounded-xl border-2 border-[#134E4A] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[#FFFFFF] px-3 py-2 text-xs font-mono shadow-[2px_2px_0px_#134E4A] focus:outline-none"
                   />
                   <button
                     type="button"
@@ -776,7 +858,7 @@ export default function CreateRoomPage() {
                       );
                       audio.play();
                     }}
-                    className="px-3 py-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#CCFBF1] dark:bg-[#064e43] text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] font-black text-xs shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                    className="px-3 py-2 rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] dark:bg-[#064e43] text-[#134E4A] dark:text-[#FFFFFF] font-black text-xs shadow-[2px_2px_0px_#134E4A]"
                   >
                     <Volume2 size={16} stroke="currentColor" />
                   </button>
@@ -786,7 +868,7 @@ export default function CreateRoomPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                 {audioOptions.map((opt, idx) => (
                   <div key={opt.id} className="flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] text-white flex items-center justify-center font-black text-sm shrink-0">
+                    <span className="w-8 h-8 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white flex items-center justify-center font-black text-sm shrink-0">
                       {opt.id}
                     </span>
                     <input
@@ -797,7 +879,7 @@ export default function CreateRoomPage() {
                         copy[idx].text = e.target.value;
                         setAudioOptions(copy);
                       }}
-                      className="flex-1 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[var(--text-main,#FFFFFF)] px-3 py-1.5 text-sm font-bold shadow-[1px_1px_0px_var(--shadow-color,#134E4A)] focus:outline-none"
+                      className="flex-1 rounded-xl border-2 border-[#134E4A] bg-white dark:bg-slate-900 text-[#134E4A] dark:text-[#FFFFFF] px-3 py-1.5 text-sm font-bold shadow-[1px_1px_0px_#134E4A] focus:outline-none"
                     />
                     <input
                       type="radio"

@@ -36,6 +36,7 @@ import { getBest } from "./games/_shared/storage";
 import { triggerTilaReaction } from "../../../utils/tilaEvent";
 import { GameCard } from "./games/_shared/GameCard";
 import { useActiveGames, ActiveGameItem } from "../hooks/useActiveGames";
+import { useEconomyStore } from "../hooks/useEconomyStore";
 
 export interface GameEntry {
   id: string;
@@ -298,6 +299,7 @@ export default function NgajiCeriaGamesPage() {
   const { tier } = useGameAccess("games");
   const [promptOpen, setPromptOpen] = useState(false);
   const { activeGames, isLoading } = useActiveGames();
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const gamesToDisplay = useMemo(() => {
     const filtered = activeGames.filter((g) => {
@@ -321,11 +323,23 @@ export default function NgajiCeriaGamesPage() {
     return uniqueEntries;
   }, [activeGames]);
 
-  const openGame = (path: string, locked: boolean) => {
+  const openGame = async (path: string, locked: boolean) => {
     if (locked && tier === "guest") {
       setPromptOpen(true);
       return;
     }
+
+    const isDirectGame =
+      !path.includes("/select") &&
+      !path.includes("/ritme-ngaji") &&
+      !path.startsWith("/quiz-hub") &&
+      !path.includes("/quiz-hub");
+
+    if (isDirectGame) {
+      const ok = await consumeTicket();
+      if (!ok) return;
+    }
+
     triggerTilaReaction("play");
     navigate(path);
   };

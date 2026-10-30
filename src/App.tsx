@@ -975,6 +975,11 @@ function AppRoutesContent() {
             </MemberGameRouteGuard>
           }
         />
+        {/* Route untuk pembuatan kuis (tidak dibatasi role, pakai halaman quiz/create) */}
+        <Route
+          path="/member/ngaji-ceria/quiz/create"
+          element={<UstadzQuizCreatePage />}
+        />
         <Route path="/ustadz" element={<UstadzRouteGuard />}>
           <Route element={<UstadzLayout />}>
             <Route index element={<UstadzDashboardPage />} />

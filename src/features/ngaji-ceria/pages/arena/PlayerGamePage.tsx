@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Volume2, AlertCircle, CheckSvg, XSvg, CrownSvg } from "@/components/ui/CustomIcons";
+import { Volume2, AlertCircle, CheckSvg, XSvg, CrownSvg, ChevronLeftSvg } from "@/components/ui/CustomIcons";
 import { ArenaSocket } from "../../services/arenaSocket";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
 import { getAudioUrl } from "../../utils/audioUrl";
@@ -38,6 +38,7 @@ export default function PlayerGamePage() {
   const [violations, setViolations] = useState(0);
   const [warningModal, setWarningModal] = useState<string | null>(null);
   const [disqualified, setDisqualified] = useState(false);
+  const [showBackModal, setShowBackModal] = useState(false);
   const [gamePhase, setGamePhase] = useState<"COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT">("COUNTDOWN");
   const [timeLeft, setTimeLeft] = useState(20);
   const [timeLimit, setTimeLimit] = useState(20);
@@ -122,8 +123,8 @@ export default function PlayerGamePage() {
       },
       onGameStarted: (data) => {
         setQuestion(data.question);
-        setQuestionIndex(data.questionIndex);
-        setTotalQuestions(data.totalQuestions);
+        setQuestionIndex(data.questionIndex ?? 0);
+        setTotalQuestions(data.totalQuestions ?? 1);
         setTimeLimit(data.timeLimit || 20);
         setTimeLeft(data.timeLimit || 20);
         setQuestionStartTime(Date.now());
@@ -179,6 +180,7 @@ export default function PlayerGamePage() {
     return () => {
       socket.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      setShowBackModal(true);
     };
   }, [pin, playerId, nickname, navigate, handleTabSwitch, totalScore]);
 
@@ -387,6 +389,50 @@ export default function PlayerGamePage() {
                 Keluar Arena
               </button>
             )}
+          </div>
+        </div>
+      )}
+      <div className="absolute top-3 left-3 z-10">
+        <button
+          type="button"
+          onClick={() => setShowBackModal(true)}
+          className="rounded-xl border-[2px] border-[#134E4A] bg-white px-3 py-1.5 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-[#F0FDF4] transition-all"
+        >
+          <ChevronLeftSvg size={14} />
+          <span className="hidden sm:inline">Kembali</span>
+        </button>
+      </div>
+
+      {/* Modal Konfirmasi Keluar */}
+      {showBackModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl border-[4px] border-[#134E4A] bg-white p-6 text-center shadow-[8px_8px_0px_#134E4A] space-y-4">
+            <h3 className="font-display text-lg font-black text-[#134E4A]">
+              Keluar dari Room?
+            </h3>
+            <p className="text-xs font-bold text-[#134E4A]/70 leading-relaxed">
+              Kamu akan keluar dari sesi permainan saat ini. Setujukan untuk
+              terus bermain di halaman lain?
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                type="button"
+                onClick={() => setShowBackModal(false)}
+                className="px-4 py-2 rounded-xl border-[3px] border-[#134E4A] bg-white text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A] hover:bg-[#FEF3C7] transition-all"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBackModal(false);
+                  navigate("/member/ngaji-ceria/games");
+                }}
+                className="px-4 py-2 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs shadow-[2px_2px_0px_#134E4A] hover:bg-[#0F766E] transition-all"
+              >
+                Keluar Sekarang
+              </button>
+            </div>
           </div>
         </div>
       )}

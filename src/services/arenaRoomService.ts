@@ -14,6 +14,7 @@ export interface ArenaRoom {
   current_question_index?: number;
   kkm?: number;
   is_randomized?: boolean;
+  questions?: any[];
   created_at?: string;
   updated_at?: string;
 }
@@ -361,8 +362,153 @@ export const arenaRoomService = {
   },
 
   /**
-   * Tandai status "Siap" seorang pemain di lobi.
+   * Simpan pertanyaan kuis ke tabel room_questions (dipanggil setelah room dibuat).
    */
+  async saveRoomQuestions(
+    roomId: string,
+    questions: any[],
+  ): Promise<void> {
+    if (!questions || questions.length === 0) return;
+
+    const rows = questions.map((q, idx) => {
+      let correct = q.correctAnswer ?? q.correctAnswerId ?? "";
+      if (!correct && typeof q.answerIndex === "number") {
+        correct = ["A", "B", "C", "D"][q.answerIndex] || "A";
+      }
+
+      const normalizedOptions = (q.options ?? []).map((opt: any, optIdx: number) => {
+        if (typeof opt === "string") {
+          return {
+            id: ["A", "B", "C", "D"][optIdx] || `opt-${optIdx}`,
+            text: opt,
+            isCorrect: optIdx === q.answerIndex,
+          };
+        }
+        return opt;
+      });
+
+      return {
+        room_id: roomId,
+        question_type: q.type || "text",
+        category: q.category || "tilawati",
+        question_data: {
+          prompt: q.prompt,
+          arabicPrompt: q.arabicPrompt,
+          audioUrl: q.audioUrl,
+          title: q.title,
+          timeLimitSeconds: q.timeLimitSeconds || 20,
+          points: q.points || 1000,
+        },
+        options: normalizedOptions,
+        correct_answer: correct,
+        order_index: idx,
+      };
+    });
+
+    // 1. Simpan di local storage & localRooms untuk reliabilitas fallback
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(`tartila_room_questions_${roomId}`, JSON.stringify(rows));
+      }
+      const localRooms = getLocalRooms();
+      if (localRooms[roomId]) {
+        localRooms[roomId].questions = rows;
+        saveLocalRooms(localRooms);
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. Simpan ke Supabase jika tersedia
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase.from("room_questions").upsert(rows);
+        if (error) {
+          console.warn("[arenaRoomService] saveRoomQuestions error:", error.message);
+        }
+      } catch (err) {
+        console.warn("[arenaRoomService] saveRoomQuestions exception:", err);
+      }
+    }
+  },
+
+  /**
+   * Ambil pertanyaan dari tabel room_questions berdasarkan roomId.
+   */
+  async getRoomQuestions(roomId: string): Promise<any[]> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from("room_questions")
+          .select("*")
+          .eq("room_id", roomId)
+          .order("order_index", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          return data.map((row: any) => ({
+            id: row.id,
+            type: row.question_type,
+            category: row.category,
+            prompt: row.question_data?.prompt,
+            arabicPrompt: row.question_data?.arabicPrompt,
+            audioUrl: row.question_data?.audioUrl,
+            title: row.question_data?.title,
+            options: row.options ?? [],
+            correctAnswer: row.correct_answer,
+            timeLimitSeconds: row.question_data?.timeLimitSeconds || 20,
+            points: row.question_data?.points || 1000,
+          }));
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    // Fallback: baca dari local storage / local mock rooms
+    try {
+      if (typeof window !== "undefined") {
+        const raw = window.localStorage.getItem(`tartila_room_questions_${roomId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((row: any) => ({
+              id: row.id || `q-${row.order_index}`,
+              type: row.question_type,
+              category: row.category,
+              prompt: row.question_data?.prompt,
+              arabicPrompt: row.question_data?.arabicPrompt,
+              audioUrl: row.question_data?.audioUrl,
+              title: row.question_data?.title,
+              options: row.options ?? [],
+              correctAnswer: row.correct_answer,
+              timeLimitSeconds: row.question_data?.timeLimitSeconds || 20,
+              points: row.question_data?.points || 1000,
+            }));
+          }
+        }
+      }
+      const localRooms = getLocalRooms();
+      if (localRooms[roomId]?.questions?.length) {
+        return localRooms[roomId].questions.map((row: any) => ({
+          id: row.id || `q-${row.order_index}`,
+          type: row.question_type,
+          category: row.category,
+          prompt: row.question_data?.prompt,
+          arabicPrompt: row.question_data?.arabicPrompt,
+          audioUrl: row.question_data?.audioUrl,
+          title: row.question_data?.title,
+          options: row.options ?? [],
+          correctAnswer: row.correct_answer,
+          timeLimitSeconds: row.question_data?.timeLimitSeconds || 20,
+          points: row.question_data?.points || 1000,
+        }));
+      }
+    } catch {
+      // ignore
+    }
+
+    return [];
+  },
   async setPlayerReady(
     roomId: string,
     playerId: string,

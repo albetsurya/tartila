@@ -15,6 +15,7 @@ import {
   calculateMemoryStars,
 } from '../../../data/tilawatiMemoryData';
 import { useTilawatiMemoryStore } from '../../../hooks/useTilawatiMemoryStore';
+import { useEconomyStore } from '../../../hooks/useEconomyStore';
 import {
   StarSvg,
   RotateCcwSvg,
@@ -70,6 +71,8 @@ export default function TilawatiMemoryPage() {
     const parsed = Number(levelParam || searchParams.get('level'));
     return parsed >= 1 && parsed <= 4 ? parsed : 1;
   }, [levelParam, searchParams]);
+
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const levelConfig = useMemo(() => {
     return getMemoryLevelConfig(currentLevel);
@@ -334,39 +337,6 @@ export default function TilawatiMemoryPage() {
         />
 
         <div className="relative z-20">
-          {/* Header Eksplorasi Terstandarisasi */}
-          <ExploreHeader
-            title={`Tilawati Memory: Jilid ${currentJilid}`}
-            subtitle={`${levelConfig.title} • ${levelConfig.subtitle}`}
-            onBack={() => navigate('/member/ngaji-ceria/games/memory/select')}
-            themeScope="arena-kartu"
-            themeColorClass="bg-[#065F46]"
-            borderColorClass="border-[#B45309]"
-            shadowClass="shadow-[0_4px_0px_#78350F]"
-            textColorClass="text-[#FEF3C7]"
-            backClass="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F] hover:bg-[#FDE68A]"
-            extraBadge={
-              <div className="flex items-center gap-1.5">
-                <ExploreStatBadge
-                  icon={<StarSvg size={16} fill="#FDE047" className="shrink-0" />}
-                  value={`${matchedPairIds.length}/${levelConfig.pairsCount}`}
-                  title={`Pasangan Cocok: ${matchedPairIds.length} dari ${levelConfig.pairsCount}`}
-                  className="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F]"
-                />
-              </div>
-            }
-            rightAction={
-              <button
-                type="button"
-                onClick={() => setIsStartSheetOpen(true)}
-                className="inline-flex items-center gap-1 rounded-xl border-2 border-[#B45309] bg-[#FEF3C7] px-2.5 py-1 text-xs font-black text-[#7C2D12] shadow-[2px_2px_0px_#78350F] active:translate-y-[1px] hover:bg-[#FDE68A] transition-all cursor-pointer shrink-0"
-              >
-                <span>Pilih Level</span>
-                <ChevronRight size={12} />
-              </button>
-            }
-          />
-
           {/* UNIVERSAL GAME HUD: TIMER MUNDUR, PERCOBAAN & SKOR */}
           <section className="px-4 pt-2 max-w-lg mx-auto">
             <GameHud
@@ -644,11 +614,13 @@ export default function TilawatiMemoryPage() {
           description: cfg.desc,
         }))}
         unlockedCount={unlockedLevel}
-        onSelectLevel={(idx) => {
+        onSelectLevel={async (idx) => {
           const lvl = MEMORY_LEVELS_CONFIG[idx]?.level ?? 1;
           setIsStartSheetOpen(false);
           if (lvl !== currentLevel) {
-            navigate(`/member/ngaji-ceria/games/tilawati-memory/${currentJilid}/${lvl}`);
+            const ok = await consumeTicket();
+            if (!ok) return;
+            navigate(`/member/ngaji-ceria/games/memory/${currentJilid}/${lvl}`);
           } else {
             handleResetGame();
           }

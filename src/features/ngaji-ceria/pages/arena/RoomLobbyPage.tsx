@@ -112,6 +112,7 @@ export default function RoomLobbyPage() {
 
         if (isMounted) {
           setRoom(foundRoom);
+          sessionStorage.setItem("arena_room_id", foundRoom.id);
           const initialPlayers = await arenaRoomService.getRoomPlayers(foundRoom.id);
           setPlayers(initialPlayers);
           setLoading(false);
@@ -163,6 +164,15 @@ export default function RoomLobbyPage() {
     soundManager.playSfx("tap");
     setIsStarting(true);
     try {
+      // Simpan state awal untuk fallback di HostGamePage
+      const startState = {
+        questionIndex: 0,
+        totalQuestions: (room.questions?.length ?? 0) || 1,
+        question: room.questions?.[0],
+      };
+      sessionStorage.setItem("tartila_arena_start_state", JSON.stringify(startState));
+      sessionStorage.setItem("arena_room_id", room.id);
+      
       await arenaRoomService.startGame(room.id, pin);
       setShowCountdown(true);
     } catch (err: any) {
@@ -171,13 +181,23 @@ export default function RoomLobbyPage() {
     }
   };
 
+  const [pendingReadyState, setPendingReadyState] = useState<boolean | null>(null);
+
   const handleToggleReady = async () => {
-    if (!room || !myPlayerId) return;
+    if (!room || !myPlayerId || pendingReadyState !== null) return;
     triggerBibiReaction("click");
     soundManager.playSfx("tap");
     const next = !myReady;
+    // Optimistic UI: lock button, update local state immediately
+    setPendingReadyState(next);
     setPlayers((prev) => prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: next } : p)));
-    await arenaRoomService.setPlayerReady(room.id, myPlayerId, next);
+    try {
+      await arenaRoomService.setPlayerReady(room.id, myPlayerId, next);
+    } catch (err: any) {
+      // Revert optimistic update on failure
+      setPlayers((prev) => prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: !next } : p)));
+    }
+    setPendingReadyState(null);
   };
 
   useEffect(() => {
@@ -380,7 +400,8 @@ export default function RoomLobbyPage() {
           <button
             type="button"
             onClick={handleToggleReady}
-            className={`w-full py-4 rounded-2xl border-[3px] border-[#134E4A] font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 ${
+            disabled={pendingReadyState !== null}
+            className={`w-full py-4 rounded-2xl border-[3px] border-[#134E4A] font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${
               myReady ? "bg-[#10B981] text-white" : "bg-[#FEF08A] text-[#134E4A]"
             }`}
           >

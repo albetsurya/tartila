@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
+import { ChevronLeftSvg, SparklesSvg } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ALL_MATERI_POKOK,
@@ -30,6 +31,8 @@ const JILID_OPTIONS: JilidNumber[] = [1, 2, 3, 4, 5];
 
 export function UstadzQuizCreatePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMember = location.pathname.startsWith("/member/ngaji-ceria");
   const { user } = useAuth();
   const [rooms, setRooms] = useState<ClassroomRoom[]>([]);
   const [title, setTitle] = useState("");
@@ -99,15 +102,42 @@ export function UstadzQuizCreatePage() {
     const result = await createQuiz(draft(), user?.id ?? "anon");
     setSaving(false);
     if (result.ok) {
-      navigate("/ustadz/kuis");
+      if (isMember) {
+        navigate("/arena/create", { state: { selectedCustomQuizId: result.quiz?.id } });
+      } else {
+        navigate("/ustadz/kuis");
+      }
     } else {
       setErrors(result.errors);
     }
   };
 
   return (
-    <>
-      <div className="w-full max-w-3xl space-y-4">
+    <div className={isMember ? "min-h-screen bg-[#F0FDF4] p-4 md:p-6" : ""}>
+      <div className="w-full max-w-3xl mx-auto space-y-4">
+        {isMember && (
+          <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FEF3C7] p-5 shadow-[4px_4px_0px_#134E4A] space-y-2">
+            <button
+              type="button"
+              onClick={() => navigate("/arena/create")}
+              className="inline-flex items-center gap-1.5 text-xs font-black text-[#134E4A] hover:underline"
+            >
+              <ChevronLeftSvg size={16} /> Kembali ke Arena
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border-2 border-[#134E4A] bg-[#0D9488] text-white text-[10px] font-black shadow-[1.5px_1.5px_0px_#134E4A]">
+                <SparklesSvg size={12} stroke="#FFFFFF" /> KUIS KASUAL
+              </span>
+            </div>
+            <h1 className="font-display text-2xl font-black text-[#134E4A]">
+              Buat Kuis Sendiri
+            </h1>
+            <p className="text-xs font-bold text-[#134E4A]/80">
+              Buat soal tebak-tebakan seru, tentukan kunci jawaban, lalu mainkan bersama teman di Tartila Arena!
+            </p>
+          </div>
+        )}
+
         <StickerCard className="space-y-3 p-4">
           <div>
             <label className="text-xs font-black uppercase text-[#134E4A]/70">
@@ -159,26 +189,28 @@ export function UstadzQuizCreatePage() {
             </select>
           </div>
 
-          <div>
-            <label className="text-xs font-black uppercase text-[#134E4A]/70">
-              Tugaskan ke kelas (opsional)
-            </label>
-            <select
-              className="mt-1 w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2 text-xs font-black text-[#134E4A]"
-              value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-            >
-              <option value="">Simpan di bank pribadi</option>
-              {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
-              Jika dipilih, kuis muncul di kelas santri pada halaman kelas.
-            </p>
-          </div>
+          {!isMember && (
+            <div>
+              <label className="text-xs font-black uppercase text-[#134E4A]/70">
+                Tugaskan ke kelas (opsional)
+              </label>
+              <select
+                className="mt-1 w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2 text-xs font-black text-[#134E4A]"
+                value={roomId}
+                onChange={(e) => setRoomId(e.target.value)}
+              >
+                <option value="">Simpan di bank pribadi</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
+                Jika dipilih, kuis muncul di kelas santri pada halaman kelas.
+              </p>
+            </div>
+          )}
         </StickerCard>
 
         <div className="space-y-3">
@@ -263,6 +295,6 @@ export function UstadzQuizCreatePage() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

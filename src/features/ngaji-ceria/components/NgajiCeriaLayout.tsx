@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
 import { RewardChestModal } from "./RewardChestModal";
+import { OutOfEnergyModal } from "./OutOfEnergyModal";
 import { useEconomyStore, isUnlimitedUser } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeRole, isUstadzUser } from "@/lib/roles";
@@ -61,11 +62,65 @@ const MAIN_TABS = [
   "/member/ngaji-ceria/profile",
 ];
 
+export type HeaderBadgeKind = "heart" | "ticket" | "xp" | "coin";
+
+export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
+  const path = pathname.replace(/\/$/, "");
+
+  // Warung Santri: Koin -> Hati -> Tiket -> XP
+  if (path.includes("/warung-santri") || path.includes("/warung")) {
+    return ["coin", "heart", "ticket", "xp"];
+  }
+
+  // Quiz / Duel / Arena: Koin -> XP -> Tiket -> Hati
+  if (
+    path.startsWith("/quiz-hub") ||
+    path.includes("/quiz-hub") ||
+    path.includes("/quiz") ||
+    path.startsWith("/arena") ||
+    path.includes("/arena")
+  ) {
+    return ["coin", "xp", "ticket", "heart"];
+  }
+
+  // Profile / Kamar: Koin -> XP -> Hati -> Tiket
+  if (path.includes("/profile") || path.includes("/kamar")) {
+    return ["coin", "xp", "heart", "ticket"];
+  }
+
+  // HUB Game (/games/*): Tiket -> Koin (revisi: tidak perlu Hati, sembunyikan XP)
+  // Kecuali halaman utama Games (/member/ngaji-ceria/games atau /games) yang menampilkan FULL
+  if (
+    path.startsWith("/games/") ||
+    path.startsWith("/member/ngaji-ceria/games/")
+  ) {
+    return ["ticket", "coin"];
+  }
+
+  // HUB Jelajah (/explore/*): Hati -> Koin -> XP (revisi: tidak perlu Tiket)
+  if (
+    path.startsWith("/explore") ||
+    path.includes("/explore") ||
+    path.includes("/training") ||
+    path.includes("/rhythm-memory") ||
+    path.includes("/arena-kartu") ||
+    path.includes("/path") ||
+    path.includes("/lab-irama")
+  ) {
+    return ["heart", "coin", "xp"];
+  }
+
+  // Halaman Utama (/member/ngaji-ceria, /map, /games): Tampilkan FULL.
+  // Urutan: Hati -> Tiket -> XP -> Koin
+  return ["heart", "ticket", "xp", "coin"];
+}
+
 interface NgajiCeriaLayoutProps {
   children: ReactNode;
   title?: ReactNode;
   hideNav?: boolean;
   hideHeader?: boolean;
+  hideMascot?: boolean;
   showBack?: boolean;
   onBack?: () => void;
   parentPath?: string;
@@ -100,6 +155,7 @@ export function NgajiCeriaLayout({
   pageTip,
   themeScope = "global",
   immersiveRealm,
+  hideMascot = false,
 }: NgajiCeriaLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -112,6 +168,8 @@ export function NgajiCeriaLayout({
   const tickets = useEconomyStore((s) => s.tickets);
   const isVip = useEconomyStore((s) => s.isVip);
   const syncTime = useEconomyStore((s) => s.syncTime);
+  const outOfEnergyKind = useEconomyStore((s) => s.outOfEnergyKind);
+  const clearOutOfEnergy = useEconomyStore((s) => s.clearOutOfEnergy);
   const equippedAppTheme =
     useEconomyStore((s) => s.equippedAppTheme) || "default";
   const storeCoins = useEconomyStore((s) => s.coins);
@@ -245,58 +303,97 @@ export function NgajiCeriaLayout({
 
             {!isUstadzAccount && (
               <div className="no-scrollbar -mx-1 flex w-full flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-2 pt-0.5">
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FFF0F0]"}`}
-                  title={
-                    isUnlimited
-                      ? "Hati Tanpa Batas (Superadmin/VIP)"
-                      : `Hati: ${hearts}/5`
+                {getHeaderBadgesForPath(location.pathname).map((badge) => {
+                  if (badge === "heart") {
+                    return (
+                      <div
+                        key="badge-heart"
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                          isDarkTheme
+                            ? "bg-[#1E2937] text-white"
+                            : "bg-[#FFF0F0] text-[var(--text-main,#134E4A)]"
+                        }`}
+                        title={
+                          isUnlimited
+                            ? "Hati Tanpa Batas (Superadmin/VIP)"
+                            : `Hati: ${hearts}/5`
+                        }
+                      >
+                        <JuicyHeart size={17} value={hearts} />
+                        <span className="min-w-[1.5rem] text-center tabular-nums">
+                          {isUnlimited ? (
+                            "∞"
+                          ) : (
+                            <AnimatedCounter value={hearts} duration={0.4} />
+                          )}
+                        </span>
+                      </div>
+                    );
                   }
-                >
-                  <JuicyHeart size={17} value={hearts} />
-                  <span className="min-w-[1.5rem] text-center tabular-nums">
-                    {isUnlimited ? (
-                      "∞"
-                    ) : (
-                      <AnimatedCounter value={hearts} duration={0.4} />
-                    )}
-                  </span>
-                </div>
 
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF3C7]"}`}
-                  title={
-                    isUnlimited
-                      ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
-                      : `Tiket: ${tickets}/3`
+                  if (badge === "ticket") {
+                    return (
+                      <div
+                        key="badge-ticket"
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                          isDarkTheme
+                            ? "bg-[#1E2937] text-white"
+                            : "bg-[#FEF3C7] text-[var(--text-main,#134E4A)]"
+                        }`}
+                        title={
+                          isUnlimited
+                            ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
+                            : `Tiket: ${tickets}/3`
+                        }
+                      >
+                        <TicketSvg size={17} />
+                        <span className="min-w-[1.8rem] text-center tabular-nums">
+                          {isUnlimited ? "∞" : `${tickets}/3`}
+                        </span>
+                      </div>
+                    );
                   }
-                >
-                  <TicketSvg size={17} />
-                  <span className="min-w-[1.8rem] text-center tabular-nums">
-                    {isUnlimited ? "∞" : `${tickets}/3`}
-                  </span>
-                </div>
 
-                {/* XP BADGE MENGGUNAKAN IKON ZAP (PETIR) */}
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#CCFBF1]"}`}
-                  title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
-                >
-                  <MedalSvg size={17} className="text-[#0D9488]" />
-                  <span className="min-w-[2.6rem] text-center tabular-nums">
-                    <AnimatedCounter value={progress.xp} /> XP
-                  </span>
-                </div>
+                  if (badge === "xp") {
+                    return (
+                      <div
+                        key="badge-xp"
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                          isDarkTheme
+                            ? "bg-[#1E2937] text-white"
+                            : "bg-[#CCFBF1] text-[var(--text-main,#134E4A)]"
+                        }`}
+                        title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
+                      >
+                        <MedalSvg size={17} className="text-[#0D9488]" />
+                        <span className="min-w-[2.6rem] text-center tabular-nums">
+                          <AnimatedCounter value={progress.xp} /> XP
+                        </span>
+                      </div>
+                    );
+                  }
 
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF08A]"}`}
-                  title={`Koin: ${currentCoins}`}
-                >
-                  <JuicyCoin size={17} value={currentCoins} />
-                  <span className="min-w-[1.8rem] text-center tabular-nums">
-                    <AnimatedCounter value={currentCoins} />
-                  </span>
-                </div>
+                  if (badge === "coin") {
+                    return (
+                      <div
+                        key="badge-coin"
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                          isDarkTheme
+                            ? "bg-[#1E2937] text-white"
+                            : "bg-[#FEF08A] text-[var(--text-main,#134E4A)]"
+                        }`}
+                        title={`Koin: ${currentCoins}`}
+                      >
+                        <JuicyCoin size={17} value={currentCoins} />
+                        <span className="min-w-[1.8rem] text-center tabular-nums">
+                          <AnimatedCounter value={currentCoins} />
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })}
               </div>
             )}
           </div>
@@ -334,10 +431,17 @@ export function NgajiCeriaLayout({
       {!hideNav && isMainTab && <NgajiCeriaBottomNav />}
       {!hideNav && !isUstadzAccount && <RewardChestModal />}
       {!hideNav && !isUstadzAccount && <ProgressionNotice />}
+      <OutOfEnergyModal
+        visible={Boolean(outOfEnergyKind)}
+        type={outOfEnergyKind || "heart"}
+        onClose={clearOutOfEnergy}
+      />
 
-      <div data-tila-companion>
-        <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
-      </div>
+      {!hideMascot && (
+        <div data-tila-companion>
+          <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
+        </div>
+      )}
     </div>
   );
 }

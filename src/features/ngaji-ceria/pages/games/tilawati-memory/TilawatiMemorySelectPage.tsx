@@ -78,19 +78,6 @@ export default function TilawatiMemorySelectPage() {
         />
 
         <div className="relative z-20">
-          {/* Header Eksplorasi */}
-          <ExploreHeader
-            title="Tilawati Memory Match"
-            subtitle="Asah ingatan visual mencocokkan huruf & kata Arab!"
-            onBack={() => navigate('/member/ngaji-ceria/games')}
-            themeScope="arena-kartu"
-            themeColorClass="bg-[#065F46]"
-            borderColorClass="border-[#B45309]"
-            shadowClass="shadow-[0_4px_0px_#78350F]"
-            textColorClass="text-[#FEF3C7]"
-            backClass="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F] hover:bg-[#FDE68A]"
-          />
-
           {/* Banner Hero */}
           <section className="px-4 pt-6 max-w-4xl mx-auto">
             <div className="relative overflow-hidden rounded-2xl bg-[#FEF3C7] border-[3px] border-[#B45309] p-4 sm:p-5 shadow-[4px_4px_0px_#78350F]">

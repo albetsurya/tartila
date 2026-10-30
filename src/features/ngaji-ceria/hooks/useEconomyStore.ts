@@ -122,6 +122,9 @@ interface EconomyState {
   level: number;
   xp: number;
   lastSync: number; // timestamp
+  outOfEnergyKind: EnergyKind | null;
+  setOutOfEnergyKind: (kind: EnergyKind | null) => void;
+  clearOutOfEnergy: () => void;
 
   // Boosters
   activeBoosters: Record<string, boolean>;
@@ -305,6 +308,9 @@ export const useEconomyStore = create<EconomyState>()(
       level: 1,
       xp: 0,
       lastSync: Date.now(),
+      outOfEnergyKind: null,
+      setOutOfEnergyKind: (kind: EnergyKind | null) => set({ outOfEnergyKind: kind }),
+      clearOutOfEnergy: () => set({ outOfEnergyKind: null }),
       activeBoosters: {},
       ustadzRooms: [],
       currentRoom: null,
@@ -1321,17 +1327,33 @@ export const useEconomyStore = create<EconomyState>()(
       state.subscriptionType,
     );
     if (isUnlimited) return true;
-    if (state.hearts <= 0) return false;
+    if (state.hearts <= 0) {
+      set({ outOfEnergyKind: "heart" });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("tartila:out-of-energy", { detail: { kind: "heart" } })
+        );
+      }
+      return false;
+    }
+
+    const nextHearts = Math.max(0, state.hearts - 1);
+    set({
+      hearts: nextHearts,
+      lastHeartRegen: state.hearts === HEART_MAX ? Date.now() : state.lastHeartRegen,
+    });
 
     // PATCH /api/v1/user/economy menyimpan nilai absolut hearts & tickets.
     try {
-      const res = await economyApi.updateEnergy({ hearts: state.hearts - 1 });
-      set({
-        hearts: res.hearts,
-        lastHeartRegen: state.hearts === HEART_MAX ? Date.now() : state.lastHeartRegen,
-      });
-    } catch {
-      return false;
+      const res = await economyApi.updateEnergy({ hearts: nextHearts });
+      if (res && typeof res.hearts === "number") {
+        set({ hearts: res.hearts });
+      }
+    } catch (err) {
+      console.warn(
+        "[useEconomyStore] updateEnergy (hearts) failed or backend suspended, local state preserved:",
+        err,
+      );
     }
     return true;
   },
@@ -1345,16 +1367,32 @@ export const useEconomyStore = create<EconomyState>()(
       state.subscriptionType,
     );
     if (isUnlimited) return true;
-    if (state.tickets <= 0) return false;
+    if (state.tickets <= 0) {
+      set({ outOfEnergyKind: "ticket" });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("tartila:out-of-energy", { detail: { kind: "ticket" } })
+        );
+      }
+      return false;
+    }
+
+    const nextTickets = Math.max(0, state.tickets - 1);
+    set({
+      tickets: nextTickets,
+      lastTicketRegen: state.tickets === TICKET_MAX ? Date.now() : state.lastTicketRegen,
+    });
 
     try {
-      const res = await economyApi.updateEnergy({ tickets: state.tickets - 1 });
-      set({
-        tickets: res.tickets,
-        lastTicketRegen: state.tickets === TICKET_MAX ? Date.now() : state.lastTicketRegen,
-      });
-    } catch {
-      return false;
+      const res = await economyApi.updateEnergy({ tickets: nextTickets });
+      if (res && typeof res.tickets === "number") {
+        set({ tickets: res.tickets });
+      }
+    } catch (err) {
+      console.warn(
+        "[useEconomyStore] updateEnergy (tickets) failed or backend suspended, local state preserved:",
+        err,
+      );
     }
     return true;
   },
