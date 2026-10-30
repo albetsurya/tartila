@@ -384,24 +384,49 @@ func (api *APIHandler) GetExamReport(w http.ResponseWriter, r *http.Request, pin
 
 // GET /api/leaderboard/global (Tahap 6)
 func (api *APIHandler) GetGlobalLeaderboard(w http.ResponseWriter, r *http.Request) {
-	// Seed demo/global leaderboard entries
-	leaderboard := []map[string]interface{}{
-		{"rank": 1, "nickname": "Ahmad Fauzi", "tpq": "TPQ Al-Ikhlas", "score": 9850, "badges": 12},
-		{"rank": 2, "nickname": "Siti Nurhaliza", "tpq": "TPQ An-Nur", "score": 9420, "badges": 10},
-		{"rank": 3, "nickname": "Rizky Pratama", "tpq": "TPQ Baitul Mal", "score": 8900, "badges": 9},
-		{"rank": 4, "nickname": "Fatimah Azzahra", "tpq": "TPQ Al-Muhajirin", "score": 8550, "badges": 8},
-		{"rank": 5, "nickname": "Zaidan Abdullah", "tpq": "TPQ Al-Huda", "score": 8200, "badges": 7},
-		{"rank": 6, "nickname": "Maryam Kamilah", "tpq": "TPQ Ar-Rahman", "score": 7950, "badges": 6},
-		{"rank": 7, "nickname": "Ibrahim Malik", "tpq": "TPQ Al-Falah", "score": 7600, "badges": 5},
+	dataRaw, err := api.db.Query(`
+		SELECT user_id, nickname, score, game_id, created_at
+		FROM quiz_attempts
+		WHERE game_id = ? AND created_at >= datetime('now', ?)
+		ORDER BY score DESC
+		LIMIT ?
+	`, "quiz-hub", "-7 days", 50)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "Gagal mengambil leaderboard: " + err.Error(),
+		})
+		return
+	}
+	defer dataRaw.Close()
+
+	entries := make([]map[string]interface{}, 0)
+	for dataRaw.Next() {
+		var userId, gameId, createdAt string
+		var score int
+		if err := dataRaw.Scan(&userId, &nickname, &score, &gameId, &createdAt); err != nil {
+			continue
+		}
+		entries = append(entries, map[string]interface{}{
+			"id":        userId,
+			"name":      nickname,
+			"score":     score,
+			"game_id":   gameId,
+			"created_at": createdAt,
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"success":     true,
-		"leaderboard": leaderboard,
+		"success": true,
+		"leaderboard": entries,
 		"timeframe":   "weekly",
 	})
 }
+
+// GET /api/v1/ngaji-ceria/leaderboard/global (Tahap 7)
+func (api *APIHandler) GetNgajiCeriaGlobalLeaderboard(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/v1/user/profile returns the authenticated user's profile,
 // including feedback-prompt fields that are persisted server-side so a user

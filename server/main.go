@@ -87,9 +87,9 @@ func main() {
 	mux.HandleFunc("/api/exam/violation", api.RecordViolation)
 	mux.HandleFunc("/api/leaderboard/global", api.GetGlobalLeaderboard)
 
-	// User profile + feedback prompt routes (cross-session state persisted in SQLite).
-	mux.HandleFunc("/api/v1/user/profile", api.GetUserProfile)
-	mux.HandleFunc("/api/v1/user/feedback-prompt", api.UpdateFeedbackPrompt)
+	// Ngaji Ceria leaderboard routes (Supabase/REST).
+	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard/global", api.GetNgajiCeriaGlobalLeaderboard)
+	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard", api.GetNgajiCeriaLeaderboard)
 
 	// WebSocket Route: /api/ws/room/:pin
 	mux.HandleFunc("/api/ws/room/", func(w http.ResponseWriter, r *http.Request) {
