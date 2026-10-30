@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/CustomIcons";
 import { TargetTahfidzSvg } from "@/components/ui/Illustrations";
 import { SOAL_TILAWATI, SOAL_TAJWID, SOAL_NABI } from "../../data/quiz";
+import { clearBotSimulatorState } from "../../hooks/useBotSimulator";
 import type {
   UniversalQuestion,
   QuestionCategory,
@@ -64,7 +65,8 @@ function quizToUniversalQuestions(quiz: Quiz): UniversalQuestion[] {
     prompt: q.prompt,
     options: (q.options || []).map((optText, optIdx) => ({
       id: OPTION_IDS[optIdx] || String.fromCharCode(65 + optIdx),
-      text: typeof optText === "string" ? optText : (optText as any)?.text || "",
+      text:
+        typeof optText === "string" ? optText : (optText as any)?.text || "",
       isCorrect: optIdx === q.answerIndex,
     })),
     correctAnswer: OPTION_IDS[q.answerIndex] || "A",
@@ -322,6 +324,7 @@ export default function CreateRoomPage() {
     setErrorMsg("");
 
     try {
+      clearBotSimulatorState();
       const room = await arenaRoomService.createRoom({
         hostId: user?.id || `member-${Date.now().toString(36)}`,
         hostName: user?.name || user?.username || "Sohabat Ngaji",
@@ -357,6 +360,7 @@ export default function CreateRoomPage() {
     setErrorMsg("");
 
     try {
+      clearBotSimulatorState();
       const room = await arenaRoomService.createRoom({
         hostId: user?.id || `ustadz-${Date.now().toString(36)}`,
         hostName: user?.name || user?.username || "Ustadz",
@@ -387,7 +391,11 @@ export default function CreateRoomPage() {
   // ====================================================
   if (!isUstadz) {
     return (
-      <NgajiCeriaLayout title="Buat Room Main Bersama Teman">
+      <NgajiCeriaLayout
+        title="Buat Room Main Bersama Teman"
+        showBack={true}
+        onBack={() => navigate("/member/ngaji-ceria/games")}
+      >
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
           {/* Header Banner Kasual */}
           <div className="rounded-3xl border-[3px] border-[#134E4A] bg-[#FEF3C7] dark:bg-[#F0FDF4] p-6 shadow-[5px_5px_0px_#134E4A] text-[#134E4A] dark:text-[#FFFFFF]">

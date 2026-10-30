@@ -303,7 +303,7 @@ export function NgajiCeriaLayout({
             </div>
 
             {!isUstadzAccount && (
-              <div className="no-scrollbar -mx-1 flex w-full flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-2 pt-0.5">
+              <div className="no-scrollbar -mx-1 flex w-full flex-nowrap items-center justify-end gap-2 overflow-x-auto px-1 pb-2 pt-0.5">
                 {getHeaderBadgesForPath(location.pathname).map((badge) => {
                   if (badge === "heart") {
                     return (

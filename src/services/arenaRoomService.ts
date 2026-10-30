@@ -201,6 +201,11 @@ export const arenaRoomService = {
     saveLocalRooms(localRooms);
     saveLocalPlayer(hostPlayer);
 
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("arena_player_id", hostPlayer.id);
+      window.sessionStorage.setItem("arena_player_name", hostPlayer.nickname);
+    }
+
     return newRoom;
   },
 
@@ -389,7 +394,7 @@ export const arenaRoomService = {
 
       return {
         room_id: roomId,
-        question_type: q.type || "text",
+        question_type: ["text", "audio", "fill_blank"].includes(q.type) ? q.type : "text",
         category: q.category || "tilawati",
         question_data: {
           prompt: q.prompt,

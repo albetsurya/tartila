@@ -17,7 +17,7 @@ import {
 import { arenaRoomService, type ArenaRoom, type ArenaRoomPlayer } from "@/services/arenaRoomService";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadMultiplayerProfile, MultiplayerSetupSheet, MultiplayerAvatar, saveMultiplayerProfile, type MultiplayerProfile } from "../../components/multiplayer/MultiplayerSetupSheet";
-import { useBotSimulator } from "../../hooks/useBotSimulator";
+import { useBotSimulator, clearBotSimulatorState } from "../../hooks/useBotSimulator";
 import { normalizeJoinCode } from "@/lib/joinCode";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
@@ -53,7 +53,7 @@ export default function RoomLobbyPage() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Simulator bot — QA superadmin: ditambahkan ke lobi, otomatis ready.
-  const { bots, addBot } = useBotSimulator();
+  const { bots, addBot, reset: resetBots } = useBotSimulator();
 
   // Guard untuk optimistic UI ready state
   const pendingReadyRef = useRef<boolean | null>(null);
@@ -61,6 +61,14 @@ export default function RoomLobbyPage() {
   useEffect(() => {
     myPlayerIdRef.current = myPlayerId;
   }, [myPlayerId]);
+
+  // Bersihkan bot simulator saat meninggalkan lobi (unmount)
+  useEffect(() => {
+    return () => {
+      resetBots();
+      clearBotSimulatorState();
+    };
+  }, []);
 
   // Cek apakah user adalah host
   const isHost = useMemo(() => {
@@ -73,18 +81,17 @@ export default function RoomLobbyPage() {
   useEffect(() => {
     if (!room || myPlayerId) return;
     let pid: string | null = null;
-    if (isHost) {
-      pid = players.find((p) => p.is_host)?.id ?? players[0]?.id ?? null;
-    } else {
-      pid =
-        (typeof window !== "undefined"
-          ? window.sessionStorage.getItem("arena_player_id")
-          : null) ||
-        players.find((p) => p.user_id === user?.id)?.id ||
-        null;
-    }
+    // room_players tidak punya kolom is_host; host dipasangkan lewat user_id
+    pid =
+      (typeof window !== "undefined" ? window.sessionStorage.getItem("arena_player_id") : null) ||
+      players.find((p) => p.user_id === user?.id)?.id ||
+      (isHost ? players[0]?.id : null) ||
+      null;
     if (pid && pid !== myPlayerId) {
       setMyPlayerId(pid);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("arena_player_id", pid);
+      }
     }
   }, [players, isHost, room, user?.id, myPlayerId]);
 
@@ -112,6 +119,10 @@ export default function RoomLobbyPage() {
   }, [displayPlayers, myPlayerId]);
 
   const allReady = displayPlayers.length > 0 && displayPlayers.every((p) => p.is_ready);
+
+  // Host tidak perlu siap untuk memulai; hanya pemain/bot lain harus siap semua.
+  const nonHostPlayers = displayPlayers.filter((p) => p.id !== myPlayerId);
+  const canStartGame = displayPlayers.length > 0 && (nonHostPlayers.length === 0 || nonHostPlayers.every((p) => p.is_ready));
 
   // 1. Resolve roomId dari PIN jika belum ada di sessionStorage
   useEffect(() => {
@@ -212,7 +223,7 @@ export default function RoomLobbyPage() {
   }, [room?.status, isHost, pin, navigate]);
 
   const handleStartGame = async () => {
-    if (!room || !isHost || isStarting || !allReady) return;
+    if (!room || !isHost || isStarting || !canStartGame) return;
     triggerBibiReaction("click");
     soundManager.playSfx("tap");
     setIsStarting(true);
@@ -333,6 +344,10 @@ export default function RoomLobbyPage() {
           setShowExitConfirm(false);
           sessionStorage.removeItem("arena_room_id");
           sessionStorage.removeItem(`arena_is_host_${pin}`);
+          sessionStorage.removeItem("arena_player_id");
+          sessionStorage.removeItem("arena_player_name");
+          resetBots();
+          clearBotSimulatorState();
           navigate("/member/ngaji-ceria/games");
         }}
         onCancel={() => setShowExitConfirm(false)}
@@ -501,7 +516,7 @@ export default function RoomLobbyPage() {
           {isHost ? (
             <button
               type="button"
-              disabled={isStarting || !allReady}
+              disabled={isStarting || !canStartGame}
               onClick={handleStartGame}
               className="w-full py-4 md:py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
@@ -509,7 +524,7 @@ export default function RoomLobbyPage() {
               <span>
                 {isStarting
                   ? "Memulai Permainan..."
-                  : allReady
+                  : canStartGame
                     ? "Mulai Game Sekarang!"
                     : "Menunggu Pemain Lain..."}
               </span>

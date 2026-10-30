@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TitoMascot } from "@/components/ui/TitoMascot";
-import { SparklesSvg, AlertTriangleSvg, GamepadSvg } from "@/components/ui/CustomIcons";
+import {
+  SparklesSvg,
+  AlertTriangleSvg,
+  GamepadSvg,
+} from "@/components/ui/CustomIcons";
 import { arenaRoomService } from "@/services/arenaRoomService";
 import { normalizeJoinCode } from "@/lib/joinCode";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +25,9 @@ export default function JoinRoomPage() {
   const [profile, setProfile] = useState<MultiplayerProfile | null>(() =>
     loadMultiplayerProfile(),
   );
-  const [pin, setPin] = useState(normalizeJoinCode(searchParams.get("pin") || ""));
+  const [pin, setPin] = useState(
+    normalizeJoinCode(searchParams.get("pin") || ""),
+  );
   const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -30,11 +36,7 @@ export default function JoinRoomPage() {
   useEffect(() => {
     setNickname(
       (prev) =>
-        prev ||
-        profile?.displayName ||
-        user?.name ||
-        user?.username ||
-        "",
+        prev || profile?.displayName || user?.name || user?.username || "",
     );
   }, [profile, user?.name, user?.username]);
 
@@ -54,7 +56,11 @@ export default function JoinRoomPage() {
     setErrorMsg("");
 
     try {
-      const { room, player } = await arenaRoomService.joinRoom(cleanPin, nickname.trim(), user?.id);
+      const { room, player } = await arenaRoomService.joinRoom(
+        cleanPin,
+        nickname.trim(),
+        user?.id,
+      );
       // Simpan session peserta di sessionStorage
       sessionStorage.setItem("arena_player_id", player.id);
       sessionStorage.setItem("arena_player_name", player.nickname);
@@ -67,14 +73,20 @@ export default function JoinRoomPage() {
         navigate(`/arena/play/${cleanPin}`);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "PIN tidak ditemukan atau kuis sudah dimulai.");
+      setErrorMsg(
+        err.message || "PIN tidak ditemukan atau kuis sudah dimulai.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <NgajiCeriaLayout title="Masuk Tartila Arena">
+    <NgajiCeriaLayout
+      title="Masuk Tartila Arena"
+      showBack={true}
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
       <div className="max-w-md mx-auto px-4 py-8 space-y-6">
         {/* Maskot Tito Menyapa Santri */}
         <div className="flex flex-col items-center justify-center text-center">
@@ -136,7 +148,9 @@ export default function JoinRoomPage() {
               disabled={loading || pin.length !== 6 || !nickname.trim()}
               className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[1px_1px_0px_#134E4A] transition-all disabled:opacity-50"
             >
-              {loading ? "Memeriksa Room..." : (
+              {loading ? (
+                "Memeriksa Room..."
+              ) : (
                 <>
                   Masuk Kuis <GamepadSvg size={22} />
                 </>
@@ -162,7 +176,10 @@ export default function JoinRoomPage() {
         defaultName={user?.name || user?.username || ""}
         onClose={() => {
           const fallback = {
-            displayName: (user?.name || user?.username || "Santri").slice(0, 12),
+            displayName: (user?.name || user?.username || "Santri").slice(
+              0,
+              12,
+            ),
             avatarId: "boy-peci",
           };
           saveMultiplayerProfile(fallback);

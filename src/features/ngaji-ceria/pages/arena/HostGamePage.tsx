@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/CustomIcons";
 import { ArenaSocket } from "../../services/arenaSocket";
 import { arenaRoomService } from "@/services/arenaRoomService";
+import { clearBotSimulatorState } from "../../hooks/useBotSimulator";
 import { getAudioUrl } from "../../utils/audioUrl";
 
 const OPTION_COLORS = [
@@ -204,6 +205,7 @@ export default function HostGamePage() {
 
     return () => {
       socket.disconnect();
+      clearBotSimulatorState();
     };
   }, [pin, loadingQuestions, errorMsg, questions.length, navigate]);
 
@@ -222,6 +224,8 @@ export default function HostGamePage() {
         onConfirm={() => {
           setShowExitConfirm(false);
           sessionStorage.removeItem("arena_room_id");
+          sessionStorage.removeItem(`arena_is_host_${pin}`);
+          clearBotSimulatorState();
           navigate("/member/ngaji-ceria/games");
         }}
         onCancel={() => setShowExitConfirm(false)}
