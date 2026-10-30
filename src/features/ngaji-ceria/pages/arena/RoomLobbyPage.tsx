@@ -49,6 +49,7 @@ export default function RoomLobbyPage() {
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
   const [profile, setProfile] = useState<MultiplayerProfile | null>(() => loadMultiplayerProfile());
+  const [showProfileSheet, setShowProfileSheet] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Simulator bot — QA superadmin: ditambahkan ke lobi, otomatis ready.
@@ -400,9 +401,18 @@ export default function RoomLobbyPage() {
               </h3>
             </div>
 
-            <span className="text-xs font-bold text-[#134E4A]/60">
-              Sinkronisasi Real-Time Otomatis
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowProfileSheet(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-black text-[#0D9488] hover:underline cursor-pointer bg-[#CCFBF1] px-2.5 py-1 rounded-lg border border-[#0D9488]"
+              >
+                Ganti Karakter
+              </button>
+              <span className="text-xs font-bold text-[#134E4A]/60 hidden sm:inline">
+                Sinkronisasi Real-Time
+              </span>
+            </div>
           </div>
 
           {user?.role === "superadmin" && (
@@ -523,11 +533,24 @@ export default function RoomLobbyPage() {
       </div>
 
       <MultiplayerSetupSheet
-        isOpen={!profile}
+        isOpen={showProfileSheet || !profile}
         defaultName={user?.name || user?.username || ""}
+        onClose={() => {
+          setShowProfileSheet(false);
+          // Jika belum ada profile saat ditutup lewat tombol X, buat default agar tidak stuck
+          if (!profile) {
+            const fallback: MultiplayerProfile = {
+              displayName: (user?.name || user?.username || "Santri").slice(0, 12),
+              avatarId: "boy-peci",
+            };
+            saveMultiplayerProfile(fallback);
+            setProfile(fallback);
+          }
+        }}
         onSave={(p) => {
           saveMultiplayerProfile(p);
           setProfile(p);
+          setShowProfileSheet(false);
         }}
       />
 

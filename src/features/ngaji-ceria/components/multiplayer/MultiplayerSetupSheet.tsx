@@ -91,14 +91,14 @@ export interface MultiplayerSetupSheetProps {
   /** Nama awal, biasanya nama user yang sedang login. */
   defaultName?: string;
   onSave: (profile: MultiplayerProfile) => void;
+  onClose?: () => void;
 }
-
-const NOOP = () => {};
 
 export function MultiplayerSetupSheet({
   isOpen,
   defaultName,
   onSave,
+  onClose,
 }: MultiplayerSetupSheetProps) {
   // State lokal di-isolasi sepenuhnya dari parent render
   const [name, setName] = useState(() => (defaultName ?? "").slice(0, 12));
@@ -114,8 +114,21 @@ export function MultiplayerSetupSheet({
     onSave(profile);
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      // Fallback jika parent tidak menyediakan onClose:
+      // Simpan profil default / saat ini agar sheet tertutup dan tidak stuck
+      const fallbackName = trimmed.length > 0 ? trimmed : (defaultName || "Santri").slice(0, 12);
+      const profile = { displayName: fallbackName, avatarId };
+      saveMultiplayerProfile(profile);
+      onSave(profile);
+    }
+  };
+
   return (
-    <AppBottomSheet isOpen={isOpen} onClose={NOOP} title="Profil Multiplayer">
+    <AppBottomSheet isOpen={isOpen} onClose={handleClose} title="Profil Multiplayer">
       <div className="pb-2">
         <p className="text-sm font-bold text-[#134E4A]/80">
           Kenalkan dirimu ke teman sepermainan!

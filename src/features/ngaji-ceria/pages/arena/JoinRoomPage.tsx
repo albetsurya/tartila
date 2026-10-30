@@ -160,6 +160,15 @@ export default function JoinRoomPage() {
       <MultiplayerSetupSheet
         isOpen={!profile}
         defaultName={user?.name || user?.username || ""}
+        onClose={() => {
+          const fallback = {
+            displayName: (user?.name || user?.username || "Santri").slice(0, 12),
+            avatarId: "boy-peci",
+          };
+          saveMultiplayerProfile(fallback);
+          setProfile(fallback);
+          setNickname(fallback.displayName);
+        }}
         onSave={(p) => {
           saveMultiplayerProfile(p);
           setProfile(p);
