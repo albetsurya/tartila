@@ -315,8 +315,8 @@ export default function TilawatiMemoryPage() {
 
   return (
     <NgajiCeriaLayout
-      title={`Tilawati Memory - Jilid ${currentJilid} Level ${currentLevel}`}
-      hideHeader={true}
+      title="Tilawati Memory"
+      showBack={true}
       themeScope="arena-kartu"
       onBack={() => navigate('/member/ngaji-ceria/games/memory/select')}
     >

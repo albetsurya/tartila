@@ -33,6 +33,11 @@ export function AppBottomSheet({
 }: AppBottomSheetProps) {
   const ref = useRef<HTMLDivElement>(null);
 
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!isOpen) return;
     const previous =
@@ -42,18 +47,26 @@ export function AppBottomSheet({
     const trap = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
       }
     };
     document.addEventListener("keydown", trap);
-    ref.current
-      ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
-      ?.focus();
+    
+    // Hanya auto-focus jika user belum fokus di elemen input/textarea
+    if (
+      !(document.activeElement instanceof HTMLInputElement) &&
+      !(document.activeElement instanceof HTMLTextAreaElement)
+    ) {
+      ref.current
+        ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+        ?.focus();
+    }
+
     return () => {
       document.removeEventListener("keydown", trap);
       previous?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return createPortal(
     <AnimatePresence>

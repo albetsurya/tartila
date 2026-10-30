@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
 import { duelService, generateDuelCode } from "@/services/duelService";
@@ -87,6 +88,7 @@ export default function DuelLobbyPage() {
   const [copied, setCopied] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [joinLoading, setJoinLoading] = useState(false);
@@ -227,6 +229,18 @@ export default function DuelLobbyPage() {
 
   return (
     <div className="min-h-dvh bg-[#F0FDF4] text-[#134E4A] font-sans">
+      <ConfirmDialog
+        isOpen={showExitConfirm}
+        title="Keluar dari Lobi Duel?"
+        description="Sesi duel ini akan dibatalkan dan kamu akan kembali ke menu utama."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowExitConfirm(false)}
+      />
+
       <header className="border-b-[3px] border-[#134E4A] bg-white shadow-[0_2px_0_#134E4A]">
         <div className="mx-auto flex h-14 max-w-md items-center gap-3 px-4">
           <button
@@ -234,7 +248,7 @@ export default function DuelLobbyPage() {
             onClick={() => {
               triggerBibiReaction("click");
               soundManager.playSfx("tap");
-              navigate("/member/ngaji-ceria/games");
+              setShowExitConfirm(true);
             }}
             aria-label="Kembali"
             className="flex h-10 w-10 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-white font-black text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-0.5 active:shadow-none cursor-pointer"

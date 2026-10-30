@@ -93,13 +93,16 @@ export interface MultiplayerSetupSheetProps {
   onSave: (profile: MultiplayerProfile) => void;
 }
 
+const NOOP = () => {};
+
 export function MultiplayerSetupSheet({
   isOpen,
   defaultName,
   onSave,
 }: MultiplayerSetupSheetProps) {
-  const [name, setName] = useState((defaultName ?? "").slice(0, 12));
-  const [avatarId, setAvatarId] = useState(getAvatarOption("").id);
+  // State lokal di-isolasi sepenuhnya dari parent render
+  const [name, setName] = useState(() => (defaultName ?? "").slice(0, 12));
+  const [avatarId, setAvatarId] = useState(() => getAvatarOption("").id);
 
   const trimmed = name.trim();
   const canContinue = trimmed.length > 0;
@@ -112,7 +115,7 @@ export function MultiplayerSetupSheet({
   };
 
   return (
-    <AppBottomSheet isOpen={isOpen} onClose={() => {}} title="Profil Multiplayer">
+    <AppBottomSheet isOpen={isOpen} onClose={NOOP} title="Profil Multiplayer">
       <div className="pb-2">
         <p className="text-sm font-bold text-[#134E4A]/80">
           Kenalkan dirimu ke teman sepermainan!
@@ -132,6 +135,9 @@ export function MultiplayerSetupSheet({
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 12))}
           placeholder="Maks 12 karakter"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
           className="mt-1.5 w-full rounded-xl border-[3px] border-[#134E4A] bg-white px-4 py-3 font-display text-base font-black text-[#134E4A] placeholder:font-bold placeholder:text-[#134E4A]/30 focus:outline-none focus:bg-[#F0FDF4] cursor-text"
         />
         <p className="mt-1 text-right text-[10px] font-bold text-[#134E4A]/50">

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   Volume2,
   TrophySvg,
@@ -42,6 +43,7 @@ export default function HostGamePage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [violations, setViolations] = useState<Array<{ nickname: string; violations: number }>>([]);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const socketRef = useRef<ArenaSocket | null>(null);
 
@@ -206,7 +208,25 @@ export default function HostGamePage() {
   }, [pin, loadingQuestions, errorMsg, questions.length, navigate]);
 
   return (
-    <NgajiCeriaLayout title={`Tartila Arena Host - PIN ${pin}`} hideMascot={true}>
+    <NgajiCeriaLayout
+      title={`Tartila Arena Host - PIN ${pin}`}
+      hideMascot={true}
+      showBack={true}
+      onBack={() => setShowExitConfirm(true)}
+    >
+      <ConfirmDialog
+        isOpen={showExitConfirm}
+        title="Hentikan Permainan?"
+        description="Sebagai Host, jika kamu keluar maka sesi permainan ini akan berhenti untuk semua santri."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          sessionStorage.removeItem("arena_room_id");
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowExitConfirm(false)}
+      />
+
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* State Error Merah: Tampil jika soal gagal dimuat */}
         {errorMsg && (

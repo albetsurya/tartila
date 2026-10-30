@@ -56,8 +56,8 @@ export default function TilawatiMemorySelectPage() {
 
   return (
     <NgajiCeriaLayout
-      title="Pilih Jilid Tilawati Memory"
-      hideHeader={true}
+      title="Tilawati Memory"
+      showBack={true}
       themeScope="arena-kartu"
       onBack={() => navigate('/member/ngaji-ceria/games')}
     >

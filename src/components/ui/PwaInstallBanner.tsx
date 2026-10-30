@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { DownloadSvg } from "./CustomIcons";
 import { StickerButton } from "./StickerButton";
 import {
@@ -20,6 +21,7 @@ function hasBottomNav(pathname: string): boolean {
 
 export function PwaInstallBanner() {
   const [isVisible, setIsVisible] = useState(false);
+  const location = useLocation(); // <-- Tambahan untuk deteksi rute
 
   useEffect(() => {
     return subscribePwaInstall(setIsVisible);
@@ -36,7 +38,8 @@ export function PwaInstallBanner() {
 
   if (!isVisible) return null;
 
-  const hasNav = hasBottomNav(window.location.pathname);
+  // <-- Perbaikan: Menggunakan location.pathname, bukan window.location
+  const hasNav = hasBottomNav(location.pathname);
 
   return (
     <div

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   SparklesSvg,
   CheckSvg,
@@ -30,25 +31,42 @@ export default function RoomLobbyPage() {
   const { user } = useAuth();
 
   const pin = normalizeJoinCode(rawPin || "");
+
+  // Room ID tersimpan di sessionStorage atau di-resolve dari PIN
+  const [roomId, setRoomId] = useState<string | null>(() => {
+    return typeof window !== "undefined" ? window.sessionStorage.getItem("arena_room_id") : null;
+  });
+
   const [room, setRoom] = useState<ArenaRoom | null>(null);
   const [players, setPlayers] = useState<ArenaRoomPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
-  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(() => {
+    return typeof window !== "undefined" ? window.sessionStorage.getItem("arena_player_id") : null;
+  });
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
   const [profile, setProfile] = useState<MultiplayerProfile | null>(() => loadMultiplayerProfile());
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Simulator bot — QA superadmin: ditambahkan ke lobi, otomatis ready.
   const { bots, addBot } = useBotSimulator();
 
+  // Guard untuk optimistic UI ready state
+  const pendingReadyRef = useRef<boolean | null>(null);
+  const myPlayerIdRef = useRef<string | null>(myPlayerId);
+  useEffect(() => {
+    myPlayerIdRef.current = myPlayerId;
+  }, [myPlayerId]);
+
   // Cek apakah user adalah host
-  const isHost = Boolean(
-    (user?.id && room?.host_id && user.id === room.host_id) ||
-    (typeof window !== "undefined" && window.sessionStorage.getItem(`arena_is_host_${pin}`) === "true")
-  );
+  const isHost = useMemo(() => {
+    if (room?.host_id && user?.id && user.id === room.host_id) return true;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(`arena_is_host_${pin}`) === "true") return true;
+    return false;
+  }, [pin, room?.host_id, user?.id]);
 
   // Tentukan pemain lokal (host pakai kartu host, guest pakai session join)
   useEffect(() => {
@@ -64,7 +82,9 @@ export default function RoomLobbyPage() {
         players.find((p) => p.user_id === user?.id)?.id ||
         null;
     }
-    if (pid) setMyPlayerId(pid);
+    if (pid && pid !== myPlayerId) {
+      setMyPlayerId(pid);
+    }
   }, [players, isHost, room, user?.id, myPlayerId]);
 
   const displayPlayers = useMemo(() => {
@@ -86,77 +106,109 @@ export default function RoomLobbyPage() {
   }, [players, bots, pin]);
 
   // Bot otomatis siap; user siap juga.
-  const myReady = Boolean(displayPlayers.find((p) => p.id === myPlayerId)?.is_ready);
+  const myReady = useMemo(() => {
+    return Boolean(displayPlayers.find((p) => p.id === myPlayerId)?.is_ready);
+  }, [displayPlayers, myPlayerId]);
+
   const allReady = displayPlayers.length > 0 && displayPlayers.every((p) => p.is_ready);
 
+  // 1. Resolve roomId dari PIN jika belum ada di sessionStorage
   useEffect(() => {
-    if (!pin) {
-      setErrorMsg("PIN tidak ditemukan.");
-      setLoading(false);
-      return;
-    }
-
+    if (roomId || !pin) return;
     let isMounted = true;
 
-    // 1. Ambil info room awal
-    const loadRoomData = async () => {
-      try {
-        const foundRoom = await arenaRoomService.getRoom(pin);
-        if (!foundRoom) {
-          if (isMounted) {
-            setErrorMsg(`Room dengan PIN "${pin}" tidak ditemukan.`);
-            setLoading(false);
-          }
-          return;
-        }
-
-        if (isMounted) {
+    arenaRoomService
+      .getRoom(pin)
+      .then((foundRoom) => {
+        if (!isMounted) return;
+        if (foundRoom) {
           setRoom(foundRoom);
+          setRoomId(foundRoom.id);
           sessionStorage.setItem("arena_room_id", foundRoom.id);
-          const initialPlayers = await arenaRoomService.getRoomPlayers(foundRoom.id);
-          setPlayers(initialPlayers);
+        } else {
+          setErrorMsg(`Room dengan PIN "${pin}" tidak ditemukan.`);
           setLoading(false);
         }
-
-        // Jika room sudah dalam status playing, langsung redirect
-        if (foundRoom.status === "playing") {
-          navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`);
-          return;
-        }
-
-        // 2. Langganan Supabase Realtime untuk update lobi
-        const unsubscribe = arenaRoomService.subscribeToLobby(foundRoom.id, {
-          onPlayersChange: (updatedPlayers) => {
-            if (isMounted) {
-              setPlayers(updatedPlayers);
-            }
-          },
-          onGameStart: () => {
-            // Ketika host mulai game, semua pemain masuk hitung mundur dulu
-            if (isMounted) {
-              setShowCountdown(true);
-            }
-          },
-        });
-
-        return unsubscribe;
-      } catch (err: any) {
-        if (isMounted) {
-          setErrorMsg(err.message || "Gagal memuat lobi room.");
-          setLoading(false);
-        }
-      }
-    };
-
-    const cleanupPromise = loadRoomData();
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        setErrorMsg(err.message || "Gagal memuat lobi room.");
+        setLoading(false);
+      });
 
     return () => {
       isMounted = false;
-      cleanupPromise.then((unsub) => {
-        if (unsub) unsub();
-      });
     };
-  }, [pin, navigate, isHost]);
+  }, [pin, roomId]);
+
+  // 2. Fungsi fetch room dan players dengan useCallback
+  const fetchRoomData = useCallback(async (targetRoomId: string) => {
+    try {
+      const [foundRoom, initialPlayers] = await Promise.all([
+        arenaRoomService.getRoom(targetRoomId),
+        arenaRoomService.getRoomPlayers(targetRoomId),
+      ]);
+      if (foundRoom) {
+        setRoom(foundRoom);
+      }
+      if (initialPlayers) {
+        setPlayers(initialPlayers);
+      }
+    } catch (err: any) {
+      console.warn("[RoomLobby] fetchRoomData error:", err);
+    }
+  }, []);
+
+  // 3. Effect fetch data room/players & Supabase Realtime subscription
+  // Dependency array HANYA [roomId]
+  useEffect(() => {
+    if (!roomId) return;
+
+    let isMounted = true;
+
+    // Fetch data awal room & players
+    fetchRoomData(roomId).finally(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    // Langganan Supabase Realtime untuk update lobi
+    const unsubscribe = arenaRoomService.subscribeToLobby(roomId, {
+      onPlayersChange: (updatedPlayers) => {
+        if (!isMounted) return;
+        setPlayers(() => {
+          // Guard: Jangan timpa status siap jika user sedang dalam proses loading/pending
+          if (pendingReadyRef.current !== null && myPlayerIdRef.current) {
+            return updatedPlayers.map((p) =>
+              p.id === myPlayerIdRef.current
+                ? { ...p, is_ready: pendingReadyRef.current! }
+                : p
+            );
+          }
+          return updatedPlayers;
+        });
+      },
+      onGameStart: () => {
+        if (isMounted) {
+          setShowCountdown(true);
+        }
+      },
+    });
+
+    // Pastikan channel Supabase di-unsubscribe dengan benar
+    return () => {
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [roomId]);
+
+  // Redirect jika room sudah berstatus playing saat pertama masuk
+  useEffect(() => {
+    if (room?.status === "playing") {
+      navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`, { replace: true });
+    }
+  }, [room?.status, isHost, pin, navigate]);
 
   const handleStartGame = async () => {
     if (!room || !isHost || isStarting || !allReady) return;
@@ -172,7 +224,7 @@ export default function RoomLobbyPage() {
       };
       sessionStorage.setItem("tartila_arena_start_state", JSON.stringify(startState));
       sessionStorage.setItem("arena_room_id", room.id);
-      
+
       await arenaRoomService.startGame(room.id, pin);
       setShowCountdown(true);
     } catch (err: any) {
@@ -181,23 +233,28 @@ export default function RoomLobbyPage() {
     }
   };
 
-  const [pendingReadyState, setPendingReadyState] = useState<boolean | null>(null);
-
   const handleToggleReady = async () => {
-    if (!room || !myPlayerId || pendingReadyState !== null) return;
+    if (!roomId || !myPlayerId || pendingReadyRef.current !== null) return;
     triggerBibiReaction("click");
     soundManager.playSfx("tap");
     const next = !myReady;
-    // Optimistic UI: lock button, update local state immediately
-    setPendingReadyState(next);
-    setPlayers((prev) => prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: next } : p)));
+
+    // Optimistic UI: langsung ubah state lokal
+    pendingReadyRef.current = next;
+    setPlayers((prev) =>
+      prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: next } : p))
+    );
+
     try {
-      await arenaRoomService.setPlayerReady(room.id, myPlayerId, next);
+      await arenaRoomService.setPlayerReady(roomId, myPlayerId, next);
     } catch (err: any) {
-      // Revert optimistic update on failure
-      setPlayers((prev) => prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: !next } : p)));
+      // Revert optimistic update jika gagal
+      setPlayers((prev) =>
+        prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: !next } : p))
+      );
+    } finally {
+      pendingReadyRef.current = null;
     }
-    setPendingReadyState(null);
   };
 
   useEffect(() => {
@@ -220,9 +277,13 @@ export default function RoomLobbyPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleBack = () => {
+    setShowExitConfirm(true);
+  };
+
   if (loading) {
     return (
-      <NgajiCeriaLayout title={`Lobi Room - ${pin}`}>
+      <NgajiCeriaLayout title={`Lobi Room - ${pin}`} showBack={true} onBack={handleBack}>
         <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
           <TilaMascot size={90} mood="thinking" animation="bounce" direction="front" />
           <h2 className="font-display text-xl font-black text-[#134E4A]">
@@ -236,7 +297,7 @@ export default function RoomLobbyPage() {
 
   if (errorMsg) {
     return (
-      <NgajiCeriaLayout title="Room Tidak Ditemukan">
+      <NgajiCeriaLayout title="Room Tidak Ditemukan" showBack={true} onBack={handleBack}>
         <div className="max-w-md mx-auto px-4 py-12 text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-2xl border-[3px] border-[#134E4A] bg-[#FEE2E2] flex items-center justify-center text-[#DC2626] shadow-[3px_3px_0px_#134E4A]">
             <AlertTriangleSvg size={32} />
@@ -260,7 +321,22 @@ export default function RoomLobbyPage() {
   const isCasualRoom = room?.room_type === "casual" || room?.room_type === "latihan";
 
   return (
-    <NgajiCeriaLayout title={`Lobi Room - PIN ${pin}`}>
+    <NgajiCeriaLayout title={`Lobi Room - PIN ${pin}`} showBack={true} onBack={handleBack}>
+      {/* Confirm Dialog untuk keluar room */}
+      <ConfirmDialog
+        isOpen={showExitConfirm}
+        title="Keluar dari Lobi?"
+        description="Kamu akan keluar dari sesi permainan ini dan kembali ke menu."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          sessionStorage.removeItem("arena_room_id");
+          sessionStorage.removeItem(`arena_is_host_${pin}`);
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowExitConfirm(false)}
+      />
+
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Banner Utama: PIN Raksasa Neo-Brutalism */}
         <div className="rounded-3xl border-[4px] border-[#134E4A] bg-[#FEF3C7] p-6 md:p-8 text-center shadow-[6px_6px_0px_#134E4A] space-y-4">
@@ -296,7 +372,7 @@ export default function RoomLobbyPage() {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-[2px] border-[#134E4A] bg-white text-[#134E4A] text-xs md:text-sm font-black shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-gray-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-[2px] border-[#134E4A] bg-white text-[#134E4A] text-xs md:text-sm font-black shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-gray-50 cursor-pointer"
             >
               {copied ? (
                 <>
@@ -400,8 +476,8 @@ export default function RoomLobbyPage() {
           <button
             type="button"
             onClick={handleToggleReady}
-            disabled={pendingReadyState !== null}
-            className={`w-full py-4 rounded-2xl border-[3px] border-[#134E4A] font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${
+            disabled={pendingReadyRef.current !== null || !myPlayerId}
+            className={`w-full py-4 rounded-2xl border-[3px] border-[#134E4A] font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${
               myReady ? "bg-[#10B981] text-white" : "bg-[#FEF08A] text-[#134E4A]"
             }`}
           >
@@ -417,7 +493,7 @@ export default function RoomLobbyPage() {
               type="button"
               disabled={isStarting || !allReady}
               onClick={handleStartGame}
-              className="w-full py-4 md:py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 md:py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               <RocketSvg size={24} />
               <span>

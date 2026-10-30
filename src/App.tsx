@@ -1011,6 +1011,7 @@ function AppRoutesContent() {
 
 export default function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+  const { needRefresh, updateServiceWorker, dismiss } = usePWAUpdate();
 
   const appContent = (
     <AuthProvider>
@@ -1021,21 +1022,21 @@ export default function App() {
         <RouteBoundary>
           <AppRoutesContent />
         </RouteBoundary>
+
+        {/* PINDAHKAN KE SINI: Agar bisa mengakses useLocation() */}
+        {needRefresh && (
+          <PwaUpdateToast
+            onDismiss={dismiss}
+            onReload={() => updateServiceWorker(true)}
+          />
+        )}
+        <PwaInstallBanner />
       </BrowserRouter>
     </AuthProvider>
   );
 
-  const { needRefresh, updateServiceWorker, dismiss } = usePWAUpdate();
-
   return (
     <>
-      {needRefresh && (
-        <PwaUpdateToast
-          onDismiss={dismiss}
-          onReload={() => updateServiceWorker(true)}
-        />
-      )}
-      <PwaInstallBanner />
       {googleClientId ? (
         <GoogleOAuthProvider clientId={googleClientId}>
           {appContent}

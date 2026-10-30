@@ -72,7 +72,8 @@ export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
     return ["coin", "heart", "ticket", "xp"];
   }
 
-  // Quiz / Duel / Arena: Koin -> XP -> Tiket -> Hati
+  // Quiz / Duel / Arena / Quiz Hub: Bagian HUB Game (tanpa Hati).
+  // Urutan: Tiket -> Koin -> XP
   if (
     path.startsWith("/quiz-hub") ||
     path.includes("/quiz-hub") ||
@@ -80,7 +81,7 @@ export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
     path.startsWith("/arena") ||
     path.includes("/arena")
   ) {
-    return ["coin", "xp", "ticket", "heart"];
+    return ["ticket", "coin", "xp"];
   }
 
   // Profile / Kamar: Koin -> XP -> Hati -> Tiket
@@ -267,7 +268,7 @@ export function NgajiCeriaLayout({
       className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} ${containerBgClass} ${isImmersive ? "theme-isolated" : ""} flex relative flex-col justify-between overflow-x-clip font-sans text-[var(--text-main,#134E4A)] selection:bg-teal-emerald/20 transition-colors duration-200`}
     >
       {!hideHeader && !hideNav && (
-        <header className="sticky top-0 z-[60] shrink-0 border-b border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card,#FFFFFF)]/95 pt-safe text-[var(--text-main,#134E4A)] shadow-[0_2px_8px_rgba(19,78,74,0.05)] backdrop-blur-md transition-colors duration-200">
+        <header className="sticky top-0 z-[60] shrink-0 border-b border-[#134E4A]/15 bg-white/95 dark:bg-[#1E2937]/95 pt-safe text-[#134E4A] dark:text-white shadow-[0_2px_8px_rgba(19,78,74,0.05)] backdrop-blur-md transition-colors duration-200">
           <div className="relative z-10 mx-auto w-full max-w-md px-3 sm:max-w-3xl sm:px-6 lg:max-w-5xl">
             <div className="flex min-h-12 items-center justify-between gap-2 py-1">
               <div className="flex min-w-0 shrink items-center gap-2">
@@ -277,7 +278,7 @@ export function NgajiCeriaLayout({
                     onClick={handleBack}
                     aria-label="Kembali ke halaman sebelumnya"
                     title="Kembali"
-                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:opacity-90 active:translate-y-0.5"
+                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white dark:bg-[#1E2937] text-[#134E4A] dark:text-white shadow-[2px_2px_0px_#134E4A] transition-transform hover:opacity-90 active:translate-y-0.5"
                   >
                     <ChevronLeftSvg size={20} />
                   </button>
@@ -286,7 +287,7 @@ export function NgajiCeriaLayout({
                   <TartilaFaviconSvg variant="sticker" size={40} />
                 )}
                 <span
-                  className={`max-w-[160px] truncate font-display text-lg font-black tracking-tight text-[var(--text-main,#134E4A)] sm:max-w-[220px] sm:text-xl md:max-w-none ${title === "Tartila" ? "max-sm:hidden" : ""}`}
+                  className={`max-w-[160px] truncate font-display text-lg font-black tracking-tight text-[#134E4A] dark:text-white sm:max-w-[220px] sm:text-xl md:max-w-none ${title === "Tartila" ? "max-sm:hidden" : ""}`}
                 >
                   {title}
                 </span>
@@ -308,10 +309,10 @@ export function NgajiCeriaLayout({
                     return (
                       <div
                         key="badge-heart"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
                           isDarkTheme
                             ? "bg-[#1E2937] text-white"
-                            : "bg-[#FFF0F0] text-[var(--text-main,#134E4A)]"
+                            : "bg-[#FFF0F0] text-[#134E4A]"
                         }`}
                         title={
                           isUnlimited
@@ -335,10 +336,10 @@ export function NgajiCeriaLayout({
                     return (
                       <div
                         key="badge-ticket"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
                           isDarkTheme
                             ? "bg-[#1E2937] text-white"
-                            : "bg-[#FEF3C7] text-[var(--text-main,#134E4A)]"
+                            : "bg-[#FEF3C7] text-[#134E4A]"
                         }`}
                         title={
                           isUnlimited
@@ -358,10 +359,10 @@ export function NgajiCeriaLayout({
                     return (
                       <div
                         key="badge-xp"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
                           isDarkTheme
                             ? "bg-[#1E2937] text-white"
-                            : "bg-[#CCFBF1] text-[var(--text-main,#134E4A)]"
+                            : "bg-[#CCFBF1] text-[#134E4A]"
                         }`}
                         title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
                       >
@@ -377,10 +378,10 @@ export function NgajiCeriaLayout({
                     return (
                       <div
                         key="badge-coin"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[var(--border-color,#134E4A)] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] whitespace-nowrap ${
+                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
                           isDarkTheme
                             ? "bg-[#1E2937] text-white"
-                            : "bg-[#FEF08A] text-[var(--text-main,#134E4A)]"
+                            : "bg-[#FEF08A] text-[#134E4A]"
                         }`}
                         title={`Koin: ${currentCoins}`}
                       >

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Volume2, AlertCircle, CheckSvg, XSvg, CrownSvg, ChevronLeftSvg } from "@/components/ui/CustomIcons";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ArenaSocket } from "../../services/arenaSocket";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
 import { getAudioUrl } from "../../utils/audioUrl";
@@ -180,9 +181,8 @@ export default function PlayerGamePage() {
     return () => {
       socket.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      setShowBackModal(true);
     };
-  }, [pin, playerId, nickname, navigate, handleTabSwitch, totalScore]);
+  }, [pin, playerId, nickname, navigate, handleTabSwitch]);
 
   // Timer per soal & auto-timeout (Kahoot-style)
   useEffect(() => {
@@ -211,11 +211,21 @@ export default function PlayerGamePage() {
     <div className="h-[100dvh] w-full flex flex-col bg-[#F0FDF4] overflow-hidden select-none">
       {/* HUD Header Santri */}
       <header className="shrink-0 flex items-center justify-between px-4 py-3 bg-white border-b-[3px] border-[#134E4A] shadow-[0px_2px_0px_#134E4A] z-20">
-        <div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
-            Santri
-          </span>
-          <span className="font-black text-sm text-[#134E4A]">{nickname}</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowBackModal(true)}
+            aria-label="Kembali"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-0.5 cursor-pointer"
+          >
+            <ChevronLeftSvg size={18} />
+          </button>
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
+              Santri
+            </span>
+            <span className="font-black text-sm text-[#134E4A]">{nickname}</span>
+          </div>
         </div>
 
         <div className="text-center">
@@ -404,38 +414,17 @@ export default function PlayerGamePage() {
       </div>
 
       {/* Modal Konfirmasi Keluar */}
-      {showBackModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl border-[4px] border-[#134E4A] bg-white p-6 text-center shadow-[8px_8px_0px_#134E4A] space-y-4">
-            <h3 className="font-display text-lg font-black text-[#134E4A]">
-              Keluar dari Room?
-            </h3>
-            <p className="text-xs font-bold text-[#134E4A]/70 leading-relaxed">
-              Kamu akan keluar dari sesi permainan saat ini. Setujukan untuk
-              terus bermain di halaman lain?
-            </p>
-            <div className="flex gap-2 justify-center">
-              <button
-                type="button"
-                onClick={() => setShowBackModal(false)}
-                className="px-4 py-2 rounded-xl border-[3px] border-[#134E4A] bg-white text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A] hover:bg-[#FEF3C7] transition-all"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowBackModal(false);
-                  navigate("/member/ngaji-ceria/games");
-                }}
-                className="px-4 py-2 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs shadow-[2px_2px_0px_#134E4A] hover:bg-[#0F766E] transition-all"
-              >
-                Keluar Sekarang
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showBackModal}
+        title="Keluar dari Room?"
+        description="Kamu akan keluar dari sesi permainan saat ini dan kembali ke menu."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowBackModal(false);
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowBackModal(false)}
+      />
     </div>
   );
 }
