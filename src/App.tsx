@@ -641,14 +641,8 @@ function AppRoutesContent() {
           path="/member/ngaji-ceria/quiz-hub/versus"
           element={<QuizHubPlayPage />}
         />
-        <Route
-          path="/member/ngaji-ceria/quiz/duel/lobby/:sessionId"
-          element={<DuelLobbyPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/quiz/duel/play/:sessionId"
-          element={<DuelPlayPage />}
-        />
+        <Route path="/arena/duel/lobby/:sessionId" element={<DuelLobbyPage />} />
+        <Route path="/arena/duel/play/:sessionId" element={<DuelPlayPage />} />
         <Route
           path="/member/ngaji-ceria/lab-irama"
           element={<LabIramaPage />}

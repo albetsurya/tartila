@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { loadMultiplayerProfile, MultiplayerSetupSheet, MultiplayerAvatar, saveMultiplayerProfile, type MultiplayerProfile } from "../../components/multiplayer/MultiplayerSetupSheet";
 import { useBotSimulator, clearBotSimulatorState } from "../../hooks/useBotSimulator";
 import { normalizeJoinCode } from "@/lib/joinCode";
+import { isTartilaAdmin } from "@/lib/roles";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { motion, AnimatePresence } from "framer-motion";
@@ -102,7 +103,7 @@ export default function RoomLobbyPage() {
       const player: ArenaRoomPlayer = {
         id: bot.id,
         nickname: bot.name,
-        room_id: pin,
+        room_id: room?.id ?? pin,
         is_active: true,
         score: bot.score,
         is_host: false,
@@ -433,7 +434,7 @@ export default function RoomLobbyPage() {
             </div>
           </div>
 
-          {user?.role === "superadmin" && (
+          {isTartilaAdmin(user?.role) && (
             <div className="flex items-center justify-between gap-2 border-b border-[#134E4A]/20 pb-3">
               <span className="text-[10px] font-black uppercase tracking-wide text-[#134E4A]/50">
                 Simulator QA
@@ -465,7 +466,7 @@ export default function RoomLobbyPage() {
                   className="relative p-3 rounded-xl border-2 border-[#134E4A] bg-white font-black text-sm text-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center gap-2.5 transition-all"
                 >
                   {/* Tombol Hapus Bot: QA Superadmin */}
-                  {user?.role === "superadmin" && (p.is_bot || p.id.startsWith("bot-")) && (
+                  {isTartilaAdmin(user?.role) && (p.is_bot || p.id.startsWith("bot-")) && (
                     <button
                       type="button"
                       onClick={(e) => {

@@ -70,7 +70,11 @@ export const userApi = {
     return await callREST<DailyRewardStatusResponse>("GET", "/api/v1/user/daily-status");
   },
 
-  async updateFeedbackPrompt(): Promise<{ success: boolean; lastAt: string; updated: boolean }> {
-    return await callREST<{ success: boolean; lastAt: string; updated: boolean }>("PATCH", "/api/v1/user/feedback-prompt");
+  async updateFeedbackPrompt(data?: { has_submitted_feedback?: boolean }): Promise<{ success: boolean; lastAt: string; updated: boolean }> {
+    return await callREST<{ success: boolean; lastAt: string; updated: boolean }>(
+      "PATCH",
+      "/api/v1/user/feedback-prompt",
+      data,
+    );
   },
 };

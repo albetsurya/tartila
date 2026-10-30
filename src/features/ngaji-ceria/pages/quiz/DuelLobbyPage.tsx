@@ -18,7 +18,7 @@ import {
 } from "../../components/multiplayer/MultiplayerSetupSheet";
 
 const COUNTDOWN_STEPS = ["3", "2", "1", "MULAI!"];
-const PLAY_ROUTE = "/member/ngaji-ceria/quiz/duel/play";
+const PLAY_ROUTE = "/arena/duel/play";
 
 function PlayerSlot({
   name,
@@ -109,7 +109,7 @@ export default function DuelLobbyPage() {
         if (!mounted || !res.sessionId) return;
         setActiveSessionId(res.sessionId);
         if (res.duelCode) setDuelCode(res.duelCode);
-        navigate(`/member/ngaji-ceria/quiz/duel/lobby/${res.sessionId}`, {
+        navigate(`/arena/duel/lobby/${res.sessionId}`, {
           replace: true,
         });
       })
@@ -139,7 +139,9 @@ export default function DuelLobbyPage() {
       }
     }, 1500);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [activeSessionId, routeSessionId, opponentReady]);
 
   // Handle lawan memasukkan kode duel untuk bergabung

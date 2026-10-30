@@ -72,6 +72,11 @@ export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
     return ["coin", "heart", "ticket", "xp"];
   }
 
+  // Kelas Saya (akademik/belajar): Hati
+  if (path.startsWith("/member/ngaji-ceria/kelas") || path.startsWith("/member/ngaji-ceria/kelas/")) {
+    return ["heart", "coin", "xp"];
+  }
+
   // Quiz / Duel / Arena / Quiz Hub: Bagian HUB Game (tanpa Hati).
   // Urutan: Tiket -> Koin -> XP
   if (

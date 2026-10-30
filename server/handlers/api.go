@@ -489,15 +489,25 @@ func (api *APIHandler) UpdateFeedbackPrompt(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	var reqBody struct {
+		HasSubmitted *bool `json:"has_submitted_feedback"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&reqBody)
+
+	submittedVal := 0
+	if reqBody.HasSubmitted != nil && *reqBody.HasSubmitted {
+		submittedVal = 1
+	}
+
 	now := time.Now().UTC().Format(time.RFC3339)
 	result, err := api.db.Exec(
 		`INSERT INTO feedback_prompt (user_id, last_feedback_prompt_at, has_submitted_feedback, updated_at)
-		 VALUES (?, ?, 0, ?)
+		 VALUES (?, ?, ?, ?)
 		 ON CONFLICT(user_id) DO UPDATE SET
 		 last_feedback_prompt_at = excluded.last_feedback_prompt_at,
-		 has_submitted_feedback = excluded.has_submitted_feedback,
+		 has_submitted_feedback = CASE WHEN excluded.has_submitted_feedback = 1 THEN 1 ELSE feedback_prompt.has_submitted_feedback END,
 		 updated_at = excluded.updated_at`,
-		userID, now, now,
+		userID, now, submittedVal, now,
 	)
 	if err != nil {
 		log.Printf("[handlers] UpdateFeedbackPrompt exec failed: %v", err)

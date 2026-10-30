@@ -72,8 +72,7 @@ import {
 
 const TOTAL_STARS = 654;
 const AVATAR_VARIANT_STORAGE_KEY = "ngaji_ceria_avatar_variant";
-const FEEDBACK_PROMPT_STORAGE_KEY = "ngaji_ceria_feedback_prompt_closed_at";
-const FEEDBACK_PROMPT_WINDOW_MS = 5 * 60 * 1000;
+const FEEDBACK_PROMPT_STORAGE_KEY = "tartila-feedback-dismissed";
 const FEEDBACK_PROMPT_CADENCE_MS = 90 * 24 * 60 * 60 * 1000;
 
 type ActiveModal =
@@ -175,52 +174,57 @@ export default function NgajiCeriaProfilePage() {
     };
   }, []);
 
-  // Auto-prompt "Kritik & Saran": tampil hanya jika `last_feedback_prompt_at`
-  // kosong, atau lewat 90 hari sejaknya. Tidak tampil < 5 menit lagi kalau
-  // ditutup di sesi yang sama (optimasi localStorage).
+  // Auto-prompt "Kritik & Saran":
+  // Urutan prioritas gate:
+  // 1. Cek localStorage "tartila-feedback-dismissed" === "true" -> stop
+  // 2. Cek API -> jika has_submitted_feedback === true ATAU last_feedback_prompt_at < 90 hari -> set localStorage "true" & stop
+  // 3. Jika lolos semua -> tampilkan modal feedback
   useEffect(() => {
     if (!user) return;
 
-    const lastClosedAt = localStorage.getItem(FEEDBACK_PROMPT_STORAGE_KEY);
-    if (lastClosedAt && Date.now() - Number(lastClosedAt) < FEEDBACK_PROMPT_WINDOW_MS) {
+    if (localStorage.getItem(FEEDBACK_PROMPT_STORAGE_KEY) === "true") {
       return;
     }
 
     userApi
       .getUserProfile()
       .then((res: UserProfileResponse) => {
+        if (res?.has_submitted_feedback === true) {
+          localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
+          return;
+        }
+
         const lastAt = res?.last_feedback_prompt_at;
-        if (!lastAt) {
-          setActiveModal("feedback");
-          return;
+        if (lastAt) {
+          const then = new Date(lastAt).getTime();
+          if (!Number.isNaN(then) && Date.now() - then < FEEDBACK_PROMPT_CADENCE_MS) {
+            localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
+            return;
+          }
         }
-        const then = new Date(lastAt).getTime();
-        if (Number.isNaN(then)) {
-          setActiveModal("feedback");
-          return;
-        }
-        if (Date.now() - then > FEEDBACK_PROMPT_CADENCE_MS) {
-          setActiveModal("feedback");
-        }
+
+        setActiveModal("feedback");
       })
       .catch(() => {
-        // profil server tidak terjangkau; biarkan modal dibuka manual saja.
+        // API gagal; jangan tampilkan modal. localStorage tetap kosong
+        // agar prompt feedback bisa retry saat user offline kembali.
       });
   }, [user]);
 
   const handleCloseFeedback = () => {
-    localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, String(Date.now()));
+    localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
     setActiveModal(null);
+    userApi.updateFeedbackPrompt().catch(() => {});
   };
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
     try {
-      await userApi.updateFeedbackPrompt();
-      localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, String(Date.now()));
+      await userApi.updateFeedbackPrompt({ has_submitted_feedback: true });
     } catch {
-      // Server DB gagal dicatat; localStorage tetap dicegah 5 menit ini.
+      // LocalStorage sudah mengamankan UX
     }
   };
 

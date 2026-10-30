@@ -256,9 +256,23 @@ export const arenaRoomService = {
           .order("created_at", { ascending: true });
 
         if (!error && data && data.length > 0) {
-          return data.map((d: any, idx: number) => ({
+          // is_host ditentukan dari rooms.host_id, bukan urutan insert.
+          // Kolom is_host on table menunjang jika ada, fallback ke join.
+          const roomIds = new Set(data.map((d: any) => d.room_id));
+          const hostById = new Map<string, string>();
+          // ambil host per room dari rooms table
+          const roomData = await supabase
+            .from("rooms")
+            .select("id, host_id")
+            .in("id", Array.from(roomIds));
+          if (roomData.data) {
+            for (const r of roomData.data) {
+              hostById.set(r.id, r.host_id);
+            }
+          }
+          return data.map((d: any) => ({
             ...d,
-            is_host: idx === 0,
+            is_host: hostById.get(d.room_id) === d.user_id,
           }));
         }
       } catch {
@@ -396,7 +410,7 @@ export const arenaRoomService = {
 
       return {
         room_id: roomId,
-        question_type: ["text", "audio", "fill_blank"].includes(q.type) ? q.type : "text",
+        question_type: ["text", "audio", "fill_blank", "image", "multiple_choice"].includes(q.type) ? q.type : "text",
         category: q.category || "tilawati",
         question_data: {
           prompt: q.prompt,

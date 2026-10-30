@@ -105,7 +105,7 @@ function shuffle<T>(items: readonly T[]): T[] {
  */
 export async function loadJilidPages(jilid: number): Promise<Record<number, PageQuizData>> {
   if (JILID_CACHES[jilid]) return JILID_CACHES[jilid]!;
-  const module = await import(`./tilawatiQuizJilid${jilid}`);
+  const module = await import(`./tilawatiQuizJilid${jilid}.ts`);
   const pages = (module as Record<string, Record<number, PageQuizData>>)[`TILAWATI_JILID_${jilid}_PAGES`];
   if (!pages) return {};
   JILID_CACHES[jilid] = pages;

@@ -28,14 +28,8 @@ export interface BotAnswerResult {
 
 const BOT_STATE_KEY = "tartila-bot-simulator";
 
-const BOT_NAMES: readonly string[] = [
-  "Amira Bot",
-  "Bariq Bot",
-  "Dian Bot",
-  "Fajar Bot",
-  "Hana Bot",
-  "Irfan Bot",
-];
+/** Nama bot acak (bukan array statis). */
+const BOT_NAME_RANDOM: string = "Bot";
 
 /** Avatar bot dipilih acak berdasarkan gender + variant.
  *  Format avatarId: `boy-1`, `boy-2`, `boy-3`, `girl-1`, `girl-2`, `girl-3`
@@ -119,7 +113,7 @@ export function useBotSimulator() {
     const { avatarId, gender, variant } = pickBotAvatar();
     const created: Bot = {
       id: `bot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: name && name.trim().length > 0 ? name.trim().slice(0, 12) : BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)],
+      name: name && name.trim().length > 0 ? name.trim().slice(0, 12) : `${BOT_NAME_RANDOM} ${Math.floor(Math.random() * 1000)}`,
       avatarId,
       gender,
       variant,
@@ -195,6 +189,19 @@ export function useBotSimulator() {
     },
     [],
   );
+
+  // Save state on unmount (component cleanup) + before page unload
+  // (tab close / browser back) to remove bot simulator state.
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      clearBotSimulatorState();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      clearBotSimulatorState();
+    };
+  }, []);
 
   return {
     bots,

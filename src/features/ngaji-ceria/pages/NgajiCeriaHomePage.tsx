@@ -17,7 +17,6 @@ import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
 import { ngajiCeriaApi } from "../services/ngajiCeriaApi";
 import {
   GiftSvg,
-  StarSvg,
   TilawatiLearningSvg,
   FireSvg,
   StoreSvg,
@@ -35,6 +34,8 @@ import {
   LockSvg,
   Loader2Svg,
   TilawatiMapSvg,
+  GraduationCapSvg,
+  SwordsSvg,
 } from "../../../components/ui/CustomIcons";
 import { PetiHartaSvg } from "../../../components/ui/Illustrations";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
@@ -51,6 +52,10 @@ import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
 import { isUstadzUser } from "@/lib/roles";
 import { AppModal } from "@/components/ui/AppModal";
+import {
+  listJoinedClassrooms,
+  type ClassroomRoom,
+} from "@/services/classroomService";
 
 interface DailyRewardItem {
   day: number;
@@ -104,6 +109,8 @@ export default function NgajiCeriaHomePage() {
   const [isLoading, setIsLoading] = useState(() => {
     return sessionStorage.getItem("trigger_ngaji_ceria_splash") === "true";
   });
+  const [joinedClassrooms, setJoinedClassrooms] = useState<ClassroomRoom[]>([]);
+  const [joinedClassroomsError, setJoinedClassroomsError] = useState("");
 
   const { currentStreak, lastPlayedAt } = useNgajiCeriaStreak();
   const streak = useEconomyStore((s) => s.loginStreak);
@@ -217,6 +224,18 @@ export default function NgajiCeriaHomePage() {
     })();
   }, [user, isAuthLoading, isLoadingProfile, todayDateKey]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      try {
+        const res = await listJoinedClassrooms(user.id);
+        if (res.ok) setJoinedClassrooms(res.data);
+      } catch {
+        /* ignore: section hanya muncul bila ada kelas */
+      }
+    })();
+  }, [user?.id]);
+
   const activeDay = Math.min(
     7,
     todayClaimed
@@ -282,9 +301,9 @@ export default function NgajiCeriaHomePage() {
         <div
           className={`space-y-5 px-3 py-5 sm:px-4 md:space-y-7 md:px-6 md:py-8 ${
             isLoading ? "opacity-0" : "opacity-100"
-          } min-h-full rounded-t-3xl bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] transition-opacity duration-200`}
+          } min-h-full rounded-t-3xl bg-[#F0FDF4] text-[#134E4A] transition-opacity duration-200`}
         >
-          <section className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-color,#134E4A)]/10 bg-[var(--bg-card,#FFFFFF)] px-3 py-3 shadow-sm sm:px-4">
+          <section className="flex items-center justify-between gap-3 rounded-2xl border border-[#134E4A]/10 bg-[#FFFFFF] px-3 py-3 shadow-sm sm:px-4">
             <div className="flex min-w-0 items-center gap-3">
               {avatarMode === "photo" ? (
                 <AvatarWithBadge
@@ -308,13 +327,13 @@ export default function NgajiCeriaHomePage() {
                 />
               )}
               <div className="min-w-0">
-                <p className="mb-0.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--text-main,#134E4A)]/60 sm:text-xs">
+                <p className="mb-0.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#134E4A]/60 sm:text-xs">
                   Assalamu'alaikum,
                 </p>
-                <h2 className="truncate font-display text-lg font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-xl">
+                <h2 className="truncate font-display text-lg font-black leading-tight text-[#134E4A] sm:text-xl">
                   {displayName}
                 </h2>
-                <p className="mt-0.5 text-xs font-medium text-[var(--text-main,#134E4A)]/60">
+                <p className="mt-0.5 text-xs font-medium text-[#134E4A]/60">
                   Siap melanjutkan belajar hari ini?
                 </p>
               </div>
@@ -330,9 +349,9 @@ export default function NgajiCeriaHomePage() {
                   setIsManualOpen(true);
                   setShowDailyModal(true);
                 }}
-                className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] px-3 py-2 text-xs font-black shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-colors sm:px-4 sm:text-sm ${
+                className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-2 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-colors sm:px-4 sm:text-sm ${
                   todayClaimed
-                    ? "bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)]/70"
+                    ? "bg-[#F0FDF4] text-[#134E4A]/70"
                     : "bg-[#FEF08A] text-[#134E4A] hover:bg-[#FDE047]"
                 }`}
               >
@@ -346,7 +365,7 @@ export default function NgajiCeriaHomePage() {
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 450, damping: 25 }}
                 onClick={() => navigate("/login")}
-                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] px-3 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] sm:px-4 sm:text-sm"
+                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-3 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:px-4 sm:text-sm"
               >
                 Masuk
               </motion.button>
@@ -457,10 +476,10 @@ export default function NgajiCeriaHomePage() {
           <section aria-label="Navigasi utama">
             <div className="mb-3 flex items-end justify-between gap-3">
               <div>
-                <h3 className="font-display text-base font-black text-[var(--text-main,#134E4A)] sm:text-lg">
+                <h3 className="font-display text-base font-black text-[#134E4A] sm:text-lg">
                   Mau ke mana hari ini?
                 </h3>
-                <p className="mt-0.5 text-xs text-[var(--text-main,#134E4A)]/60 sm:text-sm">
+                <p className="mt-0.5 text-xs text-[#134E4A]/60 sm:text-sm">
                   Pilih petualangan yang ingin kamu jelajahi.
                 </p>
               </div>
@@ -481,9 +500,9 @@ export default function NgajiCeriaHomePage() {
                   iconBg: "bg-[#FEF08A]",
                 },
                 {
-                  label: "Laporan",
-                  to: "/member/ngaji-ceria/profile",
-                  icon: <StarSvg size={24} />,
+                  label: "Kelas Saya",
+                  to: "/member/ngaji-ceria/kelas",
+                  icon: <GraduationCapSvg size={24} />,
                   iconBg: "bg-[#DBEAFE]",
                 },
                 {
@@ -500,14 +519,14 @@ export default function NgajiCeriaHomePage() {
                     triggerBibiReaction("click");
                     navigate(action.to);
                   }}
-                  className="group flex min-h-[104px] min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[var(--bg-card,#FFFFFF)] px-1.5 py-3 text-center shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none sm:min-h-[116px] sm:rounded-[20px] sm:py-4"
+                  className="group flex min-h-[104px] min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-[#134E4A]/80 bg-[#FFFFFF] px-1.5 py-3 text-center shadow-[2px_2px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none sm:min-h-[116px] sm:rounded-[20px] sm:py-4"
                 >
                   <span
                     className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#134E4A]/10 ${action.iconBg} text-[#134E4A] sm:h-12 sm:w-12`}
                   >
                     {action.icon}
                   </span>
-                  <span className="text-[11px] font-extrabold leading-tight text-[var(--text-main,#134E4A)] sm:text-xs">
+                  <span className="text-[11px] font-extrabold leading-tight text-[#134E4A] sm:text-xs">
                     {action.label}
                   </span>
                 </button>
@@ -542,10 +561,10 @@ export default function NgajiCeriaHomePage() {
                     }}
                     className={`relative flex min-h-[142px] w-36 shrink-0 snap-start flex-col justify-between rounded-2xl border-2 p-3.5 text-left transition-all sm:w-40 sm:p-4 ${
                       isActive
-                        ? "border-[#134E4A] bg-[var(--bg-card,#FFFFFF)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] active:translate-y-0.5 active:shadow-none"
+                        ? "border-[#134E4A] bg-[#FFFFFF] shadow-[3px_3px_0px_#134E4A] active:translate-y-0.5 active:shadow-none"
                         : isCompleted
                           ? "border-[#10B981] bg-[#ECFDF5] shadow-[2px_2px_0px_#10B981] active:translate-y-0.5 active:shadow-none dark:bg-[#064E3B]"
-                          : "cursor-not-allowed border-dashed border-[var(--border-color,#134E4A)]/25 bg-gray-50/70 opacity-70 dark:bg-gray-800/40"
+                          : "cursor-not-allowed border-dashed border-[#134E4A]/25 bg-gray-50/70 opacity-70 dark:bg-gray-800/40"
                     }`}
                   >
                     <div className="absolute right-2 top-2">
@@ -573,7 +592,7 @@ export default function NgajiCeriaHomePage() {
                         <TilawatiLearningSvg size={23} />
                       </div>
                       <p
-                        className={`font-display text-sm font-black ${isLocked ? "text-gray-400" : "text-[var(--text-main,#134E4A)]"}`}
+                        className={`font-display text-sm font-black ${isLocked ? "text-gray-400" : "text-[#134E4A]"}`}
                       >
                         Tilawati {jilid}
                       </p>
@@ -586,7 +605,7 @@ export default function NgajiCeriaHomePage() {
                           className="mt-1"
                           barClassName="bg-[#0D9488]"
                         />
-                        <p className="mt-1.5 text-[10px] font-bold text-[var(--text-main,#134E4A)]/60">
+                        <p className="mt-1.5 text-[10px] font-bold text-[#134E4A]/60">
                           {progressPercentage}% selesai
                         </p>
                       </div>
@@ -616,14 +635,14 @@ export default function NgajiCeriaHomePage() {
             <DailyMissionsCard />
           </section>
 
-          <section className="rounded-2xl border border-[var(--border-color,#134E4A)]/10 bg-[var(--bg-card,#FFFFFF)] p-4 shadow-sm sm:p-5">
+          <section className="rounded-2xl border border-[#134E4A]/10 bg-[#FFFFFF] p-4 shadow-sm sm:p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FEF3C7] text-[#134E4A]">
                   <FireSvg size={23} stroke="#134E4A" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-[var(--text-main,#134E4A)] sm:text-base">
+                  <h4 className="text-sm font-black text-[#134E4A] sm:text-base">
                     Streak Mengaji
                   </h4>
                   <p className="mt-0.5 text-xs font-bold text-[#B45309]">
@@ -635,7 +654,7 @@ export default function NgajiCeriaHomePage() {
                 <span className="text-2xl font-black leading-none text-[#EA580C]">
                   {effectiveStreak}
                 </span>
-                <span className="ml-1 text-xs font-bold text-[var(--text-main,#134E4A)]/60">
+                <span className="ml-1 text-xs font-bold text-[#134E4A]/60">
                   hari
                 </span>
               </div>
@@ -653,12 +672,12 @@ export default function NgajiCeriaHomePage() {
                   >
                     <div
                       title={`${day.full}${isDone ? ": Streak Aktif" : isToday ? ": Hari Ini" : ""}`}
-                      className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--border-color,#134E4A)] sm:h-10 sm:w-10 ${
+                      className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#134E4A] sm:h-10 sm:w-10 ${
                         isDone
-                          ? "bg-[#FEF08A] shadow-[1px_1px_0px_var(--shadow-color,#134E4A)]"
+                          ? "bg-[#FEF08A] shadow-[1px_1px_0px_#134E4A]"
                           : isToday
-                            ? "bg-white ring-2 ring-[#EA580C] ring-offset-2 ring-offset-[var(--bg-card,#FFFFFF)] dark:bg-gray-800"
-                            : "bg-[var(--bg-app,#F0FDF4)]"
+                            ? "bg-white ring-2 ring-[#EA580C] ring-offset-2 ring-offset-[#FFFFFF] dark:bg-gray-800"
+                            : "bg-[#F0FDF4]"
                       }`}
                     >
                       <img
@@ -676,7 +695,7 @@ export default function NgajiCeriaHomePage() {
                       />
                     </div>
                     <span
-                      className={`text-[10px] font-extrabold ${isToday ? "text-[#EA580C]" : isDone ? "text-[var(--text-main,#134E4A)]" : "text-[var(--text-main,#134E4A)]/50"}`}
+                      className={`text-[10px] font-extrabold ${isToday ? "text-[#EA580C]" : isDone ? "text-[#134E4A]" : "text-[#134E4A]/50"}`}
                     >
                       {day.short}
                     </span>
@@ -691,53 +710,105 @@ export default function NgajiCeriaHomePage() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-3xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FEF3C7] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] dark:bg-[var(--bg-card)] sm:p-5">
+          {user && (
+            <section className="rounded-2xl border border-[#134E4A]/10 bg-[#FFFFFF] p-4 shadow-sm sm:p-5">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DBEAFE] text-[#134E4A]">
+                    <GraduationCapSvg size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-display text-sm font-black text-[#134E4A] sm:text-base">
+                      Kelas Saya
+                    </h4>
+                    <p className="text-xs font-semibold text-[#134E4A]/60">
+                      Kelas mu bergabung
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {joinedClassrooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="flex items-center gap-3 rounded-xl border border-[#134E4A]/10 bg-[#F0FDF4] px-3 py-3 shadow-[2px_2px_0px_#134E4A]"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-black text-[#134E4A]">
+                        {room.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs font-medium text-[#134E4A]/60">
+                        {room.ustadzName || "Ustadz"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/member/ngaji-ceria/kelas/${room.id}`)}
+                      className="shrink-0 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border-2 border-[#0D9488] bg-[#0D9488] px-3 py-2 text-xs font-black text-white shadow-[2px_2px_0px_#0D9488] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+                    >
+                      <PlaySvg size={14} />
+                      Buka Kelas
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="overflow-hidden rounded-3xl border-2 border-[#134E4A]/80 bg-[#FEF3C7] p-4 shadow-[3px_3px_0px_#134E4A] dark:bg-[#1E2937] sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0 space-y-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/70 bg-[#0D9488] px-2.5 py-1 text-[10px] font-black text-white sm:text-xs">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#134E4A]/70 bg-[#0D9488] px-2.5 py-1 text-[10px] font-black text-white sm:text-xs">
                   <SparklesSvg size={13} /> ARENA KUIS REAL-TIME
                 </span>
-                <h3 className="font-display text-xl font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-2xl">
-                  Tartila Arena
+                <h3 className="font-display text-xl font-black leading-tight text-[#134E4A] sm:text-2xl">
+                  Main Bareng Teman
                 </h3>
-                <p className="max-w-xl text-sm leading-relaxed text-[var(--text-main,#134E4A)]/75 dark:text-gray-200">
-                  Uji kemampuan Tilawati dan tajwid bersama teman. Gabung dengan
-                  PIN atau buat room sendiri.
+                <p className="max-w-xl text-sm leading-relaxed text-[#134E4A]/75 dark:text-gray-200">
+                  Tantang temanmu atau main bareng santri lain. Kumpulkan poin dan
+                  raih peringkat!
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
                 <button
                   type="button"
                   onClick={() => navigate("/arena/join")}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] px-4 py-2.5 text-sm font-black text-white shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] px-4 py-2.5 text-sm font-black text-white shadow-[2px_2px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
                 >
                   <GamepadSvg size={17} /> Gabung PIN
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/arena/host/create")}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-2.5 text-sm font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A] bg-[#FFFFFF] px-4 py-2.5 text-sm font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
                 >
                   <CrownSvg size={17} />
                   {Boolean(user?.is_ustadz || isUstadzUser(user))
                     ? "Buat Room Ujian"
                     : "Buat Room Main"}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/arena/duel/lobby/new")}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A] bg-[#FF6B6B] px-4 py-2.5 text-sm font-black text-white shadow-[2px_2px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+                >
+                  <SwordsSvg size={17} /> Duel 1v1
+                </button>
               </div>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[var(--border-color,#134E4A)]/10 bg-[var(--bg-card,#FFFFFF)] p-4 shadow-sm sm:p-5">
-            <div className="mb-3 flex items-center justify-between gap-3 border-b border-dashed border-[var(--border-color,#134E4A)]/15 pb-3">
+          <section className="rounded-2xl border border-[#134E4A]/10 bg-[#FFFFFF] p-4 shadow-sm sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-dashed border-[#134E4A]/15 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF0F0] text-[#134E4A] dark:bg-[#1E293B]">
                   <HandsPrayingSvg size={18} />
                 </div>
                 <div>
-                  <h4 className="font-display text-sm font-black text-[var(--text-main,#134E4A)]">
+                  <h4 className="font-display text-sm font-black text-[#134E4A]">
                     Doa Hari Ini
                   </h4>
-                  <p className="text-xs text-[var(--text-main,#134E4A)]/55">
+                  <p className="text-xs text-[#134E4A]/55">
                     Mulai aktivitas dengan basmalah.
                   </p>
                 </div>
@@ -750,9 +821,9 @@ export default function NgajiCeriaHomePage() {
                 Semua <ChevronRightSvg size={14} />
               </button>
             </div>
-            <div className="rounded-xl border border-[#0D9488]/20 bg-[var(--bg-app,#F0FDF4)] px-3 py-4 text-center sm:py-5">
+            <div className="rounded-xl border border-[#0D9488]/20 bg-[#F0FDF4] px-3 py-4 text-center sm:py-5">
               <p
-                className="font-arabic text-2xl leading-loose text-[var(--text-main,#134E4A)] sm:text-3xl"
+                className="font-arabic text-2xl leading-loose text-[#134E4A] sm:text-3xl"
                 dir="rtl"
               >
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
@@ -770,16 +841,16 @@ export default function NgajiCeriaHomePage() {
                 triggerBibiReaction("click");
                 navigate("/member/ngaji-ceria/warung-santri");
               }}
-              className="group relative flex min-h-[88px] items-center gap-3 overflow-hidden rounded-2xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FFE4E6] p-3 text-left shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none dark:bg-[var(--bg-card)] sm:p-4"
+              className="group relative flex min-h-[88px] items-center gap-3 overflow-hidden rounded-2xl border-2 border-[#134E4A]/80 bg-[#FFE4E6] p-3 text-left shadow-[2px_2px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none dark:bg-[#1E2937] sm:p-4"
             >
               <span className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#134E4A]/20 bg-white text-[#134E4A] dark:bg-slate-800 dark:text-[#2DD4BF] sm:h-11 sm:w-11">
                 <StoreSvg size={21} />
               </span>
               <span className="relative z-10 min-w-0">
-                <span className="block text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-base">
+                <span className="block text-sm font-black leading-tight text-[#134E4A] sm:text-base">
                   Warung
                 </span>
-                <span className="mt-1 block text-xs font-medium text-[var(--text-main,#134E4A)]/60">
+                <span className="mt-1 block text-xs font-medium text-[#134E4A]/60">
                   Tukar koin
                 </span>
               </span>
@@ -797,13 +868,13 @@ export default function NgajiCeriaHomePage() {
                 triggerBibiReaction("click");
                 navigate("/member/ngaji-ceria/premium");
               }}
-              className="group relative flex min-h-[88px] items-center gap-3 overflow-hidden rounded-2xl border-2 border-[var(--border-color,#134E4A)]/80 bg-[#FEF3C7] p-3 text-left shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none dark:bg-[var(--bg-card)] sm:p-4"
+              className="group relative flex min-h-[88px] items-center gap-3 overflow-hidden rounded-2xl border-2 border-[#134E4A]/80 bg-[#FEF3C7] p-3 text-left shadow-[2px_2px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none dark:bg-[#1E2937] sm:p-4"
             >
               <span className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#134E4A]/20 bg-white text-[#D97706] dark:bg-slate-800 dark:text-[#FBBF24] sm:h-11 sm:w-11">
                 <CrownSvg size={21} />
               </span>
               <span className="relative z-10 min-w-0">
-                <span className="block text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-base">
+                <span className="block text-sm font-black leading-tight text-[#134E4A] sm:text-base">
                   VIP Pass
                 </span>
                 <span className="mt-1 block text-xs font-medium text-[#B45309] dark:text-[#FDE047]">
