@@ -593,4 +593,61 @@ Rules:
 - **JANGAN panggil** `playSfx("correct")` atau `playSfx("wrong")` (serta `soundManager.playSfx("correct"` / `soundManager.playSfx("wrong"`) di file game/kuis yang sudah memakai `AnswerFeedbackSheet`. Sheet sudah memutar suara otomatis; hanya hapus baris panggilan saja, SFX UI lain (misal: `pop`, `tap`) boleh tetap ada.
 - Komponen `AnswerFeedbackSheet` sudah menangani suara, jingle, dan reaksi Bibi; tidak perlu duplikasi efek tersebut.
 
+### 14.4 Mode Latihan vs Mode Ujian (Feedback)
+
+`AnswerFeedbackSheet` WAJIB membedakan dua mode:
+
+- **Mode Latihan (`isRetryable={true}`)**:
+  - Tidak menampilkan kunci jawaban.
+  - Tampilkan tombol "Coba Lagi" yang mengarah ke pertanyaan yang sama.
+  - Hati, koin, dan streak **tidak** terpengaruh.
+- **Mode Ujian (`isRetryable={false}`)**:
+  - Tampilkan **kunci jawaban** (`answerKey`) setelah feedback.
+  - Tampilkan tombol "Lihat Kunci Jawaban" yang mengarah ke penjelasan jawaban.
+  - Hati, koin, dan streak **tidak** terpengaruh (tidak ada XP).
+- **Pola WAJIB**:
+  ```tsx
+  <AnswerFeedbackSheet
+    isOpen={showFeedback}
+    isCorrect={isCorrect}
+    isRetryable={isPracticeMode}       // true = Latihan, false = Ujian
+    answerKey={isPracticeMode ? undefined : explanation}
+    onNext={handleNext}
+    onRetry={handleRetry}
+  />
+  ```
+- **PENTING**: `isRetryable={true}` hanya boleh digunakan di Mode Latihan. `isRetryable={false}` + `answerKey` hanya boleh digunakan di Mode Ujian.
+
 ---
+
+## 15. Global Leaderboard
+
+- **Frontend dilarang melakukan JOIN langsung ke tabel `users`.** Arsitektur harus tetap dipisah: `users` ada di backend SQLite Go, Supabase hanya menyediakan API RPC.
+- Skor disimpan di tabel `quiz_attempts` dengan kolom `nickname` (denormalisasi). Ini agar leaderboard bisa dibaca tanpa JOIN dengan `users`.
+- Pembacaan peringkat (fetch leaderboard) **wajib melalui RPC** `get_leaderboard_for_game(p_game_id, p_period, p_limit)`. Fungsi ini menggunakan `SECURITY DEFINER` sehingga frontend dengan anon key bisa membaca tanpa akses langsung ke tabel.
+
+Key points for the leaderboard architecture:
+
+1. **No direct join**: `get_leaderboard_for_game` only selects from `quiz_attempts`. Never join `users` in the frontend or in the RPC (unless Supabase side with a proper view).
+2. **nickname denormalization**: Each row in `quiz_attempts` stores `nickname` directly. This means the same user may have different nicknames over time, but the leaderboard stays readable without user table access.
+3. **Upsert on submission**: `submitScore(gameId, score, userId, nickname)` uses `.upsert({...}, { onConflict: 'user_id, game_id' })` so a user plays the same game multiple times without creating duplicate rows.
+4. **Display**: `LeaderboardList` calls `fetchGlobalLeaderboard(gameId, period)` which prefers the REST fallback and falls back to the Supabase RPC. Loading, error, and empty states must always be handled.
+
+---
+
+## 16. Multiplayer State Machine
+
+- State machine wajib mengikuti pola Kahoot: `COUNTDOWN` -> `QUESTION_ACTIVE` -> `REVEAL_ANSWER` -> `LEADERBOARD`.
+- Setiap transisi dari state harus terjadi secara eksplisit (tidak mengizinkan skip fase tanpa event).
+- Gunakan `MultiplayerSetupSheet` untuk input nama & avatar sebelum memasuki sesi. Pastikan `useBotSimulator` (khusus `superadmin`) digunakan untuk QA tanpa memengaruhi scoring production.
+- Bypass bot sim hanya berlaku untuk `superadmin`. User biasa wajib dilalui lewat `MultiplayerSetupSheet`.
+
+---
+
+## 17. Feedback & Answer Logic
+
+*(Dokumen ini masih dikembangkan. Lihat Bab 14.4 untuk detail mode latihan vs ujian.)*
+
+---
+
+_Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._

@@ -1,18 +1,36 @@
 -- Global leaderboard: get_leaderboard_for_game RPC
 -- HANYA query quiz_attempts. TIDAK ada JOIN ke users.
--- nickname disimpan langsung di quiz_attempts.
--- Fitur: UPSERT per (user_id, game_id) dan UNIQUE constraint.
+-- Tabel quiz_attempts SUDAH ADA di migrasi sebelumnya.
+-- Tambahkan kolom yang butuhkan untuk leaderboard fitur baru.
 
--- 1. Buat tabel quiz_attempts jika belum ada
-CREATE TABLE IF NOT EXISTS quiz_attempts (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     TEXT,
-  game_id     TEXT NOT NULL,
-  score       INTEGER NOT NULL DEFAULT 0,
-  nickname    TEXT NOT NULL,
-  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- 1. Tambah kolom game_id, nickname, created_at, updated_at jika belum ada
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'quiz_attempts' AND column_name = 'game_id'
+  ) THEN
+    ALTER TABLE quiz_attempts ADD COLUMN game_id TEXT NOT NULL DEFAULT '';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'quiz_attempts' AND column_name = 'nickname'
+  ) THEN
+    ALTER TABLE quiz_attempts ADD COLUMN nickname TEXT NOT NULL DEFAULT 'Santri';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'quiz_attempts' AND column_name = 'created_at'
+  ) THEN
+    ALTER TABLE quiz_attempts ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'quiz_attempts' AND column_name = 'updated_at'
+  ) THEN
+    ALTER TABLE quiz_attempts ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+  END IF;
+END $$;
 
 -- 2. Index performa
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user_id    ON quiz_attempts(user_id);
@@ -66,21 +84,30 @@ AS $$
   LIMIT p_limit;
 $$;
 
--- 5. RLS Policies
-CREATE POLICY IF NOT EXISTS leaderboard_read_policy
+-- 5. RLS: everyone bisa baca leaderboard
+-- NOTE: get_leaderboard_for_game dijalankan dengan SECURITY DEFINER,
+--       jadi RLS policy tidak akan diblokir. Policy read ini hanyalah
+--       fallback jika RPC dipanggil tanpa definer.
+DROP POLICY IF EXISTS leaderboard_read_policy_old ON quiz_attempts;
+CREATE POLICY leaderboard_read_policy
   ON quiz_attempts
   FOR SELECT
-  TO anonymous
+  TO authenticated, anon
   USING (true);
 
-CREATE POLICY IF NOT EXISTS quiz_attempts_upsert_policy
+-- 6. RLS: authenticated + anonymous bisa insert/upsert skor
+-- NOTE: Untuk prod, sebaiknya pakai authenticated role, bukan anonymous.
+--       anonymous hanya untuk testing dev lokal.
+DROP POLICY IF EXISTS quiz_attempts_upsert_policy_old ON quiz_attempts;
+CREATE POLICY quiz_attempts_upsert_policy
   ON quiz_attempts
   FOR INSERT
-  TO anonymous
+  TO authenticated, anon
   WITH CHECK (game_id IS NOT NULL AND score IS NOT NULL AND nickname IS NOT NULL);
 
-CREATE POLICY IF NOT EXISTS quiz_attempts_upsert_update_policy
+DROP POLICY IF EXISTS quiz_attempts_upsert_update_policy_old ON quiz_attempts;
+CREATE POLICY quiz_attempts_upsert_update_policy
   ON quiz_attempts
   FOR UPDATE
-  TO anonymous
+  TO authenticated, anon
   USING (user_id IS NOT NULL);
