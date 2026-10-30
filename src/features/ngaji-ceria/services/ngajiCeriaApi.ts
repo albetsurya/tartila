@@ -118,11 +118,12 @@ export interface ServerSupabaseLeaderboardResponse {
   total: number;
 }
 
-/** Menyimpan skor game ke database (single row per game). */
+/** Menyimpan skor game ke database (UPSERT per user+game). */
 export async function submitScore(
   gameId: string,
   score: number,
   userId?: string | null,
+  nickname?: string,
 ): Promise<{ success: boolean; id: string | null }> {
   if (!isSupabaseConfigured) {
     return { success: false, id: null };
@@ -130,11 +131,15 @@ export async function submitScore(
 
   const { data, error } = await supabase
     .from("quiz_attempts")
-    .insert({
-      game_id: gameId,
-      score: Number(score ?? 0),
-      user_id: userId || null,
-    })
+    .upsert(
+      {
+        user_id: userId || null,
+        game_id: gameId,
+        score: Number(score ?? 0),
+        nickname: nickname || "Pengguna",
+      },
+      { onConflict: "user_id, game_id" },
+    )
     .select("id")
     .single();
 
@@ -143,7 +148,7 @@ export async function submitScore(
     return { success: false, id: null };
   }
 
-  return { success: true, id: data.id };
+  return { success: true, id: (data as any)?.id ?? null };
 }
 
 /** REST fallback (Go server, SQLite): superset of Supabase response. */

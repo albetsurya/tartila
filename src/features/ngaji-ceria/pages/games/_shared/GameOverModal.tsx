@@ -90,10 +90,11 @@ export function GameOverModal({
     setCoinsGained(progress.coins - beforeCoins);
     recordLeaderboard(gameId, score);
     // Simpan skor user ke database (Supabase / REST).
-    // Satu row per game; userId opsional bila ada di AuthContext.
+    // Satu row per game; userId + nickname opsional bila ada di AuthContext.
     try {
       const userId = user?.id || (user as any)?.userId || null;
-      void submitScore(gameId, score, userId);
+      const nick = user?.name || user?.username || "Pengguna";
+      void submitScore(gameId, score, userId, nick);
     } catch {
       // Gagal simpan skor ke DB, skor tetap tampil dari localStorage.
     }
