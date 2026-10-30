@@ -2,15 +2,15 @@ import { useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { Pause, Volume2, UfoSvg } from "../../../../components/ui/CustomIcons";
+import { Volume2, UfoSvg } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 import { ExploreHeader } from "../../components/ExploreHeader";
 
-/** Pola bintang deep-space (SVG statis, warna solid tegas) */
-const SpaceStarsSvg = ({ className = "" }: { className?: string }) => (
+/** Taburan Bintang Kuning di Langit Malam di Atas Lautan */
+const OceanNightStarsSvg = ({ className = "" }: { className?: string }) => (
   <svg
     className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
     viewBox="0 0 400 400"
@@ -18,418 +18,162 @@ const SpaceStarsSvg = ({ className = "" }: { className?: string }) => (
     aria-hidden="true"
   >
     {[
-      [20, 30, 2],
-      [70, 90, 1.5],
-      [130, 20, 2.5],
-      [180, 70, 2],
-      [240, 30, 1.5],
-      [300, 80, 2.5],
-      [360, 25, 2],
-      [45, 160, 1.5],
-      [110, 130, 2],
-      [170, 180, 1.5],
-      [260, 150, 2],
-      [330, 170, 1.5],
-      [375, 140, 2],
-      [30, 250, 2],
-      [95, 280, 1.5],
-      [160, 240, 2.5],
-      [225, 300, 1.5],
-      [290, 260, 2],
-      [355, 310, 2.5],
-      [60, 360, 2],
-      [140, 380, 1.5],
-      [250, 370, 2],
-      [320, 385, 1.5],
+      [20, 25, 2.5],
+      [75, 60, 2],
+      [130, 20, 3],
+      [185, 55, 2],
+      [245, 28, 2.5],
+      [305, 65, 3],
+      [365, 22, 2.5],
+      [45, 120, 2],
+      [115, 105, 2.5],
+      [175, 135, 2],
+      [265, 115, 2.5],
+      [335, 130, 2],
+      [375, 100, 2.5],
     ].map(([cx, cy, r], i) => (
-      <circle
-        key={i}
-        cx={cx}
-        cy={cy}
-        r={r}
-        fill="#FEF08A"
-        stroke="#FDE047"
-        strokeWidth="0"
-      />
+      <circle key={i} cx={cx} cy={cy} r={r} fill="#FACC15" />
     ))}
     {[
-      [200, 100],
-      [80, 200],
-      [320, 220],
+      [60, 45],
+      [210, 35],
+      [340, 50],
+      [145, 85],
+      [285, 90],
     ].map(([cx, cy], i) => (
       <path
-        key={`spark-${i}`}
-        d={`M ${cx} ${cy - 8} L ${cx + 2} ${cy - 2} L ${cx + 8} ${cy} L ${cx + 2} ${cy + 2} L ${cx} ${cy + 8} L ${cx - 2} ${cy + 2} L ${cx - 8} ${cy} L ${cx - 2} ${cy - 2} Z`}
-        fill="#FFFFFF"
-        stroke="#134E4A"
-        strokeWidth="1.5"
+        key={`star-${i}`}
+        d={`M ${cx} ${cy - 9} L ${cx + 2.5} ${cy - 2.5} L ${cx + 9} ${cy} L ${cx + 2.5} ${cy + 2.5} L ${cx} ${cy + 9} L ${cx - 2.5} ${cy + 2.5} L ${cx - 9} ${cy} L ${cx - 2.5} ${cy - 2.5} Z`}
+        fill="#FACC15"
+        stroke="#451A03"
+        strokeWidth="1.2"
       />
     ))}
   </svg>
 );
 
-/** ── VARIAN PLANET ────────────────────────────────────────── */
-type PlanetVariant =
-  | "saturn"
-  | "earth"
-  | "mars"
-  | "jupiter"
-  | "venus"
-  | "neptune"
-  | "ice"
-  | "gasPurple";
+type VesselVariant = "paperBoat" | "seashell";
 
-const PLANET_VARIANTS: PlanetVariant[] = [
-  "saturn",
-  "earth",
-  "mars",
-  "jupiter",
-  "venus",
-  "neptune",
-  "ice",
-  "gasPurple",
-];
+const VESSEL_SIZE = 132;
 
-/** Ukuran planet (px). Ubah satu konstanta ini untuk resize global. */
-const PLANET_SIZE = 128;
-
-function PlanetVisual({
+function OceanVesselVisual({
   variant,
-  size = PLANET_SIZE,
+  index,
+  size = VESSEL_SIZE,
 }: {
-  variant: PlanetVariant;
+  variant: VesselVariant;
+  index: number;
   size?: number;
 }) {
   const uid = useId().replace(/:/g, "");
   const stroke = "#134E4A";
   const sw = 3;
+  const sailColors = ["#FEF3C7", "#FEF08A", "#BAE6FD", "#FDE68A"];
+  const hullColors = ["#D97706", "#EF4444", "#0D9488", "#F59E0B"];
+  const shellColors = ["#FDE68A", "#FECDD3", "#BAE6FD", "#FEF08A"];
+
+  const sailFill = sailColors[index % sailColors.length];
+  const hullFill = hullColors[index % hullColors.length];
+  const shellFill = shellColors[index % shellColors.length];
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 80 80"
+      viewBox="0 0 88 88"
       className="absolute inset-0"
       aria-hidden="true"
     >
-      {/* SATURN: cincin dua lapis (belakang + depan) */}
-      {variant === "saturn" && (
-        <g>
-          <path
-            d="M 4 40 A 36 10 0 0 1 76 40"
-            transform="rotate(-15 40 40)"
-            fill="none"
+      {variant === "paperBoat" ? (
+        <g id={`boat-${uid}`}>
+          {/* Bintang Kuning Kecil di Puncak Layar */}
+          <polygon
+            points="44,4 46,9 51,9 47,12 48,17 44,14 40,17 41,12 37,9 42,9"
+            fill="#FACC15"
             stroke={stroke}
-            strokeWidth="4"
-            strokeLinecap="round"
+            strokeWidth="1.5"
           />
+          {/* Layar Segitiga Kiri & Kanan Perahu Kertas */}
           <path
-            d="M 4 40 A 36 10 0 0 1 76 40"
-            transform="rotate(-15 40 40)"
-            fill="none"
-            stroke="#FCD34D"
-            strokeWidth="2"
-          />
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#F59E0B"
+            d="M 44 16 L 18 52 L 44 52 Z"
+            fill={sailFill}
             stroke={stroke}
             strokeWidth={sw}
+            strokeLinejoin="round"
           />
           <path
-            d="M 22 34 Q 40 30 58 34"
-            stroke="#FBBF24"
-            strokeWidth="2"
-            fill="none"
-          />
-          <path
-            d="M 22 46 Q 40 42 58 46"
-            stroke="#FBBF24"
-            strokeWidth="2"
-            fill="none"
-          />
-          <path
-            d="M 4 40 A 36 10 0 0 0 76 40"
-            transform="rotate(-15 40 40)"
-            fill="none"
-            stroke={stroke}
-            strokeWidth="4"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 4 40 A 36 10 0 0 0 76 40"
-            transform="rotate(-15 40 40)"
-            fill="none"
-            stroke="#FCD34D"
-            strokeWidth="2"
-          />
-        </g>
-      )}
-
-      {/* BUMI: biru + benua hijau + awan */}
-      {variant === "earth" && (
-        <g>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#38BDF8"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <path
-            d="M 26 32 Q 30 28 34 32 Q 36 38 32 40 Q 26 38 26 32 Z"
-            fill="#22C55E"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <path
-            d="M 44 42 Q 52 40 54 46 Q 52 52 46 50 Q 42 46 44 42 Z"
-            fill="#22C55E"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <path
-            d="M 34 48 Q 40 46 42 52 Q 38 56 34 52 Z"
-            fill="#22C55E"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <ellipse
-            cx="34"
-            cy="24"
-            rx="5"
-            ry="1.8"
+            d="M 44 16 L 70 52 L 44 52 Z"
             fill="#FFFFFF"
-            opacity="0.85"
-          />
-          <ellipse
-            cx="50"
-            cy="34"
-            rx="4"
-            ry="1.5"
-            fill="#FFFFFF"
-            opacity="0.85"
-          />
-        </g>
-      )}
-
-      {/* MARS: merah + kawah gelap + kutub es */}
-      {variant === "mars" && (
-        <g>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#DC2626"
             stroke={stroke}
             strokeWidth={sw}
+            strokeLinejoin="round"
           />
-          <ellipse cx="32" cy="36" rx="6" ry="4" fill="#991B1B" opacity="0.7" />
-          <ellipse cx="48" cy="46" rx="7" ry="4" fill="#991B1B" opacity="0.7" />
-          <ellipse cx="36" cy="50" rx="4" ry="3" fill="#991B1B" opacity="0.7" />
-          <ellipse
-            cx="40"
-            cy="24"
-            rx="5"
-            ry="2"
-            fill="#FEE2E2"
-            stroke={stroke}
-            strokeWidth="1"
-          />
-          <ellipse
-            cx="40"
-            cy="56"
-            rx="4"
-            ry="1.8"
-            fill="#FEE2E2"
-            stroke={stroke}
-            strokeWidth="1"
-          />
-        </g>
-      )}
-
-      {/* JUPITER: pita horizontal + bintik merah */}
-      {variant === "jupiter" && (
-        <g>
-          <defs>
-            <clipPath id={`jup-${uid}`}>
-              <circle cx="40" cy="40" r="20" />
-            </clipPath>
-          </defs>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#F97316"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <g clipPath={`url(#jup-${uid})`}>
-            <rect x="18" y="28" width="44" height="3" fill="#C2410C" />
-            <rect x="18" y="35" width="44" height="2" fill="#FBBF24" />
-            <rect x="18" y="41" width="44" height="3" fill="#C2410C" />
-            <rect x="18" y="48" width="44" height="2" fill="#FBBF24" />
-            <ellipse
-              cx="52"
-              cy="44"
-              rx="5"
-              ry="3.5"
-              fill="#DC2626"
-              stroke={stroke}
-              strokeWidth="1"
-            />
-          </g>
-        </g>
-      )}
-
-      {/* VENUS: kuning + gelombang awan */}
-      {variant === "venus" && (
-        <g>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
+          {/* Lipatan Tengah Perahu Kertas */}
+          <path
+            d="M 44 26 L 30 52 L 58 52 Z"
             fill="#FDE047"
             stroke={stroke}
-            strokeWidth={sw}
-          />
-          <path
-            d="M 24 30 Q 40 26 56 32"
-            stroke="#F59E0B"
-            strokeWidth="3"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 22 40 Q 40 36 58 42"
-            stroke="#F59E0B"
-            strokeWidth="3"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 26 50 Q 40 46 54 52"
-            stroke="#F59E0B"
-            strokeWidth="3"
-            fill="none"
-            strokeLinecap="round"
-          />
-        </g>
-      )}
-
-      {/* NEPTUNUS: biru tua + pita + bintik gelap */}
-      {variant === "neptune" && (
-        <g>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#3B82F6"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <path
-            d="M 22 34 Q 40 30 58 34"
-            stroke="#1E40AF"
             strokeWidth="2.5"
-            fill="none"
+            strokeLinejoin="round"
           />
+          {/* Lambung Perahu Kertas */}
           <path
-            d="M 22 46 Q 40 50 58 46"
-            stroke="#1E40AF"
-            strokeWidth="2.5"
+            d="M 10 50 L 78 50 L 66 68 L 22 68 Z"
+            fill={hullFill}
+            stroke={stroke}
+            strokeWidth={sw}
+            strokeLinejoin="round"
+          />
+          {/* Ombak Biru di Bawah Perahu */}
+          <path
+            d="M 8 68 Q 20 63 32 68 T 56 68 T 80 68"
             fill="none"
-          />
-          <ellipse cx="46" cy="42" rx="6" ry="4" fill="#1E3A8A" opacity="0.8" />
-        </g>
-      )}
-
-      {/* PLANET ES: biru muda + kawah */}
-      {variant === "ice" && (
-        <g>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#7DD3FC"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <circle
-            cx="32"
-            cy="32"
-            r="4"
-            fill="#0EA5E9"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <circle
-            cx="48"
-            cy="44"
-            r="3"
-            fill="#0EA5E9"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <circle
-            cx="36"
-            cy="50"
-            r="5"
-            fill="#0EA5E9"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <circle
-            cx="50"
-            cy="28"
-            r="2.5"
-            fill="#0EA5E9"
-            stroke={stroke}
-            strokeWidth="1.2"
-          />
-          <circle
-            cx="28"
-            cy="46"
-            r="2"
-            fill="#0EA5E9"
-            stroke={stroke}
-            strokeWidth="1.2"
+            stroke="#FEF08A"
+            strokeWidth="3"
+            strokeLinecap="round"
           />
         </g>
-      )}
-
-      {/* GAS GIANT UNGU: pita + kilau bintang */}
-      {variant === "gasPurple" && (
-        <g>
-          <defs>
-            <clipPath id={`gp-${uid}`}>
-              <circle cx="40" cy="40" r="20" />
-            </clipPath>
-          </defs>
-          <circle
-            cx="40"
-            cy="40"
-            r="20"
-            fill="#A855F7"
+      ) : (
+        <g id={`shell-${uid}`}>
+          {/* Hiasan Bintang Kuning di Atas Kerang */}
+          <polygon
+            points="44,6 46,11 51,11 47,14 48,19 44,16 40,19 41,14 37,11 42,11"
+            fill="#FACC15"
+            stroke={stroke}
+            strokeWidth="1.5"
+          />
+          {/* Cangkang Kerang Laut Bergerigi */}
+          <path
+            d="M 16 54 C 12 32 26 20 44 20 C 62 20 76 32 72 54 L 60 66 L 28 66 Z"
+            fill={shellFill}
             stroke={stroke}
             strokeWidth={sw}
+            strokeLinejoin="round"
           />
-          <g clipPath={`url(#gp-${uid})`}>
-            <rect x="18" y="32" width="44" height="3" fill="#7E22CE" />
-            <rect x="18" y="42" width="44" height="3" fill="#7E22CE" />
-            <circle cx="50" cy="36" r="2" fill="#FEF08A" />
-            <circle cx="32" cy="48" r="1.5" fill="#FEF08A" />
-          </g>
+          {/* Garis-Garis Guratan Kerang */}
+          <path
+            d="M 44 64 L 26 28 M 44 64 L 44 22 M 44 64 L 62 28"
+            stroke={stroke}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          {/* Engsel Bawah Kerang */}
+          <rect
+            x="26"
+            y="62"
+            width="36"
+            height="8"
+            rx="4"
+            fill="#D97706"
+            stroke={stroke}
+            strokeWidth="2.5"
+          />
         </g>
       )}
     </svg>
   );
 }
 
-/** ── HALAMAN ──────────────────────────────────────────────── */
 export default function JuzAmmaStarsPage() {
   const navigate = useNavigate();
   const { isPlaying, currentAudioUrl, toggle } = useAudioPlayer();
@@ -450,140 +194,80 @@ export default function JuzAmmaStarsPage() {
 
   return (
     <NgajiCeriaLayout
-      title="Galaksi Juz 'Amma"
+      title="Samudra Juz 'Amma"
       hideHeader={true}
       themeScope="juz-amma"
       onBack={handleBack}
     >
-      <div className="min-h-[100dvh] w-full bg-[#1E1B4B] relative overflow-x-hidden pb-28">
-        <SpaceStarsSvg />
+      {/* Latar Langit Malam di Atas Samudra (#0F172A ke #0369A1) */}
+      <div className="min-h-[100dvh] w-full bg-[#0369A1] relative overflow-x-hidden pb-28">
+        {/* Kubah Langit Malam Berbintang Kuning di Bagian Atas */}
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-80 bg-[#0F172A] border-b-[4px] border-[#FEF08A]" />
+        <OceanNightStarsSvg />
+
+        {/* Bibir Pantai Pasir di Bagian Paling Bawah */}
+        <div
+          className="pointer-events-none fixed bottom-0 left-0 right-0 h-24 bg-[#FDE68A] border-t-[4px] border-[#451A03] z-0"
+          style={{
+            clipPath:
+              "polygon(0% 35%, 25% 15%, 55% 40%, 85% 10%, 100% 30%, 100% 100%, 0% 100%)",
+          }}
+        />
 
         <ExploreHeader
-          title="Galaksi Juz 'Amma"
-          subtitle="Petualangan Bintang & Misi Hafalan"
+          title="Samudra Juz 'Amma"
+          subtitle="Pelayaran Perahu Kertas & Kerang Mutiara"
           onBack={handleBack}
           themeScope="juz-amma"
-          themeColorClass="bg-[#1E1B4B]"
-          borderColorClass="border-[#FEF08A]"
+          themeColorClass="bg-[#0F172A]"
+          borderColorClass="border-[#FACC15]"
           shadowClass="shadow-[0_3px_0px_#134E4A]"
-          textColorClass="text-[#FEF08A]"
-          backClass="bg-[#FEF08A] text-[#134E4A] border-[#FEF08A] shadow-[2px_2px_0px_#134E4A]"
-        >
-          <svg
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            viewBox="0 0 400 64"
-            preserveAspectRatio="xMidYMid slice"
-            aria-hidden="true"
-          >
-            {[
-              [40, 12, 1.5],
-              [90, 44, 2],
-              [150, 10, 2.5],
-              [210, 50, 1.5],
-              [270, 14, 2],
-              [330, 46, 2.5],
-              [380, 16, 1.5],
-            ].map(([cx, cy, r], i) => (
-              <circle
-                key={i}
-                cx={cx}
-                cy={cy}
-                r={r}
-                fill="#FEF08A"
-                stroke="#FDE047"
-                strokeWidth="0"
-              />
-            ))}
-          </svg>
-        </ExploreHeader>
+          textColorClass="text-[#FACC15]"
+          backClass="bg-[#FACC15] text-[#134E4A] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+        />
 
-        <div className="relative z-10 px-4 pt-4">
-          {/* ── HERO MISI HAFALAN ── */}
-          <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#FEF08A] bg-[#312E81] p-5 text-white shadow-[4px_4px_0px_#134E4A]">
-            <svg
-              className="absolute -top-2 right-2 h-24 w-24"
-              viewBox="0 0 96 96"
-              aria-hidden="true"
-            >
-              <g transform="rotate(20 48 48)">
-                <path
-                  d="M 48 8 Q 64 26 58 52 L 38 52 Q 32 26 48 8 Z"
-                  fill="#FF6B6B"
-                  stroke="#134E4A"
-                  strokeWidth="3"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx="48"
-                  cy="32"
-                  r="6"
-                  fill="#FEF08A"
-                  stroke="#134E4A"
-                  strokeWidth="2.5"
-                />
-                <path
-                  d="M 38 44 L 28 58 L 38 54 Z"
-                  fill="#F59E0B"
-                  stroke="#134E4A"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 58 44 L 68 58 L 58 54 Z"
-                  fill="#F59E0B"
-                  stroke="#134E4A"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 42 52 Q 48 66 54 52 Q 48 56 42 52 Z"
-                  fill="#FBBF24"
-                  stroke="#134E4A"
-                  strokeWidth="2"
-                />
-              </g>
-              <circle
-                cx="14"
-                cy="70"
-                r="2.5"
-                fill="#FEF08A"
-                stroke="#134E4A"
-                strokeWidth="1.5"
-              />
-              <circle
-                cx="82"
-                cy="62"
-                r="2"
-                fill="#FEF08A"
-                stroke="#134E4A"
-                strokeWidth="1.5"
-              />
-            </svg>
+        <div className="relative z-10 px-4 pt-4 max-w-4xl mx-auto">
+          {/* HERO PELAYARAN SAMUDRA MALAM */}
+          <section className="relative overflow-hidden rounded-[24px] border-[4px] border-[#FACC15] bg-[#1E3A8A] p-5 text-[#FFFFFF] shadow-[6px_6px_0px_#0F172A]">
+            {/* Hiasan Bulan & Bintang Kuning */}
+            <div className="absolute right-4 top-4 flex items-center gap-2">
+              <div className="w-14 h-14 rounded-2xl bg-[#0284C7] border-[3px] border-[#FACC15] flex items-center justify-center shadow-[3px_3px_0px_#0F172A] rotate-6">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                    fill="#FACC15"
+                    stroke="#134E4A"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+            </div>
 
-            <div className="relative z-10 max-w-[70%]">
-              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[#FEF08A] bg-[#1E1B4B] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FEF08A]">
-                <UfoSvg size={14} /> Misi Antariksa
+            <div className="relative z-10 max-w-[74%]">
+              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border-[2.5px] border-[#FACC15] bg-[#0F172A] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FACC15]">
+                <UfoSvg size={14} /> Ekspedisi Laut Malam
               </span>
-              <h2 className="mt-1 font-display text-xl font-black leading-tight text-white">
-                Terbang ke planet surah & kumpulkan bintangnya!
+              <h2 className="mt-1 font-display text-xl font-black leading-tight text-[#FFFFFF]">
+                Berlayar dengan Perahu Kertas & Temukan Kerang Surah!
               </h2>
               <div className="mt-3 flex items-center gap-2">
-                <span className="inline-block rounded-md border-2 border-[#134E4A] bg-[#FF6B6B] px-2.5 py-1 text-[10px] font-black text-white">
-                  37 Surah
+                <span className="inline-block rounded-md border-[2.5px] border-[#134E4A] bg-[#FACC15] px-2.5 py-1 text-[10px] font-black text-[#134E4A]">
+                  ★ 37 Surah
                 </span>
-                <span className="inline-block rounded-md border-2 border-[#134E4A] bg-[#F59E0B] px-2.5 py-1 text-[10px] font-black text-[#134E4A]">
-                  Juz 30
+                <span className="inline-block rounded-md border-[2.5px] border-[#134E4A] bg-[#38BDF8] px-2.5 py-1 text-[10px] font-black text-[#134E4A]">
+                  Samudra Juz 30
                 </span>
               </div>
             </div>
           </section>
 
-          {/* ── PETA PLANET ── */}
-          <section className="mt-6 grid grid-cols-2 gap-x-3 gap-y-10">
+          {/* GRID PERAHU KERTAS & KERANG DI ATAS OMBAK */}
+          <section className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-10">
             {JUZ_AMMA_SURAHS.map((surah, i) => {
               const isSurahPlaying =
                 isPlaying && currentAudioUrl === surah.audioUrl;
-              const variant = PLANET_VARIANTS[i % PLANET_VARIANTS.length];
+              const variant: VesselVariant =
+                i % 2 === 0 ? "paperBoat" : "seashell";
 
               return (
                 <motion.div
@@ -599,54 +283,52 @@ export default function JuzAmmaStarsPage() {
                     },
                   }}
                 >
-                  {/* Planet + orbit */}
+                  {/* Perahu Kertas / Kerang + Riak Ombak */}
                   <div
                     className="relative"
-                    style={{ width: PLANET_SIZE, height: PLANET_SIZE }}
+                    style={{ width: VESSEL_SIZE, height: VESSEL_SIZE }}
                   >
-                    {/* Garis orbit: disembunyikan untuk Saturnus agar tidak bertabrakan dengan cincinnya */}
-                    {variant !== "saturn" && (
-                      <div
-                        className="absolute -inset-3 rounded-full border-2 border-dashed border-[#FEF08A]/50"
-                        aria-hidden="true"
-                      />
-                    )}
-                    {/* Bulan kecil di orbit */}
-                    <span className="absolute -inset-3" aria-hidden="true">
-                      <span
-                        className={`absolute -top-1 ${i % 2 ? "left-0" : "right-0"} block h-3 w-3 rounded-full border-2 border-[#134E4A] bg-[#FBBF24] shadow-[1.5px_1.5px_0px_#134E4A]`}
-                      />
+                    {/* Hiasan Bintang Kuning Kecil di Samping */}
+                    <span
+                      className={`absolute top-1 ${
+                        i % 2 ? "left-1" : "right-1"
+                      } z-20 flex h-5 w-5 items-center justify-center rounded-full border-[2px] border-[#134E4A] bg-[#FACC15] text-[10px] font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A]`}
+                    >
+                      ★
                     </span>
 
-                    {/* Planet: drop-shadow blocky + glow saat playing */}
                     <div
                       className="absolute inset-0"
                       style={{
                         filter: isSurahPlaying
-                          ? "drop-shadow(4px 4px 0 #134E4A) drop-shadow(0 0 16px rgba(254,240,138,0.9))"
-                          : "drop-shadow(4px 4px 0 #134E4A)",
+                          ? "drop-shadow(4px 4px 0 #0F172A) drop-shadow(0 0 14px #FACC15)"
+                          : "drop-shadow(4px 4px 0 #0F172A)",
                       }}
                     >
-                      <PlanetVisual variant={variant} size={PLANET_SIZE} />
+                      <OceanVesselVisual
+                        variant={variant}
+                        index={i}
+                        size={VESSEL_SIZE}
+                      />
                     </div>
 
-                    {/* Nomor surah di atas planet */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="font-display text-3xl font-black text-white [text-shadow:2px_2px_0_#134E4A]">
+                    {/* Nomor Surah (Mutiara / Lencana Layar) */}
+                    <div className="absolute inset-0 flex items-center justify-center pt-3">
+                      <span className="rounded-full bg-[#0F172A]/85 border-[2.5px] border-[#FACC15] px-2.5 py-0.5 font-display text-xl font-black text-[#FACC15] shadow-[2px_2px_0px_#134E4A]">
                         {surah.number}
                       </span>
                     </div>
                   </div>
 
-                  {/* Nama planet */}
-                  <span className="mt-3 inline-block max-w-full truncate rounded-full border-2 border-[#134E4A] bg-[#FEF08A] px-3 py-1 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                  {/* Papan Nama Perahu/Kerang Surah */}
+                  <span className="mt-2 inline-block max-w-full truncate rounded-xl border-[3px] border-[#134E4A] bg-[#FEF3C7] px-3.5 py-1 text-xs font-black text-[#451A03] shadow-[3px_3px_0px_#0F172A]">
                     {surah.name}
                   </span>
-                  <span className="mt-1 text-[10px] font-black uppercase tracking-wider text-[#FEF08A]">
-                    {surah.ayah} ayat
+                  <span className="mt-1 text-[10px] font-black uppercase tracking-wider text-[#FACC15]">
+                    ★ {surah.ayah} ayat
                   </span>
 
-                  {/* Tombol audio */}
+                  {/* Tombol Audio */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -658,14 +340,18 @@ export default function JuzAmmaStarsPage() {
                         ? `Jeda ${surah.name}`
                         : `Putar ${surah.name}`
                     }
-                    className={`mt-2 flex items-center justify-center gap-1.5 rounded-lg border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-y-[1px] active:shadow-none ${
+                    className={`mt-2 flex items-center justify-center gap-1.5 rounded-xl border-[3px] border-[#134E4A] px-3.5 py-1.5 text-xs font-black shadow-[3px_3px_0px_#0F172A] transition-all active:translate-y-[1px] active:shadow-none cursor-pointer ${
                       isSurahPlaying
-                        ? "bg-[#FF6B6B] text-white"
-                        : "bg-white text-[#134E4A]"
+                        ? "bg-[#EF4444] text-[#FFFFFF]"
+                        : "bg-[#FACC15] text-[#134E4A]"
                     }`}
                   >
                     {isSurahPlaying ? (
-                      <EqualizerIcon isPlaying={true} size={14} barClassName="bg-white" />
+                      <EqualizerIcon
+                        isPlaying={true}
+                        size={14}
+                        barClassName="bg-[#FFFFFF]"
+                      />
                     ) : (
                       <Volume2 size={14} />
                     )}

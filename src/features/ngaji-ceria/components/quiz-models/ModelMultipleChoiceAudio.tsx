@@ -80,6 +80,9 @@ export function ModelMultipleChoiceAudio({
   onNext,
   onPlayAudio,
   isAudioPlaying,
+  isRetryable,
+  correctAnswer,
+  explanation,
 }: ModelMultipleChoiceAudioProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -255,6 +258,9 @@ export function ModelMultipleChoiceAudio({
         onNext={onNext}
         onRetry={handleRetry}
         onReset={handleRetry}
+        isRetryable={isRetryable}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
       />
     </div>
   );

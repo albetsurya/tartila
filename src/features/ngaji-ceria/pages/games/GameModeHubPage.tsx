@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { staggerContainerVariants, staggerItemVariants } from "@/lib/animationVariants";
+import {
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/lib/animationVariants";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { useGameAccess } from "../../components/GameLockGuard";
 import { useActiveGames } from "../../hooks/useActiveGames";
@@ -17,10 +20,10 @@ import { triggerTilaReaction } from "@/utils/tilaEvent";
 import { getBest } from "./_shared/storage";
 import { GameCard } from "./_shared/GameCard";
 import {
-  HarakatRushCoverSvg,
+  HarakatSlasherCoverSvg,
   MakhrajMasterCoverSvg,
   HijaiyahBeatsCoverSvg,
-  HijaiyahPopCoverSvg,
+  HijaiyahHarvestCoverSvg,
   HijaiyahRushCoverSvg,
   HijaiyahMatchArenaCoverSvg,
   JuzAmmaSpeedrunCoverSvg,
@@ -68,9 +71,10 @@ const HUBS: Record<
     modes: [
       {
         title: "Harakat Slasher",
-        description: "Tebas huruf harakat target ala fruit ninja dan hindari pengecoh.",
+        description:
+          "Tebas huruf harakat target ala fruit ninja dan hindari pengecoh.",
         path: "/member/ngaji-ceria/games/harakat-rush",
-        cover: <HarakatRushCoverSvg size={88} />,
+        cover: <HarakatSlasherCoverSvg size={88} />,
         bestKey: "harakat-rush",
         bgColor: "bg-[#F0FDF4]",
       },
@@ -94,13 +98,14 @@ const HUBS: Record<
         title: "Hijaiyah Pop",
         description: "Pecahkan buah dan balon huruf hijaiyah secepat kilat.",
         path: "/member/ngaji-ceria/games/hijaiyah-pop",
-        cover: <HijaiyahPopCoverSvg size={88} />,
+        cover: <HijaiyahHarvestCoverSvg size={88} />,
         bestKey: "hijaiyah-pop",
         bgColor: "bg-[#FEF9C3]",
       },
       {
         title: "Hijaiyah Rush",
-        description: "Lari dan kumpulkan huruf hijaiyah sambil hindari rintangan.",
+        description:
+          "Lari dan kumpulkan huruf hijaiyah sambil hindari rintangan.",
         path: "/member/ngaji-ceria/games/hijaiyah-rush",
         cover: <HijaiyahRushCoverSvg size={88} />,
         bestKey: "hijaiyah-rush",
@@ -140,7 +145,8 @@ const HUBS: Record<
       },
       {
         title: "Nur Battle",
-        description: "Nyalakan tiga lantai menara lentera dengan ilmu Al-Qur'an.",
+        description:
+          "Nyalakan tiga lantai menara lentera dengan ilmu Al-Qur'an.",
         path: "/member/ngaji-ceria/games/nur-battle",
         cover: <NurBattleCoverSvg size={88} />,
         bestKey: "nur-battle",
@@ -172,7 +178,8 @@ const HUBS: Record<
       },
       {
         title: "Hijaiyah 2048",
-        description: "Gabungkan tile huruf hijaiyah hingga mencapai huruf akhir.",
+        description:
+          "Gabungkan tile huruf hijaiyah hingga mencapai huruf akhir.",
         path: "/member/ngaji-ceria/games/hijaiyah-2048",
         cover: <Hijaiyah2048CoverSvg size={88} />,
         bestKey: "hijaiyah-2048",
@@ -191,7 +198,8 @@ const HUBS: Record<
   "tajwid-lab": {
     title: "Tajwid Lab",
     tagline: "Hub · Strategi Tajwid",
-    description: "Duel kartu hukum bacaan, pertahanan menara, dan balok tetris.",
+    description:
+      "Duel kartu hukum bacaan, pertahanan menara, dan balok tetris.",
     modes: [
       {
         title: "Tajwid Arena",
@@ -228,7 +236,8 @@ const HUBS: Record<
     modes: [
       {
         title: "Adab RPG",
-        description: "Jelajahi pesantren dan terapkan adab mulia dalam misi cerita.",
+        description:
+          "Jelajahi pesantren dan terapkan adab mulia dalam misi cerita.",
         path: "/member/ngaji-ceria/games/adab-rpg",
         cover: <AdabRpgCoverSvg size={88} />,
         bestKey: "adab-rpg",
@@ -244,7 +253,8 @@ const HUBS: Record<
       },
       {
         title: "Nabi Chronicles",
-        description: "Pelajari kisah 25 nabi lewat kronik petualangan interaktif.",
+        description:
+          "Pelajari kisah 25 nabi lewat kronik petualangan interaktif.",
         path: "/member/ngaji-ceria/games/nabi-chronicles",
         cover: <NabiChroniclesCoverSvg size={88} />,
         bestKey: "nabi-chronicles",
@@ -252,7 +262,8 @@ const HUBS: Record<
       },
       {
         title: "Malaikat Mission",
-        description: "Tuntaskan misi 10 malaikat dan kenali tugas-tugas mulianya.",
+        description:
+          "Tuntaskan misi 10 malaikat dan kenali tugas-tugas mulianya.",
         path: "/member/ngaji-ceria/games/malaikat-mission",
         cover: <MalaikatMissionCoverSvg size={88} />,
         bestKey: "malaikat-mission",
@@ -304,13 +315,14 @@ export default function GameModeHubPage({
   const [maintenanceToast, setMaintenanceToast] = useState<string | null>(null);
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
-  const [selectedLeaderboardGameId, setSelectedLeaderboardGameId] = useState<string>(
-    config?.modes[0]?.bestKey || ""
-  );
+  const [selectedLeaderboardGameId, setSelectedLeaderboardGameId] =
+    useState<string>(config?.modes[0]?.bestKey || "");
   const [recentGameFinished, setRecentGameFinished] = useState<boolean>(() => {
     try {
       const last = sessionStorage.getItem("ngajiceria:recent-game-finished");
-      const ts = Number(sessionStorage.getItem("ngajiceria:recent-game-timestamp") || 0);
+      const ts = Number(
+        sessionStorage.getItem("ngajiceria:recent-game-timestamp") || 0,
+      );
       return Boolean(last && Date.now() - ts < 5 * 60 * 1000);
     } catch {
       return false;
@@ -322,7 +334,8 @@ export default function GameModeHubPage({
       setRecentGameFinished(true);
     };
     window.addEventListener("ngajiceria:game-finished", onGameFinished);
-    return () => window.removeEventListener("ngajiceria:game-finished", onGameFinished);
+    return () =>
+      window.removeEventListener("ngajiceria:game-finished", onGameFinished);
   }, []);
 
   const handleOpenLeaderboard = (gameId?: string) => {
@@ -332,7 +345,7 @@ export default function GameModeHubPage({
       const recent = sessionStorage.getItem("ngajiceria:recent-game-finished");
       const matched = config?.modes.find((m) => m.bestKey === recent);
       setSelectedLeaderboardGameId(
-        matched ? matched.bestKey : config?.modes[0]?.bestKey || ""
+        matched ? matched.bestKey : config?.modes[0]?.bestKey || "",
       );
     }
     setLeaderboardModalOpen(true);
@@ -340,9 +353,16 @@ export default function GameModeHubPage({
 
   if (!config) return <Navigate to="/member/ngaji-ceria/games" replace />;
 
-  const openMode = async (path: string, locked: boolean, isMaintenance: boolean, modeTitle: string) => {
+  const openMode = async (
+    path: string,
+    locked: boolean,
+    isMaintenance: boolean,
+    modeTitle: string,
+  ) => {
     if (isMaintenance) {
-      setMaintenanceToast(`Game "${modeTitle}" sedang dalam pemeliharaan ustadz. Coba game lain ya!`);
+      setMaintenanceToast(
+        `Game "${modeTitle}" sedang dalam pemeliharaan ustadz. Coba game lain ya!`,
+      );
       setTimeout(() => setMaintenanceToast(null), 3000);
       return;
     }
@@ -365,9 +385,7 @@ export default function GameModeHubPage({
       showBack
       onBack={() => navigate("/member/ngaji-ceria/games")}
     >
-      <div
-        className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] px-4 py-4 pb-32 transition-colors duration-200"
-      >
+      <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] px-4 py-4 pb-32 transition-colors duration-200">
         {/* Hero Section (Sticker Style) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -451,24 +469,29 @@ export default function GameModeHubPage({
             const modeId = canonicalGameId(mode.path.split("/").pop() ?? "");
             const isInactive = hasLoaded && !isGameActive(modeId);
             const isMaintenance = isInactive && !isAdmin;
-            const locked = (tier === "guest" && !isGameOpenForGuest(modeId)) || isMaintenance;
+            const locked =
+              (tier === "guest" && !isGameOpenForGuest(modeId)) ||
+              isMaintenance;
 
             return (
-              <motion.div
-                key={mode.path}
-                variants={staggerItemVariants}
-              >
+              <motion.div key={mode.path} variants={staggerItemVariants}>
                 <GameCard
                   layout="horizontal"
                   title={mode.title}
-                  description={isMaintenance ? "Sedang dalam pemeliharaan ustadz." : mode.description}
+                  description={
+                    isMaintenance
+                      ? "Sedang dalam pemeliharaan ustadz."
+                      : mode.description
+                  }
                   cover={mode.cover}
                   index={index}
                   best={best}
                   locked={locked}
                   badge={isMaintenance ? "PEMELIHARAAN" : undefined}
                   bgColor={mode.bgColor}
-                  onClick={() => openMode(mode.path, locked, isMaintenance, mode.title)}
+                  onClick={() =>
+                    openMode(mode.path, locked, isMaintenance, mode.title)
+                  }
                 />
               </motion.div>
             );
@@ -529,7 +552,9 @@ export default function GameModeHubPage({
                       <button
                         key={mode.bestKey}
                         type="button"
-                        onClick={() => setSelectedLeaderboardGameId(mode.bestKey)}
+                        onClick={() =>
+                          setSelectedLeaderboardGameId(mode.bestKey)
+                        }
                         className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-black transition-all ${
                           selectedLeaderboardGameId === mode.bestKey
                             ? "border-2 border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
@@ -548,7 +573,7 @@ export default function GameModeHubPage({
                     gameId={selectedLeaderboardGameId}
                     title={
                       config.modes.find(
-                        (m) => m.bestKey === selectedLeaderboardGameId
+                        (m) => m.bestKey === selectedLeaderboardGameId,
                       )?.title || config.title
                     }
                   />

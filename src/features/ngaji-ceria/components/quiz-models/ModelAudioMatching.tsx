@@ -58,6 +58,8 @@ export function ModelAudioMatching({
   question,
   onAnswerSubmit,
   onNext,
+  isRetryable,
+  explanation,
 }: ModelAudioMatchingProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -206,6 +208,8 @@ export function ModelAudioMatching({
         onNext={onNext}
         onRetry={handleRetry}
         onReset={handleRetry}
+        isRetryable={isRetryable}
+        explanation={explanation}
       />
     </div>
   );

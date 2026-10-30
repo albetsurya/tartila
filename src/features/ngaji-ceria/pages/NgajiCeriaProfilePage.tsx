@@ -35,6 +35,7 @@ import {
 import { AVATAR_ACCESSORY_SHOP_ITEMS } from "../pages/WarungSantriPage";
 import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
 import { isAdminRole, classroomRoleForUser } from "@/lib/roles";
+import { userApi, type UserProfileResponse } from "@/services/userApi";
 import { stopAllAudio } from "../utils/audioPlayer";
 
 import {
@@ -71,6 +72,9 @@ import {
 
 const TOTAL_STARS = 654;
 const AVATAR_VARIANT_STORAGE_KEY = "ngaji_ceria_avatar_variant";
+const FEEDBACK_PROMPT_STORAGE_KEY = "ngaji_ceria_feedback_prompt_closed_at";
+const FEEDBACK_PROMPT_WINDOW_MS = 5 * 60 * 1000;
+const FEEDBACK_PROMPT_CADENCE_MS = 90 * 24 * 60 * 60 * 1000;
 
 type ActiveModal =
   | "edit"
@@ -170,6 +174,55 @@ export default function NgajiCeriaProfilePage() {
       alive = false;
     };
   }, []);
+
+  // Auto-prompt "Kritik & Saran": tampil hanya jika `last_feedback_prompt_at`
+  // kosong, atau lewat 90 hari sejaknya. Tidak tampil < 5 menit lagi kalau
+  // ditutup di sesi yang sama (optimasi localStorage).
+  useEffect(() => {
+    if (!user) return;
+
+    const lastClosedAt = localStorage.getItem(FEEDBACK_PROMPT_STORAGE_KEY);
+    if (lastClosedAt && Date.now() - Number(lastClosedAt) < FEEDBACK_PROMPT_WINDOW_MS) {
+      return;
+    }
+
+    userApi
+      .getUserProfile()
+      .then((res: UserProfileResponse) => {
+        const lastAt = res?.last_feedback_prompt_at;
+        if (!lastAt) {
+          setActiveModal("feedback");
+          return;
+        }
+        const then = new Date(lastAt).getTime();
+        if (Number.isNaN(then)) {
+          setActiveModal("feedback");
+          return;
+        }
+        if (Date.now() - then > FEEDBACK_PROMPT_CADENCE_MS) {
+          setActiveModal("feedback");
+        }
+      })
+      .catch(() => {
+        // profil server tidak terjangkau; biarkan modal dibuka manual saja.
+      });
+  }, [user]);
+
+  const handleCloseFeedback = () => {
+    localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, String(Date.now()));
+    setActiveModal(null);
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    try {
+      await userApi.updateFeedbackPrompt();
+      localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, String(Date.now()));
+    } catch {
+      // Server DB gagal dicatat; localStorage tetap dicegah 5 menit ini.
+    }
+  };
 
   const equippedAccessory = useEconomyStore((s) => s.equippedAccessory);
   const tilaGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
@@ -1481,7 +1534,7 @@ export default function NgajiCeriaProfilePage() {
           isOpen={true}
           title="Kritik & Saran"
           variant="warm"
-          onClose={() => setActiveModal(null)}
+          onClose={handleCloseFeedback}
         >
           {submitted ? (
             <div className="space-y-3 text-center">
@@ -1490,20 +1543,14 @@ export default function NgajiCeriaProfilePage() {
               </p>
               <button
                 type="button"
-                onClick={() => setActiveModal(null)}
+                onClick={handleCloseFeedback}
                 className={`w-full ${btnPrimaryStyle}`}
               >
                 Tutup
               </button>
             </div>
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSubmitted(true);
-              }}
-              className="space-y-3"
-            >
+            <form onSubmit={handleSubmitFeedback} className="space-y-3">
               <div>
                 <label className="mb-1 block text-xs font-bold text-[#134E4A]">
                   Pesan Masukan
@@ -1518,7 +1565,7 @@ export default function NgajiCeriaProfilePage() {
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setActiveModal(null)}
+                  onClick={handleCloseFeedback}
                   className={`flex-1 ${btnCancelStyle}`}
                 >
                   Batal

@@ -361,6 +361,7 @@ const IDLE_POSES: TilaPoseReaction[] = [
   "confused",
   "play-invite", // TAMBAHAN
   "cheer", // TAMBAHAN
+  "spin", // animasi komedi: berputar seperti gasing
 ];
 
 export function isTilaCompanionExcluded(pathname: string): boolean {
@@ -947,15 +948,15 @@ export function TilaCompanion({
           animate(scale, 1, { duration: 0.5, ease: "easeOut" });
         }
 
-        setRotation((prev) => {
-          const norm = prev % 360;
-          return norm === 180 || norm === -180
-            ? prev + 180
-            : prev + (delta > 0 ? 10 : -10);
-        });
+        // Tilt ±15° saat scroll, kembali menghadap depan setelah 800ms —
+        // jangan akumulasi derajat agar maskot tak pernah menghadap belakang.
+        setRotation(delta > 0 ? 15 : -15);
         setAnim("fly");
         if (walkTimer.current !== null) window.clearTimeout(walkTimer.current);
-        walkTimer.current = window.setTimeout(() => setAnim("float"), 800);
+        walkTimer.current = window.setTimeout(() => {
+          setRotation(0);
+          setAnim("float");
+        }, 800);
       }
 
       if (reactiveSpeech && milestoneIndex.current < scrollMessages.length) {
@@ -1026,6 +1027,8 @@ export function TilaCompanion({
   }, [isHidden, isHelpOpen, mascotName, runPose]);
 
   const handleDragEnd = () => {
+    // Selalu kembali menghadap depan setelah dilepas.
+    setRotation(0);
     localStorage.setItem(
       "tila-companion-pos",
       JSON.stringify({ x: x.get(), y: y.get() }),
@@ -1418,6 +1421,17 @@ export function TilaCompanion({
             Saran
           </StickerButton>
           <StickerButton
+            variant="secondary"
+            fullWidth
+            onClick={() => {
+              setIsHelpOpen(false);
+              runPose(buildPoseSteps("spin", mascotName) || []);
+            }}
+            className="justify-start"
+          >
+            <Sparkles size={18} className="mr-2 text-[#F59E0B]" /> Putar Tila
+          </StickerButton>
+          <StickerButton
             variant="danger"
             fullWidth
             onClick={() => handleAction("/member/ngaji-ceria")}
@@ -1441,8 +1455,9 @@ export function TilaCompanion({
               bottom: 20,
             }}
             onDrag={(_, info) => {
+              // Tilt mengikuti arah geser; jangan akumulasi derajat.
               const dx = info?.delta?.x ?? 0;
-              setRotation((prev) => prev + dx * 1.5);
+              setRotation(dx > 0 ? 15 : dx < 0 ? -15 : 0);
             }}
             onDragEnd={handleDragEnd}
             style={{ x, y }}

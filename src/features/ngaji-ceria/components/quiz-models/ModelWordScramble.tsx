@@ -17,6 +17,8 @@ export function ModelWordScramble({
   question,
   onAnswerSubmit,
   onNext,
+  isRetryable,
+  explanation,
 }: ModelWordScrambleProps) {
   const [placed, setPlaced] = useState<BankWordItem[]>([]);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
@@ -264,6 +266,8 @@ export function ModelWordScramble({
           onNext?.();
         }}
         onRetry={handleRetry}
+        isRetryable={isRetryable}
+        explanation={explanation}
       />
     </div>
   );

@@ -8,18 +8,20 @@ import {
   staggerItemVariants,
 } from "@/lib/animationVariants";
 import {
-  LabTajwidBgSvg,
-  GalaksiJuzAmmaBgSvg,
-  GudangDoaSvg,
+  TajwidForestSvg,
+  SamudraJuzAmmaBgSvg,
+  OaseDoaSvg,
   TargetTahfidzSvg,
   JurnalIbadahSvg,
   ArenaKartuSvg,
   MetronomeArtSvg,
+  PetaTilawatiSvg,
+  HeroExplorerSvg,
 } from "../../../components/ui/Illustrations";
 import {
-  TilawatiSvg,
+  TilawatiMapSvg,
   TajwidKeySvg,
-  GalaxyStarSvg,
+  PaperBoatSvg,
   DoaChestSvg,
   QuranSvg,
   JurnalCalendarSvg,
@@ -64,79 +66,79 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     bgClass: "bg-[#FFF4E5]",
     borderClass: "border-[#F59E0B]",
     iconBg: "bg-[#FEF08A]",
-    icon: TilawatiSvg,
-    art: TargetTahfidzSvg,
+    icon: TilawatiMapSvg,
+    art: PetaTilawatiSvg,
     isMain: true,
   },
   {
     key: "training",
-    title: "Pusat Training",
-    desc: "Tartila Rhythm Memory, Lab Irama, & Arena Kartu.",
-    badge: "Hub 3-in-1",
+    title: "Savana Latihan",
+    desc: "Latih ketukan, memori, dan kartu tebak huruf Tilawati.",
+    badge: "3 Game",
     to: "/member/ngaji-ceria/training",
-    bgClass: "bg-[#F0FDF4]",
-    borderClass: "border-[#10B981]",
-    iconBg: "bg-[#D1FAE5]",
-    icon: CardsSvg,
-    art: ArenaKartuSvg,
+    bgClass: "bg-[#DCFCE7]",
+    borderClass: "border-[#15803D]",
+    iconBg: "bg-[#86EFAC]",
+    icon: MetronomeSvg,
+    art: MetronomeArtSvg,
   },
   {
     key: "tajwid",
-    title: "Lab Tajwid",
-    desc: "Rahasia bacaan indah & benar.",
+    title: "Hutan Tajwid",
+    desc: "Pelajari hukum bacaan di rimba ilmu.",
     badge: "14 Misi",
     to: "/member/ngaji-ceria/explore/tajwid",
-    bgClass: "bg-[#EAF5EA]",
-    borderClass: "border-[#15803D]",
-    iconBg: "bg-[#CCFBF1]",
-    icon: SearchSvg,
-    art: LabTajwidBgSvg,
+    bgClass: "bg-[#F0FDF4]",
+    borderClass: "border-[#166534]",
+    iconBg: "bg-[#AFE6A7]",
+    icon: TajwidKeySvg,
+    art: TajwidForestSvg,
   },
   {
     key: "juz-amma",
-    title: "Galaksi Juz 'Amma",
-    desc: "Hafalkan surat pendek bersama murottal.",
+    title: "Samudra Juz 'Amma",
+    desc: "Hafalkan surat pendek di bawah taburan bintang laut.",
     badge: "37 Bintang",
     to: "/member/ngaji-ceria/explore/juz-amma",
     bgClass: "bg-[#E0F2FE]",
     borderClass: "border-[#0284C7]",
-    iconBg: "bg-[#BAE6FD]",
-    icon: GalaxyStarSvg,
-    art: GalaksiJuzAmmaBgSvg,
+    iconBg: "bg-[#7DD3FC]",
+    icon: PaperBoatSvg,
+    art: SamudraJuzAmmaBgSvg,
   },
   {
     key: "doa",
-    title: "Gudang Doa",
-    desc: "Kumpulan doa harian & adab santri.",
-    badge: "34 Harta",
+    title: "Oase Doa",
+    desc: "Singgah dan hafalkan doa di sumber mata air.",
+    badge: "34 Doa",
     to: "/member/ngaji-ceria/explore/doa",
-    bgClass: "bg-[#F3E8FF]",
-    borderClass: "border-[#9333EA]",
-    iconBg: "bg-[#F3E8FF]",
+    bgClass: "bg-[#FDE68A]",
+    borderClass: "border-[#B45309]",
+    iconBg: "bg-[#FCD34D]",
     icon: DoaChestSvg,
-    art: GudangDoaSvg,
+    art: OaseDoaSvg,
   },
   {
     key: "tahfidz",
-    title: "Target Tahfidz",
-    desc: "Pantau & uji hafalan Al-Quran mandiri.",
+    title: "Puncak Hafalan",
+    desc: "Daki puncak tertinggi dengan hafalan Al-Quran.",
     badge: "39 Target",
     to: "/member/ngaji-ceria/explore/tahfidz",
-    bgClass: "bg-[#FEF3C7]",
-    borderClass: "border-[#D97706]",
-    iconBg: "bg-[#FEF08A]",
-    icon: QuranSvg,
+    bgClass: "bg-[#F1F5F9]",
+    borderClass: "border-[#475569]",
+    iconBg: "bg-[#CBD5E1]",
+    icon: TargetTahfidzSvg,
     art: TargetTahfidzSvg,
   },
   {
     key: "jurnal-ibadah",
-    title: "Jurnal Ibadah",
-    desc: "Catat sholat 5 waktu & raih streak istiqomah.",
+    title: "Sungai Ibadah",
+    desc: "Catat sholat 5 waktu di batu pijakan sungai.",
     badge: "5 Waktu",
     to: "/member/ngaji-ceria/explore/jurnal-ibadah",
-    bgClass: "bg-[#CCFBF1]",
-    borderClass: "border-[#0D9488]",
-    iconBg: "bg-[#CCFBF1]",
+    bgClass: "bg-[#E0F2FE]",
+    borderClass: "border-[#0C4A6E]",
+    iconBg: "bg-[#7DD3FC]",
     icon: JurnalCalendarSvg,
     art: JurnalIbadahSvg,
   },
@@ -161,17 +163,16 @@ export default function NgajiCeriaMapPage() {
     <NgajiCeriaLayout title="Jelajah">
       <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] pb-32 transition-colors duration-200">
         {/* Hero Banner */}
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[var(--border-color,#134E4A)]">
-          {/* Dekorasi */}
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[8px] border-white/5" />
-          <div className="absolute top-10 right-16 rotate-12">
-            <SparklesSvg size={32} />
-          </div>
-          <div className="absolute bottom-6 right-8 opacity-25">
-            <MoonSvg size={64} />
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[#134E4A]">
+          {/* Ilustrasi Kompas & Teropong Penjelajah di Sebelah Kanan */}
+          <div className="absolute right-4 bottom-2 md:right-10 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
+            <HeroExplorerSvg
+              size={150}
+              className="drop-shadow-[4px_4px_0px_#042F2E]"
+            />
           </div>
 
-          <div className="relative z-10 max-w-[85%]">
+          <div className="relative z-20 max-w-[72%] md:max-w-[78%]">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-[#FF6B6B]">
               <SparklesSvg size={14} /> Misi Hari Ini
             </span>

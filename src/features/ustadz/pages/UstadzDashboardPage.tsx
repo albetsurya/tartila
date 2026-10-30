@@ -26,7 +26,7 @@ import {
   listTodayAlerts,
   type TeacherAlert,
 } from "@/services/ustadzMonitoringService";
-import { listQuizzes, listQuizzesForRoom, listAttempts, averagePercentByMateri } from "@/services/quizBankService";
+import { listQuizzes, listQuizzesForRoom, listAttempts, averagePercentByQuiz, type QuizAverage } from "@/services/quizBankService";
 import {
   coverageSummaryLine,
   coverageRecommendations,
@@ -36,7 +36,6 @@ import {
   type MateriCoverageItem,
   type MateriReadCoverageItem,
 } from "@/data/monitoring";
-import { MATERI_LABELS } from "@/data/learningCatalog";
 
 export function UstadzDashboardPage() {
   const { user } = useAuth();
@@ -54,13 +53,13 @@ export function UstadzDashboardPage() {
   useEffect(() => {
     if (!isTeacher) return;
     let alive = true;
-    listQuizzes().then((quizzes) => {
+    listQuizzes(user?.id).then((quizzes) => {
       if (alive) setQuizCount(quizzes.length);
     });
     return () => {
       alive = false;
     };
-  }, [isTeacher]);
+  }, [isTeacher, user?.id]);
 
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
@@ -96,22 +95,24 @@ export function UstadzDashboardPage() {
     (checklistDone / Math.max(checklist.length, 1)) * 100,
   );
 
+  const [selectedRoomId, setSelectedRoomId] = useState("");
   const [coverage, setCoverage] = useState<MateriCoverageItem[]>([]);
   const [recommendations, setRecommendations] = useState<string[]>([]);
-  const [monitorRoomName, setMonitorRoomName] = useState<string>("");
   const [readCoverage, setReadCoverage] = useState<MateriReadCoverageItem[]>([]);
-  const [quizAverages, setQuizAverages] = useState<
-    ReturnType<typeof averagePercentByMateri>
-  >([]);
+  const [quizAverages, setQuizAverages] = useState<QuizAverage[]>([]);
   const [alerts, setAlerts] = useState<TeacherAlert[]>([]);
+
+  const monitorRoom =
+    activeRooms.find((room) => room.id === selectedRoomId) ?? activeRooms[0] ??
+    null;
 
   useEffect(() => {
     if (!isTeacher) return;
     const active = ownedRooms.filter((room: ClassroomRoom) => !room.archived);
     if (active.length === 0) return;
     let alive = true;
-    const target = active[0];
-    setMonitorRoomName(target.name);
+    const target =
+      active.find((room) => room.id === selectedRoomId) ?? active[0];
     listTodayAlerts(target.id).then((todayAlerts) => {
       if (!alive) return;
       setAlerts(todayAlerts);
@@ -150,12 +151,12 @@ export function UstadzDashboardPage() {
         await Promise.all(roomQuizzes.map((quiz) => listAttempts(quiz.id)))
       ).flat();
       if (!alive) return;
-      setQuizAverages(averagePercentByMateri(roomQuizzes, attempts));
+      setQuizAverages(averagePercentByQuiz(roomQuizzes, attempts));
     });
     return () => {
       alive = false;
     };
-  }, [ownedRooms, isTeacher]);
+  }, [ownedRooms, isTeacher, selectedRoomId]);
 
   const handleJoinByCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -309,6 +310,33 @@ export function UstadzDashboardPage() {
           </StickerCard>
         )}
 
+        {isTeacher && activeRooms.length > 0 && (
+          <StickerCard className="p-4">
+            <p className="text-xs font-black text-[#134E4A]">
+              Pantau Kelas
+            </p>
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+              {activeRooms.map((room) => {
+                const selected = room.id === monitorRoom?.id;
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => setSelectedRoomId(room.id)}
+                    className={`shrink-0 rounded-xl border-[3px] border-[#0A2540] px-3 py-1.5 text-xs font-black transition-colors ${
+                      selected
+                        ? "bg-[#0D9488] text-white shadow-[3px_3px_0_#0A2540]"
+                        : "bg-white text-[#134E4A] hover:bg-[#F4F1EA]"
+                    }`}
+                  >
+                    {room.name}
+                  </button>
+                );
+              })}
+            </div>
+          </StickerCard>
+        )}
+
         {isTeacher && (
           <div>
             <h2 className="mb-2 text-sm font-black text-[#134E4A]">
@@ -380,7 +408,7 @@ export function UstadzDashboardPage() {
         {isTeacher && activeRooms.length > 0 && (
           <StickerCard className="p-4">
             <p className="text-sm font-black text-[#134E4A]">
-              Cakupan Materi · {monitorRoomName}
+              Cakupan Materi · {monitorRoom?.name ?? ""}
             </p>
             <p className="mt-1 text-xs font-semibold text-[#134E4A]/80">
               {coverage.length > 0
@@ -438,11 +466,11 @@ export function UstadzDashboardPage() {
                 <ul className="mt-1 space-y-1">
                   {quizAverages.map((item) => (
                     <li
-                      key={item.materi}
+                      key={item.quizId}
                       className="flex items-center justify-between text-[11px] font-semibold text-[#134E4A]/80"
                     >
                       <span>
-                        {MATERI_LABELS[item.materi]}
+                        {item.quizTitle}
                         <span className="text-[10px] font-bold text-[#134E4A]/50">
                           {" "}
                           · {item.attemptCount} pengerjaan

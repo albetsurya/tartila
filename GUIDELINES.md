@@ -51,6 +51,8 @@ Setiap elemen antarmuka yang dapat diinteraksi atau berfungsi sebagai kartu info
 - **Sub-elemen / Chip / Badge Kecil**: `border-2 border-[#134E4A]`.
 - **Garis Pemisah Internal**: `border-t-2 border-[#134E4A]/10` atau `border-b-2 border-[#134E4A]/10`.
 
+> **Aturan Warna (HEX Hardcoded):** Seluruh warna di UI ditulis sebagai HEX hardcoded (contoh: `bg-[#0D9488]`, `text-[#134E4A]`). **DILARANG** memakai `var(--...)`. Aturan penuh lihat [Bab 14.1](#141-thematic-palette-outdoor).
+
 #### Aturan Hard Shadow
 
 - **Kartu Utama & Tombol Primer**: `shadow-[4px_4px_0px_#134E4A]`.
@@ -421,12 +423,19 @@ Bagian ini adalah aturan kaku (SSOT) terkait keamanan data, autentikasi, dan oto
 
 - Setiap tabel publik **WAJIB** punya RLS.
 - User hanya boleh `SELECT/INSERT/UPDATE` pada data yang `user_id`-nya sama dengan `auth.uid()`.
+- **DILARANG** policy `USING (true)` pada tabel `users`, `rooms`, `room_players`, `quiz_attempts`, dan tabel ekonomi (`ngaji_ceria_progress`, `friend_challenges`). Policy tanpa validasi `auth.uid()` dianggap celah keamanan dan harus langsung diganti.
 - **DILARANG** validasi saldo/skor dari frontend. Semua transaksi koin, pembelian, score Duel harus lewat Backend Go.
 
 ### 8.6 Keamanan Cache Lokal
 
 - Data di `localStorage` harus di-scoping per-user. Gunakan `tartila_cached_user:{userId}` atau bersihkan saat pergantian role.
 - Hapus semua cache (economy store, mascot gender, daily claim) saat **logout**.
+
+### 8.7 Penyimpanan Token (JWT)
+
+- JWT **DILARANG** disimpan di `localStorage` (rentan XSS). Migrasi target: cookie `HttpOnly`, `Secure`, `SameSite` yang diset dari Backend Go.
+- Selama migrasi belum selesai, state token sekarang diperlakukan sebagai **transisi**, bukan pola baku. Kode baru **wajib** memakai pola cookie.
+- Kunci identitas alternatif (mis. PIN room) **tidak boleh** dijadikan satu-satunya penanda identitas; selalu kombinasikan dengan JWT/middleware auth.
 
 ---
 
@@ -506,6 +515,16 @@ Fitur multiplayer menggunakan alur yang seragam: **Lobby -> Ready -> Countdown -
 - Frontend **WAJIB** memanggil fungsi dari `src/services/economyApi.ts` (contoh: `economyApi.claimDaily()`, `economyApi.buyItem()`).
 - _Fallback_: Jika API Go belum menyala (404/500), Frontend boleh menggunakan _LocalStorage_ sebagai _fallback_ sementara, dengan menampilkan `console.warn`.
 
+### 11.4 Klaim Misi Harian (SSOT Transaksi Ekonomi)
+
+Klaim misi harian adalah transaksi ekonomi. Aturan kaku:
+
+- **Satu-satunya penanda `claimed = true` adalah Backend Go** (`POST /api/v1/ngaji-ceria/missions/:missionId/claim`), yang menulis `daily_claimed_missions` dalam transaksi DB. Dilarang mengandalkan `localStorage` / `useEconomyStore` saja untuk menandai misi terklaim.
+- Klaim lewat UI mana pun (`DailyMissionsCard` maupun "Ambil Hadiah" di `RewardChestModal`) **wajib** menembak API backend lewat `ngajiCeriaApi.claimMission()`, dan menerapkan `applyServerProgress()` dari respon server.
+- Auto-modal "Misi Harian Selesai" di Beranda **wajib** cek status dari API (`GET /api/v1/ngaji-ceria/missions/pending` → `hasPendingMissions`), bukan dari cache lokal.
+- `sessionStorage` (bukan `localStorage`) hanya boleh dipakai sebagai **penahan debounce** agar modal tidak muncul dua kali saat refresh di hari yang sama (key: `ngajiceria:auto-modal:<tanggal-WIB>`). Status utama tetap dari API; jika API gagal, modal tidak tampil.
+- Klien yang clear cache **tidak boleh** bisa memicu ulang modal atau mendapat koin ulang; idempotensi dijauhkan di backend (mis. `Claimed: false` untuk misi yang sudah diklaim).
+
 ---
 
 ## 12. Status Transisi & Integrasi yang Belum Selesai (Jangan Berasumsi!)
@@ -539,3 +558,39 @@ Bagian ini mencatat area yang saat ini sedang dalam masa transisi. **AI Agent da
 ---
 
 _Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._
+
+## 14. Thematic Exploration
+
+> Inline design-system standard for the **Jelajah** hub ("Outdoor Nature" theme) and educational feedback.
+
+### 14.1 Thematic Palette (Outdoor)
+
+| Theme      | Hex Background      | Hex Border/Shadow   | Notes                        |
+| :--------- | :------------------ | :------------------ | :--------------------------- |
+| Gunung     | `#FFF4E5`           | `#F59E0B` / `#FCD34D` | Sunny highland, amber tones |
+| Savana     | `#DCFCE7`           | `#15803D` / `#86EFAC` | Grassland, emerald green    |
+| Hutan      | `#F0FDF4` (deep)    | `#166534` / `#AFE6A7` | Forest, deep green          |
+| Samudra    | `#E0F2FE`           | `#0284C7` / `#7DD3FC` | Ocean blue, sky tones       |
+| Oase       | `#FDE68A`           | `#B45309` / `#FCD34D` | Desert oasis, warm yellow   |
+| Puncak     | `#F1F5F9`           | `#475569` / `#94A3B8` | Rocky, slate grey           |
+| Sungai     | `#F0FDF4`           | `#134E4A` / `#99F6E4` | Water/clean, emerald deep   |
+
+Rules:
+
+- Halaman `/explore` and all sub-routes **must** use a nature theme (Gunung, Hutan, Laut/Samudra, Gurun, Savana, Sungai). **Galaksi/space themes are prohibited.**
+- New pages pitched as "nature exploration" must pick **one** of the above themes; do not invent new color systems.
+- All colors below remain HEX solid; `var(--...)` is forbidden.
+
+### 14.2 Emotikon Replacement
+
+- **DILARANG** emoticon characters (e.g. `🎮`, `📖`, `🌟`, `🚀`) in UI text: titles, descriptions, button labels.
+- Replace every emoticon with a custom SVG component (`<GamepadSvg />`, `<BookOpenSvg />`, `<SparklesSvg />`, etc.) from `src/components/ui/CustomIcons.tsx`.
+- This rule applies to all pages, including `/explore` hero banners, card labels, and chip badges.
+
+### 14.3 Standard Feedback Dialog
+
+- **Semua kuis dan game yang memiliki status benar/salah WAJIB menggunakan** `<AnswerFeedbackSheet isOpen={...} isCorrect={...} onNext={...} onRetry={...} />` from `src/features/ngaji-ceria/components/AnswerFeedbackSheet.tsx`.
+- **JANGAN panggil** `playSfx("correct")` atau `playSfx("wrong")` (serta `soundManager.playSfx("correct"` / `soundManager.playSfx("wrong"`) di file game/kuis yang sudah memakai `AnswerFeedbackSheet`. Sheet sudah memutar suara otomatis; hanya hapus baris panggilan saja, SFX UI lain (misal: `pop`, `tap`) boleh tetap ada.
+- Komponen `AnswerFeedbackSheet` sudah menangani suara, jingle, dan reaksi Bibi; tidak perlu duplikasi efek tersebut.
+
+---

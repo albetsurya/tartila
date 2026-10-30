@@ -13,6 +13,8 @@ export interface UserProfileResponse {
   daily_claimed?: boolean;
   last_daily_claim_date?: string | null;
   last_claim_date?: string | null;
+  last_feedback_prompt_at?: string;
+  has_submitted_feedback?: boolean;
   [key: string]: any;
 }
 
@@ -68,7 +70,7 @@ export const userApi = {
     return await callREST<DailyRewardStatusResponse>("GET", "/api/v1/user/daily-status");
   },
 
-  async redeemVoucher(code: string) {
-    return await voucherApi.redeemVoucher(code);
+  async updateFeedbackPrompt(): Promise<{ success: boolean; lastAt: string; updated: boolean }> {
+    return await callREST<{ success: boolean; lastAt: string; updated: boolean }>("PATCH", "/api/v1/user/feedback-prompt");
   },
 };

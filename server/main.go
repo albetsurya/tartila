@@ -37,6 +37,13 @@ func main() {
 
 	api := handlers.NewAPIHandler(roomHub)
 
+	// Persistent store for cross-session user state (feedback prompts, etc.).
+	// Failure is fatal: the API handlers below depend on a working DB.
+	if err := InitDB(); err != nil {
+		log.Fatalf("DB init: %v", err)
+	}
+	api.SetDB(Store)
+
 	mux := http.NewServeMux()
 
 	// REST API Routes
@@ -79,6 +86,10 @@ func main() {
 
 	mux.HandleFunc("/api/exam/violation", api.RecordViolation)
 	mux.HandleFunc("/api/leaderboard/global", api.GetGlobalLeaderboard)
+
+	// User profile + feedback prompt routes (cross-session state persisted in SQLite).
+	mux.HandleFunc("/api/v1/user/profile", api.GetUserProfile)
+	mux.HandleFunc("/api/v1/user/feedback-prompt", api.UpdateFeedbackPrompt)
 
 	// WebSocket Route: /api/ws/room/:pin
 	mux.HandleFunc("/api/ws/room/", func(w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,9 @@ export function ModelFillInTheBlank({
   onNext,
   onPlayAudio,
   isAudioPlaying,
+  isRetryable,
+  correctAnswer,
+  explanation,
 }: ModelFillInTheBlankProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
@@ -211,6 +214,9 @@ export function ModelFillInTheBlank({
         onNext={onNext}
         onRetry={handleRetry}
         onReset={handleClear}
+        isRetryable={isRetryable}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
       />
     </div>
   );

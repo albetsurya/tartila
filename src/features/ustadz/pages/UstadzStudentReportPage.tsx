@@ -7,6 +7,8 @@ import {
   type StudentActivityStatus,
   type StudentWeekLog,
 } from "@/services/ustadzMonitoringService";
+import { listOwnedClassrooms } from "@/services/classroomService";
+import { useAuth } from "@/contexts/AuthContext";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { AppModal } from "@/components/ui/AppModal";
@@ -30,14 +32,37 @@ const FILTER_LABELS: Record<ReportFilter, string> = {
 };
 
 export function UstadzStudentReportPage() {
+  const { user } = useAuth();
+  const [roomId, setRoomId] = useState("");
   const [students, setStudents] = useState<StudentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ReportFilter>("semua");
   const [detailName, setDetailName] = useState<string | null>(null);
 
+  // Kelas aktif pertama yang dimiliki pengajar; halaman ini laporan ringkas.
   useEffect(() => {
     let alive = true;
-    listStudentActivities("current-room").then((rows) => {
+    listOwnedClassrooms(user?.id).then((result) => {
+      if (!alive) return;
+      const active = result.ok
+        ? result.data.filter((room) => !room.archived)
+        : [];
+      setRoomId(active[0]?.id ?? "");
+    });
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!roomId) {
+      setStudents([]);
+      setLoading(false);
+      return;
+    }
+    let alive = true;
+    setLoading(true);
+    listStudentActivities(roomId).then((rows) => {
       if (!alive) return;
       setStudents(rows);
       setLoading(false);
@@ -45,7 +70,7 @@ export function UstadzStudentReportPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [roomId]);
 
   const visible = useMemo(
     () =>
@@ -117,7 +142,9 @@ export function UstadzStudentReportPage() {
       {!loading && visible.length === 0 && (
         <StickerCard className="p-6 text-center">
           <p className="text-sm font-black text-[#134E4A]">
-            Tidak ada santri dengan status ini.
+            {students.length === 0
+              ? "Belum ada aktivitas santri di kelas ini."
+              : "Tidak ada santri dengan status ini."}
           </p>
         </StickerCard>
       )}
@@ -155,6 +182,7 @@ export function UstadzStudentReportPage() {
       )}
 
       <StudentWeekModal
+        roomId={roomId}
         student={
           students.find((student) => student.name === detailName) ?? null
         }
@@ -206,9 +234,11 @@ function ReportRow({
 }
 
 function StudentWeekModal({
+  roomId,
   student,
   onClose,
 }: {
+  roomId: string;
   student: StudentActivity | null;
   onClose: () => void;
 }) {
@@ -219,7 +249,7 @@ function StudentWeekModal({
     if (!student) return;
     let alive = true;
     setLoading(true);
-    listStudentWeekActivity("current-room", student.name).then((rows) => {
+    listStudentWeekActivity(roomId, student.userId).then((rows) => {
       if (!alive) return;
       setLogs(rows);
       setLoading(false);
@@ -227,7 +257,7 @@ function StudentWeekModal({
     return () => {
       alive = false;
     };
-  }, [student]);
+  }, [student, roomId]);
 
   return (
     <AppModal

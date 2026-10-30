@@ -14,10 +14,11 @@ import {
   getTimeUntilDailyResetWib,
 } from "../utils/activityDate";
 import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
+import { ngajiCeriaApi } from "../services/ngajiCeriaApi";
 import {
   GiftSvg,
   StarSvg,
-  TilawatiSvg,
+  TilawatiLearningSvg,
   FireSvg,
   StoreSvg,
   CrownSvg,
@@ -33,6 +34,7 @@ import {
   ClockSvg,
   LockSvg,
   Loader2Svg,
+  TilawatiMapSvg,
 } from "../../../components/ui/CustomIcons";
 import { PetiHartaSvg } from "../../../components/ui/Illustrations";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
@@ -190,18 +192,30 @@ export default function NgajiCeriaHomePage() {
   ]);
 
   useEffect(() => {
-    if (isAuthLoading || isLoadingProfile) return;
+    if (isAuthLoading || isLoadingProfile || !user) return;
     if (autoModalTriggeredRef.current) return;
 
-    if (!user || dailyClaimed || todayClaimed) {
+    const sessionKey = `ngajiceria:auto-modal:${todayDateKey}`;
+    if (sessionStorage.getItem(sessionKey) === "true") {
       autoModalTriggeredRef.current = true;
       return;
     }
 
-    autoModalTriggeredRef.current = true;
-    setIsManualOpen(false);
-    setShowDailyModal(true);
-  }, [user, isAuthLoading, isLoadingProfile, dailyClaimed, todayClaimed]);
+    (async () => {
+      try {
+        const res = await ngajiCeriaApi.getPendingMissions();
+        if (res.hasPendingMissions) {
+          autoModalTriggeredRef.current = true;
+          setShowDailyModal(true);
+        }
+      } catch {
+        /* Status utama ada di API; kalau error, modal tidak tampil. */
+      } finally {
+        autoModalTriggeredRef.current = true;
+        sessionStorage.setItem(sessionKey, "true");
+      }
+    })();
+  }, [user, isAuthLoading, isLoadingProfile, todayDateKey]);
 
   const activeDay = Math.min(
     7,
@@ -457,13 +471,13 @@ export default function NgajiCeriaHomePage() {
                 {
                   label: "Jilid",
                   to: "/member/ngaji-ceria/explore/tilawati",
-                  icon: <TilawatiSvg size={25} />,
+                  icon: <TilawatiLearningSvg size={25} />,
                   iconBg: "bg-[#CCFBF1]",
                 },
                 {
                   label: "Jelajah",
                   to: "/member/ngaji-ceria/map",
-                  icon: <GamepadSvg size={24} />,
+                  icon: <TilawatiMapSvg size={24} />,
                   iconBg: "bg-[#FEF08A]",
                 },
                 {
@@ -556,7 +570,7 @@ export default function NgajiCeriaHomePage() {
                       <div
                         className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${isLocked ? "bg-gray-200 text-gray-400 dark:bg-gray-700" : isCompleted ? "bg-[#D1FAE5] text-[#047857]" : "bg-[#CCFBF1] text-[#134E4A]"}`}
                       >
-                        <TilawatiSvg size={23} />
+                        <TilawatiLearningSvg size={23} />
                       </div>
                       <p
                         className={`font-display text-sm font-black ${isLocked ? "text-gray-400" : "text-[var(--text-main,#134E4A)]"}`}

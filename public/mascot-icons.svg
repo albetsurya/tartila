@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 80 400 350" width="512" height="512" fill="none">
+  <!-- Mascot Solid Shadow -->
+  <g transform="translate(8, 10)">
+    <path d="M 198 142 L 204 96 Q 250 90 296 96 L 302 142 Z" fill="#134E4A" />
+    <ellipse cx="250" cy="240" rx="105" ry="105" fill="#134E4A" />
+    <path d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 Z" fill="#134E4A" />
+    <path d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 Z" fill="#134E4A" />
+  </g>
+
+  <!-- Tail -->
+  <path d="M 225 330 C 215 358, 222 374, 235 370 C 238 382, 262 382, 265 370 C 278 374, 285 358, 275 330 Z" fill="#00937D" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  <path d="M 232 330 C 226 348, 232 356, 240 353 C 243 362, 257 362, 260 353 C 268 356, 274 348, 268 330 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="4.5" stroke-linejoin="round" />
+
+  <!-- Folded Side Wings -->
+  <g transform="rotate(-22 165 230)">
+    <path d="M 165 208 L 86 168 C 74 178, 81 202, 102 215 C 89 223, 94 244, 120 250 C 116 262, 132 274, 165 268 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+    <path d="M 165 202 C 145 189, 126 176, 110 168 C 104 184, 109 202, 124 216 C 136 228, 150 234, 163 236 Z" fill="#00937D" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+    <path d="M 110 168 C 96 155, 82 142, 73 146 C 65 151, 71 176, 88 193 C 99 203, 112 210, 124 216 C 109 202, 104 184, 110 168 Z" fill="#00B894" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  </g>
+  <g transform="rotate(22 335 230)">
+    <path d="M 335 208 L 414 168 C 426 178, 419 202, 398 215 C 411 223, 406 244, 380 250 C 384 262, 368 274, 335 268 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+    <path d="M 335 202 C 355 189, 374 176, 390 168 C 396 184, 391 202, 376 216 C 364 228, 350 234, 337 236 Z" fill="#00937D" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+    <path d="M 390 168 C 404 155, 418 142, 427 146 C 435 151, 429 176, 412 193 C 401 203, 388 210, 376 216 C 391 202, 396 184, 390 168 Z" fill="#00B894" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  </g>
+
+  <!-- Chubby Yellow Body -->
+  <ellipse cx="250" cy="240" rx="105" ry="105" fill="#FBBF24" stroke="#07473C" stroke-width="5.5" />
+  <path d="M 152 275 C 180 322, 320 322, 348 275 C 325 342, 175 342, 152 275 Z" fill="#EAA012" />
+  <ellipse cx="250" cy="240" rx="105" ry="105" fill="none" stroke="#07473C" stroke-width="5.5" />
+
+  <!-- Feet -->
+  <path d="M 212 330 C 206 355, 196 372, 186 382 C 178 390, 182 406, 192 406 C 202 406, 206 392, 208 384 C 216 368, 222 350, 225 332 C 226 325, 214 323, 212 330 Z" fill="#FF5E6C" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  <path d="M 288 330 C 294 355, 304 372, 314 382 C 322 390, 318 406, 308 406 C 298 406, 294 392, 292 384 C 284 368, 278 350, 275 332 C 274 325, 286 323, 288 330 Z" fill="#FF5E6C" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+
+  <!-- Face: Cheeks, Kawaii Eyes & Smiling Beak -->
+  <path d="M 234 228 L 266 228 L 250 256 Z" fill="#EAA012" />
+  <circle cx="180" cy="226" r="15" fill="#FF6B6B" />
+  <circle cx="320" cy="226" r="15" fill="#FF6B6B" />
+
+  <g transform="translate(206, 192)">
+    <ellipse cx="0" cy="0" rx="25" ry="27" fill="#FFFFFF" stroke="#07473C" stroke-width="4.5" />
+    <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
+    <circle cx="0" cy="0" r="15.5" fill="#053B33" />
+    <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
+    <path d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z" fill="#FFFFFF" />
+  </g>
+
+  <g transform="translate(294, 192)">
+    <ellipse cx="0" cy="0" rx="25" ry="27" fill="#FFFFFF" stroke="#07473C" stroke-width="4.5" />
+    <circle cx="0" cy="0" r="19.5" fill="#008F7A" />
+    <circle cx="0" cy="0" r="15.5" fill="#053B33" />
+    <circle cx="8" cy="-8" r="6.5" fill="#FFFFFF" />
+    <path d="M -6 1 Q -6 6 -1 6 Q -6 6 -6 11 Q -6 6 -11 6 Q -6 6 -6 1 Z" fill="#FFFFFF" />
+  </g>
+
+  <path d="M 230 214 L 250 246 L 270 214 Z" fill="#07473C" stroke="#07473C" stroke-width="4.5" stroke-linejoin="round" />
+  <path d="M 238 224 Q 250 218 262 224 L 250 243 Z" fill="#FF6B6B" />
+  <path d="M 226 214 C 232 196, 268 196, 274 214 Q 250 222 226 214 Z" fill="#FF6B6B" stroke="#07473C" stroke-width="4.5" stroke-linejoin="round" />
+  <circle cx="246" cy="206" r="1.8" fill="#07473C" />
+  <circle cx="254" cy="206" r="1.8" fill="#07473C" />
+
+  <!-- Songkok / Peci -->
+  <path d="M 196 142 L 203 94 Q 250 88 297 94 L 304 142 Q 250 149 196 142 Z" fill="#134E4A" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  <path d="M 198 136 Q 250 143 302 136" fill="none" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" />
+  <path d="M 216 100 L 213 130" stroke="#00937D" stroke-width="3.5" stroke-linecap="round" />
+  <polygon points="250,104 253.5,112 262,112 255.5,117 258,125 250,120 242,125 244.5,117 238,112 246.5,112" fill="#FBBF24" stroke="#07473C" stroke-width="2" stroke-linejoin="round" />
+
+  <!-- Small Open Book & Holding Overlay Wings -->
+  <g transform="translate(250, 294)">
+    <path d="M -52 -16 Q -26 -24 0 -14 Q 26 -24 52 -16 V 32 Q 26 24 0 34 Q -26 24 -52 32 Z" fill="#07473C" />
+    <path d="M -52 -20 Q -26 -28 0 -18 Q 26 -28 52 -20 V 28 Q 26 20 0 30 Q -26 20 -52 28 Z" fill="#FF6B6B" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+    <path d="M -45 -26 Q -22 -34 0 -24 Q 22 -34 45 -26 V 18 Q 22 10 0 20 Q -22 10 -45 18 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="4.5" stroke-linejoin="round" />
+    <line x1="0" y1="-24" x2="0" y2="20" stroke="#07473C" stroke-width="4.5" stroke-linecap="round" />
+    <circle cx="-22" cy="-4" r="7" fill="#FBBF24" stroke="#07473C" stroke-width="3" />
+    <line x1="14" y1="-10" x2="31" y2="-10" stroke="#07473C" stroke-width="4" stroke-linecap="round" />
+    <line x1="14" y1="0" x2="27" y2="0" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" />
+  </g>
+
+  <path d="M 150 252 C 142 300, 186 330, 238 318 C 246 304, 236 288, 216 276 C 196 264, 170 248, 150 252 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  <path d="M 166 290 C 184 312, 212 318, 236 312 C 238 304, 232 296, 224 290 C 206 294, 184 294, 166 290 Z" fill="#00937D" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+
+  <g transform="translate(500 0) scale(-1 1)">
+    <path d="M 150 252 C 142 300, 186 330, 238 318 C 246 304, 236 288, 216 276 C 196 264, 170 248, 150 252 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+    <path d="M 166 290 C 184 312, 212 318, 236 312 C 238 304, 232 296, 224 290 C 206 294, 184 294, 166 290 Z" fill="#00937D" stroke="#07473C" stroke-width="5" stroke-linejoin="round" />
+  </g>
+</svg>

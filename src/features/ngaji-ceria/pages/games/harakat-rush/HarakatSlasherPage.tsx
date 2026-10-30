@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
-import { GameStartSheet } from "../_shared/GameStartSheet";
+import { GameLevelSelectSheet } from "../_shared/GameLevelSelectSheet";
+import { HarakatSlasherCoverSvg } from "@/components/ui/Illustrations";
 import { GameHud } from "../_shared/GameHud";
 import { GameResultModal } from "../_shared/GameResultModal";
 import { ComboBadge } from "../_shared/ComboBadge";
@@ -230,23 +231,18 @@ function Game() {
                 </div>
               </div>
 
-              <GameStartSheet
+              <GameLevelSelectSheet
                 isOpen={phase === "idle"}
+                onClose={() => navigate("/member/ngaji-ceria/games")}
                 gameTitle="Harakat Slasher"
-                gameSubtitle={`Mode: ${SLASHER_MODE_LABELS[mode].title}`}
-                ruleDescription="Tebas buah berisi huruf, kata, atau potongan ayat sesuai target di tengah atas layar sebelum waktu habis!"
+                gameIcon={<HarakatSlasherCoverSvg size={22} />}
                 levels={SLASHER_LEVELS.map((l) => ({
-                  level: l.level,
+                  id: l.level,
                   title: l.title,
                   description: l.description,
-                  target: `${l.targetScore} Poin`,
-                  durationSeconds: l.durationSeconds,
                 }))}
-                unlockedLevels={unlockedLevel}
-                selectedLevel={selectedLevel}
-                onSelectLevel={(lvl) => setSelectedLevel(lvl)}
-                onStart={(lvl) => handleStartLevel(lvl)}
-                onClose={() => navigate("/member/ngaji-ceria/games")}
+                unlockedCount={unlockedLevel}
+                onSelectLevel={(idx) => handleStartLevel(idx + 1)}
               />
             </div>
           ) : (
@@ -360,6 +356,6 @@ function Game() {
   );
 }
 
-export default function HarakatRushPage() {
+export default function HarakatSlasherPage() {
   return <Game />;
 }

@@ -172,6 +172,7 @@ export default function QuizHubPlayPage() {
               questionIndex={currentIndex}
               onAnswerSubmit={handleAnswerSubmit}
               onNext={handleNext}
+              isRetryable={false}
             />
           </div>
         ) : (

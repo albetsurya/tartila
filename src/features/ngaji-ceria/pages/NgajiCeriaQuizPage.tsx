@@ -1,11 +1,18 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   XSvg,
   SparklesSvg,
-  TilawatiSvg,
+  TilawatiLearningSvg,
   LockSvg,
+  BookOpen,
   Volume2Svg as Volume2,
 } from "../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
@@ -15,10 +22,7 @@ import {
   playOpeningDua,
   stopAllAudio,
 } from "../utils/audioPlayer";
-import {
-  PageQuizData,
-  QuizQuestion,
-} from "../data/tilawatiQuizData";
+import { PageQuizData, QuizQuestion } from "../data/tilawatiQuizData";
 import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { awardStars } from "../hooks/useNgajiCeriaStore";
 import { useJilidAccess } from "../components/GameLockGuard";
@@ -35,9 +39,15 @@ import { awardProgress } from "./games/_shared/progression";
 import { addEvent } from "@/services/eventService";
 import { QuizEngine } from "../components/quiz-models/QuizEngine";
 import { QuizSessionResult } from "../components/QuizSessionResult";
-import type { AudioMatchingOption, QuestionData } from "../components/quiz-models/types";
-import { generateAvailableLetters, extractArabicTokens } from "../components/quiz-models/quizModelRandomizer";
-import { GameStartSheet } from "./games/_shared/GameStartSheet";
+import type {
+  AudioMatchingOption,
+  QuestionData,
+} from "../components/quiz-models/types";
+import {
+  generateAvailableLetters,
+  extractArabicTokens,
+} from "../components/quiz-models/quizModelRandomizer";
+import { GameLevelSelectSheet } from "./games/_shared/GameLevelSelectSheet";
 import { GameHud } from "./games/_shared/GameHud";
 import { GameResultModal } from "./games/_shared/GameResultModal";
 import { useGameStore } from "../hooks/useGameStore";
@@ -74,7 +84,10 @@ function buildMcqOptions(correct: string, siblingReadings: string[]): string[] {
 /**
  * Menyusun opsi pilihan ganda Teks Arab untuk model Multiple Choice Audio.
  */
-function buildArabicMcqOptions(correctArabic: string, siblingArabics: string[]): string[] {
+function buildArabicMcqOptions(
+  correctArabic: string,
+  siblingArabics: string[],
+): string[] {
   const cleanCorrect = correctArabic.replace(/\s+/g, " ").trim();
   const uniqueDistractors = Array.from(
     new Set(
@@ -102,7 +115,12 @@ function buildAudioShapes(
   const siblingAudios = Array.from(
     new Set(
       allQuestions
-        .filter((q) => q !== question && Boolean(q.audioUrl) && q.audioUrl !== correctAudio)
+        .filter(
+          (q) =>
+            q !== question &&
+            Boolean(q.audioUrl) &&
+            q.audioUrl !== correctAudio,
+        )
         .map((q) => q.audioUrl!),
     ),
   );
@@ -145,9 +163,11 @@ function toQuestionData(
   // diputar sebagai materi contoh, bukan soal pilihan ganda tanpa jawaban.
   const isMaterial = Boolean(
     question.isListenOnly ||
-      question.isOpening ||
-      question.transliterationParts.length === 0 ||
-      question.transliterationParts.every((p) => /^[0-9○\u06d6-\u06ed=\-—:.,\s]+$/.test(p)),
+    question.isOpening ||
+    question.transliterationParts.length === 0 ||
+    question.transliterationParts.every((p) =>
+      /^[0-9○\u06d6-\u06ed=\-—:.,\s]+$/.test(p),
+    ),
   );
   const audioUrl = question.audioUrl || resolvedAudioUrl || undefined;
 
@@ -179,10 +199,16 @@ function toQuestionData(
   // Kepingan kata/huruf Arab untuk model Susun Huruf (ModelArrangeLetters)
   const correctWords = extractArabicTokens(question.arabic);
 
-  const siblingArabicWords = siblingArabics.flatMap((text) => extractArabicTokens(text));
+  const siblingArabicWords = siblingArabics.flatMap((text) =>
+    extractArabicTokens(text),
+  );
 
   // Bank Huruf Arab: 100% teks Arab murni, menyalin seluruh frekuensi huruf kembar + 3-4 pengecoh
-  const bankLetters = generateAvailableLetters(correctWords, siblingArabicWords, 3);
+  const bankLetters = generateAvailableLetters(
+    correctWords,
+    siblingArabicWords,
+    3,
+  );
 
   // Bank Huruf Transliterasi Latin (untuk ModelFillInTheBlank):
   // Menjaga frekuensi kembar transliterationParts + pengecoh Latin dari options/siblings
@@ -254,7 +280,9 @@ export default function NgajiCeriaQuizPage() {
     jilidParam >= 1 && jilidParam <= 6 ? (jilidParam as SupportedJilid) : 1;
 
   // Async preload semua dataset jilid 1-6 (Jilid 2-6 lazy-loaded via dynamic import)
-  const [datasets, setDatasets] = useState<Record<number, Record<number, PageQuizData>>>({});
+  const [datasets, setDatasets] = useState<
+    Record<number, Record<number, PageQuizData>>
+  >({});
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(true);
   useEffect(() => {
     let alive = true;
@@ -285,14 +313,22 @@ export default function NgajiCeriaQuizPage() {
   const pageAwarded = useRef(false);
 
   // Universal Game Framework State
-  const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("tilawati-quiz"));
+  const unlockedLevel = useGameStore((s) =>
+    s.getUnlockedLevel("tilawati-quiz"),
+  );
   const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
 
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
   const currentLevelConfig = QUIZ_LEVELS[selectedLevel - 1] || QUIZ_LEVELS[0];
-  const [isStartSheetOpen, setIsStartSheetOpen] = useState<boolean>(!searchParams.get("hal"));
-  const [isPlaying, setIsPlaying] = useState<boolean>(Boolean(searchParams.get("hal")));
-  const [timeLeft, setTimeLeft] = useState<number>(currentLevelConfig.durationSeconds);
+  const [isStartSheetOpen, setIsStartSheetOpen] = useState<boolean>(
+    !searchParams.get("hal"),
+  );
+  const [isPlaying, setIsPlaying] = useState<boolean>(
+    Boolean(searchParams.get("hal")),
+  );
+  const [timeLeft, setTimeLeft] = useState<number>(
+    currentLevelConfig.durationSeconds,
+  );
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isWin, setIsWin] = useState<boolean>(false);
 
@@ -308,7 +344,9 @@ export default function NgajiCeriaQuizPage() {
 
   // Timeline edits (async fetch from /data/tilawatiTimelineEdits.json).
   // Audio playback waits for this data so published timeline segments resolve.
-  const [timelineData, setTimelineData] = useState<TimelineEditsIndex | null>(null);
+  const [timelineData, setTimelineData] = useState<TimelineEditsIndex | null>(
+    null,
+  );
 
   // Batasi soal aktif sesuai level kuis.
   // Level 2 melanjutkan dari soal Level 1 (jangan ulangi soal).
@@ -316,11 +354,18 @@ export default function NgajiCeriaQuizPage() {
   // Ta'awudz sudah muncul di awal, layar materi Rost di tengah kuis tidak perlu.
   const filteredQuestions = useMemo(() => {
     return questions.filter(
-      (q) => !q.isListenOnly && !q.isOpening && q.transliterationParts.length > 0 && !q.transliterationParts.every((p) => /^[0-9○\u06d6-\u06ed=\-—:.,\s]+$/.test(p)),
+      (q) =>
+        !q.isListenOnly &&
+        !q.isOpening &&
+        q.transliterationParts.length > 0 &&
+        !q.transliterationParts.every((p) =>
+          /^[0-9○\u06d6-\u06ed=\-—:.,\s]+$/.test(p),
+        ),
     );
   }, [questions]);
   const activeQuestions = useMemo(() => {
-    const startIdx = selectedLevel === 1 ? 0 : QUIZ_LEVELS[selectedLevel - 2].questionCount;
+    const startIdx =
+      selectedLevel === 1 ? 0 : QUIZ_LEVELS[selectedLevel - 2].questionCount;
     return filteredQuestions.slice(startIdx, currentLevelConfig.questionCount);
   }, [filteredQuestions, selectedLevel, currentLevelConfig.questionCount]);
 
@@ -328,9 +373,7 @@ export default function NgajiCeriaQuizPage() {
   const question = activeQuestions[currentIdx] || activeQuestions[0];
   const currentStep = currentIdx + 1;
   const progressPercent =
-    totalQuestions > 0
-      ? Math.round((currentStep / totalQuestions) * 100)
-      : 0;
+    totalQuestions > 0 ? Math.round((currentStep / totalQuestions) * 100) : 0;
 
   // Timer hitung mundur saat bermain
   // Timer berhenti selama Ta'awudz phase
@@ -372,24 +415,33 @@ export default function NgajiCeriaQuizPage() {
   };
 
   const access = useJilidAccess(activeJilid);
-  const tilawatiAudio = useTilawatiAudio({
-    question,
-    jilid: activeJilid,
-    pageNumber: activePageNum,
-    questionIndex: currentIdx,
-  }, timelineData ?? undefined);
+  const tilawatiAudio = useTilawatiAudio(
+    {
+      question,
+      jilid: activeJilid,
+      pageNumber: activePageNum,
+      questionIndex: currentIdx,
+    },
+    timelineData ?? undefined,
+  );
   const isAudioPlaying = tilawatiAudio.isPlaying;
   // Fetch timeline edits (async, module-cached). Needed for audio resolution.
   useEffect(() => {
     if (timelineData !== null) return;
     let alive = true;
     void loadTimelineEdits()
-      .then((data) => { if (alive) setTimelineData(data); })
-      .catch(() => { if (alive) setTimelineData({}); });
-    return () => { alive = false; };
-  }, [])
+      .then((data) => {
+        if (alive) setTimelineData(data);
+      })
+      .catch(() => {
+        if (alive) setTimelineData({});
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-// Reset state when page number changes
+  // Reset state when page number changes
   useEffect(() => {
     if (!access.isOpen || access.isComingSoon || !question) return;
     setCurrentIdx(0);
@@ -442,8 +494,7 @@ export default function NgajiCeriaQuizPage() {
 
   const scorePercent =
     totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-  const earnedStars =
-    scorePercent >= 90 ? 3 : scorePercent >= 70 ? 2 : 1;
+  const earnedStars = scorePercent >= 90 ? 3 : scorePercent >= 70 ? 2 : 1;
 
   const handleNext = () => {
     tapFeedback();
@@ -587,7 +638,7 @@ export default function NgajiCeriaQuizPage() {
       >
         <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 px-6 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0D9488]/10 text-[#0D9488]">
-            <TilawatiSvg size={28} />
+            <TilawatiLearningSvg size={28} />
           </div>
           <h1 className="font-display text-xl font-black text-[#134E4A]">
             Memuat soal...
@@ -609,7 +660,7 @@ export default function NgajiCeriaQuizPage() {
       >
         <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 px-6 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0D9488]/10 text-[#0D9488]">
-            <TilawatiSvg size={28} />
+            <TilawatiLearningSvg size={28} />
           </div>
           <h1 className="font-display text-xl font-black text-[#134E4A]">
             Materi belum tersedia
@@ -725,7 +776,11 @@ export default function NgajiCeriaQuizPage() {
           <main className="max-w-md mx-auto w-full px-5 py-8 flex-1 flex flex-col items-center justify-center">
             <div className="w-full bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#0369A1)] border-[3px] border-[var(--border-color,#0284C7)] rounded-3xl p-8 shadow-[4px_4px_0px_var(--border-color,#0284C7)] flex flex-col items-center justify-center text-center space-y-6">
               <div className="w-14 h-14 rounded-full bg-sky-100 flex items-center justify-center mb-2">
-                <EqualizerIcon isPlaying={true} size={28} barClassName="bg-[var(--border-color,#0284C7)]" />
+                <EqualizerIcon
+                  isPlaying={true}
+                  size={28}
+                  barClassName="bg-[var(--border-color,#0284C7)]"
+                />
               </div>
               <div>
                 <p
@@ -781,29 +836,29 @@ export default function NgajiCeriaQuizPage() {
                 onNext={handleNext}
                 onPlayAudio={handlePlayAudio}
                 isAudioPlaying={isAudioPlaying}
+                isRetryable={true}
               />
             )}
           </>
         )}
 
-        {/* UNIVERSAL GAME START SHEET */}
-        <GameStartSheet
+        {/* SHEET PILIH LEVEL STANDAR */}
+        <GameLevelSelectSheet
           isOpen={isStartSheetOpen}
+          onClose={handleExit}
           gameTitle="Kuis Ngaji"
-          gameSubtitle={`Tilawati Jilid ${activeJilid} · Level ${selectedLevel}`}
-          ruleDescription="Pilih level tantangan, jawab soal dengan tepat sebelum waktu habis! Minimal 70% benar untuk lulus dan membuka level berikutnya."
+          gameIcon={<BookOpen size={22} />}
           levels={QUIZ_LEVELS.map((l) => ({
-            level: l.level,
+            id: l.level,
             title: l.title,
             description: l.description,
-            target: `${l.questionCount} Soal`,
-            durationSeconds: l.durationSeconds,
           }))}
-          unlockedLevels={unlockedLevel}
-          selectedLevel={selectedLevel}
-          onSelectLevel={(lvl) => setSelectedLevel(lvl)}
-          onStart={(lvl) => handleStartLevel(lvl)}
-          onClose={handleExit}
+          unlockedCount={unlockedLevel}
+          onSelectLevel={(idx) => {
+            const lvl = QUIZ_LEVELS[idx]?.level ?? 1;
+            setSelectedLevel(lvl);
+            handleStartLevel(lvl);
+          }}
         />
 
         {/* UNIVERSAL GAME RESULT MODAL */}

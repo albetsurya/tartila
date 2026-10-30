@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TitoMascot } from "@/components/ui/TitoMascot";
@@ -6,16 +6,37 @@ import { SparklesSvg, AlertTriangleSvg, GamepadSvg } from "@/components/ui/Custo
 import { arenaRoomService } from "@/services/arenaRoomService";
 import { normalizeJoinCode } from "@/lib/joinCode";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  loadMultiplayerProfile,
+  MultiplayerSetupSheet,
+  saveMultiplayerProfile,
+  type MultiplayerProfile,
+} from "../../components/multiplayer/MultiplayerSetupSheet";
 
 export default function JoinRoomPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
+  const [profile, setProfile] = useState<MultiplayerProfile | null>(() =>
+    loadMultiplayerProfile(),
+  );
   const [pin, setPin] = useState(normalizeJoinCode(searchParams.get("pin") || ""));
-  const [nickname, setNickname] = useState(user?.name || user?.username || "");
+  const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Prefill nama panggilan dari profil multiplayer / nama user.
+  useEffect(() => {
+    setNickname(
+      (prev) =>
+        prev ||
+        profile?.displayName ||
+        user?.name ||
+        user?.username ||
+        "",
+    );
+  }, [profile, user?.name, user?.username]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,6 +156,16 @@ export default function JoinRoomPage() {
           </button>
         </div>
       </div>
+
+      <MultiplayerSetupSheet
+        isOpen={!profile}
+        defaultName={user?.name || user?.username || ""}
+        onSave={(p) => {
+          saveMultiplayerProfile(p);
+          setProfile(p);
+          setNickname(p.displayName);
+        }}
+      />
     </NgajiCeriaLayout>
   );
 }

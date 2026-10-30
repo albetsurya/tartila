@@ -12,7 +12,7 @@ export interface ArenaSocketCallbacks {
   onPlayerAnswered?: (data: { playerId: string; answeredCount: number; totalPlayers: number }) => void;
   onAnswerAcknowledged?: (data: { isCorrect: boolean; scoreAwarded: number; totalScore: number }) => void;
   onQuestionResult?: (data: { questionId: string; correctAnswer: string; explanation?: string; leaderboard: any[] }) => void;
-  onNextQuestion?: (data: { question: ClientQuestionPayload; questionIndex: number; totalQuestions: number }) => void;
+  onNextQuestion?: (data: { question: ClientQuestionPayload; questionIndex: number; totalQuestions: number; timeLimit: number }) => void;
   onGameFinished?: (data: { leaderboard: any[]; kkm: number }) => void;
   onViolationWarning?: (data: { violations: number; maxViolations: number; autoSubmitted: boolean; message: string }) => void;
   onPlayerViolation?: (data: { playerId: string; nickname: string; violations: number; autoSubmitted: boolean }) => void;

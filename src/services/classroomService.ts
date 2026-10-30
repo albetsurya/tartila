@@ -17,7 +17,7 @@ import {
 export { generateJoinCode, normalizeJoinCode } from '@/lib/joinCode';
 export { JOIN_CODE_LENGTH };
 
-export type ClassroomRoomRole = 'ustadz' | 'murid';
+export type ClassroomRoomRole = 'ustadz' | 'murid' | 'viewer';
 
 export interface ClassroomRoom {
   id: string;
@@ -393,7 +393,7 @@ export async function joinClassroomByCode(
     return fail('room-full', 'Kelas sudah penuh.');
   }
 
-  const roleInRoom: ClassroomRoomRole = isMonitor ? 'ustadz' : 'murid';
+  const roleInRoom: ClassroomRoomRole = isMonitor ? 'viewer' : 'murid';
 
   const { error: insertError } = await supabase
     .from('ustadz_room_participants')

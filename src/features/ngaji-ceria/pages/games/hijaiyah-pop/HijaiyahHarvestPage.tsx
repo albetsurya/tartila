@@ -1,36 +1,60 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
-import { HijaiyahPopCoverSvg } from "@/components/ui/Illustrations";
 import {
   TilaMascot,
   type TilaMood,
   type TilaDirection,
 } from "@/components/ui/TilaMascot";
+import { HijaiyahHarvestCoverSvg } from "@/components/ui/Illustrations";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { useGameExit } from "../_shared/hooks";
-import { StartScreen } from "../_shared/StartScreen";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { HUD } from "../_shared/HUD";
-import { TimerBar } from "../_shared/TimerBar";
 import { ComboBadge } from "../_shared/ComboBadge";
 import { FallingFruit } from "./components/FallingFruit";
 import { TargetBanner } from "../_shared/TargetBanner";
+import { GameLevelSelectSheet } from "../_shared/GameLevelSelectSheet";
 import { playLetterAudio } from "../_shared/gameAudio";
 import { playSfx } from "../_shared/audio";
 import { useBalloonGame, type BalloonData } from "./hooks/useBalloonGame";
+import { LEVELS } from "./data";
+
+/** Level terbuka diselesaikan via localStorage (sama dengan modal lama). */
+function getPopupUnlockedCount(): number {
+  try {
+    const saved = localStorage.getItem("hijaiyah-pop-unlocked");
+    if (saved) {
+      const completed: number[] = JSON.parse(saved);
+      return completed.length + 1;
+    }
+  } catch {
+    // ignore parse errors / missing storage
+  }
+  return 1;
+}
 
 function Game() {
   const game = useBalloonGame();
   const navigate = useNavigate();
   const exit = useGameExit("/member/ngaji-ceria/games");
+
+  // Level selection: stay idle until the user picks a level via GameLevelSelectSheet.
+  const [levelIndex, setLevelIndex] = useState(0);
+  const levelConfig = LEVELS[levelIndex] ?? LEVELS[0];
+
   const [showCombo, setShowCombo] = useState(false);
   const lastComboRef = useRef(game.combo);
 
-  // Tampilkan toast combo di tengah layar saat combo naik, sembunyikan setelah 1.2s.
+  // Victory transition state
+  const [isVictoryTransition, setIsVictoryTransition] = useState(false);
+  const targetBannerControls = useAnimation();
+  const victoryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const powerupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (game.combo >= 3 && game.combo > lastComboRef.current) {
       lastComboRef.current = game.combo;
@@ -40,11 +64,78 @@ function Game() {
     }
   }, [game.combo]);
 
-  // Active user mascot gender
+  // Victory transition effect
+  useEffect(() => {
+    // Strict guard: kata harus ada (len > 0) supaya kondisi 0>=0 di state idle
+    // tidak memicu victory → auto-start tanpa pilih level.
+    const isWinCondition =
+      game.phase === "playing" &&
+      game.targetLetters.length > 0 &&
+      game.collectedLetters.length >= game.targetLetters.length;
+
+    if (isWinCondition && !isVictoryTransition) {
+      setIsVictoryTransition(true);
+      playSfx("level-up");
+
+      // Zoom in animation
+      targetBannerControls.start({
+        scale: 1.5,
+        opacity: 1,
+        transition: { duration: 0.5, ease: "easeOut" },
+      });
+
+      // Play powerup SFX after 1.5s during zoom
+      powerupTimeoutRef.current = setTimeout(() => {
+        playSfx("powerup");
+      }, 1500);
+
+      // Continue to next word after 1.5s
+      victoryTimeoutRef.current = setTimeout(() => {
+        // Zoom out animation
+        targetBannerControls.start({
+          scale: 1,
+          opacity: 1,
+          transition: { duration: 0.5, ease: "easeIn" },
+        });
+
+        setTimeout(() => {
+          setIsVictoryTransition(false);
+          game.continueToNextWord(levelIndex);
+          // Simpan level yang berhasil diselesaikan ke localStorage
+          const unlocked = JSON.parse(
+            localStorage.getItem("hijaiyah-pop-unlocked") || "[]",
+          );
+          const currentLevelIndex = levelIndex; // level yang baru selesai
+          if (!unlocked.includes(currentLevelIndex)) {
+            localStorage.setItem(
+              "hijaiyah-pop-unlocked",
+              JSON.stringify([...unlocked, currentLevelIndex]),
+            );
+          }
+        }, 500);
+      }, 1500);
+    }
+  }, [
+    game.phase,
+    game.collectedLetters.length,
+    game.targetLetters.length,
+    isVictoryTransition,
+    targetBannerControls,
+    levelIndex,
+    game,
+  ]);
+
+  // Cleanup timeouts on unmount or when isVictoryTransition becomes false
+  useEffect(() => {
+    return () => {
+      if (victoryTimeoutRef.current) clearTimeout(victoryTimeoutRef.current);
+      if (powerupTimeoutRef.current) clearTimeout(powerupTimeoutRef.current);
+    };
+  }, []);
+
   const rawGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotGender = resolveMascotGender(rawGender);
 
-  // Tema aplikasi aktif → warna arena & HUD
   const appTheme = useEconomyStore((s) => s.equippedAppTheme);
   const arenaStyle = {
     default: { bg: "bg-[#0F766E]", dot: "#2DD4BF" },
@@ -57,49 +148,43 @@ function Game() {
     gold: { bg: "bg-[#854D0E]", dot: "#FDE047" },
   }[appTheme] ?? { bg: "bg-[#0F766E]", dot: "#2DD4BF" };
 
-  // Audio pelafalan otomatis setiap target huruf berganti (Web Speech, tanpa aset Tilawati)
   useEffect(() => {
-    if (game.phase === "playing" && game.target) playLetterAudio(game.target);
-  }, [game.target, game.phase]);
+    if (game.phase === "playing" && game.targetLetter) {
+      // Pelafalan TTS tidak diaktifkan di build (tanpa aset Tilawati).
+      playLetterAudio(game.targetLetter);
+    }
+  }, [game.targetLetter, game.phase]);
 
-  // Mascot dynamic state for pecking animation
   const mascotControls = useAnimation();
   const [mascotMood, setMascotMood] = useState<TilaMood>("happy");
   const [mascotDirection, setMascotDirection] =
     useState<TilaDirection>("front");
 
-  // Animasi Mematuk (Pecking Animation) saat user mengetuk buah
   const handlePopFruit = useCallback(
     async (fruit: BalloonData) => {
-      // Jalankan logika game pop terlebih dahulu
       game.pop(fruit.id);
-      playSfx('pop');
+      if (fruit.isTarget) {
+        playSfx("pop");
+      }
 
       if (!game.fieldRef.current) return;
       const rect = game.fieldRef.current.getBoundingClientRect();
       const centerX = rect.width / 2;
       const bottomY = rect.height - 46;
-
-      // Hitung koordinat pergerakan relatif ke arah buah
       const deltaX = fruit.x + 38 - centerX;
       const deltaY = fruit.y + 40 - bottomY;
 
       setMascotDirection(deltaX >= 0 ? "right" : "left");
       setMascotMood("excited");
 
-      // Fase 1: Bergerak cepat ke posisi buah (Mematuk)
       await mascotControls.start({
         x: deltaX * 0.88,
         y: Math.min(-20, deltaY * 0.88),
         scale: 1.18,
         rotate: deltaX >= 0 ? 15 : -15,
-        transition: {
-          duration: 0.15,
-          ease: "easeOut",
-        },
+        transition: { duration: 0.15, ease: "easeOut" },
       });
 
-      // Fase 2: Kembali cepat ke posisi semula (Perch)
       await mascotControls.start({
         x: 0,
         y: 0,
@@ -107,7 +192,7 @@ function Game() {
         rotate: 0,
         transition: {
           duration: 0.22,
-          ease: [0.34, 1.56, 0.64, 1], // Efek pantulan kembali
+          ease: [0.34, 1.56, 0.64, 1],
         },
       });
 
@@ -119,7 +204,7 @@ function Game() {
 
   return (
     <GameShell
-      title="Hijaiyah Pop!"
+      title="Hijaiyah Harvest!"
       phase={game.phase}
       onPause={game.pause}
       onResume={game.resume}
@@ -127,52 +212,58 @@ function Game() {
       tutorialGameId="hijaiyah-pop"
       floatingTopBar
     >
-      {game.phase === "idle" ? (
-        <StartScreen
-          title="Hijaiyah Pop!"
-          tagline="Fokus target, petik buah berkah!"
-          description="Ketuk buah huruf hijaiyah yang jatuh dari pohon sesuai target. Hindari buah yang salah dan jangan sampai target terlewat! Tiga nyawa, 60 detik."
-          coverImage={<HijaiyahPopCoverSvg size={112} />}
-          best={game.best}
-          onStart={game.start}
-          onExit={exit}
-          accent="cyan"
-        />
-      ) : (
+      {game.phase === "playing" ||
+      game.phase === "paused" ||
+      game.phase === "gameover" ? (
         <div
           ref={game.fieldRef}
           aria-label="Arena buah jatuh"
           className={`absolute inset-0 w-full overflow-hidden border-t-[3.5px] border-[#134E4A] ${arenaStyle.bg} select-none ${
             game.shakeLeft > 0 ? "game-shake" : ""
-          }`}
+          } ${isVictoryTransition ? "pointer-events-none" : ""}`}
         >
-          {/* TOP HUD CONTAINER: HUD, Timer, dan Target sejajar */}
-          <div className="absolute top-20 inset-x-0 z-30 flex justify-between px-3 pointer-events-none items-start gap-2">
-            {/* KIRI: Skor, Nyawa, Timer */}
-            <div className="flex flex-col gap-1.5 w-[45%] max-w-[180px]">
-              <div className="rounded-2xl bg-[#042F2E]/40 p-1 backdrop-blur-sm self-start">
-                <HUD
-                  score={game.score}
-                  lives={game.lives}
-                  timeLeft={game.timeLeft}
-                />
-              </div>
-              <div className="w-full">
-                <TimerBar
-                  progress={game.timeLeft / 60}
-                  secondsLeft={game.timeLeft}
-                />
-              </div>
+          {/* TOP HUD: Skor, Nyawa, Timer, dan Target Banner */}
+          <div className="absolute top-16 inset-x-0 z-30 flex flex-col items-center px-3 pointer-events-none">
+            {/* Baris 1: HUD Skor, Nyawa & Hati di kiri */}
+            <div className="flex w-full max-w-[640px] flex-row items-center justify-between px-4 py-2">
+              <HUD score={game.score} lives={game.lives} />
             </div>
 
-            {/* KANAN: Target Banner */}
-            <div className="w-[50%] flex justify-end">
+            {/* Baris 2: Target Banner ditengah - disembunyikan saat victory transition */}
+            <div
+              className={`w-full max-w-[640px] flex justify-center mt-2 ${isVictoryTransition ? "opacity-0 pointer-events-none" : ""}`}
+            >
               <TargetBanner
-                target={game.target}
-                name={game.targetName}
+                targetLetters={game.targetLetters}
+                collectedLetters={game.collectedLetters}
+                isWord={levelConfig.isWord}
                 className="shadow-[4px_4px_0px_#134E4A] scale-90 sm:scale-100 origin-top-right"
               />
             </div>
+
+            {/* VICTORY MODAL OVERLAY - Zoom ke tengah */}
+            <AnimatePresence>
+              {isVictoryTransition && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, y: -50 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 pointer-events-none p-4"
+                >
+                  <motion.div className="w-[90vw] max-w-sm origin-top-center">
+                    <div className="bg-white rounded-[32px] p-6 border-[4px] border-[#134E4A] shadow-[8px_8px_0px_#134E4A]">
+                      <TargetBanner
+                        targetLetters={game.targetLetters}
+                        collectedLetters={game.targetLetters}
+                        isWord={levelConfig.isWord}
+                        className="bg-white"
+                      />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Latar Belakang Pola Titik Neo-Brutalism */}
@@ -184,14 +275,15 @@ function Game() {
             }}
           />
 
-          {/* ILUSTRASI 1: KANOPI POHON RIMBUN (DEDAUNAN ATAS DIPERBESAR & DITURUNKAN) */}
-          <div className="pointer-events-none absolute top-0 inset-x-0 h-40 sm:h-52 z-10 overflow-hidden">
+          {/* ILUSTRASI 1: KANOPI POHON RIMBUN */}
+          <div className="pointer-events-none absolute top-0 inset-x-0 h-24 sm:h-32 z-10 overflow-hidden">
             <svg
               viewBox="0 0 1000 160"
               preserveAspectRatio="none"
               className="w-full h-full"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              style={{ overflow: "hidden" }}
             >
               {/* Batang Kayu Cabang Atas */}
               <path
@@ -201,7 +293,7 @@ function Game() {
                 strokeWidth="4"
               />
 
-              {/* Layer 1: Daun Belakang Gelap (Lebih Menjuntai) */}
+              {/* Layer 1: Daun Belakang Gelap */}
               <path
                 d="M -20,0 L 1020,0 L 1020,80 C 940,110 860,70 780,100 C 700,130 620,80 540,110 C 460,140 380,90 300,120 C 220,140 140,90 60,110 C 20,120 -10,100 -20,90 Z"
                 fill="#064E3B"
@@ -228,7 +320,6 @@ function Game() {
                 strokeLinejoin="round"
               />
 
-              {/* Daun Aksen Melengkung Menjuntai (Ditambah) */}
               <ellipse
                 cx="180"
                 cy="90"
@@ -270,7 +361,6 @@ function Game() {
                 transform="rotate(5 620 105)"
               />
 
-              {/* Buah Kecil Hiasan di Ranting Pohon */}
               <circle
                 cx="180"
                 cy="100"
@@ -298,7 +388,7 @@ function Game() {
             </svg>
           </div>
 
-          {/* ILUSTRASI 2: RUMPUT & TANAH SUBUR (DASAR BAWAH) */}
+          {/* ILUSTRASI 2: RUMPUT & TANAH SUBUR */}
           <div className="pointer-events-none absolute bottom-0 inset-x-0 h-20 sm:h-24 z-10 overflow-hidden">
             <svg
               viewBox="0 0 1000 100"
@@ -307,7 +397,6 @@ function Game() {
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Lapisan Tanah Dasar */}
               <path
                 d="M0,45 Q250,30 500,48 T1000,38 L1000,100 L0,100 Z"
                 fill="#064E3B"
@@ -315,7 +404,6 @@ function Game() {
                 strokeWidth="4"
               />
 
-              {/* Bukit Rumput Hijau */}
               <path
                 d="M0,58 Q200,38 420,54 T850,44 Q930,48 1000,56 L1000,100 L0,100 Z"
                 fill="#059669"
@@ -329,7 +417,6 @@ function Game() {
                 strokeWidth="4"
               />
 
-              {/* Rerumputan & Bunga Cantik Neo-Brutalism */}
               <polygon
                 points="120,45 126,28 132,45"
                 fill="#34D399"
@@ -342,7 +429,6 @@ function Game() {
                 stroke="#134E4A"
                 strokeWidth="3"
               />
-
               <polygon
                 points="860,42 866,26 872,42"
                 fill="#34D399"
@@ -356,7 +442,6 @@ function Game() {
                 strokeWidth="3"
               />
 
-              {/* Bunga Kuning di Rumput */}
               <circle
                 cx="240"
                 cy="62"
@@ -379,30 +464,27 @@ function Game() {
             </svg>
           </div>
 
-          {/* DAFTAR BUAH YANG JATUH DARI ATAS KE BAWAH */}
           {game.balloons.map((fruit) => (
             <FallingFruit
               key={fruit.id}
               fruit={fruit}
-              disabled={game.phase !== "playing"}
+              disabled={game.phase !== "playing" || isVictoryTransition}
               onPop={handlePopFruit}
             />
           ))}
 
-          {/* MASKOT UTAMA GAMEPLAY (MEMATUK BUAH SAAT DI-TAP) */}
+          {/* MASKOT UTAMA */}
           <motion.div
             animate={mascotControls}
-            className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center"
+            className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center"
             style={{ transformOrigin: "bottom center" }}
           >
-            {/* Balon Ucapan Kombo Ringkas */}
             {game.combo >= 3 && (
               <div className="mb-1 px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] text-[10px] font-black shadow-[1.5px_1.5px_0px_#134E4A] whitespace-nowrap animate-bounce">
                 <span>Kombo x{game.combo}!</span>
               </div>
             )}
 
-            {/* Maskot Karakter Utama */}
             <TilaMascot
               size={88}
               gender={mascotGender}
@@ -411,13 +493,12 @@ function Game() {
               direction={mascotDirection}
             />
 
-            {/* Pijakan Karakter di Atas Rumput */}
             <div className="w-24 h-5 -mt-2 rounded-[50%] border-2 border-[#134E4A] bg-[#FEF3C7] shadow-[2px_2px_0px_#134E4A] flex items-center justify-center -z-10">
               <div className="w-18 h-3 rounded-[50%] border border-dashed border-[#134E4A]/30" />
             </div>
           </motion.div>
 
-          {/* FLOATING COMBO TOAST DI TENGAH ATAS (muncul saat combo naik, memudar otomatis) */}
+          {/* FLOATING COMBO TOAST */}
           <AnimatePresence>
             {showCombo && (
               <motion.div
@@ -434,29 +515,45 @@ function Game() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-      )}
 
-      {/* GAME OVER MODAL */}
-      <GameOverModal
-        visible={game.phase === "gameover"}
-        score={game.score}
-        maxCombo={game.maxCombo}
-        victory={game.lives > 0}
-        best={game.best}
-        isNewRecord={game.isNewRecord}
-        accent="cyan"
-        description={`${
-          game.lives <= 0 ? "Nyawa habis" : "Waktu habis"
-        } · kombo tertinggi ${game.maxCombo}`}
-        onRetry={game.start}
-        onExit={exit}
+          {/* GAME OVER MODAL */}
+          <GameOverModal
+            visible={game.phase === "gameover"}
+            score={game.score}
+            maxCombo={game.maxCombo}
+            victory={game.lives > 0}
+            best={game.best}
+            isNewRecord={game.isNewRecord}
+            accent="cyan"
+            description={`${
+              game.lives <= 0 ? "Nyawa habis" : "Waktu habis"
+            } · kombo tertinggi ${game.maxCombo}`}
+            onRetry={() => game.startGame(levelIndex)}
+            onExit={exit}
+          />
+        </div>
+      ) : null}
+      <GameLevelSelectSheet
+        isOpen={game.phase === "idle"}
+        onClose={exit}
+        gameTitle="PHijaiyah Harvest"
+        gameIcon={<HijaiyahHarvestCoverSvg size={22} />}
+        levels={LEVELS.map((level) => ({
+          id: level.id,
+          title: level.title,
+          description: level.desc,
+        }))}
+        unlockedCount={getPopupUnlockedCount()}
+        onSelectLevel={(idx) => {
+          setLevelIndex(idx);
+          game.startGame(idx);
+        }}
       />
     </GameShell>
   );
 }
 
-export default function HijaiyahPopPage() {
+export default function HijaiyahHarvestPage() {
   return (
     <GameBoundary>
       <Game />

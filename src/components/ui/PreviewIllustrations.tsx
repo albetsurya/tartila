@@ -21,7 +21,7 @@ import {
   ItemBiruSvg,
   ItemKuningSvg,
   ItemHijauSvg,
-  HijaiyahPopCoverSvg,
+  HijaiyahHarvestCoverSvg,
   HijaiyahRushCoverSvg,
   HijaiyahBeatsCoverSvg,
   Hijaiyah2048CoverSvg,
@@ -41,7 +41,7 @@ import {
   SantriIdleCoverSvg,
   WudhuFlowCoverSvg,
   SholatHeroCoverSvg,
-  HarakatRushCoverSvg,
+  HarakatSlasherCoverSvg,
   MakhrajMasterCoverSvg,
   NurBattleCoverSvg,
   TebakSurahCoverSvg,
@@ -176,11 +176,11 @@ export const ILLUSTRATIONS_LIST: IllustrationItem[] = [
     isPopItem: true,
   },
   {
-    id: "HijaiyahPopCoverSvg",
-    name: "HijaiyahPopCoverSvg",
+    id: "HijaiyahHarvestCoverSvg",
+    name: "HijaiyahHarvestCoverSvg",
     category: "Hijaiyah Pop",
     desc: "Maskot Burung Tito dikelilingi 3 bintang hijaiyah",
-    Component: HijaiyahPopCoverSvg,
+    Component: HijaiyahHarvestCoverSvg,
     bg: "bg-[#CCFBF1]",
   },
 
@@ -338,11 +338,11 @@ export const ILLUSTRATIONS_LIST: IllustrationItem[] = [
     bg: "bg-[#D1FAE5]",
   },
   {
-    id: "HarakatRushCoverSvg",
-    name: "HarakatRushCoverSvg",
+    id: "HarakatSlasherCoverSvg",
+    name: "HarakatSlasherCoverSvg",
     category: "Cover Game",
     desc: "Huruf alif berlari dengan harakat fathah, kasrah, dhammah",
-    Component: HarakatRushCoverSvg,
+    Component: HarakatSlasherCoverSvg,
     bg: "bg-[#FEE2E2]",
   },
   {
@@ -489,7 +489,7 @@ export function PreviewIllustrations() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#FFFBEB] border-4 border-[#134E4A] rounded-xl shadow-[4px_4px_0px_0px_#134E4A]">
-              <HijaiyahPopCoverSvg size={44} />
+              <HijaiyahHarvestCoverSvg size={44} />
             </div>
             <div>
               <div className="inline-block px-2.5 py-0.5 bg-[#10B981] text-white font-black text-xs uppercase tracking-wider border-2 border-[#134E4A] rounded-md mb-1">

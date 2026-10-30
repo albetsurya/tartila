@@ -11,6 +11,24 @@ import {
   GamepadSvg,
   CardsSvg,
 } from "../../../components/ui/CustomIcons";
+import {
+  HeroArcadeSvg,
+  HarakatSlasherCoverSvg,
+  // Disabled: inactive game (QuizRoyale, TajwidArena, AdabRpg, MakhrajMaster,
+  // Beats, DoaDungeon, SholatHero, WudhuFlow tak aktif di registry)
+  // QuranQuizRoyaleCoverSvg,
+  AyatScrambleCoverSvg,
+  Hijaiyah2048CoverSvg,
+  HijaiyahHarvestCoverSvg,
+  // TajwidArenaCoverSvg,
+  // AdabRpgCoverSvg,
+  // MakhrajMasterCoverSvg,
+  // HijaiyahBeatsCoverSvg,
+  // DoaDungeonCoverSvg,
+  // SholatHeroCoverSvg,
+  // WudhuFlowCoverSvg,
+  QuizHubCoverSvg,
+} from "../../../components/ui/Illustrations";
 import { useGameAccess } from "../components/GameLockGuard";
 import { LoginPromptModal } from "../components/LoginPromptModal";
 import { isGameOpen, canonicalGameId } from "../data/gameAccess";
@@ -18,21 +36,6 @@ import { getBest } from "./games/_shared/storage";
 import { triggerTilaReaction } from "../../../utils/tilaEvent";
 import { GameCard } from "./games/_shared/GameCard";
 import { useActiveGames, ActiveGameItem } from "../hooks/useActiveGames";
-import {
-  HarakatRushCoverSvg,
-  QuranQuizRoyaleCoverSvg,
-  AyatScrambleCoverSvg,
-  Hijaiyah2048CoverSvg,
-  HijaiyahPopCoverSvg,
-  TajwidArenaCoverSvg,
-  AdabRpgCoverSvg,
-  MakhrajMasterCoverSvg,
-  HijaiyahBeatsCoverSvg,
-  DoaDungeonCoverSvg,
-  SholatHeroCoverSvg,
-  WudhuFlowCoverSvg,
-  QuizHubCoverSvg,
-} from "@/components/ui/Illustrations";
 
 export interface GameEntry {
   id: string;
@@ -59,7 +62,7 @@ export interface GameMetaInfo {
 
 export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
   "quiz-hub": {
-    title: "Arena Kuis", // <-- Diubah dari "Pusat Kuis"
+    title: "Arena Kuis",
     genre: "Kuis · Tantangan Kata",
     description:
       "Uji kepintaranmu mengeja huruf, menyusun kata Arab, dan tantang temanmu di papan peringkat!",
@@ -74,7 +77,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     genre: "Arkade · Refleks",
     description:
       "Ayunkan pedangmu, tebas harakat yang tepat, dan hindari jebakan pengecoh sebelum waktu habis!",
-    cover: <HarakatRushCoverSvg size={76} />,
+    cover: <HarakatSlasherCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
     isNew: true,
@@ -85,7 +88,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     genre: "Arkade · Refleks",
     description:
       "Ayunkan pedangmu, tebas harakat yang tepat, dan hindari jebakan pengecoh sebelum waktu habis!",
-    cover: <HarakatRushCoverSvg size={76} />,
+    cover: <HarakatSlasherCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/harakat-rush",
     bestKey: "harakat-rush",
     isNew: true,
@@ -141,6 +144,8 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "hijaiyah-2048",
     isQuizBased: false,
   },
+  // Disabled: inactive game (quiz-ngaji)
+  /*
   "quiz-ngaji": {
     title: "Quiz Ngaji",
     genre: "Kuis · Juz Amma",
@@ -151,22 +156,25 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "quran-quiz-royale",
     isQuizBased: true,
   },
+  */
   "hijaiyah-pop": {
-    title: "Hijaiyah Pop",
-    genre: "Arkade · Ketangkasan",
+    title: "Hijaiyah Harvest",
+    genre: "Edukasi · Susun Kata",
     description:
-      "Ketuk dan pecahkan balon huruf hijaiyah secepat kilat. Jangan sampai salah sasaran!",
-    cover: <HijaiyahPopCoverSvg size={76} />,
+      "Susun huruf hijaiyah dari buah yang jatuh untuk membentuk kata yang sempurna.",
+    cover: <HijaiyahHarvestCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/hijaiyah-pop",
     bestKey: "hijaiyah-pop",
     isQuizBased: false,
   },
+  // Disabled: inactive game (ritme-ngaji … wudhu-flow)
+  /*
   "ritme-ngaji": {
     title: "Ritme Ngaji",
     genre: "Musik · Ketukan Nada",
     description:
       "Gabungkan ketukan irama, harakat, dan makhraj dalam satu petualangan musik islami.",
-    cover: <HarakatRushCoverSvg size={76} />,
+    cover: <HarakatSlasherCoverSvg size={76} />,
     path: "/member/ngaji-ceria/games/ritme-ngaji",
     bestKey: "harakat-rush",
     isQuizBased: false,
@@ -252,6 +260,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "wudhu-flow",
     isQuizBased: true,
   },
+  */
 };
 
 function resolveGameEntry(item: ActiveGameItem): GameEntry {
@@ -280,7 +289,7 @@ function resolveGameEntry(item: ActiveGameItem): GameEntry {
     best,
     path,
     isNew: meta?.isNew,
-    bgColor: "bg-[var(--bg-card)]",
+    bgColor: "bg-white",
   };
 }
 
@@ -289,6 +298,7 @@ export default function NgajiCeriaGamesPage() {
   const { tier } = useGameAccess("games");
   const [promptOpen, setPromptOpen] = useState(false);
   const { activeGames, isLoading } = useActiveGames();
+
   const gamesToDisplay = useMemo(() => {
     const filtered = activeGames.filter((g) => {
       if (!g.is_active) return false;
@@ -322,120 +332,132 @@ export default function NgajiCeriaGamesPage() {
 
   return (
     <NgajiCeriaLayout title="Mini Games" showBack>
-      <div className="mx-auto min-h-full w-full space-y-5 rounded-t-3xl bg-[var(--bg-app,#F0FDF4)] px-3 py-5 pb-32 text-[var(--text-main,#134E4A)] transition-colors duration-200 sm:space-y-6 sm:px-4 sm:py-6 md:px-6 md:py-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <span className="mb-2 inline-flex items-center rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[#CCFBF1] px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] dark:bg-[#1E293B] dark:text-[#99F6E4]">
-              Koleksi Permainan
+      <div className="mx-auto min-h-full w-full bg-[#F0FDF4] pb-32 text-[#134E4A]">
+        {/* HERO SECTION */}
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[#134E4A] mb-6 -mx-2 sm:-mx-4 md:-mx-6 -mt-2">
+          {/* Ilustrasi Arcade di Sebelah Kanan */}
+          <div className="absolute right-4 bottom-2 md:right-10 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
+            <HeroArcadeSvg
+              size={150}
+              className="drop-shadow-[4px_4px_0px_#042F2E]"
+            />
+          </div>
+
+          <div className="relative z-20 max-w-[72%] md:max-w-[78%]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF08A]/20 px-3 py-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-[#FEF08A]">
+              <GamepadSvg size={14} /> Koleksi Permainan
             </span>
-            <h2 className="font-display text-2xl font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-3xl">
-              Jelajahi Permainan
+            <h2 className="mt-3 font-display text-[26px] md:text-3xl lg:text-4xl font-black leading-tight">
+              Jelajahi <br />
+              <span className="text-[#FEF08A]">Permainan Seru!</span>
             </h2>
-            <p className="mt-1 max-w-xl text-sm leading-relaxed text-[var(--text-main,#134E4A)]/75">
-              Pilih permainan untuk melatih kemampuan, mengasah ingatan, dan
-              belajar sambil bermain.
+            <p className="mt-2 text-[12px] md:text-sm font-medium text-white/80 leading-relaxed">
+              Pilih permainan untuk melatih kemampuan dan belajar sambil
+              bermain.
             </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate("/member/ngaji-ceria/leaderboard")}
-            className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl border-[2px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-2.5 text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:w-auto"
-            title="Buka Papan Skor Global"
-          >
-            <TrophySvg size={18} className="shrink-0 text-[#B45309]" />
-            <span className="text-sm font-black">Papan Skor</span>
-          </button>
-        </div>
-
-        {isLoading ? (
-          <div
-            aria-label="Memuat daftar permainan"
-            aria-live="polite"
-            className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
-          >
-            {Array.from({ length: 4 }, (_, index) => (
-              <div
-                key={index}
-                className="min-h-[250px] animate-pulse rounded-[22px] border-[3px] border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card,#FFFFFF)] p-3 shadow-[3px_3px_0px_rgba(19,78,74,0.12)]"
-              >
-                <div className="mx-auto mt-3 h-20 w-20 rounded-2xl bg-[var(--bg-app,#F0FDF4)]" />
-                <div className="mx-auto mt-5 h-4 w-3/4 rounded-md bg-[var(--bg-app,#F0FDF4)]" />
-                <div className="mx-auto mt-2 h-3 w-1/2 rounded-md bg-[var(--bg-app,#F0FDF4)]" />
-                <div className="mt-5 h-10 rounded-xl bg-[var(--bg-app,#F0FDF4)]" />
-              </div>
-            ))}
-          </div>
-        ) : gamesToDisplay.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)] p-6 text-center shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] sm:p-8">
-            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)]">
-              <GamepadSvg size={42} />
-            </div>
-            <p className="text-base font-black text-[var(--text-main,#134E4A)] sm:text-lg">
-              Belum ada game yang diaktifkan
-            </p>
-            <p className="mt-1 max-w-sm text-sm leading-relaxed text-[var(--text-main,#134E4A)]/70">
-              Aktifkan game melalui Panel Admin Katalog Game untuk
-              menampilkannya di sini.
-            </p>
-          </div>
-        ) : (
-          <motion.div
-            variants={staggerContainerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
-          >
-            {gamesToDisplay.map((game, index) => {
-              const locked = tier === "guest" && !isGameOpen(game.id, tier);
-              return (
-                <motion.div
-                  key={game.id}
-                  variants={staggerItemVariants}
-                  className="h-full min-w-0"
-                >
-                  <GameCard
-                    title={game.title}
-                    genre={game.genre}
-                    description={game.description}
-                    cover={game.cover}
-                    best={game.best}
-                    badge={game.isNew ? "BARU" : undefined}
-                    bgColor="bg-[var(--bg-card)]"
-                    locked={locked}
-                    index={index}
-                    onClick={() => openGame(game.path, locked)}
-                  />
-                </motion.div>
-              );
-            })}
-
-            <motion.div
-              variants={staggerItemVariants}
-              className="relative flex h-full min-h-[250px] w-full flex-col items-center rounded-[22px] border-[3px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)] p-3 text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_rgba(19,78,74,0.18)]"
+            <button
+              type="button"
+              onClick={() => navigate("/member/ngaji-ceria/leaderboard")}
+              className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-[2px] border-[#134E4A] bg-white px-4 py-2 text-sm font-black text-[#134E4A] shadow-[2px_2px_0px_#FEF08A] transition-all hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
             >
-              <div className="relative z-10 mt-3 flex h-24 w-full items-center justify-center">
-                <div className="absolute inset-0 m-auto h-20 w-20 rounded-full border-[2.5px] border-dashed border-[var(--border-color,#134E4A)]/40 bg-[#CCFBF1] dark:bg-[#1E293B]" />
-                <GamepadSvg
-                  size={36}
-                  className="relative z-10 opacity-40 text-[var(--text-main,#134E4A)]"
-                />
+              <TrophySvg size={18} className="shrink-0 text-[#B45309]" />
+              Papan Skor
+            </button>
+          </div>
+        </section>
+
+        {/* GRID GAME CONTENT */}
+        <div className="px-3 sm:px-4 md:px-6 space-y-5 sm:space-y-6">
+          {isLoading ? (
+            <div
+              aria-label="Memuat daftar permainan"
+              aria-live="polite"
+              className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
+            >
+              {Array.from({ length: 4 }, (_, index) => (
+                <div
+                  key={index}
+                  className="min-h-[250px] animate-pulse rounded-[22px] border-[3px] border-[#134E4A]/15 bg-white p-3 shadow-[3px_3px_0px_rgba(19,78,74,0.12)]"
+                >
+                  <div className="mx-auto mt-3 h-20 w-20 rounded-2xl bg-[#F0FDF4]" />
+                  <div className="mx-auto mt-5 h-4 w-3/4 rounded-md bg-[#F0FDF4]" />
+                  <div className="mx-auto mt-2 h-3 w-1/2 rounded-md bg-[#F0FDF4]" />
+                  <div className="mt-5 h-10 rounded-xl bg-[#F0FDF4]" />
+                </div>
+              ))}
+            </div>
+          ) : gamesToDisplay.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border-[3px] border-dashed border-[#134E4A]/40 bg-white p-6 text-center shadow-[3px_3px_0px_#134E4A] sm:p-8">
+              <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
+                <GamepadSvg size={42} />
               </div>
-              <div className="z-10 mt-3 flex w-full flex-col items-center text-center">
-                <h3 className="font-display text-center text-sm font-black leading-tight text-[var(--text-main,#134E4A)] sm:text-base">
-                  Segera Hadir
-                </h3>
-                <p className="mt-1 text-xs font-bold text-[var(--text-main,#134E4A)]/70">
-                  Game Baru
-                </p>
-              </div>
-              <div className="z-10 mt-3 w-full">
-                <span className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)]/25 bg-gray-100 py-2 text-xs font-black text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                  Tunggu Ya
-                </span>
-              </div>
+              <p className="text-base font-black text-[#134E4A] sm:text-lg">
+                Belum ada game yang diaktifkan
+              </p>
+              <p className="mt-1 max-w-sm text-sm leading-relaxed text-[#134E4A]/70">
+                Aktifkan game melalui Panel Admin Katalog Game untuk
+                menampilkannya di sini.
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              variants={staggerContainerVariants}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
+            >
+              {gamesToDisplay.map((game, index) => {
+                const locked = tier === "guest" && !isGameOpen(game.id, tier);
+                return (
+                  <motion.div
+                    key={game.id}
+                    variants={staggerItemVariants}
+                    className="h-full min-w-0"
+                  >
+                    <GameCard
+                      title={game.title}
+                      genre={game.genre}
+                      description={game.description}
+                      cover={game.cover}
+                      best={game.best}
+                      badge={game.isNew ? "BARU" : undefined}
+                      bgColor="bg-white"
+                      locked={locked}
+                      index={index}
+                      onClick={() => openGame(game.path, locked)}
+                    />
+                  </motion.div>
+                );
+              })}
+
+              <motion.div
+                variants={staggerItemVariants}
+                className="relative flex h-full min-h-[250px] w-full flex-col items-center rounded-[22px] border-[3px] border-dashed border-[#134E4A]/40 bg-white p-3 text-[#134E4A] shadow-[3px_3px_0px_rgba(19,78,74,0.18)]"
+              >
+                <div className="relative z-10 mt-3 flex h-24 w-full items-center justify-center">
+                  <div className="absolute inset-0 m-auto h-20 w-20 rounded-full border-[2.5px] border-dashed border-[#134E4A]/40 bg-[#CCFBF1]" />
+                  <GamepadSvg
+                    size={36}
+                    className="relative z-10 opacity-40 text-[#134E4A]"
+                  />
+                </div>
+                <div className="z-10 mt-3 flex w-full flex-col items-center text-center">
+                  <h3 className="font-display text-center text-sm font-black leading-tight text-[#134E4A] sm:text-base">
+                    Segera Hadir
+                  </h3>
+                  <p className="mt-1 text-xs font-bold text-[#134E4A]/70">
+                    Game Baru
+                  </p>
+                </div>
+                <div className="z-10 mt-3 w-full">
+                  <span className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border-2 border-[#134E4A]/25 bg-gray-100 py-2 text-xs font-black text-gray-600">
+                    Tunggu Ya
+                  </span>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          )}
+        </div>
 
         <LoginPromptModal
           open={promptOpen}

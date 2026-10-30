@@ -5,16 +5,12 @@ import { ThemedHeader } from "../../components/ThemedHeader";
 import {
   BookOpen,
   Play,
-  Pause,
   Eye,
   EyeOff,
 } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { LenteraIcon } from "../../components/LenteraIcon";
-import {
-  getTargetBySurah,
-  type TahfidzTarget,
-} from "../../data/tahfidzData";
+import { getTargetBySurah, type TahfidzTarget } from "../../data/tahfidzData";
 import { useTahfidz, getSurahProgress } from "../../hooks/useTahfidz";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { everyAyahAudio } from "./exploreData";
@@ -132,22 +128,22 @@ export default function TahfidzDetailPage() {
   if (!selectedSurah) {
     return (
       <NgajiCeriaLayout
-        title="Target Tahfidz"
+        title="Puncak Tahfidz"
         showBack
         themeScope="tahfidz"
         onBack={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
       >
-        <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-3 px-6 text-center">
+        <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-3 px-6 text-center bg-[#CBD5E1]">
           <LenteraIcon size={48} lit={false} className="opacity-60 mb-2" />
-          <p className="font-display text-lg font-black text-[#FEF08A]">
-            Surah tidak ditemukan
+          <p className="font-display text-lg font-black text-[#1E293B]">
+            Prasasti Surah tidak ditemukan
           </p>
           <button
             type="button"
             onClick={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
-            className="rounded-xl border-2 border-[#FEF08A] bg-[#065F46] px-4 py-2 text-xs font-black text-[#FEF08A] shadow-[2px_2px_0px_#02201F] hover:bg-[#042F2E]"
+            className="rounded-xl border-[3px] border-[#1E293B] bg-[#64748B] px-4 py-2 text-xs font-black text-[#FEF08A] shadow-[3px_3px_0px_#1E293B] cursor-pointer"
           >
-            Kembali ke Menara Tahfidz
+            Kembali ke Puncak Gunung
           </button>
         </div>
       </NgajiCeriaLayout>
@@ -158,163 +154,179 @@ export default function TahfidzDetailPage() {
 
   return (
     <NgajiCeriaLayout
-      title={`Tahfidz ${selectedSurah.namaLatin}`}
+      title={`Puncak ${selectedSurah.namaLatin}`}
       hideHeader={true}
       showBack
       themeScope="tahfidz"
       onBack={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
     >
-      <div className="min-h-[100dvh] w-full relative overflow-x-hidden bg-[var(--bg-app,#042F2E)] text-[#F0FDF4] pb-32">
-        {/* Background Pattern: Gemerlap lentera malam */}
+      {/* Latar Udara Puncak Gunung & Tebing Batu (#CBD5E1) */}
+      <div className="min-h-[100dvh] w-full relative overflow-x-hidden bg-[#CBD5E1] text-[#0F172A] pb-32">
+        {/* Siluet Puncak Gunung Berbatu di Latar Belakang */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-20"
+          className="pointer-events-none fixed bottom-0 left-0 right-0 h-52 bg-[#475569] border-t-[4px] border-[#1E293B] z-0"
           style={{
-            backgroundImage:
-              "radial-gradient(#10B981 1.5px, transparent 1.5px)",
-            backgroundSize: "24px 24px",
+            clipPath:
+              "polygon(0% 55%, 22% 15%, 45% 45%, 72% 5%, 100% 40%, 100% 100%, 0% 100%)",
           }}
         />
 
-        {/* Custom Header Zamrud Gelap dengan Teks Emas */}
+        {/* Header Tebing Batu Gunung (#475569) */}
         <ThemedHeader
-          title={`Tahfidz ${selectedSurah.namaLatin}`}
+          title={`Prasasti ${selectedSurah.namaLatin}`}
           onBack={() => navigate("/member/ngaji-ceria/explore/tahfidz")}
-          themeColorClass="bg-[#042F2E] border-b-[3px] border-[#065F46]"
+          themeColorClass="bg-[#475569] border-b-[4px] border-[#1E293B]"
           textColorClass="text-[#FEF08A]"
           statVariant="capsule"
-          statBgClass="bg-[#064E3B] border-2 border-[#FEF08A]/30"
+          statBgClass="bg-[#1E293B] border-2 border-[#FEF08A]"
           statTextClass="text-[#FEF08A]"
-          backClass="bg-[#FEF08A] text-[#042F2E] shadow-[2px_2px_0px_#02201F] hover:bg-[#FDE047]"
+          backClass="bg-[#FEF08A] text-[#1E293B] border-[2.5px] border-[#1E293B] shadow-[2px_2px_0px_#0F172A] hover:bg-[#FDE047]"
         />
 
         <div className="relative z-10">
-          {/* Header Panel Surah: Lentera Menara Noor */}
-          <div className="relative overflow-hidden border-b-[3px] border-[#065F46] bg-[#064E3B] p-4 text-white">
+          {/* Papan Kayu Pos Puncak Gunung */}
+          <div className="relative overflow-hidden border-b-[4px] border-[#451A03] bg-[#78350F] p-4 text-[#FEF3C7] shadow-[0_4px_0px_#451A03]">
             <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-[#FEF08A] bg-[#FEF08A] font-display text-base font-black text-[#042F2E] shadow-[2px_2px_0px_#02201F]">
-                  {selectedSurah.surah}
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-[3px] border-[#451A03] bg-[#FEF08A] font-display text-base font-black text-[#451A03] shadow-[3px_3px_0px_#451A03]">
+                  #{selectedSurah.surah}
                 </div>
                 <div>
-                  <h3 className="font-display text-lg font-black leading-tight text-[#FEF08A]">
+                  <span className="inline-block rounded bg-[#D97706] border border-[#451A03] px-2 py-0.2 text-[9px] font-black uppercase tracking-widest text-[#FEF3C7]">
+                    Pos Puncak Gunung
+                  </span>
+                  <h3 className="font-display text-lg sm:text-xl font-black leading-tight text-[#FEF08A]">
                     {selectedSurah.namaLatin}
                   </h3>
-                  <p className="text-[11px] font-semibold text-[#D1FAE5]/90">
+                  <p className="text-[11px] font-bold text-[#FDE68A]">
                     {selectedSurah.arti} • {selectedProgress.hafal}/
-                    {selectedSurah.jumlahAyat} Pelita Terang (
+                    {selectedSurah.jumlahAyat} Prasasti Terukir (
                     {selectedProgress.percentage}%)
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Saf Lentera Progress Bar */}
+            {/* Progress Bar Pendakian Puncak */}
             <div className="mx-auto mt-3 flex items-center gap-2 max-w-3xl">
-              <div className="relative h-3.5 flex-1 rounded-full border-2 border-[#FEF08A]/40 bg-[#02201F] overflow-hidden">
+              <div className="relative h-4 flex-1 rounded-full border-[3px] border-[#451A03] bg-[#451A03] overflow-hidden p-0.5">
                 <div
-                  className={`h-full rounded-r-full transition-all duration-300 ${
-                    selectedProgress.complete
-                      ? "bg-[#10B981]"
-                      : selectedProgress.percentage >= 60
-                        ? "bg-[#F59E0B]"
-                        : selectedProgress.percentage >= 25
-                          ? "bg-[#FBBF24]"
-                          : "bg-[#FEF08A]"
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    selectedProgress.complete ? "bg-[#15803D]" : "bg-[#FACC15]"
                   }`}
                   style={{ width: `${selectedProgress.percentage}%` }}
                 />
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-1 shrink-0 bg-[#451A03] px-2.5 py-0.5 rounded-lg border border-[#D97706]">
                 <LenteraIcon size={14} lit={selectedProgress.percentage > 0} />
                 <span className="text-[10px] font-black text-[#FEF08A]">
-                  {selectedProgress.complete ? "Khatam!" : `${selectedProgress.hafal} Pelita`}
+                  {selectedProgress.complete
+                    ? "Puncak!"
+                    : `${selectedProgress.hafal} Batu`}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Mode Switcher (Sticky Zamrud) */}
-          <div className="sticky top-14 z-20 flex items-center justify-between gap-2 border-b-[3px] border-[#065F46] bg-[#064E3B] px-4 py-3">
+          {/* Mode Switcher: Papan Batu Tebing */}
+          <div className="sticky top-14 z-20 flex items-center justify-between gap-2 border-b-[4px] border-[#1E293B] bg-[#64748B] px-4 py-3 shadow-[0_4px_0px_#1E293B]">
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setMode("baca")}
-                className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl border-[3px] border-[#1E293B] px-3.5 py-1.5 text-xs font-black transition-all cursor-pointer ${
                   mode === "baca"
-                    ? "bg-[#10B981] text-[#042F2E] border-[#FEF08A] shadow-[2px_2px_0px_#02201F]"
-                    : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 hover:bg-[#064E3B]"
+                    ? "bg-[#FEF08A] text-[#1E293B] shadow-[3px_3px_0px_#1E293B]"
+                    : "bg-[#334155] text-[#F8FAFC] hover:bg-[#475569]"
                 }`}
               >
-                <BookOpen size={13} /> Dengar & Baca
+                <BookOpen size={13} /> Baca Prasasti
               </button>
               <button
                 type="button"
                 onClick={() => setMode("uji")}
-                className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl border-[3px] border-[#1E293B] px-3.5 py-1.5 text-xs font-black transition-all cursor-pointer ${
                   mode === "uji"
-                    ? "bg-[#F59E0B] text-[#042F2E] border-[#FEF08A] shadow-[2px_2px_0px_#02201F]"
-                    : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 hover:bg-[#064E3B]"
+                    ? "bg-[#D97706] text-[#FEF3C7] shadow-[3px_3px_0px_#1E293B]"
+                    : "bg-[#334155] text-[#F8FAFC] hover:bg-[#475569]"
                 }`}
               >
-                <EyeOff size={13} /> Tutup Kitab (Uji Diri)
+                <EyeOff size={13} /> Tutup Kabut (Uji Diri)
               </button>
             </div>
 
-            <span className="text-[11px] font-black text-[#FEF08A]/80">
-              {mode === "uji" ? "Uji Ingatan" : "Hafalkan"}
+            <span className="text-[11px] font-black text-[#FEF08A] uppercase">
+              {mode === "uji" ? "Uji Ingatan" : "Ukiran Batu"}
             </span>
           </div>
 
-          {/* Ayat List: Hijau Agak Terang dengan Border Emas */}
-          <div className="space-y-4 p-4 max-w-3xl mx-auto">
+          {/* DAFTAR PRASASTI BATU BESAR BERWARNA ABU-ABU (#64748B) */}
+          <div className="space-y-6 p-4 pt-6 max-w-3xl mx-auto">
             {isLoadingAyat ? (
               <div className="py-16 text-center">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#FEF08A]/30 border-t-[#FEF08A]" />
-                <p className="mt-2 text-xs font-black text-[#FEF08A]">
-                  Memuat pelita ayat...
+                <div className="inline-block h-9 w-9 animate-spin rounded-full border-4 border-[#64748B] border-t-[#1E293B]" />
+                <p className="mt-2 text-xs font-black text-[#1E293B]">
+                  Memahat prasasti batu ayat...
                 </p>
               </div>
             ) : (
-              surahAyatList.map((ayah) => {
-                const hafalStatus = isHafal(selectedSurah.surah, ayah.nomorAyat);
+              surahAyatList.map((ayah, idx) => {
+                const hafalStatus = isHafal(
+                  selectedSurah.surah,
+                  ayah.nomorAyat,
+                );
                 const isRevealed = revealedAyat.has(ayah.nomorAyat);
                 const isAyahAudioActive =
                   isPlaying && currentAudioUrl === ayah.audioUrl;
 
+                // Bentuk Puncak Prasasti Batu (Monolit Gunung)
+                const monolithShape =
+                  idx % 2 === 0
+                    ? "rounded-t-[28px] rounded-b-2xl"
+                    : "rounded-t-[22px] rounded-b-2xl";
+
                 return (
                   <div
                     key={ayah.nomorAyat}
-                    className={`rounded-2xl border-[3px] p-4 transition-all ${
+                    className={`relative ${monolithShape} border-[4px] border-[#1E293B] p-4 sm:p-5 transition-all ${
                       hafalStatus
-                        ? "bg-[#065F46] border-[#FDE047] shadow-[3.5px_3.5px_0px_#F59E0B]"
-                        : "bg-[#064E3B] border-[#10B981]/50 shadow-[3.5px_3.5px_0px_#02201F]"
+                        ? "bg-[#475569] shadow-[6px_6px_0px_#15803D]"
+                        : "bg-[#64748B] shadow-[6px_6px_0px_#1E293B]"
                     }`}
                   >
-                    {/* Baris Kontrol Atas Ayat */}
-                    <div className="mb-3 flex items-center justify-between border-b border-[#10B981]/20 pb-2">
+                    {/* Aksen Pahatan Sudut Prasasti Batu */}
+                    <span className="pointer-events-none absolute top-2.5 left-2.5 w-2.5 h-2.5 rounded-sm bg-[#94A3B8] border border-[#1E293B]" />
+                    <span className="pointer-events-none absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-sm bg-[#94A3B8] border border-[#1E293B]" />
+
+                    {/* Baris Kontrol Atas Prasasti */}
+                    <div className="mb-3 flex items-center justify-between border-b-[3px] border-dashed border-[#334155] pb-2.5 pt-1">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#FEF08A] bg-[#FEF08A] text-xs font-black text-[#042F2E] shadow-[1.5px_1.5px_0px_#02201F]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl border-[2.5px] border-[#1E293B] bg-[#FEF08A] text-xs font-black text-[#1E293B] shadow-[2px_2px_0px_#1E293B]">
                           {ayah.nomorAyat}
                         </span>
                         <button
                           type="button"
                           onClick={() => toggle(ayah.audioUrl)}
-                          className={`flex h-7 items-center gap-1.5 rounded-lg border-2 px-2.5 text-[11px] font-black transition-all active:scale-95 shadow-[1.5px_1.5px_0px_#02201F] ${
+                          className={`flex h-8 items-center gap-1.5 rounded-xl border-[2.5px] border-[#1E293B] px-3 text-xs font-black transition-all active:scale-95 shadow-[2px_2px_0px_#1E293B] cursor-pointer ${
                             isAyahAudioActive
-                              ? "bg-[#10B981] text-[#042F2E] border-[#FEF08A]"
-                              : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 hover:bg-[#065F46]"
+                              ? "bg-[#15803D] text-[#FFFFFF]"
+                              : "bg-[#F8FAFC] text-[#1E293B] hover:bg-[#FEF08A]"
                           }`}
                         >
                           {isAyahAudioActive ? (
-                            <EqualizerIcon isPlaying={true} size={11} barClassName="bg-[#042F2E]" />
+                            <EqualizerIcon
+                              isPlaying={true}
+                              size={12}
+                              barClassName="bg-[#FFFFFF]"
+                            />
                           ) : (
-                            <Play size={11} />
+                            <Play size={12} />
                           )}
-                          Dengar
+                          Gema Suara
                         </button>
                       </div>
 
-                      {/* Tombol Checklist Hafal */}
+                      {/* Tombol Tandai Hafal di Prasasti */}
                       <button
                         type="button"
                         onClick={() =>
@@ -323,35 +335,40 @@ export default function TahfidzDetailPage() {
                             ayah.nomorAyat,
                           )
                         }
-                        className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1 text-xs font-black transition-all active:scale-95 ${
+                        className={`flex items-center gap-1.5 rounded-xl border-[2.5px] border-[#1E293B] px-3 py-1.5 text-xs font-black transition-all active:scale-95 shadow-[2px_2px_0px_#1E293B] cursor-pointer ${
                           hafalStatus
-                            ? "bg-[#10B981] text-[#042F2E] border-[#FEF08A] shadow-[2px_2px_0px_#02201F]"
-                            : "bg-[#042F2E] text-[#FEF08A] border-[#10B981]/40 shadow-[2px_2px_0px_#02201F] hover:bg-[#065F46]"
+                            ? "bg-[#4ADE80] text-[#14532D]"
+                            : "bg-[#1E293B] text-[#FEF08A] hover:bg-[#334155]"
                         }`}
                       >
                         <LenteraIcon size={13} lit={hafalStatus} />
-                        {hafalStatus ? "Hafal" : "Belum"}
+                        {hafalStatus ? "Terukir Hafal" : "Tandai Hafal"}
                       </button>
                     </div>
 
-                    {/* Teks Arab (Bisa ditutup pelita pada mode uji) */}
+                    {/* Bidang Pahatan Teks Arab di Prasasti Batu */}
                     <div className="relative py-2">
                       {mode === "uji" && !isRevealed ? (
-                        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#FDE047]/40 bg-[#042F2E] py-6 px-4 text-center">
-                          <LenteraIcon size={28} lit={false} className="mb-2 opacity-70" />
-                          <p className="mb-2 text-xs font-bold text-[#FEF08A]/80">
-                            Pelita ditutup agar kamu menguji ingatan hafalanmu
+                        <div className="flex flex-col items-center justify-center rounded-2xl border-[3px] border-dashed border-[#CBD5E1] bg-[#334155] py-7 px-4 text-center">
+                          <LenteraIcon
+                            size={28}
+                            lit={false}
+                            className="mb-2 opacity-80"
+                          />
+                          <p className="mb-3 text-xs font-bold text-[#E2E8F0]">
+                            Prasasti tertutup kabut puncak gunung untuk menguji
+                            hafalanmu
                           </p>
                           <button
                             type="button"
                             onClick={() => toggleReveal(ayah.nomorAyat)}
-                            className="flex items-center gap-1.5 rounded-xl border-2 border-[#FEF08A] bg-[#FEF08A] px-3.5 py-1.5 text-xs font-black text-[#042F2E] shadow-[2px_2px_0px_#02201F] hover:bg-[#FDE047] active:translate-y-[1px]"
+                            className="flex items-center gap-1.5 rounded-xl border-[2.5px] border-[#1E293B] bg-[#FEF08A] px-4 py-2 text-xs font-black text-[#1E293B] shadow-[3px_3px_0px_#1E293B] hover:bg-[#FDE047] active:translate-y-[1px] cursor-pointer"
                           >
-                            <Eye size={13} /> Intip Ayat
+                            <Eye size={14} /> Singkap Kabut Batu
                           </button>
                         </div>
                       ) : (
-                        <div>
+                        <div className="rounded-2xl bg-[#334155] border-[3px] border-[#1E293B] p-4 shadow-inner">
                           <p
                             className="font-arabic text-[28px] sm:text-[32px] text-right leading-[2.3] text-[#FEF08A]"
                             dir="rtl"
@@ -364,9 +381,9 @@ export default function TahfidzDetailPage() {
                               <button
                                 type="button"
                                 onClick={() => toggleReveal(ayah.nomorAyat)}
-                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#F59E0B] hover:underline"
+                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#FACC15] hover:underline cursor-pointer"
                               >
-                                <EyeOff size={11} /> Tutup Pelita Kembali
+                                <EyeOff size={11} /> Tutup Kabut Kembali
                               </button>
                             </div>
                           )}
@@ -374,16 +391,16 @@ export default function TahfidzDetailPage() {
                       )}
                     </div>
 
-                    {/* Teks Latin & Arti */}
+                    {/* Papan Kayu Terjemahan di Kaki Prasasti Batu */}
                     {(mode === "baca" || isRevealed) && (
-                      <div className="mt-2 space-y-1.5 border-t border-[#10B981]/20 pt-2 text-left">
+                      <div className="mt-3 rounded-xl bg-[#FEF3C7] border-[3px] border-[#451A03] p-3.5 text-left shadow-[3px_3px_0px_#451A03] space-y-1">
                         {ayah.teksLatin && (
-                          <p className="text-xs font-bold text-[#34D399] italic">
+                          <p className="text-xs font-black text-[#B45309] italic">
                             {ayah.teksLatin}
                           </p>
                         )}
                         {ayah.teksIndonesia && (
-                          <p className="text-xs font-medium leading-relaxed text-[#D1FAE5]">
+                          <p className="text-xs font-bold leading-relaxed text-[#451A03]">
                             {ayah.teksIndonesia}
                           </p>
                         )}

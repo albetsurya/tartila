@@ -1,4 +1,4 @@
-export type GamePhase = "idle" | "playing" | "paused" | "gameover";
+export type GamePhase = "idle" | "playing" | "paused" | "gameover" | "win";
 export type GameAccent = "cyan" | "violet" | "pink" | "emerald";
 
 export const ACCENTS = {

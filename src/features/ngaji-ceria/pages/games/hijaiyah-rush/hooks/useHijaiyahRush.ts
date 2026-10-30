@@ -63,7 +63,7 @@ export function useHijaiyahRush() {
               combo++;
               targetHits++;
               scoreExact += 80 * Math.min(1 + combo * 0.12, 5);
-              playSfx(combo % 5 === 0 ? "combo" : "correct");
+              if (combo % 5 === 0) playSfx("combo");
               if (targetHits >= 3) {
                 const target = randomRunnerTarget(s.target);
                 nextTarget = target.letter;
@@ -74,7 +74,7 @@ export function useHijaiyahRush() {
               lives--;
               combo = 0;
               shakeLeft = 0.25;
-              playSfx("wrong");
+              /* silence: wrong SFX delegated to feedback layer */
             }
             return [];
           }

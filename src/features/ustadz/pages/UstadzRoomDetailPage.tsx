@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useClassroomAccess } from "../hooks/useClassroomAccess";
 import {
   archiveClassroom,
@@ -39,12 +40,14 @@ import {
   type MateriCoverageItem,
 } from "@/data/monitoring";
 import {
-  averagePercentByMateri,
+  averagePercentByQuiz,
   listAttempts,
   listQuizzesForRoom,
   type Quiz,
-  type MateriQuizAverage,
+  type QuizAverage,
+  type QuizAttempt,
 } from "@/services/quizBankService";
+import { Check, X } from "@/components/ui/CustomIcons";
 import { duelService } from "@/services/duelService";
 
 function initials(name: string | null, username: string | null): string {
@@ -82,6 +85,9 @@ export function UstadzRoomDetailPage() {
   const [copied, setCopied] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [archiveConfirm, setArchiveConfirm] = useState(false);
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -97,7 +103,8 @@ export function UstadzRoomDetailPage() {
   const [activities, setActivities] = useState<ClassroomActivity[]>([]);
   const [coverage, setCoverage] = useState<MateriCoverageItem[]>([]);
   const [roomQuizzes, setRoomQuizzes] = useState<Quiz[]>([]);
-  const [quizAverages, setQuizAverages] = useState<MateriQuizAverage[]>([]);
+  const [quizAverages, setQuizAverages] = useState<QuizAverage[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [duelEnabled, setDuelEnabled] = useState(true);
   const [savingDuel, setSavingDuel] = useState(false);
 
@@ -144,7 +151,8 @@ export function UstadzRoomDetailPage() {
     const attempts = (
       await Promise.all(quizzes.map((quiz) => listAttempts(quiz.id)))
     ).flat();
-    setQuizAverages(averagePercentByMateri(quizzes, attempts));
+    setQuizAttempts(attempts);
+    setQuizAverages(averagePercentByQuiz(quizzes, attempts));
   }, [roomId]);
 
   useEffect(() => {
@@ -166,10 +174,17 @@ export function UstadzRoomDetailPage() {
       name: editName,
       targetJilid: editTarget,
     });
-    setRoomFocusMateri(room.id, editFocusMateri);
     if (!result.ok) {
       setSavingEdit(false);
       setEditError(result.message);
+      return;
+    }
+    try {
+      await setRoomFocusMateri(room.id, editFocusMateri);
+    } catch (err) {
+      console.error("[handleSaveEdit] Gagal set fokus materi:", err);
+      setEditError("Gagal menyimpan fokus materi.");
+      setSavingEdit(false);
       return;
     }
     setRoom(result.data);
@@ -200,15 +215,25 @@ export function UstadzRoomDetailPage() {
   const handleArchive = async () => {
     if (!room) return;
     setArchiving(true);
-    await archiveClassroom(room.id, user?.id);
+    setArchiveConfirm(false);
+    const result = await archiveClassroom(room.id, user?.id);
     setArchiving(false);
+    if (!result.ok) {
+      setActionError(result.message);
+      return;
+    }
     navigate("/ustadz/kelas");
   };
 
   const handleLeave = async () => {
     setLeaving(true);
-    await leaveClassroom(roomId, user?.id);
+    setLeaveConfirm(false);
+    const result = await leaveClassroom(roomId, user?.id);
     setLeaving(false);
+    if (!result.ok) {
+      setActionError(result.message);
+      return;
+    }
     navigate("/ustadz");
   };
 
@@ -461,7 +486,7 @@ export function UstadzRoomDetailPage() {
                 <div className="space-y-2">
                   {roomQuizzes.map((quiz) => {
                     const avg = quizAverages.find(
-                      (item) => item.materi === quiz.materi,
+                      (item) => item.quizId === quiz.id,
                     );
                     return (
                       <StickerCard key={quiz.id} className="p-3">
@@ -484,6 +509,77 @@ export function UstadzRoomDetailPage() {
                     );
                   })}
                 </div>
+              )}
+            </div>
+
+            <div>
+              <h2 className="mb-2 text-sm font-black text-[#134E4A]">
+                Matriks Progres Santri
+              </h2>
+              {roomQuizzes.length === 0 || murid.length === 0 ? (
+                <StickerCard className="p-4 text-center">
+                  <p className="text-[11px] font-semibold text-[#134E4A]/60">
+                    {roomQuizzes.length === 0
+                      ? "Belum ada kuis untuk dipetakan ke santri."
+                      : "Belum ada santri yang bergabung di kelas ini."}
+                  </p>
+                </StickerCard>
+              ) : (
+                <StickerCard className="overflow-x-auto p-0">
+                  <table className="w-full min-w-max text-left">
+                    <thead>
+                      <tr className="border-b-[3px] border-[#0A2540] bg-[#F4F1EA]">
+                        <th className="sticky left-0 z-10 bg-[#F4F1EA] px-3 py-2 text-[10px] font-black uppercase tracking-wide text-[#134E4A]/70">
+                          Santri
+                        </th>
+                        {roomQuizzes.map((quiz) => (
+                          <th
+                            key={quiz.id}
+                            className="px-3 py-2 text-[10px] font-black uppercase tracking-wide text-[#134E4A]/70"
+                          >
+                            <span
+                              className="block max-w-[7rem] truncate"
+                              title={quiz.title}
+                            >
+                              {quiz.title}
+                            </span>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {murid.map((member) => (
+                        <tr
+                          key={member.id}
+                          className="border-b-2 border-[#0A2540]/10 last:border-0"
+                        >
+                          <td className="sticky left-0 z-10 bg-white px-3 py-2 text-xs font-black text-[#134E4A]">
+                            {member.name || member.username || "Santri"}
+                          </td>
+                          {roomQuizzes.map((quiz) => {
+                            const done = quizAttempts.some(
+                              (attempt) =>
+                                attempt.userId === member.userId &&
+                                attempt.quizId === quiz.id,
+                            );
+                            return (
+                              <td key={quiz.id} className="px-3 py-2">
+                                {done ? (
+                                  <Check
+                                    size={16}
+                                    className="text-[#15803D]"
+                                  />
+                                ) : (
+                                  <X size={16} className="text-[#9CA3AF]" />
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </StickerCard>
               )}
             </div>
 
@@ -581,7 +677,7 @@ export function UstadzRoomDetailPage() {
                   variant="coral-outline"
                   size="sm"
                   loading={archiving}
-                  onClick={handleArchive}
+                  onClick={() => setArchiveConfirm(true)}
                   fullWidth
                 >
                   Arsipkan Kelas
@@ -590,16 +686,39 @@ export function UstadzRoomDetailPage() {
                   variant="danger"
                   size="sm"
                   loading={leaving}
-                  onClick={handleLeave}
+                  onClick={() => setLeaveConfirm(true)}
                   fullWidth
                 >
                   Keluar Kelas
                 </StickerButton>
               </div>
             )}
+
+            {actionError && (
+              <StickerCard className="p-4 text-center">
+                <p className="text-sm font-black text-[#FF6B6B]">{actionError}</p>
+              </StickerCard>
+            )}
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={archiveConfirm}
+        title="Arsipkan Kelas"
+        description="Kelas ini akan ditandai sebagai arsip dan tidak bisa lagi dikunjungi. Pastikan semua data penting sudah disimpan."
+        isDestructive
+        onConfirm={handleArchive}
+        onCancel={() => setArchiveConfirm(false)}
+      />
+      <ConfirmDialog
+        isOpen={leaveConfirm}
+        title="Keluar Kelas"
+        description="Anda akan keluar dari kelas ini. Anda tidak bisa kembali kekelasan ini kecuali mendapatkan kode join baru."
+        isDestructive
+        onConfirm={handleLeave}
+        onCancel={() => setLeaveConfirm(false)}
+      />
     </>
   );
 }
