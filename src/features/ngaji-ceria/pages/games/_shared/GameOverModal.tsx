@@ -93,7 +93,8 @@ export function GameOverModal({
     // Satu row per game; userId + nickname opsional bila ada di AuthContext.
     try {
       const userId = user?.id || (user as any)?.userId || null;
-      const nick = user?.name || user?.username || "Pengguna";
+      const nick = user?.name || (user as any)?.displayName || user?.username || "Santri";
+      void submitScore(gameId, score, userId, nick);
       void submitScore(gameId, score, userId, nick);
     } catch {
       // Gagal simpan skor ke DB, skor tetap tampil dari localStorage.
