@@ -17,8 +17,6 @@ import {
 
 const PROGRESS_KEY = "ngajiceria:progress:v1";
 const PROGRESS_EVENT = "ngajiceria:progress-updated";
-const LEADERBOARD_EVENT = "ngajiceria:leaderboard-updated";
-
 export interface GameProgress {
   xp: number;
   totalScore: number;
@@ -186,11 +184,7 @@ const emptyDaily = (): DailyProgress => ({
 });
 let fallbackProgress: GameProgress | null = null;
 let fallbackProgressScope = "";
-const DEFAULT_ENTRIES = [
-  { name: "Alya", score: 760 },
-  { name: "Rafi", score: 540 },
-  { name: "Naila", score: 320 },
-];
+const LEADERBOARD_EVENT = "ngajiceria:leaderboard-updated";
 
 function progressEvent() {
   window.dispatchEvent(new CustomEvent(PROGRESS_EVENT));
@@ -452,17 +446,19 @@ export function getLeaderboard(gameId: string): LeaderboardEntry[] {
     const stored = JSON.parse(
       window.localStorage.getItem(leaderboardKey(gameId)) ?? "null",
     ) as LeaderboardEntry[] | null;
-    if (Array.isArray(stored))
-      return stored.sort((a, b) => b.score - a.score).slice(0, 10);
+    if (Array.isArray(stored)) {
+      return stored
+        .map((entry) => ({
+          ...entry,
+          id: entry.id || `${gameId}:${entry.name}:${entry.score}`,
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+    }
   } catch {
-    /* Use the offline seed below. */
+    /* No saved leaderboard — empty for this game. */
   }
-  return DEFAULT_ENTRIES.map((entry, index) => ({
-    ...entry,
-    id: `${gameId}:seed:${index}`,
-    gameId,
-    updatedAt: 0,
-  }));
+  return [];
 }
 
 export function recordLeaderboard(
