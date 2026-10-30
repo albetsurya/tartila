@@ -10,6 +10,9 @@ export interface Bot {
   id: string;
   name: string;
   avatarId: string;
+  /** Gender & variant avatar bot, dipilih secara acak di addBot(). */
+  gender?: "boy" | "girl";
+  variant?: 1 | 2 | 3;
   score: number;
   /** Bot otomatis ready saat ditambahkan. */
   isReady: true;
@@ -34,14 +37,27 @@ const BOT_NAMES: readonly string[] = [
   "Irfan Bot",
 ];
 
+/** Avatar bot dipilih acak berdasarkan gender + variant.
+ *  Format avatarId: `boy-1`, `boy-2`, `boy-3`, `girl-1`, `girl-2`, `girl-3`
+ */
+export const BOT_GENDERS = ["boy", "girl"] as const;
+export const BOT_VARIANTS = [1, 2, 3] as const;
+
 export const BOT_AVATAR_IDS = [
-  "boy-peci",
-  "boy-glasses",
-  "boy-turban",
-  "girl-hairbow",
-  "girl-flowercrown",
-  "girl-scarf",
+  "boy-1",
+  "boy-2",
+  "boy-3",
+  "girl-1",
+  "girl-2",
+  "girl-3",
 ] as const;
+
+/** Pilih gender & variant secara acak, kembalikan { avatarId, gender, variant }. */
+export function pickBotAvatar(): { avatarId: string; gender: "boy" | "girl"; variant: 1 | 2 | 3 } {
+  const gender: "boy" | "girl" = BOT_GENDERS[Math.floor(Math.random() * BOT_GENDERS.length)];
+  const variant: 1 | 2 | 3 = BOT_VARIANTS[Math.floor(Math.random() * BOT_VARIANTS.length)];
+  return { avatarId: `${gender}-${variant}`, gender, variant };
+}
 
 const OPTION_LETTERS = ["A", "B", "C", "D"];
 
@@ -100,10 +116,13 @@ export function useBotSimulator() {
   }, []);
 
   const addBot = useCallback((name?: string): Bot => {
+    const { avatarId, gender, variant } = pickBotAvatar();
     const created: Bot = {
       id: `bot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: name && name.trim().length > 0 ? name.trim().slice(0, 12) : BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)],
-      avatarId: BOT_AVATAR_IDS[Math.floor(Math.random() * BOT_AVATAR_IDS.length)],
+      avatarId,
+      gender,
+      variant,
       score: 0,
       isReady: true,
     };

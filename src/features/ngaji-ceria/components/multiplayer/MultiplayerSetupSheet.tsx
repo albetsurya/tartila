@@ -19,7 +19,8 @@ export interface MultiplayerProfile {
 export interface AvatarOption {
   id: string;
   gender: "boy" | "girl";
-  accessory: string;
+  accessory?: string;
+  variant?: 1 | 2 | 3;
 }
 
 export const AVATAR_OPTIONS: readonly AvatarOption[] = [
@@ -31,10 +32,41 @@ export const AVATAR_OPTIONS: readonly AvatarOption[] = [
   { id: "girl-scarf", gender: "girl", accessory: "scarf" },
 ];
 
+/** Parse avatarId yang berformat `boy-1`, `boy-2`, ..., `girl-3` (atau accessory). */
+export function parseAvatarId(avatarId: string): {
+  gender: "boy" | "girl";
+  variant: 1 | 2 | 3;
+  accessory?: string;
+} {
+  const exact = AVATAR_OPTIONS.find((opt) => opt.id === avatarId);
+  if (exact) {
+    return {
+      gender: exact.gender,
+      variant: exact.variant ?? 1,
+      accessory: exact.accessory,
+    };
+  }
+
+  const parts = avatarId.split("-");
+  const gender: "boy" | "girl" = parts[0] === "girl" ? "girl" : "boy";
+  const num = parseInt(parts[1], 10);
+  const variant: 1 | 2 | 3 = num === 1 || num === 2 || num === 3 ? (num as 1 | 2 | 3) : 1;
+  // Jika bagian setelah gender bukan angka, anggap accessory (misal "boy-peci")
+  const accessory = isNaN(num) && parts[1] ? parts[1] : undefined;
+
+  return { gender, variant, accessory };
+}
+
 export function getAvatarOption(avatarId: string): AvatarOption {
-  return (
-    AVATAR_OPTIONS.find((option) => option.id === avatarId) ?? AVATAR_OPTIONS[0]
-  );
+  const exact = AVATAR_OPTIONS.find((option) => option.id === avatarId);
+  if (exact) return exact;
+  const parsed = parseAvatarId(avatarId);
+  return {
+    id: avatarId,
+    gender: parsed.gender,
+    variant: parsed.variant,
+    accessory: parsed.accessory,
+  };
 }
 
 /** Avatar SVG sesuai profil tersimpan; fallback opsi pertama. */
@@ -49,7 +81,8 @@ export function MultiplayerAvatar({
   return (
     <AvatarSantriSvg
       gender={option.gender}
-      accessory={option.accessory}
+      variant={option.variant ?? 1}
+      accessory={option.accessory ?? "none"}
       mood="happy"
       size={size}
     />

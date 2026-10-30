@@ -13,6 +13,7 @@ import {
   GamepadSvg,
   AlertTriangleSvg,
   PlusSvg,
+  TrashSvg,
 } from "@/components/ui/CustomIcons";
 import { arenaRoomService, type ArenaRoom, type ArenaRoomPlayer } from "@/services/arenaRoomService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,7 +54,7 @@ export default function RoomLobbyPage() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Simulator bot — QA superadmin: ditambahkan ke lobi, otomatis ready.
-  const { bots, addBot, reset: resetBots } = useBotSimulator();
+  const { bots, addBot, removeBot, reset: resetBots } = useBotSimulator();
 
   // Guard untuk optimistic UI ready state
   const pendingReadyRef = useRef<boolean | null>(null);
@@ -106,6 +107,8 @@ export default function RoomLobbyPage() {
         score: bot.score,
         is_host: false,
         is_ready: bot.isReady,
+        is_bot: true,
+        avatarId: bot.avatarId,
         created_at: new Date().toISOString(),
       };
       map.set(bot.id, player);
@@ -459,11 +462,29 @@ export default function RoomLobbyPage() {
               {displayPlayers.map((p, idx) => (
                 <div
                   key={p.id || idx}
-                  className="p-3 rounded-xl border-2 border-[#134E4A] bg-white font-black text-sm text-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center gap-2.5 transition-all"
+                  className="relative p-3 rounded-xl border-2 border-[#134E4A] bg-white font-black text-sm text-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center gap-2.5 transition-all"
                 >
+                  {/* Tombol Hapus Bot: QA Superadmin */}
+                  {user?.role === "superadmin" && (p.is_bot || p.id.startsWith("bot-")) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeBot(p.id);
+                      }}
+                      aria-label={`Hapus bot ${p.nickname}`}
+                      title="Hapus Bot"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-md border-2 border-[#134E4A] bg-[#FF6B6B] text-white flex items-center justify-center shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-[1px_1px_0px_#134E4A] transition-all cursor-pointer hover:bg-[#EF4444] z-10"
+                    >
+                      <TrashSvg size={12} />
+                    </button>
+                  )}
+
                   <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A] overflow-hidden">
                     {p.id === myPlayerId && profile ? (
                       <MultiplayerAvatar avatarId={profile.avatarId} size={26} />
+                    ) : p.avatarId ? (
+                      <MultiplayerAvatar avatarId={p.avatarId} size={26} />
                     ) : p.is_host || idx === 0 ? (
                       <CrownSvg size={16} />
                     ) : (
@@ -475,10 +496,10 @@ export default function RoomLobbyPage() {
                       />
                     )}
                   </div>
-                  <div className="overflow-hidden flex-1 min-w-0">
+                  <div className="overflow-hidden flex-1 min-w-0 pr-1">
                     <p className="truncate text-xs font-black text-[#134E4A]">{p.nickname}</p>
                     <span className="block text-[10px] font-bold text-[#134E4A]/50">
-                      {p.is_host ? "Host Room" : "Pemain"}
+                      {p.is_host ? "Host Room" : p.is_bot ? "Bot QA" : "Pemain"}
                     </span>
                     <span
                       className={`mt-1 inline-block px-2 py-0.5 rounded-md border-2 border-[#134E4A] text-[10px] font-black ${

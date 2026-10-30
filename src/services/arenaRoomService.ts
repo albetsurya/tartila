@@ -28,6 +28,8 @@ export interface ArenaRoomPlayer {
   is_active: boolean;
   is_host?: boolean;
   is_ready?: boolean;
+  is_bot?: boolean;
+  avatarId?: string;
   created_at?: string;
 }
 
