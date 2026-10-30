@@ -1,4 +1,5 @@
 import { setToken, clearToken, callREST } from "./api";
+import { supabase } from "@/lib/supabase";
 
 export interface User {
   id?: string;
@@ -44,13 +45,13 @@ export const authApi = {
     return data.user;
   },
 
-  // Kirim JWT Supabase ke Backend Go agar profil user (role default 'member')
+  // Kirim JWT Supabase + email user ke Backend Go agar profil (role default 'member')
   // di-upsert ke public.users (Bagian 8.3). Fire-and-forget dari pemanggil.
-  async syncProfile(supabaseJwt: string): Promise<void> {
+  async syncProfile(email: string, supabaseJwt: string): Promise<void> {
     await callREST(
       "POST",
       "/api/v1/auth/sync-profile",
-      {},
+      { email },
       undefined,
       supabaseJwt
     );
@@ -94,19 +95,15 @@ export const authApi = {
     return data.user;
   },
 
-  // Silent token refresh - calls backend refresh endpoint.
-  // Returns new token if successful, null otherwise.
-  // TODO: Backend Go must implement POST /api/v1/auth/refresh with HttpOnly refresh cookie.
+  // Silent token refresh via Supabase SDK.
+  // Supabase refresh token (HttpOnly cookie) is the authority.
+  // Returns new access token if successful, null otherwise.
   async refreshToken(): Promise<string | null> {
-    try {
-      const data = await callREST<{ token?: string }>("POST", "/api/v1/auth/refresh");
-      if (data?.token) {
-        storeSessionToken(data.token);
-        return data.token;
-      }
-      return null;
-    } catch {
-      return null;
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error || !data?.session) return null;
+    if (data.session.access_token) {
+      storeSessionToken(data.session.access_token);
     }
+    return data.session.access_token;
   },
 };

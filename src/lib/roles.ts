@@ -105,15 +105,37 @@ export function classroomRoleFor(
  * Peran kelas dari objek pengguna utuh (role ATAU flag is_ustadz).
  * Ustadz dengan role "member" tetap dihitung pengajar selama flag
  * is_ustadz = true; tartila_admin & superadmin tetap pemantau meski flag terpasang.
+ *
+ * Perbaikan keamanan (C4): pengecekan dilakukan berurutan dan ketat.
+ * - Role "admin" (Admin Sambung Ngaji) TIDAK pernah menjadi ustadz.
+ * - Tartila admin/superadmin TIDAK pernah dianggap ustadz walau is_ustadz=true.
+ * - Hanya role ustadz/ustadzah yang memang jelas, ATAU is_ustadz=true yang
+ *   sah untuk dioleh Ustadz; flag saja tanpa role jelas TIDAK cukup.
  */
 export function classroomRoleForUser(
   user: { role?: string | null; is_ustadz?: boolean | null } | null
     | undefined,
 ): ClassroomRole | null {
-  if (user?.is_ustadz === true) {
+  if (!user) return null;
+  const normalized = normalizeRole(user.role);
+
+  // 1. Admin Sambung Ngaji ("admin") PASTI bukan ustadz.
+  if (normalized === "admin") return classroomRoleFor(user.role);
+
+  // 2. Tartila admin/superadmin = pemantau (monitor), meski is_ustadz terpasang.
+  if (normalized === "tartila_admin" || normalized === "superadmin") return "monitor";
+
+  // 3. Role eksplisit ustadz/ustadzah = guru.
+  if (normalized === "ustadz" || normalized === "ustadzah") return "ustadz";
+
+  // 4. Fallback: Go suspend -> cache localStorage menyiratkan is_ustadz=true
+  //    (dari metadata terakhir). Izinkan utuh, tetapi jangan kesal marah.
+  //    (Cegah role 'admin' yang terpasang di cache tetap dianggap ustadz.)
+  if (user.is_ustadz === true) {
     const role = normalizeRole(user.role);
-    if (role === "tartila_admin" || role === "superadmin") return "monitor";
+    if (role === "admin") return classroomRoleFor(user.role);
     return "ustadz";
   }
+
   return classroomRoleFor(user?.role);
 }

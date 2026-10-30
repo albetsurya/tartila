@@ -29,7 +29,11 @@ import {
   HairbowSvg,
 } from "@/components/ui/CustomIcons";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { useEconomyStore, isUnlimitedUser, type TilaGender } from "../hooks/useEconomyStore";
+import {
+  useEconomyStore,
+  isUnlimitedUser,
+  type TilaGender,
+} from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { SKIN_ITEMS } from "../data/shopData";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
@@ -461,16 +465,20 @@ function RoomDecor({
   themeId: string;
   time: Date;
 }) {
+  console.log("RoomDecor themeId:", themeId);
   const isGirl = gender === "girl";
-  const normalizedId = (themeId === "theme_space" || themeId === "space")
-    ? "galaksi"
-    : (themeId === "theme_default" || themeId === "classic" || themeId === "theme_classic")
-    ? "default"
-    : (themeId === "theme_forest")
-    ? "hutan"
-    : (themeId === "theme_castle")
-    ? "istana"
-    : themeId;
+  const normalizedId =
+    themeId === "theme_space" || themeId === "space"
+      ? "galaksi"
+      : themeId === "theme_default" ||
+          themeId === "classic" ||
+          themeId === "theme_classic"
+        ? "default"
+        : themeId === "theme_forest"
+          ? "hutan"
+          : themeId === "theme_castle"
+            ? "istana"
+            : themeId;
   const theme: RoomThemeId = (
     ["default", "galaksi", "hutan", "istana"].includes(normalizedId)
       ? normalizedId
@@ -775,19 +783,25 @@ function RoomDecor({
           {/* Jarum Jam */}
           <div
             className="absolute top-1/2 left-1/2 w-1.5 h-4 bg-[#134E4A] rounded-full origin-bottom"
-            style={{ transform: `translate(-50%, -100%) rotate(${hourAngle}deg)` }}
+            style={{
+              transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
+            }}
           />
 
           {/* Jarum Menit */}
           <div
             className="absolute top-1/2 left-1/2 w-1 h-5.5 bg-[#0D9488] rounded-full origin-bottom"
-            style={{ transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)` }}
+            style={{
+              transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
+            }}
           />
 
           {/* Jarum Detik */}
           <div
             className="absolute top-1/2 left-1/2 w-0.5 h-6 bg-[#FF6B6B] rounded-full origin-bottom"
-            style={{ transform: `translate(-50%, -100%) rotate(${secondAngle}deg)` }}
+            style={{
+              transform: `translate(-50%, -100%) rotate(${secondAngle}deg)`,
+            }}
           />
 
           {/* Poros Tengah */}
@@ -852,7 +866,9 @@ function RoomDecor({
           {!isDay && (
             <div
               className="absolute top-5 left-1/2 -translate-x-1/2 w-24 h-24 bg-gradient-to-b from-[#FEF08A]/40 to-transparent pointer-events-none rounded-full blur-[2px]"
-              style={{ clipPath: "polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%)" }}
+              style={{
+                clipPath: "polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%)",
+              }}
             />
           )}
         </div>
@@ -945,7 +961,9 @@ export default function KamarTilaPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const [wardrobeTab, setWardrobeTab] = useState<"skin" | "accessory" | "room">("accessory");
+  const [wardrobeTab, setWardrobeTab] = useState<"skin" | "accessory" | "room">(
+    "accessory",
+  );
 
   const [draftGender, setDraftGender] = useState<TilaGender>(tilaGender);
   const [draftAccessory, setDraftAccessory] = useState<TilaAccessoryType>(
@@ -1004,11 +1022,14 @@ export default function KamarTilaPage() {
   const isRoomThemeOwned = (id: string) => {
     if (id === "default") return true;
     if (isUnlimited) return true;
-    const aliases = id === "galaksi" ? ["galaksi", "theme_space", "space"]
-      : id === "default" ? ["default", "theme_default", "classic", "theme_classic"]
-      : [id, `theme_${id}`];
+    const aliases =
+      id === "galaksi"
+        ? ["galaksi", "theme_space", "space"]
+        : id === "default"
+          ? ["default", "theme_default", "classic", "theme_classic"]
+          : [id, `theme_${id}`];
     return aliases.some(
-      (alias) => inventory.includes(alias) || ownedRoomThemes.includes(alias)
+      (alias) => inventory.includes(alias) || ownedRoomThemes.includes(alias),
     );
   };
 
@@ -1226,7 +1247,12 @@ export default function KamarTilaPage() {
       </header>
 
       <main className="relative isolate flex-1 flex flex-col items-center justify-center px-4 py-2 min-h-0 overflow-y-auto">
-        <RoomDecor gender={draftGender} themeId={equippedRoomTheme} time={time} />
+        <RoomDecor
+          key={equippedRoomTheme}
+          gender={draftGender}
+          themeId={equippedRoomTheme}
+          time={time}
+        />
 
         <div className="absolute top-4 left-6 pointer-events-none opacity-90 hidden sm:block">
           <div className="px-3 py-1.5 rounded-xl border-[2px] border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] text-[10px] font-black text-[#134E4A] flex items-center gap-1">
@@ -1281,7 +1307,11 @@ export default function KamarTilaPage() {
               mood={previewMood}
               animation={previewAnimation}
               gender={draftGender === "girl" ? "girl" : "boy"}
-              accessory={(draftAccessory || (equippedAccessory as TilaAccessoryType) || "none") as TilaAccessoryType}
+              accessory={
+                (draftAccessory ||
+                  (equippedAccessory as TilaAccessoryType) ||
+                  "none") as TilaAccessoryType
+              }
               skin={equippedSkin}
               holdItem={previewHoldItem}
             />
@@ -1467,7 +1497,9 @@ export default function KamarTilaPage() {
               </span>
               <button
                 type="button"
-                onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=skin")}
+                onClick={() =>
+                  navigate("/member/ngaji-ceria/warung-santri?tab=skin")
+                }
                 className="text-[10px] font-black text-[#0D9488] hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Warung Santri</span>
@@ -1487,12 +1519,14 @@ export default function KamarTilaPage() {
                       isEquipped
                         ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] ring-2 ring-emerald-500"
                         : isOwned
-                        ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
-                        : "border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)]/50 opacity-60 grayscale"
+                          ? "border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]"
+                          : "border-dashed border-[var(--border-color,#134E4A)]/40 bg-[var(--bg-card,#FFFFFF)]/50 opacity-60 grayscale"
                     }`}
                   >
                     <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border uppercase tracking-wider ${item.badgeBg}`}>
+                      <span
+                        className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border uppercase tracking-wider ${item.badgeBg}`}
+                      >
                         {item.rarity || item.badgeText}
                       </span>
                       {item.exclusiveGender === "boy" && (
@@ -1539,7 +1573,9 @@ export default function KamarTilaPage() {
                           equipSkin(item.id);
                           triggerTilaReaction("success");
                           setPreviewMood("excited");
-                          triggerDialogue(`Keren! Sekarang aku memakai skin ${item.name}!`);
+                          triggerDialogue(
+                            `Keren! Sekarang aku memakai skin ${item.name}!`,
+                          );
                         }}
                         className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[var(--border-color,#134E4A)] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                       >
@@ -1548,7 +1584,9 @@ export default function KamarTilaPage() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=skin")}
+                        onClick={() =>
+                          navigate("/member/ngaji-ceria/warung-santri?tab=skin")
+                        }
                         className="w-full py-1.5 rounded-xl bg-[#FEF3C7] dark:bg-[#78350F]/60 text-[#B45309] dark:text-[#FDE047] text-[10px] font-black tracking-wide border-2 border-[var(--border-color,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Lock size={10} className="shrink-0" />
@@ -1699,7 +1737,11 @@ export default function KamarTilaPage() {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=kostum")}
+                          onClick={() =>
+                            navigate(
+                              "/member/ngaji-ceria/warung-santri?tab=kostum",
+                            )
+                          }
                           className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <Lock size={10} className="shrink-0" />
@@ -1730,8 +1772,8 @@ export default function KamarTilaPage() {
                   {savingSettings
                     ? "Menyimpan..."
                     : isDirty
-                    ? "Simpan Pengaturan"
-                    : "Pengaturan Tersimpan"}
+                      ? "Simpan Pengaturan"
+                      : "Pengaturan Tersimpan"}
                 </span>
               </StickerButton>
             </div>
@@ -1747,7 +1789,9 @@ export default function KamarTilaPage() {
               </span>
               <button
                 type="button"
-                onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=kamar")}
+                onClick={() =>
+                  navigate("/member/ngaji-ceria/warung-santri?tab=kamar")
+                }
                 className="text-[10px] font-black text-[#0D9488] hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Warung Santri</span>
@@ -1758,15 +1802,19 @@ export default function KamarTilaPage() {
             <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x touch-pan-x">
               {ROOM_THEMES_CONFIG.map((item) => {
                 const isOwned = isRoomThemeOwned(item.id);
-                const currentNormalized = (equippedRoomTheme === "theme_space" || equippedRoomTheme === "space")
-                  ? "galaksi"
-                  : (equippedRoomTheme === "theme_default" || equippedRoomTheme === "classic" || equippedRoomTheme === "theme_classic")
-                  ? "default"
-                  : (equippedRoomTheme === "theme_forest")
-                  ? "hutan"
-                  : (equippedRoomTheme === "theme_castle")
-                  ? "istana"
-                  : equippedRoomTheme;
+                const currentNormalized =
+                  equippedRoomTheme === "theme_space" ||
+                  equippedRoomTheme === "space"
+                    ? "galaksi"
+                    : equippedRoomTheme === "theme_default" ||
+                        equippedRoomTheme === "classic" ||
+                        equippedRoomTheme === "theme_classic"
+                      ? "default"
+                      : equippedRoomTheme === "theme_forest"
+                        ? "hutan"
+                        : equippedRoomTheme === "theme_castle"
+                          ? "istana"
+                          : equippedRoomTheme;
                 const isEquipped = currentNormalized === item.id;
 
                 return (
@@ -1776,13 +1824,15 @@ export default function KamarTilaPage() {
                       isEquipped
                         ? "border-[#134E4A] bg-[#FEF08A]/30 shadow-[3px_3px_0px_#134E4A]"
                         : isOwned
-                        ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
-                        : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-60 grayscale"
+                          ? "border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
+                          : "border-dashed border-[#134E4A]/40 bg-gray-50 opacity-60 grayscale"
                     }`}
                   >
                     <div className="h-10 w-16 flex flex-col mb-1.5 mt-1 rounded-lg border-2 border-[#134E4A] overflow-hidden shadow-sm">
                       <div className={`h-[65%] w-full ${item.wallPreview}`} />
-                      <div className={`h-[35%] w-full ${item.floorPreview} border-t border-[#134E4A]`} />
+                      <div
+                        className={`h-[35%] w-full ${item.floorPreview} border-t border-[#134E4A]`}
+                      />
                     </div>
 
                     <p className="text-[11px] font-black text-[#134E4A] truncate w-full mb-0.5">
@@ -1801,10 +1851,13 @@ export default function KamarTilaPage() {
                       <button
                         type="button"
                         onClick={() => {
+                          console.log("Theme clicked:", item.id);
                           setEquippedTheme(item.id);
                           triggerTilaReaction("success");
                           setPreviewMood("excited");
-                          triggerDialogue(`Suasana kamar berubah menjadi ${item.name}! Nyaman sekali.`);
+                          triggerDialogue(
+                            `Suasana kamar berubah menjadi ${item.name}! Nyaman sekali.`,
+                          );
                         }}
                         className="w-full py-1.5 rounded-xl text-white text-[10px] font-black tracking-wide border-2 border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                       >
@@ -1813,7 +1866,11 @@ export default function KamarTilaPage() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => navigate("/member/ngaji-ceria/warung-santri?tab=kamar")}
+                        onClick={() =>
+                          navigate(
+                            "/member/ngaji-ceria/warung-santri?tab=kamar",
+                          )
+                        }
                         className="w-full py-1.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-[10px] font-black tracking-wide border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Lock size={10} className="shrink-0" />

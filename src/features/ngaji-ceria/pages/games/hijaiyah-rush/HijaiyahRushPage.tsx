@@ -48,9 +48,9 @@ function Game() {
             progressLabel={`${Math.floor(game.distance)} m`}
           />
           <TargetBanner
-            target={game.target}
-            name={game.targetName}
-            actionLabel="Tangkap"
+            targetLetters={[game.target]}
+            collectedLetters={[]}
+            className="shadow-[4px_4px_0px_#134E4A] scale-90 sm:scale-100 origin-top-right"
           />
           <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-2 text-[10px] font-black uppercase tracking-widest text-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
             Platformer Stage · {Math.floor(game.distance)}m · checkpoint{" "}

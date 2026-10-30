@@ -1,7 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -112,6 +114,8 @@ function createCeriaUser(
 
 /** Ambil role otoritatif dari Backend Go. `undefined` bila offline/belum login. */
 async function fetchGoRole(): Promise<string | undefined> {
+  // Guard: skip jika tidak ada token valid — cegah spam 401 pada session expired
+  if (!getToken()) return undefined;
   try {
     const res = await userApi.getUserProfile();
     const u = res?.user || res?.profile;
@@ -137,51 +141,55 @@ function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const initInFlightRef = useRef<Promise<void> | null>(null);
+  const mountedRef = useRef(false);
 
   // Kirim JWT Supabase ke Backend Go untuk upsert profil (Bagian 8.3).
   // Fire-and-forget: kegagalan tidak boleh menghalangi aplikasi.
   const syncProfileWithBackend = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await authApi.syncProfile(session.access_token);
+      if (session?.access_token && session.user?.email) {
+        await authApi.syncProfile(session.user.email, session.access_token);
       }
-    } catch {
-      // Backend Go belum siap / endpoint belum tersedia.
+    } catch (err) {
+      console.warn("[Auth] Gagal sinkronisasi profil ke Backend Go:", err);
+      // Opsional: Retry 1x setelah 1000ms jika error-nya network error
+      // setTimeout(() => { syncProfileWithBackend(); }, 1000);
     }
   };
 
   // Initialize: cek session Supabase saat komponen mount
-  useEffect(() => {
-    let mounted = true;
-
-    async function initAuth() {
+  const initAuth = useCallback(() => {
+    if (initInFlightRef.current) return initInFlightRef.current;
+    const promise = (async () => {
+      let goRole: string | undefined;
       try {
-        // Sinkronisasi data profil & maskot dari Backend Go (Single Source of Truth)
-        let goRole: string | undefined;
-        try {
-          const profileRes = await userApi.getUserProfile();
-          if (profileRes) {
-            useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
-            const goUser = profileRes.user || profileRes.profile;
-            goRole = goUser?.role || undefined;
-            const rawMascot = profileRes.mascot_gender || profileRes.user?.mascot_gender || profileRes.user?.gender;
-            if (rawMascot) {
-              const mascotGender = resolveMascotGender(rawMascot);
-              void useEconomyStore.getState().setTilaGender(mascotGender);
-            }
-          }
-        } catch {
-          // offline atau belum login
-        }
+        // 1. Cek session Supabase DULU — jangan panggil getUserProfile tanpa session terverifikasi
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
+          // Sinkronisasi data profil & maskot dari Backend Go (Single Source of Truth)
+          try {
+            const profileRes = await userApi.getUserProfile();
+            if (profileRes) {
+              useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
+              const goUser = profileRes.user || profileRes.profile;
+              goRole = goUser?.role || undefined;
+              const rawMascot = profileRes.mascot_gender || profileRes.user?.mascot_gender || profileRes.user?.gender;
+              if (rawMascot) {
+                const mascotGender = resolveMascotGender(rawMascot);
+                void useEconomyStore.getState().setTilaGender(mascotGender);
+              }
+            }
+          } catch {
+            // offline atau belum login
+          }
           const isUstadz = 
             session.user.user_metadata?.role === 'ustadz' ||
             session.user.user_metadata?.role === 'ustadzah' ||
             session.user.user_metadata?.is_ustadz === true;
           const ceriaUser = createCeriaUser(session.user, isUstadz, goRole);
-          if (mounted) {
+          if (mountedRef.current) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
             void useEconomyStore.getState().setUserId(ceriaUser.id);
@@ -198,7 +206,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           if (token && cached) {
             try {
               const parsed = JSON.parse(cached);
-              if (mounted) {
+              if (mountedRef.current) {
                 setUser(parsed);
                 void useEconomyStore.getState().setUserId(parsed.id || parsed.user_id || null);
                 if (parsed.gender) {
@@ -209,7 +217,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             } catch {
               // noop
             }
-          } else if (!token && mounted) {
+          } else if (!token && mountedRef.current) {
             setUser(null);
             localStorage.removeItem("tartila_cached_user");
             void useEconomyStore.getState().setUserId(null);
@@ -218,26 +226,31 @@ function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error("[AuthContext] Session init error:", err);
       } finally {
-        if (mounted) {
-          setLoading(false);
-          setIsAuthLoading(false);
-        }
+        initInFlightRef.current = null;
+        setLoading(false); // Unconditional: stuck loading > React warning
+        setIsAuthLoading(false);
       }
-    }
+    })();
+    initInFlightRef.current = promise;
+    return promise;
+  }, []);
 
+  // Listen untuk perubahan session (login/logout/token refresh)
+  useEffect(() => {
+    mountedRef.current = true; // Reset untuk setiap mount (StrictMode)
     void initAuth();
-
-    // Listen untuk perubahan session (login/logout/token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session && session.user) {
-          const isUstadz = 
+          const isUstadz =
             session.user.user_metadata?.role === 'ustadz' ||
             session.user.user_metadata?.role === 'ustadzah' ||
             session.user.user_metadata?.is_ustadz === true;
-          const goRole = await fetchGoRole();
+          // Hanya fetch role saat SIGNED_IN — TOKEN_REFRESHED/INITIAL_SESSION reuse cached state
+          const shouldFetchRole = event === "SIGNED_IN";
+          const goRole = shouldFetchRole ? await fetchGoRole() : undefined;
           const ceriaUser = createCeriaUser(session.user, isUstadz, goRole);
-          if (mounted) {
+          if (mountedRef.current) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
             void useEconomyStore.getState().setUserId(ceriaUser.id);
@@ -250,7 +263,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           }
           void syncProfileWithBackend();
         } else if (event === "SIGNED_OUT") {
-          if (mounted) {
+          if (mountedRef.current) {
             setUser(null);
             clearAuthCache();
             clearToken();
@@ -264,10 +277,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     // Cleanup subscription on unmount
     return () => {
-      mounted = false;
+      mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [initAuth]);
 
   // Fungsi login dengan Google via Supabase OAuth redirect.
   // Redirect kembali ke /login; session ditangkap AuthContext lalu LoginPage

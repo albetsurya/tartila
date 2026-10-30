@@ -29,7 +29,8 @@ export interface TrainingItem {
 }
 
 // Pattern derivation — mapping lengkap
-export function derivePatternType(hintTone: string): PatternType {
+export function derivePatternType(hintTone?: string | null): PatternType {
+  if (!hintTone) return "1-datar";
   const t = hintTone.toLowerCase();
   // Check for 4-pattern: datar, naik twice, then turun
   // Count occurrences of "naik"
@@ -123,8 +124,13 @@ export async function getHeaderSamples(jilid: number, timelineData?: TimelineEdi
 
 // Extract base tone from pattern type for display purposes
 export function getBaseTone(patternType: PatternType): "datar" | "naik" | "turun" {
-  if (patternType.includes("naik")) return "naik";
-  if (patternType.includes("turun")) return "turun";
+  if (patternType === "1-naik") return "naik";
+  if (patternType === "1-turun") return "turun";
+  if (patternType === "1-datar") return "datar";
+  if (patternType.startsWith("1-")) {
+    if (patternType.includes("naik")) return "naik";
+    if (patternType.includes("turun")) return "turun";
+  }
   return "datar";
 }
 
@@ -469,18 +475,21 @@ export async function getArenaKartuMateri(jilid: number, timelineData?: Timeline
     console.warn('[adapter] getArenaKartuMateri: sebagian item tanpa patternType');
   }
 
-  return selected.map((item, idx) => ({
-    id: `j${jilid}-c${idx + 1}`,
-    patternType: item.patternType,
-    cardIndex: idx + 1,
-    text: item.arabic,
-    transliteration: item.transliteration,
-    audioUrl: item.audioUrl,
-    tone: getBaseTone(item.patternType),
-    beatsCount: 2, // TODO: hardcode legacy, hapus setelah SSOT audio
-    bpm: levelBpm,
-    instruction: "Ketuk sesuai irama nada Tilawati", // TODO: populate from SSOT tips
-  }));
+  return selected.map((item, idx) => {
+    const patternType: PatternType = item.patternType || "1-datar";
+    return {
+      id: `j${jilid}-c${idx + 1}`,
+      patternType,
+      cardIndex: idx + 1,
+      text: item.arabic,
+      transliteration: item.transliteration,
+      audioUrl: item.audioUrl,
+      tone: getBaseTone(patternType),
+      beatsCount: 2, // TODO: hardcode legacy, hapus setelah SSOT audio
+      bpm: levelBpm,
+      instruction: "Ketuk sesuai irama nada Tilawati", // TODO: populate from SSOT tips
+    };
+  });
 }
 
 /**

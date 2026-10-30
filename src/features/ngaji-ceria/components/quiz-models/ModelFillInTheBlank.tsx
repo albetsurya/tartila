@@ -7,7 +7,6 @@ import {
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { FillInTheBlankQuestion, QuizModelBaseProps } from "./types";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
@@ -21,6 +20,9 @@ export function ModelFillInTheBlank({
   onNext,
   onPlayAudio,
   isAudioPlaying,
+  isRetryable,
+  correctAnswer,
+  explanation,
 }: ModelFillInTheBlankProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
@@ -68,11 +70,6 @@ export function ModelFillInTheBlank({
     onAnswerSubmit?.(isCorrect);
 
     audioRef.current?.pause();
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {
@@ -217,6 +214,9 @@ export function ModelFillInTheBlank({
         onNext={onNext}
         onRetry={handleRetry}
         onReset={handleClear}
+        isRetryable={isRetryable}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
       />
     </div>
   );

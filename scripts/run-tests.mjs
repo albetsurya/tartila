@@ -68,6 +68,9 @@ if (economyApi?.claimDaily) {
       throw err;
     }
     dailyClaimCalled = true;
+    const now = new Date();
+    const wib = new Date(now.getTime() + 3 * 60 * 60 * 1000); // selaras activityDate() WIB 04:00
+    const today = wib.toISOString().slice(0, 10);
     return {
       success: true,
       claimed: false,
@@ -76,8 +79,8 @@ if (economyApi?.claimDaily) {
       coins: 10,
       streak: 1,
       loginStreak: 1,
-      date: '2026-10-28',
-      lastClaimDate: '2026-10-28',
+      date: today,
+      lastClaimDate: today,
     };
   };
   economyApi.buyItem = async () => ({
@@ -107,6 +110,7 @@ const defaultTests = [
   'tests/answerFeedbackSheet.test.ts',
   'tests/tilawatiAdventure.test.ts',
   'tests/quizModelsOverhaul.test.ts',
+  'tests/quizHub.test.ts',
   'tests/arenaKartu.test.ts',
   'tests/rhythmMemory.test.ts',
   'tests/tilawatiMemory.test.ts',

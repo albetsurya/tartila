@@ -80,7 +80,6 @@ export function useAyatHunter() {
     if (!token) return current;
     const mission = current.missions[current.missionIndex];
     if (token.text !== mission.words[current.collected]) {
-      playSfx("wrong");
       const lives = current.lives - 1;
       return {
         ...current, lives, combo: 0, phase: lives === 0 ? "gameover" : "playing",
@@ -92,7 +91,8 @@ export function useAyatHunter() {
     const combo = current.combo + 1;
     const cleared = collected === mission.words.length;
     const complete = cleared && current.missionIndex === current.missions.length - 1;
-    playSfx(cleared ? "powerup" : combo % 5 === 0 ? "combo" : "correct");
+    if (cleared) playSfx("powerup");
+    else if (combo % 5 === 0) playSfx("combo");
     return {
       ...current, tokens: current.tokens.filter((item) => item.id !== token.id), collected,
       combo, maxCombo: Math.max(current.maxCombo, combo),

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { deleteQuiz, listQuizzes, type Quiz } from "@/services/quizBankService";
 import { MATERI_LABELS } from "@/data/learningCatalog";
@@ -15,7 +16,7 @@ export function UstadzQuizListPage() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const all = await listQuizzes();
+      const all = await listQuizzes(user?.id);
       const userQuiz = all.filter((q) => q.createdBy === user?.id);
       setQuizzes(userQuiz);
       setLoading(false);
@@ -23,9 +24,25 @@ export function UstadzQuizListPage() {
     void load();
   }, [user?.id]);
 
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({
+    open: false,
+    id: "",
+  });
+  const [deleteError, setDeleteError] = useState("");
+
   const handleDelete = async (id: string) => {
-    await deleteQuiz(id);
-    setQuizzes((prev) => prev.filter((q) => q.id !== id));
+    setDeleteConfirm({ open: true, id });
+    setDeleteError("");
+  };
+
+  const confirmDelete = async () => {
+    const result = await deleteQuiz(deleteConfirm.id);
+    setDeleteConfirm({ open: false, id: "" });
+    if (!result.ok) {
+      setDeleteError(result.errors.join("; ") || "Gagal menghapus kuis.");
+      return;
+    }
+    setQuizzes((prev) => prev.filter((q) => q.id !== deleteConfirm.id));
   };
 
   if (loading) {
@@ -170,6 +187,19 @@ export function UstadzQuizListPage() {
           </div>
         )}
       </div>
+      {deleteError && (
+        <StickerCard className="p-4 text-center">
+          <p className="text-sm font-black text-[#FF6B6B]">{deleteError}</p>
+        </StickerCard>
+      )}
+      <ConfirmDialog
+        isOpen={deleteConfirm.open}
+        title="Hapus Kuis"
+        description="Kuis ini akan dihapus secara permanen beserta soal-soalnya. Lakukan konfirmasi terakhir."
+        isDestructive
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ open: false, id: "" })}
+      />
     </>
   );
 }

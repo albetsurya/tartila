@@ -34,7 +34,7 @@ export function UstadzProfilPage() {
 
   useEffect(() => {
     let alive = true;
-    listQuizzes().then((quizzes) => {
+    listQuizzes(user?.id).then((quizzes) => {
       if (alive) setQuizCount(quizzes.length);
     });
     return () => {

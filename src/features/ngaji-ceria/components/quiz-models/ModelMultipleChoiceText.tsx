@@ -4,7 +4,6 @@ import { Volume2 } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceTextQuestion, QuizModelBaseProps } from "./types";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
@@ -18,6 +17,9 @@ export function ModelMultipleChoiceText({
   onNext,
   onPlayAudio,
   isAudioPlaying,
+  isRetryable,
+  correctAnswer,
+  explanation,
 }: ModelMultipleChoiceTextProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
@@ -63,12 +65,6 @@ export function ModelMultipleChoiceText({
     const isCorrect = selected === question.correctAnswer;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
-
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {
@@ -180,6 +176,9 @@ export function ModelMultipleChoiceText({
         onNext={onNext}
         onRetry={handleRetry}
         onReset={handleRetry}
+        isRetryable={isRetryable}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
       />
     </div>
   );

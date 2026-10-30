@@ -247,12 +247,14 @@ export async function getQuiz(quizId: string): Promise<Quiz | undefined> {
   return (await listQuizzes()).find((quiz) => quiz.id === quizId);
 }
 
-export async function listQuizzes(): Promise<Quiz[]> {
+export async function listQuizzes(userId?: string): Promise<Quiz[]> {
   if (isSupabaseConfigured) {
-    const { data } = await supabase
+    let qs = supabase
       .from('quizzes')
       .select('*, quiz_questions (*)')
       .order('created_at', { ascending: false });
+    if (userId) qs = qs.eq('created_by', userId);
+    const { data } = await qs;
     if (!data) return [];
     return (data as unknown as QuizRow[]).map(toQuiz);
   }
@@ -293,9 +295,9 @@ export async function listQuizzesForRooms(
   );
 }
 
-async function listQuizzesFallback(): Promise<Quiz[]> {
+async function listQuizzesFallback(userId?: string): Promise<Quiz[]> {
   if (isSupabaseConfigured) return [];
-  return listQuizzes();
+  return listQuizzes(userId);
 }
 
 export interface CreateQuizResult {
@@ -377,20 +379,31 @@ export async function createQuiz(
     createdAt: new Date().toISOString(),
   };
   if (storage) {
-    storage.setItem(QUIZ_KEY, JSON.stringify([...(await listQuizzes()), quiz]));
+    storage.setItem(QUIZ_KEY, JSON.stringify([...(await listQuizzes(createdBy)), quiz]));
   }
   return { ok: true, quiz, errors: [] };
 }
 
-export async function deleteQuiz(quizId: string): Promise<void> {
+export interface DeleteQuizResult {
+  ok: boolean;
+  errors: string[];
+}
+
+export async function deleteQuiz(
+  quizId: string,
+): Promise<DeleteQuizResult> {
   if (isSupabaseConfigured) {
-    await supabase.from('quizzes').delete().eq('id', quizId);
-    return;
+    const { error } = await supabase.from('quizzes').delete().eq('id', quizId);
+    if (error) {
+      return { ok: false, errors: [error.message || 'Gagal menghapus kuis.'] };
+    }
+    return { ok: true, errors: [] };
   }
   const storage = safeStorage();
-  if (!storage) return;
+  if (!storage) return { ok: true, errors: [] };
   const remaining = (await listQuizzes()).filter((quiz) => quiz.id !== quizId);
   storage.setItem(QUIZ_KEY, JSON.stringify(remaining));
+  return { ok: true, errors: [] };
 }
 
 export async function listAttempts(quizId?: string): Promise<QuizAttempt[]> {
@@ -467,35 +480,35 @@ export function averagePercent(attempts: readonly QuizAttempt[]): number {
   return Math.round(totalPercent / answered.length);
 }
 
-export interface MateriQuizAverage {
-  materi: MateriPokok;
+export interface QuizAverage {
+  quizId: string;
+  quizTitle: string;
   averagePercent: number;
   attemptCount: number;
 }
 
-/** Rata-rata nilai kuis dikelompokkan per materi (untuk dashboard). */
-export function averagePercentByMateri(
+/** Rata-rata nilai kuis dikelompokkan PER QUIZ (bukan per nama materi),
+ *  agar dua kuis dengan tema sama tidak saling menimpa. */
+export function averagePercentByQuiz(
   quizzes: readonly Quiz[],
   attempts: readonly QuizAttempt[],
-): MateriQuizAverage[] {
-  const quizById = new Map(quizzes.map((quiz) => [quiz.id, quiz]));
-  const grouped = new Map<MateriPokok, QuizAttempt[]>();
+): QuizAverage[] {
+  const grouped = new Map<string, QuizAttempt[]>();
   for (const attempt of attempts) {
-    const quiz = quizById.get(attempt.quizId);
-    if (!quiz) continue;
-    const bucket = grouped.get(quiz.materi) ?? [];
+    const bucket = grouped.get(attempt.quizId) ?? [];
     bucket.push(attempt);
-    grouped.set(quiz.materi, bucket);
+    grouped.set(attempt.quizId, bucket);
   }
-  return [...grouped.entries()]
-    .map(([materi, bucket]) => ({
-      materi,
-      averagePercent: averagePercent(bucket),
-      attemptCount: bucket.length,
-    }))
-    .sort(
-      (a, b) =>
-        b.averagePercent - a.averagePercent ||
-        a.materi.localeCompare(b.materi),
-    );
+  return quizzes
+    .map((quiz) => {
+      const bucket = grouped.get(quiz.id) ?? [];
+      return {
+        quizId: quiz.id,
+        quizTitle: quiz.title,
+        averagePercent: averagePercent(bucket),
+        attemptCount: bucket.length,
+      };
+    })
+    .filter((item) => item.attemptCount > 0)
+    .sort((a, b) => b.averagePercent - a.averagePercent);
 }

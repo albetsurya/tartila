@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SparklesSvg } from "../../../components/ui/CustomIcons";
+import { playSfx } from "../pages/games/_shared/audio";
 import {
   ACHIEVEMENT_LABELS,
   getProgress,
@@ -39,6 +40,11 @@ export function ProgressionNotice() {
             : null;
       previous = next;
       if (!nextNotice) return;
+      if (newAchievement) {
+        playSfx("badge-earned");
+      } else {
+        playSfx("level-up");
+      }
       setNotice(nextNotice);
       if (timer) window.clearTimeout(timer);
       timer = window.setTimeout(() => setNotice(null), 4500);

@@ -122,6 +122,8 @@ export interface QuestionData {
   transliteration?: string;
   instruction?: string;
   isListenOnly?: boolean;
+  /** Penjelasan pedagogis untuk mode ujian (AnswerFeedbackSheet). */
+  explanation?: string;
 }
 
 export interface QuizModelBaseProps {
@@ -130,6 +132,16 @@ export interface QuizModelBaseProps {
   /** When provided, the model delegates playback to the host engine. */
   onPlayAudio?: () => void;
   isAudioPlaying?: boolean;
+  /**
+   * true (default) = mode latihan: salah bisa diulangi.
+   * false = mode ujian/assessment: tombol Ulangi disembunyikan, sheet
+   * menampilkan "Jawaban yang tepat" + penjelasan, lalu hanya tombol Lanjut.
+   */
+  isRetryable?: boolean;
+  /** Label jawaban benar untuk mode ujian. */
+  correctAnswer?: string;
+  /** Penjelasan untuk mode ujian. */
+  explanation?: string;
 }
 
 export type QuizModelRenderable = ReactNode;

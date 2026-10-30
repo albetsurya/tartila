@@ -11,9 +11,12 @@ export function StartScreen({
   coverImage,
   best = 0,
   onStart,
+  levelIndex = 0,
   onExit,
   accent = "pink",
   hideStartButton = false,
+  primaryButtonLabel = "Mulai Bermain",
+  onPrimaryAction,
   children,
 }: {
   title: string;
@@ -21,10 +24,13 @@ export function StartScreen({
   description: string;
   coverImage?: ReactNode;
   best?: number;
-  onStart: () => void;
+  onStart?: (levelIndex: number) => void;
+  levelIndex?: number;
   onExit?: () => void;
   accent?: GameAccent;
   hideStartButton?: boolean;
+  primaryButtonLabel?: string;
+  onPrimaryAction?: () => void;
   children?: ReactNode;
 }) {
   return (
@@ -95,11 +101,17 @@ export function StartScreen({
               size="lg"
               fullWidth
               className="mt-2 text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[4px]"
-              onClick={onStart}
-            >
-              <Play size={20} className="fill-current" />
-              Mulai Bermain
-            </StickerButton>
+              onClick={() => {
+                if (onPrimaryAction) {
+                  onPrimaryAction();
+                } else {
+                  onStart?.(levelIndex);
+                }
+              }}
+              >
+                <Play size={20} className="fill-current" />
+                {primaryButtonLabel}
+              </StickerButton>
           )}
         </div>
       </motion.div>

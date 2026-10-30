@@ -10,6 +10,7 @@ import {
   Trophy,
   ChevronRight,
 } from "../../../components/ui/CustomIcons";
+import { AnswerFeedbackSheet } from "../components/AnswerFeedbackSheet";
 
 export default function TebakAyatGamePage() {
   const navigate = useNavigate();
@@ -50,6 +51,11 @@ export default function TebakAyatGamePage() {
     } else {
       setIsFinished(true);
     }
+  };
+
+  const handleRetry = () => {
+    setSelected(null);
+    setStatus("idle");
   };
 
   const restart = () => {
@@ -183,42 +189,31 @@ export default function TebakAyatGamePage() {
 
         {/* Action Footer */}
         <div className="pt-2 pb-4">
-          {status === "idle" ? (
-            <button
-              disabled={!selected}
-              onClick={handleCheck}
-              className={`w-full py-4 rounded-2xl font-black text-base transition-all shadow-lg ${
-                selected
-                  ? "bg-[#0d9488] text-white border-b-4 border-[#0f766e] active:translate-y-1"
-                  : "bg-[#D1FAE5] text-[#134e4a]/70 cursor-not-allowed"
-              }`}
-            >
-              Periksa Jawaban
-            </button>
-          ) : (
-            <button
-              onClick={handleNext}
-              className={`w-full py-4 rounded-2xl font-black text-base text-white transition-all shadow-lg active:scale-[0.98] border-b-4 flex items-center justify-center gap-1.5 ${
-                status === "correct"
-                  ? "bg-[#0F766E] border-[#134E4A]"
-                  : "bg-[#0D9488] border-[#0F766E]"
-              }`}
-            >
-              {currentIdx < totalQuestions - 1 ? (
-                <>
-                  <span>
-                    {status === "correct"
-                      ? "Tepat! Lanjut"
-                      : "Coba Soal Berikutnya"}
-                  </span>
-                  <ChevronRight size={18} />
-                </>
-              ) : (
-                "Lihat Hasil Akhir"
-              )}
-            </button>
-          )}
+          <button
+            disabled={!selected || status !== "idle"}
+            onClick={handleCheck}
+            className={`w-full py-4 rounded-2xl font-black text-base transition-all shadow-lg ${
+              selected && status === "idle"
+                ? "bg-[#0d9488] text-white border-b-4 border-[#0f766e] active:translate-y-1"
+                : "bg-[#D1FAE5] text-[#134e4a]/70 cursor-not-allowed"
+            }`}
+          >
+            Periksa Jawaban
+          </button>
         </div>
+
+        {/* Answer Feedback Sheet */}
+        <AnswerFeedbackSheet
+          isOpen={status !== "idle"}
+          isCorrect={status === "correct"}
+          onNext={() => {
+            setStatus("idle");
+            handleNext();
+          }}
+          onRetry={handleRetry}
+          onReset={handleRetry}
+          onClose={() => setStatus("idle")}
+        />
       </div>
     </NgajiCeriaLayout>
   );

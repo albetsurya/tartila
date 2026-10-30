@@ -41,7 +41,6 @@ export function useTajwidArena() {
     if (s.phase !== "playing" || s.turn !== "question") return s;
     const correct = index === question(s.questionIndex).correct;
     const playerHp = Math.max(0, s.playerHp - (correct ? 0 : 5));
-    playSfx(correct ? "correct" : "wrong");
     const draw = shuffle(s.deck)[0];
     return { ...s, playerHp, selectedAnswer: index, answerStatus: correct ? "correct" : "wrong",
       hand: s.hand.length < 7 ? [...s.hand, draw] : s.hand, energy: correct ? 3 : 2, turn: "card",
@@ -87,7 +86,7 @@ export function useTajwidArena() {
       const raw = (s.difficulty === "easy" ? 8 : s.difficulty === "hard" ? 18 : 12) + (s.elite ? 5 : 0);
       const damage = Math.max(0, raw - s.shield);
       const playerHp = Math.max(0, s.playerHp - damage);
-      playSfx("wrong");
+      const draw = shuffle(s.deck)[0];
       return { ...s, playerHp, shield: Math.max(0, s.shield - raw), questionIndex: s.questionIndex + 1,
         turn: "question", selectedAnswer: null, answerStatus: "idle", energy: 3,
         attack: { id: (s.attack?.id ?? 0) + 1, attacker: "monster", damage },

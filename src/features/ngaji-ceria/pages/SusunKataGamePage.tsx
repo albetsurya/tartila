@@ -12,6 +12,7 @@ import {
   Volume2,
   ChevronRight,
 } from "../../../components/ui/CustomIcons";
+import { AnswerFeedbackSheet } from "../components/AnswerFeedbackSheet";
 
 interface WordPuzzle {
   id: number;
@@ -147,11 +148,9 @@ export default function SusunKataGamePage() {
 
     const isMatch = placedTiles.every((t, i) => t.id === puzzle.tiles[i].id);
     if (isMatch) {
-      playSoundEffect("correct");
       setStatus("correct");
       setScore((s) => s + 150);
     } else {
-      playSoundEffect("wrong");
       setStatus("wrong");
     }
   };
@@ -307,39 +306,31 @@ export default function SusunKataGamePage() {
             disabled={
               status !== "idle" || placedTiles.length !== puzzle.tiles.length
             }
-            onClick={
-              status === "idle"
-                ? handleCheck
-                : status === "correct"
-                  ? handleNext
-                  : handleRetry
-            }
+            onClick={handleCheck}
             className={`w-full py-4 rounded-2xl font-black text-base text-white transition-all shadow-lg active:scale-[0.98] border-b-4 ${
               status === "idle"
                 ? placedTiles.length === puzzle.tiles.length
                   ? "bg-[#0F766E] border-[#134E4A]"
                   : "bg-[#D1FAE5] text-[#134e4a]/70"
-                : status === "correct"
-                  ? "bg-[#0F766E] border-[#134E4A]"
-                  : "bg-[#0D9488] border-[#0F766E]"
+                : "bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed shadow-none"
             }`}
           >
-            {status === "idle" ? (
-              "Periksa Susunan"
-            ) : status === "correct" ? (
-              currentIdx < PUZZLE_DATA.length - 1 ? (
-                <span className="flex items-center justify-center gap-1.5">
-                  <span>Benar! Lanjut</span>
-                  <ChevronRight size={18} />
-                </span>
-              ) : (
-                "Selesai"
-              )
-            ) : (
-              "Coba Lagi"
-            )}
+            Periksa Susunan
           </button>
         </div>
+
+        {/* Bottom Sheet Feedback Jawaban */}
+        <AnswerFeedbackSheet
+          isOpen={status !== "idle"}
+          isCorrect={status === "correct"}
+          onNext={() => {
+            setStatus("idle");
+            handleNext();
+          }}
+          onRetry={handleRetry}
+          onReset={handleRetry}
+          onClose={() => setStatus("idle")}
+        />
       </div>
     </NgajiCeriaLayout>
   );

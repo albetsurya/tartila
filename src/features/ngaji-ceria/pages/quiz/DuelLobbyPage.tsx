@@ -7,6 +7,14 @@ import { duelService, generateDuelCode } from "@/services/duelService";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { useEconomyStore } from "../../hooks/useEconomyStore";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  loadMultiplayerProfile,
+  MultiplayerAvatar,
+  MultiplayerSetupSheet,
+  saveMultiplayerProfile,
+  type MultiplayerProfile,
+} from "../../components/multiplayer/MultiplayerSetupSheet";
 
 const COUNTDOWN_STEPS = ["3", "2", "1", "MULAI!"];
 const PLAY_ROUTE = "/member/ngaji-ceria/quiz/duel/play";
@@ -46,7 +54,16 @@ function PlayerSlot({
 export default function DuelLobbyPage() {
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
+  const [profile, setProfile] = useState<MultiplayerProfile | null>(() =>
+    loadMultiplayerProfile(),
+  );
+  const [joinedWithCode, setJoinedWithCode] = useState(false);
+  const [nickname, setNickname] = useState(
+    () =>
+      profile?.displayName ?? user?.name ?? user?.username ?? "",
+  );
   const [activeSessionId, setActiveSessionId] = useState<string | null>(() => {
     return routeSessionId && routeSessionId !== "new" ? routeSessionId : null;
   });
@@ -128,6 +145,7 @@ export default function DuelLobbyPage() {
     if (e) e.preventDefault();
     const cleanCode = joinCodeInput.trim().toUpperCase();
     if (cleanCode.length < 4) return;
+    setJoinedWithCode(true);
     setJoinLoading(true);
     setJoinError("");
 
@@ -151,6 +169,20 @@ export default function DuelLobbyPage() {
   useEffect(() => {
     if (hostReady && opponentReady) setShowCountdown(true);
   }, [hostReady, opponentReady]);
+
+  // Prefill nama panggilan dari profil multiplayer / nama user.
+  // Hanya berlaku untuk player yang baru join via kode (bukan host baru).
+  useEffect(() => {
+    if (joinedWithCode) return;
+    setNickname(
+      (prev) =>
+        prev ||
+        profile?.displayName ||
+        user?.name ||
+        user?.username ||
+        "",
+    );
+  }, [profile, user?.name, user?.username, joinedWithCode]);
 
   useEffect(() => {
     if (!showCountdown) return;
@@ -232,15 +264,22 @@ export default function DuelLobbyPage() {
 
         <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <PlayerSlot
-            name="Kamu"
+            name={profile?.displayName ?? "Kamu"}
             ready={hostReady}
             avatar={
-              <AvatarSantriSvg
-                gender="boy"
-                accessory="peci"
-                mood={hostReady ? "happy" : "idle"}
-                size={84}
-              />
+              profile ? (
+                <MultiplayerAvatar
+                  avatarId={profile.avatarId}
+                  size={84}
+                />
+              ) : (
+                <AvatarSantriSvg
+                  gender="boy"
+                  accessory="peci"
+                  mood={hostReady ? "happy" : "idle"}
+                  size={84}
+                />
+              )
             }
           />
           <div className="font-display text-2xl font-black text-[#134E4A]">
@@ -392,6 +431,16 @@ export default function DuelLobbyPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <MultiplayerSetupSheet
+        isOpen={!profile}
+        defaultName={user?.name || user?.username || ""}
+        onSave={(p) => {
+          saveMultiplayerProfile(p);
+          setProfile(p);
+          setNickname(p.displayName);
+        }}
+      />
     </div>
   );
 }

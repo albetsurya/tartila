@@ -12,7 +12,13 @@
  */
 
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import type { MateriPokok } from '@/data/learningCatalog';
+import {
+  getGameById,
+  MATERI_LABELS,
+  type MateriPokok,
+} from '@/data/learningCatalog';
+import { getClassroomDetail } from '@/services/classroomService';
+import { listQuizzesForRoom } from '@/services/quizBankService';
 import type { MateriReadRecord } from '@/data/monitoring';
 
 export interface GameAssignment {
@@ -198,7 +204,7 @@ export async function setRoomFocusMateri(
   storage.setItem(`${FOCUS_KEY}:${roomId}`, JSON.stringify(materi));
 }
 
-// ── Laporan santri (MOCK pedagogis) ─────────────────────────────
+// ── Laporan santri (data nyata dari Supabase) ───────────────────
 
 /** Status pedagogis santri — bukan status online/offline ala chat. */
 export type StudentActivityStatus =
@@ -207,12 +213,13 @@ export type StudentActivityStatus =
   | "butuh-perhatian";
 
 export type StudentActivity = {
+  userId: string;
   name: string;
   /** Label manusiawi, mis. "2 jam lalu". */
   lastActive: string;
   /** Jam sejak aktivitas terakhir, untuk perhitungan status. */
   lastActiveHours: number;
-  /** Total latihan (jelajah materi + game). */
+  /** Total latihan (baca materi + game). */
   practiceCount: number;
   /** Total kuis yang dikerjakan. */
   quizCount: number;
@@ -247,67 +254,233 @@ export function studentActivityStatus(input: {
 }
 
 function activityLabel(hours: number): string {
+  if (!Number.isFinite(hours)) return "Belum ada";
   if (hours < 1) return "Baru saja";
   if (hours < 24) return `${Math.round(hours)} jam lalu`;
   return `${Math.round(hours / 24)} hari lalu`;
 }
 
+interface FactRow {
+  user_id: string;
+  ts: string;
+}
+
+interface ActivityFactRow {
+  user_id: string;
+  played_at: string;
+}
+
+interface ReadFactRow {
+  user_id: string;
+  read_at: string;
+}
+
+interface AttemptFactRow {
+  user_id: string;
+  submitted_at: string;
+}
+
+/** Kumpulkan fakta mentah per santri dari tiga tabel nyata. */
+async function fetchStudentFacts(
+  roomId: string,
+  userIds: readonly string[],
+): Promise<{
+  activities: FactRow[];
+  reads: FactRow[];
+  attempts: FactRow[];
+}> {
+  const [activityRes, readRes, roomQuizzes] = await Promise.all([
+    supabase
+      .from('activity_logs')
+      .select('user_id, played_at')
+      .eq('room_id', roomId)
+      .in('user_id', [...userIds]),
+    supabase
+      .from('materi_reads')
+      .select('user_id, read_at')
+      .eq('room_id', roomId)
+      .in('user_id', [...userIds]),
+    listQuizzesForRoom(roomId),
+  ]);
+
+  const quizIds = roomQuizzes.map((quiz) => quiz.id);
+  let attempts: FactRow[] = [];
+  if (quizIds.length > 0) {
+    const { data } = await supabase
+      .from('quiz_attempts')
+      .select('user_id, submitted_at')
+      .in('quiz_id', quizIds)
+      .in('user_id', [...userIds]);
+    attempts = ((data ?? []) as AttemptFactRow[]).map((row) => ({
+      user_id: row.user_id,
+      ts: row.submitted_at,
+    }));
+  }
+
+  return {
+    activities: ((activityRes.data ?? []) as ActivityFactRow[]).map((row) => ({
+      user_id: row.user_id,
+      ts: row.played_at,
+    })),
+    reads: ((readRes.data ?? []) as ReadFactRow[]).map((row) => ({
+      user_id: row.user_id,
+      ts: row.read_at,
+    })),
+    attempts,
+  };
+}
+
 /**
- * MOCK: profil aktivitas pedagogis tiap santri per kelas.
- * Lapisan data nanti disambung ke tabel activity_logs (Supabase).
+ * Profil aktivitas pedagogis tiap santri per kelas dari data nyata:
+ * activity_logs (game), materi_reads (baca), quiz_attempts (kuis).
+ * Tanpa satu pun data nyata -> array kosong (JANGAN diisi data palsu).
  */
 export async function listStudentActivities(
   roomId: string,
 ): Promise<StudentActivity[]> {
-  const seedRoom: Omit<
-    StudentActivity,
-    "lastActive" | "status"
-  >[] = [
-    { name: "Aisyah", lastActiveHours: 2, practiceCount: 15, quizCount: 2 },
-    { name: "Budi", lastActiveHours: 1, practiceCount: 0, quizCount: 5 },
-    { name: "Citra", lastActiveHours: 120, practiceCount: 3, quizCount: 1 },
-    { name: "Dani", lastActiveHours: 6, practiceCount: 6, quizCount: 0 },
-  ];
-  void roomId;
-  return seedRoom.map((student) => ({
-    ...student,
-    lastActive: activityLabel(student.lastActiveHours),
-    status: studentActivityStatus(student),
-  }));
+  if (!isSupabaseConfigured) return [];
+
+  const detail = await getClassroomDetail(roomId);
+  if (!detail.ok) return [];
+  const murid = detail.data.participants.filter(
+    (member) => member.roleInRoom === 'murid',
+  );
+  const muridIds = murid.map((member) => member.userId);
+  if (muridIds.length === 0) return [];
+
+  const facts = await fetchStudentFacts(roomId, muridIds);
+  if (
+    facts.activities.length === 0 &&
+    facts.reads.length === 0 &&
+    facts.attempts.length === 0
+  ) {
+    return [];
+  }
+
+  const now = Date.now();
+
+  return murid.map((member) => {
+    const practiceRows = [
+      ...facts.activities.filter((row) => row.user_id === member.userId),
+      ...facts.reads.filter((row) => row.user_id === member.userId),
+    ];
+    const attemptRows = facts.attempts.filter(
+      (row) => row.user_id === member.userId,
+    );
+
+    const times = [...practiceRows, ...attemptRows]
+      .map((row) => Date.parse(row.ts))
+      .filter((ts) => !Number.isNaN(ts));
+    const lastActiveHours =
+      times.length === 0
+        ? Number.POSITIVE_INFINITY
+        : Math.max(0, (now - Math.max(...times)) / 3_600_000);
+
+    return {
+      userId: member.userId,
+      name: member.name || member.username || "Santri",
+      lastActive: activityLabel(lastActiveHours),
+      lastActiveHours,
+      practiceCount: practiceRows.length,
+      quizCount: attemptRows.length,
+      status: studentActivityStatus({
+        lastActiveHours,
+        practiceCount: practiceRows.length,
+        quizCount: attemptRows.length,
+      }),
+    };
+  });
 }
 
-/** MOCK: riwayat aktivitas minggu ini untuk satu santri (modal detail). */
+/** Riwayat aktivitas minggu ini untuk satu santri (modal detail). */
 export interface StudentWeekLog {
   /** Nama hari, mis. "Senin". */
   day: string;
   activity: string;
 }
 
+interface GameLogRow {
+  played_at: string;
+  game_id: string;
+}
+
+interface ReadLogRow {
+  read_at: string;
+  materi_id: string;
+}
+
+interface AttemptLogRow {
+  quiz_id: string;
+  submitted_at: string;
+}
+
 export async function listStudentWeekActivity(
   roomId: string,
-  name: string,
+  userId: string,
 ): Promise<StudentWeekLog[]> {
-  const seed: Record<string, StudentWeekLog[]> = {
-    Aisyah: [
-      { day: "Senin", activity: "Latihan · Menara Tilawati" },
-      { day: "Selasa", activity: "Kuis · Tilawati Jilid 1" },
-      { day: "Rabu", activity: "Latihan · Tangkap Harakat" },
-      { day: "Jumat", activity: "Latihan · Tajwid Tetris" },
-    ],
-    Budi: [
-      { day: "Selasa", activity: "Kuis · Tilawati Jilid 1" },
-      { day: "Kamis", activity: "Kuis · Gelanggang Tahfidz" },
-    ],
-    Citra: [
-      { day: "Senin", activity: "Latihan · Makhraj Master" },
-    ],
-    Dani: [
-      { day: "Rabu", activity: "Latihan · Roda Hijaiyah" },
-      { day: "Jumat", activity: "Latihan · Hijaiyah Pop" },
-    ],
-  };
-  void roomId;
-  return seed[name] ?? [];
+  if (!isSupabaseConfigured || !userId) return [];
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+  const logs: { ts: number; activity: string }[] = [];
+
+  const [activityRes, readRes, roomQuizzes] = await Promise.all([
+    supabase
+      .from('activity_logs')
+      .select('played_at, game_id')
+      .eq('room_id', roomId)
+      .eq('user_id', userId),
+    supabase
+      .from('materi_reads')
+      .select('read_at, materi_id')
+      .eq('room_id', roomId)
+      .eq('user_id', userId),
+    listQuizzesForRoom(roomId),
+  ]);
+
+  const quizzes = new Map(roomQuizzes.map((quiz) => [quiz.id, quiz]));
+  let attemptRes: { data: unknown } = { data: null };
+  if (quizzes.size > 0) {
+    attemptRes = await supabase
+      .from('quiz_attempts')
+      .select('quiz_id, submitted_at')
+      .eq('user_id', userId)
+      .in('quiz_id', [...quizzes.keys()]);
+  }
+
+  ((activityRes.data ?? []) as GameLogRow[]).forEach((row) => {
+    const ts = Date.parse(row.played_at);
+    if (Number.isNaN(ts) || ts < weekAgo) return;
+    logs.push({
+      ts,
+      activity: `Latihan · ${getGameById(row.game_id)?.title ?? row.game_id}`,
+    });
+  });
+
+  ((readRes.data ?? []) as ReadLogRow[]).forEach((row) => {
+    const ts = Date.parse(row.read_at);
+    if (Number.isNaN(ts) || ts < weekAgo) return;
+    logs.push({
+      ts,
+      activity: `Baca Materi · ${MATERI_LABELS[row.materi_id as MateriPokok] ?? row.materi_id}`,
+    });
+  });
+
+  ((attemptRes.data ?? []) as AttemptLogRow[]).forEach((row) => {
+    const ts = Date.parse(row.submitted_at);
+    if (Number.isNaN(ts) || ts < weekAgo) return;
+    logs.push({
+      ts,
+      activity: `Kuis · ${quizzes.get(row.quiz_id)?.title ?? "Kuis"}`,
+    });
+  });
+
+  return logs
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 20)
+    .map((log) => ({
+      day: new Date(log.ts).toLocaleDateString("id-ID", { weekday: "long" }),
+      activity: log.activity,
+    }));
 }
 
 /** MOCK: alert aksi guru hari ini, diturunkan dari profil aktivitas santri. */

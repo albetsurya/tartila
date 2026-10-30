@@ -23,7 +23,7 @@ export function useTajwidDefense() {
       let hp = s.hp; let gold = s.gold; let score = s.score;
       let enemies = s.enemies.map((enemy) => ({ ...enemy, progress: enemy.progress + enemy.speed }));
       const escaped = enemies.filter((enemy) => enemy.progress >= 100).length;
-      if (escaped) { hp -= escaped; playSfx("wrong"); enemies = enemies.filter((enemy) => enemy.progress < 100); }
+      if (escaped) { hp -= escaped; enemies = enemies.filter((enemy) => enemy.progress < 100); }
       s.towers.forEach((tower) => {
         const target = enemies.find((enemy) => enemy.hp > 0);
         if (!target) return;
@@ -31,7 +31,7 @@ export function useTajwidDefense() {
         target.hp -= damage;
       });
       const defeated = enemies.filter((enemy) => enemy.hp <= 0).length;
-      if (defeated) { gold += defeated * 15; score += defeated * 50; playSfx("correct"); }
+      if (defeated) { gold += defeated * 15; score += defeated * 50; }
       enemies = enemies.filter((enemy) => enemy.hp > 0);
       let wave = s.wave; let spawned = s.spawned; let spawnLeft = s.spawnLeft - 0.5;
       if (spawnLeft <= 0 && spawned < wave + 2) { const maxHp = 30 + wave * 15; enemies.push({ id: `enemy-${wave}-${spawned}`, weakness: WEAKNESSES[Math.floor(Math.random() * WEAKNESSES.length)], hp: maxHp, maxHp, progress: 0, speed: 1.5 + wave * 0.08 }); spawned++; spawnLeft = Math.max(0.5, 1.3 - wave * 0.04); }

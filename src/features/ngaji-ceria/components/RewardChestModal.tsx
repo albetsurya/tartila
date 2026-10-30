@@ -3,7 +3,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   takeRewards,
   subscribeRewards,
+  applyServerProgress,
+  type PendingReward,
 } from "../pages/games/_shared/progression";
+import { DAILY_MISSIONS } from "../data/dailyMissions";
+import { ngajiCeriaApi } from "../services/ngajiCeriaApi";
 import { playSfx } from "../pages/games/_shared/audio";
 import { tapFeedback } from "../../../lib/haptics";
 import { PetiHartaSvg, PetiBonusEmasSvg } from "@/components/ui/Illustrations";
@@ -20,6 +24,7 @@ interface AggregatedReward {
 export function RewardChestModal() {
   const [reward, setReward] = useState<AggregatedReward | null>(null);
   const [opened, setOpened] = useState(false);
+  const [pendingRewards, setPendingRewards] = useState<PendingReward[]>([]);
 
   useEffect(() => {
     const checkQueue = () => {
@@ -38,6 +43,7 @@ export function RewardChestModal() {
           )
         );
 
+        setPendingRewards(pending);
         setReward({
           id: pending[0].id,
           coins: totalCoins,
@@ -54,12 +60,37 @@ export function RewardChestModal() {
   const handleChestClick = () => {
     if (opened) return;
     tapFeedback([10, 30, 20]);
-    playSfx("powerup");
+    playSfx("chest-open");
+    setTimeout(() => {
+      playSfx("coin-collect");
+    }, 300);
     setOpened(true);
   };
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
     tapFeedback(12);
+
+    const missionIds = pendingRewards
+      .filter((reward) => (reward.label ?? "").trim().startsWith("Misi Harian: "))
+      .map((reward) => {
+        const title = (reward.label ?? "").replace("Misi Harian: ", "").trim();
+        const mission = DAILY_MISSIONS.find((item) => item.title === title);
+        return mission?.id;
+      })
+      .filter((missionId): missionId is string => Boolean(missionId));
+
+    if (missionIds.length > 0) {
+      const results = await Promise.allSettled(
+        missionIds.map((missionId) => ngajiCeriaApi.claimMission(missionId)),
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value?.claimed) {
+          applyServerProgress(result.value?.progress);
+        }
+      }
+    }
+
+    takeRewards();
     setReward(null);
     setOpened(false);
   };

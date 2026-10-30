@@ -1,11 +1,12 @@
 import React from "react";
-import type { BalloonData } from "../hooks/useBalloonGame"; // Tipe data bisa disesuaikan nanti
+import type { BalloonData } from "../hooks/useBalloonGame";
 import {
   ItemBiruSvg,
   ItemMerahSvg,
   ItemKuningSvg,
   ItemHijauSvg,
   EfekPopSvg,
+  BasketCatchSvg,
 } from "@/components/ui/Illustrations";
 
 const ITEM_COMPONENTS = [
@@ -26,6 +27,7 @@ export function FallingFruit({
 }) {
   const ItemSvg =
     ITEM_COMPONENTS[Math.abs(fruit.color) % ITEM_COMPONENTS.length];
+  const isTarget = fruit.isTarget;
 
   const handleTrigger = () => {
     if (disabled || fruit.popped) return;
@@ -58,7 +60,14 @@ export function FallingFruit({
     >
       {fruit.popped ? (
         <div className="h-full w-full flex items-center justify-center">
-          <EfekPopSvg size={84} className="h-full w-full object-contain" />
+          {isTarget ? (
+            <BasketCatchSvg
+              size={84}
+              className="h-full w-full object-contain drop-shadow-[2px_2px_0px_#78350F]"
+            />
+          ) : (
+            <EfekPopSvg size={84} className="h-full w-full object-contain" />
+          )}
         </div>
       ) : (
         <div className="relative h-full w-full flex items-center justify-center">

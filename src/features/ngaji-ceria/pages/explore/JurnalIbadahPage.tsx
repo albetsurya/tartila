@@ -20,7 +20,6 @@ import { triggerBibiReaction } from "../../../../utils/bibiEvent";
 
 /* ============================================================================
  * NEO-BRUTALISM CUSTOM SVG ILLUSTRATIONS
- * Style: stroke="#134E4A", strokeWidth="2.5", round joins, playful flat colors
  * ============================================================================ */
 
 interface SvgProps {
@@ -324,7 +323,7 @@ const WaktuIconSvg: React.FC<{ waktu: WaktuSholat; size?: number }> = ({
   }
 };
 
-/* Ilustrasi Status Sholat (Pengganti Emoji) */
+/* Ilustrasi Status Sholat */
 const StatusIconSvg: React.FC<{
   status: StatusSholat | "belum";
   size?: number;
@@ -424,6 +423,14 @@ const StatusIconSvg: React.FC<{
   }
 };
 
+const STONE_SHAPES = [
+  "rounded-[34px_24px_38px_22px]",
+  "rounded-[24px_36px_22px_34px]",
+  "rounded-[36px_26px_30px_28px]",
+  "rounded-[26px_34px_36px_24px]",
+  "rounded-[32px_32px_26px_36px]",
+];
+
 /* ============================================================================
  * MAIN COMPONENT
  * ============================================================================ */
@@ -462,362 +469,331 @@ export default function JurnalIbadahPage() {
 
   return (
     <NgajiCeriaLayout
-      title="Benteng Istiqomah"
+      title="Sungai Ibadah"
       hideHeader={true}
       themeScope="jurnal-ibadah"
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
+      {/* Background Aliran Sungai Berbatu (#0284C7) */}
       <div
-        className="min-h-[100dvh] w-full relative overflow-x-hidden pb-24"
+        className="min-h-[100dvh] w-full relative overflow-x-hidden pb-28 select-none"
         style={{
-          backgroundColor: "#D1FAE5",
-          backgroundImage:
-            "repeating-linear-gradient(90deg, rgba(21,128,61,0.08) 0px, rgba(21,128,61,0.08) 2px, transparent 2px, transparent 18px), repeating-linear-gradient(0deg, rgba(21,128,61,0.05) 0px, rgba(21,128,61,0.05) 2px, transparent 2px, transparent 42px)",
+          backgroundColor: "#0284C7",
+          backgroundImage: "radial-gradient(#7DD3FC 2px, transparent 2px)",
+          backgroundSize: "26px 26px",
         }}
       >
-        {/* Ornamen benteng di kedua sisi atas (menara kiri & kanan) */}
-        <svg
-          className="pointer-events-none absolute top-6 left-2 h-40 w-20 opacity-60"
-          viewBox="0 0 80 160"
-          aria-hidden="true"
-        >
-          <rect x="10" y="0" width="60" height="18" fill="#64748B" stroke="#134E4A" strokeWidth="2.5" />
-          <rect x="20" y="0" width="8" height="8" fill="#64748B" />
-          <rect x="38" y="0" width="8" height="8" fill="#64748B" />
-          <rect x="52" y="0" width="8" height="8" fill="#64748B" />
-          <rect x="18" y="18" width="44" height="130" fill="#475569" stroke="#134E4A" strokeWidth="2.5" />
-          <rect x="32" y="60" width="16" height="22" rx="8" fill="#D1FAE5" stroke="#134E4A" strokeWidth="2" />
-          <rect x="18" y="92" width="44" height="2.5" fill="#94A3B8" />
-          <rect x="18" y="112" width="44" height="2.5" fill="#94A3B8" />
-        </svg>
-        <svg
-          className="pointer-events-none absolute top-6 right-2 h-40 w-20 opacity-60"
-          viewBox="0 0 80 160"
-          aria-hidden="true"
-        >
-          <rect x="10" y="0" width="60" height="18" fill="#64748B" stroke="#134E4A" strokeWidth="2.5" />
-          <rect x="20" y="0" width="8" height="8" fill="#64748B" />
-          <rect x="38" y="0" width="8" height="8" fill="#64748B" />
-          <rect x="52" y="0" width="8" height="8" fill="#64748B" />
-          <rect x="18" y="18" width="44" height="130" fill="#475569" stroke="#134E4A" strokeWidth="2.5" />
-          <rect x="32" y="120" width="16" height="28" fill="#D1FAE5" stroke="#134E4A" strokeWidth="2" />
-          <rect x="18" y="28" width="44" height="2.5" fill="#94A3B8" />
-          <rect x="18" y="48" width="44" height="2.5" fill="#94A3B8" />
-        </svg>
+        {/* Tepian Rumput Sungai di Kiri & Kanan */}
+        <div className="pointer-events-none fixed top-0 bottom-0 left-0 w-3 sm:w-5 bg-[#15803D] border-r-[3px] border-[#134E4A] z-0" />
+        <div className="pointer-events-none fixed top-0 bottom-0 right-0 w-3 sm:w-5 bg-[#15803D] border-l-[3px] border-[#134E4A] z-0" />
 
-        {/* Header kustom: Kastil batu bata + tombol perisai */}
         <ThemedHeader
-          title="Benteng Istiqomah"
+          title="Sungai Berbatu Ibadah"
           onBack={() => {
             navigate("/member/ngaji-ceria/map");
           }}
-          themeColorClass="bg-[#64748B]"
+          themeColorClass="bg-[#15803D] border-b-[4px] border-[#134E4A]"
           textColorClass="text-[#FEF08A]"
           statVariant="wood"
-          statBgClass="bg-[#475569] text-[#FEF08A]"
-          backClass="bg-[#78350F] text-[#FDE047]"
-        >
-          {/* Pola batu bata */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            aria-hidden="true"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(0deg, rgba(51,65,85,0.55) 0px, rgba(51,65,85,0.55) 2px, transparent 2px, transparent 20px), repeating-linear-gradient(90deg, rgba(51,65,85,0.55) 0px, rgba(51,65,85,0.55) 2px, transparent 2px, transparent 44px)",
-            }}
-          />
-        </ThemedHeader>
+          statBgClass="bg-[#78350F] text-[#FEF08A]"
+          backClass="bg-[#FEF08A] text-[#134E4A] border-[2.5px] border-[#134E4A]"
+        />
 
-        <div className="relative z-10 px-4 pt-4 space-y-5">
-        {/* Hero Banner (Chalkboard Style) */}
-        <section
-          className="relative overflow-hidden rounded-[28px] p-5 text-white border-[3px] border-[#14532D] shadow-[4px_4px_0px_#14532D]"
-          style={{
-            backgroundColor: "#14532D",
-            backgroundImage:
-              "repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 12px, transparent 12px, transparent 24px)",
-          }}
-        >
-          {/* Pita bookmark kain di tepi atas */}
-          <div
-            className="absolute left-8 top-0 h-16 w-6 bg-[#B91C1C] border-x-[3px] border-[#134E4A] [clip-path:polygon(0_0,100%_0,100%_100%,50%_75%,0_100%)]"
-            aria-hidden="true"
-          />
-          {/* Bekas tebusan kapur */}
-          <div className="absolute right-8 bottom-2 h-3 w-16 rounded-full bg-white/10 blur-[1px]" aria-hidden="true" />
-          <div className="absolute right-16 bottom-5 h-2 w-8 rounded-full bg-white/10 blur-[1px]" aria-hidden="true" />
-          <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full border-[6px] border-white/5" />
-          <div className="absolute right-4 top-4 rotate-12 opacity-90">
-            <CalendarCheckSvg size={52} />
-          </div>
+        <div className="relative z-10 px-4 pt-6 max-w-3xl mx-auto space-y-7">
+          {/* Hero Banner: Jembatan Kayu di Atas Sungai */}
+          <section className="relative overflow-hidden rounded-2xl bg-[#78350F] p-5 sm:p-6 text-[#FEF3C7] border-[4px] border-[#451A03] shadow-[6px_6px_0px_#451A03]">
+            {/* Baut Kayu Jembatan */}
+            <span className="absolute top-3 left-3 w-3.5 h-3.5 rounded-full bg-[#D97706] border-[2px] border-[#451A03]" />
+            <span className="absolute top-3 right-3 w-3.5 h-3.5 rounded-full bg-[#D97706] border-[2px] border-[#451A03]" />
 
-          <div className="relative z-10 max-w-[85%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FDE047] border-2 border-dashed border-[#FDE047]/50 mb-2">
-              <SparklesSvg size={14} /> {formatDateId(today)}
-            </span>
-            <h2 className="font-display text-xl font-black leading-tight text-white [text-shadow:1.5px_1.5px_0_#134E4A]">
-              Sholat Tepat Waktu, Hati Jadi Tenang
-            </h2>
-            <p className="mt-1.5 text-[11px] font-medium text-white/80 leading-relaxed">
-              Catat 5 waktu sholat fardhu setiap hari untuk menjaga istiqomah.
-            </p>
-          </div>
-        </section>
+            <div className="absolute right-5 bottom-4 rotate-12 opacity-90">
+              <CalendarCheckSvg size={54} />
+            </div>
 
-        {/* Progress & Streak Card (Sticky Paper Note) */}
-        <section className="relative rounded-[20px] border-[3px] border-[#134E4A] bg-[#FEF3C7] p-4 shadow-[4px_4px_0px_#134E4A] rotate-[-1deg]">
-          {/* Selotip di sudut atas */}
-          <div
-            className="absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 rotate-[-2deg] rounded-sm border-2 border-[#134E4A]/20 bg-white/70"
-            aria-hidden="true"
-          />
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#D97706]">
-                <FireSvg size={24} /> Streak Istiqomah
+            <div className="relative z-10 max-w-[82%] pt-1">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#FEF08A] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#451A03] border-[2.5px] border-[#451A03] shadow-[2px_2px_0px_#451A03] mb-2.5">
+                <SparklesSvg size={14} /> {formatDateId(today)}
+              </span>
+              <h2 className="font-display text-xl sm:text-2xl font-black leading-tight text-[#FEF3C7]">
+                Batu Pijakan Sholat 5 Waktu
+              </h2>
+              <p className="mt-1.5 text-xs font-bold text-[#FDE68A] leading-relaxed">
+                Lompati setiap batu pijakan di aliran sungai dengan mencatat
+                sholat 5 waktumu hingga sampai ke seberang!
+              </p>
+            </div>
+          </section>
+
+          {/* Progress & Streak di Atas Batu Besar Tepi Sungai */}
+          <section className="relative rounded-[28px] border-[4px] border-[#134E4A] bg-[#FEF3C7] p-5 shadow-[6px_6px_0px_#134E4A]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#B45309]">
+                  <FireSvg size={22} /> Arus Streak Istiqomah
+                </div>
+                <p className="mt-1 font-display text-3xl font-black text-[#134E4A]">
+                  {streak}{" "}
+                  <span className="text-sm font-black text-[#78350F]">
+                    Hari Beruntun
+                  </span>
+                </p>
+                <p className="mt-1 text-xs font-bold text-[#451A03]">
+                  {complete
+                    ? "Masya Allah, 5 batu pijakan sungai hari ini sudah dilewati!"
+                    : streak > 0
+                      ? "Jangan biarkan langkahmu terhenti di tengah sungai!"
+                      : "Mulai pijakan pertamamu menyeberangi sungai hari ini!"}
+                </p>
               </div>
-              <p className="mt-1 font-display text-3xl font-black text-[#134E4A]">
-                {streak}{" "}
-                <span className="text-sm font-bold text-[#134E4A]/70">
-                  Hari
+
+              <div className="flex flex-col items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-[#38BDF8] px-4 py-2.5 shadow-[3px_3px_0px_#134E4A]">
+                <span className="font-display text-2xl font-black text-[#134E4A]">
+                  {recorded}/5
                 </span>
-              </p>
-              <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/70">
-                {complete
-                  ? "Masya Allah, hari ini sudah lengkap!"
-                  : streak > 0
-                    ? "Pertahankan sholatmu hari ini!"
-                    : "Mulai streak pertamamu sekarang!"}
-              </p>
+                <span className="text-[10px] font-black uppercase tracking-wide text-[#134E4A]">
+                  Batu Pijakan
+                </span>
+              </div>
             </div>
 
-            {/* Circular Meter (Sticker Style) */}
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-[#134E4A] bg-[#CCFBF1] px-4 py-2.5 shadow-[2px_2px_0px_#134E4A]">
-              <span className="font-display text-2xl font-black text-[#0D9488]">
-                {recorded}/5
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wide text-[#0D9488]">
-                Tercatat
-              </span>
+            <div className="mt-4 grid grid-cols-3 gap-2.5 border-t-[3px] border-dashed border-[#134E4A]/25 pt-3.5 text-center">
+              <div className="rounded-xl bg-[#DCFCE7] p-2 border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <span className="text-[10px] font-black text-[#14532D]">
+                  Tepat Waktu
+                </span>
+                <p className="font-black text-base text-[#15803D]">{tepat}</p>
+              </div>
+              <div className="rounded-xl bg-[#FEF08A] p-2 border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <span className="text-[10px] font-black text-[#713F12]">
+                  Masih Sempat
+                </span>
+                <p className="font-black text-base text-[#A16207]">
+                  {WAKTU_ORDER.filter((w) => todayEntry[w] === "telat").length}
+                </p>
+              </div>
+              <div className="rounded-xl bg-[#E0F2FE] p-2 border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <span className="text-[10px] font-black text-[#0C4A6E]">
+                  Sisa Batu
+                </span>
+                <p className="font-black text-base text-[#0284C7]">
+                  {5 - recorded}
+                </p>
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* Quick Summary stats */}
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t-2 border-[#134E4A]/10 pt-3 text-center">
-            <div className="rounded-xl bg-[#F0FDF4] p-2 border border-[#134E4A]/10">
-              <span className="text-[10px] font-bold text-[#134E4A]/60">
-                Tepat Waktu
-              </span>
-              <p className="font-black text-sm text-[#15803D]">{tepat}</p>
+          {/* ALIRAN SUNGAI DENGAN 5 BATU PIJAKAN (STEPPING STONES) */}
+          <section className="relative rounded-3xl border-[4px] border-[#134E4A] bg-[#0369A1] p-4 sm:p-6 shadow-[8px_8px_0px_#134E4A] overflow-hidden">
+            {/* Garis Arus Sungai Mengalir */}
+            <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-1.5 border-l-[4px] border-dashed border-[#7DD3FC]/50" />
+
+            <div className="relative z-10 flex items-center justify-between mb-6 pb-3 border-b-[3px] border-dashed border-[#7DD3FC]/40">
+              <div className="inline-block bg-[#15803D] text-[#FEF08A] px-3.5 py-1 rounded-xl border-[2.5px] border-[#134E4A] font-display font-black text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_#134E4A]">
+                5 Batu Pijakan Aliran Sungai
+              </div>
+              {recorded > 0 && (
+                <button
+                  type="button"
+                  onClick={handleResetToday}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#FFE4E6] border-[2.5px] border-[#134E4A] px-3 py-1 text-[11px] font-black text-[#E11D48] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] cursor-pointer"
+                >
+                  <RefreshCwSvg size={13} /> Reset Batu
+                </button>
+              )}
             </div>
-            <div className="rounded-xl bg-[#FEF9C3] p-2 border border-[#134E4A]/10">
-              <span className="text-[10px] font-bold text-[#134E4A]/60">
-                Masih Sempat
-              </span>
-              <p className="font-black text-sm text-[#A16207]">
-                {WAKTU_ORDER.filter((w) => todayEntry[w] === "telat").length}
-              </p>
-            </div>
-            <div className="rounded-xl bg-[#F1F5F9] p-2 border border-[#134E4A]/10">
-              <span className="text-[10px] font-bold text-[#134E4A]/60">
-                Sisa Sholat
-              </span>
-              <p className="font-black text-sm text-[#475569]">
-                {5 - recorded}
-              </p>
-            </div>
-          </div>
-        </section>
 
-        {/* 5 Waktu Sholat List (Sticker Style) */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display font-black text-sm text-[#134E4A]">
-              Sholat 5 Waktu Hari Ini
-            </h3>
-            {recorded > 0 && (
-              <button
-                type="button"
-                onClick={handleResetToday}
-                className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#E11D48] hover:underline"
-              >
-                <RefreshCwSvg size={14} /> Reset Hari Ini
-              </button>
-            )}
-          </div>
+            {/* Deretan 5 Batu Pijakan Berkelok (Zig-Zag Stepping Stones) */}
+            <div className="relative z-10 flex flex-col gap-7 pb-2">
+              {WAKTU_LIST.map((w, idx) => {
+                const currentStatus = todayEntry[w.key] ?? "belum";
+                const statusInfo = getStatusInfo(currentStatus);
+                const stoneShape = STONE_SHAPES[idx % STONE_SHAPES.length];
+                const alignClass =
+                  idx % 2 === 0
+                    ? "self-start sm:w-[86%]"
+                    : "self-end sm:w-[86%]";
+                const isStepped = currentStatus !== "belum";
 
-          {WAKTU_LIST.map((w) => {
-            const currentStatus = todayEntry[w.key] ?? "belum";
-            const statusInfo = getStatusInfo(currentStatus);
+                return (
+                  <div
+                    key={w.key}
+                    className={`relative w-full ${alignClass} transition-transform`}
+                  >
+                    {/* Cincin Riak Air Sungai di Sekeliling Batu */}
+                    <div
+                      className={`pointer-events-none absolute -inset-2 ${stoneShape} border-[3px] border-dashed border-[#BAE6FD]/60`}
+                    />
 
-            return (
-              <div
-                key={w.key}
-                className="relative rounded-2xl border-[3px] border-[#134E4A] p-3.5 shadow-[3px_3px_0px_#134E4A] overflow-hidden"
-                style={{
-                  backgroundColor: "#EAD3A5",
-                  backgroundImage:
-                    "repeating-linear-gradient(90deg, rgba(146,64,14,0.12) 0px, rgba(146,64,14,0.12) 2px, transparent 2px, transparent 26px), repeating-linear-gradient(0deg, rgba(146,64,14,0.08) 0px, rgba(146,64,14,0.08) 2px, transparent 2px, transparent 44px)",
-                }}
-              >
-                {/* Paku ganda di sudut papan */}
-                {(["left-2 top-2", "right-2 bottom-2"] as const).map((pos) => (
-                  <span key={pos} aria-hidden="true" className={`absolute ${pos} block h-2 w-2 rounded-full border-2 border-[#134E4A] bg-[#64748B]`} />
-                ))}
-                <div className="flex items-center justify-between gap-3 mb-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#F0FDF4] shadow-[2px_2px_0px_#134E4A]">
-                      <WaktuIconSvg waktu={w.key} size={24} />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-display font-black text-base text-[#134E4A]">
-                          {w.label}
-                        </h4>
-                        <span
-                          className="font-arabic text-sm text-[#0D9488]"
-                          dir="rtl"
-                        >
-                          {w.arab}
+                    {/* Batu Kecil Penghubung di Antara Batu Utama */}
+                    {idx < WAKTU_LIST.length - 1 && (
+                      <div
+                        className={`pointer-events-none absolute -bottom-6 ${
+                          idx % 2 === 0 ? "right-12" : "left-12"
+                        } w-6 h-4 rounded-full bg-[#CBD5E1] border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] z-20`}
+                      />
+                    )}
+
+                    {/* Badan Batu Pijakan Sungai */}
+                    <div
+                      className={`relative ${stoneShape} border-[4px] border-[#134E4A] p-4 sm:p-5 shadow-[6px_6px_0px_#0F172A] ${
+                        isStepped ? "bg-[#F1F5F9]" : "bg-[#CBD5E1]"
+                      }`}
+                    >
+                      {/* Nomor Urut Batu Pijakan */}
+                      <span className="absolute -top-3 left-6 rounded-full bg-[#78350F] border-[2.5px] border-[#134E4A] px-2.5 py-0.5 text-[10px] font-black text-[#FEF08A] uppercase shadow-[2px_2px_0px_#134E4A]">
+                        Batu #{idx + 1}
+                      </span>
+
+                      <div className="flex items-center justify-between gap-2 mb-3 pt-1">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                            <WaktuIconSvg waktu={w.key} size={26} />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-display font-black text-base sm:text-lg text-[#0F172A]">
+                                {w.label}
+                              </h4>
+                              <span
+                                className="font-arabic font-bold text-sm text-[#0369A1]"
+                                dir="rtl"
+                              >
+                                {w.arab}
+                              </span>
+                            </div>
+                            <p className="text-[11px] font-black text-[#475569]">
+                              {w.timeHint}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="inline-flex items-center gap-1 rounded-xl border-[2.5px] border-[#134E4A] px-2.5 py-1 text-[10px] font-black bg-[#FFFFFF] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                          <StatusIconSvg status={currentStatus} size={13} />
+                          {statusInfo.label}
                         </span>
                       </div>
-                      <p className="text-[10px] font-bold text-[#134E4A]/50">
-                        {w.timeHint}
-                      </p>
+
+                      {/* Tombol Pijakan Status Sholat */}
+                      <div className="grid grid-cols-4 gap-2 pt-2.5 border-t-[2.5px] border-dashed border-[#64748B]/40">
+                        {[
+                          {
+                            key: "tepat" as StatusSholat,
+                            label: "Tepat",
+                            bg: "bg-[#DCFCE7]",
+                            text: "text-[#15803D]",
+                          },
+                          {
+                            key: "telat" as StatusSholat,
+                            label: "Sempat",
+                            bg: "bg-[#FEF08A]",
+                            text: "text-[#A16207]",
+                          },
+                          {
+                            key: "jamak" as StatusSholat,
+                            label: "Jamak",
+                            bg: "bg-[#E0F2FE]",
+                            text: "text-[#0369A1]",
+                          },
+                          {
+                            key: "tidak" as StatusSholat,
+                            label: "Lewat",
+                            bg: "bg-[#FFE4E6]",
+                            text: "text-[#B91C1C]",
+                          },
+                        ].map((s) => {
+                          const isSelected = currentStatus === s.key;
+                          return (
+                            <button
+                              key={s.key}
+                              type="button"
+                              onClick={() =>
+                                handleSetStatus(
+                                  w.key,
+                                  isSelected ? "belum" : s.key,
+                                )
+                              }
+                              className={`flex flex-col items-center justify-center gap-1 rounded-xl border-[2.5px] border-[#134E4A] py-2 px-1 font-black uppercase transition-all cursor-pointer ${
+                                isSelected
+                                  ? `${s.bg} ${s.text} scale-105 shadow-[2px_2px_0px_#134E4A]`
+                                  : "bg-[#FFFFFF] text-[#334155] opacity-85 hover:opacity-100"
+                              }`}
+                            >
+                              <StatusIconSvg status={s.key} size={13} />
+                              <span className="text-[9px] tracking-tight leading-none">
+                                {s.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          </section>
 
-                  {/* Current Status Badge */}
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-xl border-2 px-2.5 py-1 text-[11px] font-black ${statusInfo.bgClass} ${statusInfo.borderClass} ${statusInfo.textClass}`}
+          {/* RIWAYAT 7 HARI TERAKHIR: PAPAN TULIS KAYU DI TEPI SUNGAI & DAUN LONTAR */}
+          <section className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-xl bg-[#FEF08A] border-[3px] border-[#451A03] px-3.5 py-1.5 shadow-[3px_3px_0px_#451A03]">
+              <CalendarSvg size={18} />
+              <h3 className="font-display font-black text-xs sm:text-sm uppercase text-[#451A03]">
+                Papan Kayu Tepi Sungai (7 Hari Terakhir)
+              </h3>
+            </div>
+
+            <div className="relative rounded-2xl border-[4px] border-[#451A03] bg-[#78350F] p-4 sm:p-5 shadow-[6px_6px_0px_#451A03] space-y-2.5">
+              {history.map((h, i) => {
+                const rec = countRecorded(h.entry);
+                const comp = isComplete(h.entry);
+
+                return (
+                  <div
+                    key={h.date}
+                    className={`flex items-center justify-between gap-3 rounded-xl border-[3px] border-[#451A03] p-2.5 transition-all ${
+                      i === 0 ? "bg-[#FEF08A]" : "bg-[#FEF3C7]"
+                    }`}
                   >
-                    <StatusIconSvg status={currentStatus} size={14} />
-                    {statusInfo.label}
-                  </span>
-                </div>
+                    <div className="w-24 shrink-0">
+                      <p className="text-xs font-black text-[#451A03]">
+                        {i === 0 ? "Hari Ini" : formatDateShort(h.date)}
+                      </p>
+                    </div>
 
-                {/* Status Selector: Cap Tinta / Ink Stamps */}
-                <div className="grid grid-cols-4 gap-1.5 pt-1">
-                  {[
-                    { key: "tepat" as StatusSholat, label: "Tepat", ink: "#15803D" },
-                    { key: "telat" as StatusSholat, label: "Sempat", ink: "#A16207" },
-                    { key: "jamak" as StatusSholat, label: "Jamak", ink: "#0284C7" },
-                    { key: "tidak" as StatusSholat, label: "Terlewat", ink: "#B91C1C" },
-                  ].map((s) => {
-                    const isSelected = currentStatus === s.key;
-                    return (
-                      <button
-                        key={s.key}
-                        type="button"
-                        onClick={() =>
-                          handleSetStatus(w.key, isSelected ? "belum" : s.key)
-                        }
-                        className={`flex flex-col items-center justify-center gap-0.5 rounded-lg border-[3px] border-dashed py-1.5 px-0.5 font-black uppercase transition-all active:scale-95 ${
-                          isSelected
-                            ? "rotate-[-2deg] scale-105 shadow-[2px_2px_0_#134E4A]"
-                            : "rotate-0 opacity-45 hover:opacity-75"
-                        }`}
-                        style={{
-                          borderColor: s.ink,
-                          color: s.ink,
-                          backgroundColor: isSelected ? `${s.ink}14` : "transparent",
-                        }}
-                      >
-                        <StatusIconSvg status={s.key} size={13} />
-                        <span className="text-[9px] tracking-wide leading-none">{s.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </section>
+                    <div className="flex flex-1 items-center gap-1.5">
+                      {WAKTU_ORDER.map((k) => {
+                        const s = h.entry[k];
+                        const info = s ? getStatusInfo(s) : null;
+                        return (
+                          <div
+                            key={k}
+                            title={`${k.toUpperCase()}: ${info?.label ?? "Belum"}`}
+                            className="flex-1 h-7 rounded-lg border-[2px] border-[#451A03] bg-[#FFFBEB] flex items-center justify-center text-[10px] font-black shadow-[1.5px_1.5px_0px_#451A03]"
+                          >
+                            {s && s !== "belum" ? (
+                              <StatusIconSvg status={s} size={13} />
+                            ) : (
+                              "-"
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
 
-        {/* 7 Hari Terakhir History (Sticker Style) */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <CalendarSvg size={18} />
-            <h3 className="font-display font-black text-sm text-[#134E4A]">
-              Riwayat 7 Hari Terakhir
-            </h3>
-          </div>
-
-          <div
-            className="relative rounded-[24px] border-[3px] border-[#134E4A] p-4 shadow-[4px_4px_0px_#134E4A] space-y-2.5 overflow-hidden"
-            style={{
-              backgroundColor: "#FFFDF5",
-              backgroundImage:
-                "repeating-linear-gradient(0deg, transparent 0px, transparent 29px, rgba(11,105,119,0.1) 30px)",
-            }}
-          >
-            {/* Pita bookmark on top edge */}
-            <div
-              className="absolute right-6 top-0 h-12 w-5 bg-[#B91C1C] border-x-[2.5px] border-[#134E4A] [clip-path:polygon(0_0,100%_0,100%_100%,50%_75%,0_100%)]"
-              aria-hidden="true"
-            />
-            {history.map((h, i) => {
-              const rec = countRecorded(h.entry);
-              const comp = isComplete(h.entry);
-
-              return (
-                <div
-                  key={h.date}
-                  className={`flex items-center justify-between gap-3 rounded-xl border-2 border-[#134E4A]/20 p-2.5 transition-all ${
-                    i === 0 ? "bg-[#CCFBF1]/40 border-[#0D9488]" : "bg-white"
-                  }`}
-                >
-                  <div className="w-24 shrink-0">
-                    <p className="text-xs font-black text-[#134E4A]">
-                      {i === 0 ? "Hari Ini" : formatDateShort(h.date)}
-                    </p>
+                    <div className="w-10 flex justify-end shrink-0">
+                      {comp ? (
+                        <CheckBadgeSvg size={24} />
+                      ) : (
+                        <span className="text-xs font-black text-[#451A03]">
+                          {rec}/5
+                        </span>
+                      )}
+                    </div>
                   </div>
-
-                  {/* 5 Waktu blocks */}
-                  <div className="flex flex-1 items-center gap-1.5">
-                    {WAKTU_ORDER.map((k) => {
-                      const s = h.entry[k];
-                      const info = s ? getStatusInfo(s) : null;
-                      return (
-                        <div
-                          key={k}
-                          title={`${k.toUpperCase()}: ${info?.label ?? "Belum"}`}
-                          className={`flex-1 h-6 rounded-lg border-2 border-[#134E4A] flex items-center justify-center text-[10px] font-black ${
-                            info
-                              ? `${info.bgClass}${info.textClass}`
-                              : "bg-slate-100 text-slate-300"
-                          }`}
-                        >
-                          {s && s !== "belum" ? (
-                            <StatusIconSvg status={s} size={12} />
-                          ) : (
-                            "·"
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Checkmark or Count */}
-                  <div className="w-10 flex justify-end shrink-0">
-                    {comp ? (
-                      <CheckBadgeSvg size={24} />
-                    ) : (
-                      <span className="text-xs font-bold text-[#134E4A]/60">
-                        {rec}/5
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            <p className="text-center text-[10px] font-bold text-[#134E4A]/60 pt-1">
-              Streak bertambah jika kelima waktu sholat tercatat lengkap dalam
-              sehari.
-            </p>
-          </div>
-        </section>
+                );
+              })}
+            </div>
+          </section>
         </div>
       </div>
     </NgajiCeriaLayout>

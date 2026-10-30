@@ -9,9 +9,6 @@ export function stopAllAudio(): void {
   try {
     stopTilawatiAudio();
     activeAudio = null;
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
   } catch (e) {
     console.warn("stopAllAudio error:", e);
   }
@@ -21,21 +18,7 @@ export function stopAllAudio(): void {
 export function playOpeningDua(onEnded?: () => void): void {
   const audio = playTilawatiAudio("/audio/tilawati/taawudz_basmalah_v2.ogg", onEnded);
   if (!audio) {
-    // If not found, speak it via speech synthesis
-    if ("speechSynthesis" in window) {
-      const utter = new SpeechSynthesisUtterance("A'udzubillahi minasy syaithanir rajim. Bismillahirrahmanirrahim");
-      utter.lang = "ar-SA";
-      utter.rate = 0.9;
-      utter.onend = () => {
-        if (onEnded) onEnded();
-      };
-      utter.onerror = () => {
-        if (onEnded) onEnded();
-      };
-      window.speechSynthesis.speak(utter);
-    } else {
-      if (onEnded) onEnded();
-    }
+    onEnded?.();
   }
 }
 
@@ -49,8 +32,8 @@ export function playHijaiyahAudio(letterId: string): void {
     if (url) {
       activeAudio = playTilawatiAudio(url, undefined);
       if (activeAudio) {
-        activeAudio.play().catch(() => {
-          fallbackSpeech(letterId);
+        activeAudio.play().catch((e) => {
+          console.warn("Audio play catch:", e);
         });
       }
       return;
@@ -58,7 +41,6 @@ export function playHijaiyahAudio(letterId: string): void {
   } catch (e) {
     console.warn("Audio play error:", e);
   }
-  fallbackSpeech(letterId);
 }
 
 /**
@@ -95,19 +77,4 @@ export function playJilidChunkAudio(jilid: string, index: number): void {
  */
 export function playSoundEffect(type: "pop" | "correct" | "wrong" | "win" | "levelUp"): void {
   soundManager.playSfx(type === "pop" ? "pop" : type === "correct" ? "correct" : type === "wrong" ? "wrong" : "victory");
-}
-
-/**
- * Fallback to speech synthesis if audio file not loaded
- */
-function fallbackSpeech(text: string): void {
-  if (!("speechSynthesis" in window)) return;
-  try {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ar-SA";
-    utter.rate = 0.85;
-    window.speechSynthesis.speak(utter);
-  } catch {
-    // silent fallback
-  }
 }

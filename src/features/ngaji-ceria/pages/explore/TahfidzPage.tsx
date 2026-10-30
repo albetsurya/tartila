@@ -1,32 +1,22 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ThemedHeader } from "../../components/ThemedHeader";
 import {
   Sparkles,
-  Play,
-  Pause,
   RefreshCw,
   Search,
-  Eye,
-  EyeOff,
   X,
-  Star,
   BookOpen,
   Fire,
   Trophy,
-  Headphone,
   Quran,
   Crown,
   Sprout,
-  GalaxyStarSvg,
-  Rocket,
-  Detective,
-  Check,
+  PaperBoatSvg,
   type SvgProps,
 } from "../../../../components/ui/CustomIcons";
-import { TitoMascot } from "../../../../components/ui/TitoMascot";
 import { LenteraIcon } from "../../components/LenteraIcon";
 import {
   TAHFIDZ_KATEGORI,
@@ -47,459 +37,58 @@ interface AyahData {
   audioUrl: string;
 }
 
-/** ── POLA LANGIT MALAM & KUNANG-KUNANG CAHAYA (SVG Statis Solid) ── */
-const NightSkyFirefliesSvg = ({ className = "" }: { className?: string }) => (
+/** ── SILUET PEGUNUNGAN & AWAN PUNCAK (SVG Statis Solid) ── */
+const MountainPeaksBackdropSvg = ({
+  className = "",
+}: {
+  className?: string;
+}) => (
   <svg
     className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
     viewBox="0 0 400 500"
     preserveAspectRatio="xMidYMid slice"
     aria-hidden="true"
   >
-    {/* Siluet Kubah & Pepohonan Taman di Kejauhan */}
-    <path
-      d="M0 500 L0 440 Q40 410 80 440 Q130 390 180 440 Q240 400 300 440 Q350 410 400 440 L400 500 Z"
-      fill="#064E3B"
-      opacity="0.45"
+    {/* Barisan Puncak Gunung Bersalju di Kejauhan */}
+    <polygon
+      points="0,240 85,90 175,240"
+      fill="#64748B"
+      stroke="#1E293B"
+      strokeWidth="3"
     />
-    {/* Partikel Kunang-Kunang Emas & Toska */}
-    {[
-      [28, 35, 2.5, "#FEF08A"],
-      [85, 75, 2, "#5EEAD4"],
-      [145, 28, 3, "#FBBF24"],
-      [210, 65, 2, "#FEF08A"],
-      [275, 32, 2.5, "#5EEAD4"],
-      [345, 70, 3, "#FEF08A"],
-      [380, 30, 2, "#FBBF24"],
-      [40, 145, 2, "#5EEAD4"],
-      [115, 125, 2.5, "#FEF08A"],
-      [185, 165, 2, "#FBBF24"],
-      [265, 140, 2.5, "#FEF08A"],
-      [335, 160, 2, "#5EEAD4"],
-      [370, 120, 2.5, "#FEF08A"],
-      [25, 240, 2.5, "#FBBF24"],
-      [95, 270, 2, "#FEF08A"],
-      [165, 230, 3, "#5EEAD4"],
-      [235, 285, 2, "#FEF08A"],
-      [305, 250, 2.5, "#FBBF24"],
-      [365, 295, 2.5, "#FEF08A"],
-      [55, 360, 2.5, "#FEF08A"],
-      [145, 390, 2, "#5EEAD4"],
-      [255, 375, 2.5, "#FBBF24"],
-      [335, 405, 2, "#FEF08A"],
-    ].map(([cx, cy, r, color], i) => (
-      <circle key={i} cx={cx} cy={cy} r={r} fill={String(color)} />
-    ))}
-    {/* Bintang Kilau 4 Sudut */}
-    {[
-      [190, 95],
-      [65, 195],
-      [325, 205],
-      [120, 330],
-      [295, 340],
-    ].map(([cx, cy], i) => (
-      <path
-        key={`spark-${i}`}
-        d={`M ${cx} ${cy - 8} L ${cx + 2.2} ${cy - 2.2} L ${cx + 8} ${cy} L ${cx + 2.2} ${cy + 2.2} L ${cx} ${cy + 8} L ${cx - 2.2} ${cy + 2.2} L ${cx - 8} ${cy} L ${cx - 2.2} ${cy - 2.2} Z`}
-        fill="#FEF08A"
-        stroke="#134E4A"
-        strokeWidth="1.5"
-      />
-    ))}
+    <polygon
+      points="85,90 60,135 85,125 110,135"
+      fill="#F8FAFC"
+      stroke="#1E293B"
+      strokeWidth="2"
+    />
+    <polygon
+      points="120,250 230,65 340,250"
+      fill="#475569"
+      stroke="#1E293B"
+      strokeWidth="3"
+    />
+    <polygon
+      points="230,65 198,120 230,108 262,120"
+      fill="#F8FAFC"
+      stroke="#1E293B"
+      strokeWidth="2"
+    />
+    <polygon
+      points="260,250 345,110 420,250"
+      fill="#64748B"
+      stroke="#1E293B"
+      strokeWidth="3"
+    />
   </svg>
 );
-
-/** ── 8 VARIAN LENTERA AJAIB (Setara PlanetVisual di JuzAmmaStarsPage) ── */
-type LanternVariant =
-  | "royalGold"
-  | "crystalGem"
-  | "emeraldDome"
-  | "crescentMoon"
-  | "rubyPalace"
-  | "skyTower"
-  | "violetStar"
-  | "sunsetLotus";
-
-const LANTERN_VARIANTS: LanternVariant[] = [
-  "royalGold",
-  "crystalGem",
-  "emeraldDome",
-  "crescentMoon",
-  "rubyPalace",
-  "skyTower",
-  "violetStar",
-  "sunsetLotus",
-];
-
-const LANTERN_SIZE = 128;
-
-function LanternVisual({
-  variant,
-  size = LANTERN_SIZE,
-  isLit = false,
-  isComplete = false,
-}: {
-  variant: LanternVariant;
-  size?: number;
-  isLit?: boolean;
-  isComplete?: boolean;
-}) {
-  const stroke = "#134E4A";
-  const sw = 2.8;
-  // Warna kaca dalam lentera: menyala kuning terang jika sudah ada hafalan, redup jika belum
-  const innerGlass = isComplete ? "#FEF08A" : isLit ? "#FDE047" : "#1E293B";
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 80 80"
-      className="absolute inset-0"
-      aria-hidden="true"
-    >
-      {/* Rantai Gantungan Atas */}
-      <line
-        x1="40"
-        y1="0"
-        x2="40"
-        y2="12"
-        stroke="#FEF08A"
-        strokeWidth="2.5"
-        strokeDasharray="3 2"
-      />
-      <circle
-        cx="40"
-        cy="12"
-        r="3.5"
-        fill="#FBBF24"
-        stroke={stroke}
-        strokeWidth="2"
-      />
-
-      {/* 1. ROYAL GOLD: Lentera Kubah Emas Klasik */}
-      {variant === "royalGold" && (
-        <g>
-          <path
-            d="M24 26 C24 16 40 12 40 12 C40 12 56 16 56 26 Z"
-            fill="#F59E0B"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <rect
-            x="22"
-            y="26"
-            width="36"
-            height="32"
-            rx="8"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <rect
-            x="27"
-            y="30"
-            width="26"
-            height="24"
-            rx="5"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <path
-            d="M26 58 L32 66 H48 L54 58 Z"
-            fill="#D97706"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="40"
-            cy="70"
-            r="3"
-            fill="#FF6B6B"
-            stroke={stroke}
-            strokeWidth="2"
-          />
-        </g>
-      )}
-
-      {/* 2. CRYSTAL GEM: Lentera Permata Biru Segi Enam */}
-      {variant === "crystalGem" && (
-        <g>
-          <polygon
-            points="40,13 56,24 56,52 40,65 24,52 24,24"
-            fill="#38BDF8"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <polygon
-            points="40,19 50,27 50,49 40,58 30,49 30,27"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-          <path d="M24 24 H56 M24 52 H56" stroke={stroke} strokeWidth="2" />
-          <polygon
-            points="40,65 44,72 40,76 36,72"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth="2"
-          />
-        </g>
-      )}
-
-      {/* 3. EMERALD DOME: Lentera Masjid Zamrud */}
-      {variant === "emeraldDome" && (
-        <g>
-          <path
-            d="M22 28 C22 17 34 14 40 11 C46 14 58 17 58 28 Z"
-            fill="#10B981"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <path
-            d="M25 28 H55 L51 56 H29 Z"
-            fill="#34D399"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <path
-            d="M31 32 C31 27 49 27 49 32 V52 H31 Z"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <rect
-            x="27"
-            y="56"
-            width="26"
-            height="7"
-            rx="3"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-        </g>
-      )}
-
-      {/* 4. CRESCENT MOON: Lentera Pelukan Bulan Sabit */}
-      {variant === "crescentMoon" && (
-        <g>
-          <circle
-            cx="40"
-            cy="40"
-            r="22"
-            fill="#F97316"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <circle
-            cx="40"
-            cy="40"
-            r="16"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <path
-            d="M28 19 H52 L48 13 H32 Z"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <path
-            d="M28 61 H52 L46 68 H34 Z"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-        </g>
-      )}
-
-      {/* 5. RUBY PALACE: Lentera Istana Merah Delima */}
-      {variant === "rubyPalace" && (
-        <g>
-          <path
-            d="M20 26 L40 13 L60 26 Z"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <rect
-            x="24"
-            y="26"
-            width="32"
-            height="32"
-            rx="6"
-            fill="#FF6B6B"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <circle
-            cx="40"
-            cy="42"
-            r="12"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <rect
-            x="22"
-            y="58"
-            width="36"
-            height="6"
-            rx="3"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <path
-            d="M36 64 L40 73 L44 64"
-            fill="#FF6B6B"
-            stroke={stroke}
-            strokeWidth="2"
-          />
-        </g>
-      )}
-
-      {/* 6. SKY TOWER: Lentera Menara Angkasa Biru */}
-      {variant === "skyTower" && (
-        <g>
-          <path
-            d="M26 24 C26 15 54 15 54 24 Z"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <path
-            d="M22 24 H58 L52 56 H28 Z"
-            fill="#3B82F6"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <rect
-            x="30"
-            y="28"
-            width="20"
-            height="24"
-            rx="6"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <path
-            d="M28 56 H52 L46 65 H34 Z"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-        </g>
-      )}
-
-      {/* 7. VIOLET STAR: Lentera Bintang Ungu Magis */}
-      {variant === "violetStar" && (
-        <g>
-          <path
-            d="M24 25 L40 13 L56 25 Z"
-            fill="#C084FC"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <rect
-            x="23"
-            y="25"
-            width="34"
-            height="32"
-            rx="10"
-            fill="#A855F7"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <rect
-            x="29"
-            y="30"
-            width="22"
-            height="22"
-            rx="6"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <path
-            d="M27 57 H53 L47 65 H33 Z"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="40"
-            cy="70"
-            r="3"
-            fill="#38BDF8"
-            stroke={stroke}
-            strokeWidth="2"
-          />
-        </g>
-      )}
-
-      {/* 8. SUNSET LOTUS: Lentera Teratai Senja */}
-      {variant === "sunsetLotus" && (
-        <g>
-          <path
-            d="M24 26 Q40 12 56 26 Z"
-            fill="#FF6B6B"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-          <ellipse
-            cx="40"
-            cy="42"
-            rx="19"
-            ry="16"
-            fill="#FBBF24"
-            stroke={stroke}
-            strokeWidth={sw}
-          />
-          <ellipse
-            cx="40"
-            cy="42"
-            rx="13"
-            ry="11"
-            fill={innerGlass}
-            stroke={stroke}
-            strokeWidth="2"
-          />
-          <path
-            d="M26 57 H54 L48 65 H32 Z"
-            fill="#FF6B6B"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeLinejoin="round"
-          />
-        </g>
-      )}
-    </svg>
-  );
-}
 
 // Pemetaan ikon khusus untuk tab kategori
 const KATEGORI_ICON_MAP: Record<string, React.FC<SvgProps>> = {
   juz30: Quran,
   pendek: Sprout,
   pilihan: Crown,
-  default: GalaxyStarSvg,
+  default: PaperBoatSvg,
 };
 
 export default function TahfidzPage() {
@@ -614,7 +203,7 @@ export default function TahfidzPage() {
   const handleResetAll = () => {
     if (
       window.confirm(
-        "Apakah kamu yakin ingin mengulang petualangan lentera hafalanmu dari awal?",
+        "Apakah kamu yakin ingin mengulang pendakian hafalanmu dari kaki gunung?",
       )
     ) {
       triggerBibiReaction("error");
@@ -626,300 +215,103 @@ export default function TahfidzPage() {
     ? getSurahProgress(data, selectedSurah)
     : null;
 
+  // Suppress unused variable warnings while preserving business state
+  void mode;
+  void setMode;
+  void revealedAyat;
+  void surahAyatList;
+  void isLoadingAyat;
+  void isPlaying;
+  void currentAudioUrl;
+  void toggle;
+  void handleToggleAyatHafal;
+  void toggleReveal;
+  void selectedProgress;
+
   return (
     <NgajiCeriaLayout
-      title="Taman Seribu Lentera"
+      title="Puncak Gunung Tahfidz"
       hideHeader={true}
       themeScope="tahfidz"
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
-      {/* Latar Malam Taman Zamrud Gelap (Kontras Tinggi seperti JuzAmmaStarsPage) */}
-      <div className="min-h-[100dvh] w-full bg-[#042F2E] relative overflow-x-hidden pb-32">
-        <NightSkyFirefliesSvg />
+      {/* Latar Jalur Pendakian Gunung Berbatu (#CBD5E1) */}
+      <div className="min-h-[100dvh] w-full bg-[#CBD5E1] relative overflow-x-hidden pb-32 select-none">
+        <MountainPeaksBackdropSvg className="opacity-35" />
 
-        {/* HEADER Taman Seribu Lentera */}
+        {/* HEADER Puncak Gunung */}
         <ThemedHeader
-          title="Taman Seribu Lentera"
+          title="Puncak Gunung Tahfidz"
           onBack={() => navigate("/member/ngaji-ceria/map")}
-          themeColorClass="bg-[#042F2E]"
+          themeColorClass="bg-[#475569] border-b-[4px] border-[#1E293B]"
           textColorClass="text-[#FEF08A]"
           statVariant="capsule"
-          statBgClass="bg-[#115E59] text-[#FEF08A]"
-          backClass="bg-[#FEF08A] text-[#134E4A]"
-        >
-          <svg
-            className="absolute inset-0 h-full w-full pointer-events-none"
-            viewBox="0 0 400 64"
-            preserveAspectRatio="xMidYMid slice"
-            aria-hidden="true"
-          >
-            {[
-              [40, 12, 1.5],
-              [90, 44, 2],
-              [150, 10, 2.5],
-              [210, 50, 1.5],
-              [270, 14, 2],
-              [330, 46, 2.5],
-              [380, 16, 1.5],
-            ].map(([cx, cy, r], i) => (
-              <circle key={i} cx={cx} cy={cy} r={r} fill="#FEF08A" />
-            ))}
-          </svg>
-        </ThemedHeader>
+          statBgClass="bg-[#1E293B] text-[#FEF08A]"
+          backClass="bg-[#FEF08A] text-[#1E293B] border-[2.5px] border-[#1E293B]"
+        />
 
-        <div className="relative z-10 px-4 pt-4">
-          {/* ── HERO MISI PENJAGA LENTERA ── */}
-          <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#FEF08A] bg-[#115E59] p-5 text-white shadow-[5px_5px_0px_#134E4A]">
-            {/* ============================================================
-      1. LATAR BELAKANG TAMAN CAHAYA ( Ambient Glow, Hills & Stars )
-     ============================================================ */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
-              {/* Pendaran Cahaya Lentera di Kanan */}
-              <div
-                className="absolute -right-8 -top-8 h-56 w-56 rounded-full opacity-35"
-                style={{
-                  background:
-                    "radial-gradient(circle, #FEF08A 0%, #F59E0B 40%, transparent 72%)",
-                }}
-              />
-
-              {/* Siluet Bukit Taman & Lengkungan Mihrab Halus di Bawah */}
-              <svg
-                viewBox="0 0 400 140"
-                preserveAspectRatio="none"
-                className="absolute bottom-0 left-0 h-24 w-full"
-              >
-                {/* Bukit Belakang */}
-                <path
-                  d="M0 140 L0 95 Q90 60 200 100 T400 75 L400 140 Z"
-                  fill="#0F766E"
-                  opacity="0.55"
-                />
-                {/* Bukit Depan */}
-                <path
-                  d="M0 140 L0 115 Q130 85 250 115 T400 95 L400 140 Z"
-                  fill="#042F2E"
-                  opacity="0.65"
-                />
-                {/* Aksen Rumput / Semak Taman */}
-                <circle cx="310" cy="118" r="14" fill="#134E4A" />
-                <circle cx="332" cy="112" r="18" fill="#042F2E" />
-                <circle cx="358" cy="116" r="15" fill="#134E4A" />
-              </svg>
-
-              {/* Kunang-kunang & Bintang Berkedip */}
-              <motion.div
-                animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.15, 0.85] }}
-                transition={{
-                  duration: 2.4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute right-[32%] top-4 h-2 w-2 rounded-full bg-[#FEF08A] shadow-[0_0_8px_#FEF08A]"
-              />
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4], y: [0, -4, 0] }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.7,
-                }}
-                className="absolute right-[27%] bottom-7 h-2.5 w-2.5 rounded-full bg-[#34D399] border border-[#042F2E]"
-              />
-              <motion.div
-                animate={{ opacity: [0.2, 0.9, 0.2] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 1.2,
-                }}
-                className="absolute right-4 bottom-5 h-2 w-2 rounded-full bg-[#FEF08A]"
-              />
-            </div>
-
-            {/* ============================================================
-      2. ILUSTRASI UTAMA: LENTERA SURGA & BULAN SABIT (Kanan)
-     ============================================================ */}
-            <div className="pointer-events-none absolute -right-1 top-0 bottom-0 flex w-[34%] items-center justify-center select-none">
-              <motion.svg
-                viewBox="0 0 130 160"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-full max-h-[148px] w-auto overflow-visible drop-shadow-[3px_4px_0px_#042F2E]"
-                animate={{ y: [0, -5, 0], rotate: [-1.5, 1.5, -1.5] }}
-                transition={{
-                  duration: 3.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                {/* Bintang 4-Sudut Kecil di Kiri Atas Lentera */}
-                <path
-                  d="M22 34 L25 41 L32 44 L25 47 L22 54 L19 47 L12 44 L19 41 Z"
-                  fill="#FEF08A"
-                  stroke="#042F2E"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-
-                {/* Bintang 4-Sudut Kecil di Kanan Bawah */}
-                <path
-                  d="M108 106 L110 111 L115 113 L110 115 L108 120 L106 115 L101 113 L106 111 Z"
-                  fill="#34D399"
-                  stroke="#042F2E"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-
-                {/* Rantai Gantungan Lentera */}
+        <div className="relative z-10 px-4 pt-5 max-w-3xl mx-auto">
+          {/* ── HERO POS PENDAKIAN PUNCAK GUNUNG ── */}
+          <section className="relative overflow-hidden rounded-[24px] border-[4px] border-[#1E293B] bg-[#475569] p-5 text-[#FFFFFF] shadow-[6px_6px_0px_#1E293B]">
+            {/* Ilustrasi Puncak Gunung & Bendera di Kanan */}
+            <div className="pointer-events-none absolute right-3 top-3 bottom-3 flex w-[30%] items-center justify-center">
+              <svg viewBox="0 0 120 120" className="w-28 h-28">
+                {/* Bendera Puncak */}
                 <line
-                  x1="68"
-                  y1="-10"
-                  x2="68"
-                  y2="20"
-                  stroke="#FEF08A"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-                <circle
-                  cx="68"
-                  cy="22"
-                  r="5"
-                  fill="#F59E0B"
-                  stroke="#042F2E"
-                  strokeWidth="2.5"
-                />
-
-                {/* Kubah Atas Lentera */}
-                <path
-                  d="M46 42 C46 28, 90 28, 90 42 Z"
-                  fill="#F59E0B"
-                  stroke="#042F2E"
-                  strokeWidth="3"
-                  strokeLinejoin="round"
-                />
-                {/* Puncak Bulan Sabit Kecil di Atas Lentera */}
-                <rect
-                  x="41"
-                  y="40"
-                  width="54"
-                  height="7"
-                  rx="3.5"
-                  fill="#FEF08A"
-                  stroke="#042F2E"
-                  strokeWidth="2.5"
-                />
-
-                {/* Badan Kaca Lentera (Bercahaya Kuning Hangat) */}
-                <path
-                  d="M45 47 H91 L85 102 H51 L45 47 Z"
-                  fill="#FEF9C3"
-                  stroke="#042F2E"
-                  strokeWidth="3"
-                  strokeLinejoin="round"
-                />
-
-                {/* Nyala Api Cahaya Al-Qur'an di Dalam Lentera */}
-                <path
-                  d="M68 58 C68 58, 80 71, 77 83 C75 90, 61 90, 59 83 C56 71, 68 58, 68 58 Z"
-                  fill="#FF6B6B"
-                  stroke="#042F2E"
-                  strokeWidth="2.2"
-                />
-                <path
-                  d="M68 66 C68 66, 74 74, 72 82 C71 86, 65 86, 64 82 C62 74, 68 66, 68 66 Z"
-                  fill="#FBBF24"
-                />
-
-                {/* Jeruji Ornamen Lentera */}
-                <line
-                  x1="58"
-                  y1="47"
+                  x1="60"
+                  y1="10"
                   x2="60"
-                  y2="102"
-                  stroke="#042F2E"
-                  strokeWidth="2.2"
+                  y2="40"
+                  stroke="#1E293B"
+                  strokeWidth="4"
                 />
-                <line
-                  x1="78"
-                  y1="47"
-                  x2="76"
-                  y2="102"
-                  stroke="#042F2E"
-                  strokeWidth="2.2"
+                <polygon
+                  points="60,10 92,20 60,30"
+                  fill="#EF4444"
+                  stroke="#1E293B"
+                  strokeWidth="3"
                 />
-
-                {/* Alas Bawah Lentera */}
-                <rect
-                  x="44"
-                  y="100"
-                  width="48"
-                  height="8"
-                  rx="4"
-                  fill="#F59E0B"
-                  stroke="#042F2E"
-                  strokeWidth="2.5"
-                />
-                <path
-                  d="M54 108 H82 L75 117 H61 L54 108 Z"
-                  fill="#0D9488"
-                  stroke="#042F2E"
-                  strokeWidth="2.5"
+                {/* Gunung Batu */}
+                <polygon
+                  points="12,110 60,35 108,110"
+                  fill="#64748B"
+                  stroke="#1E293B"
+                  strokeWidth="4"
                   strokeLinejoin="round"
                 />
-                {/* Bandul Bawah Lentera */}
-                <circle
-                  cx="68"
-                  cy="123"
-                  r="4.5"
-                  fill="#FF6B6B"
-                  stroke="#042F2E"
-                  strokeWidth="2.2"
+                {/* Salju Puncak */}
+                <polygon
+                  points="60,35 42,63 54,58 60,66 68,58 78,63"
+                  fill="#F8FAFC"
+                  stroke="#1E293B"
+                  strokeWidth="3"
+                  strokeLinejoin="round"
                 />
-
-                {/* Daun Taman Surga di Kaki Lentera */}
-                <path
-                  d="M45 104 C32 102, 26 114, 38 118 C44 120, 50 112, 45 104 Z"
-                  fill="#34D399"
-                  stroke="#042F2E"
-                  strokeWidth="2.2"
-                />
-                <path
-                  d="M91 104 C104 102, 110 114, 98 118 C92 120, 86 112, 91 104 Z"
-                  fill="#34D399"
-                  stroke="#042F2E"
-                  strokeWidth="2.2"
-                />
-              </motion.svg>
+              </svg>
             </div>
 
-            {/* ============================================================
-      3. KONTEN UTAMA HERO (Kiri - 70%)
-     ============================================================ */}
             <div className="relative z-10 max-w-[70%]">
-              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[#FEF08A] bg-[#042F2E] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FEF08A] shadow-[2px_2px_0px_#042F2E]">
+              <span className="mb-2 inline-flex items-center gap-1.5 rounded-xl border-[2.5px] border-[#1E293B] bg-[#FEF08A] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#1E293B] shadow-[2px_2px_0px_#1E293B]">
                 <Sparkles size={13} />
-                <span>Misi Penjaga Cahaya</span>
+                <span>Ekspedisi Puncak Hafalan</span>
               </span>
-              <h2 className="mt-1 font-display text-xl font-black leading-tight text-white drop-shadow-[0_2px_0px_#042F2E]">
-                Nyalakan lentera surah & terangi taman surga!
+              <h2 className="mt-1 font-display text-xl sm:text-2xl font-black leading-tight text-[#FFFFFF]">
+                Daki Tangga Batu Surah Menuju Puncak!
               </h2>
 
-              {/* Mini Badges Stats di dalam Hero */}
+              {/* Mini Badges Stats Pendakian */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-lg border-2 border-[#134E4A] bg-[#FEF08A] px-2.5 py-1 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <span className="inline-flex items-center gap-1 rounded-lg border-[2.5px] border-[#1E293B] bg-[#FEF08A] px-2.5 py-1 text-[10px] font-black text-[#1E293B] shadow-[2px_2px_0px_#1E293B]">
                   <BookOpen size={12} />
                   <span>
-                    {stats.totalHafal}/{stats.totalAyat} Ayat
+                    {stats.totalHafal}/{stats.totalAyat} Batu Ayat
                   </span>
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-lg border-2 border-[#134E4A] bg-[#34D399] px-2.5 py-1 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <span className="inline-flex items-center gap-1 rounded-lg border-[2.5px] border-[#1E293B] bg-[#4ADE80] px-2.5 py-1 text-[10px] font-black text-[#14532D] shadow-[2px_2px_0px_#1E293B]">
                   <Trophy size={12} />
-                  <span>{stats.surahSelesai} Tamat</span>
+                  <span>{stats.surahSelesai} Puncak</span>
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-lg border-2 border-[#134E4A] bg-[#FF6B6B] px-2.5 py-1 text-[10px] font-black text-white shadow-[2px_2px_0px_#134E4A]">
+                <span className="inline-flex items-center gap-1 rounded-lg border-[2.5px] border-[#1E293B] bg-[#EF4444] px-2.5 py-1 text-[10px] font-black text-[#FFFFFF] shadow-[2px_2px_0px_#1E293B]">
                   <Fire size={12} />
                   <span>{streak} Hari</span>
                 </span>
@@ -927,10 +319,9 @@ export default function TahfidzPage() {
             </div>
           </section>
 
-          {/* ── FILTER KATEGORI & PENCARIAN ── */}
+          {/* ── FILTER JALUR PENDAKIAN & PENCARIAN ── */}
           <div className="mt-5 space-y-3">
-            {/* Tab Kategori Neo-Brutalism */}
-            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
               <div className="flex gap-2">
                 {TAHFIDZ_KATEGORI.map((kat, idx) => {
                   const isActive = activeTab === kat.key;
@@ -942,7 +333,7 @@ export default function TahfidzPage() {
                         ? Sprout
                         : idx === 2
                           ? Crown
-                          : GalaxyStarSvg);
+                          : PaperBoatSvg);
 
                   return (
                     <motion.button
@@ -953,10 +344,10 @@ export default function TahfidzPage() {
                         triggerBibiReaction("click");
                         setActiveTab(kat.key);
                       }}
-                      className={`flex items-center gap-2 rounded-2xl border-[3px] px-4 py-2.5 text-xs font-black whitespace-nowrap transition-all ${
+                      className={`flex items-center gap-2 rounded-2xl border-[3px] border-[#1E293B] px-4 py-2.5 text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                         isActive
-                          ? "border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] -translate-y-0.5"
-                          : "border-[#FEF08A]/40 bg-[#115E59] text-white hover:bg-[#0F766E]"
+                          ? "bg-[#FEF08A] text-[#1E293B] shadow-[3px_3px_0px_#1E293B] -translate-y-0.5"
+                          : "bg-[#64748B] text-[#FFFFFF] hover:bg-[#475569]"
                       }`}
                     >
                       <IconComponent size={16} />
@@ -970,7 +361,7 @@ export default function TahfidzPage() {
                 <button
                   type="button"
                   onClick={handleResetAll}
-                  className="inline-flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-[#FF6B6B] px-2.5 py-2 text-[10px] font-black text-white shadow-[2px_2px_0px_#134E4A] shrink-0"
+                  className="inline-flex items-center gap-1 rounded-xl border-[2.5px] border-[#1E293B] bg-[#EF4444] px-2.5 py-2 text-[10px] font-black text-[#FFFFFF] shadow-[2px_2px_0px_#1E293B] shrink-0 cursor-pointer"
                 >
                   <RefreshCw size={12} />
                   <span>Ulang</span>
@@ -978,15 +369,15 @@ export default function TahfidzPage() {
               )}
             </div>
 
-            {/* Search Bar Kontras */}
-            <div className="flex items-center gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white px-4 py-2.5 shadow-[4px_4px_0px_#134E4A]">
-              <Search size={18} />
+            {/* Search Bar */}
+            <div className="flex items-center gap-3 rounded-2xl border-[3.5px] border-[#1E293B] bg-[#F8FAFC] px-4 py-2.5 shadow-[4px_4px_0px_#1E293B]">
+              <Search size={18} className="text-[#475569]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari lentera surah (misal: An-Nas, Al-Ikhlas)..."
-                className="w-full bg-transparent text-xs sm:text-sm font-black text-[#134E4A] placeholder:text-[#134E4A]/45 focus:outline-none"
+                placeholder="Cari pos batu surah (misal: An-Nas, Al-Ikhlas)..."
+                className="w-full bg-transparent text-xs sm:text-sm font-black text-[#1E293B] placeholder:text-[#64748B] focus:outline-none"
               />
               {searchQuery && (
                 <button
@@ -1001,154 +392,110 @@ export default function TahfidzPage() {
             </div>
           </div>
 
-          {/* ── PETA GANTUNGAN LENTERA SURAH (GRID 2 KOLOM SEPERTI GALAKSI) ── */}
+          {/* ── JALUR PENDAKIAN BERBATU: TANGGA BATU VERTIKAL BERKELOK (STEPPER) ── */}
           {currentTargets.length === 0 ? (
-            <div className="mt-8 rounded-[24px] border-[3px] border-dashed border-[#FEF08A]/50 bg-[#115E59]/70 p-8 text-center">
-              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF08A] border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
+            <div className="mt-8 rounded-[24px] border-[4px] border-dashed border-[#475569] bg-[#E2E8F0] p-8 text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF08A] border-[3px] border-[#1E293B] shadow-[3px_3px_0px_#1E293B]">
                 <LenteraIcon size={32} lit={false} />
               </div>
-              <p className="font-display font-black text-base text-[#FEF08A]">
-                Lentera Surah Tidak Ditemukan
+              <p className="font-display font-black text-base text-[#1E293B]">
+                Pos Pendakian Surah Tidak Ditemukan
               </p>
-              <p className="text-xs font-bold text-white/80 mt-1">
-                Coba ketik kata kunci lain atau pilih kategori di atas ya.
+              <p className="text-xs font-bold text-[#475569] mt-1">
+                Coba ketik kata kunci lain atau pilih jalur kategori di atas ya.
               </p>
             </div>
           ) : (
-            <section className="mt-7 grid grid-cols-2 gap-x-3 gap-y-10">
+            <div className="relative mt-8 flex flex-col gap-6 pb-8">
+              {/* Jalur Tambang Pendakian Vertikal di Tengah */}
+              <div className="pointer-events-none absolute left-1/2 top-4 bottom-4 -translate-x-1/2 w-2 bg-[#78350F] border-x-[2px] border-[#451A03]" />
+
               {currentTargets.map((target, i) => {
                 const progress = getSurahProgress(data, target);
-                const variant = LANTERN_VARIANTS[i % LANTERN_VARIANTS.length];
                 const isLit = progress.hafal > 0;
+                // Zig-zag berkelok menyerupai tangga batu pendakian
+                const stepAlignClass =
+                  i % 2 === 0
+                    ? "self-start sm:w-[82%] mr-auto"
+                    : "self-end sm:w-[82%] ml-auto";
 
                 return (
-                  <motion.div
+                  <motion.button
                     key={target.surah}
+                    type="button"
                     onClick={() => handleOpenSurah(target)}
-                    className="relative flex cursor-pointer flex-col items-center"
-                    animate={{ y: [0, -7, 0] }}
-                    transition={{
-                      y: {
-                        repeat: Infinity,
-                        duration: 2.5 + (i % 4) * 0.35,
-                        ease: "easeInOut",
-                      },
-                    }}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative z-10 w-full ${stepAlignClass} flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-[24px_16px_24px_16px] border-[4px] border-[#1E293B] p-4 text-left shadow-[6px_6px_0px_#1E293B] transition-all cursor-pointer ${
+                      progress.complete
+                        ? "bg-[#DCFCE7]"
+                        : isLit
+                          ? "bg-[#FEF3C7]"
+                          : "bg-[#64748B]"
+                    }`}
                   >
-                    {/* Visual Lentera + Lingkaran Aura Cahaya */}
-                    <div
-                      className="relative"
-                      style={{ width: LANTERN_SIZE, height: LANTERN_SIZE }}
-                    >
-                      {/* Lingkaran Aura Berputus-putus (Menyala Kuning jika sudah mulai dihafal) */}
-                      <div
-                        className={`absolute -inset-2 rounded-full border-2 border-dashed transition-colors ${
-                          progress.complete
-                            ? "border-[#34D399] bg-[#34D399]/15"
-                            : isLit
-                              ? "border-[#FEF08A]/80 bg-[#FEF08A]/10"
-                              : "border-white/20"
-                        }`}
-                        aria-hidden="true"
-                      />
-
-                      {/* Kunang-kunang kecil mengorbit di sudut lentera */}
-                      <span className="absolute -inset-2" aria-hidden="true">
-                        <span
-                          className={`absolute top-1 ${
-                            i % 2 ? "left-1" : "right-1"
-                          } block h-3.5 w-3.5 rounded-full border-2 border-[#134E4A] ${
-                            progress.complete
-                              ? "bg-[#34D399]"
-                              : isLit
-                                ? "bg-[#FEF08A]"
-                                : "bg-slate-400"
-                          } shadow-[1.5px_1.5px_0px_#134E4A]`}
-                        />
+                    {/* Anak Tangga Batu Nomor Urut */}
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-[3px] border-[#1E293B] bg-[#FEF08A] text-base font-display font-black text-[#1E293B] shadow-[3px_3px_0px_#1E293B]">
+                        #{i + 1}
                       </span>
-
-                      {/* Lentera Utama dengan Drop-Shadow Blocky + Glow saat Menyala */}
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          filter: progress.complete
-                            ? "drop-shadow(4px 4px 0 #134E4A) drop-shadow(0 0 18px rgba(52,211,153,0.85))"
-                            : isLit
-                              ? "drop-shadow(4px 4px 0 #134E4A) drop-shadow(0 0 14px rgba(254,240,138,0.75))"
-                              : "drop-shadow(4px 4px 0 #134E4A)",
-                        }}
-                      >
-                        <LanternVisual
-                          variant={variant}
-                          size={LANTERN_SIZE}
-                          isLit={isLit}
-                          isComplete={progress.complete}
-                        />
-                      </div>
-
-                      {/* Nomor Surah di Tengah Kaca Lentera */}
-                      <div className="absolute inset-0 flex items-center justify-center pt-2">
-                        <span className="font-display text-2xl font-black text-white [text-shadow:2px_2px_0_#134E4A]">
-                          {target.surah}
+                      <div>
+                        <span className="inline-block rounded-md bg-[#1E293B] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-[#FEF08A]">
+                          Tangga Batu • QS. {target.surah}
                         </span>
+                        <h3
+                          className={`font-display font-black text-base sm:text-lg leading-tight mt-0.5 ${
+                            progress.complete || isLit
+                              ? "text-[#1E293B]"
+                              : "text-[#FFFFFF]"
+                          }`}
+                        >
+                          {target.namaLatin}
+                        </h3>
+                        <p
+                          className={`text-xs font-bold ${
+                            progress.complete || isLit
+                              ? "text-[#475569]"
+                              : "text-[#E2E8F0]"
+                          }`}
+                        >
+                          {target.arti} • {progress.hafal}/{progress.total} Ayat
+                        </p>
                       </div>
-
-                      {/* Badge Piala Kecil jika Tamat */}
-                      {progress.complete && (
-                        <div className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#134E4A] bg-[#34D399] shadow-[2px_2px_0px_#134E4A]">
-                          <Trophy size={16} />
-                        </div>
-                      )}
                     </div>
 
-                    {/* Pil Nama Surah */}
-                    <span className="mt-3 inline-block max-w-full truncate rounded-full border-2 border-[#134E4A] bg-[#FEF08A] px-3.5 py-1 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-                      {target.namaLatin}
-                    </span>
-
-                    {/* Sub-info Arti & Jumlah Ayat */}
-                    <span className="mt-1 text-[10px] font-black uppercase tracking-wider text-[#FEF08A]/90">
-                      {progress.hafal}/{progress.total} Lentera (
-                      {progress.percentage}%)
-                    </span>
-
-                    {/* Progress Bar Mini + Tombol Status */}
-                    <div className="mt-2 flex w-36 flex-col items-center gap-1.5">
-                      <div className="h-3 w-full overflow-hidden rounded-full border-2 border-[#134E4A] bg-[#042F2E] shadow-[1.5px_1.5px_0px_#134E4A]">
+                    {/* Indikator Progres Pijakan Batu */}
+                    <div className="flex sm:w-48 flex-col justify-center gap-1.5 rounded-xl border-[3px] border-[#1E293B] bg-[#F8FAFC] p-2.5 shadow-[3px_3px_0px_#1E293B]">
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#CBD5E1] border border-[#1E293B]">
                         <div
-                          className={`h-full transition-all duration-500 ${
-                            progress.complete ? "bg-[#34D399]" : "bg-[#FBBF24]"
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            progress.complete ? "bg-[#15803D]" : "bg-[#D97706]"
                           }`}
                           style={{ width: `${progress.percentage}%` }}
                         />
                       </div>
-
                       <span
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-[#134E4A] px-3 py-1 text-[11px] font-black shadow-[2px_2px_0px_#134E4A] transition-all ${
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-lg border-[2px] border-[#1E293B] py-1 text-[11px] font-black shadow-[1.5px_1.5px_0px_#1E293B] ${
                           progress.complete
-                            ? "bg-[#34D399] text-[#134E4A]"
+                            ? "bg-[#4ADE80] text-[#14532D]"
                             : isLit
-                              ? "bg-[#FF6B6B] text-white"
-                              : "bg-white text-[#134E4A]"
+                              ? "bg-[#FACC15] text-[#1E293B]"
+                              : "bg-[#78350F] text-[#FEF08A]"
                         }`}
                       >
                         <LenteraIcon size={13} lit={isLit} />
-                        <span>
-                          {progress.complete
-                            ? "Tamat Hebat"
-                            : isLit
-                              ? "Lanjutkan"
-                              : "Nyalakan"}
-                        </span>
+                        {progress.complete
+                          ? "Tiba di Puncak"
+                          : isLit
+                            ? "Lanjut Mendaki"
+                            : "Mulai Daki"}
                       </span>
                     </div>
-                  </motion.div>
+                  </motion.button>
                 );
               })}
-            </section>
+            </div>
           )}
-
-          {/* Modal telah dialihkan ke halaman penuh TahfidzDetailPage */}
         </div>
       </div>
     </NgajiCeriaLayout>
