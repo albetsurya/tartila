@@ -9,6 +9,8 @@ import { awardProgress, getProgress, recordLeaderboard } from "./progression";
 import { soundManager } from "../../../services/soundManager";
 import { canonicalGameId } from "../../../data/gameAccess";
 import { addEvent } from "@/services/eventService";
+import { submitScore } from "@/features/ngaji-ceria/services/ngajiCeriaApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface SecondChanceConfig {
   onSuccess: () => void;
@@ -34,6 +36,7 @@ export function GameOverModal({
 }: GameOverModalProps & { secondChance?: SecondChanceConfig }) {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
+  const { user } = useAuth();
   const committed = useRef(false);
   const [xpGained, setXpGained] = useState(0);
   const [coinsGained, setCoinsGained] = useState(0);
@@ -86,6 +89,14 @@ export function GameOverModal({
     setXpGained(progress.xp - before);
     setCoinsGained(progress.coins - beforeCoins);
     recordLeaderboard(gameId, score);
+    // Simpan skor user ke database (Supabase / REST).
+    // Satu row per game; userId opsional bila ada di AuthContext.
+    try {
+      const userId = user?.id || (user as any)?.userId || null;
+      void submitScore(gameId, score, userId);
+    } catch {
+      // Gagal simpan skor ke DB, skor tetap tampil dari localStorage.
+    }
     try {
       sessionStorage.setItem("ngajiceria:recent-game-finished", gameId);
       sessionStorage.setItem("ngajiceria:recent-game-timestamp", String(Date.now()));

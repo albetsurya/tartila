@@ -118,6 +118,34 @@ export interface ServerSupabaseLeaderboardResponse {
   total: number;
 }
 
+/** Menyimpan skor game ke database (single row per game). */
+export async function submitScore(
+  gameId: string,
+  score: number,
+  userId?: string | null,
+): Promise<{ success: boolean; id: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { success: false, id: null };
+  }
+
+  const { data, error } = await supabase
+    .from("quiz_attempts")
+    .insert({
+      game_id: gameId,
+      score: Number(score ?? 0),
+      user_id: userId || null,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.warn("[ngajiCeriaApi] submitScore gagal:", error.message);
+    return { success: false, id: null };
+  }
+
+  return { success: true, id: data.id };
+}
+
 /** REST fallback (Go server, SQLite): superset of Supabase response. */
 export interface ServerGoLeaderboardResponse {
   success: boolean;
