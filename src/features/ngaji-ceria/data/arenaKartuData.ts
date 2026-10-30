@@ -5,6 +5,13 @@ export interface ArenaKartuMateri {
   transliteration: string;
   audioUrl?: string;
   tone?: "datar" | "naik" | "turun";
+  patternType?:
+    | "1-datar"
+    | "1-naik"
+    | "1-turun"
+    | "2-datar-turun"
+    | "3-datar-naik-turun"
+    | "4-datar-naik-naik-turun";
   beatsCount: number;
   bpm: number;
   instruction?: string;
@@ -990,7 +997,16 @@ export function getArenaKartuMateri(jilid: number): ArenaKartuMateri[] {
   const level =
     ARENA_KARTU_DATA.find((l) => l.jilid === Number(jilid)) ||
     ARENA_KARTU_DATA[0];
-  return level.cards;
+  return level.cards.map((c) => ({
+    ...c,
+    patternType:
+      c.patternType ??
+      (c.tone === "naik"
+        ? "1-naik"
+        : c.tone === "turun"
+          ? "1-turun"
+          : "1-datar"),
+  }));
 }
 
 /**

@@ -14,7 +14,11 @@ import {
   type PageTipConfig,
 } from "../../../components/ui/TilaCompanion";
 import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
-import { TicketSvg, ChevronLeftSvg } from "../../../components/ui/CustomIcons";
+import {
+  TicketSvg,
+  ChevronLeftSvg,
+  MedalSvg,
+} from "../../../components/ui/CustomIcons"; // <-- Tambah MedalSvg
 import {
   JuicyHeart,
   JuicyStar,
@@ -179,12 +183,6 @@ export function NgajiCeriaLayout({
         ? "tartila_admin"
         : "member";
 
-  useEffect(() => {
-    if (hideNav) return;
-    soundManager.playBgm("menu", 0.18);
-    return () => soundManager.stopBgm();
-  }, [hideNav]);
-
   const isModuleHome =
     location.pathname === "/member/ngaji-ceria" ||
     location.pathname === "/member/ngaji-ceria/";
@@ -279,11 +277,12 @@ export function NgajiCeriaLayout({
                   </span>
                 </div>
 
+                {/* XP BADGE MENGGUNAKAN IKON ZAP (PETIR) */}
                 <div
                   className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#CCFBF1]"}`}
                   title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
                 >
-                  <JuicyStar size={17} />
+                  <MedalSvg size={17} className="text-[#0D9488]" />
                   <span className="min-w-[2.6rem] text-center tabular-nums">
                     <AnimatedCounter value={progress.xp} /> XP
                   </span>

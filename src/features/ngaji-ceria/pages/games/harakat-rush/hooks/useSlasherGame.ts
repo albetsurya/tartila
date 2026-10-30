@@ -54,7 +54,7 @@ export function useSlasherGame() {
         setPhase("gameover");
         playSfx("gameover");
       } else {
-        playSfx("wrong");
+        /* silence: correct/wrong SFX delegated to feedback layer */
       }
       return nextL;
     });
@@ -69,7 +69,7 @@ export function useSlasherGame() {
         bumpScore(next);
         setCombo((c) => c + 1);
         if (symbol) playLetterAudio(symbol);
-        playSfx("correct");
+        /* silence: correct SFX delegated to feedback layer */
       } else {
         loseLife();
       }

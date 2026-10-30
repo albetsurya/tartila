@@ -7,8 +7,10 @@ import { duelService } from "@/services/duelService";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { ClockSvg, WhatsAppSvg } from "@/components/ui/CustomIcons";
+import { ClockSvg, WhatsAppSvg, CrownSvg } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBotSimulator } from "../../hooks/useBotSimulator";
+import LeaderboardModal, { type LeaderboardEntry } from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
 
 const QUESTION_TIME = 20;
 const ARENA_WS_BASE =
@@ -57,11 +59,20 @@ export default function DuelPlayPage() {
   const [guestScore, setGuestScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
+  const [timeLimit, setTimeLimit] = useState(QUESTION_TIME);
   const [answered, setAnswered] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [isHost, setIsHost] = useState(true);
+  const [gamePhase, setGamePhase] = useState<"COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT">("COUNTDOWN");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [timeTakenMs, setTimeTakenMs] = useState<number>(0);
+
+  // Bot simulator — superadmin QA
+  const { bots, addBot, reset: resetBots, scheduleAnswers, resolveAnswers } = useBotSimulator();
 
   const hostScoreRef = useRef(0);
   const guestScoreRef = useRef(0);
@@ -176,34 +187,46 @@ export default function DuelPlayPage() {
     }
     setCurrentQuestionIndex((i) => i + 1);
     setTimeLeft(QUESTION_TIME);
+    setTimeLimit(QUESTION_TIME);
+    setQuestionStartTime(Date.now());
     setAnswered(false);
+    setResultReady(false);
+    setGamePhase("QUESTION_ACTIVE");
   };
 
-  // Timer countdown hanya jalan setelah duel_started diterima dari server
+  // Timer per soal & auto-timeout (Kahoot-style)
   useEffect(() => {
-    if (isFinished || answered || !gameStarted) return;
+    if (gamePhase !== "QUESTION_ACTIVE" || isFinished ||answered) return;
     if (timeLeft <= 0) {
-      advanceRef.current();
+      setGamePhase("REVEAL_ANSWER");
       return;
     }
     const timer = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
     return () => clearTimeout(timer);
-  }, [timeLeft, isFinished, answered, gameStarted]);
+  }, [gamePhase, timeLeft, isFinished, answered]);
 
   const handleAnswer = (isCorrect: boolean) => {
     if (answered || isFinished) return;
+    const elapsedMs = Date.now() - questionStartTime;
+    const takenMs = Math.min(elapsedMs, timeLimit * 1000);
+    setTimeTakenMs(takenMs);
     setAnswered(true);
-    if (!isCorrect) return;
-    if (isHost) {
-      hostScoreRef.current += 1;
-      setHostScore(hostScoreRef.current);
-      myScoreRef.current = hostScoreRef.current;
-    } else {
-      guestScoreRef.current += 1;
-      setGuestScore(guestScoreRef.current);
-      myScoreRef.current = guestScoreRef.current;
+    setGamePhase("REVEAL_ANSWER");
+
+    if (isCorrect) {
+      const sisa = timeLimit * 1000 - takenMs;
+      const awarded = Math.max(0, Math.round((sisa / (timeLimit * 1000)) * 1000));
+      if (isHost) {
+        hostScoreRef.current += awarded;
+        setHostScore(hostScoreRef.current);
+        myScoreRef.current = hostScoreRef.current;
+      } else {
+        guestScoreRef.current += awarded;
+        setGuestScore(guestScoreRef.current);
+        myScoreRef.current = guestScoreRef.current;
+      }
+      pushScoreToOpponent(myScoreRef.current);
     }
-    pushScoreToOpponent(myScoreRef.current);
   };
 
   const handleNext = () => {
@@ -277,6 +300,24 @@ export default function DuelPlayPage() {
         />
       </main>
 
+      {/* Timer visual per soal */}
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <div className="text-center">
+          <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
+            Timer
+          </span>
+          <span className={`font-display text-lg font-black leading-none ${timeLeft <= 5 ? "text-[#EF4444]" : "text-[#134E4A]"}`}>
+            {timeLeft}
+          </span>
+        </div>
+        <div className="w-24 h-2 bg-[#E5E7EB] border-[2px] border-[#134E4A] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#0D9488] transition-all duration-300"
+            style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
+          />
+        </div>
+      </div>
+
       <AnimatePresence>
         {isFinished && (
           <motion.div
@@ -344,6 +385,15 @@ export default function DuelPlayPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Leaderboard Modal (fase LEADERBOARD) */}
+      <LeaderboardModal
+        entries={leaderboard}
+        open={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        autoAdvance
+        advanceAfterMs={5000}
+      />
     </div>
   );
 }

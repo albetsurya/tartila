@@ -6,7 +6,7 @@ import { useGameAudio } from "./audio";
 import { useGameExit } from "./hooks";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { stopGameAudio } from "./gameAudio";
-import { soundManager, type BgmTrack } from "../../../services/soundManager";
+import { soundManager } from "../../../services/soundManager";
 import { GameTutorialModal } from "../../../components/GameTutorialModal";
 import { canonicalGameId } from "../../../data/gameAccess";
 import { LeaderboardList } from "@/components/ui/LeaderboardList";
@@ -45,16 +45,6 @@ export function GameShell({
         ? window.location.pathname.split("/").pop() || "game"
         : "game",
     );
-
-  useEffect(() => {
-    const track: BgmTrack =
-      title.toLowerCase().includes("battle") ||
-      title.toLowerCase().includes("dungeon")
-        ? "battle"
-        : "quiz";
-    soundManager.playBgm(track, 0.18);
-    return () => soundManager.stopBgm();
-  }, [title]);
 
   useEffect(() => {
     soundManager.preload([

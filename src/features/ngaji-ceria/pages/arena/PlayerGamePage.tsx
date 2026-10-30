@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Volume2, AlertCircle, CheckSvg, XSvg } from "@/components/ui/CustomIcons";
+import { Volume2, AlertCircle, CheckSvg, XSvg, CrownSvg } from "@/components/ui/CustomIcons";
 import { ArenaSocket } from "../../services/arenaSocket";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
 import { getAudioUrl } from "../../utils/audioUrl";
+import LeaderboardModal, { type LeaderboardEntry } from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
 
 const BUTTON_COLORS = [
   { id: "A", bg: "bg-[#EF4444]", hover: "hover:bg-red-600", shape: "▲" },
@@ -37,6 +38,12 @@ export default function PlayerGamePage() {
   const [violations, setViolations] = useState(0);
   const [warningModal, setWarningModal] = useState<string | null>(null);
   const [disqualified, setDisqualified] = useState(false);
+  const [gamePhase, setGamePhase] = useState<"COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT">("COUNTDOWN");
+  const [timeLeft, setTimeLeft] = useState(20);
+  const [timeLimit, setTimeLimit] = useState(20);
+  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const socketRef = useRef<ArenaSocket | null>(null);
   const questionStartRef = useRef<number>(Date.now());
@@ -98,30 +105,46 @@ export default function PlayerGamePage() {
           setTotalQuestions(state.totalQ);
         }
       },
-      onGameStarted: (data) => {
-        setQuestion(data.question);
-        setQuestionIndex(data.questionIndex);
-        setTotalQuestions(data.totalQuestions);
-        setSelectedAnswer(null);
-        setHasAnswered(false);
-        setResult(null);
-        questionStartRef.current = Date.now();
-      },
       onAnswerAcknowledged: (data) => {
         setResult(data);
         setTotalScore(data.totalScore);
         totalScoreRef.current = data.totalScore;
       },
-      onQuestionResult: (_data) => {
-        // Hasil ronde diumumkan
+      onQuestionResult: (data) => {
+        setGamePhase("LEADERBOARD");
+        setLeaderboard(data.leaderboard?.map((p: any) => ({
+          id: p.id,
+          nickname: p.nickname || p.name,
+          score: p.score || 0,
+          avatarId: p.avatarId,
+        })) || []);
+        setShowLeaderboard(true);
+      },
+      onGameStarted: (data) => {
+        setQuestion(data.question);
+        setQuestionIndex(data.questionIndex);
+        setTotalQuestions(data.totalQuestions);
+        setTimeLimit(data.timeLimit || 20);
+        setTimeLeft(data.timeLimit || 20);
+        setQuestionStartTime(Date.now());
+        setSelectedAnswer(null);
+        setHasAnswered(false);
+        setResult(null);
+        setGamePhase("QUESTION_ACTIVE");
+        questionStartRef.current = Date.now();
       },
       onNextQuestion: (data) => {
         setQuestion(data.question);
         setQuestionIndex(data.questionIndex);
         setTotalQuestions(data.totalQuestions);
+        setTimeLimit(data.timeLimit || 20);
+        setTimeLeft(data.timeLimit || 20);
+        setQuestionStartTime(Date.now());
         setSelectedAnswer(null);
         setHasAnswered(false);
         setResult(null);
+        setGamePhase("QUESTION_ACTIVE");
+        setShowLeaderboard(false);
         questionStartRef.current = Date.now();
       },
       onGameFinished: (data) => {
@@ -159,6 +182,19 @@ export default function PlayerGamePage() {
     };
   }, [pin, playerId, nickname, navigate, handleTabSwitch, totalScore]);
 
+  // Timer per soal & auto-timeout (Kahoot-style)
+  useEffect(() => {
+    if (gamePhase !== "QUESTION_ACTIVE" || disqualified) return;
+    if (timeLeft <= 0) {
+      setGamePhase("REVEAL_ANSWER");
+      return;
+    }
+    const timer = setTimeout(() => {
+      setTimeLeft((s) => s - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [gamePhase, timeLeft, disqualified]);
+
   const handleSelectOption = (optionId: string) => {
     if (hasAnswered || !question || disqualified) return;
 
@@ -187,6 +223,23 @@ export default function PlayerGamePage() {
           <span className="font-display text-base font-black text-[#134E4A]">
             {questionIndex + 1} / {totalQuestions || 1}
           </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="text-center">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
+              Timer
+            </span>
+            <span className={`font-display text-base font-black ${timeLeft <= 5 ? "text-[#EF4444]" : "text-[#0D9488]"}`}>
+              {timeLeft}s
+            </span>
+          </div>
+          <div className="w-16 h-2 bg-[#E5E7EB] border-[2px] border-[#134E4A] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#0D9488] transition-all duration-300"
+              style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
+            />
+          </div>
         </div>
 
         <div className="text-right">
@@ -291,6 +344,15 @@ export default function PlayerGamePage() {
           })}
         </div>
       </main>
+
+      {/* Leaderboard Modal (muncul otomatis pada fase LEADERBOARD) */}
+      <LeaderboardModal
+        entries={leaderboard}
+        open={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        autoAdvance
+        advanceAfterMs={5000}
+      />
 
       {/* Modal Peringatan Anti-Cheat Pelanggaran Tab */}
       {warningModal && (

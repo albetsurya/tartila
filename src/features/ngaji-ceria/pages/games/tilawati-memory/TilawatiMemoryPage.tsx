@@ -23,12 +23,12 @@ import {
   PauseSvg,
   PlaySvg,
   CheckSvg,
+  CardsSvg,
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
-import { playVoiceFeedback } from '../../../utils/voiceFeedback';
 import { getBest, setBest } from '../_shared/storage';
-import { GameStartSheet } from '../_shared/GameStartSheet';
+import { GameLevelSelectSheet } from '../_shared/GameLevelSelectSheet';
 import { GameHud } from '../_shared/GameHud';
 import { GameResultModal } from '../_shared/GameResultModal';
 import { AppModal } from '@/components/ui/AppModal';
@@ -300,7 +300,6 @@ export default function TilawatiMemoryPage() {
       } else {
         // BEDA: Jeda 1000ms (1 detik) lalu tutup kembali
         soundManager.playSfx('wrong');
-        playVoiceFeedback('wrong');
         setStreak(0);
         setIsChecking(true);
         setTimeout(() => {
@@ -634,24 +633,19 @@ export default function TilawatiMemoryPage() {
       </AppModal>
 
       {/* UNIVERSAL GAME START SHEET */}
-      <GameStartSheet
+      <GameLevelSelectSheet
         isOpen={isStartSheetOpen}
+        onClose={() => setIsStartSheetOpen(false)}
         gameTitle="Tilawati Memory"
-        gameSubtitle={`Jilid ${currentJilid} · Cocokkan Pasangan Kartu`}
-        ruleDescription="Buka dua kartu yang sama untuk mencocokkannya. Temukan semua pasangan sebelum waktu habis!"
+        gameIcon={<CardsSvg size={22} />}
         levels={MEMORY_LEVELS_CONFIG.map((cfg) => ({
-          level: cfg.level,
+          id: cfg.level,
           title: cfg.title,
           description: cfg.desc,
-          target: `${cfg.pairsCount} Pasang (${cfg.cardsCount} Kartu)`,
-          durationSeconds: cfg.timeLimitSeconds,
         }))}
-        unlockedLevels={unlockedLevel}
-        selectedLevel={currentLevel}
-        onSelectLevel={(lvl) => {
-          navigate(`/member/ngaji-ceria/games/tilawati-memory/${currentJilid}/${lvl}`);
-        }}
-        onStart={(lvl) => {
+        unlockedCount={unlockedLevel}
+        onSelectLevel={(idx) => {
+          const lvl = MEMORY_LEVELS_CONFIG[idx]?.level ?? 1;
           setIsStartSheetOpen(false);
           if (lvl !== currentLevel) {
             navigate(`/member/ngaji-ceria/games/tilawati-memory/${currentJilid}/${lvl}`);
@@ -659,7 +653,6 @@ export default function TilawatiMemoryPage() {
             handleResetGame();
           }
         }}
-        onClose={() => setIsStartSheetOpen(false)}
       />
 
       {/* UNIVERSAL GAME RESULT MODAL */}

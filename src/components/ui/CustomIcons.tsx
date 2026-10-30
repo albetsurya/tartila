@@ -209,8 +209,26 @@ export const GamepadSvg: React.FC<SvgProps> = ({
         strokeLinejoin="round"
       />
       {/* D-Pad Kiri Kuning/Krem */}
-      <rect x="6.5" y="12.5" width="6" height="2.5" rx="0.5" fill="#FEF08A" stroke={strokeColor} strokeWidth="1.5" />
-      <rect x="8.25" y="10.75" width="2.5" height="6" rx="0.5" fill="#FEF08A" stroke={strokeColor} strokeWidth="1.5" />
+      <rect
+        x="6.5"
+        y="12.5"
+        width="6"
+        height="2.5"
+        rx="0.5"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="1.5"
+      />
+      <rect
+        x="8.25"
+        y="10.75"
+        width="2.5"
+        height="6"
+        rx="0.5"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="1.5"
+      />
       {/* Tombol Kanan Merah (#EF4444) & Kuning (#FBBF24) */}
       <circle
         cx="18.5"
@@ -308,7 +326,11 @@ export const ProfileVectorSvg = ProfileSvg;
 
 // --- HEADER STATS & EKONOMI ICONS ---
 
-export const CoinSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => {
+export const CoinSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "var(--svg-primary)";
   return (
     <svg
@@ -356,7 +378,11 @@ export const CoinSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke 
   );
 };
 
-export const HeartSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => {
+export const HeartSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "var(--svg-primary)";
   return (
     <svg
@@ -385,7 +411,11 @@ export const HeartSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke
   );
 };
 
-export const FireSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => {
+export const FireSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "var(--svg-primary)";
   return (
     <svg
@@ -510,7 +540,15 @@ export const CrownSvg: React.FC<SvgProps> = ({
         stroke={strokeColor}
         strokeWidth="1.5"
       />
-      <line x1="4" y1="18" x2="20" y2="18" stroke={strokeColor} strokeWidth="2.5" strokeLinecap="round" />
+      <line
+        x1="4"
+        y1="18"
+        x2="20"
+        y2="18"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 };
@@ -549,7 +587,14 @@ export const GiftSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
       strokeLinejoin="round"
     />
     {/* Pita Vertikal */}
-    <line x1="12" y1="6" x2="12" y2="21" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <line
+      x1="12"
+      y1="6"
+      x2="12"
+      y2="21"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
     {/* Pita Busur Atas */}
     <path
       d="M12 6C10 4 8 4 8 5C8 6 12 6 12 6ZM12 6C14 4 16 4 16 5C16 6 12 6 12 6Z"
@@ -651,9 +696,7 @@ export const TicketSvg: React.FC<SvgProps> = ({
   );
 };
 
-// --- BELAJAR, EXPLORE & MENU ICONS ---
-
-export const TilawatiSvg: React.FC<SvgProps> = ({
+export const TilawatiLearningSvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
   stroke,
@@ -692,229 +735,118 @@ export const TilawatiSvg: React.FC<SvgProps> = ({
   );
 };
 
+// --- BELAJAR, EXPLORE & MENU ICONS ---
+
+export const TilawatiMapSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
+  const strokeColor = stroke || "#451A03";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Lembaran Peta Lipat 3 Panel */}
+      <path
+        d="M3 6.5L8.5 4L15.5 6.5L21 4V17.5L15.5 20L8.5 17.5L3 20V6.5Z"
+        fill="#FEF3C7"
+        stroke={strokeColor}
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+      />
+      {/* Panel Tengah Peta (Efek Lipatan Kontras) */}
+      <path
+        d="M8.5 4L15.5 6.5V20L8.5 17.5V4Z"
+        fill="#FDE68A"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      {/* Jalur Petualangan Putus-putus */}
+      <path
+        d="M5.5 14.5C7 12.5 9.5 14 11.5 11.5C13 9.5 15 11 17.5 9.5"
+        stroke="#D97706"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeDasharray="2 2"
+      />
+      {/* Pin Lokasi Tujuan di Atas Peta */}
+      <path
+        d="M17.5 11C17.5 11 20 8.5 20 6.8C20 5.4 18.9 4.3 17.5 4.3C16.1 4.3 15 5.4 15 6.8C15 8.5 17.5 11 17.5 11Z"
+        fill="#EF4444"
+        stroke={strokeColor}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="17.5" cy="6.8" r="1" fill="#FEF08A" />
+      {/* Titik Awal Perjalanan */}
+      <circle
+        cx="5.5"
+        cy="14.5"
+        r="1.6"
+        fill="#10B981"
+        stroke={strokeColor}
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+};
+
 export const TajwidKeySvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12.5 11.5L20 19M16.5 15.5L14 18M19 18L16.5 20.5"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle
-      cx="8.5"
-      cy="8.5"
-      r="5.5"
-      fill="#FBBF24"
-      stroke="currentColor"
-      strokeWidth="2.5"
-    />
-    <circle cx="8.5" cy="8.5" r="2" fill="#FFFFFF" />
-  </svg>
-);
+  stroke,
+}) => {
+  const strokeColor = stroke || "#451A03";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Batang Pohon Kayu Vertikal */}
+      <rect
+        x="10"
+        y="3"
+        width="4"
+        height="19"
+        rx="1.5"
+        fill="#78350F"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+      />
+      {/* Papan Penunjuk Arah (Signpost) Dipaku di Pohon */}
+      <path
+        d="M3 7H17.5L21.5 11L17.5 15H3V7Z"
+        fill="#FEF3C7"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      {/* Paku Besi di Tengah Papan */}
+      <circle cx="12" cy="11" r="1.5" fill="#451A03" />
+      {/* Daun Ranting Hutan Rimba di Pojok Atas */}
+      <path
+        d="M10 4C6.5 2 3.5 4.5 5.5 7.5C7.5 7.5 9 6 10 4Z"
+        fill="#22C55E"
+        stroke={strokeColor}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
 
-export const GalaxyStarSvg: React.FC<SvgProps> = ({
-  size = 24,
-  className = "",
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M3 16C5 19.5 10 20.5 15.5 18C20 16 21.5 11.5 20 8.5"
-      stroke="#FF6B6B"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
-    <path
-      d="M12 2.5L14.6 7.8L20.5 8.6L16.2 12.8L17.2 18.6L12 15.8L6.8 18.6L7.8 12.8L3.5 8.6L9.4 7.8L12 2.5Z"
-      fill="#FBBF24"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-export const DoaChestSvg: React.FC<SvgProps> = ({
-  size = 24,
-  className = "",
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <rect
-      x="3"
-      y="9"
-      width="18"
-      height="11"
-      rx="2.5"
-      fill="#FBBF24"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M3 9C3 6.23858 5.23858 4 8 4H16C18.7614 4 21 6.23858 21 9H3Z"
-      fill="#EF4444"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinejoin="round"
-    />
-    <rect
-      x="10"
-      y="7"
-      width="4"
-      height="5"
-      rx="1"
-      fill="#FFFFFF"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-export const QuranSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M5 20L12 15L19 20M8 14L16 20M16 14L8 20"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M12 5C9 3.5 4 4 4 6.5V14.5C4 14.5 9 13 12 15C15 13 20 14.5 20 14.5V6.5C20 4 15 3.5 12 5Z"
-      fill="#FEF08A"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M12 5V15"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-export const JurnalCalendarSvg: React.FC<SvgProps> = ({
-  size = 24,
-  className = "",
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <rect
-      x="3"
-      y="5"
-      width="18"
-      height="16"
-      rx="3"
-      fill="#FFFFFF"
-      stroke="currentColor"
-      strokeWidth="2.5"
-    />
-    <path
-      d="M3 9C3 6.79086 4.79086 5 7 5H17C19.2091 5 21 6.79086 21 9V10H3V9Z"
-      fill="#EF4444"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M8 3V6M16 3V6"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
-    <path
-      d="M9 15.5L11 17.5L15.5 13"
-      stroke="#10B981"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-export const CardsSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <rect
-      x="4"
-      y="5"
-      width="11"
-      height="15"
-      rx="2"
-      transform="rotate(-8 4 5)"
-      fill="#38BDF8"
-      stroke="currentColor"
-      strokeWidth="2.5"
-    />
-    <rect
-      x="9"
-      y="4"
-      width="11"
-      height="15"
-      rx="2"
-      transform="rotate(6 9 4)"
-      fill="#FFFFFF"
-      stroke="currentColor"
-      strokeWidth="2.5"
-    />
-    <circle
-      cx="14.5"
-      cy="11.5"
-      r="2.5"
-      fill="#FBBF24"
-      stroke="currentColor"
-      strokeWidth="2"
-    />
-  </svg>
-);
-
-export const MetronomeSvg: React.FC<SvgProps> = ({
+export const PaperBoatSvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
   stroke,
@@ -929,44 +861,306 @@ export const MetronomeSvg: React.FC<SvgProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
+      {/* Bintang Kuning di Langit Malam Lautan */}
+      <circle
+        cx="18.5"
+        cy="5"
+        r="2.2"
+        fill="#FACC15"
+        stroke={strokeColor}
+        strokeWidth="1.8"
+      />
+      {/* Layar Perahu Kertas (Paper Boat) */}
       <path
-        d="M7 21L10 3H14L17 21H7Z"
-        fill="#F59E0B"
+        d="M11.5 4L5.5 14H11.5V4Z"
+        fill="#FEF3C7"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11.5 4L17.5 14H11.5V4Z"
+        fill="#FFFFFF"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      {/* Lambung Perahu Kertas */}
+      <path
+        d="M3 14H20L17 18.5H6L3 14Z"
+        fill="#FACC15"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      {/* Garis Ombak Samudra Biru */}
+      <path
+        d="M2 21C4.5 19.5 7 22 9.5 20.5C12 19 14.5 22 17 20.5C19.5 19 21 21 22 21"
+        stroke="#0284C7"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
+
+export const DoaChestSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
+  const strokeColor = stroke || "#451A03";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Gagang Kendi Air Oase */}
+      <path
+        d="M16 8.5H18.5C19.8 8.5 20.5 9.8 20.5 11.5C20.5 13.2 19.5 14.5 17.5 14.5"
+        stroke={strokeColor}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      {/* Mulut & Leher Kendi Air */}
+      <rect
+        x="8"
+        y="3"
+        width="8"
+        height="4"
+        rx="1.5"
+        fill="#B45309"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+      />
+      {/* Badan Kendi Air Gurun */}
+      <path
+        d="M9 7H15L18 13.5C18.8 16.8 16.5 20.5 12 20.5C7.5 20.5 5.2 16.8 6 13.5L9 7Z"
+        fill="#D97706"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      {/* Tetes Mata Air Oase Sejuk di Tengah Kendi */}
+      <path
+        d="M12 11.5C12 11.5 14.5 14.2 14.5 15.8C14.5 17.2 13.4 18 12 18C10.6 18 9.5 17.2 9.5 15.8C9.5 14.2 12 11.5 12 11.5Z"
+        fill="#38BDF8"
+        stroke={strokeColor}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const QuranSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
+  const strokeColor = stroke || "#1E293B";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Siluet Puncak Gunung Batu di Belakang */}
+      <path
+        d="M2.5 20.5L8.5 10.5L13 17L16.5 12L21.5 20.5H2.5Z"
+        fill="#64748B"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      {/* Mushaf Al-Qur'an Terbuka di Puncak Gunung */}
+      <path
+        d="M12 4.5C9.2 3.2 5 3.8 5 6V13.5C5 13.5 9.2 12.2 12 14C14.8 12.2 19 13.5 19 13.5V6C19 3.8 14.8 3.2 12 4.5Z"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 4.5V14"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
+
+export const JurnalCalendarSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
+  const strokeColor = stroke || "#134E4A";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Aliran Sungai Biru */}
+      <rect
+        x="3"
+        y="4"
+        width="18"
+        height="16"
+        rx="4"
+        fill="#38BDF8"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+      />
+      {/* Papan Kayu Tepi Sungai di Bagian Atas */}
+      <path
+        d="M3 8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V9H3V8Z"
+        fill="#D97706"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      {/* Batu Pijakan Sungai (Stepping Stone) */}
+      <ellipse
+        cx="12"
+        cy="14.5"
+        rx="6"
+        ry="3.5"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="2.2"
+      />
+      {/* Centang Sholat di Atas Batu Pijakan */}
+      <path
+        d="M9.8 14.5L11.3 16L14.5 12.8"
+        stroke="#15803D"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const CardsSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
+  const strokeColor = stroke || "#451A03";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Kartu Kemah Belakang (Hijau Savana) */}
+      <rect
+        x="3.5"
+        y="5"
+        width="11"
+        height="15"
+        rx="2.5"
+        transform="rotate(-8 3.5 5)"
+        fill="#15803D"
+        stroke={strokeColor}
+        strokeWidth="2.4"
+      />
+      {/* Kartu Kemah Depan (Krem Hangat) */}
+      <rect
+        x="9"
+        y="4"
+        width="11.5"
+        height="15.5"
+        rx="2.5"
+        transform="rotate(5 9 4)"
+        fill="#FEF3C7"
+        stroke={strokeColor}
+        strokeWidth="2.4"
+      />
+      {/* Simbol Tenda Segitiga Kecil di Kartu Depan */}
+      <path
+        d="M15 9.5L11.8 15.5H18.2L15 9.5Z"
+        fill="#D97706"
+        stroke={strokeColor}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const MetronomeSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
+  const strokeColor = stroke || "#451A03";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Badan Kayu Segitiga Metronom Kemah */}
+      <path
+        d="M6.5 20L10 3.5H14L17.5 20H6.5Z"
+        fill="#D97706"
         stroke={strokeColor}
         strokeWidth="2.5"
         strokeLinejoin="round"
       />
       <path
-        d="M9.5 15L12 8L14.5 15H9.5Z"
+        d="M9 15.5L12 7.5L15 15.5H9Z"
         fill="#FEF3C7"
         stroke={strokeColor}
-        strokeWidth="1.5"
+        strokeWidth="1.8"
         strokeLinejoin="round"
       />
+      {/* Jarum Ketukan Irama */}
       <line
         x1="12"
-        y1="19"
-        x2="16"
+        y1="18.5"
+        x2="16.5"
         y2="6"
         stroke={strokeColor}
         strokeWidth="2.5"
         strokeLinecap="round"
       />
       <circle
-        cx="14.8"
+        cx="15"
         cy="10"
         r="2.2"
-        fill="#EF4444"
+        fill="#15803D"
         stroke={strokeColor}
-        strokeWidth="1.5"
+        strokeWidth="1.8"
       />
+      {/* Alas Batang Kayu */}
       <line
-        x1="5"
-        y1="21"
-        x2="19"
-        y2="21"
-        stroke={strokeColor}
-        strokeWidth="2.5"
+        x1="4.5"
+        y1="20.5"
+        x2="19.5"
+        y2="20.5"
+        stroke="#78350F"
+        strokeWidth="3"
         strokeLinecap="round"
       />
     </svg>
@@ -978,6 +1172,50 @@ export const SearchSvg: React.FC<SvgProps> = ({
   className = "",
   stroke,
 }) => {
+  const strokeColor = stroke || "#451A03";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Gagang Ranting Kayu Kaca Pembesar */}
+      <path
+        d="M15 15L20.5 20.5"
+        stroke="#78350F"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+      {/* Bingkai Kompas Kaca Pembesar */}
+      <circle
+        cx="10.5"
+        cy="10.5"
+        r="6.5"
+        fill="#FEF08A"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+      />
+      {/* Daun Kecil di Tepi Kaca Pembesar */}
+      <path
+        d="M15.5 6.5C17.5 4.5 20.5 5 19.5 8C18.5 9.5 16.5 8.5 15.5 6.5Z"
+        fill="#22C55E"
+        stroke={strokeColor}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="8.8" cy="8.8" r="1.8" fill="#FFFFFF" />
+    </svg>
+  );
+};
+
+export const SparklesSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => {
   const strokeColor = stroke || "#134E4A";
   return (
     <svg
@@ -988,48 +1226,34 @@ export const SearchSvg: React.FC<SvgProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
+      {/* Bintang Cahaya Utama */}
       <path
-        d="M15.5 15.5L20.5 20.5"
+        d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z"
+        fill="#FACC15"
         stroke={strokeColor}
-        strokeWidth="3"
-        strokeLinecap="round"
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+      />
+      {/* Kunang-Kunang Alam Hijau & Merah */}
+      <circle
+        cx="19"
+        cy="5"
+        r="2.2"
+        fill="#4ADE80"
+        stroke={strokeColor}
+        strokeWidth="1.5"
       />
       <circle
-        cx="10.5"
-        cy="10.5"
-        r="6.5"
-        fill="#BAE6FD"
+        cx="5"
+        cy="18.5"
+        r="1.8"
+        fill="#FF6B6B"
         stroke={strokeColor}
-        strokeWidth="2.5"
+        strokeWidth="1.5"
       />
-      <circle cx="9" cy="9" r="2" fill="#FFFFFF" />
     </svg>
   );
 };
-
-export const SparklesSvg: React.FC<SvgProps> = ({
-  size = 24,
-  className = "",
-  stroke,
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2L14.2 8.8L21 11L14.2 13.2L12 20L9.8 13.2L3 11L9.8 8.8L12 2Z"
-      fill="#FBBF24"
-      stroke={stroke || "var(--svg-primary)"}
-      strokeWidth="2.2"
-      strokeLinejoin="round"
-    />
-    <circle cx="19" cy="5" r="2" fill="#FF6B6B" />
-  </svg>
-);
 
 export const MoonSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
   <svg
@@ -1733,7 +1957,11 @@ export const SnowflakeSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-export const StarSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke }) => (
+export const StarSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => (
   <svg
     width={size}
     height={size}
@@ -1755,7 +1983,7 @@ export const StarSvg: React.FC<SvgProps> = ({ size = 24, className = "", stroke 
 // Backward aliases
 export const UserSvg = ProfileSvg;
 export const CoinsSvg = CoinSvg;
-export const BookOpenSvg = TilawatiSvg;
+export const BookOpenSvg = TilawatiLearningSvg;
 
 // --- ADDITIONAL NEO-BRUTALISM UI & NAVIGATION ICONS ---
 
@@ -2783,7 +3011,14 @@ export const CalendarSvg: React.FC<SvgProps> = ({
       stroke="var(--svg-primary)"
       strokeWidth="2.5"
     />
-    <line x1="3" y1="9" x2="21" y2="9" stroke="var(--svg-primary)" strokeWidth="2" />
+    <line
+      x1="3"
+      y1="9"
+      x2="21"
+      y2="9"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <line
       x1="8"
       y1="2"
@@ -2999,7 +3234,10 @@ export const EyeOff = EyeSlashSvg;
 export const EyeSlash = EyeSlashSvg;
 export const MoreVertical = MoreVerticalSvg;
 
-export const PaletteSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+export const PaletteSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+}) => (
   <svg
     width={size}
     height={size}
@@ -3016,10 +3254,38 @@ export const PaletteSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) =>
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <circle cx="7.5" cy="8.5" r="1.5" fill="#FF6B6B" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <circle cx="12" cy="6.5" r="1.5" fill="var(--svg-secondary)" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <circle cx="16.5" cy="8.5" r="1.5" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <circle cx="17.5" cy="13.5" r="1.5" fill="#F59E0B" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <circle
+      cx="7.5"
+      cy="8.5"
+      r="1.5"
+      fill="#FF6B6B"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
+    <circle
+      cx="12"
+      cy="6.5"
+      r="1.5"
+      fill="var(--svg-secondary)"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
+    <circle
+      cx="16.5"
+      cy="8.5"
+      r="1.5"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
+    <circle
+      cx="17.5"
+      cy="13.5"
+      r="1.5"
+      fill="#F59E0B"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
   </svg>
 );
 export const Palette = PaletteSvg;
@@ -3662,11 +3928,49 @@ export const ScissorsSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <circle cx="6" cy="6" r="3" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <circle cx="6" cy="18" r="3" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <line x1="20" y1="4" x2="8.12" y2="15.88" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="14.47" y1="14.48" x2="20" y2="20" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="8.12" y1="8.12" x2="12" y2="12" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <circle
+      cx="6"
+      cy="6"
+      r="3"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <circle
+      cx="6"
+      cy="18"
+      r="3"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <line
+      x1="20"
+      y1="4"
+      x2="8.12"
+      y2="15.88"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="14.47"
+      y1="14.48"
+      x2="20"
+      y2="20"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="8.12"
+      y1="8.12"
+      x2="12"
+      y2="12"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3691,7 +3995,15 @@ export const AlertTriangleSvg: React.FC<SvgProps> = ({
       strokeWidth="2.2"
       strokeLinejoin="round"
     />
-    <line x1="12" y1="9" x2="12" y2="13" stroke="var(--svg-primary)" strokeWidth="2.2" strokeLinecap="round" />
+    <line
+      x1="12"
+      y1="9"
+      x2="12"
+      y2="13"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    />
     <circle cx="12" cy="17" r="1.2" fill="var(--svg-primary)" />
   </svg>
 );
@@ -3710,9 +4022,36 @@ export const ChartBarSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <rect x="3" y="12" width="4" height="9" rx="1" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <rect x="10" y="7" width="4" height="14" rx="1" fill="#FBBF24" stroke="var(--svg-primary)" strokeWidth="2" />
-    <rect x="17" y="3" width="4" height="18" rx="1" fill="#34D399" stroke="var(--svg-primary)" strokeWidth="2" />
+    <rect
+      x="3"
+      y="12"
+      width="4"
+      height="9"
+      rx="1"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <rect
+      x="10"
+      y="7"
+      width="4"
+      height="14"
+      rx="1"
+      fill="#FBBF24"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <rect
+      x="17"
+      y="3"
+      width="4"
+      height="18"
+      rx="1"
+      fill="#34D399"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
   </svg>
 );
 
@@ -3737,10 +4076,40 @@ export const FileTextSvg: React.FC<SvgProps> = ({
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <polyline points="14 2 14 8 20 8" fill="#E2E8F0" stroke="var(--svg-primary)" strokeWidth="2" strokeLinejoin="round" />
-    <line x1="16" y1="13" x2="8" y2="13" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="16" y1="17" x2="8" y2="17" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="10" y1="9" x2="8" y2="9" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <polyline
+      points="14 2 14 8 20 8"
+      fill="#E2E8F0"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="16"
+      y1="13"
+      x2="8"
+      y2="13"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="16"
+      y1="17"
+      x2="8"
+      y2="17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="10"
+      y1="9"
+      x2="8"
+      y2="9"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3758,7 +4127,13 @@ export const PrinterSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <polyline points="6 9 6 2 18 2 18 9" fill="#E2E8F0" stroke="var(--svg-primary)" strokeWidth="2" strokeLinejoin="round" />
+    <polyline
+      points="6 9 6 2 18 2 18 9"
+      fill="#E2E8F0"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
     <path
       d="M6 18H4C2.9 18 2 17.1 2 16V11C2 9.9 2.9 9 4 9H20C21.1 9 22 9.9 22 11V16C22 17.1 21.1 18 20 18H18"
       fill="#38BDF8"
@@ -3766,7 +4141,16 @@ export const PrinterSvg: React.FC<SvgProps> = ({
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <rect x="6" y="14" width="12" height="8" rx="1" fill="#FFFFFF" stroke="var(--svg-primary)" strokeWidth="2" />
+    <rect
+      x="6"
+      y="14"
+      width="12"
+      height="8"
+      rx="1"
+      fill="#FFFFFF"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="18" cy="12" r="1" fill="var(--svg-primary)" />
   </svg>
 );
@@ -3816,9 +4200,27 @@ export const BackpackSvg: React.FC<SvgProps> = ({
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <path d="M8 4V2C8 1.4 8.4 1 9 1H15C15.6 1 16 1.4 16 2V4" stroke="var(--svg-primary)" strokeWidth="2" />
-    <rect x="7" y="13" width="10" height="6" rx="1" fill="#FBBF24" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M8 8H16" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M8 4V2C8 1.4 8.4 1 9 1H15C15.6 1 16 1.4 16 2V4"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <rect
+      x="7"
+      y="13"
+      width="10"
+      height="6"
+      rx="1"
+      fill="#FBBF24"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M8 8H16"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3836,10 +4238,40 @@ export const SwordsSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" strokeLinejoin="round" />
-    <line x1="13" y1="19" x2="19" y2="13" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="16" y1="16" x2="20" y2="20" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="19" y1="21" x2="21" y2="19" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <polyline
+      points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="13"
+      y1="19"
+      x2="19"
+      y2="13"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="16"
+      y1="16"
+      x2="20"
+      y2="20"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="19"
+      y1="21"
+      x2="21"
+      y2="19"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -3857,8 +4289,21 @@ export const UfoSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="12" cy="14" rx="10" ry="4" fill="#38BDF8" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M6 13C6 9 8.7 6 12 6C15.3 6 18 9 18 13" fill="#A7F3D0" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse
+      cx="12"
+      cy="14"
+      rx="10"
+      ry="4"
+      fill="#38BDF8"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M6 13C6 9 8.7 6 12 6C15.3 6 18 9 18 13"
+      fill="#A7F3D0"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="8" cy="14" r="1" fill="var(--svg-accent)" />
     <circle cx="12" cy="14" r="1" fill="var(--svg-accent)" />
     <circle cx="16" cy="14" r="1" fill="var(--svg-accent)" />
@@ -3896,14 +4341,44 @@ export const HarakatSlasherSvg: React.FC<SvgProps> = ({
     {...props}
   >
     {/* Slash Trail */}
-    <path d="M3 21 C 9 15, 15 9, 21 3" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" />
-    <path d="M4 20 C 10 14, 16 8, 20 4" stroke="#FDE047" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M3 21 C 9 15, 15 9, 21 3"
+      stroke="#EF4444"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <path
+      d="M4 20 C 10 14, 16 8, 20 4"
+      stroke="#FDE047"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
     {/* Katana Blade */}
-    <path d="M4 20 L 19 5 C 20 4, 21 4, 22 5 C 22 6, 22 7, 21 8 L 6 22 Z" fill="#F1F5F9" stroke="var(--svg-primary)" strokeWidth="1.5" strokeLinejoin="round" />
+    <path
+      d="M4 20 L 19 5 C 20 4, 21 4, 22 5 C 22 6, 22 7, 21 8 L 6 22 Z"
+      fill="#F1F5F9"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
     {/* Tsuba */}
-    <ellipse cx="6" cy="18" rx="2" ry="3.5" transform="rotate(-45 6 18)" fill="#F59E0B" stroke="var(--svg-primary)" strokeWidth="1" />
+    <ellipse
+      cx="6"
+      cy="18"
+      rx="2"
+      ry="3.5"
+      transform="rotate(-45 6 18)"
+      fill="#F59E0B"
+      stroke="var(--svg-primary)"
+      strokeWidth="1"
+    />
     {/* Tsuka */}
-    <path d="M5 19 L 2 22" stroke="#1E293B" strokeWidth="2.5" strokeLinecap="round" />
+    <path
+      d="M5 19 L 2 22"
+      stroke="#1E293B"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
   </svg>
 );
 export const HarakatSlasher = HarakatSlasherSvg;
@@ -3969,8 +4444,16 @@ export const EarSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <path d="M6 8a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0z" stroke="var(--svg-primary)" strokeWidth="2.5" />
-    <path d="M14 12a2 2 0 0 1 2-2h4" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path
+      d="M6 8a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0z"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
+    <path
+      d="M14 12a2 2 0 0 1 2-2h4"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
   </svg>
 );
 
@@ -3994,8 +4477,19 @@ export const ArrowUpRightSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <line x1="7" y1="17" x2="17" y2="7" stroke="var(--svg-primary)" strokeWidth="2.5" />
-    <polyline points="7 7 17 7 17 17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <line
+      x1="7"
+      y1="17"
+      x2="17"
+      y2="7"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
+    <polyline
+      points="7 7 17 7 17 17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
   </svg>
 );
 
@@ -4019,8 +4513,19 @@ export const ArrowDownRightSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <line x1="7" y1="7" x2="17" y2="17" stroke="var(--svg-primary)" strokeWidth="2.5" />
-    <polyline points="17 7 17 17 7 17" stroke="var(--svg-primary)" strokeWidth="2.5" />
+    <line
+      x1="7"
+      y1="7"
+      x2="17"
+      y2="17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
+    <polyline
+      points="17 7 17 17 7 17"
+      stroke="var(--svg-primary)"
+      strokeWidth="2.5"
+    />
   </svg>
 );
 
@@ -4044,12 +4549,40 @@ export const DrumSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <ellipse cx="12" cy="6" rx="8" ry="3" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse
+      cx="12"
+      cy="6"
+      rx="8"
+      ry="3"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <path d="M4 6v12" stroke="var(--svg-primary)" strokeWidth="2" />
     <path d="M20 6v12" stroke="var(--svg-primary)" strokeWidth="2" />
-    <ellipse cx="12" cy="18" rx="8" ry="3" stroke="var(--svg-primary)" strokeWidth="2" />
-    <line x1="9" y1="6" x2="9.01" y2="18" stroke="var(--svg-primary)" strokeWidth="2" />
-    <line x1="15" y1="6" x2="15.01" y2="18" stroke="var(--svg-primary)" strokeWidth="2" />
+    <ellipse
+      cx="12"
+      cy="18"
+      rx="8"
+      ry="3"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <line
+      x1="9"
+      y1="6"
+      x2="9.01"
+      y2="18"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <line
+      x1="15"
+      y1="6"
+      x2="15.01"
+      y2="18"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
   </svg>
 );
 
@@ -4073,8 +4606,17 @@ export const LeafSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 6.1 20 10.6 20 16.5" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M2.2 21.8l19.6-19.6" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M11 20A7 7 0 0 1 9.8 6.1C15.5 6.1 20 10.6 20 16.5"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M2.2 21.8l19.6-19.6"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -4098,7 +4640,13 @@ export const TargetSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <circle cx="12" cy="12" r="10" stroke="var(--svg-primary)" strokeWidth="2" />
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="12" cy="12" r="6" stroke="var(--svg-primary)" strokeWidth="2" />
     <circle cx="12" cy="12" r="2" fill="var(--svg-primary)" />
   </svg>
@@ -4124,8 +4672,19 @@ export const ClockSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <circle cx="12" cy="12" r="10" stroke="var(--svg-primary)" strokeWidth="2" />
-    <polyline points="12 6 12 12 16 14" stroke="var(--svg-primary)" strokeWidth="2" strokeLinecap="round" />
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <polyline
+      points="12 6 12 12 16 14"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -4149,9 +4708,21 @@ export const BrickSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <rect x="2" y="2" width="20" height="20" rx="2" stroke="var(--svg-primary)" strokeWidth="2" />
+    <rect
+      x="2"
+      y="2"
+      width="20"
+      height="20"
+      rx="2"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <path d="M2 10h20M2 14h20" stroke="var(--svg-primary)" strokeWidth="1.5" />
-    <path d="M8 2v4M16 2v4M8 20v-4M16 20v-4" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <path
+      d="M8 2v4M16 2v4M8 20v-4M16 20v-4"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
   </svg>
 );
 
@@ -4175,8 +4746,20 @@ export const GameCardSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <rect x="2" y="4" width="20" height="16" rx="3" stroke="var(--svg-primary)" strokeWidth="2" />
-    <path d="M6 8h12M6 12h12M6 16h8" stroke="var(--svg-primary)" strokeWidth="1.5" />
+    <rect
+      x="2"
+      y="4"
+      width="20"
+      height="16"
+      rx="3"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
+    <path
+      d="M6 8h12M6 12h12M6 16h8"
+      stroke="var(--svg-primary)"
+      strokeWidth="1.5"
+    />
     <circle cx="18" cy="12" r="2" fill="var(--svg-primary)" />
   </svg>
 );
@@ -4201,7 +4784,11 @@ export const MapPinSvg: React.FC<SvgProps> = ({
     style={style}
     {...props}
   >
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="var(--svg-primary)" strokeWidth="2" />
+    <path
+      d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+      stroke="var(--svg-primary)"
+      strokeWidth="2"
+    />
     <circle cx="12" cy="10" r="3" fill="var(--svg-primary)" />
   </svg>
 );
@@ -4231,5 +4818,43 @@ export const TelescopeSvg: React.FC<SvgProps> = ({
     <path d="M17 14 10 7" stroke="var(--svg-primary)" strokeWidth="2" />
     <path d="M10 22 3 14" stroke="var(--svg-primary)" strokeWidth="2" />
     <circle cx="12" cy="12" r="3" stroke="var(--svg-primary)" strokeWidth="2" />
+  </svg>
+);
+
+export const CameraSvg: React.FC<
+  {
+    size?: number;
+    className?: string;
+    stroke?: string;
+  } & React.SVGProps<SVGSVGElement>
+> = ({ size = 20, className = "", stroke = "#134E4A", ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    className={className}
+    {...props}
+  >
+    {/* Body Kamera */}
+    <path
+      d="M 4 8 C 2.895 8 2 8.895 2 10 V 18 C 2 19.105 2.895 20 4 20 H 20 C 21.105 20 22 19.105 22 18 V 10 C 22 8.895 21.105 8 20 8 H 17.5 L 15.8 5.4 C 15.4 4.8 14.8 4.5 14.1 4.5 H 9.9 C 9.2 4.5 8.6 4.8 8.2 5.4 L 6.5 8 H 4 Z"
+      fill="#FFFFFF"
+      stroke={stroke}
+      strokeWidth="2.2"
+      strokeLinejoin="round"
+    />
+    {/* Lensa Kamera */}
+    <circle
+      cx="12"
+      cy="14"
+      r="3.5"
+      fill="#0D9488"
+      stroke={stroke}
+      strokeWidth="2.2"
+    />
+    {/* Titik Flash */}
+    <circle cx="18" cy="11" r="1" fill={stroke} />
   </svg>
 );

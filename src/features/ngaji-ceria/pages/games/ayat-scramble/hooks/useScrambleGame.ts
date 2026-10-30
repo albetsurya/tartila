@@ -82,7 +82,6 @@ export function useScrambleGame() {
   const check = useCallback(() => update((s) => {
     if (s.phase !== "playing" || s.status !== "idle" || s.slots.some((word) => !word)) return s;
     const correct = s.slots.every((word, i) => word?.text === s.questions[s.currentIndex].words[i]);
-    playSfx(correct ? "correct" : "wrong");
     const streak = correct ? s.streak + 1 : 0;
     return { ...s, status: correct ? "correct" : "wrong", feedbackLeft: correct ? 1.2 : 0.65, streak, solved: s.solved + (correct ? 1 : 0), score: s.score + (correct ? 150 + Math.floor(s.timeLeft) * 5 + streak * 50 : 0) };
   }), [update]);
@@ -98,7 +97,7 @@ export function useScrambleGame() {
       return { ...s, currentIndex: s.currentIndex + 1, ...prepare(question, s.mode === "daily" ? seededRandom(`${s.dateSeed}:${question.id}`) : Math.random) };
     }
     const timeLeft = Math.max(0, s.timeLeft - delta);
-    if (!timeLeft) { playSfx("wrong"); return { ...s, timeLeft, status: "timeout", feedbackLeft: 2, streak: 0 }; }
+    if (!timeLeft) { return { ...s, timeLeft, status: "timeout", feedbackLeft: 2, streak: 0 }; }
     return { ...s, timeLeft };
   }));
   // Asumsi: dua hint habis berarti lanjut tanpa bantuan, bukan langsung game over.

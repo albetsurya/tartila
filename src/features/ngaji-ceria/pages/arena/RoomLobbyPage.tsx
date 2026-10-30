@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TilaMascot } from "@/components/ui/TilaMascot";
+import { AvatarSantriSvg } from "@/components/ui/Illustrations";
 import {
   SparklesSvg,
   CheckSvg,
@@ -10,9 +11,12 @@ import {
   CrownSvg,
   GamepadSvg,
   AlertTriangleSvg,
+  PlusSvg,
 } from "@/components/ui/CustomIcons";
 import { arenaRoomService, type ArenaRoom, type ArenaRoomPlayer } from "@/services/arenaRoomService";
 import { useAuth } from "@/contexts/AuthContext";
+import { loadMultiplayerProfile, MultiplayerSetupSheet, MultiplayerAvatar, saveMultiplayerProfile, type MultiplayerProfile } from "../../components/multiplayer/MultiplayerSetupSheet";
+import { useBotSimulator } from "../../hooks/useBotSimulator";
 import { normalizeJoinCode } from "@/lib/joinCode";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
@@ -35,6 +39,10 @@ export default function RoomLobbyPage() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
+  const [profile, setProfile] = useState<MultiplayerProfile | null>(() => loadMultiplayerProfile());
+
+  // Simulator bot — QA superadmin: ditambahkan ke lobi, otomatis ready.
+  const { bots, addBot } = useBotSimulator();
 
   // Cek apakah user adalah host
   const isHost = Boolean(
@@ -59,8 +67,27 @@ export default function RoomLobbyPage() {
     if (pid) setMyPlayerId(pid);
   }, [players, isHost, room, user?.id, myPlayerId]);
 
-  const myReady = Boolean(players.find((p) => p.id === myPlayerId)?.is_ready);
-  const allReady = players.length > 0 && players.every((p) => p.is_ready);
+  const displayPlayers = useMemo(() => {
+    const map = new Map(players.map((p) => [p.id, p]));
+    for (const bot of bots) {
+      const player: ArenaRoomPlayer = {
+        id: bot.id,
+        nickname: bot.name,
+        room_id: pin,
+        is_active: true,
+        score: bot.score,
+        is_host: false,
+        is_ready: bot.isReady,
+        created_at: new Date().toISOString(),
+      };
+      map.set(bot.id, player);
+    }
+    return Array.from(map.values());
+  }, [players, bots, pin]);
+
+  // Bot otomatis siap; user siap juga.
+  const myReady = Boolean(displayPlayers.find((p) => p.id === myPlayerId)?.is_ready);
+  const allReady = displayPlayers.length > 0 && displayPlayers.every((p) => p.is_ready);
 
   useEffect(() => {
     if (!pin) {
@@ -273,7 +300,7 @@ export default function RoomLobbyPage() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-[#10B981]" />
               </span>
               <h3 className="font-display text-lg md:text-xl font-black text-[#134E4A]">
-                Teman yang Bergabung ({players.length})
+                {bots.length > 0 ? `Teman & Bot Siap (${displayPlayers.length})` : `Teman yang Bergabung (${players.length})`}
               </h3>
             </div>
 
@@ -282,7 +309,21 @@ export default function RoomLobbyPage() {
             </span>
           </div>
 
-          {players.length === 0 ? (
+          {user?.role === "superadmin" && (
+            <div className="flex items-center justify-between gap-2 border-b border-[#134E4A]/20 pb-3">
+              <span className="text-[10px] font-black uppercase tracking-wide text-[#134E4A]/50">
+                Simulator QA
+              </span>
+              <button
+                type="button"
+                onClick={() => addBot()}
+                className="inline-flex items-center gap-1.5 rounded-xl border-[3px] border-[#0D9488] bg-[#CCFBF1] px-3 py-1.5 text-[10px] font-black text-[#0D9488] shadow-[3px_3px_0px_#0D9488] active:translate-y-[2px] active:shadow-[2px_2px_0px_#0D9488] transition-all cursor-pointer hover:bg-[#B2F5EA]"
+              >
+                <PlusSvg size={14} /> + Tambah Bot
+              </button>
+            </div>
+          )}
+          {displayPlayers.length === 0 ? (
             <div className="py-10 text-center flex flex-col items-center justify-center bg-[#F0FDF4] rounded-2xl border-2 border-dashed border-[#134E4A]/30">
               <TilaMascot size={80} mood="thinking" animation="bounce" direction="front" />
               <p className="mt-3 text-sm font-black text-[#134E4A]">
@@ -294,18 +335,29 @@ export default function RoomLobbyPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 rounded-2xl border-2 border-[#134E4A]/20 bg-[#F0FDF4]">
-              {players.map((p, idx) => (
+              {displayPlayers.map((p, idx) => (
                 <div
                   key={p.id || idx}
                   className="p-3 rounded-xl border-2 border-[#134E4A] bg-white font-black text-sm text-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center gap-2.5 transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A]">
-                    {p.is_host || idx === 0 ? <CrownSvg size={16} /> : <GamepadSvg size={16} />}
+                  <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A] overflow-hidden">
+                    {p.id === myPlayerId && profile ? (
+                      <MultiplayerAvatar avatarId={profile.avatarId} size={26} />
+                    ) : p.is_host || idx === 0 ? (
+                      <CrownSvg size={16} />
+                    ) : (
+                      <AvatarSantriSvg
+                        gender="girl"
+                        accessory="hairbow"
+                        mood="happy"
+                        size={28}
+                      />
+                    )}
                   </div>
                   <div className="overflow-hidden flex-1 min-w-0">
                     <p className="truncate text-xs font-black text-[#134E4A]">{p.nickname}</p>
                     <span className="block text-[10px] font-bold text-[#134E4A]/50">
-                      {p.is_host || idx === 0 ? "Host Room" : "Pemain"}
+                      {p.is_host ? "Host Room" : "Pemain"}
                     </span>
                     <span
                       className={`mt-1 inline-block px-2 py-0.5 rounded-md border-2 border-[#134E4A] text-[10px] font-black ${
@@ -372,6 +424,15 @@ export default function RoomLobbyPage() {
           )}
         </div>
       </div>
+
+      <MultiplayerSetupSheet
+        isOpen={!profile}
+        defaultName={user?.name || user?.username || ""}
+        onSave={(p) => {
+          saveMultiplayerProfile(p);
+          setProfile(p);
+        }}
+      />
 
       <AnimatePresence>
         {showCountdown && (

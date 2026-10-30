@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, StarSvg, SparklesSvg, ChevronRightSvg } from "@/components/ui/CustomIcons";
+import {
+  RefreshCw,
+  StarSvg,
+  SparklesSvg,
+  ChevronRightSvg,
+  CheckSvg,
+} from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { playSfx } from "../pages/games/_shared/audio";
 
 export interface AnswerFeedbackSheetProps {
   isOpen: boolean;
@@ -12,6 +19,16 @@ export interface AnswerFeedbackSheetProps {
   onReset?: () => void;
   onClose?: () => void;
   mascotMessage?: string;
+  /**
+   * true (default) = mode latihan: tombol Ulangi muncul.
+   * false = mode ujian/assessment: tombol Ulangi disembunyikan, sheet
+   * menampilkan jawaban yang tepat + penjelasan, lalu hanya tombol Lanjut.
+   */
+  isRetryable?: boolean;
+  /** Label jawaban yang tepat (dipakai di mode ujian). */
+  correctAnswer?: string;
+  /** Penjelasan pedagogis (dipakai di mode ujian). */
+  explanation?: string;
 }
 
 export function AnswerFeedbackSheet({
@@ -22,7 +39,16 @@ export function AnswerFeedbackSheet({
   onReset,
   onClose,
   mascotMessage,
+  isRetryable = true,
+  correctAnswer,
+  explanation,
 }: AnswerFeedbackSheetProps) {
+  useEffect(() => {
+    if (isOpen) {
+      void playSfx(isCorrect ? "answer-correct" : "answer-wrong");
+    }
+  }, [isOpen, isCorrect]);
+
   return (
     <AppBottomSheet
       isOpen={isOpen}
@@ -104,31 +130,74 @@ export function AnswerFeedbackSheet({
 
           {/* Teks Belum Tepat */}
           <h3 className="font-display font-black text-2xl text-[#FF6B6B] leading-tight mt-1">
-            Belum tepat, coba lagi ya!
+            {isRetryable ? "Belum tepat, coba lagi ya!" : "Belum tepat"}
           </h3>
           <p className="text-sm font-bold text-[#134E4A]/80 mt-1 max-w-[280px]">
-            {mascotMessage || "Jangan berkecil hati, perhatikan lagi bunyi dan harakatnya."}
+            {mascotMessage || (isRetryable ? "Jangan berkecil hati, perhatikan lagi bunyi dan harakatnya." : "Simpan jawaban yang tepat, ya.")}
           </p>
+
+          {/* Mode Ujian: kotak jawaban + penjelasan */}
+          {(correctAnswer || explanation) && (
+            <div className="w-full mt-4 space-y-2 text-left">
+              {correctAnswer && (
+                <div className="w-full rounded-xl border-[3px] border-[#0D9488] bg-[#ECFDF5] px-4 py-3">
+                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-[#0D9488]">
+                    <CheckSvg size={13} />
+                    Jawaban yang tepat
+                  </p>
+                  <p
+                    className="mt-1 font-arabic text-xl font-bold text-[#134E4A] break-words"
+                    dir="rtl"
+                  >
+                    {correctAnswer}
+                  </p>
+                </div>
+              )}
+              {explanation && (
+                <div className="w-full rounded-xl border-[3px] border-[#134E4A] bg-[#F4F1EA] px-4 py-3">
+                  <p className="text-[10px] font-black uppercase tracking-wide text-[#134E4A]/70">
+                    Penjelasan
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-[#134E4A] leading-relaxed">
+                    {explanation}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Tombol Aksi */}
           <div className="w-full mt-6 flex flex-col gap-2.5">
-            <button
-              type="button"
-              onClick={onRetry}
-              className="w-full py-4 px-6 rounded-2xl bg-[#FF6B6B] hover:bg-[#E63946] text-white font-display font-black text-lg border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <RefreshCw size={20} className="stroke-[2.5]" />
-              <span>Ulangi</span>
-            </button>
+            {isRetryable ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#FF6B6B] hover:bg-[#E63946] text-white font-display font-black text-lg border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <RefreshCw size={20} className="stroke-[2.5]" />
+                  <span>Ulangi</span>
+                </button>
 
-            {onReset && (
+                {onReset && (
+                  <button
+                    type="button"
+                    onClick={onReset}
+                    className="w-full py-3 px-4 rounded-xl bg-white hover:bg-slate-50 text-[#78350F] font-bold text-sm border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <RefreshCw size={14} />
+                    <span>Hapus Jawaban</span>
+                  </button>
+                )}
+              </>
+            ) : (
               <button
                 type="button"
-                onClick={onReset}
-                className="w-full py-3 px-4 rounded-xl bg-white hover:bg-slate-50 text-[#78350F] font-bold text-sm border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+                onClick={onNext}
+                className="w-full py-4 px-6 rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-lg border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <RefreshCw size={14} />
-                <span>Hapus Jawaban</span>
+                <span>Lanjut</span>
+                <ChevronRightSvg size={20} />
               </button>
             )}
           </div>

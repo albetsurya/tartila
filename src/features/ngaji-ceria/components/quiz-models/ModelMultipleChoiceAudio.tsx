@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceAudioQuestion, QuizModelBaseProps } from "./types";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { getAudioUrl } from "../../utils/audioUrl";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 
@@ -81,6 +80,9 @@ export function ModelMultipleChoiceAudio({
   onNext,
   onPlayAudio,
   isAudioPlaying,
+  isRetryable,
+  correctAnswer,
+  explanation,
 }: ModelMultipleChoiceAudioProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -161,11 +163,6 @@ export function ModelMultipleChoiceAudio({
 
     audioRef.current?.pause();
     setIsPlaying(false);
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {
@@ -261,6 +258,9 @@ export function ModelMultipleChoiceAudio({
         onNext={onNext}
         onRetry={handleRetry}
         onReset={handleRetry}
+        isRetryable={isRetryable}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
       />
     </div>
   );

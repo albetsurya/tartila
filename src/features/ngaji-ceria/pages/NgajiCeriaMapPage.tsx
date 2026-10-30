@@ -8,18 +8,20 @@ import {
   staggerItemVariants,
 } from "@/lib/animationVariants";
 import {
-  LabTajwidBgSvg,
-  GalaksiJuzAmmaBgSvg,
-  GudangDoaSvg,
+  TajwidForestSvg,
+  SamudraJuzAmmaBgSvg,
+  OaseDoaSvg,
   TargetTahfidzSvg,
   JurnalIbadahSvg,
   ArenaKartuSvg,
   MetronomeArtSvg,
+  PetaTilawatiSvg,
+  HeroExplorerSvg,
 } from "../../../components/ui/Illustrations";
 import {
-  TilawatiSvg,
+  TilawatiMapSvg,
   TajwidKeySvg,
-  GalaxyStarSvg,
+  PaperBoatSvg,
   DoaChestSvg,
   QuranSvg,
   JurnalCalendarSvg,
@@ -64,79 +66,79 @@ const EXPLORE_MENU: ExploreMenuItem[] = [
     bgClass: "bg-[#FFF4E5]",
     borderClass: "border-[#F59E0B]",
     iconBg: "bg-[#FEF08A]",
-    icon: TilawatiSvg,
-    art: TargetTahfidzSvg,
+    icon: TilawatiMapSvg,
+    art: PetaTilawatiSvg,
     isMain: true,
   },
   {
     key: "training",
-    title: "Pusat Training",
-    desc: "Tartila Rhythm Memory, Lab Irama, & Arena Kartu.",
-    badge: "Hub 3-in-1",
+    title: "Savana Latihan",
+    desc: "Latih ketukan, memori, dan kartu tebak huruf Tilawati.",
+    badge: "3 Game",
     to: "/member/ngaji-ceria/training",
-    bgClass: "bg-[#F0FDF4]",
-    borderClass: "border-[#10B981]",
-    iconBg: "bg-[#D1FAE5]",
-    icon: CardsSvg,
-    art: ArenaKartuSvg,
+    bgClass: "bg-[#DCFCE7]",
+    borderClass: "border-[#15803D]",
+    iconBg: "bg-[#86EFAC]",
+    icon: MetronomeSvg,
+    art: MetronomeArtSvg,
   },
   {
     key: "tajwid",
-    title: "Lab Tajwid",
-    desc: "Rahasia bacaan indah & benar.",
+    title: "Hutan Tajwid",
+    desc: "Pelajari hukum bacaan di rimba ilmu.",
     badge: "14 Misi",
     to: "/member/ngaji-ceria/explore/tajwid",
-    bgClass: "bg-[#EAF5EA]",
-    borderClass: "border-[#15803D]",
-    iconBg: "bg-[#CCFBF1]",
-    icon: SearchSvg,
-    art: LabTajwidBgSvg,
+    bgClass: "bg-[#F0FDF4]",
+    borderClass: "border-[#166534]",
+    iconBg: "bg-[#AFE6A7]",
+    icon: TajwidKeySvg,
+    art: TajwidForestSvg,
   },
   {
     key: "juz-amma",
-    title: "Galaksi Juz 'Amma",
-    desc: "Hafalkan surat pendek bersama murottal.",
+    title: "Samudra Juz 'Amma",
+    desc: "Hafalkan surat pendek di bawah taburan bintang laut.",
     badge: "37 Bintang",
     to: "/member/ngaji-ceria/explore/juz-amma",
     bgClass: "bg-[#E0F2FE]",
     borderClass: "border-[#0284C7]",
-    iconBg: "bg-[#BAE6FD]",
-    icon: GalaxyStarSvg,
-    art: GalaksiJuzAmmaBgSvg,
+    iconBg: "bg-[#7DD3FC]",
+    icon: PaperBoatSvg,
+    art: SamudraJuzAmmaBgSvg,
   },
   {
     key: "doa",
-    title: "Gudang Doa",
-    desc: "Kumpulan doa harian & adab santri.",
-    badge: "34 Harta",
+    title: "Oase Doa",
+    desc: "Singgah dan hafalkan doa di sumber mata air.",
+    badge: "34 Doa",
     to: "/member/ngaji-ceria/explore/doa",
-    bgClass: "bg-[#F3E8FF]",
-    borderClass: "border-[#9333EA]",
-    iconBg: "bg-[#F3E8FF]",
+    bgClass: "bg-[#FDE68A]",
+    borderClass: "border-[#B45309]",
+    iconBg: "bg-[#FCD34D]",
     icon: DoaChestSvg,
-    art: GudangDoaSvg,
+    art: OaseDoaSvg,
   },
   {
     key: "tahfidz",
-    title: "Target Tahfidz",
-    desc: "Pantau & uji hafalan Al-Quran mandiri.",
+    title: "Puncak Hafalan",
+    desc: "Daki puncak tertinggi dengan hafalan Al-Quran.",
     badge: "39 Target",
     to: "/member/ngaji-ceria/explore/tahfidz",
-    bgClass: "bg-[#FEF3C7]",
-    borderClass: "border-[#D97706]",
-    iconBg: "bg-[#FEF08A]",
-    icon: QuranSvg,
+    bgClass: "bg-[#F1F5F9]",
+    borderClass: "border-[#475569]",
+    iconBg: "bg-[#CBD5E1]",
+    icon: TargetTahfidzSvg,
     art: TargetTahfidzSvg,
   },
   {
     key: "jurnal-ibadah",
-    title: "Jurnal Ibadah",
-    desc: "Catat sholat 5 waktu & raih streak istiqomah.",
+    title: "Sungai Ibadah",
+    desc: "Catat sholat 5 waktu di batu pijakan sungai.",
     badge: "5 Waktu",
     to: "/member/ngaji-ceria/explore/jurnal-ibadah",
-    bgClass: "bg-[#CCFBF1]",
-    borderClass: "border-[#0D9488]",
-    iconBg: "bg-[#CCFBF1]",
+    bgClass: "bg-[#E0F2FE]",
+    borderClass: "border-[#0C4A6E]",
+    iconBg: "bg-[#7DD3FC]",
     icon: JurnalCalendarSvg,
     art: JurnalIbadahSvg,
   },
@@ -161,17 +163,16 @@ export default function NgajiCeriaMapPage() {
     <NgajiCeriaLayout title="Jelajah">
       <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] pb-32 transition-colors duration-200">
         {/* Hero Banner */}
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[var(--border-color,#134E4A)]">
-          {/* Dekorasi */}
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[8px] border-white/5" />
-          <div className="absolute top-10 right-16 rotate-12">
-            <SparklesSvg size={32} />
-          </div>
-          <div className="absolute bottom-6 right-8 opacity-25">
-            <MoonSvg size={64} />
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[#134E4A]">
+          {/* Ilustrasi Kompas & Teropong Penjelajah di Sebelah Kanan */}
+          <div className="absolute right-4 bottom-2 md:right-10 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
+            <HeroExplorerSvg
+              size={150}
+              className="drop-shadow-[4px_4px_0px_#042F2E]"
+            />
           </div>
 
-          <div className="relative z-10 max-w-[85%]">
+          <div className="relative z-20 max-w-[72%] md:max-w-[78%]">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-[#FF6B6B]">
               <SparklesSvg size={14} /> Misi Hari Ini
             </span>
@@ -186,19 +187,23 @@ export default function NgajiCeriaMapPage() {
         </section>
 
         {/* Search & Chips */}
-        <section className="relative z-20 -mt-8 px-4">
-          <div className="flex items-center gap-2.5 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-4 py-3 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
-            <SearchSvg size={22} className="text-[var(--text-main,#134E4A)]" />
+        <section className="relative z-20 -mt-7 px-3 sm:-mt-8 sm:px-4 md:px-6">
+          <label className="flex min-h-12 items-center gap-3 rounded-2xl border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3.5 py-3 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] sm:px-4 sm:shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
+            <SearchSvg
+              size={21}
+              className="shrink-0 text-[var(--text-main,#134E4A)]"
+            />
             <input
               type="text"
+              aria-label="Cari doa, surah, atau materi"
               placeholder="Cari doa, surah, atau materi..."
-              className="w-full bg-transparent text-sm font-bold text-[var(--text-main,#134E4A)] placeholder:text-[var(--text-main,#134E4A)]/40 focus:outline-none"
+              className="w-full min-w-0 bg-transparent text-sm font-bold text-[var(--text-main,#134E4A)] placeholder:text-[var(--text-main,#134E4A)]/50 focus:outline-none focus-visible:ring-0 sm:text-base"
             />
-          </div>
+          </label>
 
-          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="whitespace-nowrap text-[11px] font-black text-[#D97706] dark:text-[#FDE047]">
-              Rekomendasi:
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide">
+            <span className="shrink-0 whitespace-nowrap text-xs font-black text-[#B45309] dark:text-[#FDE047]">
+              Rekomendasi
             </span>
             {RECOMMENDATIONS.map((rec) => {
               const RecIcon = rec.icon;
@@ -209,16 +214,15 @@ export default function NgajiCeriaMapPage() {
                   onClick={() =>
                     handleNavigate(`/member/ngaji-ceria/explore/doa/${rec.id}`)
                   }
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                  className="inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 py-2 text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2"
                 >
-                  <RecIcon size={15} />
+                  <RecIcon size={16} />
                   <span>{rec.label}</span>
                 </button>
               );
             })}
           </div>
         </section>
-
         {/* Bento Grid Menu Responsif (Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols) */}
         <section className="mt-6 px-4 md:px-6">
           <motion.div
@@ -298,29 +302,37 @@ export default function NgajiCeriaMapPage() {
         </section>
 
         {/* Doa Cepat (Bottom) */}
-        <section className="mt-8 px-4">
-          <div className="rounded-[28px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-5 shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6B6B]">
-                  Akses Cepat
+        <section className="mx-auto mt-8 max-w-5xl px-3 sm:px-4 md:px-6">
+          <div className="rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-4 shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] sm:rounded-[28px] sm:p-5 sm:shadow-[4px_4px_0px_var(--shadow-color,#134E4A)]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <span className="text-[11px] font-black uppercase tracking-wide text-[#D9485F] dark:text-[#FDA4AF]">
+                  Akses cepat
                 </span>
-                <h3 className="font-display text-lg font-black text-[var(--text-main,#134E4A)]">
+                <h3 className="mt-0.5 font-display text-lg font-black text-[var(--text-main,#134E4A)] sm:text-xl">
                   Doa Kilat
                 </h3>
+                <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-main,#134E4A)]/70 sm:text-sm">
+                  Pilih doa yang ingin kamu pelajari hari ini.
+                </p>
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   handleNavigate("/member/ngaji-ceria/explore/doa")
                 }
-                className="flex items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] px-3 py-1.5 text-[11px] font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#DCFCE7] active:translate-y-[2px] active:shadow-none"
+                className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] px-3 py-2 text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:text-sm"
               >
-                Semua <ArrowRightSvg size={13} className="text-[var(--text-main,#134E4A)]" />
+                Semua{" "}
+                <ArrowRightSvg
+                  size={14}
+                  className="text-[var(--text-main,#134E4A)]"
+                />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
               {[
                 { id: "sebelum-tidur", icon: MoonSvg, title: "Sebelum Tidur" },
                 { id: "bangun-tidur", icon: SunSvg, title: "Bangun Tidur" },
@@ -334,22 +346,23 @@ export default function NgajiCeriaMapPage() {
                   icon: SparklesSvg,
                   title: "Sesudah Makan",
                 },
-              ].map((doa, idx) => {
+              ].map((doa) => {
                 const Icon = doa.icon;
                 return (
                   <button
-                    key={idx}
+                    key={doa.id}
+                    type="button"
                     onClick={() =>
                       handleNavigate(
                         `/member/ngaji-ceria/explore/doa/${doa.id}`,
                       )
                     }
-                    className="flex items-center gap-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#F8FAFC] active:translate-y-[2px] active:shadow-none"
+                    className="flex min-h-12 min-w-0 items-center gap-2.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-2.5 text-left text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-all hover:-translate-y-0.5 hover:bg-[#F8FAFC] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:gap-3 sm:p-3"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#CCFBF1] border-2 border-[var(--border-color,#134E4A)] text-[var(--text-main,#134E4A)]">
-                      <Icon size={16} stroke="#134E4A" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[#CCFBF1] text-[#134E4A] dark:bg-[#1E293B] dark:text-[#99F6E4]">
+                      <Icon size={17} stroke="#134E4A" />
                     </div>
-                    <span className="text-[11px] font-black text-[var(--text-main,#134E4A)] leading-tight text-left">
+                    <span className="min-w-0 text-xs font-black leading-snug sm:text-sm">
                       {doa.title}
                     </span>
                   </button>

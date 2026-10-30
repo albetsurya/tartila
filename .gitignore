@@ -28,3 +28,14 @@ dist-ssr
 *.sln
 *.sw?
 .asw/
+
+# Scratch/agent scratch files
+.agents/
+
+# Documentation drafts / plans
+docs/duel-pwa-stack-plan.md
+
+# Development scripts (temp / prototypes)
+scripts/_film_post_process.py
+scripts/post-mobile.mjs
+scripts/post-mobile.py

@@ -22,6 +22,9 @@ export function QuizEngine({
   onNext,
   onPlayAudio,
   isAudioPlaying,
+  isRetryable,
+  correctAnswer,
+  explanation,
 }: QuizEngineProps) {
   // Model diacak sekali per pertanyaan (stabil antar re-render).
   // `material` tidak diacak karena merupakan langkah belajar, bukan soal.
@@ -69,7 +72,15 @@ export function QuizEngine({
       ? question.availableLetters
       : generateAvailableLetters(correctArray, options);
 
-  const shared = { onAnswerSubmit, onNext, onPlayAudio, isAudioPlaying };
+  const shared = {
+    onAnswerSubmit,
+    onNext,
+    onPlayAudio,
+    isAudioPlaying,
+    isRetryable,
+    correctAnswer: correctAnswer ?? correctText,
+    explanation: explanation ?? question.explanation,
+  };
 
   useEffect(() => {
     // Auto-play: SEMUA model SEKALI audio-matching.

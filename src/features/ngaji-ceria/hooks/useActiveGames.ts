@@ -18,8 +18,11 @@ export const DEFAULT_ACTIVE_GAMES: ActiveGameItem[] = [
   { game_id: "memory-match", is_active: true, display_type: "standalone", sort_order: 3 },
   { game_id: "ayat-scramble", is_active: true, display_type: "standalone", sort_order: 4 },
   { game_id: "hijaiyah-2048", is_active: true, display_type: "standalone", sort_order: 5 },
-  { game_id: "quiz-ngaji", is_active: true, display_type: "standalone", sort_order: 6 },
-  { game_id: "hijaiyah-pop", is_active: true, display_type: "standalone", sort_order: 7 },
+  { game_id: "hijaiyah-pop", is_active: true, display_type: "standalone", sort_order: 6 },
+  // Disabled: inactive game (quiz-ngaji)
+  /*
+  { game_id: "quiz-ngaji", is_active: true, display_type: "standalone", sort_order: 7 },
+  */
 ];
 
 interface ActiveGamesState {

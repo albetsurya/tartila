@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getUnreadCount,
-  type NotificationRole,
-} from "../../services/notificationService";
+import type { NotificationRole } from "../../services/notificationService";
 import { notificationApi } from "../../services/notificationApi";
 import { tapFeedback } from "../../lib/haptics";
 
@@ -59,15 +56,13 @@ export function NotificationBell({
   userRole = "member",
   className = "",
 }: NotificationBellProps) {
-  const [unreadCount, setUnreadCount] = useState(0);
   const [serverUnread, setServerUnread] = useState(0);
   const navigate = useNavigate();
-  const totalUnread = unreadCount + serverUnread;
+  const totalUnread = serverUnread;
 
   useEffect(() => {
     let alive = true;
     const refreshCount = () => {
-      setUnreadCount(getUnreadCount(userRole));
       notificationApi
         .unreadCount()
         .then((res) => {
@@ -78,9 +73,11 @@ export function NotificationBell({
         });
     };
     refreshCount();
+    const pollTimer = window.setInterval(refreshCount, 60000);
     window.addEventListener("tartila:notification", refreshCount);
     return () => {
       alive = false;
+      window.clearInterval(pollTimer);
       window.removeEventListener("tartila:notification", refreshCount);
     };
   }, [userRole]);

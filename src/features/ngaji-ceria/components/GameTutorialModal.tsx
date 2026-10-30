@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  HarakatRushCoverSvg,
-  HijaiyahPopCoverSvg,
+  HarakatSlasherCoverSvg,
+  HijaiyahHarvestCoverSvg,
   WudhuFlowCoverSvg,
 } from "@/components/ui/Illustrations";
 import { ChevronRightSvg } from "@/components/ui/CustomIcons";
@@ -21,13 +21,13 @@ const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
         title: "Geser untuk Menebas",
         description:
           "Sentuh layar dan geser seperti memainkan pedang. Setiap geseran bisa menebas huruf yang dilempar ke udara.",
-        image: <HarakatRushCoverSvg size={96} />,
+        image: <HarakatSlasherCoverSvg size={96} />,
       },
       {
         title: "Tebas Target, Hindari Pengecoh",
         description:
           "Potong huruf berhias cincin kuning (target) untuk menambah skor dan combo. Salah tebas pengecoh atau membiarkan target jatuh akan mengurangi nyawa!",
-        image: <HarakatRushCoverSvg size={96} />,
+        image: <HarakatSlasherCoverSvg size={96} />,
       },
     ],
   },
@@ -38,13 +38,13 @@ const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
         title: "Tangkap Bintang Hijaiyah",
         description:
           "Ketuk bintang huruf Arab yang cocok dengan target suara atau teks yang muncul di layar.",
-        image: <HijaiyahPopCoverSvg size={96} />,
+        image: <HijaiyahHarvestCoverSvg size={96} />,
       },
       {
         title: "Hindari Item Salah",
         description:
           "Jangan mengetuk bintang yang salah agar combo tidak terputus dan nyawa tetap aman!",
-        image: <HijaiyahPopCoverSvg size={96} />,
+        image: <HijaiyahHarvestCoverSvg size={96} />,
       },
     ],
   },
@@ -130,11 +130,7 @@ export function GameTutorialModal({
   };
 
   return (
-    <AppModal
-      isOpen={open}
-      onClose={handleSkip}
-      title={step.title}
-    >
+    <AppModal isOpen={open} onClose={handleSkip} title={step.title}>
       <p className="text-[10px] font-black uppercase tracking-widest text-[#FF6B6B]">
         Panduan Bermain • {stepIndex + 1}/{tutorial.steps.length}
       </p>
@@ -171,7 +167,7 @@ export function GameTutorialModal({
           onClick={handleNext}
           className="flex-1 rounded-xl border-[2px] border-[#134E4A] bg-[#0D9488] py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1.5"
         >
-          <span>{isLast ? 'Mulai Main!' : 'Lanjut'}</span>
+          <span>{isLast ? "Mulai Main!" : "Lanjut"}</span>
           <ChevronRightSvg size={14} />
         </button>
       </div>

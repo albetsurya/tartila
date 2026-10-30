@@ -26,7 +26,6 @@ export function useWudhuFlow() {
     const completed = connectedSteps(s.rotations);
     const water = s.mode === "challenge" ? Math.max(0, s.water - 1) : s.water;
     const won = completed === 10;
-    playSfx(won ? "correct" : "wrong");
     return { ...s, water, completed, score: won ? Math.max(100, 1200 - s.turns * 5) + water * 10 : 0,
       phase: won || water === 0 ? "gameover" : "playing",
       message: won ? "Air sampai tujuan! Semua langkah tersambung." : `${completed}/10 langkah teraliri. Perbaiki pipa ${completed + 1}.` };
@@ -36,7 +35,6 @@ export function useWudhuFlow() {
   const tapStep = useCallback((index: number) => update((s) => {
     if (s.phase !== "playing") return s;
     if (index !== s.currentIndex) {
-      playSfx("wrong");
       return { ...s, combo: 0, bpm: Math.max(60, s.bpm - 10), judgement: "wrong" as const, message: "Belum urut. Ikuti langkah yang menyala." };
     }
     const closeness = 1 - Math.min(metronome.beatProgress, 1 - metronome.beatProgress) * 2;
@@ -45,7 +43,6 @@ export function useWudhuFlow() {
     const score = s.score + (perfect ? 100 + combo * 5 : 60 + combo * 3);
     const completed = s.completed + 1;
     const finished = completed >= WUDHU_STEPS.length;
-    playSfx(perfect ? "combo" : "correct");
     return { ...s, currentIndex: Math.min(s.currentIndex + 1, WUDHU_STEPS.length - 1), score, combo, maxCombo: Math.max(s.maxCombo, combo), bpm: Math.min(140, s.bpm + 6), judgement: perfect ? "perfect" as const : "good" as const, message: perfect ? "Perfect! Tepat di ketukan." : "Good! Lanjutkan ritmenya.", completed, phase: finished ? "gameover" as const : "playing" as const };
   }), [metronome.beatProgress, update]);
   return { ...state, ...record, ...metronome, steps: WUDHU_STEPS, start, setMode, rotatePipe, openWater, pause, resume, tapStep };

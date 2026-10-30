@@ -20,10 +20,10 @@ export function useAdabRPG() {
     const choice = node?.choices.find((item) => item.id === choiceId);
     if (!choice) return s;
     const stats = { akhlak: s.stats.akhlak + (choice.delta.akhlak ?? 0), ilmu: s.stats.ilmu + (choice.delta.ilmu ?? 0), sosial: s.stats.sosial + (choice.delta.sosial ?? 0) };
-    if (choice.next !== "ending") { playSfx("correct"); return { ...s, nodeId: choice.next, stats, choices: s.choices + 1 }; }
+    if (choice.next !== "ending") return { ...s, nodeId: choice.next, stats, choices: s.choices + 1 };
     const ending = endingFor(stats);
     const score = Math.max(0, (stats.akhlak + stats.ilmu + stats.sosial) * 50);
-    playSfx(ending === "buruk" ? "wrong" : "gameover");
+    if (ending !== "buruk") playSfx("gameover");
     return { ...s, stats, score, ending, choices: s.choices + 1, phase: "gameover" };
   }), [update]);
   return { ...state, ...record, node: STORY_NODES.find((node) => node.id === state.nodeId) ?? STORY_NODES[0], endingData: state.ending ? ENDINGS[state.ending] : null, start, pause, resume, choose };

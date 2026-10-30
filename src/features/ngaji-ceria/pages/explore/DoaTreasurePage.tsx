@@ -24,204 +24,234 @@ export default function DoaTreasurePage() {
 
   return (
     <NgajiCeriaLayout
-      title="Kumpulan Doa Harian"
+      title="Oase Gurun Doa"
       hideHeader={true}
       themeScope="doa"
       onBack={back}
     >
-      <div className="min-h-[100dvh] w-full bg-[#B45309] relative overflow-x-hidden pb-28">
-        {/* Pola papan kayu horizontal */}
+      {/* Background Pasir Gurun (#FDE68A) */}
+      <div className="min-h-[100dvh] w-full bg-[#FDE68A] relative overflow-x-hidden pb-32 select-none">
+        {/* Pola Butiran Pasir Gurun */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-25"
+          className="pointer-events-none absolute inset-0 opacity-35"
           style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, #7C2D12 0px, #7C2D12 2px, transparent 2px, transparent 46px), repeating-linear-gradient(90deg, #92400E22 0px, #92400E22 1px, transparent 1px, transparent 9px)",
-          }}
-        />
-        {/* Palm sapling */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "radial-gradient(#FEF3C733 1.5px, transparent 1.5px)",
+            backgroundImage: "radial-gradient(#D97706 2px, transparent 2px)",
             backgroundSize: "26px 26px",
           }}
         />
 
+        {/* Bukit Pasir Gurun di Bawah */}
+        <div
+          className="pointer-events-none fixed bottom-0 left-0 right-0 h-40 bg-[#F59E0B] border-t-[4px] border-[#451A03] z-0"
+          style={{
+            clipPath:
+              "polygon(0% 45%, 28% 15%, 60% 40%, 88% 10%, 100% 30%, 100% 100%, 0% 100%)",
+          }}
+        />
+
         <div className="relative z-10">
-          {/* HEADER: Papan kayu dengan paku Terstandarisasi [Hati] [Koin] */}
+          {/* HEADER: Oase Gurun */}
           <ExploreHeader
-            title="Gudang Doa"
-            subtitle="Peti Karun Doa Sehari-hari"
+            title="Oase Doa Harian"
+            subtitle="Kendi Air Sejuk & Batu Oasis Padang Pasir"
             onBack={back}
             themeScope="doa"
-            themeColorClass="bg-[#7C2D12]"
-            borderColorClass="border-[#B45309]"
-            shadowClass="shadow-[0_3px_0px_#451A03]"
-            textColorClass="text-[#FDE68A]"
-            backClass="bg-[#92400E] text-[#FDE68A] border-[#B45309] shadow-[2px_2px_0px_#451A03]"
-          >
-            {/* Paku besi di sudut papan */}
-            <div className="pointer-events-none absolute left-3 right-3 top-1 h-2 flex justify-between z-20">
-              <span className="w-2 h-2 rounded-full bg-[#FCA5A5] border border-[#450A0A]" />
-              <span className="w-2 h-2 rounded-full bg-[#FCA5A5] border border-[#450A0A]" />
-            </div>
-            {/* Kunci emas menempel */}
-            <svg
-              className="pointer-events-none absolute right-24 top-3.5 w-6 h-6 text-[#FBBF24] rotate-[18deg] opacity-90 z-20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <circle cx="7" cy="7" r="3.5" />
-              <path d="M9.5 9.5 17 17m0-2 2 2m-3 1 2 2m-8-7 1.5 1.5" />
-            </svg>
-          </ExploreHeader>
+            themeColorClass="bg-[#D97706]"
+            borderColorClass="border-[#451A03]"
+            shadowClass="shadow-[0_4px_0px_#451A03]"
+            textColorClass="text-[#FEF3C7]"
+            backClass="bg-[#FEF3C7] text-[#451A03] border-[#451A03] shadow-[3px_3px_0px_#451A03] hover:bg-[#FDE68A]"
+          />
 
-          {/* HERO: Lentera + intro */}
-          <div className="px-4 pt-6">
-            <section className="relative rounded-2xl bg-[#78350F] border-[3px] border-[#FDE68A] shadow-[5px_5px_0px_#451A03] px-5 py-5 overflow-hidden">
-              {/* Cahaya lentera */}
-              <div className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-[#FBBF24]/20 blur-2xl" />
-              <div className="absolute right-5 top-5 rotate-12">
-                <svg
-                  className="w-10 h-10 text-[#FBBF24]"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M9 3h6M10 6h4m-6 2h8l1 12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L7 8Z" />
-                  <path d="M12 11v6" stroke="#FDE68A" />
-                  <circle cx="12" cy="14" r="1.6" fill="#FDE68A" stroke="none" />
-                </svg>
+          {/* HERO: Padang Pasir, Pohon Kurma & Mata Air Oase */}
+          <div className="px-4 pt-6 max-w-3xl mx-auto">
+            <section className="relative rounded-3xl bg-[#78350F] border-[4px] border-[#451A03] shadow-[6px_6px_0px_#451A03] px-5 py-6 overflow-hidden text-[#FEF3C7]">
+              {/* Ilustrasi Pohon Kurma & Air Oase di Kanan */}
+              <div className="absolute right-4 top-3 flex flex-col items-center">
+                <div className="bg-[#FEF3C7] p-2 rounded-2xl border-[3px] border-[#451A03] shadow-[3px_3px_0px_#451A03]">
+                  <svg width="42" height="42" viewBox="0 0 48 48" fill="none">
+                    {/* Daun Pohon Kurma */}
+                    <path
+                      d="M24 18C18 10 8 12 6 18C12 16 18 18 24 18Z"
+                      fill="#15803D"
+                      stroke="#451A03"
+                      strokeWidth="2.5"
+                    />
+                    <path
+                      d="M24 18C30 10 40 12 42 18C36 16 30 18 24 18Z"
+                      fill="#15803D"
+                      stroke="#451A03"
+                      strokeWidth="2.5"
+                    />
+                    <path
+                      d="M24 16C20 6 12 4 10 8C16 9 20 13 24 16Z"
+                      fill="#16A34A"
+                      stroke="#451A03"
+                      strokeWidth="2.5"
+                    />
+                    <path
+                      d="M24 16C28 6 36 4 38 8C32 9 28 13 24 16Z"
+                      fill="#16A34A"
+                      stroke="#451A03"
+                      strokeWidth="2.5"
+                    />
+                    {/* Batang Kurma */}
+                    <path
+                      d="M22 18L20 38H28L26 18H22Z"
+                      fill="#B45309"
+                      stroke="#451A03"
+                      strokeWidth="2.5"
+                    />
+                    {/* Kolam Air Oase */}
+                    <ellipse
+                      cx="24"
+                      cy="40"
+                      rx="16"
+                      ry="5"
+                      fill="#0284C7"
+                      stroke="#451A03"
+                      strokeWidth="2.5"
+                    />
+                  </svg>
+                </div>
               </div>
-              <div className="relative z-10 max-w-[82%]">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FDE68A] border-2 border-[#FBBF24]/30 mb-2">
-                  <Sparkles size={12} /> Peti Harta
+
+              <div className="relative z-10 max-w-[74%]">
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#0284C7] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#FFFFFF] border-[2.5px] border-[#451A03] shadow-[2px_2px_0px_#451A03] mb-2.5">
+                  <Sparkles size={12} /> Mata Air Oase Gurun
                 </span>
-                <h2 className="font-display text-xl font-black leading-tight text-[#FDE68A]">
-                  Buka peti doa-doa tersembunyi
+                <h2 className="font-display text-xl sm:text-2xl font-black leading-tight text-[#FEF3C7]">
+                  Reguk Kesejukan Doa di Tengah Gurun
                 </h2>
-                <p className="mt-2 text-[11px] font-bold text-[#FDE68A]/75 leading-relaxed">
-                  Setiap gulungan berisi doa harian untuk menjaga hari-mu.
-                  Dekati dengan kunci emas di tanganmu.
+                <p className="mt-1.5 text-xs font-bold text-[#FDE68A] leading-relaxed">
+                  Setiap kendi air dan batu oasis menyimpan doa harian penyejuk
+                  hati di bawah teduhnya pohon kurma.
                 </p>
               </div>
             </section>
           </div>
 
-          {/* Pencarian: lubang peti dengan tali */}
-          <div className="px-4 pt-4">
-            <div className="flex items-center gap-2 rounded-full border-[3px] border-[#FDE68A] bg-[#78350F] px-4 py-3 shadow-[3px_3px_0px_#451A03]">
-              <Search size={18} className="text-[#FBBF24]" />
+          {/* PENCARIAN */}
+          <div className="px-4 pt-5 max-w-3xl mx-auto">
+            <div className="flex items-center gap-2.5 rounded-2xl border-[4px] border-[#451A03] bg-[#FFFBEB] px-4 py-3 shadow-[4px_4px_0px_#451A03]">
+              <Search size={20} className="text-[#D97706]" />
               <input
                 type="text"
-                placeholder="Raba gulungan doa..."
-                className="w-full bg-transparent text-sm font-bold text-[#FDE68A] placeholder:text-[#FDE68A]/40 focus:outline-none"
+                placeholder="Cari kendi atau batu doa di oase..."
+                className="w-full bg-transparent text-sm font-black text-[#451A03] placeholder:text-[#92400E]/60 focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Kartu kategori: peti kecil berisi gulungan */}
-          <section className="grid grid-cols-2 gap-3 px-4 pt-4">
-            {DOA_CATEGORIES.map((category) => {
-              const Icon = category.icon;
-              return (
-                <button
-                  key={category.key}
-                  type="button"
-                  onClick={() => handleNavigate("/member/ngaji-ceria/explore/doa")}
-                  className="relative flex flex-col text-left rounded-xl bg-[#78350F] border-[3px] border-[#FDE68A] p-3 pb-4 shadow-[3px_3px_0px_#451A03] active:translate-y-[3px] active:shadow-none transition-all overflow-hidden"
-                >
-                  {/* Peti: garis μαren kayu + engsel */}
-                  <div
-                    className="pointer-events-none absolute inset-0 opacity-30"
-                    style={{
-                      backgroundImage:
-                        "repeating-linear-gradient(90deg, transparent 0, transparent 10px, #7C2D1244 10px, #7C2D1244 12px)",
-                    }}
-                  />
-                  {/* Engsel emas */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-[#FBBF24] border-2 border-[#450A0A] rounded-full z-10" />
-                  {/* Kunci emas pojok */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <LockSvg size={14} className="text-[#FBBF24]" />
+          {/* KATEGORI DOA: DIBENTUK SEPERTI "KENDI AIR" (WATER PITCHER) */}
+          <section className="px-4 pt-8 max-w-3xl mx-auto">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="inline-block rounded-xl bg-[#0284C7] border-[3px] border-[#451A03] px-3.5 py-1 font-display font-black text-xs uppercase tracking-wider text-[#FFFFFF] shadow-[3px_3px_0px_#451A03]">
+                Kendi Air Kategori Doa
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-5 gap-y-9 pt-4">
+              {DOA_CATEGORIES.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <div key={category.key} className="relative pt-6 px-1">
+                    {/* MULUT & LEHER KENDI AIR DI ATAS */}
+                    <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+                      <div className="w-16 h-3.5 rounded-full bg-[#B45309] border-[3px] border-[#451A03]" />
+                      <div className="w-11 h-4 bg-[#D97706] border-x-[3px] border-[#451A03]" />
+                    </div>
+
+                    {/* Gagang Kendi di Sisi Kanan */}
+                    <div className="pointer-events-none absolute top-7 -right-1 w-6 h-14 rounded-r-full border-[4px] border-l-0 border-[#451A03] bg-transparent z-0" />
+
+                    {/* Badan Kendi Air (Membulat seperti Guci/Kendi) */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleNavigate("/member/ngaji-ceria/explore/doa")
+                      }
+                      className="group relative z-10 w-full flex flex-col items-center text-center overflow-hidden rounded-[36px_36px_28px_28px] border-[4px] border-[#451A03] bg-[#FEF3C7] p-4 pt-5 pb-6 shadow-[5px_5px_0px_#451A03] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
+                    >
+                      <div className="absolute top-3 right-3 z-10">
+                        <LockSvg size={14} className="text-[#B45309]" />
+                      </div>
+
+                      <div className="relative z-10 mb-2.5 flex h-12 w-12 items-center justify-center rounded-full bg-[#E0F2FE] border-[3px] border-[#451A03] shadow-[3px_3px_0px_#451A03] group-hover:scale-105 transition-transform">
+                        <Icon size={22} className="text-[#0284C7]" />
+                      </div>
+
+                      <p className="relative z-10 font-display font-black text-sm sm:text-base text-[#451A03] leading-tight">
+                        {category.title}
+                      </p>
+                      <div className="relative z-10 mt-2">
+                        <span className="inline-block rounded-full bg-[#0284C7] border-[2px] border-[#451A03] px-3 py-0.5 text-[10px] font-black text-[#FFFFFF] shadow-[2px_2px_0px_#451A03]">
+                          {category.count} Tetes Doa
+                        </span>
+                      </div>
+
+                      {/* Gelombang Air di Dasar Kendi */}
+                      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-3 bg-[#38BDF8] border-t-[3px] border-[#451A03]" />
+                    </button>
                   </div>
-                  {/* Gulungan menyembul dari peti */}
-                  <div className="relative z-10 mb-2">
-                    <span className="block w-11 h-10 rounded-sm bg-[#FEF3C7] border-[2.5px] border-[#B45309] shadow-[2px_2px_0px_#450A0A] rotate-[-4deg] relative">
-                      <span className="absolute inset-x-1.5 top-1.5 bottom-1.5 border-t border-b border-dashed border-[#B45309]/40" />
-                    </span>
-                    <Icon
-                      size={18}
-                      className="absolute -right-1 -bottom-1 text-[#0D9488]"
-                    />
-                  </div>
-                  <p className="relative z-10 font-display font-black text-sm text-[#FDE68A] leading-tight">
-                    {category.title}
-                  </p>
-                  <div className="relative z-10 mt-2">
-                    <span className="inline-block rounded-md bg-[#FBBF24] border-2 border-[#450A0A] px-2 py-0.5 text-[9px] font-black text-[#450A0A] shadow-[1.5px_1.5px_0px_#450A0A]">
-                      {category.count} doa
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                );
+              })}
+            </div>
           </section>
 
-          {/* Daftar seluruh doa: gulungan kertas di atas lantai kayu */}
-          <section className="px-4 pt-6 space-y-3">
-            <h4 className="font-display font-black text-sm text-[#FDE68A] flex items-center gap-2">
-              <span className="w-7 h-[3px] bg-[#FBBF24] rounded-full" />
-              Semua Gulungan
-            </h4>
+          {/* DAFTAR SELURUH DOA: DIBENTUK SEPERTI "BATU OASIS" DI TEPI MATA AIR */}
+          <section className="px-4 pt-10 max-w-3xl mx-auto space-y-4">
+            <div className="inline-block rounded-xl bg-[#78350F] border-[3px] border-[#451A03] px-4 py-1.5 shadow-[3px_3px_0px_#451A03]">
+              <h4 className="font-display font-black text-xs sm:text-sm uppercase tracking-wider text-[#FEF3C7]">
+                Batu Oasis Doa ({DOA_LIST.length})
+              </h4>
+            </div>
 
-            {DOA_LIST.map((doa, index) => (
-              <button
-                key={doa.id}
-                type="button"
-                onClick={() =>
-                  handleNavigate(`/member/ngaji-ceria/explore/doa/${doa.id}`)
-                }
-                className="w-full text-left"
-              >
-                <div
-                  className="relative w-full flex items-center gap-3 rounded-md px-2.5 py-3 shadow-[3px_3px_0px_rgba(69,26,3,0.6)] active:translate-y-[3px] active:shadow-none transition-all"
-                  style={{
-                    background: "linear-gradient(90deg,#FDF6E3 0%,#FEF3C7 70%,#F6E7C1 100%)",
-                    border: "2.5px solid #92400E",
-                  }}
-                >
-                  {/* Ujung gulungan bergelombang */}
-                  <span className="absolute -left-1 top-1 bottom-1 w-3 bg-[#F6E7C1] border-[2.5px] border-r-0 border-[#92400E] rounded-l-full -z-10" />
-                  <span className="absolute -right-1 top-1 bottom-1 w-3 bg-[#F6E7C1] border-[2.5px] border-l-0 border-[#92400E] rounded-r-full -z-10" />
+            <div className="space-y-4">
+              {DOA_LIST.map((doa, index) => {
+                const stoneShape =
+                  index % 2 === 0
+                    ? "rounded-[26px_18px_28px_16px]"
+                    : "rounded-[18px_28px_16px_26px]";
 
-                  {/* Stempel nomor wax */}
-                  <span className="relative shrink-0 w-8 h-8 rounded-full bg-[#92400E] border-2 border-[#450A0A] text-[#FDE68A] flex items-center justify-center text-xs font-black shadow-inner">
-                    {index + 1}
-                  </span>
+                return (
+                  <button
+                    key={doa.id}
+                    type="button"
+                    onClick={() =>
+                      handleNavigate(
+                        `/member/ngaji-ceria/explore/doa/${doa.id}`,
+                      )
+                    }
+                    className={`group relative flex w-full items-center gap-3.5 ${stoneShape} bg-[#FFFBEB] border-[4px] border-[#451A03] px-4 py-3.5 text-left shadow-[5px_5px_0px_#451A03] hover:bg-[#FEF3C7] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer overflow-hidden`}
+                  >
+                    {/* Aksen Air Oasis di Sisi Kiri Batu */}
+                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-2.5 bg-[#0284C7] border-r-[2.5px] border-[#451A03]" />
 
-                  <div className="min-w-0 flex-1">
-                    <p className="font-display font-black text-sm text-[#7C2D12] truncate">
-                      {doa.title}
-                    </p>
-                    <p className="text-[10px] font-bold text-[#7C2D12]/60 mt-0.5">
-                      {doa.category}
-                    </p>
-                  </div>
+                    {/* Permata Air Nomor */}
+                    <span className="ml-1 shrink-0 w-10 h-10 rounded-[14px_18px_14px_18px] bg-[#0284C7] border-[3px] border-[#451A03] text-[#FEF08A] flex items-center justify-center text-xs font-black shadow-[2px_2px_0px_#451A03]">
+                      {index + 1}
+                    </span>
 
-                  <div className="shrink-0 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#FDE68A]/60 border-2 border-[#92400E]/40 flex items-center justify-center">
-                      <Volume2 size={14} className="text-[#92400E]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display font-black text-sm sm:text-base text-[#451A03] truncate">
+                        {doa.title}
+                      </p>
+                      <span className="inline-block mt-0.5 rounded-md bg-[#FDE68A] border-[2px] border-[#451A03] px-2 py-0.2 text-[10px] font-extrabold text-[#78350F]">
+                        {doa.category}
+                      </span>
                     </div>
-                    <ChevronRight size={16} className="text-[#92400E]" />
-                  </div>
-                </div>
-              </button>
-            ))}
+
+                    <div className="shrink-0 flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#E0F2FE] border-[2.5px] border-[#451A03] flex items-center justify-center shadow-[2px_2px_0px_#451A03]">
+                        <Volume2 size={15} className="text-[#0284C7]" />
+                      </div>
+                      <ChevronRight size={18} className="text-[#451A03]" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </section>
         </div>
       </div>

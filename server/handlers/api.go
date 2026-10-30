@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -9,16 +10,32 @@ import (
 	"strings"
 	"time"
 
+	"log"
+
 	"tartila-server/hub"
 	"tartila-server/models"
 )
 
 type APIHandler struct {
 	Hub *hub.RoomHub
+	db  *sql.DB
 }
 
 func NewAPIHandler(h *hub.RoomHub) *APIHandler {
 	return &APIHandler{Hub: h}
+}
+
+// SetDB wires the persistent database store. It is set after InitDB() in main().
+func (api *APIHandler) SetDB(db *sql.DB) {
+	api.db = db
+}
+
+// userIDFromRequest extracts the authenticated user's Tartila ID from the
+// request's Authorization: Bearer header, following the same convention the
+// WebSocket handlers use (HS256 token carrying a `user_id` claim).
+func (api *APIHandler) userIDFromRequest(r *http.Request) (string, error) {
+	userID, _, err := hub.ParseAuthToken(r)
+	return userID, err
 }
 
 // Generate random 6-digit PIN
@@ -179,12 +196,12 @@ func (api *APIHandler) JoinRoom(w http.ResponseWriter, r *http.Request, pin stri
 
 	playerID := fmt.Sprintf("ply-%d", time.Now().UnixNano())
 	player := &models.Player{
-		ID:        playerID,
-		UserID:    req.UserID,
-		Nickname:  strings.TrimSpace(req.Nickname),
-		Score:     0,
-		IsActive:  true,
-		JoinedAt:  time.Now(),
+		ID:       playerID,
+		UserID:   req.UserID,
+		Nickname: strings.TrimSpace(req.Nickname),
+		Score:    0,
+		IsActive: true,
+		JoinedAt: time.Now(),
 	}
 
 	room.Players[playerID] = player
@@ -194,7 +211,7 @@ func (api *APIHandler) JoinRoom(w http.ResponseWriter, r *http.Request, pin stri
 	api.Hub.BroadcastToRoom(pin, models.WSMessage{
 		Type: "player_joined",
 		Payload: map[string]interface{}{
-			"player":      player,
+			"player":       player,
 			"totalPlayers": len(room.Players),
 		},
 	})
@@ -383,5 +400,91 @@ func (api *APIHandler) GetGlobalLeaderboard(w http.ResponseWriter, r *http.Reque
 		"success":     true,
 		"leaderboard": leaderboard,
 		"timeframe":   "weekly",
+	})
+}
+
+// GET /api/v1/user/profile returns the authenticated user's profile,
+// including feedback-prompt fields that are persisted server-side so a user
+// who clears cache or swaps device does not keep seeing the prompt.
+func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, err := api.userIDFromRequest(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var lastPromptAt string
+	var hasSubmitted int
+	err = api.db.QueryRow(
+		`SELECT last_feedback_prompt_at, has_submitted_feedback
+		 FROM feedback_prompt
+		 WHERE user_id = ?`,
+		userID,
+	).Scan(&lastPromptAt, &hasSubmitted)
+
+	if err == sql.ErrNoRows {
+		err = nil // Never prompted yet.
+	}
+	if err != nil {
+		log.Printf("[handlers] GetUserProfile query failed: %v", err)
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"user": map[string]interface{}{
+			"id":                      userID,
+			"last_feedback_prompt_at": lastPromptAt,
+			"has_submitted_feedback":  hasSubmitted == 1,
+		},
+		"last_feedback_prompt_at": lastPromptAt,
+		"has_submitted_feedback":  hasSubmitted == 1,
+	})
+}
+
+// PATCH /api/v1/user/feedback-prompt records the moment the user was prompted
+// for feedback (and whether the feedback was submitted). This lets the prompt
+// cadence be enforced server-side (90 days) instead of in the browser.
+func (api *APIHandler) UpdateFeedbackPrompt(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, err := api.userIDFromRequest(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	result, err := api.db.Exec(
+		`INSERT INTO feedback_prompt (user_id, last_feedback_prompt_at, has_submitted_feedback, updated_at)
+		 VALUES (?, ?, 0, ?)
+		 ON CONFLICT(user_id) DO UPDATE SET
+		 last_feedback_prompt_at = excluded.last_feedback_prompt_at,
+		 has_submitted_feedback = excluded.has_submitted_feedback,
+		 updated_at = excluded.updated_at`,
+		userID, now, now,
+	)
+	if err != nil {
+		log.Printf("[handlers] UpdateFeedbackPrompt exec failed: %v", err)
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	rows, _ := result.RowsAffected()
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"lastAt":  now,
+		"updated": rows > 0,
 	})
 }

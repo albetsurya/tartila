@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { WordScrambleQuestion, QuizModelBaseProps } from "./types";
-import { playVoiceFeedback } from "../../utils/voiceFeedback";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
 import { SparklesSvg, RotateCcwSvg as ResetIcon } from "@/components/ui/CustomIcons";
 
@@ -18,6 +17,8 @@ export function ModelWordScramble({
   question,
   onAnswerSubmit,
   onNext,
+  isRetryable,
+  explanation,
 }: ModelWordScrambleProps) {
   const [placed, setPlaced] = useState<BankWordItem[]>([]);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
@@ -85,12 +86,6 @@ export function ModelWordScramble({
     const isCorrect = placedSentence === correctSentence;
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
-
-    if (isCorrect) {
-      playVoiceFeedback("correct");
-    } else {
-      playVoiceFeedback("wrong");
-    }
   };
 
   const handleRetry = () => {
@@ -271,6 +266,8 @@ export function ModelWordScramble({
           onNext?.();
         }}
         onRetry={handleRetry}
+        isRetryable={isRetryable}
+        explanation={explanation}
       />
     </div>
   );

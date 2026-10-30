@@ -32,7 +32,19 @@ soundManager.subscribe(() =>
   useGameAudio.setState({ muted: soundManager.muted }),
 );
 
-type Sound = "pop" | "correct" | "wrong" | "combo" | "gameover" | "powerup";
+type Sound =
+  | "pop"
+  | "correct"
+  | "wrong"
+  | "combo"
+  | "gameover"
+  | "powerup"
+  | "answer-correct"
+  | "answer-wrong"
+  | "level-up"
+  | "badge-earned"
+  | "chest-open"
+  | "coin-collect";
 const FORWARD: Record<Sound, SfxName> = {
   pop: "pop",
   correct: "correct",
@@ -40,6 +52,12 @@ const FORWARD: Record<Sound, SfxName> = {
   combo: "streak",
   gameover: "gameover",
   powerup: "powerup",
+  "answer-correct": "answer-correct",
+  "answer-wrong": "answer-wrong",
+  "level-up": "level-up",
+  "badge-earned": "badge-earned",
+  "chest-open": "chest-open",
+  "coin-collect": "coin-collect",
 };
 
 /** SFX game — diteruskan ke soundManager terpusat (file Kenney CC0 + fallback sintesis). */

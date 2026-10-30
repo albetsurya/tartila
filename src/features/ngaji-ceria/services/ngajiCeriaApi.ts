@@ -34,6 +34,11 @@ export interface MissionRewardResponse {
   progress: ServerNgajiProgress;
 }
 
+export interface PendingMissionsResponse {
+  hasPendingMissions: boolean;
+  pendingMissions: string[];
+}
+
 export interface ServerLeaderboardEntry {
   id: string;
   name: string;
@@ -78,6 +83,8 @@ export const ngajiCeriaApi = {
       "POST",
       `/api/v1/ngaji-ceria/missions/${encodeURIComponent(missionId)}/claim`,
     ),
+  getPendingMissions: () =>
+    callREST<PendingMissionsResponse>("GET", "/api/v1/ngaji-ceria/missions/pending"),
   getLeaderboard: (gameId: string, period: "daily" | "weekly" = "weekly") =>
     callREST<ServerLeaderboardResponse>(
       "GET",

@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
-  Pause,
   Share2,
   Star,
   Volume2,
@@ -75,7 +74,7 @@ export default function DoaDetailPage() {
   };
 
   const btnBaseStyle =
-    "flex items-center justify-center gap-2 rounded-xl border-[3px] border-[#B45309] py-3 text-sm font-black shadow-[3px_3px_0px_#78350F] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    "flex items-center justify-center gap-2 rounded-xl border-[3.5px] border-[#451A03] py-3 text-sm font-black shadow-[4px_4px_0px_#451A03] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   const handleBack = () => {
     navigate("/member/ngaji-ceria/explore/doa");
@@ -91,111 +90,180 @@ export default function DoaDetailPage() {
       <ThemedHeader
         title={doa.title}
         onBack={handleBack}
-        themeColorClass="bg-[#78350F] border-b-[3px] border-[#451A03]"
-        textColorClass="text-[#FDE68A]"
+        themeColorClass="bg-[#D97706] border-b-[4px] border-[#451A03]"
+        textColorClass="text-[#FEF3C7]"
         statVariant="wood"
-        statBgClass="bg-[#B45309]"
-        statTextClass="text-[#FBBF24]"
-        backClass="bg-[#92400E] text-[#FDE68A] border-2 border-[#451A03]"
-      >
-        <div className="absolute left-3 right-3 top-1 h-2 flex justify-between z-20">
-          <span className="w-2 h-2 rounded-full bg-[#FCA5A5] border border-[#450A0A]" />
-          <span className="w-2 h-2 rounded-full bg-[#FCA5A5] border border-[#450A0A]" />
-        </div>
-      </ThemedHeader>
+        statBgClass="bg-[#78350F]"
+        statTextClass="text-[#FACC15]"
+        backClass="bg-[#FEF3C7] text-[#451A03] border-[2.5px] border-[#451A03]"
+      />
 
-      <div className="space-y-5 bg-[#FFFBEB] px-4 py-4 min-h-full rounded-t-3xl pb-32 relative">
-        {/* Pola papan kayu halus */}
+      {/* Latar Pasir Oase Gurun (#FDE68A) */}
+      <div className="min-h-[100dvh] bg-[#FDE68A] px-4 py-6 pb-36 relative overflow-x-hidden">
+        {/* Tekstur Butiran Pasir Gurun */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-15"
+          className="pointer-events-none absolute inset-0 opacity-35"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(0deg, #78350F 0px, #78350F 1px, transparent 1px, transparent 20px)",
+              "radial-gradient(#B45309 1.5px, transparent 1.5px)",
+            backgroundSize: "22px 22px",
           }}
         />
 
-        <div className="relative z-10 space-y-5">
-          {/* Title Header (Papan Kayu Emas) */}
-          <div className="flex items-center gap-3 bg-[#FEF3C7] p-3.5 rounded-2xl border-[3px] border-[#B45309] shadow-[3px_3px_0px_#78350F]">
-            <div className="w-10 h-10 rounded-xl bg-[#FDE68A] border-2 border-[#B45309] flex items-center justify-center shrink-0 shadow-sm">
-              <Star size={20} className="text-[#B45309] fill-[#F59E0B]" />
+        {/* Bukit Pasir & Mata Air Oase di Bawah */}
+        <div
+          className="pointer-events-none fixed bottom-0 left-0 right-0 h-36 bg-[#F59E0B] border-t-[4px] border-[#451A03] z-0"
+          style={{
+            clipPath:
+              "polygon(0% 35%, 30% 10%, 65% 30%, 100% 5%, 100% 100%, 0% 100%)",
+          }}
+        />
+
+        <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+          {/* Header Kubah Oase & Hiasan Bulan Sabit */}
+          <div className="relative pt-4">
+            {/* Ornamen Bulan Sabit Emas di Pojok Kanan Atas */}
+            <div className="pointer-events-none absolute -top-2 right-4 z-20 flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1E3A8A] border-[3.5px] border-[#451A03] shadow-[3px_3px_0px_#451A03] rotate-6">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M20.5 14.5C19.2 15.1 17.7 15.5 16.1 15.5C10.9 15.5 6.7 11.3 6.7 6.1C6.7 4.8 7 3.6 7.5 2.5C4.5 4.1 2.5 7.2 2.5 10.8C2.5 16 6.7 20.2 11.9 20.2C15.8 20.2 19.1 17.8 20.5 14.5Z"
+                  fill="#FACC15"
+                  stroke="#451A03"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <circle cx="17" cy="6" r="1.5" fill="#FEF08A" />
+              </svg>
             </div>
-            <div className="min-w-0">
-              <h2 className="font-display font-black text-lg text-[#78350F] leading-tight truncate">
-                {doa.title}
-              </h2>
-              <span className="inline-block mt-1 text-[10px] font-black uppercase tracking-wider text-[#92400E] bg-[#B45309]/15 px-2 py-0.5 rounded-md border border-[#B45309]/30">
-                {doa.category}
-              </span>
+
+            <div className="flex items-center gap-3.5 bg-[#FEF3C7] p-4 pr-16 rounded-2xl border-[4px] border-[#451A03] shadow-[5px_5px_0px_#451A03]">
+              <div className="w-12 h-12 rounded-xl bg-[#0284C7] border-[3px] border-[#451A03] flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#451A03]">
+                <Star size={22} className="text-[#FEF08A] fill-[#FACC15]" />
+              </div>
+              <div className="min-w-0">
+                <span className="inline-block mb-1 text-[10px] font-black uppercase tracking-wider text-[#FEF3C7] bg-[#78350F] px-2.5 py-0.5 rounded-md border-[2px] border-[#451A03]">
+                  Oase • {doa.category}
+                </span>
+                <h2 className="font-display font-black text-lg sm:text-xl text-[#451A03] leading-tight">
+                  {doa.title}
+                </h2>
+              </div>
             </div>
           </div>
 
-          {/* Arabic Text Box (Peti Kayu Harta Karun) */}
-          <div className="rounded-[24px] bg-[#FEF3C7] border-[3px] border-[#B45309] p-6 shadow-[4px_4px_0px_#78350F]">
-            <p
-              className="font-arabic text-[32px] text-right leading-[2.2] text-[#78350F]"
-              dir="rtl"
-            >
-              {doa.arabic}
-            </p>
+          {/* GULUNGAN PERKAMEN KUNO (SCROLL) DENGAN SILINDER KAYU ATAS & BAWAH */}
+          <div className="relative py-2">
+            {/* Silinder Kayu Atas Perkamen */}
+            <div className="relative z-20 flex items-center">
+              <div className="h-8 w-5 rounded-l-full bg-[#451A03] border-[3px] border-[#451A03]" />
+              <div className="h-6 flex-1 rounded-full bg-[#78350F] border-y-[4px] border-[#451A03] shadow-[0_3px_0px_#451A03] flex items-center justify-between px-4">
+                <span className="w-8 h-1.5 rounded-full bg-[#D97706]" />
+                <span className="w-8 h-1.5 rounded-full bg-[#D97706]" />
+              </div>
+              <div className="h-8 w-5 rounded-r-full bg-[#451A03] border-[3px] border-[#451A03]" />
+            </div>
+
+            {/* Lembaran Perkamen Kuno Doa */}
+            <div className="relative z-10 mx-3 -my-1 bg-[#FFFBEB] border-x-[4px] border-[#451A03] px-5 py-7 shadow-[6px_6px_0px_#451A03] space-y-5 overflow-hidden">
+              {/* Hiasan Bulan Sabit Kecil di Sudut Perkamen */}
+              <div className="flex items-center justify-between border-b-[2.5px] border-dashed border-[#D97706] pb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309]">
+                  ✦ Perkamen Oase Gurun ✦
+                </span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M19 14.5C17.8 15.1 16.4 15.5 14.8 15.5C9.9 15.5 6 11.6 6 6.7C6 5.5 6.2 4.4 6.7 3.5C4.2 5 2.5 7.7 2.5 11C2.5 15.9 6.4 19.8 11.3 19.8C14.8 19.8 17.9 17.6 19 14.5Z"
+                    fill="#D97706"
+                    stroke="#451A03"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+
+              <div className="rounded-2xl bg-[#FEF3C7] border-[3px] border-[#451A03] p-5 shadow-[3px_3px_0px_#451A03]">
+                <p
+                  className="font-arabic text-[30px] sm:text-[34px] text-right leading-[2.2] text-[#451A03]"
+                  dir="rtl"
+                >
+                  {doa.arabic}
+                </p>
+              </div>
+
+              <div className="bg-[#FDE68A] p-4 rounded-xl border-[3px] border-[#451A03] shadow-[3px_3px_0px_#451A03]">
+                <p className="text-xs sm:text-sm font-black text-[#78350F] italic leading-relaxed">
+                  "{doa.latin}"
+                </p>
+              </div>
+
+              <div className="bg-[#FFFFFF] p-4 rounded-xl border-[3px] border-[#451A03] shadow-[3px_3px_0px_#451A03]">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-[#0284C7] mb-1">
+                  Makna Air Kehidupan (Artinya):
+                </span>
+                <p className="text-xs sm:text-sm font-bold text-[#451A03] leading-relaxed">
+                  {doa.translation}
+                </p>
+              </div>
+            </div>
+
+            {/* Silinder Kayu Bawah Perkamen */}
+            <div className="relative z-20 flex items-center">
+              <div className="h-8 w-5 rounded-l-full bg-[#451A03] border-[3px] border-[#451A03]" />
+              <div className="h-6 flex-1 rounded-full bg-[#78350F] border-y-[4px] border-[#451A03] shadow-[0_4px_0px_#451A03] flex items-center justify-between px-4">
+                <span className="w-8 h-1.5 rounded-full bg-[#D97706]" />
+                <span className="w-8 h-1.5 rounded-full bg-[#D97706]" />
+              </div>
+              <div className="h-8 w-5 rounded-r-full bg-[#451A03] border-[3px] border-[#451A03]" />
+            </div>
           </div>
 
-          {/* Latin & Translation */}
-          <div className="space-y-3">
-            <div className="bg-[#FEF9C3] p-3.5 rounded-xl border-2 border-[#B45309]/30 shadow-sm">
-              <p className="text-sm font-bold text-[#92400E] italic">
-                {doa.latin}
-              </p>
-            </div>
-            <div className="bg-[#FFFBEB] p-4 rounded-xl border-2 border-[#B45309] shadow-[2px_2px_0px_#78350F]">
-              <p className="text-sm font-semibold text-[#78350F] leading-relaxed">
-                {doa.translation}
-              </p>
-            </div>
-          </div>
-
-          {/* Actions (Sticker Buttons) */}
-          <div className="flex flex-col gap-3 pt-2">
+          {/* Tombol Aksi Audio & Bagikan */}
+          <div className="flex flex-col gap-3">
             <button
               type="button"
               onClick={handlePlay}
-              className={`${btnBaseStyle} w-full transition-colors ${
+              className={`${btnBaseStyle} w-full ${
                 isDoaPlaying
-                  ? "bg-[#D97706] text-white shadow-[3px_3px_0px_#78350F]"
-                  : "bg-[#B45309] text-white shadow-[3px_3px_0px_#78350F] hover:bg-[#92400E]"
+                  ? "bg-[#15803D] text-[#FFFFFF]"
+                  : "bg-[#0284C7] text-[#FFFFFF] hover:bg-[#0369A1]"
               }`}
             >
               {isDoaPlaying ? (
-                <EqualizerIcon isPlaying={true} size={18} barClassName="bg-white" />
+                <EqualizerIcon
+                  isPlaying={true}
+                  size={18}
+                  barClassName="bg-[#FFFFFF]"
+                />
               ) : (
                 <Volume2 size={18} />
               )}
-              {isDoaPlaying ? "Jeda Audio" : "Dengarkan Doa"}
+              {isDoaPlaying ? "Jeda Audio Doa" : "Dengarkan Lantunan Doa"}
             </button>
 
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleCopy}
-                className={`${btnBaseStyle} flex-1 bg-[#FEF3C7] text-[#78350F] hover:bg-[#FDE68A]`}
+                className={`${btnBaseStyle} flex-1 bg-[#FEF08A] text-[#451A03] hover:bg-[#FDE047]`}
               >
                 <Copy size={16} />
-                Salin
+                Salin Perkamen
               </button>
               <button
                 type="button"
                 onClick={() => {
                   triggerBibiReaction("click");
                   if (navigator.share) {
-                    navigator.share({
-                      title: doa.title,
-                      text: `${doa.arabic}\n\n${doa.latin}\n\n${doa.translation}`,
-                    }).catch(() => {});
+                    navigator
+                      .share({
+                        title: doa.title,
+                        text: `${doa.arabic}\n\n${doa.latin}\n\n${doa.translation}`,
+                      })
+                      .catch(() => {});
                   } else {
                     handleCopy();
                   }
                 }}
-                className={`${btnBaseStyle} flex-1 bg-[#FEF3C7] text-[#78350F] hover:bg-[#FDE68A]`}
+                className={`${btnBaseStyle} flex-1 bg-[#BAE6FD] text-[#0C4A6E] hover:bg-[#7DD3FC]`}
               >
                 <Share2 size={16} />
                 Bagikan
@@ -203,30 +271,28 @@ export default function DoaDetailPage() {
             </div>
           </div>
 
-          {/* Prev / Next (Sticker Buttons) */}
-          <div className="flex items-center gap-3 pt-2">
+          {/* Navigasi Sebelumnya / Selanjutnya */}
+          <div className="flex items-center gap-3">
             <button
               type="button"
               disabled={!hasPrev}
               onClick={() => goTo(index - 1)}
-              className={`${btnBaseStyle} flex-1 bg-[#FEF3C7] text-[#78350F] text-xs hover:bg-[#FDE68A]`}
+              className={`${btnBaseStyle} flex-1 bg-[#FEF3C7] text-[#451A03] text-xs hover:bg-[#FDE68A]`}
             >
               <ChevronLeft size={16} />
-              Sebelumnya
+              Doa Sebelumnya
             </button>
             <button
               type="button"
               disabled={!hasNext}
               onClick={() => goTo(index + 1)}
-              className={`${btnBaseStyle} flex-1 bg-[#FEF3C7] text-[#78350F] text-xs hover:bg-[#FDE68A]`}
+              className={`${btnBaseStyle} flex-1 bg-[#FEF3C7] text-[#451A03] text-xs hover:bg-[#FDE68A]`}
             >
-              Selanjutnya
+              Doa Selanjutnya
               <ChevronRight size={16} />
             </button>
           </div>
         </div>
-
-        <div className="h-20" aria-hidden="true" />
       </div>
     </NgajiCeriaLayout>
   );

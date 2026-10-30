@@ -81,7 +81,6 @@ export function stopTilawatiAudio() {
   activeSources = [];
   cancelPlayback?.();
   cancelPlayback = null;
-  soundManager.duckBgm(false);
 }
 soundManager.subscribe(() => { if (soundManager.muted) stopTilawatiAudio(); });
 
@@ -93,8 +92,7 @@ export function playTilawatiAudio(url: string | null, onEnded?: () => void): HTM
   const audio = new Audio(resolvedUrl);
   activeAudio = audio;
   audio.volume = 0.9;
-  soundManager.duckBgm(true);
-  const finish = () => { if (activeAudio !== audio) return; activeAudio = null; soundManager.duckBgm(false); onEnded?.(); };
+  const finish = () => { if (activeAudio !== audio) return; activeAudio = null; onEnded?.(); };
   audio.onended = finish;
   audio.onerror = finish;
   void audio.play().catch(finish);
@@ -207,13 +205,9 @@ export function useTilawatiAudio(
   }, [request.question?.id]);
   const play = useCallback(async () => {
     stopTilawatiAudio();
-    // Cancel any text-to-speech to prevent audio stack conflicts
-    if (typeof speechSynthesis !== "undefined") {
-      speechSynthesis.cancel();
-    }
     if (soundManager.muted) return;
     const token = generation;
-    setIsPlaying(true); setError(""); soundManager.duckBgm(true);
+    setIsPlaying(true); setError("");
     let success = false;
     let blocked = false;
     for (const candidate of resolution.candidates) {
@@ -224,7 +218,6 @@ export function useTilawatiAudio(
     }
     if (token === generation) {
       activeAudio = null; activeSources = []; cancelPlayback = null;
-      soundManager.duckBgm(false);
       setIsPlaying(false);
       if (!success) setError(blocked ? "Ketuk Baca untuk memutar audio." : "Audio belum tersedia. Coba lagi saat koneksi pulih.");
     } else if (token !== generation) {

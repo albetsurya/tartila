@@ -38,12 +38,11 @@ export function useDoaDungeon() {
     if (!room) return current;
     if (entryId !== room.target.id) {
       const playerHp = Math.max(0, current.playerHp - 20);
-      playSfx("wrong");
       return { ...current, playerHp, combo: 0, status: "attacking", attack: { id: Date.now(), attacker: "monster", damage: 20 }, feedbackLeft: 0.9, outcome: playerHp <= 0 ? "defeat" : null, phase: "playing", feedback: playerHp <= 0 ? "Penjaga dungeon mengalahkanmu. HP kamu habis." : "Monster menyerang balik. Baca situasi dan doa dengan lebih teliti." };
     }
     const combo = current.combo + 1;
     const monsterHp = Math.max(0, current.monsterHp - 25);
-    playSfx(combo % 3 === 0 ? "combo" : "correct");
+    if (combo % 3 === 0) playSfx("combo");
     return { ...current, combo, monsterHp, score: current.score + 150 + combo * 30, status: "attacking", attack: { id: Date.now(), attacker: "player", damage: 25 }, feedbackLeft: 0.9, outcome: monsterHp <= 0 ? "victory" : null, feedback: monsterHp <= 0 ? "Monster dikalahkan! Baca doa ini sebelum turun ke lantai berikutnya." : "Serangan berhasil! Monster kehilangan HP." };
   }), [update]);
   const nextRoom = useCallback(() => update((current) => {

@@ -35,16 +35,26 @@
     <meta name="apple-mobile-web-app-title" content="Tartila" />
     <title>Tartila - Game Edukasi Mengaji</title>
 
-    <!-- Apply the persisted/OS theme before first paint to avoid a flash -->
+    <!-- Apply the persisted/OS/app theme before first paint to avoid FOUC -->
     <script>
       (function () {
         try {
-          var stored = localStorage.getItem("tartila-theme");
-          var prefersDark =
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var dark = stored ? stored === "dark" : prefersDark;
-          if (dark) document.documentElement.classList.add("dark");
+          var appTheme = localStorage.getItem("tartila_app_theme");
+          var storedTheme = localStorage.getItem("tartila-theme");
+
+          // Prioritas: App Theme (night/neon) atau Stored Theme (dark). Default: Light.
+          var dark =
+            storedTheme === "dark" ||
+            appTheme === "night" ||
+            appTheme === "neon";
+
+          if (dark) {
+            document.documentElement.classList.add("dark");
+            document.documentElement.style.backgroundColor = "#1E1B4B";
+          } else {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.style.backgroundColor = "#F0FDF4";
+          }
           document.documentElement.style.colorScheme = dark ? "dark" : "light";
         } catch (e) {}
       })();
