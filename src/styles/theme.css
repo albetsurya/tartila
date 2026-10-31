@@ -557,6 +557,54 @@
   --color-info: rgb(var(--c-info));
   --color-info-soft: rgb(var(--c-info-soft));
 
+  /* Semantic Colors (Tartila Edu-Brutalism: Sprint 1) */
+  --color-structure: #93c5fd;
+  --color-structure-light: #dbeafe;
+  --color-structure-dark: #1d4ed8;
+  --color-structure-subtle: #eff6ff;
+
+  --color-progress: #a7f3d0;
+  --color-progress-light: #d1fae5;
+  --color-progress-dark: #0d9488;
+  --color-progress-subtle: #f0fdf4;
+
+  --color-action: #fde047;
+  --color-action-light: #fef9c3;
+  --color-action-dark: #ca8a04;
+  --color-action-subtle: #fefce8;
+
+  --color-assessment: #fbcfe8;
+  --color-assessment-light: #fce7f3;
+  --color-assessment-dark: #db2777;
+  --color-assessment-subtle: #fdf2f8;
+
+  /* Ustadz Design System Semantic Tokens (USTADZ_PANEL_DESIGN.md Chapter 4) */
+  --color-ustadz-bg: #f8fafc;
+  --color-ustadz-surface: #ffffff;
+  --color-ustadz-surface-subtle: #f1f5f9;
+  --color-ustadz-border: #134e4a;
+  --color-ustadz-border-subtle: #dce5e3;
+  --color-ustadz-accent: #0d9488;
+  --color-ustadz-accent-soft: #ccfbf1;
+  --color-ustadz-text: #183b38;
+  --color-ustadz-text-muted: #64748b;
+  --color-ustadz-muted: #64748b;
+  --color-ustadz-danger: #b91c1c;
+  --color-ustadz-danger-soft: #fee2e2;
+  --color-ustadz-structure: #93c5fd;
+  --color-ustadz-progress: #a7f3d0;
+  --color-ustadz-action: #fde047;
+  --color-ustadz-assessment: #fbcfe8;
+
+  /* Fluid / Responsive Typography Tokens */
+  --text-caption: clamp(0.6875rem, 0.65rem + 0.2vw, 0.75rem);
+  --text-body-sm: clamp(0.8125rem, 0.78rem + 0.2vw, 0.875rem);
+  --text-body: clamp(0.9375rem, 0.9rem + 0.25vw, 1rem);
+  --text-heading-sm: clamp(1.125rem, 1.05rem + 0.4vw, 1.25rem);
+  --text-heading: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --text-heading-lg: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+  --text-heading-xl: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+
   /* Emerald Oasis brand scales */
   --color-emerald-50: #f0fdf4;
   --color-emerald-100: #dcfce7;

@@ -105,10 +105,36 @@ export function grantXp(xp: number): GameProgress {
 }
 
 export interface RankInfo {
-  title: string;
+  id: string;
   minXp: number;
   nextXp: number | null;
+  title: string;
+  color: string; // Tailwind class untuk background (misal: "bg-[#E2E8F0]")
+  text: string; // Tailwind class untuk teks (misal: "text-[#334155]")
 }
+
+export type RankId =
+  | "pejuang"
+  | "penjelajah"
+  | "pemburu"
+  | "pengembara"
+  | "pengawal"
+  | "ksatria"
+  | "prajurit-elite"
+  | "penakluk"
+  | "master"
+  | "grandmaster"
+  | "bintang-terang"
+  | "panglima"
+  | "pahlawan"
+  | "pahlawan-agung"
+  | "sang-juara"
+  | "sang-legenda"
+  | "raja-tartila"
+  | "kaisar-tartila"
+  | "mahkota-tartila"
+  | "legenda-tartila"
+  | "legenda";
 export interface LeaderboardEntry {
   id: string;
   name: string;
@@ -371,20 +397,36 @@ export async function syncNgajiCeriaProgress(): Promise<void> {
   }
 }
 
+// EKSPOR ARRAY INI AGAR BISA DIPAKAI DI FILE LAIN
+export const RANKS: RankInfo[] = [
+  { id: "pejuang", minXp: 0, nextXp: 500, title: "Pejuang", color: "bg-[#E2E8F0]", text: "text-[#334155]" },
+  { id: "penjelajah", minXp: 500, nextXp: 1500, title: "Penjelajah", color: "bg-[#CCFBF1]", text: "text-[#0F766E]" },
+  { id: "pemburu", minXp: 1500, nextXp: 3000, title: "Pemburu", color: "bg-[#DCFCE7]", text: "text-[#15803D]" },
+  { id: "pengembara", minXp: 3000, nextXp: 5000, title: "Pengembara", color: "bg-[#E0F2FE]", text: "text-[#0369A1]" },
+  { id: "pengawal", minXp: 5000, nextXp: 8000, title: "Pengawal", color: "bg-[#FEF3C7]", text: "text-[#B45309]" },
+  { id: "ksatria", minXp: 8000, nextXp: 12000, title: "Ksatria", color: "bg-[#FFE4E6]", text: "text-[#BE123C]" },
+  { id: "prajurit-elite", minXp: 12000, nextXp: 17000, title: "Prajurit Elite", color: "bg-[#EDE9FE]", text: "text-[#6D28D9]" },
+  { id: "penakluk", minXp: 17000, nextXp: 23000, title: "Penakluk", color: "bg-[#FEF08A]", text: "text-[#A16207]" },
+  { id: "master", minXp: 23000, nextXp: 30000, title: "Master", color: "bg-[#F3E8FF]", text: "text-[#6B21A8]" },
+  { id: "grandmaster", minXp: 30000, nextXp: 40000, title: "Grandmaster", color: "bg-[#DBEAFE]", text: "text-[#1D4ED8]" },
+  { id: "bintang-terang", minXp: 40000, nextXp: 52000, title: "Bintang Terang", color: "bg-[#FEF9C3]", text: "text-[#854D0E]" },
+  { id: "panglima", minXp: 52000, nextXp: 66000, title: "Panglima", color: "bg-[#CCFBF1]", text: "text-[#115E59]" },
+  { id: "pahlawan", minXp: 66000, nextXp: 82000, title: "Pahlawan", color: "bg-[#FED7AA]", text: "text-[#C2410C]" },
+  { id: "pahlawan-agung", minXp: 82000, nextXp: 100000, title: "Pahlawan Agung", color: "bg-[#FFEDD5]", text: "text-[#9A3412]" },
+  { id: "sang-juara", minXp: 100000, nextXp: 125000, title: "Sang Juara", color: "bg-[#FDE047]", text: "text-[#713F12]" },
+  { id: "sang-legenda", minXp: 125000, nextXp: 155000, title: "Sang Legenda", color: "bg-[#DDD6FE]", text: "text-[#4C1D95]" },
+  { id: "raja-tartila", minXp: 155000, nextXp: 190000, title: "Raja Tartila", color: "bg-[#FBCFE8]", text: "text-[#9D174D]" },
+  { id: "kaisar-tartila", minXp: 190000, nextXp: 230000, title: "Kaisar Tartila", color: "bg-[#BAE6FD]", text: "text-[#075985]" },
+  { id: "mahkota-tartila", minXp: 230000, nextXp: 300000, title: "Mahkota Tartila", color: "bg-[#FDE68A]", text: "text-[#78350F]" },
+  { id: "legenda-tartila", minXp: 300000, nextXp: null, title: "Legenda Tartila", color: "bg-[#FCA5A5]", text: "text-[#991B1B]" },
+];
+
 export function getRank(xp: number): RankInfo {
-  const ranks = [
-    { title: "Pemula", minXp: 0 },
-    { title: "Penjelajah", minXp: 251 },
-    { title: "Penghafal", minXp: 1001 },
-    { title: "Guru Muda", minXp: 3001 },
-    { title: "Ustadz Cilik", minXp: 7501 },
-  ];
   const current =
-    [...ranks].reverse().find((rank) => xp >= rank.minXp) ?? ranks[0];
-  const next = ranks.find((rank) => rank.minXp > current.minXp);
+    [...RANKS].reverse().find((rank) => xp >= rank.minXp) ?? RANKS[0];
+  const next = RANKS.find((rank) => rank.minXp > current.minXp);
   return { ...current, nextXp: next?.minXp ?? null };
 }
-
 export function awardProgress(
   gameId: string,
   score: number,

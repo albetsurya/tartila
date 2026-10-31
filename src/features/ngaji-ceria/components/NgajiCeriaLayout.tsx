@@ -67,25 +67,36 @@ export type HeaderBadgeKind = "heart" | "ticket" | "xp" | "coin";
 export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
   const path = pathname.replace(/\/$/, "");
 
+  // Halaman Utama Beranda: Sembunyikan XP (ada di hero section)
+  if (path === "/member/ngaji-ceria" || path === "/member/ngaji-ceria/") {
+    return ["heart", "ticket", "coin"];
+  }
+
   // Warung Santri: Koin -> Hati -> Tiket -> XP
   if (path.includes("/warung-santri") || path.includes("/warung")) {
     return ["coin", "heart", "ticket", "xp"];
   }
 
   // Kelas Saya (akademik/belajar): Hati
-  if (path.startsWith("/member/ngaji-ceria/kelas") || path.startsWith("/member/ngaji-ceria/kelas/")) {
+  if (
+    path.startsWith("/member/ngaji-ceria/kelas") ||
+    path.startsWith("/member/ngaji-ceria/kelas/")
+  ) {
     return ["heart", "coin", "xp"];
   }
 
-  // Quiz / Duel / Arena / Quiz Hub: Bagian HUB Game (tanpa Hati).
-  // Urutan: Tiket -> Koin -> XP
-  if (
-    path.startsWith("/quiz-hub") ||
-    path.includes("/quiz-hub") ||
-    path.includes("/quiz") ||
-    path.startsWith("/arena") ||
-    path.includes("/arena")
-  ) {
+  // Quiz Hub (tanpa Hati, dengan XP)
+  if (path.startsWith("/quiz-hub") || path.includes("/quiz-hub")) {
+    return ["ticket", "coin", "xp"];
+  }
+
+  // Quiz lain (tanpa Arena, tidak perlu XP)
+  if (path.includes("/quiz")) {
+    return ["ticket", "coin"];
+  }
+
+  // Arena (tanpa Hati, dengan XP)
+  if (path.startsWith("/arena") || path.includes("/arena")) {
     return ["ticket", "coin", "xp"];
   }
 
@@ -94,16 +105,15 @@ export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
     return ["coin", "xp", "heart", "ticket"];
   }
 
-  // HUB Game (/games/*): Tiket -> Koin (revisi: tidak perlu Hati, sembunyikan XP)
-  // Kecuali halaman utama Games (/member/ngaji-ceria/games atau /games) yang menampilkan FULL
+  // Halaman Games (/games/*): Tiket -> Koin -> XP (sembunyikan Hati untuk fokus bermain)
   if (
     path.startsWith("/games/") ||
     path.startsWith("/member/ngaji-ceria/games/")
   ) {
-    return ["ticket", "coin"];
+    return ["ticket", "coin", "xp"];
   }
 
-  // HUB Jelajah (/explore/*): Hati -> Koin -> XP (revisi: tidak perlu Tiket)
+  // HUB Jelajah (/explore/*): Hati -> Koin (sembunyikan Tiket & XP untuk fokus belajar)
   if (
     path.startsWith("/explore") ||
     path.includes("/explore") ||
@@ -113,10 +123,10 @@ export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
     path.includes("/path") ||
     path.includes("/lab-irama")
   ) {
-    return ["heart", "coin", "xp"];
+    return ["heart", "coin"];
   }
 
-  // Halaman Utama (/member/ngaji-ceria, /map, /games): Tampilkan FULL.
+  // Halaman Utama lain (/member/ngaji-ceria, /map, /games): Tampilkan FULL.
   // Urutan: Hati -> Tiket -> XP -> Koin
   return ["heart", "ticket", "xp", "coin"];
 }
@@ -134,6 +144,7 @@ interface NgajiCeriaLayoutProps {
   pageTip?: PageTipConfig;
   themeScope?: ThemeScope;
   immersiveRealm?: ImmersiveRealm;
+  hideBadges?: boolean;
 }
 
 function PageContentFallback() {
@@ -155,6 +166,7 @@ export function NgajiCeriaLayout({
   hideNav = false,
   hideHeader = false,
   showBack = true,
+  hideBadges = false,
   onBack,
   parentPath,
   rightAction,
@@ -275,7 +287,9 @@ export function NgajiCeriaLayout({
       {!hideHeader && !hideNav && (
         <header className="sticky top-0 z-[60] shrink-0 border-b border-[#134E4A]/15 bg-white/95 dark:bg-[#1E2937]/95 pt-safe text-[#134E4A] dark:text-white shadow-[0_2px_8px_rgba(19,78,74,0.05)] backdrop-blur-md transition-colors duration-200">
           <div className="relative z-10 mx-auto w-full max-w-md px-3 sm:max-w-3xl sm:px-6 lg:max-w-5xl">
-            <div className="flex min-h-12 items-center justify-between gap-2 py-1">
+            {/* SINGLE ROW: Back, Title, Badges, Notification */}
+            <div className="flex min-h-12 items-center justify-between gap-2 py-1.5">
+              {/* KIRI: Tombol Back & Judul */}
               <div className="flex min-w-0 shrink items-center gap-2">
                 {showBackButton && (
                   <button
@@ -283,125 +297,131 @@ export function NgajiCeriaLayout({
                     onClick={handleBack}
                     aria-label="Kembali ke halaman sebelumnya"
                     title="Kembali"
-                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white dark:bg-[#1E2937] text-[#134E4A] dark:text-white shadow-[2px_2px_0px_#134E4A] transition-transform hover:opacity-90 active:translate-y-0.5"
+                    className="flex h-8 w-8 min-h-[32px] min-w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 border-[#134E4A] bg-white dark:bg-[#1E2937] text-[#134E4A] dark:text-white shadow-[2px_2px_0px_#134E4A] transition-transform hover:opacity-90 active:translate-y-0.5"
                   >
-                    <ChevronLeftSvg size={20} />
+                    <ChevronLeftSvg size={18} />
                   </button>
                 )}
                 {title === "Tartila" && (
-                  <TartilaFaviconSvg variant="sticker" size={40} />
+                  <TartilaFaviconSvg variant="sticker" size={32} />
                 )}
                 <span
-                  className={`max-w-[160px] truncate font-display text-lg font-black tracking-tight text-[#134E4A] dark:text-white sm:max-w-[220px] sm:text-xl md:max-w-none ${title === "Tartila" ? "max-sm:hidden" : ""}`}
+                  className={`max-w-[120px] truncate font-display text-base font-black tracking-tight text-[#134E4A] dark:text-white sm:max-w-[200px] sm:text-lg ${title === "Tartila" ? "max-sm:hidden" : ""}`}
                 >
                   {title}
                 </span>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2">
-                {rightAction}
-                <NotificationBell
-                  userRole={userRole}
-                  className="relative z-10 shrink-0"
-                />
+              {/* KANAN: Badges & Notifikasi */}
+              <div className="flex shrink-0 items-center gap-1.5">
+                {/* Render Badges */}
+                {!hideBadges && !isUstadzAccount && (
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    {getHeaderBadgesForPath(location.pathname).map((badge) => {
+                      if (badge === "heart") {
+                        return (
+                          <div
+                            key="badge-heart"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#FFF0F0] text-[#134E4A]"
+                            }`}
+                            title={
+                              isUnlimited
+                                ? "Hati Tanpa Batas (Superadmin/VIP)"
+                                : `Hati: ${hearts}/5`
+                            }
+                          >
+                            <JuicyHeart size={14} value={hearts} />
+                            <span className="min-w-[1rem] text-center tabular-nums">
+                              {isUnlimited ? (
+                                "∞"
+                              ) : (
+                                <AnimatedCounter
+                                  value={hearts}
+                                  duration={0.4}
+                                />
+                              )}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (badge === "ticket") {
+                        return (
+                          <div
+                            key="badge-ticket"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#FEF3C7] text-[#134E4A]"
+                            }`}
+                            title={
+                              isUnlimited
+                                ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
+                                : `Tiket: ${tickets}/3`
+                            }
+                          >
+                            <TicketSvg size={14} />
+                            <span className="min-w-[1.2rem] text-center tabular-nums">
+                              {isUnlimited ? "∞" : `${tickets}/3`}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (badge === "xp") {
+                        return (
+                          <div
+                            key="badge-xp"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#CCFBF1] text-[#134E4A]"
+                            }`}
+                            title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
+                          >
+                            <MedalSvg size={14} className="text-[#0D9488]" />
+                            <span className="min-w-[2rem] text-center tabular-nums">
+                              <AnimatedCounter value={progress.xp} /> XP
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (badge === "coin") {
+                        return (
+                          <div
+                            key="badge-coin"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#FEF08A] text-[#134E4A]"
+                            }`}
+                            title={`Koin: ${currentCoins}`}
+                          >
+                            <JuicyCoin size={14} value={currentCoins} />
+                            <span className="min-w-[1.2rem] text-center tabular-nums">
+                              <AnimatedCounter value={currentCoins} />
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })}
+                  </div>
+                )}
+
+                {isMainTab && (
+                  <NotificationBell
+                    userRole={userRole}
+                    className="relative z-10 shrink-0 ml-0.5"
+                  />
+                )}
               </div>
             </div>
-
-            {!isUstadzAccount && (
-              <div className="no-scrollbar -mx-1 flex w-full flex-nowrap items-center justify-end gap-2 overflow-x-auto px-1 pb-2 pt-0.5">
-                {getHeaderBadgesForPath(location.pathname).map((badge) => {
-                  if (badge === "heart") {
-                    return (
-                      <div
-                        key="badge-heart"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
-                          isDarkTheme
-                            ? "bg-[#1E2937] text-white"
-                            : "bg-[#FFF0F0] text-[#134E4A]"
-                        }`}
-                        title={
-                          isUnlimited
-                            ? "Hati Tanpa Batas (Superadmin/VIP)"
-                            : `Hati: ${hearts}/5`
-                        }
-                      >
-                        <JuicyHeart size={17} value={hearts} />
-                        <span className="min-w-[1.5rem] text-center tabular-nums">
-                          {isUnlimited ? (
-                            "∞"
-                          ) : (
-                            <AnimatedCounter value={hearts} duration={0.4} />
-                          )}
-                        </span>
-                      </div>
-                    );
-                  }
-
-                  if (badge === "ticket") {
-                    return (
-                      <div
-                        key="badge-ticket"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
-                          isDarkTheme
-                            ? "bg-[#1E2937] text-white"
-                            : "bg-[#FEF3C7] text-[#134E4A]"
-                        }`}
-                        title={
-                          isUnlimited
-                            ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
-                            : `Tiket: ${tickets}/3`
-                        }
-                      >
-                        <TicketSvg size={17} />
-                        <span className="min-w-[1.8rem] text-center tabular-nums">
-                          {isUnlimited ? "∞" : `${tickets}/3`}
-                        </span>
-                      </div>
-                    );
-                  }
-
-                  if (badge === "xp") {
-                    return (
-                      <div
-                        key="badge-xp"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
-                          isDarkTheme
-                            ? "bg-[#1E2937] text-white"
-                            : "bg-[#CCFBF1] text-[#134E4A]"
-                        }`}
-                        title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
-                      >
-                        <MedalSvg size={17} className="text-[#0D9488]" />
-                        <span className="min-w-[2.6rem] text-center tabular-nums">
-                          <AnimatedCounter value={progress.xp} /> XP
-                        </span>
-                      </div>
-                    );
-                  }
-
-                  if (badge === "coin") {
-                    return (
-                      <div
-                        key="badge-coin"
-                        className={`inline-flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
-                          isDarkTheme
-                            ? "bg-[#1E2937] text-white"
-                            : "bg-[#FEF08A] text-[#134E4A]"
-                        }`}
-                        title={`Koin: ${currentCoins}`}
-                      >
-                        <JuicyCoin size={17} value={currentCoins} />
-                        <span className="min-w-[1.8rem] text-center tabular-nums">
-                          <AnimatedCounter value={currentCoins} />
-                        </span>
-                      </div>
-                    );
-                  }
-
-                  return null;
-                })}
-              </div>
-            )}
           </div>
         </header>
       )}

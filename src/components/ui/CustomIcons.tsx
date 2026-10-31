@@ -3176,6 +3176,7 @@ export const Settings = SettingsSvg;
 export const ChartLine = ChartLineSvg;
 export const LayerGroup = LayerGroupSvg;
 export const LayoutGrid = LayoutGridSvg;
+export const LayoutDashboard = LayoutGridSvg;
 export const Timer = TimerSvg;
 export const ScrollText = ScrollTextSvg;
 export const Plus = PlusSvg;
@@ -4651,6 +4652,8 @@ export const TargetSvg: React.FC<SvgProps> = ({
     <circle cx="12" cy="12" r="2" fill="var(--svg-primary)" />
   </svg>
 );
+
+export const Target = TargetSvg;
 
 export const ClockSvg: React.FC<SvgProps> = ({
   size = 24,

@@ -6,9 +6,12 @@ import {
   Trophy,
   Users,
   Check,
+  BookOpen,
+  Plus,
 } from "@/components/ui/CustomIcons";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
+import { StickerBadge } from "@/components/ui/StickerBadge";
 import { InputField } from "@/components/ui/InputField";
 import {
   listOwnedClassrooms,
@@ -16,9 +19,9 @@ import {
   joinClassroomByCode,
   type ClassroomRoom,
   type ClassroomParticipant,
+  normalizeJoinCode,
 } from "@/services/classroomService";
 import { classroomRoleForUser, isUstadzUser } from "@/lib/roles";
-import { normalizeJoinCode } from "@/services/classroomService";
 import {
   listClassroomActivities,
   getRoomFocusMateri,
@@ -26,7 +29,13 @@ import {
   listTodayAlerts,
   type TeacherAlert,
 } from "@/services/ustadzMonitoringService";
-import { listQuizzes, listQuizzesForRoom, listAttempts, averagePercentByQuiz, type QuizAverage } from "@/services/quizBankService";
+import {
+  listQuizzes,
+  listQuizzesForRoom,
+  listAttempts,
+  averagePercentByQuiz,
+  type QuizAverage,
+} from "@/services/quizBankService";
 import {
   coverageSummaryLine,
   coverageRecommendations,
@@ -47,7 +56,6 @@ export function UstadzDashboardPage() {
   const [ownedRooms, setOwnedRooms] = useState<ClassroomRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-
   const [quizCount, setQuizCount] = useState(0);
 
   useEffect(() => {
@@ -84,11 +92,11 @@ export function UstadzDashboardPage() {
     0,
   );
 
-  // Onboarding checklist: langkah awal pengajar (tanpa gamifikasi santri).
+  // Onboarding checklist langkah awal pengajar
   const checklist: { label: string; done: boolean }[] = [
     { label: "Buat Kelas Pertama", done: activeRooms.length > 0 },
     { label: "Undang Santri dengan Kode Join", done: totalSantri > 0 },
-    { label: "Buat Bank Kuis", done: quizCount > 0 },
+    { label: "Buat Bank Soal Kuis", done: quizCount > 0 },
   ];
   const checklistDone = checklist.filter((step) => step.done).length;
   const checklistPercent = Math.round(
@@ -103,7 +111,8 @@ export function UstadzDashboardPage() {
   const [alerts, setAlerts] = useState<TeacherAlert[]>([]);
 
   const monitorRoom =
-    activeRooms.find((room) => room.id === selectedRoomId) ?? activeRooms[0] ??
+    activeRooms.find((room) => room.id === selectedRoomId) ??
+    activeRooms[0] ??
     null;
 
   useEffect(() => {
@@ -113,10 +122,12 @@ export function UstadzDashboardPage() {
     let alive = true;
     const target =
       active.find((room) => room.id === selectedRoomId) ?? active[0];
+
     listTodayAlerts(target.id).then((todayAlerts) => {
       if (!alive) return;
       setAlerts(todayAlerts);
     });
+
     getClassroomDetail(target.id).then(async (detail) => {
       if (!detail.ok || !alive) {
         if (alive) {
@@ -176,400 +187,457 @@ export function UstadzDashboardPage() {
   };
 
   return (
-    <>
-      <div className="w-full max-w-6xl space-y-5">
-        <div className="flex items-center gap-3">
-          <span className="ustadz-accent-soft flex h-14 w-14 shrink-0 items-center justify-center rounded-full">
+    <div className="space-y-6">
+      {/* ── A. WELCOME HEADER (Edu-Brutalist Hero Card) ── */}
+      <div className="flex flex-col gap-4 rounded-2xl border-2 sm:border-3 border-[#134E4A] bg-[#FEF08A] p-5 shadow-[4px_4px_0px_#134E4A] md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
             <GraduationCap size={24} />
           </span>
           <div>
-            <h1 className="text-lg font-black text-[#134E4A]">
-              Assalamu'alaikum, {greetName}!
-            </h1>
-            <p className="text-xs font-bold text-[#134E4A]/70">
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-black tracking-tight text-[#134E4A] md:text-xl">
+                Assalamu'alaikum, {greetName}!
+              </h1>
+              <StickerBadge variant="primary" size="sm">
+                {isTeacher ? "Pengajar" : "Pemantau"}
+              </StickerBadge>
+            </div>
+            <p className="mt-0.5 text-xs font-bold text-[#134E4A]/80">
               {isTeacher
-                ? "Panel pengajar: kelola kelas dan santri di sini."
-                : "Mode pemantau: lihat kelas tanpa mengubah data."}
+                ? "Kelola kelas, santri, dan tinjau progres pembelajaran hari ini."
+                : "Mode pemantau: lihat aktivitas tanpa mengubah data."}
             </p>
           </div>
         </div>
 
+        {/* Quick Action CTA Buttons */}
         {isTeacher && (
-          <StickerCard className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-black text-[#134E4A]">
-                  Checklist Awal Mengajar
-                </p>
-                <p className="text-xs font-semibold text-[#134E4A]/70">
-                  Selesaikan tiga langkah ini untuk memulai kelas digitalmu.
-                </p>
-              </div>
-              <span
-                className={`text-xl font-black ${
-                  checklistPercent === 100
-                    ? "text-[#0D9488]"
-                    : "text-[#0A2540]"
-                }`}
-              >
-                {checklistPercent}%
-              </span>
-            </div>
-            <div className="mt-2 h-4 w-full overflow-hidden rounded-full border-[2.5px] border-[#0A2540] bg-[#F4F1EA]">
-              <div
-                className="h-full rounded-full bg-[#0D9488] transition-all duration-300"
-                style={{ width: `${Math.max(checklistPercent, 2)}%` }}
-              />
-            </div>
-            <ul className="mt-3 space-y-2">
-              {checklist.map((step) => (
-                <li key={step.label} className="flex items-center gap-3">
-                  <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-[2.5px] border-[#0A2540] text-[11px] font-black ${
-                      step.done
-                        ? "bg-[#0D9488] text-white"
-                        : "bg-white text-transparent"
-                    }`}
-                    aria-label={step.done ? "selesai" : "belum"}
-                  >
-                    {step.done ? <Check size={14} /> : null}
-                  </span>
-                  <span
-                    className={`text-xs font-black ${
-                      step.done
-                        ? "text-[#134E4A] line-through decoration-[#0D9488] decoration-2"
-                        : "text-[#134E4A]"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </StickerCard>
-        )}
-
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="rounded-2xl border-[3px] border-[#0A2540] bg-[#BBF7D0] p-4 shadow-[5px_5px_0_#0A2540]">
-              <Users size={20} />
-              <p className="mt-1 text-3xl font-black text-[#0A2540]">
-                {activeRooms.length}
-              </p>
-              <p className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
-                Total Kelas
-              </p>
-            </div>
-            <div className="rounded-2xl border-[3px] border-[#0A2540] bg-[#FEF08A] p-4 shadow-[5px_5px_0_#0A2540]">
-              <GraduationCap size={20} />
-              <p className="mt-1 text-3xl font-black text-[#0A2540]">
-                {totalSantri}
-              </p>
-              <p className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
-                Total Santri
-              </p>
-            </div>
-            <div className="rounded-2xl border-[3px] border-[#0A2540] bg-[#BFDBFE] p-4 shadow-[5px_5px_0_#0A2540]">
-              <Trophy size={20} />
-              <p className="mt-1 text-3xl font-black text-[#0A2540]">{quizCount}</p>
-              <p className="text-[11px] font-black uppercase tracking-wide text-[#0A2540]/70">
-                Total Kuis
-              </p>
-            </div>
-          </div>
-
-        {isTeacher && activeRooms.length === 0 && (
-          <StickerCard className="p-5 text-center">
-            <svg
-              viewBox="0 0 96 64"
-              aria-hidden="true"
-              className="mx-auto h-24 w-auto"
+          <div className="flex shrink-0 items-center gap-2">
+            <StickerButton
+              variant="outline"
+              size="sm"
+              icon={<Plus size={16} />}
+              onClick={() => navigate("/ustadz/kuis/baru")}
             >
-              <rect x="14" y="26" width="52" height="30" rx="4" fill="#BFDBFE" stroke="#0A2540" strokeWidth="3" />
-              <path d="M10 26l30-16 30 16" fill="#FEF08A" stroke="#0A2540" strokeWidth="3" strokeLinejoin="round" />
-              <rect x="34" y="38" width="12" height="18" fill="#0D9488" stroke="#0A2540" strokeWidth="2.5" />
-              <rect x="52" y="32" width="8" height="8" fill="#FFF7ED" stroke="#0A2540" strokeWidth="2" />
-              <rect x="20" y="32" width="8" height="8" fill="#FFF7ED" stroke="#0A2540" strokeWidth="2" />
-              <circle cx="80" cy="18" r="4" fill="#BBF7D0" stroke="#0A2540" strokeWidth="2" />
-              <circle cx="8" cy="46" r="3" fill="#FECACA" stroke="#0A2540" strokeWidth="2" />
-            </svg>
-            <p className="mt-2 text-sm font-black text-[#134E4A]">
-              Kamu belum punya kelas. Yuk buat kelas pertamamu!
-            </p>
-            <p className="mt-1 text-xs font-semibold text-[#134E4A]/70">
-              Atur santrimu, bagikan kode join, lalu mulai dari Kurikulum
-              Tilawati.
-            </p>
+              Buat Kuis
+            </StickerButton>
             <StickerButton
               variant="primary"
-              size="lg"
-              className="mt-4 w-full sm:w-auto"
+              size="sm"
+              icon={<Plus size={16} />}
               onClick={() => navigate("/ustadz/kelas/baru")}
             >
-              Buat Kelas Baru
+              Tambah Kelas
             </StickerButton>
-          </StickerCard>
+          </div>
         )}
+      </div>
 
-        {isTeacher && activeRooms.length > 0 && (
-          <StickerCard className="p-4">
-            <p className="text-xs font-black text-[#134E4A]">
-              Pantau Kelas
-            </p>
-            <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-              {activeRooms.map((room) => {
-                const selected = room.id === monitorRoom?.id;
-                return (
-                  <button
-                    key={room.id}
-                    type="button"
-                    onClick={() => setSelectedRoomId(room.id)}
-                    className={`shrink-0 rounded-xl border-[3px] border-[#0A2540] px-3 py-1.5 text-xs font-black transition-colors ${
-                      selected
-                        ? "bg-[#0D9488] text-white shadow-[3px_3px_0_#0A2540]"
-                        : "bg-white text-[#134E4A] hover:bg-[#F4F1EA]"
-                    }`}
-                  >
-                    {room.name}
-                  </button>
-                );
-              })}
+      {/* ── B. SUMMARY STATISTICS (Chapter 8B - Summary Cards) ── */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        {/* Total Kelas */}
+        <StickerCard variant="summary" className="p-4.5">
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#EFF6FF] text-[#1D4ED8] shadow-[1.5px_1.5px_0px_#134E4A]">
+              <BookOpen size={20} />
+            </span>
+            <span className="text-[11px] font-bold text-[#64748B]">Aktif</span>
+          </div>
+          <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
+            {activeRooms.length}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">Total Kelas</p>
+        </StickerCard>
+
+        {/* Total Santri */}
+        <StickerCard variant="summary" className="p-4.5">
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#F0FDF4] text-[#0D9488] shadow-[1.5px_1.5px_0px_#134E4A]">
+              <Users size={20} />
+            </span>
+            <span className="text-[11px] font-bold text-[#64748B]">Terdaftar</span>
+          </div>
+          <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
+            {totalSantri}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">Total Santri</p>
+        </StickerCard>
+
+        {/* Total Kuis */}
+        <StickerCard variant="summary" className="p-4.5">
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEFCE8] text-[#B45309] shadow-[1.5px_1.5px_0px_#134E4A]">
+              <Trophy size={20} />
+            </span>
+            <span className="text-[11px] font-bold text-[#64748B]">Tersedia</span>
+          </div>
+          <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
+            {quizCount}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">Bank Kuis</p>
+        </StickerCard>
+
+        {/* Perhatian Hari Ini */}
+        <StickerCard variant="summary" className="p-4.5">
+          <div className="flex items-center justify-between">
+            <span
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] ${
+                alerts.length > 0
+                  ? "bg-[#FFF0F0] text-[#B91C1C]"
+                  : "bg-[#F0FDF4] text-[#166534]"
+              }`}
+            >
+              <Check size={20} />
+            </span>
+            <StickerBadge
+              variant={alerts.length > 0 ? "warning" : "success"}
+              size="sm"
+            >
+              {alerts.length > 0 ? "Perlu Respon" : "Aman"}
+            </StickerBadge>
+          </div>
+          <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
+            {alerts.length}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">
+            Tugas / Perhatian
+          </p>
+        </StickerCard>
+      </div>
+
+      {/* ── C. ONBOARDING CHECKLIST (Jika belum 100%) ── */}
+      {isTeacher && checklistPercent < 100 && (
+        <StickerCard variant="data" className="p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <StickerBadge variant="info" size="sm">
+                  Langkah Awal
+                </StickerBadge>
+                <p className="text-sm font-bold text-[#183B38]">
+                  Persiapan Memulai Kelas Digital
+                </p>
+              </div>
+              <p className="mt-1 text-xs text-[#64748B]">
+                Selesaikan langkah berikut agar proses pembelajaran santri berjalan optimal.
+              </p>
             </div>
-          </StickerCard>
-        )}
+            <div className="flex items-center gap-2 font-black text-sm text-[#0D9488]">
+              <span>{checklistDone}/3 Selesai</span>
+              <span className="text-xs text-[#64748B]">({checklistPercent}%)</span>
+            </div>
+          </div>
 
-        {isTeacher && (
-          <div>
-            <h2 className="mb-2 text-sm font-black text-[#134E4A]">
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#E2E8F0]">
+            <div
+              className="h-full rounded-full bg-[#0D9488] transition-all duration-300"
+              style={{ width: `${checklistPercent}%` }}
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+            {checklist.map((step) => (
+              <div
+                key={step.label}
+                className={`flex items-center gap-2.5 rounded-xl border-2 p-3 text-xs font-black transition-all ${
+                  step.done
+                    ? "border-[#134E4A] bg-[#DCFCE7] text-[#15803D] shadow-[1.5px_1.5px_0px_#134E4A]"
+                    : "border-[#134E4A] bg-white text-[#134E4A]"
+                }`}
+              >
+                <span
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-[#134E4A] ${
+                    step.done
+                      ? "bg-[#15803D] text-white"
+                      : "bg-white"
+                  }`}
+                >
+                  {step.done ? <Check size={12} /> : null}
+                </span>
+                <span className={step.done ? "line-through opacity-80" : ""}>
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </StickerCard>
+      )}
+
+      {/* ── D. ATTENTION SECTION (Chapter 8D) ── */}
+      {isTeacher && alerts.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-extrabold tracking-tight text-[#183B38]">
               Perlu Perhatian Hari Ini
             </h2>
-            <div className="space-y-3">
-              {alerts.length === 0 ? (
-                <div className="flex items-center gap-3 rounded-2xl border-[3px] border-[#0A2540] bg-[#BBF7D0] p-4 shadow-[4px_4px_0_#0A2540]">
-                  <svg
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                    className="h-12 w-12 shrink-0"
-                  >
-                    <circle cx="24" cy="26" r="16" fill="#FEF08A" stroke="#0A2540" strokeWidth="3" />
-                    <path
-                      d="M24 17l2.6 5.3 5.9.9-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.9z"
-                      fill="#0A2540"
-                    />
-                    <path d="M14 8l1.4 2.8L18 12l-2.6 1.2L14 16l-1.4-2.8L10 12l2.6-1.2z" fill="#0D9488" stroke="#0A2540" strokeWidth="1.5" />
-                    <path d="M36 6l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#0D9488" stroke="#0A2540" strokeWidth="1.5" />
-                  </svg>
-                  <div>
-                    <p className="text-sm font-black text-[#134E4A]">
-                      Semua tertangani. Bagus, tidak ada tugas tertunda!
-                    </p>
-                    <p className="text-xs font-semibold text-[#134E4A]/70">
-                      Semua santri terpantau aman dan aktif.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                alerts.map((alert) => (
-                  <StickerCard
-                    key={alert.id}
-                    accent={alert.kind === "apresiasi" ? "deep-teal" : "coral"}
-                    asButton
-                    className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between"
-                    onClick={() => {
-                      if (alert.kind === "kuis-belum-dikerjakan") {
-                        navigate("/ustadz/kuis");
-                      } else if (alert.kind === "kurang-latihan") {
-                        navigate("/ustadz/laporan");
-                      } else {
-                        navigate("/ustadz/laporan");
-                      }
-                    }}
-                  >
-                    <p className="text-sm font-bold text-[#134E4A]">
-                      {alert.title}
-                    </p>
-                    <span
-                      className={`shrink-0 self-start rounded-xl border-[3px] border-[#0A2540] px-3 py-1.5 text-xs font-black shadow-[3px_3px_0_#0A2540] transition-transform hover:-translate-y-[1px] ${
-                        alert.kind === "apresiasi"
-                          ? "bg-[#BBF7D0] text-[#134E4A]"
-                          : alert.kind === "kurang-latihan"
-                            ? "bg-[#FEF08A] text-[#134E4A]"
-                            : "bg-[#BFDBFE] text-[#134E4A]"
-                      }`}
-                    >
-                      {alert.actionLabel}
-                    </span>
-                  </StickerCard>
-                ))
-              )}
-            </div>
+            <StickerBadge variant="danger" size="sm" dot>
+              {alerts.length} Notifikasi
+            </StickerBadge>
           </div>
-        )}
 
-        {isTeacher && activeRooms.length > 0 && (
-          <StickerCard className="p-4">
-            <p className="text-sm font-black text-[#134E4A]">
-              Cakupan Materi · {monitorRoom?.name ?? ""}
-            </p>
-            <p className="mt-1 text-xs font-semibold text-[#134E4A]/80">
-              {coverage.length > 0
-                ? coverageSummaryLine(coverage)
-                : "Memuat aktivitas…"}
-            </p>
-            {recommendations.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {recommendations.map((rec) => (
-                  <li
-                    key={rec}
-                    className="list-disc pl-4 text-[11px] font-bold text-[#FF6B6B]"
-                  >
-                    {rec}
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {alerts.map((alert) => (
+              <StickerCard
+                key={alert.id}
+                variant="attention"
+                accent={alert.kind === "apresiasi" ? "deep-teal" : "coral"}
+                className="flex items-center justify-between p-4"
+              >
+                <div className="min-w-0 pr-3">
+                  <p className="text-sm font-bold text-[#183B38]">{alert.title}</p>
+                  <p className="mt-0.5 text-xs text-[#64748B]">Tindakan pengajar diperlukan</p>
+                </div>
+                <StickerButton
+                  variant={alert.kind === "apresiasi" ? "secondary" : "danger"}
+                  size="sm"
+                  onClick={() => {
+                    if (alert.kind === "kuis-belum-dikerjakan") {
+                      navigate("/ustadz/kuis");
+                    } else {
+                      navigate("/ustadz/laporan");
+                    }
+                  }}
+                >
+                  {alert.actionLabel}
+                </StickerButton>
+              </StickerCard>
+            ))}
+          </div>
+        </div>
+      )}
 
-            <div className="mt-3 border-t-2 border-dashed border-[#134E4A]/30 pt-3">
-              <p className="text-xs font-black text-[#134E4A]">
-                Progress Baca Materi
-              </p>
-              {readCoverage.length > 0 ? (
-                <ul className="mt-1 space-y-1">
-                  {readCoverage.map((item) => (
-                    <li
-                      key={item.materiId}
-                      className="flex items-center justify-between text-[11px] font-semibold text-[#134E4A]/80"
-                    >
-                      <span>{item.label}</span>
-                      <span className="font-black text-[#0D9488]">
-                        {item.percent}%
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
-                  Belum ada data baca.
-                </p>
-              )}
-              {readCoverage.length > 0 && (
-                <p className="mt-1 text-[10px] font-bold text-[#134E4A]/60">
-                  {readCoverageSummaryLine(readCoverage[0])}
-                </p>
-              )}
+      {/* ── E. KELAS SAYA & MONITORING PROGRESS (Chapter 8E & 8F) ── */}
+      {isTeacher && activeRooms.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Kolom Kiri: Kelas Aktif (2 Span di Desktop) */}
+          <div className="space-y-3 lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-extrabold tracking-tight text-[#183B38]">
+                Daftar Kelas Aktif
+              </h2>
+              <button
+                type="button"
+                onClick={() => navigate("/ustadz/kelas")}
+                className="text-xs font-bold text-[#0D9488] hover:underline"
+              >
+                Lihat Semua ({activeRooms.length}) →
+              </button>
             </div>
 
-            <div className="mt-3 border-t-2 border-dashed border-[#134E4A]/30 pt-3">
-              <p className="text-xs font-black text-[#134E4A]">
-                Rata-rata Nilai Kuis
-              </p>
-              {quizAverages.length > 0 ? (
-                <ul className="mt-1 space-y-1">
-                  {quizAverages.map((item) => (
-                    <li
-                      key={item.quizId}
-                      className="flex items-center justify-between text-[11px] font-semibold text-[#134E4A]/80"
-                    >
-                      <span>
-                        {item.quizTitle}
-                        <span className="text-[10px] font-bold text-[#134E4A]/50">
-                          {" "}
-                          · {item.attemptCount} pengerjaan
-                        </span>
-                      </span>
-                      <span className="font-black text-[#0D9488]">
-                        {item.averagePercent}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
-                  Belum ada kuis yang dikerjakan santri.
-                </p>
-              )}
-            </div>
-          </StickerCard>
-        )}
-
-        {isTeacher && activeRooms.length > 0 && (
-          <div>
-            <h2 className="mb-2 text-sm font-black text-[#134E4A]">
-              Kelas Terbaru
-            </h2>
-            <div className="space-y-2">
-              {activeRooms.slice(0, 3).map((room) => (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {activeRooms.slice(0, 4).map((room) => (
                 <StickerCard
                   key={room.id}
-                  asButton
-                  className="p-3"
+                  variant="action"
+                  className="p-4"
                   onClick={() => navigate(`/ustadz/kelas/${room.id}`)}
                 >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-black text-[#134E4A]">
-                          {room.name}
-                        </p>
-                        <p className="text-xs font-semibold text-[#134E4A]/60">
-                          {room.participantCount}/{room.maxParticipants} anggota
-                          · Jilid {room.targetJilid}
-                        </p>
-                      </div>
-                      <span className="text-xs font-black text-[#0D9488]">
-                        {room.joinCode}
-                      </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-[#183B38]">
+                        {room.name}
+                      </p>
+                      <p className="mt-1 text-xs text-[#64748B]">
+                        {room.participantCount}/{room.maxParticipants} Santri · Jilid{" "}
+                        {room.targetJilid}
+                      </p>
                     </div>
-                  </StickerCard>
-                ))}
-              </div>
+                    <StickerBadge variant="info" size="sm" brutal>
+                      {room.joinCode}
+                    </StickerBadge>
+                  </div>
+                </StickerCard>
+              ))}
+            </div>
           </div>
-        )}
 
-        <StickerCard className="p-4">
-          <p className="text-sm font-black text-[#134E4A]">Gabung Kelas</p>
-          <p className="text-xs font-semibold text-[#134E4A]/70">
-            Punya kode dari pengajar lain? Masukkan di sini.
+          {/* Kolom Kanan: Cakupan Materi & Evaluasi Kuis (1 Span) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-extrabold tracking-tight text-[#183B38]">
+                Cakupan Materi
+              </h2>
+              {activeRooms.length > 1 && (
+                <select
+                  value={selectedRoomId || monitorRoom?.id}
+                  onChange={(e) => setSelectedRoomId(e.target.value)}
+                  className="rounded-lg border-2 border-[#134E4A] bg-white px-2 py-1 text-xs font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#134E4A] focus:outline-none"
+                  aria-label="Pilih kelas pemantauan"
+                >
+                  {activeRooms.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <StickerCard variant="data" className="p-4 space-y-4">
+              <div>
+                <p className="text-xs font-black text-[#183B38]">
+                  Status: {monitorRoom?.name}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-[#64748B]">
+                  {coverage.length > 0
+                    ? coverageSummaryLine(coverage)
+                    : "Memuat aktivitas…"}
+                </p>
+              </div>
+
+              {recommendations.length > 0 && (
+                <div className="rounded-xl border-2 border-[#134E4A] bg-[#FEFCE8] p-3 shadow-[1.5px_1.5px_0px_#134E4A]">
+                  <p className="text-xs font-black text-[#92400E]">Rekomendasi:</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {recommendations.map((rec) => (
+                      <li key={rec} className="text-[11px] font-bold text-[#B45309]">
+                        • {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Progress Baca */}
+              <div className="border-t-2 border-dashed border-[#134E4A]/20 pt-3">
+                <p className="text-xs font-black text-[#183B38]">
+                  Progres Baca Tilawati
+                </p>
+                {readCoverage.length > 0 ? (
+                  <div className="mt-2 space-y-1.5">
+                    {readCoverage.slice(0, 3).map((item) => (
+                      <div
+                        key={item.materiId}
+                        className="flex items-center justify-between text-xs font-semibold"
+                      >
+                        <span className="text-[#64748B]">{item.label}</span>
+                        <span className="font-black text-[#0D9488]">
+                          {item.percent}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-[#64748B]">
+                    Belum ada data bacaan santri.
+                  </p>
+                )}
+              </div>
+
+              {/* Rata-rata Kuis */}
+              <div className="border-t-2 border-dashed border-[#134E4A]/20 pt-3">
+                <p className="text-xs font-black text-[#183B38]">
+                  Rata-rata Nilai Kuis
+                </p>
+                {quizAverages.length > 0 ? (
+                  <div className="mt-2 space-y-1.5">
+                    {quizAverages.slice(0, 2).map((item) => (
+                      <div
+                        key={item.quizId}
+                        className="flex items-center justify-between text-xs font-semibold"
+                      >
+                        <span className="truncate pr-2 text-[#64748B]">
+                          {item.quizTitle}
+                        </span>
+                        <span className="font-black text-[#0D9488]">
+                          {item.averagePercent}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-[#64748B]">
+                    Belum ada santri yang menyelesaikan kuis.
+                  </p>
+                )}
+              </div>
+            </StickerCard>
+          </div>
+        </div>
+      )}
+
+      {/* ── EMPTY STATE KELAS ── */}
+      {isTeacher && activeRooms.length === 0 && (
+        <StickerCard variant="summary" className="p-8 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+            <BookOpen size={28} />
+          </span>
+          <p className="mt-3 text-base font-bold text-[#183B38]">
+            Belum Ada Kelas yang Aktif
           </p>
-          <form onSubmit={handleJoinByCode} className="mt-3 space-y-3">
+          <p className="mx-auto mt-1 max-w-md text-xs text-[#64748B]">
+            Mulai pembelajaran digital dengan membuka kelas baru, bagikan kode join
+            kepada santri, lalu pantau setoran bacaan Tilawati.
+          </p>
+          <div className="mt-4">
+            <StickerButton
+              variant="primary"
+              size="md"
+              icon={<Plus size={18} />}
+              onClick={() => navigate("/ustadz/kelas/baru")}
+            >
+              Buat Kelas Pertama
+            </StickerButton>
+          </div>
+        </StickerCard>
+      )}
+
+      {/* ── GABUNG KELAS DENGAN KODE ── */}
+      <StickerCard variant="data" className="p-5 max-w-xl">
+        <div className="flex items-center gap-2">
+          <StickerBadge variant="neutral" size="sm">
+            Kode Undangan
+          </StickerBadge>
+          <p className="text-sm font-bold text-[#183B38]">
+            Gabung Sebagai Pengajar Tambahan
+          </p>
+        </div>
+        <p className="mt-1 text-xs text-[#64748B]">
+          Menerima kode kelas dari ustadz/pengajar lain? Masukkan kode 6 karakter di sini.
+        </p>
+        <form onSubmit={handleJoinByCode} className="mt-3 flex gap-2">
+          <div className="flex-1">
             <InputField
-              placeholder="Kode (6 karakter)"
+              placeholder="Masukkan 6 digit kode kelas"
               maxLength={8}
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
               autoCapitalize="characters"
+              error={joinError}
             />
-            {joinError && (
-              <p className="text-xs font-bold text-[#FF6B6B]">{joinError}</p>
-            )}
+          </div>
+          <div className="shrink-0 pt-0.5">
             <StickerButton
               type="submit"
               variant="primary"
-              size="sm"
+              size="md"
               loading={joining}
               disabled={normalizeJoinCode(joinCode).length !== 6}
-              fullWidth
             >
               Gabung
             </StickerButton>
-          </form>
-        </StickerCard>
+          </div>
+        </form>
+      </StickerCard>
 
-        {loading && (
-          <p className="text-center text-xs font-bold text-[#134E4A]/60">
-            Memuat kelas…
-          </p>
-        )}
-        {loadError && (
-          <p className="text-center text-xs font-bold text-[#FF6B6B]">
-            {loadError}
-          </p>
-        )}
+      {/* Status Loading / Error */}
+      {loading && (
+        <p className="py-6 text-center text-xs text-[#64748B]">
+          Memuat data dashboard…
+        </p>
+      )}
+      {loadError && (
+        <p className="py-6 text-center text-xs font-semibold text-[#B91C1C]">
+          {loadError}
+        </p>
+      )}
 
-        {!isTeacher && !isUstadzUser(user) && (
-          <p className="text-center text-xs font-bold text-[#134E4A]/70">
-            Anda masuk sebagai pemantau (admin). Data kelas hanya bisa dilihat.
-          </p>
-        )}
-      </div>
-    </>
+      {!isTeacher && !isUstadzUser(user) && (
+        <p className="text-center text-xs text-[#64748B]">
+          Anda masuk sebagai mode pemantau (admin). Data kelas hanya dapat dilihat.
+        </p>
+      )}
+    </div>
   );
 }

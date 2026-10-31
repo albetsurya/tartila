@@ -211,7 +211,6 @@ export default function NgajiCeriaGamesPage() {
     const filtered = activeGames.filter((g) => {
       if (!g.is_active) return false;
       if (g.parent_hub_id && g.display_type !== "standalone") return false;
-      if (canonicalGameId(g.game_id) === "quiz-hub") return false;
       return true;
     });
     const sorted = [...filtered].sort(

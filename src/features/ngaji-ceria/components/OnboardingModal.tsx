@@ -78,7 +78,7 @@ export function OnboardingModal({
     setPage([currentSlide + newDirection, newDirection]);
   };
 
-  // 3 Slides Santri (Ditambah Ikon Dekorasi)
+  // 3 Slides Santri (Disesuaikan dengan fitur aktif)
   const santriSlides = [
     {
       title: "Belajar Al-Qur'an Lebih Asyik",
@@ -92,8 +92,8 @@ export function OnboardingModal({
       iconColor: "text-[#0D9488]",
     },
     {
-      title: "Bermain Kuis & Game Edukatif",
-      desc: "Uji ketangkasan membaca lewat belasan mini-game: Hijaiyah Pop, Tajwid Tetris, Ayat Hunter, dan Doa Dungeon.",
+      title: "Bermain Game & Kumpulkan XP",
+      desc: "Uji ketangkasanmu lewat mini-game seru: Hijaiyah Harvest, Harakat Slasher, Ayat Scramble, dan Hijaiyah 2048!",
       badge: "Langkah 2: Bermain",
       speech: "Kumpulkan skor tertinggi!",
       mood: "happy" as const,
@@ -103,8 +103,8 @@ export function OnboardingModal({
       iconColor: "text-[#D97706]",
     },
     {
-      title: "Tartila Arena via PIN 6-Digit",
-      desc: "Tantang teman sekelas dalam kuis multiplayer real-time! Masukkan PIN dari Ustadz dan rebut podium juara.",
+      title: "Tantang Teman di Arena & Duel",
+      desc: "Main bareng di Tartila Arena via PIN, atau tantang temanmu 1 lawan 1 di fitur Duel. Rebut posisi teratas di Leaderboard!",
       badge: "Langkah 3: Bertanding",
       speech: "Siap jadi juara Tartila?",
       mood: "excited" as const,
@@ -115,11 +115,11 @@ export function OnboardingModal({
     },
   ];
 
-  // 3 Slides Ustadz
+  // 3 Slides Ustadz (Disesuaikan dengan fitur kelas & audit)
   const ustadzSlides = [
     {
-      title: "Manajemen Kelas & Pembelajaran",
-      desc: "Pantau perkembangan mengaji santri secara terpusat, atur kurikulum Tilawati, dan rekam riwayat bacaan.",
+      title: "Manajemen Kelas Terpusat",
+      desc: "Atur kurikulum Tartila, pantau perkembangan santri, dan kelola ruang kelas belajar Tartila dengan mudah.",
       badge: "Langkah 1: Kelas",
       speech: "Ahlan wa Sahlan, Ustadz!",
       mood: "happy" as const,
@@ -130,7 +130,7 @@ export function OnboardingModal({
     },
     {
       title: "Ujian Real-Time & Anti-Cheat",
-      desc: "Buka room ujian resmi (UTS/UKK). Sistem otomatis mendeteksi santri yang berpindah tab dan mengacak urutan soal.",
+      desc: "Buka Room Ujian resmi. Sistem otomatis mendeteksi santri yang mencoba curang (pindah tab) dan mengacak urutan soal.",
       badge: "Langkah 2: Evaluasi",
       speech: "Evaluasi adil & objektif.",
       mood: "thinking" as const,
@@ -140,10 +140,10 @@ export function OnboardingModal({
       iconColor: "text-[#7C3AED]",
     },
     {
-      title: "Laporan & Cetak Rapor PDF",
-      desc: "Dapatkan analisis rata-rata penguasaan Tilawati & Tajwid santri, lalu unduh dokumen rapor PDF ber-KOP resmi dalam satu klik.",
-      badge: "Langkah 3: Rapor",
-      speech: "Rapor rapi siap cetak!",
+      title: "Matriks & Laporan Santri",
+      desc: "Dapatkan analisis hasil belajar santri, pantau audit aktivitas, dan lihat rekapitulasi kuis dalam satu dashboard terpusat.",
+      badge: "Langkah 3: Laporan",
+      speech: "Pantau progres santri!",
       mood: "excited" as const,
       animation: "bounce" as const,
       color: "bg-[#FEF08A]",
@@ -248,7 +248,7 @@ export function OnboardingModal({
             </motion.div>
           ) : (
             /* ========================================================
-               STEP 1-3: SLIDES PANDUAN (ANIMASI GESER)
+               STEP 1-3: SLIDES PANDUAN (MASCOT GUIDE STYLE)
                ======================================================== */
             <motion.div
               key="slides"
@@ -271,7 +271,7 @@ export function OnboardingModal({
               </div>
 
               {/* Konten Slide dengan Animasi Framer Motion */}
-              <div className="relative overflow-hidden min-h-[280px]">
+              <div className="relative overflow-hidden min-h-[280px] flex items-center">
                 <AnimatePresence custom={direction} mode="wait">
                   <motion.div
                     key={currentSlide}
@@ -284,39 +284,62 @@ export function OnboardingModal({
                       x: { type: "spring", stiffness: 300, damping: 30 },
                       opacity: { duration: 0.2 },
                     }}
-                    className="flex flex-col items-center absolute w-full"
+                    className="w-full flex flex-col md:flex-row items-center gap-6 md:gap-8 px-2"
                   >
-                    {/* Ikon Dekorasi Melayang */}
-                    <motion.div
-                      animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                      transition={{ repeat: Infinity, duration: 4 }}
-                      className={`absolute top-0 left-4 w-12 h-12 rounded-2xl border-[2px] border-[#134E4A] flex items-center justify-center shadow-[2px_2px_0px_#134E4A] ${slides[currentSlide].color}`}
-                    >
-                      <CurrentIcon
-                        size={24}
-                        className={slides[currentSlide].iconColor}
+                    {/* Area Maskot & Ikon Melayang */}
+                    <div className="relative shrink-0 flex flex-col items-center justify-center">
+                      <motion.div
+                        animate={{ y: [0, -8, 0], rotate: [0, 5, -5, 0] }}
+                        transition={{ repeat: Infinity, duration: 4 }}
+                        className={`absolute -top-4 -right-4 z-20 w-10 h-10 rounded-xl border-[2px] border-[#134E4A] flex items-center justify-center shadow-[2px_2px_0px_#134E4A] ${slides[currentSlide].color}`}
+                      >
+                        <CurrentIcon
+                          size={20}
+                          className={slides[currentSlide].iconColor}
+                        />
+                      </motion.div>
+
+                      <TilaMascot
+                        size={110}
+                        mood={slides[currentSlide].mood}
+                        animation={slides[currentSlide].animation}
+                        direction="front"
                       />
-                    </motion.div>
 
-                    <TilaMascot
-                      size={100}
-                      mood={slides[currentSlide].mood}
-                      animation={slides[currentSlide].animation}
-                      direction="front"
-                      speech={slides[currentSlide].speech}
-                    />
+                      {/* Panah Penunjuk (Hanya muncul di Desktop) */}
+                      <motion.div
+                        animate={{ x: [0, 8, 0] }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1.5,
+                          ease: "easeInOut",
+                        }}
+                        className="hidden md:block absolute -right-6 top-1/2 -translate-y-1/2 text-[#134E4A] z-10"
+                      >
+                        <ArrowRight size={28} strokeWidth={3} />
+                      </motion.div>
+                    </div>
 
-                    <h2 className="mt-6 font-display text-xl md:text-2xl font-black text-[#134E4A]">
-                      {slides[currentSlide].title}
-                    </h2>
-                    <p className="mt-2 text-xs md:text-sm font-bold text-[#134E4A]/80 max-w-md leading-relaxed">
-                      {slides[currentSlide].desc}
-                    </p>
+                    {/* Balon Teks (Speech Bubble) */}
+                    <div className="relative bg-white border-[3px] border-[#134E4A] p-4 md:p-5 rounded-2xl shadow-[4px_4px_0px_#134E4A] text-left w-full">
+                      {/* Ekor Balon Percakapan (Desktop) */}
+                      <div className="hidden md:block absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-l-[3px] border-b-[3px] border-[#134E4A] rotate-45" />
+
+                      {/* Ekor Balon Percakapan (Mobile) */}
+                      <div className="md:hidden absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-t-[3px] border-l-[3px] border-[#134E4A] rotate-45" />
+
+                      <h2 className="font-display text-lg md:text-xl font-black text-[#134E4A]">
+                        {slides[currentSlide].title}
+                      </h2>
+                      <p className="mt-2 text-xs md:text-sm font-bold text-[#134E4A]/80 leading-relaxed">
+                        {slides[currentSlide].desc}
+                      </p>
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              {/* Dots Indicator (Bisa diklik) */}
+              {/* Dots Indicator */}
               <div className="flex justify-center items-center gap-2 pt-2">
                 {slides.map((_, idx) => (
                   <button

@@ -26,6 +26,7 @@ import { AppThemeSettingsModal } from "../components/AppThemeSettingsModal";
 import { ReferralSection } from "../components/ReferralSection";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import "./games/_shared/games.css";
+import { RankJourneyModal } from "../components/RankJourneyModal";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import {
   AvatarSantriSvg,
@@ -67,6 +68,8 @@ import {
   BookOpenSvg,
   GamepadSvg,
 } from "@/components/ui/CustomIcons";
+import { AnimatedProgressBar } from "@/components/ui";
+import RankBadgeSvg from "@/components/ui/RankBadgeSvg";
 
 // Custom Icon Kamera bergaya Neo-Brutalism (Dapat dipindahkan ke CustomIcons.tsx)
 
@@ -145,6 +148,15 @@ export default function NgajiCeriaProfilePage() {
   const effectiveStreak = Math.max(loginStreak, currentStreak);
   const progress = useNgajiProgress();
   const rank = getRank(progress.xp);
+  const currentXp = progress.xp;
+  const nextXp = rank.nextXp || currentXp;
+  const xpProgressPercentage =
+    nextXp > rank.minXp
+      ? Math.min(
+          100,
+          Math.max(0, ((currentXp - rank.minXp) / (nextXp - rank.minXp)) * 100),
+        )
+      : 100;
   const { currentJilid } = useNgajiCeriaProgress();
   const currentJilidNumber = Number(currentJilid.replace("jilid-", "")) || 1;
 
@@ -197,7 +209,10 @@ export default function NgajiCeriaProfilePage() {
         const lastAt = res?.last_feedback_prompt_at;
         if (lastAt) {
           const then = new Date(lastAt).getTime();
-          if (!Number.isNaN(then) && Date.now() - then < FEEDBACK_PROMPT_CADENCE_MS) {
+          if (
+            !Number.isNaN(then) &&
+            Date.now() - then < FEEDBACK_PROMPT_CADENCE_MS
+          ) {
             localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
             return;
           }
@@ -334,6 +349,7 @@ export default function NgajiCeriaProfilePage() {
   }, [progress.achievements, stars, datasets]);
 
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [isRankModalOpen, setIsRankModalOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
@@ -630,26 +646,11 @@ export default function NgajiCeriaProfilePage() {
                   Petualangan Ceria
                 </h3>
               </div>
-              <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                {/* Kartu 1: Rank & XP */}
-                <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[#134E4A] bg-white px-2.5 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:gap-2.5 sm:px-3">
-                  <MedalSvg
-                    size={20}
-                    className="shrink-0 text-[#134E4A]"
-                    stroke="#134E4A"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-black leading-tight text-[#134E4A] sm:text-[15px]">
-                      {rank.title}
-                    </p>
-                    <p className="mt-0.5 text-[10px] font-black uppercase leading-none text-[#134E4A]/60 sm:text-[11px]">
-                      {progress.xp} XP
-                    </p>
-                  </div>
-                </div>
 
-                {/* Kartu 2: Bintang */}
-                <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[#134E4A] bg-white px-2.5 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:gap-2.5 sm:px-3">
+              {/* GRID 2x2 (Simetris) */}
+              <section className="grid grid-cols-2 gap-2.5">
+                {/* Kartu 1: Bintang */}
+                <div className="flex min-w-0 items-center gap-2.5 rounded-xl border-2 border-[#134E4A] bg-white px-3 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                   <StarSvg
                     size={20}
                     className="shrink-0 text-[#134E4A]"
@@ -665,8 +666,8 @@ export default function NgajiCeriaProfilePage() {
                   </div>
                 </div>
 
-                {/* Kartu 3: Koin */}
-                <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[#134E4A] bg-white px-2.5 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:gap-2.5 sm:px-3">
+                {/* Kartu 2: Koin */}
+                <div className="flex min-w-0 items-center gap-2.5 rounded-xl border-2 border-[#134E4A] bg-white px-3 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                   <CoinsSvg
                     size={20}
                     className="shrink-0 text-[#134E4A]"
@@ -682,8 +683,8 @@ export default function NgajiCeriaProfilePage() {
                   </div>
                 </div>
 
-                {/* Kartu 4: Hati */}
-                <div className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-[#134E4A] bg-white px-2.5 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:gap-2.5 sm:px-3">
+                {/* Kartu 3: Hati */}
+                <div className="flex min-w-0 items-center gap-2.5 rounded-xl border-2 border-[#134E4A] bg-white px-3 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                   <HeartSvg
                     size={20}
                     className="shrink-0 text-[#134E4A]"
@@ -699,8 +700,8 @@ export default function NgajiCeriaProfilePage() {
                   </div>
                 </div>
 
-                {/* Kartu 5: Tiket */}
-                <div className="col-span-2 flex min-w-0 items-center gap-2 rounded-xl border-2 border-[#134E4A] bg-white px-2.5 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:col-span-1 sm:gap-2.5 sm:px-3">
+                {/* Kartu 4: Tiket */}
+                <div className="flex min-w-0 items-center gap-2.5 rounded-xl border-2 border-[#134E4A] bg-white px-3 py-3 text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
                   <TicketSvg
                     size={20}
                     className="shrink-0 text-[#134E4A]"
@@ -716,6 +717,45 @@ export default function NgajiCeriaProfilePage() {
                   </div>
                 </div>
               </section>
+
+              {/* XP PROGRESS BAR (Full Width di Bawah Grid) */}
+              <div
+                className="mt-2.5 flex cursor-pointer items-center gap-3 rounded-xl border-2 border-[#134E4A] bg-white px-3 py-3 shadow-[2px_2px_0px_#134E4A] transition-transform active:scale-95 sm:gap-4 sm:px-4"
+                onClick={() => setIsRankModalOpen(true)}
+              >
+                {/* Ilustrasi Rank di Kiri */}
+                <div className="shrink-0">
+                  <RankBadgeSvg
+                    rankId={rank.id as any}
+                    size={52}
+                    isActive={true} // Agar muncul pita oranye di bawah medali
+                  />
+                </div>
+
+                {/* Teks & Progress Bar di Kanan */}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-xs font-black sm:text-sm">
+                      {/* Ikon medali kecil opsional, bisa dihapus jika dirasa dobel */}
+                      Pangkat: {rank.title}
+                    </span>
+                    <span className="text-[10px] font-black uppercase text-[#134E4A]/60 sm:text-[11px]">
+                      {currentXp} / {nextXp} XP
+                    </span>
+                  </div>
+
+                  <AnimatedProgressBar
+                    value={xpProgressPercentage}
+                    barClassName="bg-[#F59E0B]"
+                    className="h-2.5 w-full rounded-full border-2 border-[#134E4A] bg-[#F0FDF4]"
+                  />
+
+                  <p className="mt-1.5 text-[10px] font-bold text-[#134E4A]/60 sm:text-[11px]">
+                    Sisa {Math.max(0, nextXp - currentXp)} XP lagi menuju
+                    pangkat selanjutnya!
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* B. Blok "Kurikulum Tilawati" (Belajar) */}
@@ -1694,6 +1734,12 @@ export default function NgajiCeriaProfilePage() {
       <AppThemeSettingsModal
         isOpen={isThemeModalOpen}
         onClose={() => setIsThemeModalOpen(false)}
+      />
+
+      {/* Rank Journey Modal */}
+      <RankJourneyModal
+        isOpen={isRankModalOpen}
+        onClose={() => setIsRankModalOpen(false)}
       />
     </NgajiCeriaLayout>
   );

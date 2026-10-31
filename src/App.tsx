@@ -76,6 +76,11 @@ const UstadzRoomDetailPage = lazy(() =>
     default: m.UstadzRoomDetailPage,
   })),
 );
+const UstadzLearningPage = lazy(() =>
+  import("./features/ustadz/pages/UstadzLearningPage").then((m) => ({
+    default: m.UstadzLearningPage,
+  })),
+);
 const UstadzKurikulumPage = lazy(() =>
   import("./features/ustadz/pages/UstadzKurikulumPage").then((m) => ({
     default: m.UstadzKurikulumPage,
@@ -977,15 +982,16 @@ function AppRoutesContent() {
         <Route path="/ustadz" element={<UstadzRouteGuard />}>
           <Route element={<UstadzLayout />}>
             <Route index element={<UstadzDashboardPage />} />
+            <Route path="dashboard" element={<UstadzDashboardPage />} />
             <Route path="kelas" element={<UstadzRoomsPage />} />
             <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
             <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
-            <Route path="kurikulum" element={<UstadzKurikulumPage />} />
+            <Route path="kurikulum" element={<UstadzLearningPage />} />
             <Route
               path="preview/:materialId"
               element={<UstadzMaterialPreviewPage />}
             />
-            <Route path="kuis" element={<UstadzQuizListPage />} />
+            <Route path="kuis" element={<UstadzLearningPage />} />
             <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
             <Route path="laporan" element={<UstadzStudentReportPage />} />
             <Route path="profil" element={<UstadzProfilPage />} />

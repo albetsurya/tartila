@@ -355,13 +355,13 @@ function TilawatiPreview({
       {currentPageData ? (
         <div className="space-y-4">
           {/* Header Judul Halaman */}
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A]">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-3">
+          <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-[#134E4A]/20 pb-3">
               <div>
                 <span className="rounded-lg border-2 border-[#134E4A] bg-[#CCFBF1] px-2 py-0.5 text-[10px] font-black uppercase text-[#0F766E]">
                   Jilid {jilid} — Halaman {page}
                 </span>
-                <h3 className="mt-1 text-base font-black text-[#134E4A]">
+                <h3 className="mt-1 text-base font-black text-[#183B38]">
                   {currentPageData.title}
                 </h3>
               </div>
@@ -382,7 +382,7 @@ function TilawatiPreview({
               return (
                 <div
                   key={q.id ?? idx}
-                  className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition-colors hover:border-[#0D9488]"
+                  className="rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition-all"
                 >
                   <div className="flex items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-2">
                     <div className="flex items-center gap-2">
@@ -485,7 +485,7 @@ function TilawatiPreview({
           <div className="flex items-center gap-2">
             <Lightbulb size={18} className="text-[#B45309]" />
             <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
-              Tips Membimbing Santri (Kurikulum Tilawati)
+              Tips Membimbing Santri (Kurikulum Tartila)
             </h4>
           </div>
           <ul className="mt-2 space-y-1.5">
@@ -550,32 +550,32 @@ function TajwidPreview({ entry, onPlayAudio, playingUrl }: TajwidPreviewProps) {
       {/* Detail Kaidah Tajwid Terpilih */}
       {currentRule && (
         <div className="space-y-4">
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-3">
+          <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-[#134E4A]/20 pb-3">
               <div>
-                <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
+                <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#B45309]">
                   {currentRule.kaidah}
                 </span>
-                <h3 className="mt-1 text-lg font-black text-[#134E4A]">
+                <h3 className="mt-1 text-lg font-black text-[#183B38]">
                   {currentRule.title}
                 </h3>
               </div>
-              <span className="rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E]">
+              <span className="rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E] shadow-[1.5px_1.5px_0px_#134E4A]">
                 Cara Baca: {currentRule.caraBaca}
               </span>
             </div>
 
-            <p className="mt-3 text-xs font-semibold leading-relaxed text-[#134E4A]/80">
+            <p className="mt-3 text-xs font-semibold leading-relaxed text-[#475569]">
               {currentRule.note}
             </p>
 
-            <div className="mt-4 rounded-xl border-2 border-[#134E4A] bg-[#FEF9C3] p-3">
-              <p className="text-[10px] font-black uppercase text-[#7C2D12]">
+            <div className="mt-4 rounded-xl border-2 border-[#134E4A] bg-[#FFFBEB] p-3 shadow-[1.5px_1.5px_0px_#134E4A]">
+              <p className="text-[10px] font-black uppercase text-[#B45309]">
                 Huruf-Huruf Tajwid:
               </p>
               <p
                 dir="rtl"
-                className="font-arabic mt-1 text-xl font-bold text-[#7C2D12]"
+                className="font-arabic mt-1 text-xl font-bold text-[#B45309]"
               >
                 {currentRule.huruf}
               </p>
@@ -583,8 +583,8 @@ function TajwidPreview({ entry, onPlayAudio, playingUrl }: TajwidPreviewProps) {
           </div>
 
           {/* Contoh-Contoh Bacaan */}
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
+          <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#183B38]">
               Contoh Penerapan Ayat ({currentRule.examples.length} Contoh)
             </h4>
 
@@ -730,14 +730,14 @@ function DoaPreview({ entry, onPlayAudio, playingUrl }: DoaPreviewProps) {
           return (
             <div
               key={doa.id}
-              className="flex flex-col justify-between rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A]"
+              className="flex flex-col justify-between rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-2">
                   <h4 className="text-sm font-black text-[#134E4A]">
                     {doa.title}
                   </h4>
-                  <span className="shrink-0 rounded-md border border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black text-[#7C2D12]">
+                  <span className="shrink-0 rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black text-[#7C2D12]">
                     {doa.category}
                   </span>
                 </div>
@@ -860,13 +860,13 @@ function JuzAmmaPreview({ entry, onPlayAudio, playingUrl }: JuzAmmaPreviewProps)
 
       {/* Detail Surah Terpilih */}
       {currentSurah && (
-        <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
+        <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#134E4A]/10 pb-3">
             <div>
               <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
                 Surah Ke-{currentSurah.number}
               </span>
-              <h3 className="mt-1 text-xl font-black text-[#134E4A]">
+              <h3 className="mt-1 text-xl font-black text-[#183B38]">
                 Surah {currentSurah.name}
               </h3>
               <p className="text-xs font-bold text-[#134E4A]/70">
@@ -942,13 +942,13 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
   if (customQuiz) {
     return (
       <div className="space-y-4">
-        <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
+        <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-3">
             <div>
               <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
                 Kuis Bank Ustadz
               </span>
-              <h3 className="mt-1 text-lg font-black text-[#134E4A]">
+              <h3 className="mt-1 text-lg font-black text-[#183B38]">
                 {customQuiz.title}
               </h3>
             </div>
@@ -999,7 +999,7 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
+      <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-3">
           <div>
             <div className="flex items-center gap-2">
@@ -1073,7 +1073,7 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
               </div>
             ) : (
               <p className="mt-1 text-xs font-semibold text-[#134E4A]/60">
-                Materi pengayaan fleksibel (tidak terikat jilid Tilawati tertentu).
+                Materi pengayaan fleksibel (tidak terikat jilid Tartila tertentu).
               </p>
             )}
           </div>
@@ -1239,14 +1239,14 @@ export function UstadzMaterialPreviewPage() {
       </div>
 
       {/* 2. Informasi Banner Ustadz */}
-      <div className="mb-6 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] p-4 shadow-[3px_3px_0px_#134E4A]">
+      <div className="mb-6 rounded-2xl border-2 border-[#134E4A] bg-[#FFFBEB] p-4 shadow-[3px_3px_0px_#134E4A]">
         <div className="flex items-start gap-3">
           <Info size={20} className="mt-0.5 shrink-0 text-[#B45309]" />
           <div>
-            <p className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
+            <p className="text-xs font-black uppercase tracking-wider text-[#9A3412]">
               Mode Pratinjau Pengajar (Teacher View)
             </p>
-            <p className="mt-0.5 text-xs font-semibold leading-relaxed text-[#7C2D12]/90">
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-[#9A3412]">
               Anda sedang melihat konten asli materi ini secara langsung tanpa antarmuka gamifikasi santri (tanpa koin, hati, atau maskot). Gunakan halaman ini untuk menelaah teks bacaan, memutar talaqqi audio, dan menugaskannya ke kelas Anda.
             </p>
           </div>
@@ -1291,7 +1291,7 @@ export function UstadzMaterialPreviewPage() {
       <button
         type="button"
         onClick={() => setIsAssignModalOpen(true)}
-        className="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-30 flex items-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] px-5 py-3 text-sm font-black text-white shadow-[4px_4px_0px_#134E4A] transition-all hover:bg-[#0f766e] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A]"
+        className="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-30 flex items-center gap-2 rounded-2xl border-2 border-[#134E4A] bg-[#0D9488] px-5 py-3 text-sm font-black text-white shadow-[3px_3px_0px_#134E4A] transition-all hover:bg-[#0f766e] active:translate-x-[2px] active:translate-y-[2px]"
       >
         <BookOpen size={18} />
         <span>Tugaskan Materi Ini</span>
