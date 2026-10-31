@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
-import { AnimatePresence } from "framer-motion";
 import {
   BrowserRouter,
   Routes,
@@ -21,7 +20,11 @@ import ScrollToTop from "./components/ScrollToTop";
 import { useEconomyStore } from "./features/ngaji-ceria/hooks/useEconomyStore";
 import { PwaUpdateToast } from "./components/ui/PwaUpdateToast";
 import { PwaInstallBanner } from "./components/ui/PwaInstallBanner";
+import { TilaCompanion } from "./components/ui/TilaCompanion";
+import { RoleTransitionManager } from "./components/ui/RoleTransitionScreen";
 import { usePWAUpdate } from "./hooks/usePWAUpdate";
+import { UstadzLayout } from "./features/ustadz/layouts/UstadzLayout";
+import { UstadzRouteGuard } from "./features/ustadz/components/UstadzRouteGuard";
 
 // Core primary tab pages are lazy-loaded so the initial bundle stays minimal;
 // <RouteBoundary> supplies the typed Suspense fallback for each route group.
@@ -109,16 +112,6 @@ const UstadzStudentReportPage = lazy(() =>
 const UstadzProfilPage = lazy(() =>
   import("./features/ustadz/pages/UstadzProfilPage").then((m) => ({
     default: m.UstadzProfilPage,
-  })),
-);
-const UstadzLayout = lazy(() =>
-  import("./features/ustadz/layouts/UstadzLayout").then((m) => ({
-    default: m.UstadzLayout,
-  })),
-);
-const UstadzRouteGuard = lazy(() =>
-  import("./features/ustadz/components/UstadzRouteGuard").then((m) => ({
-    default: m.UstadzRouteGuard,
   })),
 );
 const WarungSantriPage = lazy(
@@ -607,405 +600,430 @@ function AppThemeSync() {
   return null;
 }
 
+const TILA_MAIN_ROUTES = new Set([
+  "/member/ngaji-ceria",
+  "/member/ngaji-ceria/map",
+  "/member/ngaji-ceria/games",
+  "/member/ngaji-ceria/profile",
+]);
+
+function GlobalTilaCompanion() {
+  const location = useLocation();
+  const cleanPath = location.pathname.replace(/\/$/, "") || "/";
+
+  // Render HANYA JIKA berada di rute utama
+  if (!TILA_MAIN_ROUTES.has(cleanPath)) {
+    return null;
+  }
+
+  // Jangan tampilkan di halaman immersive seperti game atau kuis
+  if (cleanPath.includes("/games/") || cleanPath.includes("/quiz/")) {
+    return null;
+  }
+
+  return (
+    <div data-tila-companion>
+      <TilaCompanion size={110} autoRoam reactiveSpeech />
+    </div>
+  );
+}
+
 function AppRoutesContent() {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route index element={<Navigate to="/member/ngaji-ceria" replace />} />
+    <Routes location={location}>
+      <Route path="/login" element={<LoginPage />} />
+      <Route index element={<Navigate to="/member/ngaji-ceria" replace />} />
+      <Route
+        path="/member/ngaji-ceria/warung-santri"
+        element={<WarungSantriPage />}
+      />
+      <Route path="/member/ngaji-ceria/premium" element={<PremiumPage />} />
+      <Route
+        path="/register/ngaji-ceria"
+        element={<NgajiCeriaRegisterPage />}
+      />
+      <Route path="/member/ngaji-ceria" element={<NgajiCeriaHomePage />} />
+      <Route path="/member/ngaji-ceria/map" element={<NgajiCeriaMapPage />} />
+      <Route
+        path="/member/ngaji-ceria/path"
+        element={<NgajiCeriaLibraryPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/quiz/play"
+        element={<NgajiCeriaQuizPage />}
+      />
+      <Route path="/quiz-hub" element={<QuizHubPage />} />
+      <Route path="/quiz-hub/play" element={<QuizHubPlayPage />} />
+      <Route path="/quiz-hub/versus" element={<QuizHubPlayPage />} />
+      <Route path="/member/ngaji-ceria/quiz-hub" element={<QuizHubPage />} />
+      <Route
+        path="/member/ngaji-ceria/quiz-hub/play"
+        element={<QuizHubPlayPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/quiz-hub/versus"
+        element={<QuizHubPlayPage />}
+      />
+      <Route path="/arena/duel/lobby/:sessionId" element={<DuelLobbyPage />} />
+      <Route path="/arena/duel/play/:sessionId" element={<DuelPlayPage />} />
+      <Route path="/member/ngaji-ceria/lab-irama" element={<LabIramaPage />} />
+      <Route
+        path="/member/ngaji-ceria/games"
+        element={
+          <MemberGameRouteGuard>
+            <NgajiCeriaGamesPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/leaderboard"
+        element={<NgajiCeriaLeaderboardPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/profile"
+        element={<NgajiCeriaProfilePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/kamar-tila"
+        element={<KamarTilaPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/kamar-tito"
+        element={<KamarTilaPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/kamar-bibi"
+        element={<Navigate to="/member/ngaji-ceria/kamar-tila" replace />}
+      />
+      <Route
+        path="/member/ngaji-ceria/profile/history"
+        element={<NgajiCeriaHistoryPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/cek-audio"
+        element={<CekAudioManualPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/cek-audio/timeline"
+        element={<TilawatiTimelineEditorPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/cek-audio/cloud-editor"
+        element={<TilawatiCloudTimelineEditorPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tilawati"
+        element={<TilawatiAdventurePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tilawati/:jilid"
+        element={<TilawatiMapPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/doa"
+        element={<DoaTreasurePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/doa/:id"
+        element={<DoaDetailPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tajwid"
+        element={<TajwidSecretPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tajwid/:id"
+        element={<TajwidDetailPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/juz-amma"
+        element={<JuzAmmaStarsPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/juz-amma/:surahNumber"
+        element={<JuzAmmaDetailPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tahfidz"
+        element={<TahfidzPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tahfidz/:surahId"
+        element={<TahfidzDetailPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/tahfidz/surah/:surahId"
+        element={<TahfidzDetailPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/jurnal-ibadah"
+        element={<JurnalIbadahPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/jurnal"
+        element={<JurnalIbadahPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/practice"
+        element={<ArenaKartuSelectPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena-kartu"
+        element={<ArenaKartuSelectPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena-kartu/:jilid"
+        element={<ArenaKartuPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena-kartu/:jilid/practice/:cardId"
+        element={<KartuPracticePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/arena-kartu"
+        element={<ArenaKartuSelectPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/arena-kartu/:jilid"
+        element={<ArenaKartuPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/arena-kartu/:jilid/practice/:cardId"
+        element={<KartuPracticePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/practice/play/:jilid"
+        element={<FlashcardGamePage />}
+      />
+      {/* PUSAT LATIHAN (TRAINING HUB) & RHYTHM MEMORY */}
+      <Route
+        path="/member/ngaji-ceria/training"
+        element={<TilawatiTrainingPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/training"
+        element={<TilawatiTrainingPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/rhythm-memory"
+        element={<RhythmMemorySelectPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/rhythm-memory/:jilid"
+        element={<RhythmMemoryPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/rhythm-memory"
+        element={<RhythmMemorySelectPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/rhythm-memory/:jilid"
+        element={<RhythmMemoryPage />}
+      />
+
+      {/* NOTIFIKASI */}
+      <Route path="/notifications" element={<NotificationPage />} />
+      <Route
+        path="/member/ngaji-ceria/notifications"
+        element={<NotificationPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/notifikasi"
+        element={<NotificationPage />}
+      />
+
+      {/* TARTILA ARENA (REAL-TIME MULTIPLAYER QUIZ & EXAM) */}
+      <Route path="/arena" element={<Navigate to="/arena/join" replace />} />
+      <Route path="/arena/join" element={<ArenaJoinRoomPage />} />
+      <Route path="/arena/host/create" element={<ArenaCreateRoomPage />} />
+      <Route path="/arena/lobby/:pin" element={<ArenaHostLobbyPage />} />
+      <Route path="/room/lobby/:pin" element={<ArenaHostLobbyPage />} />
+      <Route path="/arena/host/lobby/:pin" element={<ArenaHostLobbyPage />} />
+      <Route path="/arena/host/game/:pin" element={<ArenaHostGamePage />} />
+      <Route path="/arena/play/:pin" element={<ArenaPlayerGamePage />} />
+      <Route path="/arena/podium/:pin" element={<ArenaPodiumPage />} />
+      <Route path="/arena/report/:pin" element={<ArenaExamReportPage />} />
+      <Route
+        path="/arena/leaderboard"
+        element={<ArenaGlobalLeaderboardPage />}
+      />
+
+      {/* Member alias for Tartila Arena */}
+      <Route
+        path="/member/ngaji-ceria/arena"
+        element={<Navigate to="/arena/join" replace />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/join"
+        element={<ArenaJoinRoomPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/host/create"
+        element={<ArenaCreateRoomPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/lobby/:pin"
+        element={<ArenaHostLobbyPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/host/lobby/:pin"
+        element={<ArenaHostLobbyPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/host/game/:pin"
+        element={<ArenaHostGamePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/play/:pin"
+        element={<ArenaPlayerGamePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/podium/:pin"
+        element={<ArenaPodiumPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/report/:pin"
+        element={<ArenaExamReportPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/arena/leaderboard"
+        element={<ArenaGlobalLeaderboardPage />}
+      />
+
+      {GAME_ROUTES.map((route) => (
         <Route
-          path="/member/ngaji-ceria/warung-santri"
-          element={<WarungSantriPage />}
+          key={route.path}
+          path={`/member/ngaji-ceria/games/${route.path}`}
+          element={<MemberGameRouteGuard>{route.element}</MemberGameRouteGuard>}
         />
-        <Route path="/member/ngaji-ceria/premium" element={<PremiumPage />} />
+      ))}
+
+      {HUB_ROUTES.map(({ hub, title }) => (
         <Route
-          path="/register/ngaji-ceria"
-          element={<NgajiCeriaRegisterPage />}
-        />
-        <Route path="/member/ngaji-ceria" element={<NgajiCeriaHomePage />} />
-        <Route path="/member/ngaji-ceria/map" element={<NgajiCeriaMapPage />} />
-        <Route
-          path="/member/ngaji-ceria/path"
-          element={<NgajiCeriaLibraryPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/quiz/play"
-          element={<NgajiCeriaQuizPage />}
-        />
-        <Route path="/quiz-hub" element={<QuizHubPage />} />
-        <Route path="/quiz-hub/play" element={<QuizHubPlayPage />} />
-        <Route path="/quiz-hub/versus" element={<QuizHubPlayPage />} />
-        <Route path="/member/ngaji-ceria/quiz-hub" element={<QuizHubPage />} />
-        <Route
-          path="/member/ngaji-ceria/quiz-hub/play"
-          element={<QuizHubPlayPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/quiz-hub/versus"
-          element={<QuizHubPlayPage />}
-        />
-        <Route path="/arena/duel/lobby/:sessionId" element={<DuelLobbyPage />} />
-        <Route path="/arena/duel/play/:sessionId" element={<DuelPlayPage />} />
-        <Route
-          path="/member/ngaji-ceria/lab-irama"
-          element={<LabIramaPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/games"
+          key={hub}
+          path={`/member/ngaji-ceria/games/${hub}`}
           element={
             <MemberGameRouteGuard>
-              <NgajiCeriaGamesPage />
+              <GameLockGuard gameId={hub} title={title}>
+                <GameModeHubPage hubOverride={hub} />
+              </GameLockGuard>
             </MemberGameRouteGuard>
           }
         />
-        <Route
-          path="/member/ngaji-ceria/leaderboard"
-          element={<NgajiCeriaLeaderboardPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/profile"
-          element={<NgajiCeriaProfilePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/kamar-tila"
-          element={<KamarTilaPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/kamar-tito"
-          element={<KamarTilaPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/kamar-bibi"
-          element={<Navigate to="/member/ngaji-ceria/kamar-tila" replace />}
-        />
-        <Route
-          path="/member/ngaji-ceria/profile/history"
-          element={<NgajiCeriaHistoryPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/cek-audio"
-          element={<CekAudioManualPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/cek-audio/timeline"
-          element={<TilawatiTimelineEditorPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/cek-audio/cloud-editor"
-          element={<TilawatiCloudTimelineEditorPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tilawati"
-          element={<TilawatiAdventurePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tilawati/:jilid"
-          element={<TilawatiMapPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/doa"
-          element={<DoaTreasurePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/doa/:id"
-          element={<DoaDetailPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tajwid"
-          element={<TajwidSecretPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tajwid/:id"
-          element={<TajwidDetailPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/juz-amma"
-          element={<JuzAmmaStarsPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/juz-amma/:surahNumber"
-          element={<JuzAmmaDetailPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tahfidz"
-          element={<TahfidzPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tahfidz/:surahId"
-          element={<TahfidzDetailPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/tahfidz/surah/:surahId"
-          element={<TahfidzDetailPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/jurnal-ibadah"
-          element={<JurnalIbadahPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/jurnal"
-          element={<JurnalIbadahPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/practice"
-          element={<ArenaKartuSelectPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena-kartu"
-          element={<ArenaKartuSelectPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena-kartu/:jilid"
-          element={<ArenaKartuPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena-kartu/:jilid/practice/:cardId"
-          element={<KartuPracticePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/arena-kartu"
-          element={<ArenaKartuSelectPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/arena-kartu/:jilid"
-          element={<ArenaKartuPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/arena-kartu/:jilid/practice/:cardId"
-          element={<KartuPracticePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/practice/play/:jilid"
-          element={<FlashcardGamePage />}
-        />
-        {/* PUSAT LATIHAN (TRAINING HUB) & RHYTHM MEMORY */}
-        <Route
-          path="/member/ngaji-ceria/training"
-          element={<TilawatiTrainingPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/training"
-          element={<TilawatiTrainingPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/rhythm-memory"
-          element={<RhythmMemorySelectPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/rhythm-memory/:jilid"
-          element={<RhythmMemoryPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/rhythm-memory"
-          element={<RhythmMemorySelectPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/explore/rhythm-memory/:jilid"
-          element={<RhythmMemoryPage />}
-        />
+      ))}
 
-        {/* NOTIFIKASI */}
-        <Route path="/notifications" element={<NotificationPage />} />
-        <Route
-          path="/member/ngaji-ceria/notifications"
-          element={<NotificationPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/notifikasi"
-          element={<NotificationPage />}
-        />
+      {/* TILAWATI MEMORY MATCH */}
+      <Route
+        path="/member/ngaji-ceria/games/memory/select"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemorySelectPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/games/memory/:jilid"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemoryPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/games/memory/:jilid/:level"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemoryPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/games/tilawati-memory"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemorySelectPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/games/tilawati-memory/select"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemorySelectPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/games/tilawati-memory/:jilid"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemoryPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      <Route
+        path="/member/ngaji-ceria/games/tilawati-memory/:jilid/:level"
+        element={
+          <MemberGameRouteGuard>
+            <TilawatiMemoryPage />
+          </MemberGameRouteGuard>
+        }
+      />
 
-        {/* TARTILA ARENA (REAL-TIME MULTIPLAYER QUIZ & EXAM) */}
-        <Route path="/arena" element={<Navigate to="/arena/join" replace />} />
-        <Route path="/arena/join" element={<ArenaJoinRoomPage />} />
-        <Route path="/arena/host/create" element={<ArenaCreateRoomPage />} />
-        <Route path="/arena/lobby/:pin" element={<ArenaHostLobbyPage />} />
-        <Route path="/room/lobby/:pin" element={<ArenaHostLobbyPage />} />
-        <Route path="/arena/host/lobby/:pin" element={<ArenaHostLobbyPage />} />
-        <Route path="/arena/host/game/:pin" element={<ArenaHostGamePage />} />
-        <Route path="/arena/play/:pin" element={<ArenaPlayerGamePage />} />
-        <Route path="/arena/podium/:pin" element={<ArenaPodiumPage />} />
-        <Route path="/arena/report/:pin" element={<ArenaExamReportPage />} />
-        <Route
-          path="/arena/leaderboard"
-          element={<ArenaGlobalLeaderboardPage />}
-        />
-
-        {/* Member alias for Tartila Arena */}
-        <Route
-          path="/member/ngaji-ceria/arena"
-          element={<Navigate to="/arena/join" replace />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/join"
-          element={<ArenaJoinRoomPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/host/create"
-          element={<ArenaCreateRoomPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/lobby/:pin"
-          element={<ArenaHostLobbyPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/host/lobby/:pin"
-          element={<ArenaHostLobbyPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/host/game/:pin"
-          element={<ArenaHostGamePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/play/:pin"
-          element={<ArenaPlayerGamePage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/podium/:pin"
-          element={<ArenaPodiumPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/report/:pin"
-          element={<ArenaExamReportPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/arena/leaderboard"
-          element={<ArenaGlobalLeaderboardPage />}
-        />
-
-        {GAME_ROUTES.map((route) => (
+      {/* PANEL USTADZ (KELAS & SANTRI) */}
+      <Route
+        path="/member/ngaji-ceria/kelas"
+        element={<MemberClassroomsPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/kelas/:roomId"
+        element={<MemberRoomDetailPage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/kelas/kuis/:quizId"
+        element={
+          <MemberGameRouteGuard>
+            <MemberQuizPlayPage />
+          </MemberGameRouteGuard>
+        }
+      />
+      {/* Route untuk pembuatan kuis (tidak dibatasi role, pakai halaman quiz/create) */}
+      <Route
+        path="/member/ngaji-ceria/quiz/create"
+        element={<UstadzQuizCreatePage />}
+      />
+      <Route path="/ustadz" element={<UstadzRouteGuard />}>
+        <Route element={<UstadzLayout />}>
+          <Route index element={<UstadzDashboardPage />} />
+          <Route path="dashboard" element={<UstadzDashboardPage />} />
+          <Route path="kelas" element={<UstadzRoomsPage />} />
+          <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
+          <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
           <Route
-            key={route.path}
-            path={`/member/ngaji-ceria/games/${route.path}`}
-            element={
-              <MemberGameRouteGuard>{route.element}</MemberGameRouteGuard>
-            }
+            path="preview/:materialId"
+            element={<UstadzMaterialPreviewPage />}
           />
-        ))}
-
-        {HUB_ROUTES.map(({ hub, title }) => (
+          <Route path="learning/*" element={<UstadzLearningPage />} />
           <Route
-            key={hub}
-            path={`/member/ngaji-ceria/games/${hub}`}
-            element={
-              <MemberGameRouteGuard>
-                <GameLockGuard gameId={hub} title={title}>
-                  <GameModeHubPage hubOverride={hub} />
-                </GameLockGuard>
-              </MemberGameRouteGuard>
-            }
+            path="kurikulum"
+            element={<Navigate to="/ustadz/learning/kurikulum" replace />}
           />
-        ))}
-
-        {/* TILAWATI MEMORY MATCH */}
-        <Route
-          path="/member/ngaji-ceria/games/memory/select"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemorySelectPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        <Route
-          path="/member/ngaji-ceria/games/memory/:jilid"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemoryPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        <Route
-          path="/member/ngaji-ceria/games/memory/:jilid/:level"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemoryPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        <Route
-          path="/member/ngaji-ceria/games/tilawati-memory"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemorySelectPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        <Route
-          path="/member/ngaji-ceria/games/tilawati-memory/select"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemorySelectPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        <Route
-          path="/member/ngaji-ceria/games/tilawati-memory/:jilid"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemoryPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        <Route
-          path="/member/ngaji-ceria/games/tilawati-memory/:jilid/:level"
-          element={
-            <MemberGameRouteGuard>
-              <TilawatiMemoryPage />
-            </MemberGameRouteGuard>
-          }
-        />
-
-        {/* PANEL USTADZ (KELAS & SANTRI) */}
-        <Route
-          path="/member/ngaji-ceria/kelas"
-          element={<MemberClassroomsPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/kelas/:roomId"
-          element={<MemberRoomDetailPage />}
-        />
-        <Route
-          path="/member/ngaji-ceria/kelas/kuis/:quizId"
-          element={
-            <MemberGameRouteGuard>
-              <MemberQuizPlayPage />
-            </MemberGameRouteGuard>
-          }
-        />
-        {/* Route untuk pembuatan kuis (tidak dibatasi role, pakai halaman quiz/create) */}
-        <Route
-          path="/member/ngaji-ceria/quiz/create"
-          element={<UstadzQuizCreatePage />}
-        />
-        <Route path="/ustadz" element={<UstadzRouteGuard />}>
-          <Route element={<UstadzLayout />}>
-            <Route index element={<UstadzDashboardPage />} />
-            <Route path="dashboard" element={<UstadzDashboardPage />} />
-            <Route path="kelas" element={<UstadzRoomsPage />} />
-            <Route path="kelas/baru" element={<UstadzCreateRoomPage />} />
-            <Route path="kelas/:roomId" element={<UstadzRoomDetailPage />} />
-            <Route path="kurikulum" element={<UstadzLearningPage />} />
-            <Route
-              path="preview/:materialId"
-              element={<UstadzMaterialPreviewPage />}
-            />
-            <Route path="kuis" element={<UstadzLearningPage />} />
-            <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
-            <Route path="laporan" element={<UstadzStudentReportPage />} />
-            <Route path="profil" element={<UstadzProfilPage />} />
-          </Route>
+          <Route
+            path="kuis"
+            element={<Navigate to="/ustadz/learning/kuis" replace />}
+          />
+          <Route path="kuis/baru" element={<UstadzQuizCreatePage />} />
+          <Route path="laporan" element={<UstadzStudentReportPage />} />
+          <Route path="profil" element={<UstadzProfilPage />} />
         </Route>
+      </Route>
 
-        {adminRouteElements}
+      {adminRouteElements}
 
-        <Route
-          path="*"
-          element={<Navigate to="/member/ngaji-ceria" replace />}
-        />
-      </Routes>
-    </AnimatePresence>
+      <Route path="*" element={<Navigate to="/member/ngaji-ceria" replace />} />
+    </Routes>
   );
 }
 
@@ -1031,6 +1049,8 @@ export default function App() {
           />
         )}
         <PwaInstallBanner />
+        <GlobalTilaCompanion />
+        <RoleTransitionManager />
       </BrowserRouter>
     </AuthProvider>
   );
