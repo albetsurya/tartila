@@ -106,7 +106,9 @@ export function UstadzDashboardPage() {
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [coverage, setCoverage] = useState<MateriCoverageItem[]>([]);
   const [recommendations, setRecommendations] = useState<string[]>([]);
-  const [readCoverage, setReadCoverage] = useState<MateriReadCoverageItem[]>([]);
+  const [readCoverage, setReadCoverage] = useState<MateriReadCoverageItem[]>(
+    [],
+  );
   const [quizAverages, setQuizAverages] = useState<QuizAverage[]>([]);
   const [alerts, setAlerts] = useState<TeacherAlert[]>([]);
 
@@ -247,7 +249,9 @@ export function UstadzDashboardPage() {
           <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
             {activeRooms.length}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">Total Kelas</p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">
+            Total Kelas
+          </p>
         </StickerCard>
 
         {/* Total Santri */}
@@ -256,12 +260,16 @@ export function UstadzDashboardPage() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#F0FDF4] text-[#0D9488] shadow-[1.5px_1.5px_0px_#134E4A]">
               <Users size={20} />
             </span>
-            <span className="text-[11px] font-bold text-[#64748B]">Terdaftar</span>
+            <span className="text-[11px] font-bold text-[#64748B]">
+              Terdaftar
+            </span>
           </div>
           <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
             {totalSantri}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">Total Santri</p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">
+            Total Santri
+          </p>
         </StickerCard>
 
         {/* Total Kuis */}
@@ -270,12 +278,16 @@ export function UstadzDashboardPage() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEFCE8] text-[#B45309] shadow-[1.5px_1.5px_0px_#134E4A]">
               <Trophy size={20} />
             </span>
-            <span className="text-[11px] font-bold text-[#64748B]">Tersedia</span>
+            <span className="text-[11px] font-bold text-[#64748B]">
+              Tersedia
+            </span>
           </div>
           <p className="mt-3 text-2xl font-black tracking-tight text-[#183B38] md:text-3xl">
             {quizCount}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">Bank Kuis</p>
+          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">
+            Bank Kuis
+          </p>
         </StickerCard>
 
         {/* Perhatian Hari Ini */}
@@ -306,6 +318,66 @@ export function UstadzDashboardPage() {
         </StickerCard>
       </div>
 
+      {/* ── C. BAR CHART: RATA-RATA NILAI KUIS ── */}
+      <StickerCard variant="data" className="p-5">
+        <div className="mb-4 flex items-center justify-between border-b-2 border-dashed border-[#134E4A]/20 pb-3">
+          <div>
+            <h2 className="text-sm font-extrabold tracking-tight text-[#134E4A]">
+              Performa Nilai Kuis Kelas
+            </h2>
+            <p className="mt-0.5 text-[11px] font-semibold text-[#64748B]">
+              Rata-rata skor santri per kuis (Top 5)
+            </p>
+          </div>
+          <StickerBadge variant="primary" size="sm">
+            {monitorRoom?.name || "Kelas"}
+          </StickerBadge>
+        </div>
+
+        <div className="space-y-4">
+          {quizAverages.length > 0 ? (
+            quizAverages.slice(0, 5).map((item) => {
+              // Logika warna berdasarkan nilai
+              const barColor =
+                item.averagePercent >= 75
+                  ? "bg-[#0D9488]" // Hijau (Bagus)
+                  : item.averagePercent >= 50
+                    ? "bg-[#F59E0B]" // Kuning (Cukup)
+                    : "bg-[#FF6B6B]"; // Merah (Kurang)
+
+              return (
+                <div key={item.quizId} className="flex items-center gap-3">
+                  {/* Label Kuis */}
+                  <div className="w-28 shrink-0 truncate text-[11px] font-black text-[#134E4A] sm:w-48 sm:text-xs">
+                    {item.quizTitle}
+                  </div>
+
+                  {/* Bar Chart */}
+                  <div className="relative flex-1 h-6 overflow-hidden rounded-md border-2 border-[#134E4A] bg-[#F0FDF4] shadow-[1px_1px_0px_#134E4A]">
+                    <div
+                      className={`h-full border-r-[3px] border-[#134E4A] transition-all duration-1000 ${barColor}`}
+                      style={{ width: `${item.averagePercent}%` }}
+                    />
+                  </div>
+
+                  {/* Nilai Angka */}
+                  <div className="w-10 shrink-0 text-right text-xs font-black text-[#134E4A]">
+                    {item.averagePercent}%
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <Trophy size={32} className="text-[#134E4A]/20 mb-2" />
+              <p className="text-xs font-bold text-[#64748B]">
+                Belum ada data nilai kuis untuk kelas ini.
+              </p>
+            </div>
+          )}
+        </div>
+      </StickerCard>
+
       {/* ── C. ONBOARDING CHECKLIST (Jika belum 100%) ── */}
       {isTeacher && checklistPercent < 100 && (
         <StickerCard variant="data" className="p-5">
@@ -320,12 +392,15 @@ export function UstadzDashboardPage() {
                 </p>
               </div>
               <p className="mt-1 text-xs text-[#64748B]">
-                Selesaikan langkah berikut agar proses pembelajaran santri berjalan optimal.
+                Selesaikan langkah berikut agar proses pembelajaran santri
+                berjalan optimal.
               </p>
             </div>
             <div className="flex items-center gap-2 font-black text-sm text-[#0D9488]">
               <span>{checklistDone}/3 Selesai</span>
-              <span className="text-xs text-[#64748B]">({checklistPercent}%)</span>
+              <span className="text-xs text-[#64748B]">
+                ({checklistPercent}%)
+              </span>
             </div>
           </div>
 
@@ -348,9 +423,7 @@ export function UstadzDashboardPage() {
               >
                 <span
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-[#134E4A] ${
-                    step.done
-                      ? "bg-[#15803D] text-white"
-                      : "bg-white"
+                    step.done ? "bg-[#15803D] text-white" : "bg-white"
                   }`}
                 >
                   {step.done ? <Check size={12} /> : null}
@@ -385,8 +458,12 @@ export function UstadzDashboardPage() {
                 className="flex items-center justify-between p-4"
               >
                 <div className="min-w-0 pr-3">
-                  <p className="text-sm font-bold text-[#183B38]">{alert.title}</p>
-                  <p className="mt-0.5 text-xs text-[#64748B]">Tindakan pengajar diperlukan</p>
+                  <p className="text-sm font-bold text-[#183B38]">
+                    {alert.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[#64748B]">
+                    Tindakan pengajar diperlukan
+                  </p>
                 </div>
                 <StickerButton
                   variant={alert.kind === "apresiasi" ? "secondary" : "danger"}
@@ -439,8 +516,8 @@ export function UstadzDashboardPage() {
                         {room.name}
                       </p>
                       <p className="mt-1 text-xs text-[#64748B]">
-                        {room.participantCount}/{room.maxParticipants} Santri · Jilid{" "}
-                        {room.targetJilid}
+                        {room.participantCount}/{room.maxParticipants} Santri ·
+                        Jilid {room.targetJilid}
                       </p>
                     </div>
                     <StickerBadge variant="info" size="sm" brutal>
@@ -488,10 +565,15 @@ export function UstadzDashboardPage() {
 
               {recommendations.length > 0 && (
                 <div className="rounded-xl border-2 border-[#134E4A] bg-[#FEFCE8] p-3 shadow-[1.5px_1.5px_0px_#134E4A]">
-                  <p className="text-xs font-black text-[#92400E]">Rekomendasi:</p>
+                  <p className="text-xs font-black text-[#92400E]">
+                    Rekomendasi:
+                  </p>
                   <ul className="mt-1 space-y-0.5">
                     {recommendations.map((rec) => (
-                      <li key={rec} className="text-[11px] font-bold text-[#B45309]">
+                      <li
+                        key={rec}
+                        className="text-[11px] font-bold text-[#B45309]"
+                      >
                         • {rec}
                       </li>
                     ))}
@@ -567,8 +649,8 @@ export function UstadzDashboardPage() {
             Belum Ada Kelas yang Aktif
           </p>
           <p className="mx-auto mt-1 max-w-md text-xs text-[#64748B]">
-            Mulai pembelajaran digital dengan membuka kelas baru, bagikan kode join
-            kepada santri, lalu pantau setoran bacaan Tilawati.
+            Mulai pembelajaran digital dengan membuka kelas baru, bagikan kode
+            join kepada santri, lalu pantau setoran bacaan Tilawati.
           </p>
           <div className="mt-4">
             <StickerButton
@@ -594,7 +676,8 @@ export function UstadzDashboardPage() {
           </p>
         </div>
         <p className="mt-1 text-xs text-[#64748B]">
-          Menerima kode kelas dari ustadz/pengajar lain? Masukkan kode 6 karakter di sini.
+          Menerima kode kelas dari ustadz/pengajar lain? Masukkan kode 6
+          karakter di sini.
         </p>
         <form onSubmit={handleJoinByCode} className="mt-3 flex gap-2">
           <div className="flex-1">
@@ -635,7 +718,8 @@ export function UstadzDashboardPage() {
 
       {!isTeacher && !isUstadzUser(user) && (
         <p className="text-center text-xs text-[#64748B]">
-          Anda masuk sebagai mode pemantau (admin). Data kelas hanya dapat dilihat.
+          Anda masuk sebagai mode pemantau (admin). Data kelas hanya dapat
+          dilihat.
         </p>
       )}
     </div>

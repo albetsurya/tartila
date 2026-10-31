@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -27,6 +27,8 @@ import {
   type JilidNumber,
 } from "@/data/learningCatalog";
 import { loadTilawatiDataset } from "@/features/ngaji-ceria/data/tilawatiPageDatasets";
+import { loadTimelineEdits } from "@/features/ngaji-ceria/utils/timelineEditsLoader";
+import { resolveTilawatiAudio } from "@/features/ngaji-ceria/services/tilawatiAudio";
 import type { PageQuizData, QuizQuestion as TilawatiQuestion } from "@/features/ngaji-ceria/data/tilawatiQuizTypes";
 import {
   TAJWID_RULES,
@@ -137,12 +139,63 @@ function AssignModal({
     }
   };
 
+  if (!isOpen) return null;
+
+  const renderRoomList = () => {
+    if (loading) {
+      return (
+        <div className="py-8 text-center text-xs font-bold text-[#134E4A]/60">
+          Memuat daftar kelas Ustadz...
+        </div>
+      );
+    }
+    if (rooms.length === 0) {
+      return (
+        <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-gray-50 p-4 text-center">
+          <p className="text-xs font-bold text-[#134E4A]/70">
+            Ustadz belum memiliki kelas aktif.
+          </p>
+          <StickerButton variant="ghost" size="sm" className="mt-3" onClick={onClose}>
+            Tutup
+          </StickerButton>
+        </div>
+      );
+    }
+    return (
+      <div className="mt-3 space-y-2">
+        {rooms.map((room) => {
+          const isAssigned = assignedRoomIds.includes(room.id);
+          const isBusy = assigningId === room.id;
+          return (
+            <div
+              key={room.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A]"
+            >
+              <div>
+                <p className="text-sm font-black text-[#134E4A]">{room.name}</p>
+                <div className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-[#134E4A]/70">
+                  <span>Kode: {room.joinCode}</span>
+                  {room.targetJilid && <span>· Target Jilid {room.targetJilid}</span>}
+                </div>
+              </div>
+              {isAssigned ? (
+                <span className="flex items-center gap-1 rounded-lg border-2 border-[#166534] bg-[#DCFCE7] px-2.5 py-1 text-xs font-black text-[#166534]">
+                  <Check size={14} /> Sudah Ditugaskan
+                </span>
+              ) : (
+                <StickerButton size="sm" disabled={isBusy} onClick={() => handleAssign(room)} className="bg-[#0D9488] text-xs font-black text-white hover:bg-[#0f766e]">
+                  {isBusy ? "Menugaskan..." : "Tugaskan ke Kelas"}
+                </StickerButton>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <AppModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Tugaskan Materi Ini"
-    >
+    <AppModal isOpen={isOpen} onClose={onClose} title="Tugaskan Materi Ini">
       <p className="text-xs font-semibold text-[#134E4A]/80">
         Materi: <span className="font-black">{materialTitle}</span>
       </p>
@@ -163,70 +216,11 @@ function AssignModal({
         <p className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
           Pilih Kelas Tujuan
         </p>
-        {loading ? (
-          <div className="py-8 text-center text-xs font-bold text-[#134E4A]/60">
-            Memuat daftar kelas Ustadz...
-          </div>
-        ) : rooms.length === 0 ? (
-          <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-gray-50 p-4 text-center">
-            <p className="text-xs font-bold text-[#134E4A]/70">
-              Ustadz belum memiliki kelas aktif.
-            </p>
-            <StickerButton
-              variant="ghost"
-              size="sm"
-              className="mt-3"
-              onClick={onClose}
-            >
-              Tutup
-            </StickerButton>
-          </div>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {rooms.map((room) => {
-              const isAssigned = assignedRoomIds.includes(room.id);
-              const isBusy = assigningId === room.id;
-              return (
-                <div
-                  key={room.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A]"
-                >
-                  <div>
-                    <p className="text-sm font-black text-[#134E4A]">
-                      {room.name}
-                    </p>
-                    <div className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-[#134E4A]/70">
-                      <span>Kode: {room.joinCode}</span>
-                      {room.targetJilid && (
-                        <span>· Target Jilid {room.targetJilid}</span>
-                      )}
-                    </div>
-                  </div>
-                  {isAssigned ? (
-                    <span className="flex items-center gap-1 rounded-lg border-2 border-[#166534] bg-[#DCFCE7] px-2.5 py-1 text-xs font-black text-[#166534]">
-                      <Check size={14} /> Sudah Ditugaskan
-                    </span>
-                  ) : (
-                    <StickerButton
-                      size="sm"
-                      disabled={isBusy}
-                      onClick={() => handleAssign(room)}
-                      className="bg-[#0D9488] text-xs font-black text-white hover:bg-[#0f766e]"
-                    >
-                      {isBusy ? "Menugaskan..." : "Tugaskan ke Kelas"}
-                    </StickerButton>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {renderRoomList()}
       </div>
 
       <div className="mt-6 flex justify-end">
-        <StickerButton variant="ghost" size="sm" onClick={onClose}>
-          Selesai
-        </StickerButton>
+        <StickerButton variant="ghost" size="sm" onClick={onClose}>Selesai</StickerButton>
       </div>
     </AppModal>
   );
@@ -237,34 +231,45 @@ function AssignModal({
 /* -------------------------------------------------------------------------- */
 
 interface TilawatiPreviewProps {
-  initialJilid: number;
   entry: CatalogEntry;
+  jilid: number;
+  page: number;
+  onJilidChange: (jilid: number) => void;
+  onPageChange: (page: number) => void;
   onPlayAudio: (url: string) => void;
   playingUrl: string | null;
 }
 
 function TilawatiPreview({
-  initialJilid,
   entry,
+  jilid,
+  page,
+  onJilidChange,
+  onPageChange,
   onPlayAudio,
   playingUrl,
 }: TilawatiPreviewProps) {
-  const [jilid, setJilid] = useState<number>(initialJilid || 1);
-  const [page, setPage] = useState<number>(1);
-  const [dataset, setDataset] = useState<Record<number, import("@/features/ngaji-ceria/data/tilawatiQuizTypes").PageQuizData>>({});
+  const [dataset, setDataset] = useState<Record<number, PageQuizData>>({});
   const [isLoadingDataset, setIsLoadingDataset] = useState(false);
 
   // Load dataset saat jilid berubah
   useEffect(() => {
     let alive = true;
     setIsLoadingDataset(true);
-    void loadTilawatiDataset(jilid)
-      .then((data) => {
-        if (alive) setDataset(data);
+    Promise.all([loadTilawatiDataset(jilid), loadTimelineEdits().catch(() => ({}))])
+      .then(([data]) => {
+        if (alive) {
+          setDataset(data || {});
+          setIsLoadingDataset(false);
+        }
       })
-      .finally(() => {
-        if (alive) setIsLoadingDataset(false);
+      .catch(() => {
+        if (alive) {
+          setDataset({});
+          setIsLoadingDataset(false);
+        }
       });
+
     return () => {
       alive = false;
     };
@@ -275,28 +280,38 @@ function TilawatiPreview({
     return keys.length > 0 ? keys : [1];
   }, [dataset]);
 
-  const currentPageData: import("@/features/ngaji-ceria/data/tilawatiQuizTypes").PageQuizData | undefined = dataset[page];
+  const totalPages = pageNumbers[pageNumbers.length - 1] ?? 1;
+  const currentPageData = dataset[page];
 
-  // Ketika jilid berubah, reset ke halaman pertama
-  const handleJilidChange = (nextJilid: number) => {
-    setJilid(nextJilid);
-    void loadTilawatiDataset(nextJilid).then((nextDataset) => {
-      const keys = Object.keys(nextDataset || {}).map(Number).sort((a, b) => a - b);
-      setPage(keys[0] ?? 1);
-    });
-  };
+  // Defensive clamping jika page di luar rentang dataset
+  useEffect(() => {
+    if (dataset && Object.keys(dataset).length > 0) {
+      const keys = Object.keys(dataset).map(Number).sort((a, b) => a - b);
+      const minPage = keys[0] ?? 1;
+      const maxPage = keys[keys.length - 1] ?? 1;
+      if (page > maxPage) {
+        onPageChange(maxPage);
+      } else if (page < minPage) {
+        onPageChange(minPage);
+      }
+    }
+  }, [dataset, page, onPageChange]);
 
   const handlePrevPage = () => {
     const currentIndex = pageNumbers.indexOf(page);
     if (currentIndex > 0) {
-      setPage(pageNumbers[currentIndex - 1]);
+      onPageChange(pageNumbers[currentIndex - 1]);
+    } else if (page > 1) {
+      onPageChange(page - 1);
     }
   };
 
   const handleNextPage = () => {
     const currentIndex = pageNumbers.indexOf(page);
-    if (currentIndex < pageNumbers.length - 1) {
-      setPage(pageNumbers[currentIndex + 1]);
+    if (currentIndex >= 0 && currentIndex < pageNumbers.length - 1) {
+      onPageChange(pageNumbers[currentIndex + 1]);
+    } else if (page < totalPages) {
+      onPageChange(page + 1);
     }
   };
 
@@ -306,15 +321,13 @@ function TilawatiPreview({
       <StickerCard className="p-4 bg-[#F0FDF4]">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase text-[#134E4A]/70">
-              Pilih Jilid Tilawati
-            </p>
+            <p className="text-xs font-black uppercase text-[#134E4A]/70">Pilih Jilid Tilawati</p>
             <div className="mt-1.5 flex flex-wrap gap-2">
-              {[1, 2, 3, 4, 5].map((j) => (
+              {[1, 2, 3, 4, 5, 6].map((j) => (
                 <button
                   key={j}
                   type="button"
-                  onClick={() => handleJilidChange(j)}
+                  onClick={() => onJilidChange(j)}
                   className={`flex h-10 w-14 items-center justify-center rounded-xl border-2 border-[#134E4A] font-black text-sm transition-all ${
                     jilid === j
                       ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
@@ -330,18 +343,18 @@ function TilawatiPreview({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              disabled={pageNumbers.indexOf(page) <= 0}
+              disabled={page <= pageNumbers[0]}
               onClick={handlePrevPage}
               className="flex h-9 items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-white px-3 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] disabled:opacity-40 disabled:shadow-none hover:bg-gray-50 active:translate-x-[1px] active:translate-y-[1px]"
             >
               <ChevronLeft size={16} /> Hal Sebelumnya
             </button>
             <div className="rounded-xl border-2 border-[#134E4A] bg-[#FEF3C7] px-3 py-1.5 text-center text-xs font-black text-[#7C2D12]">
-              Hal {page} / {pageNumbers[pageNumbers.length - 1] ?? 1}
+              Hal {page} / {totalPages}
             </div>
             <button
               type="button"
-              disabled={pageNumbers.indexOf(page) >= pageNumbers.length - 1}
+              disabled={page >= totalPages}
               onClick={handleNextPage}
               className="flex h-9 items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-white px-3 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] disabled:opacity-40 disabled:shadow-none hover:bg-gray-50 active:translate-x-[1px] active:translate-y-[1px]"
             >
@@ -352,7 +365,13 @@ function TilawatiPreview({
       </StickerCard>
 
       {/* Konten Halaman */}
-      {currentPageData ? (
+      {isLoadingDataset ? (
+        <StickerCard className="p-8 text-center bg-white">
+          <p className="text-xs font-bold text-[#134E4A]/70">
+            Memuat lembar Tilawati Jilid {jilid} Halaman {page}...
+          </p>
+        </StickerCard>
+      ) : currentPageData ? (
         <div className="space-y-4">
           {/* Header Judul Halaman */}
           <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A]">
@@ -361,13 +380,33 @@ function TilawatiPreview({
                 <span className="rounded-lg border-2 border-[#134E4A] bg-[#CCFBF1] px-2 py-0.5 text-[10px] font-black uppercase text-[#0F766E]">
                   Jilid {jilid} — Halaman {page}
                 </span>
-                <h3 className="mt-1 text-base font-black text-[#183B38]">
-                  {currentPageData.title}
-                </h3>
+                <h3 className="mt-1 text-base font-black text-[#183B38]">{currentPageData.title}</h3>
               </div>
-              <p className="text-xs font-bold text-[#134E4A]/70">
-                {currentPageData.subtitle}
-              </p>
+              <div className="flex items-center gap-3">
+                <p className="text-xs font-bold text-[#134E4A]/70">{currentPageData.subtitle}</p>
+                {(() => {
+                  const fullRes = resolveTilawatiAudio({
+                    jilid,
+                    pageNumber: page,
+                    questionIndex: 0,
+                  });
+                  const fullUrl = fullRes.url;
+                  if (!fullUrl) return null;
+                  const isFullPlaying = Boolean(fullUrl && playingUrl === fullUrl);
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => onPlayAudio(fullUrl)}
+                      className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${
+                        isFullPlaying ? "bg-[#EA580C] text-white" : "bg-[#0D9488] text-white hover:bg-[#0f766e]"
+                      }`}
+                    >
+                      {isFullPlaying ? <Pause size={14} /> : <Volume2 size={14} />}
+                      <span>{isFullPlaying ? "Berhenti" : "Play Halaman"}</span>
+                    </button>
+                  );
+                })()}
+              </div>
             </div>
 
             <p className="mt-2 text-xs font-semibold text-[#134E4A]/80">
@@ -378,86 +417,59 @@ function TilawatiPreview({
           {/* Baris Bacaan Tilawati */}
           <div className="space-y-3">
             {currentPageData.questions.map((q: TilawatiQuestion, idx: number) => {
-              const isPlaying = playingUrl === q.audioUrl;
+              const audioRes = resolveTilawatiAudio({
+                question: q,
+                jilid,
+                pageNumber: page,
+                questionIndex: idx,
+                audioUrl: q.audioUrl,
+                arabic: q.arabic,
+              });
+              const resolvedUrl = audioRes.url || "";
+              const isPlaying = Boolean(resolvedUrl && playingUrl === resolvedUrl);
+
               return (
-                <div
-                  key={q.id ?? idx}
-                  className="rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition-all"
-                >
+                <div key={q.id ?? idx} className="rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition-all">
                   <div className="flex items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-2">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] text-xs font-black text-[#7C2D12]">
-                        {idx + 1}
-                      </span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] text-xs font-black text-[#7C2D12]">{idx + 1}</span>
                       {q.hintTone && (
-                        <span className="rounded-md border border-[#134E4A] bg-[#E0F2FE] px-2 py-0.5 text-[10px] font-bold text-[#0369A1]">
-                          {q.hintTone}
-                        </span>
+                        <span className="rounded-md border border-[#134E4A] bg-[#E0F2FE] px-2 py-0.5 text-[10px] font-bold text-[#0369A1]">{q.hintTone}</span>
                       )}
                       {q.isListenOnly && (
-                        <span className="rounded-md border border-[#134E4A] bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-700">
-                          Hanya Simak
-                        </span>
+                        <span className="rounded-md border border-[#134E4A] bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-700">Hanya Simak</span>
                       )}
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => onPlayAudio(q.audioUrl)}
-                      className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${
-                        isPlaying
-                          ? "bg-[#EA580C] text-white"
-                          : "bg-[#0D9488] text-white hover:bg-[#0f766e]"
-                      }`}
+                      disabled={!resolvedUrl}
+                      onClick={() => {
+                        if (resolvedUrl) onPlayAudio(resolvedUrl);
+                      }}
+                      className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] disabled:opacity-40 disabled:shadow-none ${isPlaying ? "bg-[#EA580C] text-white" : "bg-[#0D9488] text-white hover:bg-[#0f766e]"}`}
                     >
-                      {isPlaying ? (
-                        <>
-                          <Pause size={14} /> Berhenti
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 size={14} /> Putar Audio Talaqqi
-                        </>
-                      )}
+                      {isPlaying ? (<> <Pause size={14} /> Berhenti </>) : (<> <Volume2 size={14} /> Putar Audio Talaqqi </>)}
                     </button>
                   </div>
 
                   {/* Teks Arab Besar */}
                   <div className="my-4 text-center">
-                    <p
-                      dir="rtl"
-                      className="font-arabic text-3xl font-bold leading-loose tracking-wide text-[#134E4A] sm:text-4xl"
-                    >
-                      {q.arabic}
-                    </p>
-                    {q.transliterationParts.length > 0 && (
-                      <p className="mt-2 text-xs font-semibold tracking-wider text-[#134E4A]/70">
-                        {q.transliterationParts.join(" - ")}
-                      </p>
+                    <p dir="rtl" className="font-arabic text-3xl font-bold leading-loose tracking-wide text-[#134E4A] sm:text-4xl">{q.arabic}</p>
+                    {q.transliterationParts && q.transliterationParts.length > 0 && (
+                      <p className="mt-2 text-xs font-semibold tracking-wider text-[#134E4A]/70">{q.transliterationParts.join(" - ")}</p>
                     )}
                   </div>
 
                   {/* Preview Opsi Jawaban Santri */}
                   {q.options && q.options.length > 0 && (
                     <div className="mt-3 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-gray-50 p-2.5">
-                      <p className="text-[10px] font-black uppercase text-[#134E4A]/70">
-                        Pilihan Jawaban Santri (Kunci Jawaban Ustadz):
-                      </p>
+                      <p className="text-[10px] font-black uppercase text-[#134E4A]/70">Pilihan Jawaban Santri (Kunci Jawaban Ustadz):</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {q.options.map((opt, optIdx) => {
-                          const isCorrect =
-                            q.correctOptionIndex !== undefined
-                              ? optIdx === q.correctOptionIndex
-                              : q.transliterationParts.includes(opt);
+                        {(q.options as string[]).map((opt, optIdx) => {
+                          const isCorrect = q.correctOptionIndex !== undefined ? optIdx === q.correctOptionIndex : q.transliterationParts.includes(opt);
                           return (
-                            <span
-                              key={optIdx}
-                              className={`flex items-center gap-1 rounded-lg border-2 px-2 py-0.5 text-xs font-black ${
-                                isCorrect
-                                  ? "border-[#166534] bg-[#DCFCE7] text-[#166534]"
-                                  : "border-[#134E4A]/30 bg-white text-[#134E4A]/70"
-                              }`}
-                            >
+                            <span key={optIdx} className={`flex items-center gap-1 rounded-lg border-2 px-2 py-0.5 text-xs font-black ${isCorrect ? "border-[#166534] bg-[#DCFCE7] text-[#166534]" : "border-[#134E4A]/30 bg-white text-[#134E4A]/70"}`}>
                               {isCorrect && <Check size={12} />}
                               {opt}
                             </span>
@@ -473,9 +485,7 @@ function TilawatiPreview({
         </div>
       ) : (
         <StickerCard className="p-6 text-center">
-          <p className="text-sm font-bold text-[#134E4A]/80">
-            Halaman {page} untuk Jilid {jilid} belum memiliki dataset bacaan.
-          </p>
+          <p className="text-sm font-bold text-[#134E4A]/80">Halaman {page} untuk Jilid {jilid} belum memiliki dataset bacaan.</p>
         </StickerCard>
       )}
 
@@ -484,18 +494,11 @@ function TilawatiPreview({
         <StickerCard className="p-4 bg-[#FEF3C7]">
           <div className="flex items-center gap-2">
             <Lightbulb size={18} className="text-[#B45309]" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
-              Tips Membimbing Santri (Kurikulum Tartila)
-            </h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">Tips Membimbing Santri (Kurikulum Tartila)</h4>
           </div>
           <ul className="mt-2 space-y-1.5">
-            {entry.tipsUstadz.map((tip, i) => (
-              <li
-                key={i}
-                className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90"
-              >
-                {tip}
-              </li>
+            {(entry.tipsUstadz as string[]).map((tip, i) => (
+              <li key={i} className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90">{tip}</li>
             ))}
           </ul>
         </StickerCard>
@@ -515,32 +518,17 @@ interface TajwidPreviewProps {
 }
 
 function TajwidPreview({ entry, onPlayAudio, playingUrl }: TajwidPreviewProps) {
-  const [selectedRuleId, setSelectedRuleId] = useState<string>(
-    TAJWID_RULES[0]?.id ?? "idzhar",
-  );
-
-  const currentRule: TajwidRule | undefined =
-    TAJWID_RULES.find((r) => r.id === selectedRuleId) || TAJWID_RULES[0];
+  const [selectedRuleId, setSelectedRuleId] = useState<string>(TAJWID_RULES[0]?.id ?? "idzhar");
+  const currentRule: TajwidRule | undefined = TAJWID_RULES.find((r) => r.id === selectedRuleId) || TAJWID_RULES[0];
 
   return (
     <div className="space-y-5">
       {/* Selector Kaidah Tajwid */}
       <StickerCard className="p-4 bg-[#F0FDF4]">
-        <p className="text-xs font-black uppercase text-[#134E4A]/70">
-          Pilih Hukum Tajwid
-        </p>
+        <p className="text-xs font-black uppercase text-[#134E4A]/70">Pilih Hukum Tajwid</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {TAJWID_RULES.map((rule) => (
-            <button
-              key={rule.id}
-              type="button"
-              onClick={() => setSelectedRuleId(rule.id)}
-              className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
-                selectedRuleId === rule.id
-                  ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                  : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"
-              }`}
-            >
+          {(TAJWID_RULES as TajwidRule[]).map((rule) => (
+            <button key={rule.id} type="button" onClick={() => setSelectedRuleId(rule.id)} className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${selectedRuleId === rule.id ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"}`}>
               {rule.title}
             </button>
           ))}
@@ -549,91 +537,45 @@ function TajwidPreview({ entry, onPlayAudio, playingUrl }: TajwidPreviewProps) {
 
       {/* Detail Kaidah Tajwid Terpilih */}
       {currentRule && (
+        <>
         <div className="space-y-4">
           <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-[#134E4A]/20 pb-3">
               <div>
-                <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#B45309]">
-                  {currentRule.kaidah}
-                </span>
-                <h3 className="mt-1 text-lg font-black text-[#183B38]">
-                  {currentRule.title}
-                </h3>
+                <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#B45309]">{currentRule.kaidah}</span>
+                <h3 className="mt-1 text-lg font-black text-[#183B38]">{currentRule.title}</h3>
               </div>
-              <span className="rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E] shadow-[1.5px_1.5px_0px_#134E4A]">
-                Cara Baca: {currentRule.caraBaca}
-              </span>
+              <span className="rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E] shadow-[1.5px_1.5px_0px_#134E4A]">Cara Baca: {currentRule.caraBaca}</span>
             </div>
 
-            <p className="mt-3 text-xs font-semibold leading-relaxed text-[#475569]">
-              {currentRule.note}
-            </p>
+            <p className="mt-3 text-xs font-semibold leading-relaxed text-[#475569]">{currentRule.note}</p>
 
             <div className="mt-4 rounded-xl border-2 border-[#134E4A] bg-[#FFFBEB] p-3 shadow-[1.5px_1.5px_0px_#134E4A]">
-              <p className="text-[10px] font-black uppercase text-[#B45309]">
-                Huruf-Huruf Tajwid:
-              </p>
-              <p
-                dir="rtl"
-                className="font-arabic mt-1 text-xl font-bold text-[#B45309]"
-              >
-                {currentRule.huruf}
-              </p>
+              <p className="text-[10px] font-black uppercase text-[#B45309]">Huruf-Huruf Tajwid:</p>
+              <p dir="rtl" className="font-arabic mt-1 text-xl font-bold text-[#B45309]">{currentRule.huruf}</p>
             </div>
           </div>
 
           {/* Contoh-Contoh Bacaan */}
           <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[3px_3px_0px_#134E4A]">
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#183B38]">
-              Contoh Penerapan Ayat ({currentRule.examples.length} Contoh)
-            </h4>
-
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#183B38]">Contoh Penerapan Ayat ({currentRule.examples.length} Contoh)</h4>
             <div className="mt-3 space-y-3">
               {currentRule.examples.map((ex, idx) => {
                 const isPlaying = playingUrl === ex.audioUrl;
                 return (
-                  <div
-                    key={idx}
-                    className="flex flex-col gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A] sm:flex-row sm:items-center sm:justify-between"
-                  >
+                  <div key={idx} className="flex flex-col gap-3 rounded-xl border-2 border-[#134E4A] bg-white p-3 shadow-[2px_2px_0px_#134E4A] sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] text-[10px] font-black text-[#7C2D12]">
-                          {ex.number}
-                        </span>
-                        <span className="text-xs font-bold text-[#134E4A]/70">
-                          Fokus Huruf: <span className="font-black text-[#0D9488]">{ex.highlight}</span>
-                        </span>
+                        <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] text-[10px] font-black text-[#7C2D12]">{ex.number}</span>
+                        <span className="text-xs font-bold text-[#134E4A]/70">Fokus Huruf: <span className="font-black text-[#0D9488]">{ex.highlight}</span></span>
                       </div>
                       {ex.fullAyah && (
-                        <p
-                          dir="rtl"
-                          className="font-arabic mt-2 text-right text-lg font-bold leading-relaxed text-[#134E4A]"
-                        >
-                          {ex.fullAyah}
-                        </p>
+                        <p dir="rtl" className="font-arabic mt-2 text-right text-lg font-bold leading-relaxed text-[#134E4A]">{ex.fullAyah}</p>
                       )}
                     </div>
-
                     <div className="shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => onPlayAudio(ex.audioUrl)}
-                        className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${
-                          isPlaying
-                            ? "bg-[#EA580C] text-white"
-                            : "bg-[#0D9488] text-white hover:bg-[#0f766e]"
-                        }`}
-                      >
-                        {isPlaying ? (
-                          <>
-                            <Pause size={14} /> Berhenti
-                          </>
-                        ) : (
-                          <>
-                            <Volume2 size={14} /> Putar Contoh
-                          </>
-                        )}
+                      <button type="button" onClick={() => onPlayAudio(ex.audioUrl)} className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${isPlaying ? "bg-[#EA580C] text-white" : "bg-[#0D9488] text-white hover:bg-[#0f766e]"}`}>
+                        {isPlaying ? (<> <Pause size={14} /> Berhenti </>) : (<> <Volume2 size={14} /> Putar Contoh </>)}
                       </button>
                     </div>
                   </div>
@@ -642,6 +584,7 @@ function TajwidPreview({ entry, onPlayAudio, playingUrl }: TajwidPreviewProps) {
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* Tips Membimbing */}
@@ -649,18 +592,11 @@ function TajwidPreview({ entry, onPlayAudio, playingUrl }: TajwidPreviewProps) {
         <StickerCard className="p-4 bg-[#FEF3C7]">
           <div className="flex items-center gap-2">
             <Lightbulb size={18} className="text-[#B45309]" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
-              Panduan Mengajar Tajwid
-            </h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">Panduan Mengajar Tajwid</h4>
           </div>
           <ul className="mt-2 space-y-1.5">
-            {entry.tipsUstadz.map((tip, i) => (
-              <li
-                key={i}
-                className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90"
-              >
-                {tip}
-              </li>
+            {(entry.tipsUstadz as string[]).map((tip, i) => (
+              <li key={i} className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90">{tip}</li>
             ))}
           </ul>
         </StickerCard>
@@ -691,32 +627,13 @@ function DoaPreview({ entry, onPlayAudio, playingUrl }: DoaPreviewProps) {
     <div className="space-y-5">
       {/* Filter Kategori Doa */}
       <StickerCard className="p-4 bg-[#F0FDF4]">
-        <p className="text-xs font-black uppercase text-[#134E4A]/70">
-          Kategori Doa
-        </p>
+        <p className="text-xs font-black uppercase text-[#134E4A]/70">Kategori Doa</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory("semua")}
-            className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
-              selectedCategory === "semua"
-                ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"
-            }`}
-          >
+          <button type="button" onClick={() => setSelectedCategory("semua")} className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${selectedCategory === "semua" ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"}`}>
             Semua ({DOA_LIST.length})
           </button>
           {DOA_CATEGORIES.map((cat) => (
-            <button
-              key={cat.key}
-              type="button"
-              onClick={() => setSelectedCategory(cat.key)}
-              className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
-                selectedCategory === cat.key
-                  ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                  : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"
-              }`}
-            >
+            <button key={cat.key} type="button" onClick={() => setSelectedCategory(cat.key)} className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${selectedCategory === cat.key ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"}`}>
               {cat.title} ({cat.count})
             </button>
           ))}
@@ -725,61 +642,25 @@ function DoaPreview({ entry, onPlayAudio, playingUrl }: DoaPreviewProps) {
 
       {/* Grid Kartu Doa */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {filteredDoa.map((doa: DoaItem) => {
+        {(DOA_LIST as DoaItem[]).map((doa) => {
           const isPlaying = Boolean(doa.audioUrl && playingUrl === doa.audioUrl);
           return (
-            <div
-              key={doa.id}
-              className="flex flex-col justify-between rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition"
-            >
+            <div key={doa.id} className="flex flex-col justify-between rounded-2xl border-2 border-[#134E4A] bg-white p-4 shadow-[3px_3px_0px_#134E4A] transition">
               <div>
                 <div className="flex items-start justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-2">
-                  <h4 className="text-sm font-black text-[#134E4A]">
-                    {doa.title}
-                  </h4>
-                  <span className="shrink-0 rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black text-[#7C2D12]">
-                    {doa.category}
-                  </span>
+                  <h4 className="text-sm font-black text-[#134E4A]">{doa.title}</h4>
+                  <span className="shrink-0 rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black text-[#7C2D12]">{doa.category}</span>
                 </div>
-
                 <div className="my-3 text-right">
-                  <p
-                    dir="rtl"
-                    className="font-arabic text-2xl font-bold leading-loose text-[#134E4A]"
-                  >
-                    {doa.arabic}
-                  </p>
+                  <p dir="rtl" className="font-arabic text-2xl font-bold leading-loose text-[#134E4A]">{doa.arabic}</p>
                 </div>
-
-                <p className="text-xs font-semibold italic text-[#0F766E]">
-                  {doa.latin}
-                </p>
-
-                <p className="mt-2 text-xs font-semibold text-[#134E4A]/80">
-                  <span className="font-black">Arti:</span> {doa.translation}
-                </p>
+                <p className="text-xs font-semibold italic text-[#0F766E]">{doa.latin}</p>
+                <p className="mt-2 text-xs font-semibold text-[#134E4A]/80"><span className="font-black">Arti:</span> {doa.translation}</p>
               </div>
-
               {doa.audioUrl && (
                 <div className="mt-4 border-t-2 border-[#134E4A]/10 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => doa.audioUrl && onPlayAudio(doa.audioUrl)}
-                    className={`flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-[#134E4A] py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${
-                      isPlaying
-                        ? "bg-[#EA580C] text-white"
-                        : "bg-[#0D9488] text-white hover:bg-[#0f766e]"
-                    }`}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <Pause size={14} /> Berhenti
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 size={14} /> Dengarkan Doa
-                      </>
-                    )}
+                  <button type="button" onClick={() => doa.audioUrl && onPlayAudio(doa.audioUrl)} className={`flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-[#134E4A] py-1.5 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${isPlaying ? "bg-[#EA580C] text-white" : "bg-[#0D9488] text-white hover:bg-[#0f766e]"}`}>
+                    {isPlaying ? (<> <Pause size={14} /> Berhenti </>) : (<> <Volume2 size={14} /> Dengarkan Doa </>)}
                   </button>
                 </div>
               )}
@@ -793,18 +674,11 @@ function DoaPreview({ entry, onPlayAudio, playingUrl }: DoaPreviewProps) {
         <StickerCard className="p-4 bg-[#FEF3C7]">
           <div className="flex items-center gap-2">
             <Lightbulb size={18} className="text-[#B45309]" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
-              Tips Bimbingan Doa & Adab Harian
-            </h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">Tips Bimbingan Doa & Adab Harian</h4>
           </div>
           <ul className="mt-2 space-y-1.5">
-            {entry.tipsUstadz.map((tip, i) => (
-              <li
-                key={i}
-                className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90"
-              >
-                {tip}
-              </li>
+            {(entry.tipsUstadz as string[]).map((tip, i) => (
+              <li key={i} className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90">{tip}</li>
             ))}
           </ul>
         </StickerCard>
@@ -826,32 +700,16 @@ interface JuzAmmaPreviewProps {
 function JuzAmmaPreview({ entry, onPlayAudio, playingUrl }: JuzAmmaPreviewProps) {
   const [selectedSurahNumber, setSelectedSurahNumber] = useState<number>(114);
 
-  const currentSurah = useMemo(
-    () =>
-      JUZ_AMMA_SURAHS.find((s) => s.number === selectedSurahNumber) ||
-      JUZ_AMMA_SURAHS[0],
-    [selectedSurahNumber],
-  );
+  const currentSurah = useMemo(() => JUZ_AMMA_SURAHS.find((s) => s.number === selectedSurahNumber) || JUZ_AMMA_SURAHS[0], [selectedSurahNumber]);
 
   return (
     <div className="space-y-5">
       {/* Selector Surah */}
       <StickerCard className="p-4 bg-[#F0FDF4]">
-        <p className="text-xs font-black uppercase text-[#134E4A]/70">
-          Pilih Surah Juz 30 (Juz 'Amma)
-        </p>
+        <p className="text-xs font-black uppercase text-[#134E4A]/70">Pilih Surah Juz 30 (Juz 'Amma)</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {JUZ_AMMA_SURAHS.map((surah) => (
-            <button
-              key={surah.number}
-              type="button"
-              onClick={() => setSelectedSurahNumber(surah.number)}
-              className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
-                selectedSurahNumber === surah.number
-                  ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                  : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"
-              }`}
-            >
+          {(JUZ_AMMA_SURAHS as Array<{ number: number; name: string; ayah: number; audioUrl: string }>).map((surah) => (
+            <button key={surah.number} type="button" onClick={() => setSelectedSurahNumber(surah.number)} className={`rounded-xl border-2 border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${selectedSurahNumber === surah.number ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "bg-white text-[#134E4A] hover:bg-[#CCFBF1]"}`}>
               {surah.number}. {surah.name}
             </button>
           ))}
@@ -860,47 +718,25 @@ function JuzAmmaPreview({ entry, onPlayAudio, playingUrl }: JuzAmmaPreviewProps)
 
       {/* Detail Surah Terpilih */}
       {currentSurah && (
+        <>
         <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#134E4A]/10 pb-3">
             <div>
-              <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
-                Surah Ke-{currentSurah.number}
-              </span>
-              <h3 className="mt-1 text-xl font-black text-[#183B38]">
-                Surah {currentSurah.name}
-              </h3>
-              <p className="text-xs font-bold text-[#134E4A]/70">
-                Terdiri dari {currentSurah.ayah} ayat
-              </p>
+              <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">Surah Ke-{currentSurah.number}</span>
+              <h3 className="mt-1 text-xl font-black text-[#183B38]">Surah {currentSurah.name}</h3>
+              <p className="text-xs font-bold text-[#134E4A]/70">Terdiri dari {currentSurah.ayah} ayat</p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => onPlayAudio(currentSurah.audioUrl)}
-              className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-4 py-2 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${
-                playingUrl === currentSurah.audioUrl
-                  ? "bg-[#EA580C] text-white"
-                  : "bg-[#0D9488] text-white hover:bg-[#0f766e]"
-              }`}
-            >
-              {playingUrl === currentSurah.audioUrl ? (
-                <>
-                  <Pause size={16} /> Berhenti Murottal
-                </>
-              ) : (
-                <>
-                  <Volume2 size={16} /> Putar Audio Murottal
-                </>
-              )}
+            <button type="button" onClick={() => onPlayAudio(currentSurah.audioUrl)} className={`flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] px-4 py-2 text-xs font-black shadow-[2px_2px_0px_#134E4A] transition-all active:translate-x-[1px] active:translate-y-[1px] ${playingUrl === currentSurah.audioUrl ? "bg-[#EA580C] text-white" : "bg-[#0D9488] text-white hover:bg-[#0f766e]"}`}>
+              {playingUrl === currentSurah.audioUrl ? (<> <Pause size={16} /> Berhenti Murottal </>) : (<> <Volume2 size={16} /> Putar Audio Murottal </>)}
             </button>
           </div>
 
           <div className="mt-4 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-gray-50 p-4">
-            <p className="text-xs font-bold text-[#134E4A]/80">
-              Mode Preview Guru menyajikan audio pembacaan dan rincian surah untuk verifikasi hafalan santri tanpa animasi bintang atau koin.
-            </p>
+            <p className="text-xs font-bold text-[#134E4A]/80">Mode Preview Guru menyajikan audio pembacaan dan rincian surah untuk verifikasi hafalan santri tanpa animasi bintang atau koin.</p>
           </div>
         </div>
+        </>
       )}
 
       {/* Tips Membimbing */}
@@ -908,18 +744,11 @@ function JuzAmmaPreview({ entry, onPlayAudio, playingUrl }: JuzAmmaPreviewProps)
         <StickerCard className="p-4 bg-[#FEF3C7]">
           <div className="flex items-center gap-2">
             <Lightbulb size={18} className="text-[#B45309]" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
-              Tips Penilaian Hafalan Surah
-            </h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">Tips Penilaian Hafalan Surah</h4>
           </div>
           <ul className="mt-2 space-y-1.5">
-            {entry.tipsUstadz.map((tip, i) => (
-              <li
-                key={i}
-                className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90"
-              >
-                {tip}
-              </li>
+            {(entry.tipsUstadz as string[]).map((tip, i) => (
+              <li key={i} className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90">{tip}</li>
             ))}
           </ul>
         </StickerCard>
@@ -945,39 +774,21 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
         <div className="rounded-2xl border-2 border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#134E4A]/10 pb-3">
             <div>
-              <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
-                Kuis Bank Ustadz
-              </span>
-              <h3 className="mt-1 text-lg font-black text-[#183B38]">
-                {customQuiz.title}
-              </h3>
+              <span className="rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">Kuis Bank Ustadz</span>
+              <h3 className="mt-1 text-lg font-black text-[#183B38]">{customQuiz.title}</h3>
             </div>
-            <span className="rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E]">
-              {customQuiz.questions.length} Soal
-            </span>
+            <span className="rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E]">{customQuiz.questions.length} Soal</span>
           </div>
 
           <div className="mt-4 space-y-3">
-            {customQuiz.questions.map((q, idx) => (
-              <div
-                key={q.id ?? idx}
-                className="rounded-xl border-2 border-[#134E4A] bg-gray-50 p-3"
-              >
-                <p className="text-xs font-black text-[#134E4A]">
-                  {idx + 1}. {q.prompt}
-                </p>
+            {(customQuiz.questions as Array<{ id: string; prompt: string; options: string[]; answerIndex: number }>).map((q, idx) => (
+              <div key={q.id ?? idx} className="rounded-xl border-2 border-[#134E4A] bg-gray-50 p-3">
+                <p className="text-xs font-black text-[#134E4A]">{idx + 1}. {q.prompt}</p>
                 <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {q.options.map((opt, optIdx) => {
+                  {(q.options as string[]).map((opt, optIdx) => {
                     const isCorrect = optIdx === q.answerIndex;
                     return (
-                      <div
-                        key={optIdx}
-                        className={`flex items-center gap-1.5 rounded-lg border-2 p-2 text-xs font-bold ${
-                          isCorrect
-                            ? "border-[#166534] bg-[#DCFCE7] text-[#166534]"
-                            : "border-[#134E4A]/20 bg-white text-[#134E4A]/70"
-                        }`}
-                      >
+                      <div key={optIdx} className={`flex items-center gap-1.5 rounded-lg border-2 p-2 text-xs font-bold ${isCorrect ? "border-[#166534] bg-[#DCFCE7] text-[#166534]" : "border-[#134E4A]/20 bg-white text-[#134E4A]/70"}`}>
                         {isCorrect && <Check size={14} className="shrink-0" />}
                         <span>{opt}</span>
                       </div>
@@ -1007,82 +818,52 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
                 {isGame ? "Game Interaktif" : isQuiz ? "Evaluasi Kuis" : "Materi Pembelajaran"}
               </span>
               {isGame && (
-                <span
-                  className={`rounded-lg border-2 border-[#134E4A] px-2 py-0.5 text-[10px] font-black ${
-                    entry.access === "guest-open"
-                      ? "bg-[#DCFCE7] text-[#166534]"
-                      : "bg-[#FEF9C3] text-[#7C2D12]"
-                  }`}
-                >
-                  {entry.access === "guest-open"
-                    ? "Terbuka Tamu"
-                    : "Hanya Member"}
+                <span className={`rounded-lg border-2 border-[#134E4A] px-2 py-0.5 text-[10px] font-black ${entry.access === "guest-open" ? "bg-[#DCFCE7] text-[#166534]" : "bg-[#FEF9C3] text-[#7C2D12]"}`}>
+                  {entry.access === "guest-open" ? "Terbuka Tamu" : "Hanya Member"}
                 </span>
               )}
             </div>
-            <h3 className="mt-1 text-xl font-black text-[#134E4A]">
-              {entry.title}
-            </h3>
+            <h3 className="mt-1 text-xl font-black text-[#134E4A]">{entry.title}</h3>
           </div>
 
           <div className="flex flex-wrap gap-1">
-            {entry.materiPokok.map((materi) => (
-              <span
-                key={materi}
-                className="rounded-lg border-2 border-[#134E4A] bg-[#E0F2FE] px-2 py-0.5 text-[10px] font-black text-[#0369A1]"
-              >
-                {MATERI_LABELS[materi] || materi}
-              </span>
+            {(entry.materiPokok as MateriPokok[]).map((materi) => (
+              <>
+              <span key={materi} className="rounded-lg border-2 border-[#134E4A] bg-[#E0F2FE] px-2 py-0.5 text-[10px] font-black text-[#0369A1]">{MATERI_LABELS[materi] || materi}</span>
+              </>
             ))}
           </div>
         </div>
 
         <div className="mt-4 space-y-3">
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
-              Tujuan Pembelajaran
-            </h4>
-            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#134E4A]/80">
-              {entry.learningObjective}
-            </p>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">Tujuan Pembelajaran</h4>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#134E4A]/80">{entry.learningObjective}</p>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
-              {isGame ? "Mekanik & Cara Main Santri" : "Tata Cara Belajar"}
-            </h4>
-            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#134E4A]/80">
-              {entry.caraMain}
-            </p>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">{isGame ? "Mekanik & Cara Main Santri" : "Tata Cara Belajar"}</h4>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#134E4A]/80">{entry.caraMain}</p>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
-              Jilid Relevan
-            </h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#134E4A]">Jilid Relevan</h4>
             {entry.jilidRelevan.length > 0 ? (
               <div className="mt-1 flex gap-1.5">
-                {entry.jilidRelevan.map((jilid) => (
-                  <span
-                    key={jilid}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] text-xs font-black text-[#7C2D12]"
-                  >
-                    {jilid}
-                  </span>
+                {(entry.jilidRelevan as JilidNumber[]).map((jilid) => (
+                  <>
+                  <span key={jilid} className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#FEF3C7] text-xs font-black text-[#7C2D12]">{jilid}</span>
+                  </>
                 ))}
               </div>
             ) : (
-              <p className="mt-1 text-xs font-semibold text-[#134E4A]/60">
-                Materi pengayaan fleksibel (tidak terikat jilid Tartila tertentu).
-              </p>
+              <p className="mt-1 text-xs font-semibold text-[#134E4A]/60">Materi pengayaan fleksibel (tidak terikat jilid Tartila tertentu).</p>
             )}
           </div>
         </div>
 
         <div className="mt-6 border-t-2 border-[#134E4A]/10 pt-4">
-          <StickerButton onClick={onOpenAssign} className="w-full bg-[#0D9488] text-white">
-            Tugaskan {isGame ? "Game" : isQuiz ? "Kuis" : "Materi"} Ini ke Kelas
-          </StickerButton>
+          <StickerButton onClick={onOpenAssign} className="w-full bg-[#0D9488] text-white">Tugaskan {isGame ? "Game" : isQuiz ? "Kuis" : "Materi"} Ini ke Kelas</StickerButton>
         </div>
       </div>
 
@@ -1090,18 +871,11 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
         <StickerCard className="p-4 bg-[#FEF3C7]">
           <div className="flex items-center gap-2">
             <Lightbulb size={18} className="text-[#B45309]" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">
-              Tips Membimbing Santri
-            </h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#7C2D12]">Tips Membimbing Santri</h4>
           </div>
           <ul className="mt-2 space-y-1.5">
-            {entry.tipsUstadz.map((tip, i) => (
-              <li
-                key={i}
-                className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90"
-              >
-                {tip}
-              </li>
+            {(entry.tipsUstadz as string[]).map((tip, i) => (
+              <li key={i} className="list-disc pl-4 text-xs font-semibold text-[#7C2D12]/90">{tip}</li>
             ))}
           </ul>
         </StickerCard>
@@ -1116,6 +890,7 @@ function GenericPreview({ entry, customQuiz, onOpenAssign }: GenericPreviewProps
 
 export function UstadzMaterialPreviewPage() {
   const { materialId } = useParams<{ materialId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -1125,115 +900,123 @@ export function UstadzMaterialPreviewPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Ambil catalog entry
-  const entry = useMemo(
-    () => (materialId ? getCatalogItemById(materialId) : undefined),
-    [materialId],
-  );
+  const entry = useMemo(() => (materialId ? getCatalogItemById(materialId) : undefined), [materialId]);
 
   // Jika tidak ada di catalog, coba cari di Bank Kuis Ustadz
   useEffect(() => {
     if (!entry && materialId) {
-      getQuiz(materialId)
-        .then((q) => {
-          if (q) setCustomQuiz(q);
-        })
-        .catch(() => {});
+      getQuiz(materialId).then((q) => { if (q) setCustomQuiz(q); }).catch(() => {});
     }
   }, [entry, materialId]);
 
   // Audio player cleanup
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
+  useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
 
   const handlePlayAudio = (url: string) => {
     if (!url) return;
-    if (playingAudioUrl === url) {
-      audioRef.current?.pause();
-      setPlayingAudioUrl(null);
-      return;
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    console.log("[UstadzMaterialPreviewPage] Memutar audio:", url);
+    if (playingAudioUrl === url) { audioRef.current?.pause(); setPlayingAudioUrl(null); return; }
+    if (audioRef.current) audioRef.current.pause();
     const audio = new Audio(url);
     audioRef.current = audio;
     setPlayingAudioUrl(url);
-
-    audio.play().catch(() => {
-      setPlayingAudioUrl(null);
-    });
-
-    audio.onended = () => {
-      setPlayingAudioUrl(null);
-    };
-
-    audio.onerror = () => {
-      setPlayingAudioUrl(null);
-    };
+    audio.play().catch(() => setPlayingAudioUrl(null));
+    audio.onended = () => setPlayingAudioUrl(null);
+    audio.onerror = () => setPlayingAudioUrl(null);
   };
 
-  const materialTitle = entry?.title || customQuiz?.title || materialId || "Materi";
-
   // Deteksi tipe konten untuk menentukan renderer yang tepat
-  const isTilawati =
-    entry &&
-    (entry.materiPokok.includes("tilawati") ||
-      entry.id.startsWith("tilawati") ||
-      entry.id === "menara-tilawati");
+  const isTilawati = Boolean(
+    materialId === "tilawati" ||
+    materialId?.startsWith("tilawati-jilid") ||
+    (entry && (entry.materiPokok.includes("tilawati") || entry.id.startsWith("tilawati") || entry.id === "menara-tilawati"))
+  );
+  const isTajwid = Boolean(entry && (entry.id === "kunci-rahasia-tajwid" || (entry.materiPokok.includes("tajwid") && entry.type === "materi")));
+  const isDoa = Boolean(entry && (entry.id === "gudang-doa" || (entry.materiPokok.includes("doa") && entry.type === "materi")));
+  const isJuzAmma = Boolean(entry && (entry.id === "galaksi-juz-amma" || (entry.materiPokok.includes("juz-amma") && entry.type === "materi")));
 
-  const isTajwid =
-    entry &&
-    (entry.id === "kunci-rahasia-tajwid" ||
-      (entry.materiPokok.includes("tajwid") && entry.type === "materi"));
-
-  const isDoa =
-    entry &&
-    (entry.id === "gudang-doa" ||
-      (entry.materiPokok.includes("doa") && entry.type === "materi"));
-
-  const isJuzAmma =
-    entry &&
-    (entry.id === "galaksi-juz-amma" ||
-      (entry.materiPokok.includes("juz-amma") && entry.type === "materi"));
-
-  // Default jilid untuk Tilawati reader
-  const initialJilid = useMemo(() => {
+  // Jilid aktif untuk Tilawati reader - SSOT dari query params atau catalog entry
+  const currentJilid = useMemo(() => {
+    const urlJilid = searchParams.get("jilid");
+    if (urlJilid) {
+      const parsed = Number(urlJilid);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 6) return parsed;
+    }
     if (!entry) return 1;
     const match = entry.id.match(/tilawati-jilid-(\d+)/);
     if (match && match[1]) return Number(match[1]);
     if (entry.jilidRelevan.length > 0) return entry.jilidRelevan[0] as number;
     return 1;
-  }, [entry]);
+  }, [entry, searchParams]);
+
+  // Halaman aktif untuk Tilawati reader - SSOT dari query params
+  const currentPage = useMemo(() => {
+    const urlPage = searchParams.get("page");
+    if (urlPage) {
+      const parsed = Number(urlPage);
+      if (!isNaN(parsed) && parsed >= 1) return parsed;
+    }
+    return 1;
+  }, [searchParams]);
+
+  // Hentikan audio yang sedang diputar ketika jilid atau halaman berganti
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setPlayingAudioUrl(null);
+    }
+  }, [currentJilid, currentPage]);
+
+  const handleJilidChange = (nextJilid: number) => {
+    setSearchParams({ jilid: String(nextJilid), page: "1" }, { replace: true });
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    setSearchParams({ jilid: String(currentJilid), page: String(nextPage) }, { replace: true });
+  };
+
+  const materialTitle = isTilawati
+    ? `Tilawati Jilid ${currentJilid}`
+    : entry?.title || customQuiz?.title || materialId || "Materi";
+
+  const effectiveEntry: CatalogEntry = useMemo(() => {
+    if (entry) return entry;
+    return {
+      id: `tilawati-jilid-${currentJilid}`,
+      type: "materi",
+      title: `Tilawati Jilid ${currentJilid}`,
+      route: `/member/ngaji-ceria/explore/tilawati/${currentJilid}`,
+      materiPokok: ["tilawati"],
+      jilidRelevan: [currentJilid as JilidNumber],
+      tipsUstadz: [
+        "Dengarkan talaqqi dengan seksama sebelum santri menirukan.",
+        "Perhatikan ketukan nada Rost: Datar, Naik, dan Turun.",
+      ],
+      learningObjective: "Menguasai bacaan Tilawati sesuai kaidah tajwid dan irama Rost.",
+      caraMain: "Ustadz memutar audio talaqqi dan menyimak bacaan santri.",
+      needsContentValidation: false,
+    };
+  }, [entry, currentJilid]);
 
   return (
     <div className="relative pb-24">
       {/* 1. Sticky Preview Header */}
       <div className="sticky top-16 z-20 -mx-4 -mt-6 mb-6 flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-[#134E4A] bg-[#CCFBF1] px-4 py-3 md:-mx-8 md:px-8">
         <div className="flex items-center gap-3">
-          <StickerButton
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/ustadz/kurikulum")}
-            className="flex items-center gap-1.5 bg-white text-xs font-black shadow-[2px_2px_0px_#134E4A]"
-          >
+          <StickerButton variant="ghost" size="sm" onClick={() => navigate("/ustadz/learning/kurikulum")} className="flex items-center gap-1.5 bg-white text-xs font-black shadow-[2px_2px_0px_#134E4A]">
             <ChevronLeft size={16} />
             <span>Kembali ke Kurikulum</span>
           </StickerButton>
           <div className="h-5 w-0.5 bg-[#134E4A]/20" />
-          <span className="rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">
-            Teacher Preview Mode
-          </span>
+          <span className="rounded-md border-2 border-[#134E4A] bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-black uppercase text-[#7C2D12]">Teacher Preview Mode</span>
         </div>
 
         <div className="text-right">
           <p className="text-xs font-bold text-[#134E4A]/80">
             Materi: <span className="font-black text-[#134E4A]">{materialTitle}</span>
+            {isTilawati && (
+              <span className="font-black text-[#0D9488]"> · Hal {currentPage}</span>
+            )}
           </p>
         </div>
       </div>
@@ -1243,68 +1026,44 @@ export function UstadzMaterialPreviewPage() {
         <div className="flex items-start gap-3">
           <Info size={20} className="mt-0.5 shrink-0 text-[#B45309]" />
           <div>
-            <p className="text-xs font-black uppercase tracking-wider text-[#9A3412]">
-              Mode Pratinjau Pengajar (Teacher View)
-            </p>
-            <p className="mt-0.5 text-xs font-medium leading-relaxed text-[#9A3412]">
-              Anda sedang melihat konten asli materi ini secara langsung tanpa antarmuka gamifikasi santri (tanpa koin, hati, atau maskot). Gunakan halaman ini untuk menelaah teks bacaan, memutar talaqqi audio, dan menugaskannya ke kelas Anda.
-            </p>
+            <p className="text-xs font-black uppercase tracking-wider text-[#9A3412]">Mode Pratinjau Pengajar (Teacher View)</p>
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-[#9A3412]">Anda sedang melihat konten asli materi ini secara langsung tanpa antarmuka gamifikasi santri (tanpa koin, hati, atau maskot). Gunakan halaman ini untuk menelaah teks bacaan, memutar talaqqi audio, dan menugaskannya ke kelas Anda.</p>
+            {isTilawati && (
+              <p className="mt-2 text-xs font-semibold text-[#0D9488]">Pratinjau Aktif: Tilawati Jilid {currentJilid} · Halaman {currentPage}</p>
+            )}
           </div>
         </div>
       </div>
 
       {/* 3. Konten Utama Berdasarkan Kategori Materi */}
-      {isTilawati && entry ? (
+      {isTilawati ? (
         <TilawatiPreview
-          initialJilid={initialJilid}
-          entry={entry}
+          entry={effectiveEntry}
+          jilid={currentJilid}
+          page={currentPage}
+          onJilidChange={handleJilidChange}
+          onPageChange={handlePageChange}
           onPlayAudio={handlePlayAudio}
           playingUrl={playingAudioUrl}
         />
       ) : isTajwid && entry ? (
-        <TajwidPreview
-          entry={entry}
-          onPlayAudio={handlePlayAudio}
-          playingUrl={playingAudioUrl}
-        />
+        <TajwidPreview entry={entry} onPlayAudio={handlePlayAudio} playingUrl={playingAudioUrl} />
       ) : isDoa && entry ? (
-        <DoaPreview
-          entry={entry}
-          onPlayAudio={handlePlayAudio}
-          playingUrl={playingAudioUrl}
-        />
+        <DoaPreview entry={entry} onPlayAudio={handlePlayAudio} playingUrl={playingAudioUrl} />
       ) : isJuzAmma && entry ? (
-        <JuzAmmaPreview
-          entry={entry}
-          onPlayAudio={handlePlayAudio}
-          playingUrl={playingAudioUrl}
-        />
+        <JuzAmmaPreview entry={entry} onPlayAudio={handlePlayAudio} playingUrl={playingAudioUrl} />
       ) : (
-        <GenericPreview
-          entry={entry}
-          customQuiz={customQuiz}
-          onOpenAssign={() => setIsAssignModalOpen(true)}
-        />
+        <GenericPreview entry={entry} customQuiz={customQuiz} onOpenAssign={() => setIsAssignModalOpen(true)} />
       )}
 
       {/* 4. Floating Action Button (FAB) Tugaskan Materi */}
-      <button
-        type="button"
-        onClick={() => setIsAssignModalOpen(true)}
-        className="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-30 flex items-center gap-2 rounded-2xl border-2 border-[#134E4A] bg-[#0D9488] px-5 py-3 text-sm font-black text-white shadow-[3px_3px_0px_#134E4A] transition-all hover:bg-[#0f766e] active:translate-x-[2px] active:translate-y-[2px]"
-      >
+      <button type="button" onClick={() => setIsAssignModalOpen(true)} className="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-30 flex items-center gap-2 rounded-2xl border-2 border-[#134E4A] bg-[#0D9488] px-5 py-3 text-sm font-black text-white shadow-[3px_3px_0px_#134E4A] transition-all hover:bg-[#0f766e] active:translate-x-[2px] active:translate-y-[2px]">
         <BookOpen size={18} />
         <span>Tugaskan Materi Ini</span>
       </button>
 
       {/* 5. Modal Penugasan */}
-      <AssignModal
-        isOpen={isAssignModalOpen}
-        onClose={() => setIsAssignModalOpen(false)}
-        materialId={materialId ?? ""}
-        materialTitle={materialTitle}
-        ustadzId={user?.id}
-      />
+      <AssignModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} materialId={isTilawati ? `tilawati-jilid-${currentJilid}` : (materialId ?? "")} materialTitle={materialTitle} ustadzId={user?.id} />
     </div>
   );
 }

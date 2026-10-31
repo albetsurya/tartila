@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
-import { ArrowLeft, Plus, Trash2, HelpCircle, Sparkles, BookOpen } from "@/components/ui/CustomIcons";
+import { ArrowLeft, Plus, Trash2 } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ALL_MATERI_POKOK,
@@ -34,6 +34,7 @@ export function UstadzQuizCreatePage() {
   const location = useLocation();
   const isMember = location.pathname.startsWith("/member/ngaji-ceria");
   const { user } = useAuth();
+
   const [rooms, setRooms] = useState<ClassroomRoom[]>([]);
   const [title, setTitle] = useState("");
   const [materi, setMateri] = useState<MateriPokok>("hijaiyah");
@@ -45,6 +46,9 @@ export function UstadzQuizCreatePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
+  // Ref untuk Auto-Scroll
+  const questionsEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const load = async () => {
       const owned = await listOwnedClassrooms(user?.id);
@@ -52,6 +56,15 @@ export function UstadzQuizCreatePage() {
     };
     void load();
   }, [user?.id]);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      questionsEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 100);
+  };
 
   const updateQuestion = (
     index: number,
@@ -62,7 +75,13 @@ export function UstadzQuizCreatePage() {
       const next = [...prev];
       const current = { ...next[index] };
       if (field === "prompt") current.prompt = value as string;
-      else current.options = [...(value as string[])] as [string, string, string, string];
+      else
+        current.options = [...(value as string[])] as [
+          string,
+          string,
+          string,
+          string,
+        ];
       next[index] = current;
       return next;
     });
@@ -73,6 +92,7 @@ export function UstadzQuizCreatePage() {
       ...prev,
       { prompt: "", options: ["", "", "", ""], answerIndex: 0 },
     ]);
+    scrollToBottom();
   };
 
   const removeQuestion = (index: number) => {
@@ -103,7 +123,9 @@ export function UstadzQuizCreatePage() {
     setSaving(false);
     if (result.ok) {
       if (isMember) {
-        navigate("/arena/create", { state: { selectedCustomQuizId: result.quiz?.id } });
+        navigate("/arena/create", {
+          state: { selectedCustomQuizId: result.quiz?.id },
+        });
       } else {
         navigate("/ustadz/kuis");
       }
@@ -113,50 +135,46 @@ export function UstadzQuizCreatePage() {
   };
 
   return (
-    <div className={isMember ? "min-h-screen bg-[#F8FAFC] p-4 md:p-6" : ""}>
-      <div className="w-full max-w-3xl mx-auto space-y-5">
+    <div
+      className={
+        isMember
+          ? "min-h-screen bg-[#F8FAFC] p-4 md:p-6"
+          : "w-full max-w-3xl mx-auto pb-10"
+      }
+    >
+      <div className="space-y-5">
         {/* Header navigation */}
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              isMember ? navigate("/arena/create") : navigate("/ustadz/kuis")
-            }
-            className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition hover:bg-[#F8FAFC] active:scale-95"
-            aria-label="Kembali"
-          >
-            <ArrowLeft size={18} />
-          </button>
           <div>
             <h1 className="text-xl font-black text-[#134E4A] tracking-tight">
               {isMember ? "Buat Kuis Arena" : "Buat Kuis Baru"}
             </h1>
             <p className="text-xs font-semibold text-[#183B38]/70">
               {isMember
-                ? "Buat tebak-tebakan seru untuk dimainkan bersama teman di Tartila Arena"
-                : "Rancang instrumen evaluasi materi untuk santri Anda"}
+                ? "Rancang soal untuk dimainkan bersama teman"
+                : "Rancang instrumen evaluasi materi untuk santri"}
             </p>
           </div>
         </div>
 
         {/* Section 1: Informasi Kuis */}
-        <StickerCard variant="elevated" className="p-5 md:p-6 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b-2 border-dashed border-[#134E4A]/20">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-[#CCFBF1] text-[#0D9488] shadow-[1px_1px_0px_#134E4A]">
-              <BookOpen size={16} />
-            </span>
-            <h2 className="text-xs font-black uppercase tracking-wider text-[#183B38]">
-              Pengaturan Dasar Kuis
+        <StickerCard
+          variant="elevated"
+          className="p-5 md:p-6 space-y-4 bg-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A]"
+        >
+          <div className="mb-2 border-b-[3px] border-[#0D9488] pb-2">
+            <h2 className="text-sm font-black uppercase tracking-widest text-[#134E4A]">
+              Pengaturan Kuis
             </h2>
           </div>
 
           <InputField
             label="Judul Kuis"
-            placeholder="Contoh: Pengenalan Huruf Hijaiyah Berharakat Fathah"
+            placeholder="Contoh: Pengenalan Huruf Hijaiyah"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            helperText="Judul kuis yang jelas memudahkan santri memahami materi yang diuji."
+            className="bg-[#F8FAFC]"
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -165,7 +183,7 @@ export function UstadzQuizCreatePage() {
                 Kategori Materi
               </label>
               <select
-                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-white px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none transition"
+                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none"
                 value={materi}
                 onChange={(e) => setMateri(e.target.value as MateriPokok)}
               >
@@ -179,18 +197,20 @@ export function UstadzQuizCreatePage() {
 
             <div>
               <label className="block text-xs font-bold text-[#183B38] mb-1.5">
-                Target Jilid (Opsional)
+                Target Jilid
               </label>
               <select
-                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-white px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none transition"
+                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none"
                 value={targetJilid ?? ""}
                 onChange={(e) =>
                   setTargetJilid(
-                    e.target.value === "" ? null : (Number(e.target.value) as JilidNumber),
+                    e.target.value === ""
+                      ? null
+                      : (Number(e.target.value) as JilidNumber),
                   )
                 }
               >
-                <option value="">Tanpa Target Jilid (Umum)</option>
+                <option value="">Umum (Tanpa Jilid)</option>
                 {JILID_OPTIONS.map((jilid) => (
                   <option key={jilid} value={jilid}>
                     Jilid {jilid}
@@ -203,10 +223,10 @@ export function UstadzQuizCreatePage() {
           {!isMember && (
             <div>
               <label className="block text-xs font-bold text-[#183B38] mb-1.5">
-                Tugaskan ke Kelas (Opsional)
+                Tugaskan ke Kelas
               </label>
               <select
-                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-white px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none transition"
+                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none"
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value)}
               >
@@ -217,30 +237,18 @@ export function UstadzQuizCreatePage() {
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-[11px] text-[#64748B]">
-                Jika dipilih, kuis ini akan langsung muncul di kelas santri tersebut.
-              </p>
             </div>
           )}
         </StickerCard>
 
         {/* Section 2: Pertanyaan */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#E0E7FF] text-[#4338CA]">
-                <HelpCircle size={16} />
-              </span>
-              <h2 className="text-sm font-black text-[#183B38]">
-                Daftar Soal ({questions.length})
-              </h2>
-            </div>
-            <StickerButton
-              variant="outline"
-              size="sm"
-              onClick={addQuestion}
-            >
-              <Plus size={14} className="mr-1" /> Tambah Soal
+          <div className="mb-2 flex items-center justify-between border-b-[3px] border-[#F59E0B] pb-2">
+            <h2 className="text-sm font-black uppercase tracking-widest text-[#134E4A]">
+              Daftar Soal ({questions.length})
+            </h2>
+            <StickerButton variant="outline" size="sm" onClick={addQuestion}>
+              <Plus size={14} className="mr-1" /> Tambah
             </StickerButton>
           </div>
 
@@ -248,76 +256,82 @@ export function UstadzQuizCreatePage() {
             <StickerCard
               key={index}
               variant="elevated"
-              className="p-5 space-y-3"
+              className="p-4 sm:p-5 space-y-4 bg-white border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
             >
-              <div className="flex items-center justify-between pb-2 border-b-2 border-dashed border-[#134E4A]/20">
-                <span className="text-xs font-black uppercase tracking-wider text-[#0D9488]">
-                  Soal Nomor {index + 1}
+              <div className="flex items-center justify-between border-b-2 border-dashed border-[#134E4A]/20 pb-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#134E4A] text-[10px] font-black text-white">
+                  {index + 1}
                 </span>
                 {questions.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeQuestion(index)}
-                    className="p-1 text-[#94A3B8] hover:text-[#DC2626] transition"
-                    title="Hapus soal ini"
+                    className="flex items-center gap-1 text-[10px] font-bold text-[#EF4444] hover:underline"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={12} /> Hapus
                   </button>
                 )}
               </div>
 
               <InputField
-                label="Pertanyaan"
                 placeholder="Tuliskan teks pertanyaan di sini..."
                 value={question.prompt}
-                onChange={(e) => updateQuestion(index, "prompt", e.target.value)}
+                onChange={(e) =>
+                  updateQuestion(index, "prompt", e.target.value)
+                }
+                className="bg-[#F8FAFC] font-bold"
               />
 
               <div>
-                <label className="block text-xs font-bold text-[#183B38] mb-2">
-                  Pilihan Jawaban (Pilih radio untuk menandai kunci jawaban yang benar)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                  Pilih jawaban yang benar:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {question.options.map((option, optionIndex) => {
                     const isCorrect = question.answerIndex === optionIndex;
                     return (
                       <div
                         key={optionIndex}
-                        className={`flex items-center gap-2.5 rounded-xl border-2 p-2.5 transition-all ${
+                        onClick={() => {
+                          setQuestions((prev) => {
+                            const copy = [...prev];
+                            copy[index] = {
+                              ...copy[index],
+                              answerIndex: optionIndex,
+                            };
+                            return copy;
+                          });
+                        }}
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-lg border-2 p-2 transition-all ${
                           isCorrect
-                            ? "border-[#134E4A] bg-[#DCFCE7] shadow-[2px_2px_0_#134E4A]"
-                            : "border-[#134E4A] bg-white hover:bg-[#FEF08A]"
+                            ? "border-[#0D9488] bg-[#CCFBF1] shadow-[1.5px_1.5px_0_#0D9488]"
+                            : "border-[#134E4A]/30 bg-[#F8FAFC] hover:border-[#134E4A]"
                         }`}
                       >
-                        <input
-                          type="radio"
-                          name={`answer-${index}`}
-                          className="h-4 w-4 text-[#0D9488] accent-[#0D9488] cursor-pointer"
-                          checked={isCorrect}
-                          onChange={() => {
-                            setQuestions((prev) => {
-                              const copy = [...prev];
-                              copy[index] = { ...copy[index], answerIndex: optionIndex };
-                              return copy;
-                            });
-                          }}
-                        />
+                        <div
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${isCorrect ? "border-[#0D9488] bg-[#0D9488]" : "border-[#CBD5E1] bg-white"}`}
+                        >
+                          {isCorrect && (
+                            <div className="h-2 w-2 rounded-full bg-white" />
+                          )}
+                        </div>
                         <input
                           type="text"
-                          className="flex-1 bg-transparent text-xs font-medium text-[#183B38] focus:outline-none"
-                          placeholder={`Pilihan ${optionIndex + 1}`}
+                          className={`flex-1 bg-transparent text-xs font-bold focus:outline-none ${isCorrect ? "text-[#134E4A]" : "text-[#64748B]"}`}
+                          placeholder={`Pilihan ${String.fromCharCode(65 + optionIndex)}`}
                           value={question.options[optionIndex]}
                           onChange={(e) => {
-                            const next = [...question.options] as [string, string, string, string];
+                            const next = [...question.options] as [
+                              string,
+                              string,
+                              string,
+                              string,
+                            ];
                             next[optionIndex] = e.target.value;
                             updateQuestion(index, "options", next);
                           }}
+                          onClick={(e) => e.stopPropagation()} // Mencegah klik input memicu pilih radio
                         />
-                        {isCorrect && (
-                          <span className="text-[10px] font-black text-[#15803D] uppercase">
-                            Kunci
-                          </span>
-                        )}
                       </div>
                     );
                   })}
@@ -326,18 +340,12 @@ export function UstadzQuizCreatePage() {
             </StickerCard>
           ))}
 
-          <StickerButton
-            variant="outline"
-            size="md"
-            className="w-full border-dashed"
-            onClick={addQuestion}
-          >
-            <Plus size={16} className="mr-1" /> Tambah Soal Berikutnya
-          </StickerButton>
+          {/* Ref untuk Auto-scroll */}
+          <div ref={questionsEndRef} className="h-4" />
 
           {errors.length > 0 && (
-            <div className="rounded-xl border border-[#FCA5A5] bg-[#FEF2F2] p-4 text-xs font-bold text-[#991B1B] space-y-1">
-              <p className="font-black">Mohon perbaiki kesalahan berikut:</p>
+            <div className="rounded-xl border-2 border-[#EF4444] bg-[#FEF2F2] p-4 text-xs font-bold text-[#991B1B] shadow-[2px_2px_0px_#EF4444]">
+              <p className="font-black mb-1">Mohon perbaiki:</p>
               <ul className="list-disc list-inside space-y-0.5">
                 {errors.map((error, idx) => (
                   <li key={idx}>{error}</li>
@@ -346,11 +354,11 @@ export function UstadzQuizCreatePage() {
             </div>
           )}
 
-          <div className="pt-2">
+          <div className="sticky bottom-4 pt-2">
             <StickerButton
               variant="primary"
               size="lg"
-              className="w-full"
+              className="w-full shadow-[4px_4px_0px_#134E4A]"
               loading={saving}
               disabled={!title || questions.length === 0}
               onClick={handleSave}

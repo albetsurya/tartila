@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UstadzKurikulumPage } from "./UstadzKurikulumPage";
 import { UstadzQuizListPage } from "./UstadzQuizListPage";
@@ -15,35 +14,24 @@ const TABS: {
   { key: "kuis", label: "Bank Kuis", icon: Trophy },
 ];
 
-/**
- * Tab Wrapper untuk halaman pembelajaran ustadz.
- * Menggabungkan Kurikulum Tartila dan Bank Kuis dengan segmented tab konsisten & tactile.
- */
 export function UstadzLearningPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getTabFromPath = (): TabKey => {
-    if (location.pathname.startsWith("/ustadz/kuis")) return "kuis";
-    return "kurikulum";
-  };
-
-  const [activeTab, setActiveTab] = useState<TabKey>(getTabFromPath);
-
-  useEffect(() => {
-    setActiveTab(getTabFromPath());
-  }, [location.pathname]);
+  // LANGSUNG CEK URL (Diperbaiki agar membaca /learning/kuis)
+  const activeTab: TabKey = location.pathname.includes("kuis")
+    ? "kuis"
+    : "kurikulum";
 
   const handleTabChange = (tab: TabKey) => {
-    setActiveTab(tab);
-    navigate(tab === "kuis" ? "/ustadz/kuis" : "/ustadz/kurikulum", {
-      replace: true,
-    });
+    navigate(
+      tab === "kuis" ? "/ustadz/learning/kuis" : "/ustadz/learning/kurikulum",
+    );
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6">
-      {/* Consistent Tactile Neo-Brutalist Tab Bar */}
+      {/* Tab Bar */}
       <div className="w-full sm:w-auto grid grid-cols-2 gap-2 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] p-1.5 shadow-[3px_3px_0px_#134E4A]">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.key;
@@ -59,7 +47,11 @@ export function UstadzLearningPage() {
                   : "text-[#134E4A] hover:bg-white"
               }`}
             >
-              <Icon size={16} />
+              {/* IKON DIBERI WARNA KHUSUS: Kuning saat aktif, Hijau saat tidak aktif */}
+              <Icon
+                size={18}
+                className={isActive ? "text-[#FEF08A]" : "text-[#0D9488]"}
+              />
               <span>{tab.label}</span>
             </button>
           );
@@ -67,8 +59,19 @@ export function UstadzLearningPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "kurikulum" && <UstadzKurikulumPage />}
-      {activeTab === "kuis" && <UstadzQuizListPage />}
+      <div
+        className={
+          activeTab === "kurikulum" ? "block animate-in fade-in" : "hidden"
+        }
+      >
+        <UstadzKurikulumPage />
+      </div>
+
+      <div
+        className={activeTab === "kuis" ? "block animate-in fade-in" : "hidden"}
+      >
+        <UstadzQuizListPage />
+      </div>
     </div>
   );
 }

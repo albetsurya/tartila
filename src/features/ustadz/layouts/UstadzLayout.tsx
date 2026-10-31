@@ -1,22 +1,72 @@
-import { useCallback } from "react";
+import { useCallback, Suspense } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, Sparkles } from "@/components/ui/CustomIcons";
+import { LogOut, Sparkles, ChevronLeft } from "@/components/ui/CustomIcons";
 import "../ustadz.css";
 import { UstadzSidebar } from "../components/UstadzSidebar";
 import { BottomNav } from "../components/BottomNav";
 
-const PAGE_TITLES: { match: (pathname: string) => boolean; title: string; subtitle?: string }[] = [
-  { match: (p) => p.startsWith("/ustadz/preview"), title: "Preview Materi", subtitle: "Tinjau bacaan dan audio metode Tartila" },
-  { match: (p) => p.startsWith("/ustadz/kuis/baru"), title: "Buat Kuis Baru", subtitle: "Rancang soal kuis untuk santri" },
-  { match: (p) => p.startsWith("/ustadz/kuis"), title: "Bank Kuis", subtitle: "Kelola bank soal dan evaluasi pemahaman" },
-  { match: (p) => p.startsWith("/ustadz/laporan"), title: "Laporan Santri", subtitle: "Pantau aktivitas dan progres belajar" },
-  { match: (p) => p === "/ustadz/kelas/baru", title: "Buat Kelas Baru", subtitle: "Buka ruang kelas digital baru" },
-  { match: (p) => p.startsWith("/ustadz/kelas/"), title: "Detail Kelas", subtitle: "Informasi santri dan capaian materi" },
-  { match: (p) => p.startsWith("/ustadz/kelas"), title: "Kelola Kelas", subtitle: "Daftar kelas aktif dan arsip pengajaran" },
-  { match: (p) => p.startsWith("/ustadz/kurikulum"), title: "Kurikulum Tartila", subtitle: "Silabus dan panduan jilid 1 sampai 6" },
-  { match: (p) => p.startsWith("/ustadz/profil"), title: "Profil Pengajar", subtitle: "Pengaturan akun dan preferensi pengajaran" },
-  { match: () => true, title: "Dashboard Ustadz", subtitle: "Ringkasan aktivitas mengajar hari ini" },
+const PAGE_TITLES: {
+  match: (pathname: string) => boolean;
+  title: string;
+  subtitle?: string;
+}[] = [
+  {
+    match: (p) => p.startsWith("/ustadz/preview"),
+    title: "Preview Materi",
+    subtitle: "Tinjau bacaan dan audio metode Tartila",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/learning"),
+    title: "Kurikulum & Bank Kuis",
+    subtitle: "Pusat materi dan evaluasi santri",
+  }, // <-- TAMBAHKAN BARIS INI
+  {
+    match: (p) => p.startsWith("/ustadz/kuis/baru"),
+    title: "Buat Kuis Baru",
+    subtitle: "Rancang soal kuis untuk santri",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/kuis"),
+    title: "Bank Kuis",
+    subtitle: "Kelola bank soal dan evaluasi pemahaman",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/laporan"),
+    title: "Laporan Santri",
+    subtitle: "Pantau aktivitas dan progres belajar",
+  },
+  {
+    match: (p) => p === "/ustadz/kelas/baru",
+    title: "Buat Kelas Baru",
+    subtitle: "Buka ruang kelas digital baru",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/kelas/"),
+    title: "Detail Kelas",
+    subtitle: "Informasi santri dan capaian materi",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/kelas"),
+    title: "Kelola Kelas",
+    subtitle: "Daftar kelas aktif dan arsip pengajaran",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/kurikulum"),
+    title: "Kurikulum Tartila",
+    subtitle: "Silabus dan panduan jilid 1 sampai 6",
+  },
+  {
+    match: (p) => p.startsWith("/ustadz/profil"),
+    title: "Profil Pengajar",
+    subtitle: "Pengaturan akun dan preferensi pengajaran",
+  },
+  {
+    match: () => true,
+    title: "Dashboard Ustadz",
+    subtitle: "Ringkasan aktivitas mengajar hari ini",
+  },
 ];
 
 export function UstadzLayout() {
@@ -24,11 +74,20 @@ export function UstadzLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const pageInfo =
-    PAGE_TITLES.find((entry) => entry.match(location.pathname)) ?? {
-      title: "Dashboard Ustadz",
-      subtitle: "Ringkasan aktivitas mengajar hari ini",
-    };
+  const pageInfo = PAGE_TITLES.find((entry) =>
+    entry.match(location.pathname),
+  ) ?? {
+    title: "Dashboard Ustadz",
+    subtitle: "Ringkasan aktivitas mengajar hari ini",
+  };
+
+  const isLearningPage =
+    location.pathname.includes("/kurikulum") ||
+    location.pathname.includes("/kuis");
+
+  // Cek apakah sedang di sub-halaman (bukan dashboard utama)
+  const isSubPage =
+    location.pathname !== "/ustadz" && location.pathname !== "/ustadz/";
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -44,17 +103,31 @@ export function UstadzLayout() {
       <div className="md:pl-64">
         {/* Neo-Brutalist Header */}
         <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b-2 sm:border-b-3 border-[#134E4A] bg-white px-4 md:px-8 shadow-[0_2px_0px_#134E4A]">
-          <div className="min-w-0 pr-4">
-            <h1 className="truncate text-base font-black tracking-tight text-[#134E4A] md:text-lg">
-              {pageInfo.title}
-            </h1>
-            {pageInfo.subtitle && (
-              <p className="hidden text-xs font-semibold text-[#183B38]/70 sm:block">
-                {pageInfo.subtitle}
-              </p>
+          {/* KIRI: Tombol Back & Judul Halaman */}
+          <div className="flex min-w-0 items-center gap-3 pr-4">
+            {isSubPage && (
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#FEF08A] active:scale-95"
+                aria-label="Kembali"
+              >
+                <ChevronLeft size={20} />
+              </button>
             )}
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-black tracking-tight text-[#134E4A] md:text-lg">
+                {pageInfo.title}
+              </h1>
+              {pageInfo.subtitle && (
+                <p className="hidden text-xs font-semibold text-[#183B38]/70 sm:block">
+                  {pageInfo.subtitle}
+                </p>
+              )}
+            </div>
           </div>
 
+          {/* KANAN: Aksi & Profil */}
           <div className="flex shrink-0 items-center gap-2.5">
             <span className="hidden text-xs font-black text-[#134E4A] md:inline">
               {user?.name || user?.username || "Ustadz"}
@@ -81,7 +154,25 @@ export function UstadzLayout() {
 
         {/* Content Area */}
         <main className="mx-auto max-w-7xl px-4 pt-6 pb-28 md:px-8 md:pb-12">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={isLearningPage ? "learning-page" : location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Suspense
+                fallback={
+                  <div className="p-4 text-center font-bold text-[#134E4A]">
+                    Memuat Halaman...
+                  </div>
+                }
+              >
+                <Outlet />
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
