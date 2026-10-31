@@ -445,6 +445,12 @@ export function awardProgress(
   }
   const achievements = new Set(current.achievements);
   recordActivity();
+  try {
+    sessionStorage.setItem("tartila_has_played_session", "true");
+    window.dispatchEvent(new CustomEvent("tartila:activity_played"));
+  } catch {
+    // ignore
+  }
   if (getNgajiActivity().currentStreak >= 5)
     achievementIds = [...achievementIds, "pejuang-istiqomah"];
   achievements.add("first-game");

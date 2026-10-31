@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
@@ -38,6 +38,17 @@ import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
 import { isAdminRole, classroomRoleForUser } from "@/lib/roles";
 import { userApi, type UserProfileResponse } from "@/services/userApi";
 import { stopAllAudio } from "../utils/audioPlayer";
+import {
+  FEEDBACK_PROMPT_STORAGE_KEY,
+  FEEDBACK_PROMPT_DISMISSED_KEY,
+  FEEDBACK_PROMPT_SNOOZE_KEY,
+  FEEDBACK_PROMPT_CADENCE_MS,
+  FEEDBACK_PROMPT_MIN_SNOOZE_DAYS,
+  FEEDBACK_PROMPT_MAX_SNOOZE_DAYS,
+  FEEDBACK_PROMPT_DELAY_MS,
+  FEEDBACK_PROMPT_PLAYED_KEY,
+  FEEDBACK_PROMPT_SESSION_START_KEY,
+} from "../../../constants";
 
 import {
   PencilSvg,
@@ -75,8 +86,6 @@ import RankBadgeSvg from "@/components/ui/RankBadgeSvg";
 
 const TOTAL_STARS = 654;
 const AVATAR_VARIANT_STORAGE_KEY = "ngaji_ceria_avatar_variant";
-const FEEDBACK_PROMPT_STORAGE_KEY = "tartila-feedback-dismissed";
-const FEEDBACK_PROMPT_CADENCE_MS = 90 * 24 * 60 * 60 * 1000;
 
 type ActiveModal =
   | "edit"
@@ -187,22 +196,67 @@ export default function NgajiCeriaProfilePage() {
   }, []);
 
   // Auto-prompt "Kritik & Saran":
-  // Urutan prioritas gate:
-  // 1. Cek localStorage "tartila-feedback-dismissed" === "true" -> stop
-  // 2. Cek API -> jika has_submitted_feedback === true ATAU last_feedback_prompt_at < 90 hari -> set localStorage "true" & stop
-  // 3. Jika lolos semua -> tampilkan modal feedback
+  // Aturan Bisnis:
+  // 1. Akumulasi durasi sesi minimal 5 menit (FEEDBACK_PROMPT_DELAY_MS)
+  // 2. User sudah melakukan minimal 1 aktivitas produktif di sesi ini (tartila_has_played_session === "true")
+  // 3. User belum pernah submit masukan dan tidak sedang dalam periode snooze (30-90 hari)
   useEffect(() => {
     if (!user) return;
 
-    if (localStorage.getItem(FEEDBACK_PROMPT_STORAGE_KEY) === "true") {
-      return;
+    // Pastikan session start timestamp ada di sessionStorage
+    let sessionStart = Number(
+      sessionStorage.getItem(FEEDBACK_PROMPT_SESSION_START_KEY),
+    );
+    if (!sessionStart || Number.isNaN(sessionStart)) {
+      sessionStart = Date.now();
+      sessionStorage.setItem(
+        FEEDBACK_PROMPT_SESSION_START_KEY,
+        String(sessionStart),
+      );
     }
 
-    userApi
-      .getUserProfile()
-      .then((res: UserProfileResponse) => {
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+
+    const checkAndTrigger = async () => {
+      // 1. Cek status permanent dismiss / submit
+      if (
+        localStorage.getItem(FEEDBACK_PROMPT_DISMISSED_KEY) === "true" ||
+        localStorage.getItem(FEEDBACK_PROMPT_STORAGE_KEY) === "true" ||
+        localStorage.getItem("tartila-feedback-dismissed") === "true"
+      ) {
+        return;
+      }
+
+      // 2. Cek snooze aktif
+      const snoozeUntil = Number(
+        localStorage.getItem(FEEDBACK_PROMPT_SNOOZE_KEY),
+      );
+      if (snoozeUntil && !Number.isNaN(snoozeUntil) && Date.now() < snoozeUntil) {
+        return;
+      }
+
+      // 3. Cek akumulasi waktu sesi (minimal 5 menit)
+      const currentStart =
+        Number(sessionStorage.getItem(FEEDBACK_PROMPT_SESSION_START_KEY)) ||
+        sessionStart;
+      const elapsed = Date.now() - currentStart;
+      if (elapsed < FEEDBACK_PROMPT_DELAY_MS) {
+        return;
+      }
+
+      // 4. Cek aktivitas produktif di sesi ini (active player)
+      const hasPlayed =
+        sessionStorage.getItem(FEEDBACK_PROMPT_PLAYED_KEY) === "true";
+      if (!hasPlayed) {
+        // Belum ada aktivitas kuis/game/materi, tunda sampai aktivitas pertama selesai
+        return;
+      }
+
+      // 5. Cek status di backend (has_submitted_feedback & cadence)
+      try {
+        const res: UserProfileResponse = await userApi.getUserProfile();
         if (res?.has_submitted_feedback === true) {
-          localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
+          localStorage.setItem(FEEDBACK_PROMPT_DISMISSED_KEY, "true");
           return;
         }
 
@@ -213,28 +267,66 @@ export default function NgajiCeriaProfilePage() {
             !Number.isNaN(then) &&
             Date.now() - then < FEEDBACK_PROMPT_CADENCE_MS
           ) {
-            localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
+            localStorage.setItem(FEEDBACK_PROMPT_DISMISSED_KEY, "true");
             return;
           }
         }
 
         setActiveModal("feedback");
-      })
-      .catch(() => {
-        // API gagal; jangan tampilkan modal. localStorage tetap kosong
-        // agar prompt feedback bisa retry saat user offline kembali.
-      });
+      } catch {
+        // API gagal; jangan tampilkan modal sekarang.
+      }
+    };
+
+    // Evaluasi awal (siapa tahu user sudah melewati 5 menit & sudah bermain)
+    void checkAndTrigger();
+
+    // Jadwalkan timer untuk sisa durasi menuju 5 menit
+    const currentStart =
+      Number(sessionStorage.getItem(FEEDBACK_PROMPT_SESSION_START_KEY)) ||
+      sessionStart;
+    const elapsed = Date.now() - currentStart;
+    const remaining = Math.max(0, FEEDBACK_PROMPT_DELAY_MS - elapsed);
+    timerId = setTimeout(() => {
+      void checkAndTrigger();
+    }, remaining);
+
+    // Dengarkan event aktivitas (jika durasi sudah 5 menit dan user baru menyelesaikan aktivitas)
+    const handleActivity = () => {
+      void checkAndTrigger();
+    };
+    window.addEventListener("tartila:activity_played", handleActivity);
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+      window.removeEventListener("tartila:activity_played", handleActivity);
+    };
   }, [user]);
 
   const handleCloseFeedback = () => {
-    localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
+    // Tombol X / Batal: aktifkan snooze acak 30-90 hari jika belum pernah submit
+    if (
+      !submitted &&
+      localStorage.getItem(FEEDBACK_PROMPT_DISMISSED_KEY) !== "true"
+    ) {
+      const randomDays =
+        Math.floor(
+          Math.random() *
+            (FEEDBACK_PROMPT_MAX_SNOOZE_DAYS -
+              FEEDBACK_PROMPT_MIN_SNOOZE_DAYS +
+              1),
+        ) + FEEDBACK_PROMPT_MIN_SNOOZE_DAYS;
+      const snoozeUntil = Date.now() + randomDays * 24 * 60 * 60 * 1000;
+      localStorage.setItem(FEEDBACK_PROMPT_SNOOZE_KEY, String(snoozeUntil));
+      userApi.updateFeedbackPrompt().catch(() => {});
+    }
     setActiveModal(null);
-    userApi.updateFeedbackPrompt().catch(() => {});
   };
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    localStorage.setItem(FEEDBACK_PROMPT_DISMISSED_KEY, "true");
     localStorage.setItem(FEEDBACK_PROMPT_STORAGE_KEY, "true");
     try {
       await userApi.updateFeedbackPrompt({ has_submitted_feedback: true });
@@ -737,7 +829,7 @@ export default function NgajiCeriaProfilePage() {
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs font-black sm:text-sm">
                       {/* Ikon medali kecil opsional, bisa dihapus jika dirasa dobel */}
-                      Pangkat: {rank.title}
+                      Rank: {rank.title}
                     </span>
                     <span className="text-[10px] font-black uppercase text-[#134E4A]/60 sm:text-[11px]">
                       {currentXp} / {nextXp} XP
@@ -751,8 +843,8 @@ export default function NgajiCeriaProfilePage() {
                   />
 
                   <p className="mt-1.5 text-[10px] font-bold text-[#134E4A]/60 sm:text-[11px]">
-                    Sisa {Math.max(0, nextXp - currentXp)} XP lagi menuju
-                    pangkat selanjutnya!
+                    Sisa {Math.max(0, nextXp - currentXp)} XP lagi menuju Rank
+                    selanjutnya!
                   </p>
                 </div>
               </div>
@@ -1183,7 +1275,7 @@ export default function NgajiCeriaProfilePage() {
           </section>
 
           <p className="pb-4 pt-1 text-center text-xs font-semibold tracking-wide text-[#134E4A]/55">
-            Streak {effectiveStreak} hari • Pangkat {rank.title}
+            Streak {effectiveStreak} hari • Rank {rank.title}
           </p>
         </div>
       </div>

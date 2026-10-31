@@ -1,4 +1,8 @@
-import { API_BASE_URL } from "../constants";
+import {
+  API_BASE_URL,
+  FEEDBACK_PROMPT_PLAYED_KEY,
+  FEEDBACK_PROMPT_SESSION_START_KEY,
+} from "../constants";
 import { getToken } from "./api";
 
 export type MissionEventType =
@@ -38,6 +42,21 @@ export interface CreateEventInput {
 
 const STORAGE_KEY = "tartila_events";
 const MAX_LOCAL_EVENTS = 200;
+export const hasPlayedSessionStorageKey = FEEDBACK_PROMPT_PLAYED_KEY;
+
+// Inisialisasi awal timestamp sesi jika belum ada
+if (typeof window !== "undefined") {
+  try {
+    if (!sessionStorage.getItem(FEEDBACK_PROMPT_SESSION_START_KEY)) {
+      sessionStorage.setItem(
+        FEEDBACK_PROMPT_SESSION_START_KEY,
+        String(Date.now()),
+      );
+    }
+  } catch {
+    // Abaikan jika browser memblokir sessionStorage
+  }
+}
 
 export const MISSION_EVENT_LABELS: Record<MissionEventType, string> = {
   login: "Login",
@@ -87,6 +106,29 @@ function getCurrentUserInfo(): { userId: string; username: string } {
   return { userId: "guest", username: "Tamu" };
 }
 
+/** Tandai user sudah melakukan aktivitas di sesi ini (mis. kuis, game, materi). */
+export function markHasPlayedSession(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(hasPlayedSessionStorageKey, "true");
+    window.dispatchEvent(new CustomEvent("tartila:activity_played"));
+  } catch (err) {
+    console.warn("Gagal menandai aktivitas session:", err);
+  }
+}
+
+/** Reset flag aktivitas saat tab ditutup. sessionStorage akan otomatis
+ *  dibersihkan saat tab ditutup, tapi ini sebagai backup tambahan. */
+export function resetHasPlayedSession(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(hasPlayedSessionStorageKey, "false");
+    sessionStorage.removeItem(hasPlayedSessionStorageKey);
+  } catch (err) {
+    console.warn("Gagal mereset aktivitas session:", err);
+  }
+}
+
 /** Simpan event ke localStorage secara aman */
 export function saveEventLocally(event: MissionEvent): void {
   if (typeof window === "undefined") return;
@@ -130,6 +172,9 @@ export async function syncEventToServer(event: MissionEvent): Promise<boolean> {
       headers,
       body: JSON.stringify(event),
     });
+    if (response.ok) {
+      markHasPlayedSession();
+    }
     return response.ok;
   } catch (err) {
     // API server mungkin offline/simulasi, fallback aman
@@ -159,6 +204,18 @@ export function addEvent(input: CreateEventInput): MissionEvent {
 
   // 1. Simpan ke local
   saveEventLocally(event);
+
+  // Tandai bahwa user aktif bermain/belajar di sesi ini
+  if (
+    [
+      "quiz_completed",
+      "game_started",
+      "game_completed",
+      "mission_completed",
+    ].includes(event.type)
+  ) {
+    markHasPlayedSession();
+  }
 
   // 2. Kirim ke server di latar belakang
   void syncEventToServer(event);
