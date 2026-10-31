@@ -8,6 +8,8 @@ import quizEdits from "./tilawatiQuizEdits.json";
 import type { PublishedTimeline } from "../utils/pageTimeline";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
 import { getRawPages, loadJilidPages } from "./TilawatiDataProvider";
+import { resolveTilawatiAudio } from "../services/tilawatiAudio";
+import { getCachedTimelineEdits, loadTimelineEdits } from "../utils/timelineEditsLoader";
 
 const audioUrl = (jilid: number, pageNumber: number, filename: string): string =>
   `/audio/tilawati/jilid_${jilid}/hal${pageNumber}/${filename}`;
@@ -192,13 +194,24 @@ function applyQuizEdits(jilid: number, pages: Record<number, PageQuizData>): Rec
   ) as Record<number, PageQuizData>;
 }
 
-function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>, timelineData: Record<string, TimelineEdit> = EMPTY_TIMELINE_EDITS): Record<number, PageQuizData> {
+function applyTimelineEdits(
+  jilid: number,
+  pages: Record<number, PageQuizData>,
+  timelineData?: Record<string, TimelineEdit>,
+): Record<number, PageQuizData> {
+  const activeTimelineData =
+    (timelineData && Object.keys(timelineData).length > 0)
+      ? timelineData
+      : (getCachedTimelineEdits() ?? TIMELINE_EDITS ?? EMPTY_TIMELINE_EDITS);
+
   return Object.fromEntries(
     Object.entries(pages).map(([pageNumber, page]) => {
-      const edit = timelineData[`${jilid}:${pageNumber}`];
+      const edit = activeTimelineData[`${jilid}:${pageNumber}`];
       if (!edit) return [pageNumber, page];
-      if (edit.published) return [pageNumber, { ...page, questions: edit.published.questions }];
-      const audioRanks = new Map((edit.audioOrder || []).map((audioUrl, index) => [audioUrl, index]));
+      if (edit.published) {
+        return [pageNumber, { ...page, questions: edit.published.questions }];
+      }
+      const audioRanks = new Map((edit.audioOrder || []).map((url, idx) => [url, idx]));
       const addedQuestions = (edit.textAdditions || [])
         .map((question) => {
           const override = QUIZ_EDITS[`${jilid}:${pageNumber}:${question.id}`];
@@ -241,7 +254,8 @@ async function getTilawatiJilidPages(jilid: number): Promise<Record<number, Page
   const processed = jilid === 1
     ? applyQuizEdits(1, groupJilid1Footers(rawPages))
     : applyQuizEdits(jilid, groupDatasetByAudioRows(jilid, rawPages));
-  return applyTimelineEdits(jilid, processed, TIMELINE_EDITS);
+  const timelineData = getCachedTimelineEdits() ?? (await loadTimelineEdits().catch(() => ({})));
+  return applyTimelineEdits(jilid, processed, timelineData);
 }
 
 const TILAWATI_JILID_1_PAGES = applyTimelineEdits(

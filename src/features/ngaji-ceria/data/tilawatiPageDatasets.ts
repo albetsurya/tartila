@@ -16,9 +16,10 @@ const JILID_DATASET_CACHE: Record<number, Record<number, PageQuizData>> = {
  */
 export async function loadTilawatiDataset(jilid: number): Promise<Record<number, PageQuizData>> {
   // Jilid 1: lazy apply timeline edits (populated TIMELINE_EDITS) like jilid 2-6.
-  // JILID_DATASET_CACHE[1] is raw (no audio URLs), so use the processed loader.
   if (jilid === 1) {
-    return getTilawatiJilidPages(1);
+    const processed = await getTilawatiJilidPages(1);
+    JILID_DATASET_CACHE[1] = processed;
+    return processed;
   }
 
   // Jilid 2-6: lazy load

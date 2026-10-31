@@ -51,7 +51,7 @@ import { TartilaLogo } from "../components/TartilaLogo";
 import { OnboardingModal } from "../components/OnboardingModal";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
-import { isUstadzUser } from "@/lib/roles";
+import { isUstadzUser, isTartilaAdmin } from "@/lib/roles";
 import { AppModal } from "@/components/ui/AppModal";
 import {
   listJoinedClassrooms,
@@ -457,7 +457,7 @@ export default function NgajiCeriaHomePage() {
                 {/* Teks & Bar */}
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between text-[10px] font-bold text-[#FEF08A] sm:text-[11px]">
-                    <span className="truncate pr-2">Pangkat: {rank.title}</span>
+                    <span className="truncate pr-2">Rank: {rank.title}</span>
                     <span className="shrink-0">
                       Sisa {Math.max(0, nextXp - currentXp)} XP lagi!
                     </span>
@@ -545,9 +545,12 @@ export default function NgajiCeriaHomePage() {
             />
             <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 pt-3">
               {[1, 2, 3, 4, 5, 6].map((jilid) => {
+                const isBypass =
+                  isUstadzUser(user) || isTartilaAdmin(user?.role);
                 const isActive = jilid === currentJilidNumber;
                 const isCompleted = jilid < currentJilidNumber;
-                const isLocked = jilid > currentJilidNumber;
+                const isLocked = isBypass ? false : jilid > currentJilidNumber;
+                const isBypassedLock = isBypass && jilid > currentJilidNumber;
 
                 return (
                   <button
@@ -557,7 +560,9 @@ export default function NgajiCeriaHomePage() {
                     onClick={() => {
                       if (!isLocked) {
                         triggerBibiReaction("click");
-                        navigate("/member/ngaji-ceria/explore/tilawati");
+                        navigate(
+                          `/member/ngaji-ceria/explore/tilawati/${jilid}`,
+                        );
                       }
                     }}
                     className={`relative flex min-h-[142px] w-36 shrink-0 snap-start flex-col justify-between rounded-2xl border-2 p-3.5 text-left transition-all sm:w-40 sm:p-4 ${
@@ -565,7 +570,9 @@ export default function NgajiCeriaHomePage() {
                         ? "border-[#134E4A] bg-[#FFFFFF] shadow-[3px_3px_0px_#134E4A] active:translate-y-0.5 active:shadow-none"
                         : isCompleted
                           ? "border-[#10B981] bg-[#ECFDF5] shadow-[2px_2px_0px_#10B981] active:translate-y-0.5 active:shadow-none dark:bg-[#064E3B]"
-                          : "cursor-not-allowed border-dashed border-[#134E4A]/25 bg-gray-50/70 opacity-70 dark:bg-gray-800/40"
+                          : isBypassedLock
+                            ? "border-[#B45309] bg-[#FFFBEB] shadow-[2px_2px_0px_#B45309] active:translate-y-0.5 active:shadow-none"
+                            : "cursor-not-allowed border-dashed border-[#134E4A]/25 bg-gray-50/70 opacity-70 dark:bg-gray-800/40"
                     }`}
                   >
                     <div className="absolute right-2 top-2">
@@ -579,11 +586,15 @@ export default function NgajiCeriaHomePage() {
                           <CheckSvg size={10} /> SELESAI
                         </span>
                       )}
-                      {isLocked && (
+                      {isBypassedLock ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-[#FEF08A] px-1.5 py-1 text-[9px] font-black text-[#78350F] border border-[#B45309]">
+                          AKSES USTADZ
+                        </span>
+                      ) : isLocked ? (
                         <span className="inline-flex items-center gap-1 rounded-md bg-gray-200 px-1.5 py-1 text-[9px] font-black text-gray-500 dark:bg-gray-700 dark:text-gray-300">
                           <LockSvg size={10} /> KUNCI
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     <div className="pt-5">

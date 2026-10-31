@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { latinToArabic } from "../utils/translit";
 import { sanitizeAudioUrl } from "../utils/audioUrl";
 import type { PageQuizData, QuizQuestion } from "../data/tilawatiQuizTypes";
 import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
+import { invalidatePublishedTimeline } from "../services/tilawatiEditorApi";
 import {
   Play,
   Pause,
@@ -463,18 +464,62 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     timelineStart,
   ]);
 
-  const useTimelineSelection = () => {
-    if (!selectedTimelineClip || !editorDraft) return;
-    setEditorDraft({
-      ...editorDraft,
-      sourceAudioUrl: selectedTimelineClip.audioUrl,
-      start: timelineStart,
-      end: timelineEnd || String(selectedTimelineClip.duration.toFixed(3)),
-    });
-    setEditorMessage(
-      `Klip ${selectedTimelineClip.filename} dipakai sebagai sumber editor.`,
-    );
-  };
+  const refetchTimeline = useCallback(() => {
+    let cancelled = false;
+    setTimelineLoading(true);
+    setTimelineMessage("");
+    fetch(`/api/tilawati-editor?action=list&jilid=${jilid}&hal=${hal}`)
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok || !result.ok)
+          throw new Error(result.message || "Gagal membaca timeline audio");
+        return result as {
+          clips: TimelineClip[];
+          text_links?: Record<string, string>;
+          textAdditions?: QuizQuestion[];
+        };
+      })
+      .then((result) => {
+        if (!cancelled) {
+          setTimelineClips(result.clips);
+          setTimelineTextLinks(result.text_links || {});
+          setTimelineTextAdditions(result.textAdditions || []);
+          setSelectedTimelineUrl("");
+          setTimelineStart("0");
+          setTimelineEnd("");
+          setTimelineCutPoint("0");
+          setSelectedMergeUrls([]);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled)
+          setTimelineMessage(
+            error instanceof Error ? error.message : String(error),
+          );
+      })
+      .finally(() => {
+        if (!cancelled) setTimelineLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [jilid, hal]);
+
+  useEffect(() => {
+    return refetchTimeline();
+  }, [refetchTimeline]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ jilid?: number; page?: number }>).detail;
+      if (detail?.jilid === jilid && detail?.page === hal) {
+        void refetchTimeline();
+      }
+    };
+    window.addEventListener("ngajiceria:timeline-published", handler);
+    return () =>
+      window.removeEventListener("ngajiceria:timeline-published", handler);
+  }, [jilid, hal, refetchTimeline]);
 
   const previewTimelineSelection = () => {
     if (!selectedTimelineClip) return;
@@ -547,7 +592,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     setDraggingTimelineUrl("");
     try {
       await saveTimelineLayout(currentOrder);
-      window.location.reload();
+      reloadAfterEditorSave();
     } catch (error) {
       setTimelineMessage(
         error instanceof Error ? error.message : String(error),
@@ -565,7 +610,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         timelineClips.map((clip) => clip.audioUrl),
         nextLinks,
       );
-      window.location.reload();
+      reloadAfterEditorSave();
     } catch (error) {
       setTimelineMessage(
         error instanceof Error ? error.message : String(error),
@@ -598,7 +643,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         timelineTextLinks,
         nextAdditions,
       );
-      window.location.reload();
+      reloadAfterEditorSave();
     } catch (error) {
       setTimelineMessage(
         error instanceof Error ? error.message : String(error),
@@ -622,7 +667,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         audioUrl: selectedTimelineClip.audioUrl,
         cutAt: timelineCutPoint,
       });
-      window.location.reload();
+      reloadAfterEditorSave();
     } catch (error) {
       setTimelineMessage(
         error instanceof Error ? error.message : String(error),
@@ -643,7 +688,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
       await editorRequest("delete-clip", {
         audioUrl: selectedTimelineClip.audioUrl,
       });
-      window.location.reload();
+      reloadAfterEditorSave();
     } catch (error) {
       setTimelineMessage(
         error instanceof Error ? error.message : String(error),
@@ -670,7 +715,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         outputAudioUrl: editorDraft.outputAudioUrl,
         segments,
       });
-      window.location.reload();
+      reloadAfterEditorSave();
     } catch (error) {
       setEditorMessage(error instanceof Error ? error.message : String(error));
     } finally {
@@ -679,7 +724,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   };
 
   const reloadAfterEditorSave = () => {
-    window.location.reload();
+    invalidatePublishedTimeline(jilid, hal);
   };
 
   const saveEditorText = async () => {

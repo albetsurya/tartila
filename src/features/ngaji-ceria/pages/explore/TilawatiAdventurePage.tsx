@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
+import { useAuth } from "@/contexts/AuthContext";
+import { isUstadzUser, isTartilaAdmin } from "@/lib/roles";
 import {
   ExploreHeader,
   ExploreStatBadge,
@@ -624,11 +626,14 @@ const TILAWATI_LEVELS: TilawatiLevel[] = [
 
 export default function TilawatiAdventurePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isBypass = isUstadzUser(user) || isTartilaAdmin(user?.role);
   const stars = useNgajiCeriaStore((s) => s.stars);
   const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
 
   const handleLevelClick = (level: TilawatiLevel) => {
-    if (!level.unlocked) return;
+    const isUnlocked = isBypass || level.unlocked;
+    if (!isUnlocked) return;
     triggerBibiReaction("play");
     navigate(`/member/ngaji-ceria/explore/tilawati/${level.jilid}`);
   };
@@ -699,6 +704,7 @@ export default function TilawatiAdventurePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {TILAWATI_LEVELS.map((level, index) => {
               const stepFormatted = String(level.jilid).padStart(2, "0");
+              const isUnlocked = isBypass || level.unlocked;
 
               return (
                 <motion.div
@@ -723,11 +729,11 @@ export default function TilawatiAdventurePage() {
                 >
                   {/* Ornamen Paku Payung (Push Pin) Simetris di Tengah Atas */}
                   <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 pointer-events-none drop-shadow-sm">
-                    <PushPinSvg isLocked={!level.unlocked} />
+                    <PushPinSvg isLocked={!isUnlocked} />
                   </div>
 
                   {/* KERTAS PETA KUNING (PARCHMENT MAP CARD - LURUS & RAPI) */}
-                  {level.unlocked ? (
+                  {isUnlocked ? (
                     <motion.div
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.98, y: 1 }}
@@ -769,13 +775,20 @@ export default function TilawatiAdventurePage() {
                           </div>
                         </div>
 
-                        {/* Badge Bintang Kertas */}
-                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-[#78350F] bg-[#FDE68A] border-2 border-[#78350F] px-2.5 py-0.5 rounded-lg shadow-[2px_2px_0px_#78350F]">
-                          <StarSvg size={12} fill="#F59E0B" stroke="#78350F" />
-                          <span>
-                            {level.earnedStars}/{level.totalStars}
+                        {/* Badge Bintang Kertas & Akses Ustadz */}
+                        <div className="flex items-center gap-1.5">
+                          {isBypass && !level.unlocked && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#78350F] bg-[#FEF08A] border-2 border-[#78350F] px-2 py-0.5 rounded-lg shadow-[1.5px_1.5px_0px_#78350F] uppercase tracking-wider">
+                              Akses Ustadz
+                            </span>
+                          )}
+                          <span className="inline-flex items-center gap-1 text-[11px] font-black text-[#78350F] bg-[#FDE68A] border-2 border-[#78350F] px-2.5 py-0.5 rounded-lg shadow-[2px_2px_0px_#78350F]">
+                            <StarSvg size={12} fill="#F59E0B" stroke="#78350F" />
+                            <span>
+                              {level.earnedStars}/{level.totalStars}
+                            </span>
                           </span>
-                        </span>
+                        </div>
                       </div>
 
                       {/* Teks Informasi: Judul Wilayah & Deskripsi */}

@@ -92,18 +92,17 @@ function emitChange() {
   listeners.forEach((listener) => listener());
 }
 
-export function awardStars(jilid: number, page: number, score: number) {
+export function awardStars(jilid: number, page: number, earnedStars: number) {
   ensureScope();
   const key = `jilid-${jilid}-hal-${page}`;
   const currentStars = currentState.stars[key] || 0;
-  let earnedStars = 1;
-  if (score >= 90) earnedStars = 3;
-  else if (score >= 70) earnedStars = 2;
+  const validStars = Math.min(Math.max(0, earnedStars), 3);
+  const newStars = Math.max(currentStars, validStars);
 
-  if (earnedStars > currentStars) {
+  if (newStars > currentStars) {
     currentState = {
       ...currentState,
-      stars: { ...currentState.stars, [key]: earnedStars },
+      stars: { ...currentState.stars, [key]: newStars },
     };
     emitChange();
   }

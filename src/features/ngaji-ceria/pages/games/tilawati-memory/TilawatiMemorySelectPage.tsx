@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { isUstadzUser, isTartilaAdmin } from '@/lib/roles';
 import { NgajiCeriaLayout } from '../../../components/NgajiCeriaLayout';
 import { ExploreHeader } from '../../../components/ExploreHeader';
 import { ARENA_KARTU_DATA, ArenaKartuLevel } from '../../../data/arenaKartuData';
@@ -26,6 +28,8 @@ import { AppBottomSheet } from '@/components/ui/AppBottomSheet';
 
 export default function TilawatiMemorySelectPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isBypass = isUstadzUser(user) || isTartilaAdmin(user?.role);
 
   // State Bottom Sheet Start Screen
   const [selectedJilid, setSelectedJilid] = useState<ArenaKartuLevel | null>(null);
@@ -40,7 +44,7 @@ export default function TilawatiMemorySelectPage() {
     setSelectedJilid(level);
 
     // Ambil level tertinggi yang sudah terbuka untuk jilid ini
-    const maxUnlocked = getUnlockedLevel(level.jilid);
+    const maxUnlocked = isBypass ? 4 : getUnlockedLevel(level.jilid);
     setChosenLevel(maxUnlocked);
   };
 
@@ -52,7 +56,7 @@ export default function TilawatiMemorySelectPage() {
   };
 
   const chosenConfig = getMemoryLevelConfig(chosenLevel);
-  const maxUnlockedLevel = selectedJilid ? getUnlockedLevel(selectedJilid.jilid) : 1;
+  const maxUnlockedLevel = isBypass ? 4 : (selectedJilid ? getUnlockedLevel(selectedJilid.jilid) : 1);
 
   return (
     <NgajiCeriaLayout

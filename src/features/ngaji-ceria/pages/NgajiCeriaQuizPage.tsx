@@ -495,7 +495,7 @@ export default function NgajiCeriaQuizPage() {
 
   const scorePercent =
     totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-  const earnedStars = scorePercent >= 90 ? 3 : scorePercent >= 70 ? 2 : 1;
+  const earnedStars = isWin ? Math.min(Math.max(1, selectedLevel), 3) : 0;
 
   const handleNext = () => {
     tapFeedback();
@@ -508,6 +508,7 @@ export default function NgajiCeriaQuizPage() {
     // Sesi selesai: tentukan kemenangan (minimal 70% benar)
     const win = scorePercent >= 70;
     setIsWin(win);
+    const starsEarned = win ? Math.min(Math.max(1, selectedLevel), 3) : 0;
     if (win) {
       soundManager.playSfx("victory");
       unlockNextLevel("tilawati-quiz", selectedLevel);
@@ -517,8 +518,8 @@ export default function NgajiCeriaQuizPage() {
 
     // Halaman selesai: simpan bintang (ambil nilai terbaik) & progres jika bukan mode latihan.
     stopAllAudio();
-    if (!isPractice) {
-      awardStars(activeJilid, activePageNum, scorePercent);
+    if (!isPractice && win) {
+      awardStars(activeJilid, activePageNum, starsEarned);
       if (!pageAwarded.current) {
         pageAwarded.current = true;
         const stars = getNgajiActivity().stars;
@@ -543,7 +544,7 @@ export default function NgajiCeriaQuizPage() {
         percent: scorePercent,
         jilid: activeJilid,
         hal: activePageNum,
-        stars: earnedStars,
+        stars: starsEarned,
       },
     });
     setShowResult(true);

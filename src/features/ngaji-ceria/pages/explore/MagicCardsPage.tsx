@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { isUstadzUser, isTartilaAdmin } from "@/lib/roles";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { Cards, Lock, Play } from "../../../../components/ui/CustomIcons";
 import { TILAWATI_SESSIONS } from "./exploreData";
 
 export default function MagicCardsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isBypass = isUstadzUser(user) || isTartilaAdmin(user?.role);
   const [selectedJilid, setSelectedJilid] = useState<number>(
     TILAWATI_SESSIONS[0].jilid,
   );
@@ -61,8 +65,8 @@ export default function MagicCardsPage() {
         {/* Grid Tenda Kemah Sesi */}
         <section className="relative z-10 grid grid-cols-2 gap-x-4 gap-y-8 pt-2">
           {TILAWATI_SESSIONS.map((session) => {
-            const isActive =
-              session.unlocked && session.jilid === selectedJilid;
+            const isUnlocked = isBypass || session.unlocked;
+            const isActive = isUnlocked && session.jilid === selectedJilid;
             return (
               <div key={session.jilid} className="relative pt-8">
                 {/* Atap Segitiga Tenda Kemah (Clip-Path) */}
@@ -84,10 +88,10 @@ export default function MagicCardsPage() {
 
                 <button
                   type="button"
-                  disabled={!session.unlocked}
+                  disabled={!isUnlocked}
                   onClick={() => setSelectedJilid(session.jilid)}
                   className={`relative z-10 w-full flex flex-col rounded-b-2xl rounded-t-sm p-4 text-left border-[4px] border-[#451A03] transition-transform cursor-pointer ${
-                    !session.unlocked
+                    !isUnlocked
                       ? "bg-[#E2E8F0] opacity-65 cursor-not-allowed shadow-[3px_3px_0px_#451A03]"
                       : isActive
                         ? "bg-[#DCFCE7] shadow-[5px_5px_0px_#451A03] -translate-y-1"
@@ -95,7 +99,7 @@ export default function MagicCardsPage() {
                   }`}
                 >
                   <span className="w-10 h-10 rounded-xl bg-[#FEF08A] border-[2.5px] border-[#451A03] flex items-center justify-center shadow-[2px_2px_0px_#451A03]">
-                    {session.unlocked ? (
+                    {isUnlocked ? (
                       <Cards size={20} className="text-[#451A03]" />
                     ) : (
                       <Lock size={20} className="text-[#78350F]" />

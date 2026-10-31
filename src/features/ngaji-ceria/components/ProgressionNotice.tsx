@@ -34,7 +34,7 @@ export function ProgressionNotice() {
             }
           : nextRank.title !== previousRank.title
             ? {
-                title: `Naik pangkat: ${nextRank.title}`,
+                title: `Naik Rank: ${nextRank.title}`,
                 description: `${next.xp} XP terkumpul. Teruskan belajar!`,
               }
             : null;

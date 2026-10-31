@@ -2,6 +2,7 @@ import { API_BASE_URL } from "../../../constants";
 import { getToken } from "../../../services/api";
 import type { AudioAsset, PageTimeline, PublishedTimeline } from "../utils/pageTimeline";
 import { timelineQuestions } from "../utils/pageTimeline";
+import { getCachedTimelineEdits, loadTimelineEdits } from "../utils/timelineEditsLoader";
 import { isNgajiCeriaServerAvailable } from "./ngajiCeriaApi";
 
 const root = API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "");
@@ -31,7 +32,6 @@ export function invalidatePublishedTimeline(jilid: number, page: number) {
 }
 
 export async function getPublishedTimeline(jilid: number, page: number): Promise<PublishedTimeline | null> {
-  if (!isNgajiCeriaServerAvailable()) return null;
   const key = `${jilid}:${page}`;
   const cached = published.get(key);
   if (cached && Date.now() - cached.at < 60_000) return cached.value;
@@ -41,7 +41,18 @@ export async function getPublishedTimeline(jilid: number, page: number): Promise
       if (value) value.questions = timelineQuestions(value.timeline);
       published.set(key, { value, at: Date.now() });
       return value;
-    }).finally(() => pending.delete(key));
+    })
+    .catch(async () => {
+      // Fallback lokal jika API server/cloud tidak aktif
+      const edits = getCachedTimelineEdits() ?? (await loadTimelineEdits().catch(() => null));
+      const localPub = edits?.[key]?.published ?? null;
+      if (localPub && (!localPub.questions || localPub.questions.length === 0) && localPub.timeline) {
+        localPub.questions = timelineQuestions(localPub.timeline);
+      }
+      published.set(key, { value: localPub, at: Date.now() });
+      return localPub;
+    })
+    .finally(() => pending.delete(key));
   pending.set(key, job);
   return job;
 }

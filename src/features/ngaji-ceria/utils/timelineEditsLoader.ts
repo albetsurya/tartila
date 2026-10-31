@@ -33,3 +33,16 @@ export async function loadTimelineEdits(): Promise<TimelineEdits> {
 export function getCachedTimelineEdits(): TimelineEdits | null {
   return cachedData;
 }
+
+export function invalidateTimelineEditsCache(): void {
+  cachedData = null;
+  loadingPromise = null;
+}
+
+// Otomatis refresh cache ketika ada timeline yang baru di-publish
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+  window.addEventListener("ngajiceria:timeline-published", () => {
+    invalidateTimelineEditsCache();
+    void loadTimelineEdits();
+  });
+}

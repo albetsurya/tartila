@@ -23,7 +23,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   isWin,
   score,
   targetScore,
-  stars = isWin ? 3 : 0,
+  stars,
   level,
   hasNextLevel = true,
   title,
@@ -32,6 +32,15 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   onNextLevel,
   onBackToHub,
 }) => {
+  const displayStars =
+    stars !== undefined
+      ? stars
+      : isWin
+        ? level !== undefined
+          ? Math.min(Math.max(1, level), 3)
+          : 3
+        : 0;
+
   const displayTitle =
     title ||
     (isWin
@@ -67,7 +76,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
       {/* Bintang Penilaian (1 - 3 Bintang) */}
       <div className="my-5 flex items-center justify-center gap-3">
         {[1, 2, 3].map((starIndex) => {
-          const isEarned = starIndex <= stars;
+          const isEarned = starIndex <= displayStars;
           return (
             <motion.div
               key={starIndex}

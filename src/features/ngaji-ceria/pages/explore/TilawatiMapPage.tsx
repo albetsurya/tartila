@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { isUstadzUser, isTartilaAdmin } from "@/lib/roles";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import {
   Star,
@@ -27,6 +29,7 @@ import {
 import { JuicyStar } from "@/components/ui/JuicyIcons";
 import { useEconomyStore } from "../../hooks/useEconomyStore";
 import { useNgajiCeriaStore } from "../../hooks/useNgajiCeriaStore";
+import { useNgajiCeriaProgress } from "../../hooks/useNgajiCeriaProgress";
 import { triggerBibiReaction } from "@/utils/bibiEvent";
 import {
   AvatarAnakBersorakSvg,
@@ -36,64 +39,285 @@ import {
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { StickerButton } from "@/components/ui";
 
-const TILAWATI_PAGES = [
-  {
-    page: 1,
-    unlocked: true,
-    stars: 0,
-    arabic: "ا - ب",
-    title: "Huruf Alif (ا) & Ba (ب)",
-    desc: "Mengenal bunyi huruf dasar dengan harokat fathah.",
-  },
-  {
-    page: 2,
-    unlocked: true,
-    stars: 0,
-    arabic: "ت - ث",
-    title: "Huruf Ta (ت) & Tsa (ث)",
-    desc: "Mengenal bunyi huruf dasar dengan harokat fathah.",
-  },
-  {
-    page: 3,
-    unlocked: false,
-    stars: 0,
-    arabic: "ج - ح - خ",
-    title: "Huruf Jim, Ha, Kho",
-    desc: "Mengenal bunyi huruf dasar dengan harokat fathah.",
-  },
-  {
-    page: 4,
-    unlocked: false,
-    stars: 0,
-    arabic: "د - ذ",
-    title: "Huruf Dal & Dzal",
-    desc: "Lanjutan huruf dasar.",
-  },
-  {
-    page: 5,
-    unlocked: false,
-    stars: 0,
-    arabic: "ر - ز",
-    title: "Huruf Ro & Zai",
-    desc: "Lanjutan huruf dasar.",
-  },
-  {
-    page: 6,
-    unlocked: false,
-    stars: 0,
-    arabic: "س - ش",
-    title: "Huruf Sin & Syin",
-    desc: "Lanjutan huruf dasar.",
-  },
-  {
-    page: 7,
-    unlocked: false,
-    stars: 0,
-    arabic: "ص - ض",
-    title: "Huruf Shod & Dhod",
-    desc: "Lanjutan huruf dasar.",
-  },
-];
+export interface MapNodeItem {
+  page: number;
+  arabic: string;
+  title: string;
+  desc: string;
+}
+
+export interface MapNodeItemWithMeta extends MapNodeItem {
+  jilid: number;
+  unlocked: boolean;
+  stars: number;
+}
+
+const TILAWATI_MAP_PAGES: Record<number, MapNodeItem[]> = {
+  1: [
+    {
+      page: 1,
+      arabic: "ا - ب",
+      title: "Huruf Alif (ا) & Ba (ب)",
+      desc: "Mengenal bunyi huruf dasar dengan harokat fathah.",
+    },
+    {
+      page: 2,
+      arabic: "ت - ث",
+      title: "Huruf Ta (ت) & Tsa (ث)",
+      desc: "Mengenal bunyi huruf dasar dengan harokat fathah.",
+    },
+    {
+      page: 3,
+      arabic: "ج - ح - خ",
+      title: "Huruf Jim, Ha, Kho",
+      desc: "Mengenal bunyi huruf dasar dengan harokat fathah.",
+    },
+    {
+      page: 4,
+      arabic: "د - ذ",
+      title: "Huruf Dal & Dzal",
+      desc: "Lanjutan huruf dasar.",
+    },
+    {
+      page: 5,
+      arabic: "ر - ز",
+      title: "Huruf Ro & Zai",
+      desc: "Lanjutan huruf dasar.",
+    },
+    {
+      page: 6,
+      arabic: "س - ش",
+      title: "Huruf Sin & Syin",
+      desc: "Lanjutan huruf dasar.",
+    },
+    {
+      page: 7,
+      arabic: "ص - ض",
+      title: "Huruf Shod & Dhod",
+      desc: "Lanjutan huruf dasar.",
+    },
+  ],
+  2: [
+    {
+      page: 1,
+      arabic: "سَلَمَ سَلِمَ",
+      title: "Fathah & Kasrah",
+      desc: "Mengenal harakat kasrah dan perbedaannya dengan fathah.",
+    },
+    {
+      page: 2,
+      arabic: "حَمِدَ حَمَدَ",
+      title: "Harakat Bersambung",
+      desc: "Melancarkan bacaan harakat fathah dan kasrah bersambung.",
+    },
+    {
+      page: 3,
+      arabic: "عَلِمَ عَلَمَ",
+      title: "Kasrah Tiga Huruf",
+      desc: "Membaca kata 3 huruf dengan fathah dan kasrah.",
+    },
+    {
+      page: 4,
+      arabic: "رُسُلُ",
+      title: "Harakat Dhammah",
+      desc: "Mengenal harakat dhammah dan bunyinya.",
+    },
+    {
+      page: 5,
+      arabic: "خُلِقَ",
+      title: "Tiga Harakat Dasar",
+      desc: "Membaca kombinasi fathah, kasrah, dan dhammah.",
+    },
+    {
+      page: 6,
+      arabic: "بَلَغَ بُلِغَ",
+      title: "Kelancaran Tiga Harakat",
+      desc: "Membaca kata tiga huruf lancar tanpa mengeja.",
+    },
+    {
+      page: 7,
+      arabic: "صَدَقَ صُدِقَ",
+      title: "Evaluasi Jilid 2",
+      desc: "Uji pemahaman tiga harakat bersambung.",
+    },
+  ],
+  3: [
+    {
+      page: 1,
+      arabic: "بَا - تَا",
+      title: "Mad Thobi'i Fathah",
+      desc: "Mengenal bacaan panjang 1 alif (2 harakat) fathah alif.",
+    },
+    {
+      page: 2,
+      arabic: "بِيْ - تِيْ",
+      title: "Mad Thobi'i Kasrah",
+      desc: "Membaca panjang kasrah diikuti ya sukun.",
+    },
+    {
+      page: 3,
+      arabic: "بُوْ - تُوْ",
+      title: "Mad Thobi'i Dhammah",
+      desc: "Membaca panjang dhammah diikuti wawu sukun.",
+    },
+    {
+      page: 4,
+      arabic: "قَالَ - قِيْلَ",
+      title: "Tiga Bentuk Mad",
+      desc: "Membedakan tiga bentuk mad asli.",
+    },
+    {
+      page: 5,
+      arabic: "اَلْحَمْدُ",
+      title: "Alif Lam Qomariyah",
+      desc: "Membaca alif lam secara jelas (Idzhar Qomariyah).",
+    },
+    {
+      page: 6,
+      arabic: "اَلشَّمْسُ",
+      title: "Alif Lam Syamsiyah",
+      desc: "Membaca alif lam lebur ke huruf berikutnya.",
+    },
+    {
+      page: 7,
+      arabic: "اَلرَّحْمٰنُ",
+      title: "Latihan Terpadu",
+      desc: "Latihan membaca mad dan alif lam lancar.",
+    },
+  ],
+  4: [
+    {
+      page: 1,
+      arabic: "اَبْ - اَتْ",
+      title: "Huruf Sukun Dasar",
+      desc: "Mengenal huruf mati (sukun) dan cara bacanya.",
+    },
+    {
+      page: 2,
+      arabic: "يَقْطَعُ",
+      title: "Qolqolah Sughro",
+      desc: "Mengenal pantulan huruf qolqolah saat sukun.",
+    },
+    {
+      page: 3,
+      arabic: "كِتَابًا",
+      title: "Tanwin",
+      desc: "Mengenal tanwin fathah, kasrah, dan dhammah.",
+    },
+    {
+      page: 4,
+      arabic: "مَنْ اٰمَنَ",
+      title: "Idzhar Halqi",
+      desc: "Membaca jelas nun sukun / tanwin bertemu huruf halq.",
+    },
+    {
+      page: 5,
+      arabic: "مِنْ قَبْلِ",
+      title: "Ikhfa Haqiqi",
+      desc: "Membaca samar nun sukun / tanwin dengan dengung.",
+    },
+    {
+      page: 6,
+      arabic: "مَنْ يَّقُوْلُ",
+      title: "Idgham Bighunnah",
+      desc: "Memasukkan bunyi disertai dengung 2 harakat.",
+    },
+    {
+      page: 7,
+      arabic: "مِنْ رَّبِّهِمْ",
+      title: "Idgham Bilaghunnah",
+      desc: "Melafalkan idgham tanpa dengung.",
+    },
+  ],
+  5: [
+    {
+      page: 1,
+      arabic: "عَظِيْمٌ ○",
+      title: "Waqaf & Tanda Baca",
+      desc: "Belajar waqaf pada akhir ayat atau tanda berhenti.",
+    },
+    {
+      page: 2,
+      arabic: "جَآءَ",
+      title: "Mad Wajib Muttashil",
+      desc: "Membaca mad panjang 4-5 harakat dalam satu kata.",
+    },
+    {
+      page: 3,
+      arabic: "يَآ اَيُّهَا",
+      title: "Mad Jaiz Munfashil",
+      desc: "Membaca mad panjang terpisah antar dua kata.",
+    },
+    {
+      page: 4,
+      arabic: "وَلاَ الضَّآلِّيْنَ",
+      title: "Mad Lazim Kilmi",
+      desc: "Membaca mad panjang 6 harakat diberatkan.",
+    },
+    {
+      page: 5,
+      arabic: "اِنَّ - ثُمَّ",
+      title: "Ghunnah Musyaddadah",
+      desc: "Mendengungkan nun dan mim bertasydid 2 harakat.",
+    },
+    {
+      page: 6,
+      arabic: "عَلَيْهِمْ غَيْرِ",
+      title: "Hukum Mim Sukun",
+      desc: "Idzhar syafawi, ikhfa syafawi, dan idgham mitslain.",
+    },
+    {
+      page: 7,
+      arabic: "فِيْ جِيْدِهَا",
+      title: "Tartil Kalimat Panjang",
+      desc: "Membaca ayat utuh dengan kaidah tajwid lengkap.",
+    },
+  ],
+  6: [
+    {
+      page: 1,
+      arabic: "مَجْرٰ۪ىهَا",
+      title: "Ghorib: Imalah",
+      desc: "Membaca miring bunyi fathah ke arah kasrah.",
+    },
+    {
+      page: 2,
+      arabic: "لَا تَاۡمَ۫نَّا",
+      title: "Ghorib: Isymam",
+      desc: "Memonyongkan bibir tanpa suara saat melafalkan dengung.",
+    },
+    {
+      page: 3,
+      arabic: "ءَا۬عْجَمِيٌّ",
+      title: "Ghorib: Tashil",
+      desc: "Meringankan hamzah kedua antara hamzah dan alif.",
+    },
+    {
+      page: 4,
+      arabic: "بِئْسَ الِاسْمُ",
+      title: "Ghorib: Naql",
+      desc: "Memindahkan harakat hamzah ke huruf sebelumnya.",
+    },
+    {
+      page: 5,
+      arabic: "عِوَجًا ۜ قَيِّمًا",
+      title: "Saktah",
+      desc: "Berhenti sejenak 2 harakat tanpa bernapas.",
+    },
+    {
+      page: 6,
+      arabic: "يَبْصُۜطُ",
+      title: "Musykilat Khusus",
+      desc: "Membaca huruf sin kecil di atas huruf shad.",
+    },
+    {
+      page: 7,
+      arabic: "وَتَمَّتْ كَلِمَتُ",
+      title: "Khatam Tilawati",
+      desc: "Evaluasi akhir kemampuan membaca tartil Al-Qur'an.",
+    },
+  ],
+};
 
 const NODE_X_PATTERNS = [45, 70, 45, 25, 55, 70, 50];
 const ITEM_HEIGHT = 170;
@@ -264,13 +488,20 @@ export default function TilawatiMapPage() {
   const [isPanduanOpen, setIsPanduanOpen] = useState(false);
   const [energyEmpty, setEnergyEmpty] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
+  const { user } = useAuth();
+  const isBypass = isUstadzUser(user) || isTartilaAdmin(user?.role);
+  const { currentJilid: progressJilidStr, currentPage } =
+    useNgajiCeriaProgress();
+  const progressJilidNum =
+    parseInt(progressJilidStr.replace("jilid-", ""), 10) || 1;
+
   const consumeHeart = useEconomyStore((s: any) => s.consumeHeart);
   const tilaGender = useEconomyStore((s) => s.tilaGender);
   const stars = useNgajiCeriaStore((s) => s.stars);
   const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
-  const [selectedNode, setSelectedNode] = useState<
-    (typeof TILAWATI_PAGES)[0] | null
-  >(null);
+  const [selectedNode, setSelectedNode] = useState<MapNodeItemWithMeta | null>(
+    null,
+  );
   const guideButtonRef = useRef<HTMLButtonElement>(null);
 
   const [bubbleState, setBubbleState] = useState<{
@@ -280,9 +511,18 @@ export default function TilawatiMapPage() {
 
   const pageKey = `${jilid}-${hal}`;
 
-  const totalHeight = TOP_PADDING + TILAWATI_PAGES.length * ITEM_HEIGHT + 120;
+  const currentPages = TILAWATI_MAP_PAGES[jilid] || TILAWATI_MAP_PAGES[1];
 
-  const nodePositions = TILAWATI_PAGES.map((_, i) => ({
+  const activePage =
+    jilid === progressJilidNum
+      ? Math.min(currentPage, currentPages.length)
+      : jilid < progressJilidNum
+        ? currentPages.length
+        : 1;
+
+  const totalHeight = TOP_PADDING + currentPages.length * ITEM_HEIGHT + 120;
+
+  const nodePositions = currentPages.map((_, i) => ({
     xPct: NODE_X_PATTERNS[i % NODE_X_PATTERNS.length],
     yPx: TOP_PADDING + i * ITEM_HEIGHT,
   }));
@@ -299,7 +539,7 @@ export default function TilawatiMapPage() {
     setIsPanduanOpen(true);
   };
 
-  const handleNodeClick = (nodeData: (typeof TILAWATI_PAGES)[0]) => {
+  const handleNodeClick = (nodeData: MapNodeItemWithMeta) => {
     if (!nodeData.unlocked) return;
     triggerBibiReaction("click");
     setSelectedNode(nodeData);
@@ -322,7 +562,7 @@ export default function TilawatiMapPage() {
     try {
       setSelectedNode(null);
       navigate(
-        `/member/ngaji-ceria/quiz/play?jilid=${jilid}&hal=${targetNode.page}${
+        `/member/ngaji-ceria/quiz/play?jilid=${targetNode.jilid}&hal=${targetNode.page}${
           isPractice ? "&practice=true" : ""
         }`,
       );
@@ -348,7 +588,7 @@ export default function TilawatiMapPage() {
         guideButtonRef,
       }}
     >
-      {/* Header Terstandarisasi Peta Tilawati [Hati] [Koin] [Bintang] */}
+      {/* Header Terstandarisasi (Hanya Back, Judul Jilid, & Bintang) */}
       <ExploreHeader
         themeScope="tilawati"
         themeColorClass="bg-[#E0F2FE]"
@@ -383,47 +623,46 @@ export default function TilawatiMapPage() {
             title={`Total Bintang: ${totalStars}/93`}
           />
         }
-        rightAction={
-          <div className="flex items-center gap-1 sm:gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsPracticeMode(!isPracticeMode)}
-              className={`flex items-center gap-1 sm:gap-1.5 rounded-xl border-2 border-[#0D9488] px-2 sm:px-2.5 py-1 text-xs font-black shadow-[2px_2px_0px_#0D9488] active:translate-y-[1px] transition-all cursor-pointer ${
-                isPracticeMode
-                  ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#042F2E]"
-                  : "bg-white text-[#0369A1] hover:bg-sky-50"
-              }`}
-            >
-              <Compass
-                size={14}
-                className={isPracticeMode ? "text-white" : "text-[#0D9488]"}
-              />
-              <span className="hidden sm:inline">
-                {isPracticeMode ? "Latihan: ON" : "Latihan"}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              ref={guideButtonRef}
-              onClick={handleOpenPanduan}
-              className="flex items-center gap-1 sm:gap-1.5 rounded-xl border-2 border-[#0D9488] bg-[#FEF08A] px-2 sm:px-2.5 py-1 text-xs font-black text-[#0369A1] shadow-[2px_2px_0px_#0D9488] active:translate-y-[1px] hover:bg-[#FDE047] transition-all cursor-pointer"
-            >
-              <BookOpen size={14} className="text-[#0369A1]" />
-              <span className="hidden sm:inline">Panduan</span>
-            </button>
-          </div>
-        }
       />
 
       <div
         className={`${theme.bg} min-h-full pb-24 relative overflow-hidden border-[6px] ${theme.canvasBorder}/60 rounded-3xl m-2 shadow-inner transition-colors duration-500`}
       >
+        {/* 🟢 TOMBOL FLOATING DI POJOK KANAN ATAS KONTEN 🟢 */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex flex-col gap-2 items-end">
+          <button
+            type="button"
+            onClick={() => setIsPracticeMode(!isPracticeMode)}
+            className={`flex items-center gap-1.5 rounded-xl border-2 border-[#0D9488] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_#0D9488] active:translate-y-[1px] transition-all cursor-pointer ${
+              isPracticeMode
+                ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#042F2E]"
+                : "bg-white text-[#0369A1] hover:bg-sky-50"
+            }`}
+          >
+            <Compass
+              size={16}
+              className={isPracticeMode ? "text-white" : "text-[#0D9488]"}
+            />
+            <span>{isPracticeMode ? "Latihan: ON" : "Mode Latihan"}</span>
+          </button>
+
+          <button
+            type="button"
+            ref={guideButtonRef}
+            onClick={handleOpenPanduan}
+            className="flex items-center gap-1.5 rounded-xl border-2 border-[#0D9488] bg-[#FEF08A] px-3 py-1.5 text-xs font-black text-[#0369A1] shadow-[2px_2px_0px_#0D9488] active:translate-y-[1px] hover:bg-[#FDE047] transition-all cursor-pointer"
+          >
+            <BookOpen size={16} className="text-[#0369A1]" />
+            <span>Panduan</span>
+          </button>
+        </div>
+
         <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden">
           <svg
             className="absolute inset-0 w-full h-full opacity-40"
             xmlns="http://www.w3.org/2000/svg"
           >
+            {/* ... (KODE SVG GARIS AIR TETAP SAMA) ... */}
             <path
               d="M 30 80 Q 60 70, 90 80 T 150 80"
               fill="none"
@@ -481,6 +720,7 @@ export default function TilawatiMapPage() {
                 height: `${island.height}px`,
               }}
             >
+              {/* ... (KODE SVG PULAU TETAP SAMA) ... */}
               <svg
                 className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
                 viewBox="0 0 300 300"
@@ -576,10 +816,21 @@ export default function TilawatiMapPage() {
             />
           </svg>
 
-          {TILAWATI_PAGES.map((item, index) => {
+          {currentPages.map((item, index) => {
             const pos = nodePositions[index];
-            const isUnlocked = item.unlocked;
-            const isFirst = index === 0;
+            const nodeStars = stars[`jilid-${jilid}-hal-${item.page}`] || 0;
+            const isUnlocked =
+              isBypass ||
+              item.page === 1 ||
+              (stars[`jilid-${jilid}-hal-${item.page - 1}`] || 0) === 3;
+            const isCurrentNode = item.page === activePage;
+
+            const nodeData: MapNodeItemWithMeta = {
+              ...item,
+              jilid,
+              unlocked: isUnlocked,
+              stars: nodeStars,
+            };
 
             return (
               <div
@@ -591,7 +842,7 @@ export default function TilawatiMapPage() {
                   transform: "translate(-50%, -50%)",
                 }}
               >
-                {isFirst && (
+                {isCurrentNode && (
                   <div className="absolute -top-[85px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
                     {/* PIN AVATAR DENGAN ANIMASI */}
                     <motion.div
@@ -613,7 +864,6 @@ export default function TilawatiMapPage() {
                           repeat: Infinity,
                           ease: "easeInOut",
                         },
-                        // Efek pantulan (spring) saat pertama kali muncul
                         scale: { type: "spring", bounce: 0.6, duration: 0.8 },
                         opacity: { duration: 0.3 },
                       }}
@@ -633,14 +883,13 @@ export default function TilawatiMapPage() {
                       </div>
                     </motion.div>
 
-                    {/* BAYANGAN (SHADOW) YANG BERDENYUT SINKRON DENGAN PIN */}
                     <motion.div
                       animate={{
-                        scale: [1, 0.7, 1], // Bayangan mengecil saat pin naik
-                        opacity: [0.4, 0.15, 0.4], // Bayangan memudar saat pin naik
+                        scale: [1, 0.7, 1],
+                        opacity: [0.4, 0.15, 0.4],
                       }}
                       transition={{
-                        duration: 2.5, // SAMA dengan durasi 'y' pada pin agar sinkron
+                        duration: 2.5,
                         repeat: Infinity,
                         ease: "easeInOut",
                       }}
@@ -655,7 +904,7 @@ export default function TilawatiMapPage() {
                       key={s}
                       size={16}
                       className={
-                        s <= item.stars
+                        s <= nodeStars
                           ? "text-[#F59E0B] fill-[#F59E0B]"
                           : "text-black/20 fill-black/20"
                       }
@@ -664,7 +913,7 @@ export default function TilawatiMapPage() {
                 </div>
 
                 <button
-                  onClick={() => handleNodeClick(item)}
+                  onClick={() => handleNodeClick(nodeData)}
                   disabled={!isUnlocked}
                   className={`relative flex items-center justify-center w-[68px] h-[68px] rounded-full border-[3px] transition-all z-10 ${
                     isUnlocked
@@ -684,8 +933,9 @@ export default function TilawatiMapPage() {
             );
           })}
         </div>
+
         <AppBottomSheet
-          isOpen={!!selectedNode}
+          isOpen={Boolean(selectedNode)}
           onClose={() => setSelectedNode(null)}
           title={selectedNode?.title ?? ""}
         >
@@ -695,7 +945,7 @@ export default function TilawatiMapPage() {
                 <span
                   className={`px-3 py-1.5 rounded-full ${theme.islandBg} ${theme.textColor} text-xs font-black border-2 ${theme.nodeBorder}`}
                 >
-                  Jilid {jilid} Hal {selectedNode.page}
+                  Jilid {selectedNode.jilid} Hal {selectedNode.page}
                 </span>
               </div>
 
@@ -741,11 +991,10 @@ export default function TilawatiMapPage() {
                   className={`flex items-center gap-1 text-[11px] font-bold ${theme.textColor}`}
                 >
                   <BookOpen size={12} className={theme.textColor} />
-                  Iqro {jilid}
+                  Tilawati {selectedNode.jilid}
                 </div>
               </div>
 
-              {/* Mode Latihan Toggle Box */}
               <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-[#134E4A] bg-[#F0FDF4] mb-4">
                 <div className="text-left">
                   <p className="text-xs font-black text-[#134E4A] flex items-center gap-1.5">
@@ -769,7 +1018,6 @@ export default function TilawatiMapPage() {
                 </button>
               </div>
 
-              {/* 🟢 TOMBOL REUSABLE STICKER BUTTON 🟢 */}
               <StickerButton
                 variant="primary"
                 size="lg"

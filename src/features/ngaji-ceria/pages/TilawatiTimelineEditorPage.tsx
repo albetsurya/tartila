@@ -37,6 +37,7 @@ import {
 import "./TilawatiTimelineEditor.css";
 import {
   getPublishedTimeline,
+  invalidatePublishedTimeline,
   restoreTimelineDraft,
   tilawatiEditorApi,
 } from "../services/tilawatiEditorApi";
@@ -434,18 +435,35 @@ export default function TilawatiTimelineEditorPage({
     window.addEventListener("pointerup", finish, { once: true });
   }
 
-  function handleTimelineWheel(event: React.WheelEvent<HTMLDivElement>) {
-    const element = event.currentTarget;
-    if (event.shiftKey) return;
-    if (element.scrollWidth <= element.clientWidth + 1) return;
-    const delta =
-      Math.abs(event.deltaX) > Math.abs(event.deltaY)
-        ? event.deltaX
-        : event.deltaY;
-    if (!delta) return;
-    element.scrollLeft += delta;
-    event.preventDefault();
-  }
+  // handleTimelineWheel dan onScrollPointerDown tidak dipakai lagi karena
+  // scroll/roda sekarang diatur lewat useEffect dalam { passive: false }.
+  // Fungsi ini tetap dipertahankan (dibiarkan kosong) agar tidak
+  // mengganggu referensi lain yang mungkin masih menunjuk ke dalam closure.
+  // TODO: hapus setelah untuk didebug & diving lebih dalam.
+
+
+  // Scroll roda timeline dengan passive: false — mencegah browser
+  // menganggap listener sebagai passive sehingga preventDefault() aman.
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.shiftKey) return;
+      const el = container;
+      if (el.scrollWidth <= el.clientWidth + 1) return;
+      const delta =
+        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+          ? event.deltaX
+          : event.deltaY;
+      if (!delta) return;
+      el.scrollLeft += delta;
+      event.preventDefault();
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, [scrollRef]);
 
   function beginMiddlePan(event: React.PointerEvent<HTMLDivElement>) {
     if (event.button !== 1) return;
@@ -1057,6 +1075,7 @@ export default function TilawatiTimelineEditorPage({
       setAssets(data.clips);
       setHistory([]);
       setFuture([]);
+      invalidatePublishedTimeline(jilid, hal);
       setMessage(
         "Hasil akhir tersimpan permanen. Audio, teks, pasangan, dan urutan halaman telah diperbarui.",
       );
@@ -2038,8 +2057,6 @@ export default function TilawatiTimelineEditorPage({
               <div
                 className="te-scroll"
                 ref={scrollRef}
-                onWheel={handleTimelineWheel}
-                onPointerDown={onScrollPointerDown}
               >
                 <div className="te-tracks" style={{ width: timelineWidth }}>
                   <div

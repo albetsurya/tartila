@@ -1,6 +1,6 @@
 import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import type { QuizQuestion } from "../data/tilawatiQuizTypes";
-import type { TimelineEdits } from "./timelineEditsLoader";
+import { getCachedTimelineEdits, type TimelineEdits } from "./timelineEditsLoader";
 import type { TimelineAudioClip } from "./pageTimeline";
 
 export type PatternType =
@@ -49,7 +49,8 @@ export function derivePatternType(hintTone?: string | null): PatternType {
 // Prefer timeline published data (from Timeline Editor) over raw dataset when present.
 export async function getTrainingItems(jilid: number, hal: number, timelineData?: TimelineEdits): Promise<TrainingItem[]> {
   // Prefer published timeline (from Timeline Editor) over raw dataset.
-  const published = timelineData?.[`${jilid}:${hal}`]?.published;
+  const activeTimelineData = timelineData ?? getCachedTimelineEdits();
+  const published = activeTimelineData?.[`${jilid}:${hal}`]?.published;
   if (published?.timeline) {
     const result: TrainingItem[] = [];
     for (const clip of published.timeline.clips) {

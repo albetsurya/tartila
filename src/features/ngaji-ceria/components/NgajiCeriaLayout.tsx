@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
 import { RewardChestModal } from "./RewardChestModal";
 import { OutOfEnergyModal } from "./OutOfEnergyModal";
@@ -10,10 +10,6 @@ import { normalizeRole, isUstadzUser } from "@/lib/roles";
 import { getRank, useNgajiProgress } from "../pages/games/_shared/progression";
 import { ProgressionNotice } from "./ProgressionNotice";
 import { soundManager } from "../services/soundManager";
-import {
-  TilaCompanion,
-  type PageTipConfig,
-} from "../../../components/ui/TilaCompanion";
 import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
 import {
   TicketSvg,
@@ -27,10 +23,7 @@ import {
 } from "../../../components/ui/JuicyIcons";
 import { NotificationBell } from "../../../components/ui/NotificationBell";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
-import { pageVariants } from "@/lib/animationVariants";
 import type { NotificationRole } from "@/services/notificationService";
-
-export type { PageTipConfig };
 
 export type ImmersiveRealm =
   | "juz-amma"
@@ -63,6 +56,14 @@ const MAIN_TABS = [
 ];
 
 export type HeaderBadgeKind = "heart" | "ticket" | "xp" | "coin";
+
+export type PageTipConfig = {
+  jilid: number;
+  hal: number;
+  onOpenGuide: () => void;
+  onTipStateChange?: (state: { visible: boolean; hasAppeared: boolean }) => void;
+  guideButtonRef?: React.RefObject<HTMLElement | null>;
+};
 
 export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
   const path = pathname.replace(/\/$/, "");
@@ -141,10 +142,10 @@ interface NgajiCeriaLayoutProps {
   onBack?: () => void;
   parentPath?: string;
   rightAction?: ReactNode;
-  pageTip?: PageTipConfig;
   themeScope?: ThemeScope;
   immersiveRealm?: ImmersiveRealm;
   hideBadges?: boolean;
+  pageTip?: PageTipConfig;
 }
 
 function PageContentFallback() {
@@ -170,7 +171,6 @@ export function NgajiCeriaLayout({
   onBack,
   parentPath,
   rightAction,
-  pageTip,
   themeScope = "global",
   immersiveRealm,
   hideMascot = false,
@@ -438,20 +438,18 @@ export function NgajiCeriaLayout({
                 : "mx-auto min-h-[50vh] w-full max-w-md px-2 pb-10 sm:max-w-3xl sm:px-4 md:px-6 lg:max-w-5xl"
         }`}
       >
-        {hideNav ? (
-          <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
-        ) : (
+        <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="relative min-h-[50vh] w-full"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={hideNav ? "h-full w-full" : "relative min-h-[50vh] w-full"}
           >
             <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
           </motion.div>
-        )}
+        </AnimatePresence>
       </main>
 
       {!hideNav && isMainTab && <NgajiCeriaBottomNav />}
@@ -462,12 +460,6 @@ export function NgajiCeriaLayout({
         type={outOfEnergyKind || "heart"}
         onClose={clearOutOfEnergy}
       />
-
-      {!hideMascot && (
-        <div data-tila-companion>
-          <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
-        </div>
-      )}
     </div>
   );
 }

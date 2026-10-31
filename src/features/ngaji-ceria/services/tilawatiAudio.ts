@@ -7,6 +7,7 @@ import { isNgajiCeriaServerAvailable } from "./ngajiCeriaApi";
 import { getPublishedTimeline } from "./tilawatiEditorApi";
 import { soundManager } from "./soundManager";
 import { getAudioUrl } from "../utils/audioUrl";
+import { getCachedTimelineEdits, loadTimelineEdits } from "../utils/timelineEditsLoader";
 
 export type TimelineEditRef = { published?: PublishedTimeline };
 export type TimelineEditsIndex = Record<string, TimelineEditRef>;
@@ -41,12 +42,24 @@ export const normalizeArabic = (text: string) => text.normalize("NFKD").replace(
  */
 export function resolveTilawatiAudio(request: TilawatiAudioRequest, cloud?: PublishedTimeline | null, timelineData: TimelineEditsIndex = {}): TilawatiAudioResolution {
   const { question, jilid, pageNumber, questionIndex } = request;
-  const timeline = (cloud ?? timelineData[`${jilid}:${pageNumber}`]?.published ?? null)?.timeline;
+  const cachedEdits = getCachedTimelineEdits();
+  if (!cachedEdits && typeof window !== "undefined") {
+    void loadTimelineEdits();
+  }
+  const globalEdits = typeof globalThis !== "undefined"
+    ? (globalThis as { __TILAWATI_TIMELINE_EDITS__?: TimelineEditsIndex }).__TILAWATI_TIMELINE_EDITS__
+    : undefined;
+  const effectiveTimelineData: TimelineEditsIndex = (Object.keys(timelineData).length > 0
+    ? timelineData
+    : (cachedEdits || globalEdits || {})) as TimelineEditsIndex;
+  const pageKey = `${jilid}:${pageNumber}`;
+  const timeline = (cloud ?? effectiveTimelineData[pageKey]?.published ?? null)?.timeline;
   const questionUrl = request.audioUrl || (question ? getQuestionAudioUrl(question, jilid, pageNumber, questionIndex, Boolean(question.isOpening)) : "");
   const arabic = normalizeArabic(request.arabic || question?.arabic || "");
-  const text = timeline?.texts.find((item) => question && String(item.id) === String(question.id))
+  const text = timeline?.texts.find((item) => question && item.id !== undefined && question.id !== undefined && String(item.id) === String(question.id))
     ?? timeline?.texts.find((item) => (request.arabic || question?.arabic) && item.arabic.normalize("NFC").trim() === (request.arabic || question!.arabic).normalize("NFC").trim())
-    ?? timeline?.texts.find((item) => arabic && normalizeArabic(item.arabic) === arabic);
+    ?? timeline?.texts.find((item) => arabic && normalizeArabic(item.arabic) === arabic)
+    ?? (timeline?.texts && questionIndex !== undefined && timeline.texts[questionIndex] ? timeline.texts[questionIndex] : undefined);
   const clip = timeline?.clips.find((item) => item.id === text?.clipId)
     ?? timeline?.clips.find((item) => item.outputUrl === questionUrl)
     ?? (!question && !request.arabic ? timeline?.clips.find((item) => item.segments.some((segment) => segment.sourceUrl === questionUrl))
@@ -64,6 +77,25 @@ export function resolveTilawatiAudio(request: TilawatiAudioRequest, cloud?: Publ
   const fallback = getFallbackAudioUrl(jilid, pageNumber);
   if (fallback && request.allowPageFallback !== false) candidates.push({ url: fallback });
   const unique = candidates.filter((item, index) => candidates.findIndex((other) => other.url === item.url && Boolean(other.segments) === Boolean(item.segments)) === index);
+
+  // Audit logging for audio resolution
+  const isDebug = Boolean(
+    typeof window !== "undefined" ||
+    (typeof globalThis !== "undefined" && (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.DEBUG_TILAWATI_AUDIO === "1")
+  );
+  if (isDebug) {
+    console.log(`[resolveTilawatiAudio] Jilid ${jilid}:${pageNumber} Q#${question?.id ?? questionIndex} (${request.arabic || question?.arabic || "-"}):`, {
+      hasCloud: Boolean(cloud),
+      timelineKeysCount: Object.keys(effectiveTimelineData).length,
+      pageKey,
+      hasPageInTimeline: Boolean(effectiveTimelineData[pageKey]),
+      matchedTextId: text?.id,
+      matchedClipId: clip?.id,
+      resolvedUrl: clip?.outputUrl || unique[0]?.url || "(none)",
+      source: clip ? "timeline" : (questionUrl ? "question" : "fallback"),
+    });
+  }
+
   return { url: unique[0]?.url ?? null, source: clip ? "timeline" : questionUrl ? "question" : fallback ? "master" : "missing", isComingSoon: false, candidates: unique };
 }
 
