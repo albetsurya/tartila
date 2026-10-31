@@ -54,7 +54,7 @@ const quizEditsPath = path.resolve(
 );
 const timelineEditsPath = path.resolve(
   frontendRoot,
-  "src/features/ngaji-ceria/data/tilawatiTimelineEdits.json",
+  "public/data/tilawatiTimelineEdits.json",
 );
 
 function audioUrlToFile(audioUrl: unknown): string {

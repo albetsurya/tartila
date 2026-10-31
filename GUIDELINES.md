@@ -162,7 +162,7 @@ Sistem ekonomi dan progres game dirancang dengan pola _Dual-Energy_ (Hati untuk 
 
 Tingkatan rank dihitung secara otomatis dari total akumulasi XP pengguna (`getRank(xp)` di `progression.ts`):
 
-| Pangkat (Title)  | Ambang Minimal XP (`minXp`) | XP ke Tingkat Berikutnya (`nextXp`) |
+| Rank (Title)     | Ambang Minimal XP (`minXp`) | XP ke Tingkat Berikutnya (`nextXp`) |
 | :--------------- | :-------------------------- | :---------------------------------- |
 | **Pemula**       | `0 XP`                      | `250 XP`                            |
 | **Penjelajah**   | `250 XP`                    | `700 XP`                            |
@@ -271,14 +271,16 @@ Platform Tartila memiliki arsitektur audio 4 lapis yang bekerja secara harmonis 
 
 ### 4.3 Mekanisme Autoplay Audio pada Kuis (Quiz Engine)
 
-Halaman kuis (`NgajiCeriaQuizPage.tsx` & `QuizEngine.tsx`) memiliki aturan ketat untuk mencegah *looping* dan memastikan audio berjalan sesuai jenis soal.
+Halaman kuis (`NgajiCeriaQuizPage.tsx` & `QuizEngine.tsx`) memiliki aturan ketat untuk mencegah _looping_ dan memastikan audio berjalan sesuai jenis soal.
 
 **A. Aturan Baku (SSOT):**
+
 1. **Semua model soal WAJIB Auto-play** saat pertama kali muncul (di-mount), termasuk Susun Huruf, Pilihan Ganda Teks, dan Pilihan Ganda Audio.
-2. **SATU-SATUNYA pengecualian** adalah model **Audio Matching**. Pada model ini, audio tidak boleh berbunyi otomatis, melainkan harus menunggu *user* mengklik opsi jawaban.
+2. **SATU-SATUNYA pengecualian** adalah model **Audio Matching**. Pada model ini, audio tidak boleh berbunyi otomatis, melainkan harus menunggu _user_ mengklik opsi jawaban.
 
 **B. Mekanisme Teknis Pencegahan Bug:**
-1. **Dependensi `useEffect`:** Efek pemutaran audio di `QuizEngine.tsx` HANYA boleh bergantung pada `[question.id]` atau `[currentIdx]`. 
+
+1. **Dependensi `useEffect`:** Efek pemutaran audio di `QuizEngine.tsx` HANYA boleh bergantung pada `[question.id]` atau `[currentIdx]`.
 2. **Anti Infinite Loop:** JANGOR PERNAH memasukkan fungsi callback (`onPlayAudio`), URL audio, atau state jawaban (seperti `selectedLetters`) ke dalam array dependensi `useEffect`. Fungsi callback wajib dibungkus dengan `useCallback` di komponen induk (`NgajiCeriaQuizPage.tsx`).
 3. **Reset State Antar Soal:** Saat berpindah soal, komponen induk wajib memanggil `tilawatiAudio.stop()` secara eksplisit, dan memberikan `key={question.id}` pada komponen `<QuizEngine />` untuk memaksa React me-reset seluruh state internal kuis agar audio soal baru bisa berputar.
 
@@ -565,15 +567,15 @@ _Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._
 
 ### 14.1 Thematic Palette (Outdoor)
 
-| Theme      | Hex Background      | Hex Border/Shadow   | Notes                        |
-| :--------- | :------------------ | :------------------ | :--------------------------- |
-| Gunung     | `#FFF4E5`           | `#F59E0B` / `#FCD34D` | Sunny highland, amber tones |
-| Savana     | `#DCFCE7`           | `#15803D` / `#86EFAC` | Grassland, emerald green    |
-| Hutan      | `#F0FDF4` (deep)    | `#166534` / `#AFE6A7` | Forest, deep green          |
-| Samudra    | `#E0F2FE`           | `#0284C7` / `#7DD3FC` | Ocean blue, sky tones       |
-| Oase       | `#FDE68A`           | `#B45309` / `#FCD34D` | Desert oasis, warm yellow   |
-| Puncak     | `#F1F5F9`           | `#475569` / `#94A3B8` | Rocky, slate grey           |
-| Sungai     | `#F0FDF4`           | `#134E4A` / `#99F6E4` | Water/clean, emerald deep   |
+| Theme   | Hex Background   | Hex Border/Shadow     | Notes                       |
+| :------ | :--------------- | :-------------------- | :-------------------------- |
+| Gunung  | `#FFF4E5`        | `#F59E0B` / `#FCD34D` | Sunny highland, amber tones |
+| Savana  | `#DCFCE7`        | `#15803D` / `#86EFAC` | Grassland, emerald green    |
+| Hutan   | `#F0FDF4` (deep) | `#166534` / `#AFE6A7` | Forest, deep green          |
+| Samudra | `#E0F2FE`        | `#0284C7` / `#7DD3FC` | Ocean blue, sky tones       |
+| Oase    | `#FDE68A`        | `#B45309` / `#FCD34D` | Desert oasis, warm yellow   |
+| Puncak  | `#F1F5F9`        | `#475569` / `#94A3B8` | Rocky, slate grey           |
+| Sungai  | `#F0FDF4`        | `#134E4A` / `#99F6E4` | Water/clean, emerald deep   |
 
 Rules:
 
@@ -610,7 +612,7 @@ Rules:
   <AnswerFeedbackSheet
     isOpen={showFeedback}
     isCorrect={isCorrect}
-    isRetryable={isPracticeMode}       // true = Latihan, false = Ujian
+    isRetryable={isPracticeMode} // true = Latihan, false = Ujian
     answerKey={isPracticeMode ? undefined : explanation}
     onNext={handleNext}
     onRetry={handleRetry}
@@ -646,7 +648,7 @@ Key points for the leaderboard architecture:
 
 ## 17. Feedback & Answer Logic
 
-*(Dokumen ini masih dikembangkan. Lihat Bab 14.4 untuk detail mode latihan vs ujian.)*
+_(Dokumen ini masih dikembangkan. Lihat Bab 14.4 untuk detail mode latihan vs ujian.)_
 
 ---
 
