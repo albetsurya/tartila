@@ -55,3 +55,9 @@ export type {
   BibiWaveProps,
 } from "./BibiMascot2D";
 export { EqualizerIcon, type EqualizerIconProps } from "./EqualizerIcon";
+export {
+  RoleTransitionScreen,
+  RoleTransitionManager,
+  type RoleTransitionScreenProps,
+  type RoleType,
+} from "./RoleTransitionScreen";

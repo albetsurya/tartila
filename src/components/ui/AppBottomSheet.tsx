@@ -73,7 +73,13 @@ export function AppBottomSheet({
       {isOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
-          onClick={onClose}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }
+          }}
         >
           <motion.div
             ref={ref}
@@ -97,11 +103,15 @@ export function AppBottomSheet({
               </h2>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onClose();
+                }}
                 aria-label="Tutup"
                 className="rounded-xl border-[3px] border-[#FF6B6B] bg-[#FF6B6B] p-1.5 text-white shadow-[3px_3px_0px_#DC2626] active:translate-y-[2px] active:shadow-none cursor-pointer transition-all hover:scale-105"
               >
-                <XSvg size={16} />
+                <XSvg size={16} className="pointer-events-none" />
               </button>
             </div>
             {children}

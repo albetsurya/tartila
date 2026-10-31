@@ -30,8 +30,11 @@ export const MappedRanks: RankDef[] = RANKS.map((rank) => ({
 
 /** Helper: dapatkan info rank berdasarkan ID */
 export function useRankInfo(rankId: RankId | string) {
-  const rank =
-    RANKS.find((r) => r.id === rankId || r.title.toLowerCase().replace(/\s+/g, "-") === rankId.toLowerCase());
+  const rank = RANKS.find(
+    (r) =>
+      r.id === rankId ||
+      r.title.toLowerCase().replace(/\s+/g, "-") === rankId.toLowerCase(),
+  );
   return {
     title: rank?.title ?? "Pejuang",
     minXp: rank?.minXp ?? 0,
@@ -46,7 +49,12 @@ export default function RankBadgeSvg({
   isLocked = false,
   isActive = false,
   className = "",
-}: { rankId?: RankId | string; size?: number | string; isLocked?: boolean; isActive?: boolean } & { className?: string }) {
+}: {
+  rankId?: RankId | string;
+  size?: number | string;
+  isLocked?: boolean;
+  isActive?: boolean;
+} & { className?: string }) {
   const s = typeof size === "number" ? size : Number(size) || 48;
   // Di dalam viewBox 128x128, ketebalan garis 4.5px memberikan proporsi Neo-Brutalism yang tegas di semua ukuran layar
   const sw = 4.5;
@@ -54,7 +62,8 @@ export default function RankBadgeSvg({
 
   const currentRank =
     MappedRanks.find(
-      (r) => r.id === rankId || (rankId === "legenda" && r.id === "legenda-tartila")
+      (r) =>
+        r.id === rankId || (rankId === "legenda" && r.id === "legenda-tartila"),
     ) || MappedRanks[0];
   const bgFill = isLocked ? "#94A3B8" : currentRank.color;
   const subFill = isLocked ? "#94A3B8" : currentRank.darkFill;
@@ -72,7 +81,7 @@ export default function RankBadgeSvg({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
-      aria-label={`Pangkat ${currentRank.label}${isLocked ? " (Terkunci)" : ""}`}
+      aria-label={`Rank ${currentRank.label}${isLocked ? " (Terkunci)" : ""}`}
     >
       {/* 1. HARD DROP SHADOW UTAMA (NEO-BRUTALISM) */}
       <circle cx="64" cy="70" r="54" fill={active ? "#F59E0B" : "#134E4A"} />
@@ -120,7 +129,7 @@ export default function RankBadgeSvg({
         strokeLinecap="round"
       />
 
-      {/* 4. ILUSTRASI EMBLEM SPESIFIK TIAP PANGKAT */}
+      {/* 4. ILUSTRASI EMBLEM SPESIFIK TIAP Rank */}
       <g>
         {/* =========================================================
             1. PEJUANG: Perisai kayu sederhana + bintang kecil + bulu

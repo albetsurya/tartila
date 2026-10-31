@@ -7484,7 +7484,7 @@ function GirlCharacterLayers({
 }
 
 // ============================================================================
-// KOMPONEN UTAMA AVATAR SANTRI SVG
+// KOMPONEN UTAMA AVATAR SANTRI SVG (LINGKARAN)
 // ============================================================================
 export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
   size = 128,
@@ -7516,10 +7516,11 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
 
   const panelBg = isGirl ? panelColors.girl[variant] : panelColors.boy[variant];
 
+  // Lingkaran di dalam SVG (radius 60, posisi tengah 64)
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 128 140"
+      viewBox="0 0 128 128"
       width={size}
       height={size}
       fill="none"
@@ -7530,22 +7531,19 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
       {...props}
     >
       <defs>
+        {/* 1. Ubah ClipPath menjadi Lingkaran */}
         <clipPath id={clipId}>
-          <path d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z" />
+          <circle cx="64" cy="64" r="60" />
         </clipPath>
       </defs>
 
-      {/* Margin Kertas Komik Putih */}
-      <rect x="4" y="2" width="120" height="136" rx="3" fill="#FFFFFF" />
+      {/* 2. Latar Belakang Lingkaran */}
+      <circle cx="64" cy="64" r="62" fill="#FFFFFF" />
+      <circle cx="64" cy="64" r="60" fill={panelBg} />
 
-      {/* Background Panel Solid */}
-      <path
-        d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z"
-        fill={panelBg}
-      />
-
-      {/* Ornamen Sparkle & Garis Ekspresi Latar */}
+      {/* Karakter di dalam ClipPath */}
       <g clipPath={`url(#${clipId})`}>
+        {/* Ornamen Sparkle */}
         {isGirl && variant === 2 && (
           <path
             d="M 103 78 L 106 85 L 113 88 L 106 91 L 103 98 L 100 91 L 93 88 L 100 85 Z"
@@ -7576,13 +7574,14 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
         <AvatarAccessoryLayer accessory={accessory} />
       </g>
 
-      {/* Garis Tepi Panel Komik Hand-Drawn */}
-      <path
-        d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z"
+      {/* 3. Garis Tepi Lingkaran (Border Neo-Brutalism) */}
+      <circle
+        cx="64"
+        cy="64"
+        r="60"
         fill="none"
         stroke={INK}
-        strokeWidth="2.5"
-        strokeLinejoin="round"
+        strokeWidth="3.5" // Garis border dipertebal sedikit agar tegas
       />
     </svg>
   );
