@@ -32,6 +32,18 @@ export function AdminLayout() {
     });
   }, []);
 
+  const isFullscreen =
+    location.pathname.startsWith("/admin/timeline-local") ||
+    location.pathname.startsWith("/admin/timeline-cloud");
+
+  if (isFullscreen) {
+    return (
+      <AdminErrorBoundary key={location.pathname}>
+        <Outlet />
+      </AdminErrorBoundary>
+    );
+  }
+
   return (
     <div className="admin-shell min-h-dvh">
       <AdminSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />

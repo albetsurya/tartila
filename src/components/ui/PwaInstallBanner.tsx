@@ -21,7 +21,7 @@ function hasBottomNav(pathname: string): boolean {
 
 export function PwaInstallBanner() {
   const [isVisible, setIsVisible] = useState(false);
-  const location = useLocation(); // <-- Tambahan untuk deteksi rute
+  const location = useLocation();
 
   useEffect(() => {
     return subscribePwaInstall(setIsVisible);
@@ -38,43 +38,43 @@ export function PwaInstallBanner() {
 
   if (!isVisible) return null;
 
-  // <-- Perbaikan: Menggunakan location.pathname, bukan window.location
   const hasNav = hasBottomNav(location.pathname);
 
   return (
     <div
-      className={`fixed z-50 transition-all duration-300 ${
+      className={`fixed z-100 md:hidden transition-all duration-300 ${
         hasNav
-          ? "bottom-[100px] left-1/2 -translate-x-1/2 max-w-md w-auto"
-          : "bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md w-auto"
+          ? "bottom-[95px] left-1/2 -translate-x-1/2 w-[85%] max-w-[320px]"
+          : "bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[320px]"
       }`}
     >
-      <div className="bg-white border-[3px] border-[#134E4A] rounded-2xl shadow-[4px_4px_0px_#134E4A] p-3 flex items-center gap-3 relative min-w-[240px]">
+      {/* Hapus min-w-[240px] agar lebar menyesuaikan parent (85%) */}
+      <div className="relative flex w-full items-center gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white p-3 shadow-[4px_4px_0px_#134E4A]">
         {/* Close button */}
         <button
           type="button"
           aria-label="Tutup banner pemasangan"
           onClick={handleClose}
-          className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center bg-[#FF6B6B] text-white rounded-full border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] leading-none font-black text-[10px]"
+          className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#134E4A] bg-[#FF6B6B] text-[10px] font-black leading-none text-white shadow-[2px_2px_0px_#134E4A]"
         >
           ×
         </button>
 
         {/* Icon */}
-        <div className="w-10 h-10 rounded-xl bg-[#F0FDF4] border-[3px] border-[#134E4A] flex items-center justify-center flex-shrink-0">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-[#F0FDF4]">
           <img
             src="/icon.svg"
             alt="Logo Tartila"
-            className="w-6 h-6 object-contain"
+            className="h-6 w-6 object-contain"
           />
         </div>
 
         {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className="font-black text-[#134E4A] text-sm leading-snug whitespace-nowrap">
+        <div className="min-w-0 flex-1">
+          <p className="whitespace-nowrap text-sm font-black leading-snug text-[#134E4A]">
             Pasang Tartila
           </p>
-          <p className="text-xs text-[#134E4A]/70 leading-snug mt-0.5 whitespace-nowrap">
+          <p className="mt-0.5 whitespace-nowrap text-xs leading-snug text-[#134E4A]/70">
             Akses cepat &amp; ringan
           </p>
         </div>

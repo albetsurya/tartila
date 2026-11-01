@@ -6999,14 +6999,7 @@ function BoyCharacterLayers({
 
           {variant === 3 && (
             <g>
-              <path
-                d="M 32 64 L 26 73 L 33 72 L 32 81 L 41 74 L 40 82 L 46 74 Z
-                   M 96 64 L 102 73 L 95 72 L 96 81 L 87 74 L 88 82 L 82 74 Z"
-                fill="#F4D365"
-                stroke={INK}
-                strokeWidth={STROKE_MAIN}
-                strokeLinejoin="round"
-              />
+              {/* Rambut Atas (Tanpa Ekor/Nape di bawah) */}
               <path
                 d="M 32 56
                    L 25 51 L 29 46
@@ -7108,15 +7101,7 @@ function BoyCharacterLayers({
 
           {variant === 3 && (
             <g>
-              {/* Ekor rambut panjang di belakang leher (Nape) */}
-              <path
-                d="M 32 62 L 26 73 L 33 71 L 32 81 L 41 74 L 40 82 L 46 72 Z M 96 62 L 102 73 L 95 71 L 96 81 L 87 74 L 88 82 L 82 72 Z"
-                fill="#F4D365"
-                stroke={INK}
-                strokeWidth={STROKE_MAIN}
-                strokeLinejoin="round"
-              />
-              {/* Poni berantakan di bawah topi */}
+              {/* Poni berantakan di bawah topi (Nape/Ekor panjang dihapus) */}
               <path
                 d="M 35 50 C 45 42 85 42 93 50 L 90 58 L 85 52 L 81 58 L 75 48 L 68 55 L 64 46 L 60 55 L 54 48 L 48 56 L 42 50 L 38 56 Z"
                 fill="#F4D365"
