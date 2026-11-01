@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"net/http"
 	"os"
@@ -9,6 +10,35 @@ import (
 	"tartila-server/handlers"
 	"tartila-server/hub"
 )
+
+// loadEnv membaca berkas .env sederhana bila tersedia (.env, server/.env, ../.env)
+func loadEnv() {
+	paths := []string{".env", "server/.env", "../.env"}
+	for _, p := range paths {
+		f, err := os.Open(p)
+		if err != nil {
+			continue
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				k := strings.TrimSpace(parts[0])
+				v := strings.Trim(strings.TrimSpace(parts[1]), "\"'")
+				if os.Getenv(k) == "" {
+					_ = os.Setenv(k, v)
+				}
+			}
+		}
+		log.Printf("[Env] Memuat variabel lingkungan dari %s", p)
+		break
+	}
+}
 
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +62,8 @@ func enableCORS(next http.Handler) http.Handler {
 }
 
 func main() {
+	loadEnv()
+
 	roomHub := hub.NewRoomHub()
 	go roomHub.Run()
 
