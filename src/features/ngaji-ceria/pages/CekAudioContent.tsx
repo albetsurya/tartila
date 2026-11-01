@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { latinToArabic } from "../utils/translit";
 import { sanitizeAudioUrl } from "../utils/audioUrl";
 import type { PageQuizData, QuizQuestion } from "../data/tilawatiQuizTypes";
 import { loadTilawatiDataset } from "../data/tilawatiPageDatasets";
 import { getQuestionAudioUrl } from "../data/tilawatiAudioQuestionMap";
-import { invalidatePublishedTimeline } from "../services/tilawatiEditorApi";
+import {
+  invalidatePublishedTimeline,
+  tilawatiEditorApi,
+  saveTimelineEdit,
+} from "../services/tilawatiEditorApi";
 import {
   Play,
   Pause,
-  ChevronLeft,
-  ChevronRight,
   Check,
   ClockSvg,
 } from "../../../components/ui/CustomIcons";
@@ -41,30 +44,26 @@ const REPEAT_BADGES: { value: RepeatOption; label: string }[] = [
   { value: "3x", label: "3x" },
 ];
 
-const parseHintTone = (hintTone: string): {
-  notes: NoteOption[];
-  repeat: RepeatOption;
-} => {
+const parseHintTone = (
+  hintTone: string,
+): { notes: NoteOption[]; repeat: RepeatOption } => {
   const lower = hintTone.toLowerCase();
   const notes: NoteOption[] = [];
-
-  // Check for specific sequences first (order matters in the string)
   const hasNaikMultiple =
-    lower.includes("naik") && lower.indexOf("naik") !== lower.lastIndexOf("naik");
+    lower.includes("naik") &&
+    lower.indexOf("naik") !== lower.lastIndexOf("naik");
 
-  // Datar-Naik-Naik-Turun: has Datar + Naik twice + Turun
-  if (
+  if (lower.includes("datar") && hasNaikMultiple && lower.includes("turun")) {
+    notes.push("Datar-Naik-Naik-Turun");
+  } else if (
     lower.includes("datar") &&
-    hasNaikMultiple &&
+    lower.includes("naik") &&
     lower.includes("turun")
   ) {
-    notes.push("Datar-Naik-Naik-Turun");
-  } else if (lower.includes("datar") && lower.includes("naik") && lower.includes("turun")) {
     notes.push("Datar-Naik-Turun");
   } else if (lower.includes("datar") && lower.includes("turun")) {
     notes.push("Datar-Turun");
   } else {
-    // Single notes - check in order Datar, Naik, Turun
     if (lower.includes("datar")) notes.push("Datar");
     if (lower.includes("naik")) notes.push("Naik");
     if (lower.includes("turun")) notes.push("Turun");
@@ -97,20 +96,13 @@ const generateHintTone = (
       ? "Rost: Datar — Turun"
       : `Rost: Datar — Turun (${repeat})`;
   }
-  if (notes.length === 1) {
-    return `Rost: Nada ${notes[0]}`;
-  }
+  if (notes.length === 1) return `Rost: Nada ${notes[0]}`;
   return repeat === "1x"
     ? `Rost: ${notes.join(" — ")}`
     : `Rost: ${notes.join(" — ")} (${repeat})`;
 };
 
-type EditorSegment = {
-  sourceAudioUrl: string;
-  start: string;
-  end: string;
-};
-
+type EditorSegment = { sourceAudioUrl: string; start: string; end: string };
 type EditorDraft = {
   arabic: string;
   transliteration: string;
@@ -120,7 +112,6 @@ type EditorDraft = {
   start: string;
   end: string;
 };
-
 type EditingQuestion = {
   questionIndex: number;
   question: QuizQuestion;
@@ -152,6 +143,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     : "/member/ngaji-ceria/cek-audio/cloud-editor";
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
   const initialJilid = Math.min(
     5,
     Math.max(1, Number(searchParams.get("jilid")) || 1),
@@ -163,17 +155,19 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
   const [jilid, setJilid] = useState(initialJilid);
   const [hal, setHal] = useState(initialHal);
 
-  const [datasets, setDatasets] = useState<Record<number, Record<number, PageQuizData>>>({});
+  const pageScrollRef = useRef<HTMLDivElement>(null);
+
+  const [datasets, setDatasets] = useState<
+    Record<number, Record<number, PageQuizData>>
+  >({});
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(true);
 
-  // Preload dataset jilid 1-5 (Jilid 2-6 lazy-loaded)
   useEffect(() => {
     let alive = true;
     Promise.all([1, 2, 3, 4, 5].map((j) => loadTilawatiDataset(j)))
       .then((results) => {
-        if (alive) {
+        if (alive)
           setDatasets(Object.fromEntries(results.map((d, i) => [i + 1, d])));
-        }
       })
       .finally(() => {
         if (alive) setIsLoadingDatasets(false);
@@ -194,6 +188,19 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
       setHal(Math.min(44, Math.max(1, paramHal)));
   }, [searchParams]);
 
+  // Auto-scroll horizontal page numbers
+  useEffect(() => {
+    const activePageEl = document.getElementById(`page-btn-${hal}`);
+    if (activePageEl && pageScrollRef.current) {
+      const container = pageScrollRef.current;
+      const scrollLeft =
+        activePageEl.offsetLeft -
+        container.offsetWidth / 2 +
+        activePageEl.offsetWidth / 2;
+      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+    }
+  }, [hal]);
+
   const updatePage = (newJilid: number, newHal: number) => {
     setJilid(newJilid);
     setHal(newHal);
@@ -202,6 +209,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
       { replace: true },
     );
   };
+
   const [playingId, setPlayingId] = useState<number | string | null>(null);
   const [playErrorId, setPlayErrorId] = useState<number | string | null>(null);
   const [testedAudio, setTestedAudio] = useState<Record<string, boolean>>(
@@ -214,113 +222,125 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
       }
     },
   );
+
   const [editingQuestion, setEditingQuestion] =
     useState<EditingQuestion | null>(null);
   const [editorDraft, setEditorDraft] = useState<EditorDraft | null>(null);
-  const editorDraftParse = editorDraft
-    ? parseHintTone(editorDraft.hintTone)
-    : { notes: [] as NoteOption[], repeat: "1x" as RepeatOption };
-  const [editedHintTones, setEditedHintTones] = useState<Record<string, string>>({});
-  const [cardSaveMessage, setCardSaveMessage] = useState("");
+  const [editorTab, setEditorTab] = useState<"text" | "audio">("text");
   const [editorSegments, setEditorSegments] = useState<EditorSegment[]>([]);
   const [editorBusy, setEditorBusy] = useState(false);
   const [editorMessage, setEditorMessage] = useState("");
+
   const [timelineClips, setTimelineClips] = useState<TimelineClip[]>([]);
+  const [publishedPayload, setPublishedPayload] = useState<any>(null);
   const [timelineLoading, setTimelineLoading] = useState(false);
-  const [timelineMessage, setTimelineMessage] = useState("");
-  const [selectedTimelineUrl, setSelectedTimelineUrl] = useState("");
-  const [timelineStart, setTimelineStart] = useState("0");
-  const [timelineEnd, setTimelineEnd] = useState("");
-  const [timelineCutPoint, setTimelineCutPoint] = useState("0");
-  const [selectedMergeUrls, setSelectedMergeUrls] = useState<string[]>([]);
-  const [draggingTimelineHandle, setDraggingTimelineHandle] = useState<
-    "start" | "end" | "cut" | null
-  >(null);
-  const [draggingTimelineUrl, setDraggingTimelineUrl] = useState("");
-  const [draggingTextId, setDraggingTextId] = useState("");
   const [timelineTextLinks, setTimelineTextLinks] = useState<
     Record<string, string>
   >({});
   const [timelineTextAdditions, setTimelineTextAdditions] = useState<
     QuizQuestion[]
   >([]);
-  const selectedTimelineElement = useRef<HTMLButtonElement | null>(null);
 
-  // Check if current page is kelipatan 6 (Latihan-latihan bacaan)
   const isKelipatanEnam = hal % 6 === 0;
-
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
     };
   }, [jilid, hal]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setTimelineLoading(true);
-    setTimelineMessage("");
-    fetch(`/api/tilawati-editor?action=list&jilid=${jilid}&hal=${hal}`)
-      .then(async (response) => {
-        const result = await response.json();
-        if (!response.ok || !result.ok)
-          throw new Error(result.message || "Gagal membaca timeline audio");
-        return result as {
-          clips: TimelineClip[];
-          textLinks?: Record<string, string>;
-          textAdditions?: QuizQuestion[];
+  const fetchTimelinePayload = useCallback(
+    async (jilidValue: number, halValue: number, signal?: AbortSignal) => {
+      const result = await tilawatiEditorApi.list(jilidValue, halValue, signal);
+      const sourceClips = result.published?.timeline?.clips || result.clips;
+
+      const clips: TimelineClip[] = sourceClips.map((rawClip, index) => {
+        const clip = rawClip as any;
+        const dur =
+          clip.duration ||
+          (clip.trimEnd !== undefined && clip.trimStart !== undefined
+            ? clip.trimEnd - clip.trimStart
+            : 0);
+        return {
+          id: clip.id || clip.audioUrl || "",
+          sequence: index + 1,
+          filename: clip.filename || clip.label || "",
+          type: clip.type || clip.kind || "isi",
+          duration: dur,
+          durasi: dur,
+          audioUrl: clip.audioUrl || clip.outputUrl || "",
+          isPublished: Boolean(result.published),
         };
-      })
+      });
+
+      return {
+        clips,
+        textLinks: result.textLinks || {},
+        textAdditions: result.textAdditions || [],
+        published: result.published,
+      };
+    },
+    [],
+  );
+
+  const refetchTimeline = useCallback(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    setTimelineLoading(true);
+
+    fetchTimelinePayload(jilid, hal, controller.signal)
       .then((result) => {
         if (!cancelled) {
           setTimelineClips(result.clips);
           setTimelineTextLinks(result.textLinks || {});
           setTimelineTextAdditions(result.textAdditions || []);
-          setSelectedTimelineUrl("");
-          setTimelineStart("0");
-          setTimelineEnd("");
-          setTimelineCutPoint("0");
-          setSelectedMergeUrls([]);
+          setPublishedPayload(result.published);
         }
-      })
-      .catch((error) => {
-        if (!cancelled)
-          setTimelineMessage(
-            error instanceof Error ? error.message : String(error),
-          );
       })
       .finally(() => {
         if (!cancelled) setTimelineLoading(false);
       });
+
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [jilid, hal]);
+  }, [jilid, hal, fetchTimelinePayload]);
+
+  useEffect(() => {
+    return refetchTimeline();
+  }, [refetchTimeline]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ jilid?: number; page?: number }>)
+        .detail;
+      if (detail?.jilid === jilid && detail?.page === hal)
+        void refetchTimeline();
+    };
+    window.addEventListener("ngajiceria:timeline-published", handler);
+    return () =>
+      window.removeEventListener("ngajiceria:timeline-published", handler);
+  }, [jilid, hal, refetchTimeline]);
 
   const playAudio = (id: number | string, url: string) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    if (audioRef.current) audioRef.current.pause();
     if (!url) {
       setPlayingId(null);
       setPlayErrorId(id);
       return;
     }
+
     setPlayingId(id);
     setPlayErrorId(null);
     const audio = new Audio(sanitizeAudioUrl(url) ?? url);
     audioRef.current = audio;
-    audio.play().catch((e) => {
-      console.warn("Direct slice play failed", e);
+    audio.play().catch(() => {
       setPlayingId(null);
       setPlayErrorId(id);
     });
-    audio.onended = () => {
-      setPlayingId(null);
-    };
+    audio.onended = () => setPlayingId(null);
   };
 
   const getQuestionKey = (questionIndex: number) =>
@@ -342,9 +362,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
           AUDIO_TEST_STORAGE_KEY,
           JSON.stringify(next),
         );
-      } catch {
-        // Persistensi lokal tidak boleh mengganggu pemutaran audio.
-      }
+      } catch {}
       return next;
     });
   };
@@ -357,6 +375,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     setEditingQuestion({ question, questionIndex, audioUrl });
     setEditorSegments([]);
     setEditorMessage("");
+    setEditorTab("text");
     setEditorDraft({
       arabic: question.arabic,
       transliteration: question.transliterationParts.join("\n"),
@@ -380,173 +399,44 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     }
   };
 
-  const selectedTimelineClip =
-    timelineClips.find((clip) => clip.audioUrl === selectedTimelineUrl) || null;
-  const timelineTotalDuration = timelineClips.reduce(
-    (total, clip) => total + clip.duration,
-    0,
-  );
-
-  const selectTimelineClip = (clip: TimelineClip) => {
-    setSelectedTimelineUrl(clip.audioUrl);
-    setTimelineStart("0");
-    setTimelineEnd(String(clip.duration.toFixed(3)));
-    setTimelineCutPoint(String((clip.duration / 2).toFixed(3)));
-    if (editorDraft) {
-      setEditorDraft({
-        ...editorDraft,
-        sourceAudioUrl: clip.audioUrl,
-        start: "0",
-        end: String(clip.duration.toFixed(3)),
-      });
-    }
-  };
-
-  const selectEditorSourceAudio = (audioUrl: string) => {
-    const clip = timelineClips.find((item) => item.audioUrl === audioUrl);
-    setSelectedTimelineUrl(audioUrl);
-    if (!editorDraft) return;
-    const duration = clip?.duration || 0;
-    setEditorDraft({
-      ...editorDraft,
-      sourceAudioUrl: audioUrl,
-      start: "0",
-      end: duration ? String(duration.toFixed(3)) : editorDraft.end,
-    });
-    if (clip) {
-      setTimelineStart("0");
-      setTimelineEnd(String(duration.toFixed(3)));
-      setTimelineCutPoint(String((duration / 2).toFixed(3)));
-    }
-  };
-
-  useEffect(() => {
-    if (!draggingTimelineHandle || !selectedTimelineClip) return;
-    const handlePointerMove = (event: PointerEvent) => {
-      const element = selectedTimelineElement.current;
-      if (!element) return;
-      const rect = element.getBoundingClientRect();
-      const ratio = Math.min(
-        1,
-        Math.max(0, (event.clientX - rect.left) / rect.width),
-      );
-      const value = ratio * selectedTimelineClip.duration;
-      if (draggingTimelineHandle === "start") {
-        const end = Number(timelineEnd) || selectedTimelineClip.duration;
-        setTimelineStart(
-          String(Math.min(value, Math.max(0, end - 0.001)).toFixed(3)),
-        );
-      } else if (draggingTimelineHandle === "end") {
-        const start = Number(timelineStart) || 0;
-        setTimelineEnd(
-          String(
-            Math.max(
-              value,
-              Math.min(selectedTimelineClip.duration, start + 0.001),
-            ).toFixed(3),
-          ),
-        );
-      } else {
-        setTimelineCutPoint(String(value.toFixed(3)));
-      }
-    };
-    const handlePointerUp = () => setDraggingTimelineHandle(null);
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp, { once: true });
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, [
-    draggingTimelineHandle,
-    selectedTimelineClip,
-    timelineEnd,
-    timelineStart,
-  ]);
-
-  const refetchTimeline = useCallback(() => {
-    let cancelled = false;
-    setTimelineLoading(true);
-    setTimelineMessage("");
-    fetch(`/api/tilawati-editor?action=list&jilid=${jilid}&hal=${hal}`)
-      .then(async (response) => {
-        const result = await response.json();
-        if (!response.ok || !result.ok)
-          throw new Error(result.message || "Gagal membaca timeline audio");
-        return result as {
-          clips: TimelineClip[];
-          text_links?: Record<string, string>;
-          textAdditions?: QuizQuestion[];
-        };
-      })
-      .then((result) => {
-        if (!cancelled) {
-          setTimelineClips(result.clips);
-          setTimelineTextLinks(result.text_links || {});
-          setTimelineTextAdditions(result.textAdditions || []);
-          setSelectedTimelineUrl("");
-          setTimelineStart("0");
-          setTimelineEnd("");
-          setTimelineCutPoint("0");
-          setSelectedMergeUrls([]);
-        }
-      })
-      .catch((error) => {
-        if (!cancelled)
-          setTimelineMessage(
-            error instanceof Error ? error.message : String(error),
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setTimelineLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [jilid, hal]);
-
-  useEffect(() => {
-    return refetchTimeline();
-  }, [refetchTimeline]);
-
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<{ jilid?: number; page?: number }>).detail;
-      if (detail?.jilid === jilid && detail?.page === hal) {
-        void refetchTimeline();
-      }
-    };
-    window.addEventListener("ngajiceria:timeline-published", handler);
-    return () =>
-      window.removeEventListener("ngajiceria:timeline-published", handler);
-  }, [jilid, hal, refetchTimeline]);
-
-  const previewTimelineSelection = () => {
-    if (!selectedTimelineClip) return;
-    const audio = new Audio(sanitizeAudioUrl(selectedTimelineClip.audioUrl) ?? selectedTimelineClip.audioUrl);
-    audioRef.current?.pause();
-    audioRef.current = audio;
-    const start = Number(timelineStart) || 0;
-    const end = Number(timelineEnd) || selectedTimelineClip.duration;
-    audio.onloadedmetadata = () => {
-      audio.currentTime = Math.min(start, audio.duration || start);
-      void audio.play();
-    };
-    audio.ontimeupdate = () => {
-      if (audio.currentTime >= end) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    };
-    audio.load();
-  };
-
   const closeEditor = () => {
     if (editorBusy) return;
     setEditingQuestion(null);
     setEditorDraft(null);
     setEditorSegments([]);
     setEditorMessage("");
+  };
+
+  const reloadAfterEditorSave = () => {
+    invalidatePublishedTimeline(jilid, hal);
+  };
+
+  const editorKey = editingQuestion
+    ? `${jilid}:${hal}:${editingQuestion.question.id}`
+    : "";
+
+  const saveEditorText = async () => {
+    if (!editingQuestion || !editorDraft) return;
+    setEditorBusy(true);
+    try {
+      await saveTimelineEdit(jilid, hal, {
+        textEdit: {
+          key: editorKey,
+          arabic: editorDraft.arabic,
+          transliterationParts: editorDraft.transliteration
+            .split(/[\n,]/)
+            .map((part) => part.trim())
+            .filter(Boolean),
+          hintTone: editorDraft.hintTone,
+        },
+      });
+      closeEditor();
+      reloadAfterEditorSave();
+    } catch (error) {
+      setEditorMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setEditorBusy(false);
+    }
   };
 
   const editorRequest = async (
@@ -567,212 +457,9 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
     return result;
   };
 
-  const saveTimelineLayout = async (
-    audioOrder: string[],
-    textLinks = timelineTextLinks,
-    textAdditions = timelineTextAdditions,
-  ) => {
-    await editorRequest("save-layout", {
-      jilid,
-      page: hal,
-      audioOrder,
-      textLinks,
-      textAdditions,
-    });
-  };
-
-  const reorderTimelineClip = async (targetAudioUrl: string) => {
-    if (!draggingTimelineUrl || draggingTimelineUrl === targetAudioUrl) return;
-    const currentOrder = timelineClips.map((clip) => clip.audioUrl);
-    const fromIndex = currentOrder.indexOf(draggingTimelineUrl);
-    const toIndex = currentOrder.indexOf(targetAudioUrl);
-    if (fromIndex < 0 || toIndex < 0) return;
-    currentOrder.splice(fromIndex, 1);
-    currentOrder.splice(toIndex, 0, draggingTimelineUrl);
-    setDraggingTimelineUrl("");
-    try {
-      await saveTimelineLayout(currentOrder);
-      reloadAfterEditorSave();
-    } catch (error) {
-      setTimelineMessage(
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  };
-
-  const linkTextToAudio = async (questionId: string, audioUrl: string) => {
-    const nextLinks = { ...timelineTextLinks, [questionId]: audioUrl };
-    setTimelineTextLinks(nextLinks);
-    setDraggingTextId("");
-    setDraggingTimelineUrl("");
-    try {
-      await saveTimelineLayout(
-        timelineClips.map((clip) => clip.audioUrl),
-        nextLinks,
-      );
-      reloadAfterEditorSave();
-    } catch (error) {
-      setTimelineMessage(
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  };
-
-  const addTimelineText = async () => {
-    const arabic = window.prompt("Masukkan teks Arab baru untuk halaman ini:");
-    if (!arabic?.trim()) return;
-    const transliteration =
-      window.prompt("Masukkan transliterasi, pisahkan dengan koma:", "") || "";
-    const parts = transliteration
-      .split(",")
-      .map((part) => part.trim())
-      .filter(Boolean);
-    const addition: QuizQuestion = {
-      id: `custom-${Date.now()}`,
-      arabic: arabic.trim(),
-      transliterationParts: parts,
-      options: parts,
-      hintTone: "Rost: Baris",
-      audioUrl: "",
-      audioMappingComplete: true,
-    };
-    const nextAdditions = [...timelineTextAdditions, addition];
-    try {
-      await saveTimelineLayout(
-        timelineClips.map((clip) => clip.audioUrl),
-        timelineTextLinks,
-        nextAdditions,
-      );
-      reloadAfterEditorSave();
-    } catch (error) {
-      setTimelineMessage(
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  };
-
-  const toggleMergeClip = (audioUrl: string) => {
-    setSelectedMergeUrls((current) =>
-      current.includes(audioUrl)
-        ? current.filter((url) => url !== audioUrl)
-        : [...current, audioUrl],
-    );
-  };
-
-  const splitSelectedTimelineClip = async () => {
-    if (!selectedTimelineClip) return;
-    setTimelineMessage("Memotong audio...");
-    try {
-      await editorRequest("split", {
-        audioUrl: selectedTimelineClip.audioUrl,
-        cutAt: timelineCutPoint,
-      });
-      reloadAfterEditorSave();
-    } catch (error) {
-      setTimelineMessage(
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  };
-
-  const deleteSelectedTimelineClip = async () => {
-    if (!selectedTimelineClip) return;
-    if (
-      !window.confirm(
-        `Hapus klip ${selectedTimelineClip.filename} dari project?`,
-      )
-    )
-      return;
-    setTimelineMessage("Menghapus klip...");
-    try {
-      await editorRequest("delete-clip", {
-        audioUrl: selectedTimelineClip.audioUrl,
-      });
-      reloadAfterEditorSave();
-    } catch (error) {
-      setTimelineMessage(
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  };
-
-  const mergeSelectedTimelineClips = async () => {
-    if (!editorDraft || selectedMergeUrls.length < 2) return;
-    const segments = selectedMergeUrls
-      .map((url) => timelineClips.find((clip) => clip.audioUrl === url))
-      .filter((clip): clip is TimelineClip => Boolean(clip))
-      .map((clip) => ({
-        sourceAudioUrl: clip.audioUrl,
-        start: "0",
-        end: String(clip.duration),
-      }));
-    if (!segments.length) return;
-    setEditorBusy(true);
-    setEditorMessage("");
-    try {
-      await editorRequest("merge", {
-        key: editorKey,
-        outputAudioUrl: editorDraft.outputAudioUrl,
-        segments,
-      });
-      reloadAfterEditorSave();
-    } catch (error) {
-      setEditorMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setEditorBusy(false);
-    }
-  };
-
-  const reloadAfterEditorSave = () => {
-    invalidatePublishedTimeline(jilid, hal);
-  };
-
-  const saveEditorText = async () => {
-    if (!editingQuestion || !editorDraft) return;
-    setEditorBusy(true);
-    setEditorMessage("");
-    try {
-      await editorRequest("save-text", {
-        key: editorKey,
-        arabic: editorDraft.arabic,
-        transliterationParts: editorDraft.transliteration
-          .split(/[\n,]/)
-          .map((part) => part.trim())
-          .filter(Boolean),
-        hintTone: editorDraft.hintTone,
-      });
-      reloadAfterEditorSave();
-    } catch (error) {
-      setEditorMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setEditorBusy(false);
-    }
-  };
-
-  const editorKey = editingQuestion
-    ? `${jilid}:${hal}:${editingQuestion.question.id}`
-    : "";
-
-  const saveHintTone = async (key: string, hintTone: string) => {
-    try {
-      await editorRequest("save-text", { key, hintTone });
-      setEditedHintTones((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
-      setCardSaveMessage("Tersimpan");
-      setTimeout(() => setCardSaveMessage(""), 1200);
-      reloadAfterEditorSave();
-    } catch (error) {
-      setCardSaveMessage(error instanceof Error ? error.message : String(error));
-    }
-  };
-
   const saveEditorAudio = async (action: "cut" | "merge") => {
     if (!editingQuestion || !editorDraft || !editorDraft.outputAudioUrl) return;
     setEditorBusy(true);
-    setEditorMessage("");
     try {
       const segments =
         action === "merge"
@@ -792,43 +479,7 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         end: editorDraft.end,
         segments,
       });
-      reloadAfterEditorSave();
-    } catch (error) {
-      setEditorMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setEditorBusy(false);
-    }
-  };
-
-  const deleteEditorAudio = async () => {
-    if (!editingQuestion || !editingQuestion.audioUrl) return;
-    if (!window.confirm("Hapus file audio ini dari project?")) return;
-    setEditorBusy(true);
-    setEditorMessage("");
-    try {
-      await editorRequest("delete-audio", {
-        key: editorKey,
-        audioUrl: editingQuestion.audioUrl,
-      });
-      reloadAfterEditorSave();
-    } catch (error) {
-      setEditorMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setEditorBusy(false);
-    }
-  };
-
-  const deleteEditorItem = async () => {
-    if (!editingQuestion) return;
-    if (!window.confirm("Hapus item teks dan pemetaan audio ini dari dataset?"))
-      return;
-    setEditorBusy(true);
-    setEditorMessage("");
-    try {
-      await editorRequest("delete-item", {
-        key: editorKey,
-        audioUrl: editingQuestion.audioUrl,
-      });
+      closeEditor();
       reloadAfterEditorSave();
     } catch (error) {
       setEditorMessage(error instanceof Error ? error.message : String(error));
@@ -870,27 +521,50 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         )
     : [];
 
-  const hasPublishedData = timelineClips.some((c) => c.isPublished);
+  const hasPublishedData = Boolean(publishedPayload);
 
-  // Jika di Timeline Editor sudah ada data published, jadikan sebagai Single Source of Truth
   const audioItems = hasPublishedData
     ? timelineClips.map((clip, index) => {
-        const questionKey = `${jilid}:${hal}:${clip.id || index}`;
+        const publishedTexts = publishedPayload?.timeline?.texts || [];
+        const publishedQuestions = publishedPayload?.questions || [];
+        const textEdits = publishedPayload?.textEdits || {};
+        const currentQuestionKey = `${jilid}:${hal}:${clip.id || index}`;
+
+        const textEdit = textEdits[currentQuestionKey];
+        const textMatch = publishedTexts.find(
+          (t: any) => String(t.clipId) === String(clip.id),
+        );
+        const questionMatch = publishedQuestions.find(
+          (q: any) =>
+            String(q.id) === String(textMatch?.id) ||
+            (q.audioUrl && q.audioUrl === clip.audioUrl),
+        );
+
         const cleanClipArabic = (clip.teksArab || "").replace(/\s+/g, "");
-        const matchedQ = pageData?.questions.find(
+        const staticMatch = pageData?.questions.find(
           (q) =>
             (cleanClipArabic &&
               q.arabic.replace(/\s+/g, "") === cleanClipArabic) ||
             String(q.id) === String(clip.id),
         );
+
         return {
           id: clip.id || `clip-${index + 1}`,
           index,
           sequence: clip.sequence || index + 1,
-          teksArab: clip.teksArab || matchedQ?.arabic || "",
+          teksArab:
+            textEdit?.arabic ||
+            textMatch?.arabic ||
+            questionMatch?.arabic ||
+            staticMatch?.arabic ||
+            clip.teksArab ||
+            "",
           teksLatin:
+            textEdit?.transliterationParts?.join(" - ") ||
+            textMatch?.transliterationParts?.join(" - ") ||
+            questionMatch?.transliterationParts?.join(" - ") ||
+            staticMatch?.transliterationParts.join(" - ") ||
             clip.teksLatin ||
-            matchedQ?.transliterationParts.join(" - ") ||
             "",
           durasi: clip.durasi ?? clip.duration ?? 0,
           audioUrl: clip.audioUrl,
@@ -898,12 +572,15 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
           type: clip.type || "isi",
           isPublished: true,
           hintTone:
-            matchedQ?.hintTone ||
+            textEdit?.hintTone ||
+            textMatch?.hintTone ||
+            questionMatch?.hintTone ||
+            staticMatch?.hintTone ||
             (clip.type === "header"
-              ? "Rost: Judul / Pembuka"
+              ? "Rost: Judul"
               : `Rost: Baris ${index + 1}`),
-          rawQuestion: matchedQ,
-          questionKey,
+          rawQuestion: questionMatch || staticMatch,
+          questionKey: currentQuestionKey,
         };
       })
     : questionRows.map(({ q, questionIndex, audioUrl }, idx) => {
@@ -930,24 +607,36 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
         };
       });
 
-  const testableAudioItems = audioItems.filter((item) => Boolean(item.audioUrl));
+  // --- PERUBAHAN: Sorting item tanpa audio ke paling bawah ---
+  const sortedAudioItems = [...audioItems].sort((a, b) => {
+    if (a.audioUrl && !b.audioUrl) return -1;
+    if (!a.audioUrl && b.audioUrl) return 1;
+    return 0;
+  });
+
+  const testableAudioItems = audioItems.filter((item) =>
+    Boolean(item.audioUrl),
+  );
   const testedCount = testableAudioItems.filter(
     (item) =>
       testedAudio[item.questionKey] ||
       testedAudio[getQuestionKey(item.index)] ||
       testedAudio[`${jilid}:${hal}:${item.id}`],
   ).length;
+  const currentDraftParse = editorDraft
+    ? parseHintTone(editorDraft.hintTone)
+    : { notes: [] as NoteOption[], repeat: "1x" as RepeatOption };
 
   return (
     <div
       className={
         admin
-          ? "mx-auto max-w-3xl p-4 pb-24 md:p-6"
-          : "p-4 max-w-md mx-auto min-h-screen bg-[#F0FDF4]/50"
+          ? "mx-auto max-w-6xl p-4 pb-24 md:p-6"
+          : "p-4 max-w-6xl mx-auto min-h-screen bg-[#F0FDF4]/50 pb-24"
       }
     >
-      {/* Jilid Selector Tabs (1 to 5) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-3 scrollbar-none">
+      {/* Jilid Selector */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-2 scrollbar-none">
         {[1, 2, 3, 4, 5].map((j) => (
           <button
             key={j}
@@ -956,617 +645,507 @@ export function CekAudioContent({ variant }: { variant: CekAudioVariant }) {
               if (audioRef.current) audioRef.current.pause();
               setPlayingId(null);
             }}
-            className={`flex-1 min-w-[54px] py-2 rounded-xl font-black text-xs transition-all active:scale-95 text-center ${
-              jilid === j
-                ? admin
-                  ? "bg-[var(--admin-accent)] text-white shadow-[3px_3px_0_var(--admin-border)]"
-                  : "bg-[#0D9488] text-white shadow-md shadow-[#0D9488]/20 scale-100"
-                : admin
-                  ? "bg-[var(--admin-surface)] text-[var(--admin-text)] border-2 border-[var(--admin-border)]"
-                  : "bg-white text-[#134e4a]/70 border border-gray-200 hover:bg-[#F0FDF4]"
-            }`}
+            className={`flex-1 min-w-[54px] py-2 rounded-xl font-black text-xs transition-all active:scale-95 text-center ${jilid === j ? "bg-[#0D9488] text-white shadow-[3px_3px_0px_#134E4A]" : "bg-white text-[#134e4a]/70 border-2 border-[#134E4A]/20 hover:bg-[#F0FDF4]"}`}
           >
             Jilid {j}
           </button>
         ))}
       </div>
 
-      {/* Header Controls */}
+      {/* Horizontal Page Navigator (Tanpa Select) */}
       <div
-        className={
-          admin
-            ? "admin-surface flex items-center justify-between mb-4 p-3.5"
-            : "flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100"
-        }
+        ref={pageScrollRef}
+        className="flex gap-2 overflow-x-auto pb-4 mb-2 scrollbar-hide snap-x"
       >
+        {Array.from({ length: 44 }, (_, i) => i + 1).map((pageNum) => (
           <button
-            onClick={() => updatePage(jilid, Math.max(1, hal - 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#F0FDFA] text-[#134e4a]/70 active:scale-95 transition-all"
+            key={pageNum}
+            id={`page-btn-${pageNum}`}
+            onClick={() => updatePage(jilid, pageNum)}
+            className={`snap-center shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-black text-sm transition-all border-2 ${
+              hal === pageNum
+                ? "bg-[#FF6B6B] text-white border-[#134E4A] shadow-[2px_2px_0px_#134E4A] scale-110"
+                : "bg-white text-[#134E4A] border-[#134E4A]/20 hover:border-[#134E4A]"
+            }`}
           >
-            <ChevronLeft size={16} />
+            {pageNum}
           </button>
-          <div className="text-center">
-            <div className="text-[10px] font-black tracking-widest text-[#0D9488] uppercase">
-              TILAWATI JILID {jilid}
-            </div>
-            <div className="font-black text-xl text-teal-900">
+        ))}
+      </div>
+
+      {/* Status & Timeline Links */}
+      <section className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 rounded-2xl border-2 border-[#134E4A] bg-white px-4 py-3 shadow-[3px_3px_0px_#134E4A]">
+        <div className="flex items-center gap-4">
+          <div>
+            <div className="text-xs font-black text-[#0F766E]">
               Halaman {hal}
             </div>
+            <div className="text-[10px] font-bold text-gray-500">
+              {testedCount}/{testableAudioItems.length} audio teruji
+            </div>
           </div>
+          <label className="flex items-center gap-1.5 rounded-lg border-2 border-[#0D9488]/30 bg-[#F0FDF4] px-3 py-1.5 text-xs font-black text-[#0F766E] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={Boolean(testedAudio[`${jilid}:${hal}:page`])}
+              onChange={(event) => setAudioTested(-1, event.target.checked)}
+              className="w-4 h-4 accent-[#0D9488]"
+            />
+            Lolos
+          </label>
+        </div>
+        <div className="flex gap-2">
           <button
-            onClick={() => updatePage(jilid, Math.min(44, hal + 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#F0FDFA] text-[#134e4a]/70 active:scale-95 transition-all"
+            onClick={() =>
+              navigate(`${timelineLocalHref}?jilid=${jilid}&hal=${hal}`)
+            }
+            className="rounded-lg bg-[#0D9488] px-3 py-2 text-[10px] font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none"
           >
-            <ChevronRight size={16} />
+            Editor Lokal
+          </button>
+          <button
+            onClick={() =>
+              navigate(`${timelineCloudHref}?jilid=${jilid}&hal=${hal}`)
+            }
+            className="rounded-lg bg-[#0F766E] px-3 py-2 text-[10px] font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none"
+          >
+            Cloud Editor
           </button>
         </div>
+      </section>
 
-        {pageData && (
-          <div
-            className={
-              admin
-                ? "admin-surface mb-4 flex items-center justify-between gap-3 px-4 py-3"
-                : "mb-4 flex items-center justify-between gap-3 rounded-2xl border border-[#0D9488]/20 bg-[#0D9488]/10 px-4 py-3"
-            }
-          >
-            <div>
-              <div className="text-xs font-black text-[#0F766E]">
-                Status uji halaman
-              </div>
-              <div className="text-[10px] text-[#0F766E]/70">
-                Tandai halaman ini jika seluruh audio dan teks sudah final.
-              </div>
-              <div className="mt-1 text-[10px] font-black text-[#0F766E]">
-                {testedCount}/{testableAudioItems.length} item audio teruji
-              </div>
-            </div>
-            <label className="shrink-0 flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black text-[#0D9488] shadow-sm cursor-pointer hover:bg-[#F0FDF4] transition-colors">
-              <input
-                type="checkbox"
-                checked={Boolean(testedAudio[`${jilid}:${hal}:page`])}
-                onChange={(event) => setAudioTested(-1, event.target.checked)}
-                className="w-4 h-4 accent-[#0D9488]"
-              />
-              Halaman Lolos
-            </label>
-          </div>
-        )}
+      {/* GRID LAYOUT UNTUK KARTU AUDIO */}
+      {sortedAudioItems.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4 pb-24">
+          {sortedAudioItems.map((item) => {
+            const isPlaying = playingId === item.id;
+            const hasAudio = Boolean(item.audioUrl);
 
-        <section
-          className={
-            admin
-              ? "admin-surface mb-4 flex items-center justify-between gap-3 px-4 py-3"
-              : "mb-4 flex items-center justify-between gap-3 rounded-2xl border border-[#0D9488]/20 bg-[#0D9488]/10 px-4 py-3"
-          }
-        >
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#0F766E]">
-              <span>Timeline halaman</span>
-              {hasPublishedData && (
-                <span className="inline-flex items-center gap-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-black text-white">
-                  <Check size={10} className="stroke-[3]" /> Terpublikasi
-                </span>
-              )}
-            </div>
-            <h3 className="truncate text-sm font-black text-[#0F766E]">
-              Audio Hal {hal} · {audioItems.length} klip
-              {hasPublishedData && " (Sinkron Timeline Editor)"}
-            </h3>
-          </div>
-            <button
-              type="button"
-              onClick={() =>
-                navigate(`${timelineLocalHref}?jilid=${jilid}&hal=${hal}`)
-              }
-              className="shrink-0 rounded-lg bg-[#0D9488] px-3 py-2 text-[10px] font-black text-white shadow-sm transition active:scale-95 flex items-center gap-1.5"
-            >
-              <span>Editor Lokal</span>
-              <ChevronRight size={12} />
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                navigate(`${timelineCloudHref}?jilid=${jilid}&hal=${hal}`)
-              }
-              className="shrink-0 rounded-lg bg-[#0F766E] px-3 py-2 text-[10px] font-black text-white shadow-sm transition active:scale-95 flex items-center gap-1.5"
-            >
-              <span>Cloud Editor</span>
-              <ChevronRight size={12} />
-            </button>
-        </section>
+            // Warna Card Orange/Merah jika tidak ada audio
+            const cardColorClass = hasAudio
+              ? isPlaying
+                ? "border-[#0D9488] bg-[#F2FDF5] shadow-[3px_3px_0px_#0D9488]"
+                : "border-[#134E4A] bg-white shadow-[3px_3px_0px_#134E4A]"
+              : "border-[#DC2626] bg-[#FEF2F2] shadow-[3px_3px_0px_#DC2626]";
 
-        {editingQuestion && editorDraft && (
-          <section
-            className={
-              admin
-                ? "admin-surface mb-4 p-4"
-                : "mb-4 rounded-2xl border-2 border-[#0D9488]/30 bg-[#F0FDF4] p-4 shadow-sm"
-            }
-          >
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-wider text-[#0F766E]">
-                  Editor permanen
-                </div>
-                <h3 className="text-base font-black text-[#134e4a]">
-                  Edit teks & audio item
-                </h3>
-                <p className="mt-1 text-[10px] leading-relaxed text-[#0F766E]">
-                  Hasil simpan ditulis ke file project. Jalankan Vite dev server
-                  agar endpoint editor tersedia.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeEditor}
-                disabled={editorBusy}
-                className="rounded-lg bg-white px-2.5 py-1.5 text-xs font-black text-[#134e4a]/70 shadow-sm disabled:opacity-50"
+            return (
+              <div
+                key={item.id}
+                className={`flex flex-col h-full p-2.5 md:p-3.5 border-2 transition-colors rounded-xl ${cardColorClass}`}
               >
-                Tutup
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <label className="block text-xs font-black text-[#134e4a]">
-                Teks Arab
-                <textarea
-                  value={editorDraft.arabic}
-                  onChange={(event) =>
-                    setEditorDraft({
-                      ...editorDraft,
-                      arabic: event.target.value,
-                    })
-                  }
-                  rows={3}
-                  dir="rtl"
-                  className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-right font-arabic text-xl leading-relaxed outline-none focus:border-[#0D9488]"
-                />
-              </label>
-              <label className="block text-xs font-black text-[#134e4a]">
-                Transliterasi: satu bagian per baris (Auto-generate teks Arab)
-                <textarea
-                  value={editorDraft.transliteration}
-                  onChange={(event) => {
-                    const val = event.target.value;
-                    const parts = val.split("\n");
-                    const autoArabic = parts
-                      .map((p) => latinToArabic(p.trim()))
-                      .filter(Boolean)
-                      .join(" ");
-                    setEditorDraft({
-                      ...editorDraft,
-                      transliteration: val,
-                      arabic: autoArabic || editorDraft.arabic,
-                    });
-                  }}
-                  rows={3}
-                  className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
-                />
-              </label>
-              <label className="block text-xs font-black text-[#134e4a]">
-                Nada / keterangan
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-100 bg-white p-3">
-                  <span className="truncate text-[#134e4a]">{editorDraft.hintTone}</span>
-                </div>
-              </label>
-
-              <div className="grid grid-cols-1 gap-2">
-                <label className="text-xs font-black text-[#134e4a]">
-                  Sumber audio dari halaman ini
-                  <select
-                    value={editorDraft.sourceAudioUrl}
-                    onChange={(event) =>
-                      selectEditorSourceAudio(event.target.value)
-                    }
-                    className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-xs outline-none focus:border-[#0D9488]"
+                {/* Header Card */}
+                <div className="flex justify-between items-center mb-2">
+                  <span
+                    className={`text-[9px] md:text-[10px] font-black px-1.5 py-0.5 rounded border uppercase ${hasAudio ? "text-[#134e4a]/60 bg-gray-100 border-gray-200" : "text-red-700 bg-red-100 border-red-200"}`}
                   >
-                    <option value="">Pilih audio yang tersedia...</option>
-                    {timelineClips.map((clip) => (
-                      <option key={clip.audioUrl} value={clip.audioUrl}>
-                        #{clip.sequence} · {clip.type} · {clip.filename} ·{" "}
-                        {clip.duration.toFixed(2)} detik
-                      </option>
-                    ))}
-                  </select>
-                  <span className="mt-1 block text-[10px] font-medium text-[#0F766E]">
-                    Daftar diambil dari seluruh audio pada Jilid {jilid} Halaman{" "}
-                    {hal}.
+                    #{item.sequence} · {item.type}
                   </span>
-                </label>
-                <label className="text-xs font-black text-[#134e4a]">
-                  Simpan hasil ke URL audio
-                  <input
-                    value={editorDraft.outputAudioUrl}
-                    onChange={(event) =>
-                      setEditorDraft({
-                        ...editorDraft,
-                        outputAudioUrl: event.target.value,
-                      })
-                    }
-                    placeholder="/audio/tilawati/..."
-                    className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-xs outline-none focus:border-[#0D9488]"
-                  />
-                </label>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <label className="text-xs font-black text-[#134e4a]">
-                  Mulai (detik)
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={editorDraft.start}
-                    onChange={(event) =>
-                      setEditorDraft({
-                        ...editorDraft,
-                        start: event.target.value,
-                      })
-                    }
-                    className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
-                  />
-                </label>
-                <label className="text-xs font-black text-[#134e4a]">
-                  Selesai (detik)
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={editorDraft.end}
-                    onChange={(event) =>
-                      setEditorDraft({
-                        ...editorDraft,
-                        end: event.target.value,
-                      })
-                    }
-                    className="mt-1 w-full rounded-xl border border-gray-100 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
-                  />
-                </label>
-              </div>
-
-              {editorSegments.length > 0 && (
-                <div className="rounded-xl border border-gray-100 bg-white p-3">
-                  <div className="mb-2 text-xs font-black text-[#134e4a]">
-                    Segmen gabungan
-                  </div>
-                  <div className="space-y-1 text-[10px] text-[#134e4a]/70">
-                    {editorSegments.map((segment, index) => (
-                      <div
-                        key={`${segment.sourceAudioUrl}-${index}`}
-                        className="flex items-center justify-between gap-2"
-                      >
-                        <span className="truncate">
-                          {index + 1}. {segment.sourceAudioUrl} ({segment.start}
-                          –{segment.end}s)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEditorSegments((current) =>
-                              current.filter(
-                                (_, itemIndex) => itemIndex !== index,
-                              ),
-                            )
-                          }
-                          className="shrink-0 font-black text-red-600"
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {editorMessage && (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
-                  {editorMessage}
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={saveEditorText}
-                  disabled={editorBusy}
-                  className="rounded-xl bg-[#134e4a] px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
-                >
-                  Simpan teks
-                </button>
-                <button
-                  type="button"
-                  onClick={() => saveEditorAudio("cut")}
-                  disabled={
-                    editorBusy ||
-                    !editorDraft.sourceAudioUrl ||
-                    !editorDraft.outputAudioUrl
-                  }
-                  className="rounded-xl bg-[#0D9488] px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
-                >
-                  Potong & simpan
-                </button>
-                <button
-                  type="button"
-                  onClick={addEditorSegment}
-                  disabled={
-                    editorBusy ||
-                    !editorDraft.sourceAudioUrl ||
-                    !editorDraft.end
-                  }
-                  className="rounded-xl border border-[#0D9488]/30 bg-white px-3 py-2.5 text-xs font-black text-[#0F766E] disabled:opacity-50"
-                >
-                  Tambah segmen
-                </button>
-                <button
-                  type="button"
-                  onClick={() => saveEditorAudio("merge")}
-                  disabled={
-                    editorBusy ||
-                    editorSegments.length === 0 ||
-                    !editorDraft.outputAudioUrl
-                  }
-                  className="rounded-xl border border-[#0D9488]/40 bg-white px-3 py-2.5 text-xs font-black text-[#0F766E] disabled:opacity-50"
-                >
-                  Gabungkan segmen
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 border-t border-[#D1FAE5] pt-3">
-                <button
-                  type="button"
-                  onClick={deleteEditorAudio}
-                  disabled={editorBusy || !editingQuestion.audioUrl}
-                  className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700 disabled:opacity-50"
-                >
-                  Hapus audio
-                </button>
-                <button
-                  type="button"
-                  onClick={deleteEditorItem}
-                  disabled={editorBusy}
-                  className="rounded-xl bg-red-700 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
-                >
-                  Hapus item
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Content List */}
-        {audioItems.length > 0 ? (
-          <div className="space-y-3 pb-24">
-            {audioItems.map((item) => {
-              const isPlaying = playingId === item.id;
-              const isTested = Boolean(
-                testedAudio[item.questionKey] ||
-                  testedAudio[getQuestionKey(item.index)] ||
-                  testedAudio[`${jilid}:${hal}:${item.id}`],
-              );
-              const effectiveHintTone =
-                editedHintTones[item.questionKey] ?? item.hintTone;
-              const effectiveParse = parseHintTone(effectiveHintTone);
-              return (
-                <div
-                  key={item.id}
-                  className={`flex flex-col p-4 border-2 transition-colors ${
-                    isPlaying
-                      ? "border-[#0D9488] bg-[#F2FDF5]"
-                      : "border-gray-100 bg-white"
-                  } ${admin ? "admin-surface !shadow-[3px_3px_0_var(--admin-border)] rounded-xl" : "rounded-[20px] shadow-sm"}`}
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <span className="text-[10px] font-black text-[#134e4a]/50 uppercase tracking-wider">
-                          #{item.sequence} · {item.type}
-                        </span>
-                        {item.isPublished && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[9px] font-black text-emerald-800 border border-emerald-300">
-                            <Check size={11} className="text-emerald-600 stroke-[3]" />
-                            Data Final Publish
-                          </span>
-                        )}
-                        {item.durasi > 0 && (
-                          <span className="inline-flex items-center gap-1 font-mono text-[9px] font-black text-[#0F766E] bg-[#CCFBF1]/70 px-1.5 py-0.5 rounded border border-[#0D9488]/30">
-                            <ClockSvg size={10} stroke="#0F766E" />
-                            <span>{item.durasi.toFixed(2)}s</span>
-                          </span>
-                        )}
-                      </div>
-                      <div className="font-arabic text-3xl mb-1 leading-normal text-right pr-2 text-teal-900">
-                        {item.teksArab || "(Teks Arab belum terhubung)"}
-                      </div>
-                      {item.teksLatin && (
-                        <div className="text-xs font-bold text-[#134e4a]/50">
-                          [{item.teksLatin}]
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const questionObj: QuizQuestion = item.rawQuestion || {
-                            id: typeof item.id === "number" ? item.id : item.index,
-                            arabic: item.teksArab,
-                            transliterationParts: item.teksLatin
-                              ? item.teksLatin.split(" - ")
-                              : [],
-                            options: item.teksLatin
-                              ? item.teksLatin.split(" - ")
-                              : [],
-                            hintTone: item.hintTone || "Rost: Baris",
-                            audioUrl: item.audioUrl || "",
-                            audioMappingComplete: true,
-                          };
-                          openEditor(questionObj, item.index, item.audioUrl);
-                        }}
-                        className="rounded-xl border border-[#0D9488]/30 bg-[#F0FDF4] px-2.5 py-2 text-[10px] font-black text-[#0F766E]"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (isPlaying) {
-                            audioRef.current?.pause();
-                            setPlayingId(null);
-                          } else {
-                            playAudio(item.id, item.audioUrl);
-                          }
-                        }}
-                        className={`flex h-11 w-11 items-center justify-center rounded-full text-white transition-transform active:scale-90 ${
-                          isPlaying
-                            ? "bg-red-500 shadow-md"
-                            : "bg-[#0D9488] shadow-md shadow-[#0D9488]/20"
-                        }`}
-                      >
-                        {isPlaying ? (
-                          <Pause size={16} />
-                        ) : (
-                          <Play size={16} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[10px]">
-                    <span
-                      className="font-mono text-[#134e4a]/40 truncate pr-4 max-w-[200px]"
-                      title={item.audioUrl}
-                    >
-                      {item.audioUrl
-                        ? item.audioUrl.split("/").pop()
-                        : "Audio belum tersedia"}
+                  {item.durasi > 0 && (
+                    <span className="flex items-center gap-1 font-mono text-[9px] font-black text-[#0F766E]">
+                      <ClockSvg size={10} stroke="#0F766E" />
+                      {item.durasi.toFixed(2)}s
                     </span>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {NOTE_BADGES.map((badge) => {
-                        const isSelected = effectiveParse.notes.includes(badge.value);
-                        return (
-                          <button
-                            key={badge.value}
-                            type="button"
-                            onClick={() => {
-                              const nextNotes: NoteOption[] = isSelected
-                                ? effectiveParse.notes.filter((n) => n !== badge.value)
-                                : [...effectiveParse.notes, badge.value];
-                              setEditedHintTones((prev) => ({
-                                ...prev,
-                                [item.questionKey]: generateHintTone(nextNotes, effectiveParse.repeat),
-                              }));
-                            }}
-                            className={`rounded-full border-2 px-2.5 py-1 font-black text-xs transition-all ${
-                              isSelected
-                                ? "border-[#FF6B6B] bg-[#FF6B6B] text-white shadow-[3px_3px_0px_#DC2626]"
-                                : "border-[#134E4A] bg-white text-[#134E4A] hover:bg-[#F0FDF4]"
-                            }`}
-                          >
-                            {badge.label}
-                          </button>
-                        );
-                      })}
-                      <div className="flex items-center gap-1.5 ml-1">
-                        {REPEAT_BADGES.map((badge) => {
-                          const isSelected = effectiveParse.repeat === badge.value;
+                  )}
+                </div>
+
+                {/* Teks Arab & Latin */}
+                <div className="flex-1 flex flex-col justify-center mb-2 md:mb-3">
+                  <div className="font-arabic text-xl md:text-2xl text-right pr-1 md:pr-2 text-teal-900 leading-snug line-clamp-3">
+                    {item.teksArab || "(Belum ada teks)"}
+                  </div>
+                  <div className="text-[10px] md:text-[11px] font-bold text-gray-500 line-clamp-2 mt-1">
+                    [{item.teksLatin}]
+                  </div>
+                </div>
+
+                {/* Hint Tone Badge */}
+                <div className="mb-2 md:mb-3">
+                  <span className="inline-block rounded bg-[#FEF08A] px-1.5 md:px-2 py-0.5 md:py-1 text-[8px] md:text-[9px] font-bold text-[#854D0E] border border-[#D97706] truncate w-full">
+                    {item.hintTone}
+                  </span>
+                </div>
+
+                {/* Actions (Footer Card) */}
+                <div className="mt-auto pt-2 border-t-2 border-[#134E4A]/10 flex flex-wrap items-center justify-between gap-1.5 md:gap-2">
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <button
+                      disabled={!hasAudio}
+                      onClick={() => {
+                        if (!hasAudio) return;
+                        isPlaying
+                          ? (audioRef.current?.pause(), setPlayingId(null))
+                          : playAudio(item.id, item.audioUrl);
+                      }}
+                      className={`flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-white transition-transform active:scale-90 ${
+                        !hasAudio
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : isPlaying
+                            ? "bg-red-500"
+                            : "bg-[#0D9488]"
+                      }`}
+                    >
+                      {isPlaying ? <Pause size={12} /> : <Play size={12} />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const questionObj = item.rawQuestion || {
+                          id: item.id,
+                          arabic: item.teksArab,
+                          transliterationParts: item.teksLatin
+                            ? item.teksLatin.split(" - ")
+                            : [],
+                          options: [],
+                          hintTone: item.hintTone || "Rost: Baris",
+                          audioUrl: item.audioUrl || "",
+                          audioMappingComplete: true,
+                        };
+                        openEditor(questionObj, item.index, item.audioUrl);
+                      }}
+                      className="rounded-lg border-2 border-[#134E4A] bg-white px-1.5 md:px-2 py-0.5 md:py-1 text-[9px] md:text-[10px] font-black text-[#134E4A] shadow-[1px_1px_0px_#134E4A] active:translate-y-[1px] active:shadow-none"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <label
+                    className={`flex items-center gap-1 ${hasAudio ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      disabled={!hasAudio}
+                      checked={Boolean(testedAudio[item.questionKey])}
+                      onChange={(e) =>
+                        setAudioTested(item.questionKey, e.target.checked)
+                      }
+                      className="h-3 w-3 md:h-3.5 md:w-3.5 accent-[#0D9488]"
+                    />
+                    <span className="text-[8px] md:text-[9px] font-black text-gray-500">
+                      Uji
+                    </span>
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl p-6 border-2 border-[#134E4A] text-center shadow-[3px_3px_0px_#134E4A]">
+          <p className="text-xs text-gray-500">Audio belum tersedia.</p>
+        </div>
+      )}
+
+      {/* MODAL / BOTTOM SHEET EDITOR (Responsive) */}
+      <AnimatePresence>
+        {editingQuestion && editorDraft && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeEditor}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center"
+          >
+            <motion.div
+              initial={{ y: 50, scale: 0.95, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 50, scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-h-[90vh] md:max-h-[85vh] md:w-[650px] flex flex-col bg-[#F0FDF4] rounded-t-[32px] md:rounded-[32px] border-t-[3px] md:border-[3px] border-[#134E4A] shadow-[0px_-8px_0px_rgba(19,78,74,0.2)] md:shadow-[8px_8px_0px_#134E4A]"
+            >
+              <div className="flex items-center justify-between p-4 md:p-5 border-b-[3px] border-[#134E4A]/10 bg-white rounded-t-[32px] md:rounded-t-[28px]">
+                <div>
+                  <h3 className="font-black text-[#134E4A] text-lg md:text-xl">
+                    Edit Item
+                  </h3>
+                  <p className="text-[10px] md:text-xs font-bold text-[#0D9488]">
+                    #{editingQuestion.question.id}
+                  </p>
+                </div>
+                <button
+                  onClick={closeEditor}
+                  className="rounded-full border-2 border-[#134E4A] bg-white p-2 shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-black text-xs">Tutup</span>
+                </button>
+              </div>
+
+              <div className="flex gap-2 p-2 md:p-4 bg-white border-b-2 border-[#134E4A]/10">
+                <button
+                  onClick={() => setEditorTab("text")}
+                  className={`flex-1 rounded-xl py-2.5 text-xs md:text-sm font-black transition-all ${editorTab === "text" ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "bg-white text-[#134E4A] border-2 border-[#134E4A]/20 hover:bg-gray-50"}`}
+                >
+                  Teks & Nada
+                </button>
+                <button
+                  onClick={() => setEditorTab("audio")}
+                  className={`flex-1 rounded-xl py-2.5 text-xs md:text-sm font-black transition-all ${editorTab === "audio" ? "bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "bg-white text-[#134E4A] border-2 border-[#134E4A]/20 hover:bg-gray-50"}`}
+                >
+                  Audio & Segmen
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-5">
+                {editorTab === "text" && (
+                  <>
+                    <label className="block text-xs md:text-sm font-black text-[#134e4a]">
+                      Teks Arab
+                      <textarea
+                        value={editorDraft.arabic}
+                        onChange={(e) =>
+                          setEditorDraft({
+                            ...editorDraft,
+                            arabic: e.target.value,
+                          })
+                        }
+                        rows={2}
+                        dir="rtl"
+                        className="mt-1 w-full rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 text-right font-arabic text-xl md:text-2xl leading-relaxed outline-none focus:border-[#0D9488]"
+                      />
+                    </label>
+                    <label className="block text-xs md:text-sm font-black text-[#134e4a]">
+                      Transliterasi
+                      <textarea
+                        value={editorDraft.transliteration}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const parts = val.split("\n");
+                          const autoArabic = parts
+                            .map((p) => latinToArabic(p.trim()))
+                            .filter(Boolean)
+                            .join(" ");
+                          setEditorDraft({
+                            ...editorDraft,
+                            transliteration: val,
+                            arabic: autoArabic || editorDraft.arabic,
+                          });
+                        }}
+                        rows={2}
+                        className="mt-1 w-full rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
+                      />
+                    </label>
+                    <div className="rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 md:p-4">
+                      <div className="text-xs md:text-sm font-black text-[#134e4a] mb-3">
+                        Pengaturan Nada (Hint Tone)
+                      </div>
+                      <div className="mb-4 p-2 md:p-3 rounded-lg bg-[#FEF08A] border border-[#D97706] text-xs md:text-sm font-bold text-[#854D0E]">
+                        {editorDraft.hintTone}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {NOTE_BADGES.map((badge) => {
+                          const isSelected = currentDraftParse.notes.includes(
+                            badge.value,
+                          );
                           return (
                             <button
                               key={badge.value}
                               type="button"
                               onClick={() => {
-                                setEditedHintTones((prev) => ({
-                                  ...prev,
-                                  [item.questionKey]: generateHintTone(effectiveParse.notes, badge.value),
-                                }));
+                                let nextNotes = [...currentDraftParse.notes];
+                                const isCombined = [
+                                  "Datar-Turun",
+                                  "Datar-Naik-Turun",
+                                  "Datar-Naik-Naik-Turun",
+                                ].includes(badge.value);
+                                if (isSelected) {
+                                  nextNotes = nextNotes.filter(
+                                    (n) => n !== badge.value,
+                                  );
+                                } else {
+                                  if (isCombined) {
+                                    nextNotes = nextNotes.filter(
+                                      (n) => !badge.value.includes(n),
+                                    );
+                                  } else {
+                                    nextNotes = nextNotes.filter(
+                                      (n) => !n.includes(badge.value),
+                                    );
+                                  }
+                                  nextNotes.push(badge.value);
+                                }
+                                setEditorDraft({
+                                  ...editorDraft,
+                                  hintTone: generateHintTone(
+                                    nextNotes,
+                                    currentDraftParse.repeat,
+                                  ),
+                                });
                               }}
-                              className={`rounded-full border-2 px-2.5 py-1 font-black text-xs transition-all ${
-                                isSelected
-                                  ? "border-[#0D9488] bg-[#0D9488] text-white shadow-[3px_3px_0px_#0D9488]"
-                                  : "border-[#134E4A] bg-white text-[#134E4A] hover:bg-[#F0FDF4]"
-                              }`}
+                              className={`rounded-full border-2 px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-black transition-all ${isSelected ? "border-[#FF6B6B] bg-[#FF6B6B] text-white shadow-[2px_2px_0px_#DC2626]" : "border-[#134E4A] bg-white text-[#134E4A] active:bg-[#F0FDF4] hover:bg-gray-50"}`}
                             >
                               {badge.label}
                             </button>
                           );
                         })}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          saveHintTone(item.questionKey, effectiveHintTone)
-                        }
-                        className="shrink-0 rounded-xl border border-[#0D9488]/30 bg-[#F0FDF4] px-2.5 py-2 text-[10px] font-black text-[#0F766E]"
+                      <div className="flex flex-wrap gap-2">
+                        {REPEAT_BADGES.map((badge) => {
+                          const isSelected =
+                            currentDraftParse.repeat === badge.value;
+                          return (
+                            <button
+                              key={badge.value}
+                              type="button"
+                              onClick={() =>
+                                setEditorDraft({
+                                  ...editorDraft,
+                                  hintTone: generateHintTone(
+                                    currentDraftParse.notes,
+                                    badge.value,
+                                  ),
+                                })
+                              }
+                              className={`rounded-full border-2 px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-black transition-all ${isSelected ? "border-[#0D9488] bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]" : "border-[#134E4A] bg-white text-[#134E4A] active:bg-[#F0FDF4] hover:bg-gray-50"}`}
+                            >
+                              {badge.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {editorTab === "audio" && (
+                  <>
+                    <label className="block text-xs md:text-sm font-black text-[#134e4a]">
+                      Sumber Audio
+                      <select
+                        value={editorDraft.sourceAudioUrl}
+                        onChange={(e) => {
+                          const clip = timelineClips.find(
+                            (i) => i.audioUrl === e.target.value,
+                          );
+                          const duration = clip?.duration || 0;
+                          setEditorDraft({
+                            ...editorDraft,
+                            sourceAudioUrl: e.target.value,
+                            start: "0",
+                            end: duration
+                              ? String(duration.toFixed(3))
+                              : editorDraft.end,
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 text-xs md:text-sm outline-none focus:border-[#0D9488]"
                       >
-                        Simpan
+                        <option value="">Pilih audio...</option>
+                        {timelineClips.map((clip) => (
+                          <option key={clip.audioUrl} value={clip.audioUrl}>
+                            #{clip.sequence} · {clip.filename} (
+                            {clip.duration.toFixed(2)}s)
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
+                      <label className="text-xs md:text-sm font-black text-[#134e4a]">
+                        Mulai (s)
+                        <input
+                          type="number"
+                          step="0.001"
+                          value={editorDraft.start}
+                          onChange={(e) =>
+                            setEditorDraft({
+                              ...editorDraft,
+                              start: e.target.value,
+                            })
+                          }
+                          className="mt-1 w-full rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
+                        />
+                      </label>
+                      <label className="text-xs md:text-sm font-black text-[#134e4a]">
+                        Selesai (s)
+                        <input
+                          type="number"
+                          step="0.001"
+                          value={editorDraft.end}
+                          onChange={(e) =>
+                            setEditorDraft({
+                              ...editorDraft,
+                              end: e.target.value,
+                            })
+                          }
+                          className="mt-1 w-full rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 text-sm outline-none focus:border-[#0D9488]"
+                        />
+                      </label>
+                    </div>
+                    <label className="block text-xs md:text-sm font-black text-[#134e4a]">
+                      Output URL
+                      <input
+                        value={editorDraft.outputAudioUrl}
+                        onChange={(e) =>
+                          setEditorDraft({
+                            ...editorDraft,
+                            outputAudioUrl: e.target.value,
+                          })
+                        }
+                        className="mt-1 w-full rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 text-xs md:text-sm outline-none focus:border-[#0D9488]"
+                      />
+                    </label>
+                    {editorSegments.length > 0 && (
+                      <div className="rounded-xl border-2 border-[#134E4A]/20 bg-white p-3 md:p-4">
+                        <div className="mb-2 text-xs md:text-sm font-black text-[#134e4a]">
+                          Segmen Gabungan:
+                        </div>
+                        {editorSegments.map((seg, i) => (
+                          <div
+                            key={i}
+                            className="text-[10px] md:text-xs text-gray-500 truncate mb-1"
+                          >
+                            {i + 1}. {seg.sourceAudioUrl} ({seg.start}-{seg.end}
+                            s)
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2 md:gap-3">
+                      <button
+                        onClick={addEditorSegment}
+                        className="flex-1 rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2.5 text-xs md:text-sm font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none hover:bg-gray-50"
+                      >
+                        Tambah Segmen
+                      </button>
+                      <button
+                        onClick={() => saveEditorAudio("merge")}
+                        disabled={editorSegments.length === 0}
+                        className="flex-1 rounded-xl bg-[#0D9488] px-3 py-2.5 text-xs md:text-sm font-black text-white shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none disabled:opacity-50"
+                      >
+                        Gabung
                       </button>
                     </div>
-                    {!item.audioUrl ? (
-                      <span
-                        className={`shrink-0 rounded px-2 py-0.5 font-black ${
-                          admin
-                            ? "border-2 border-[var(--admin-border)] bg-[var(--admin-danger-soft)] text-red-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                        title="File audio tidak ditemukan untuk item ini"
-                      >
-                        404 · Audio Hilang
-                      </span>
-                    ) : playErrorId === item.id ? (
-                      <span
-                        className={`shrink-0 rounded px-2 py-0.5 font-black ${
-                          admin
-                            ? "border-2 border-[var(--admin-border)] bg-[var(--admin-danger-soft)] text-red-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                        title="File audio gagal diputar (rusak atau tidak dapat dimuat)"
-                      >
-                        Gagal Putar
-                      </span>
-                    ) : null}
-                    <label
-                      className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 font-black transition-colors ${
-                        item.audioUrl
-                          ? "cursor-pointer text-[#0F766E] hover:bg-[#E2F5E8]"
-                          : "cursor-not-allowed text-[#134e4a]/40"
-                      }`}
-                      title={
-                        item.audioUrl
-                          ? "Tandai sudah diuji"
-                          : "Audio belum tersedia"
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isTested}
-                        onChange={(e) =>
-                          setAudioTested(item.questionKey, e.target.checked)
-                        }
-                        className="h-4 w-4 accent-[#0D9488]"
-                      />
-                      <span>{isTested ? "Teruji" : "Uji"}</span>
-                    </label>
+                  </>
+                )}
+                {editorMessage && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs md:text-sm font-bold text-red-700">
+                    {editorMessage}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div
-            className={
-              admin
-                ? "admin-surface p-6 text-center pb-10"
-                : "bg-white rounded-2xl p-6 border border-gray-100 text-center shadow-sm pb-10"
-            }
-          >
-            <div className="w-12 h-12 rounded-full bg-[#0D9488]/10 text-[#0D9488] flex items-center justify-center mx-auto mb-3 font-black text-lg">
-              {jilid}
-            </div>
-            <h3 className="font-black text-base text-teal-900 mb-1">
-              Tilawati Jilid {jilid} - Halaman {hal}
-            </h3>
-            <p className="text-xs text-[#134e4a]/50 mb-4 max-w-xs mx-auto">
-              Audio rekaman master per halaman siap diputar melalui tombol di
-              atas untuk audit dan verifikasi makhraj & irama.
-            </p>
-          </div>
+                )}
+              </div>
+
+              <div className="p-4 md:p-5 bg-white border-t-2 border-[#134E4A]/10 md:rounded-b-[28px] pb-6 md:pb-5">
+                {editorTab === "text" ? (
+                  <button
+                    onClick={saveEditorText}
+                    disabled={editorBusy}
+                    className="w-full rounded-xl bg-[#134E4A] py-3.5 text-sm md:text-base font-black text-white shadow-[3px_3px_0px_#0D9488] active:translate-y-[2px] active:shadow-none disabled:opacity-50 transition-all"
+                  >
+                    {editorBusy ? "Menyimpan..." : "Simpan Teks & Nada"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => saveEditorAudio("cut")}
+                    disabled={
+                      editorBusy ||
+                      !editorDraft.sourceAudioUrl ||
+                      !editorDraft.outputAudioUrl
+                    }
+                    className="w-full rounded-xl bg-[#0D9488] py-3.5 text-sm md:text-base font-black text-white shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none disabled:opacity-50 transition-all"
+                  >
+                    {editorBusy ? "Memproses..." : "Potong & Simpan Audio"}
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
-    );
+      </AnimatePresence>
+    </div>
+  );
 }

@@ -47,6 +47,7 @@ import {
 } from "../../../components/ui/Illustrations";
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
+import { soundManager } from "../services/soundManager";
 import { TartilaLogo } from "../components/TartilaLogo";
 import { OnboardingModal } from "../components/OnboardingModal";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
@@ -270,6 +271,7 @@ export default function NgajiCeriaHomePage() {
         userId: user.id,
       });
       if (ok) {
+        soundManager.playSfx("game-bonus1");
         triggerBibiReaction("success");
         setTimeout(() => {
           setIsManualOpen(false);

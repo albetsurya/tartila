@@ -498,6 +498,7 @@ export default function TilawatiMapPage() {
   const consumeHeart = useEconomyStore((s: any) => s.consumeHeart);
   const tilaGender = useEconomyStore((s) => s.tilaGender);
   const stars = useNgajiCeriaStore((s) => s.stars);
+  console.log("STARS DATA:", stars);
   const totalStars = Object.values(stars).reduce((sum, v) => sum + (v || 0), 0);
   const [selectedNode, setSelectedNode] = useState<MapNodeItemWithMeta | null>(
     null,
@@ -818,11 +819,13 @@ export default function TilawatiMapPage() {
 
           {currentPages.map((item, index) => {
             const pos = nodePositions[index];
-            const nodeStars = stars[`jilid-${jilid}-hal-${item.page}`] || 0;
             const isUnlocked =
               isBypass ||
               item.page === 1 ||
               (stars[`jilid-${jilid}-hal-${item.page - 1}`] || 0) === 3;
+            const nodeStars = isUnlocked
+              ? (stars[`jilid-${jilid}-hal-${item.page}`] || 0)
+              : 0;
             const isCurrentNode = item.page === activePage;
 
             const nodeData: MapNodeItemWithMeta = {
@@ -904,9 +907,9 @@ export default function TilawatiMapPage() {
                       key={s}
                       size={16}
                       className={
-                        s <= nodeStars
+                        isUnlocked && s <= nodeStars
                           ? "text-[#F59E0B] fill-[#F59E0B]"
-                          : "text-black/20 fill-black/20"
+                          : "text-[#CBD5E1] fill-[#CBD5E1]"
                       }
                     />
                   ))}
@@ -971,7 +974,7 @@ export default function TilawatiMapPage() {
                     className={
                       s <= selectedNode.stars
                         ? "text-[#F59E0B] fill-[#F59E0B]"
-                        : "text-gray-200 fill-gray-200"
+                        : "text-[#CBD5E1] fill-[#CBD5E1]"
                     }
                   />
                 ))}

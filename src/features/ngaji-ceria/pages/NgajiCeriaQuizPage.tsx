@@ -395,7 +395,7 @@ export default function NgajiCeriaQuizPage() {
 
   const handleTimeOut = () => {
     stopAllAudio();
-    soundManager.playSfx("gameover");
+    soundManager.playSfx("game-over");
     setIsWin(false);
     setShowResult(true);
   };
@@ -510,10 +510,14 @@ export default function NgajiCeriaQuizPage() {
     setIsWin(win);
     const starsEarned = win ? Math.min(Math.max(1, selectedLevel), 3) : 0;
     if (win) {
-      soundManager.playSfx("victory");
+      if (scorePercent === 100) {
+        soundManager.playSfx("game-bonus");
+      } else {
+        soundManager.playSfx("victory");
+      }
       unlockNextLevel("tilawati-quiz", selectedLevel);
     } else {
-      soundManager.playSfx("wrong");
+      soundManager.playSfx("game-over");
     }
 
     // Halaman selesai: simpan bintang (ambil nilai terbaik) & progres jika bukan mode latihan.
