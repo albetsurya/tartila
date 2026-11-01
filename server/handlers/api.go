@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -42,6 +44,15 @@ func (api *APIHandler) SetDB(db *sql.DB) {
 func (api *APIHandler) userIDFromRequest(r *http.Request) (string, error) {
 	userID, _, err := hub.ParseAuthToken(r)
 	return userID, err
+}
+
+func (api *APIHandler) userAuthFromRequest(r *http.Request) (string, string, error) {
+	userID, claims, err := hub.ParseAuthToken(r)
+	if err != nil {
+		return "", "", err
+	}
+	role, _ := claims["role"].(string)
+	return userID, role, nil
 }
 
 // Generate random 6-digit PIN
@@ -82,6 +93,12 @@ func (api *APIHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.RoomType == "" {
 		req.RoomType = models.RoomTypeLatihan
+	}
+
+	if callerID, err := api.userIDFromRequest(r); err == nil && callerID != "" {
+		if req.HostID == "" {
+			req.HostID = callerID
+		}
 	}
 
 	// Terapkan batasan Tier (Tahap 4)
@@ -132,6 +149,11 @@ func (api *APIHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	api.Hub.Mu.Lock()
 	api.Hub.Rooms[pin] = room
 	api.Hub.Mu.Unlock()
+
+	// Simpan room ke database SQLite jika tersedia
+	if api.db != nil {
+		_, _ = api.db.Exec(`INSERT OR REPLACE INTO rooms (id, host_id, pin) VALUES (?, ?, ?)`, room.ID, room.HostID, pin)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
@@ -237,10 +259,72 @@ type ViolationRequest struct {
 	ViolationType string `json:"violationType"`
 }
 
+// AuthMiddleware memverifikasi token JWT dari header Authorization atau query string.
+// Tolak request dengan HTTP 401 Unauthorized jika user tidak terautentikasi.
+func (api *APIHandler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := api.userIDFromRequest(r)
+		if err != nil || userID == "" {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next(w, r)
+	}
+}
+
+// VerifyRoomHost memverifikasi apakah userID adalah host_id dari room PIN yang dimaksud.
+// Pemeriksaan dilakukan di database (SQLite Store, Postgres fallback) dan in-memory hub.
+func (api *APIHandler) VerifyRoomHost(pin, userID string) bool {
+	if pin == "" || userID == "" {
+		return false
+	}
+
+	// 1. Verifikasi di SQLite database
+	if api.db != nil {
+		var hostID string
+		err := api.db.QueryRow("SELECT host_id FROM rooms WHERE pin = ?", pin).Scan(&hostID)
+		if err == nil {
+			return hostID == userID
+		}
+	}
+
+	// 2. Verifikasi di Postgres (Supabase) database jika ENV database dikonfigurasi
+	if os.Getenv("TILAWATI_DATABASE_URL") != "" || os.Getenv("DATABASE_URL") != "" {
+		if pgDB, err := api.timelinePool(); err == nil && pgDB != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			var hostID string
+			err := pgDB.QueryRowContext(ctx, "SELECT host_id FROM rooms WHERE pin = $1 OR room_code = $1", pin).Scan(&hostID)
+			if err == nil {
+				return hostID == userID
+			}
+		}
+	}
+
+	// 3. Fallback verifikasi di in-memory hub room state
+	if api.Hub != nil {
+		api.Hub.Mu.RLock()
+		room, exists := api.Hub.Rooms[pin]
+		api.Hub.Mu.RUnlock()
+		if exists && room.HostID != "" {
+			return room.HostID == userID
+		}
+	}
+
+	return false
+}
+
 // POST /api/exam/violation (Tahap 7)
 func (api *APIHandler) RecordViolation(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Tolak request jika data pelanggaran dikirim oleh user yang tidak terautentikasi
+	userID, err := api.userIDFromRequest(r)
+	if err != nil || userID == "" {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -262,6 +346,13 @@ func (api *APIHandler) RecordViolation(w http.ResponseWriter, r *http.Request) {
 	if !pExists {
 		api.Hub.Mu.Unlock()
 		http.Error(w, "Peserta tidak ditemukan", http.StatusNotFound)
+		return
+	}
+
+	// Tolak jika actor yang mengirim pelanggaran bukan pemain bersangkutan atau host room
+	if player.UserID != "" && player.UserID != userID && room.HostID != userID {
+		api.Hub.Mu.Unlock()
+		http.Error(w, "forbidden: caller cannot record violation for another player", http.StatusForbidden)
 		return
 	}
 
@@ -476,6 +567,214 @@ func (api *APIHandler) GetNgajiCeriaGlobalLeaderboard(w http.ResponseWriter, r *
 	})
 }
 
+// CalculateAuthoritativeRewards menghitung earnedXp dan earnedCoins secara otoritatif di server.
+// Nilai XP / Koin dari frontend diabaikan total, dan diterapkan level-cap keras per sesi game.
+func CalculateAuthoritativeRewards(score, baseXp int) (int, int) {
+	if score < 0 {
+		score = 0
+	}
+	if score > 100000 {
+		score = 100000
+	}
+	if baseXp < 0 {
+		baseXp = 0
+	}
+	if baseXp > 100 {
+		baseXp = 100
+	}
+
+	// Rumus resmi sesuai GUIDELINES.md Bab 2:
+	// earnedCoins = max(5, floor((baseXp + score) / 10))
+	// earnedXp = max(baseXp, floor(score / 10))
+	earnedCoins := (baseXp + score) / 10
+	if earnedCoins < 5 {
+		earnedCoins = 5
+	}
+	// Level-cap keras per sesi game: maksimal 1.000 Koin
+	if earnedCoins > 1000 {
+		earnedCoins = 1000
+	}
+
+	earnedXp := score / 10
+	if earnedXp < baseXp {
+		earnedXp = baseXp
+	}
+	// Level-cap keras per sesi game: maksimal 1.000 XP
+	if earnedXp > 1000 {
+		earnedXp = 1000
+	}
+
+	return earnedXp, earnedCoins
+}
+
+type ProgressEventRequest struct {
+	EventID        string   `json:"eventId"`
+	GameID         string   `json:"gameId"`
+	Score          int      `json:"score"`
+	BaseXP         int      `json:"baseXp,omitempty"`
+	CorrectCount   int      `json:"correctCount,omitempty"`
+	Duration       int      `json:"duration,omitempty"`
+	AchievementIDs []string `json:"achievementIds,omitempty"`
+
+	// DILARANG dipercaya dari client: jika client mengirim earnedXp/earnedCoins, backend abaikan!
+	EarnedXP    int `json:"earnedXp,omitempty"`
+	EarnedCoins int `json:"earnedCoins,omitempty"`
+}
+
+// POST /api/v1/ngaji-ceria/progress/events atau /api/v1/ngaji-ceria/leaderboard (submit)
+func (api *APIHandler) SubmitNgajiCeriaProgress(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, err := api.userIDFromRequest(r)
+	if err != nil || userID == "" {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req ProgressEventRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	// Otoritatif: hitung ulang earnedXp dan earnedCoins di server.
+	// Nilai req.EarnedXP atau req.EarnedCoins dari client DIABAIKAN.
+	earnedXp, earnedCoins := CalculateAuthoritativeRewards(req.Score, req.BaseXP)
+
+	attemptID := req.EventID
+	if attemptID == "" {
+		attemptID = fmt.Sprintf("attempt-%d", time.Now().UnixNano())
+	}
+	gameID := req.GameID
+	if gameID == "" {
+		gameID = "ngaji-ceria"
+	}
+
+	// 1. Simpan skor ke quiz_attempts (SQLite)
+	if api.db != nil {
+		_, _ = api.db.Exec(`
+			INSERT OR REPLACE INTO quiz_attempts (id, user_id, game_id, score, updated_at)
+			VALUES (?, ?, ?, ?, datetime('now'))
+		`, attemptID, userID, gameID, req.Score)
+
+		// 2. Update progres XP dan Koin akumulatif user di user_progress (SQLite)
+		_, _ = api.db.Exec(`
+			INSERT INTO user_progress (user_id, xp, coins, total_score, games_played, updated_at)
+			VALUES (?, ?, ?, ?, 1, datetime('now'))
+			ON CONFLICT(user_id) DO UPDATE SET
+				xp = xp + excluded.xp,
+				coins = coins + excluded.coins,
+				total_score = total_score + excluded.total_score,
+				games_played = games_played + 1,
+				updated_at = datetime('now')
+		`, userID, earnedXp, earnedCoins, req.Score)
+	}
+
+	// Ambil total progres terkini
+	var totalXP, totalCoins, totalScore, gamesPlayed int
+	if api.db != nil {
+		_ = api.db.QueryRow(`
+			SELECT xp, coins, total_score, games_played
+			FROM user_progress
+			WHERE user_id = ?
+		`, userID).Scan(&totalXP, &totalCoins, &totalScore, &gamesPlayed)
+	}
+
+	today := time.Now().Format("2006-01-02")
+	achievements := req.AchievementIDs
+	if achievements == nil {
+		achievements = []string{}
+	}
+
+	progressData := map[string]interface{}{
+		"xp":                   totalXP,
+		"coins":                totalCoins,
+		"totalScore":           totalScore,
+		"gamesPlayed":          gamesPlayed,
+		"currentStreak":        1,
+		"dailyDate":            today,
+		"dailyGamesPlayed":     1,
+		"dailyTotalScore":      req.Score,
+		"dailyClaimedMissions": []string{},
+		"achievements":         achievements,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":     true,
+		"earnedXp":    earnedXp,
+		"earnedCoins": earnedCoins,
+		"progress":    progressData,
+	})
+}
+
+// GET /api/v1/ngaji-ceria/progress
+func (api *APIHandler) GetNgajiCeriaProgress(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, err := api.userIDFromRequest(r)
+	if err != nil || userID == "" {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var totalXP, totalCoins, totalScore, gamesPlayed int
+	if api.db != nil {
+		_ = api.db.QueryRow(`
+			SELECT xp, coins, total_score, games_played
+			FROM user_progress
+			WHERE user_id = ?
+		`, userID).Scan(&totalXP, &totalCoins, &totalScore, &gamesPlayed)
+	}
+
+	today := time.Now().Format("2006-01-02")
+	progressData := map[string]interface{}{
+		"xp":                   totalXP,
+		"coins":                totalCoins,
+		"totalScore":           totalScore,
+		"gamesPlayed":          gamesPlayed,
+		"currentStreak":        1,
+		"dailyDate":            today,
+		"dailyGamesPlayed":     0,
+		"dailyTotalScore":      0,
+		"dailyClaimedMissions": []string{},
+		"achievements":         []string{},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(progressData)
+}
+
+func (api *APIHandler) NgajiCeriaProgressHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		api.GetNgajiCeriaProgress(w, r)
+		return
+	}
+	if r.Method == http.MethodPost {
+		api.SubmitNgajiCeriaProgress(w, r)
+		return
+	}
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
+func (api *APIHandler) NgajiCeriaLeaderboardHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		api.GetNgajiCeriaLeaderboard(w, r)
+		return
+	}
+	if r.Method == http.MethodPost {
+		api.SubmitNgajiCeriaProgress(w, r)
+		return
+	}
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
 // GET /api/v1/ngaji-ceria/leaderboard (Tahap 7) — skor pribadi user login.
 func (api *APIHandler) GetNgajiCeriaLeaderboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -536,10 +835,20 @@ func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := api.userIDFromRequest(r)
+	userID, role, err := api.userAuthFromRequest(r)
 	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
+	}
+
+	if api.db != nil {
+		var dbRole string
+		if err := api.db.QueryRow("SELECT role FROM users WHERE id = ?", userID).Scan(&dbRole); err == nil && dbRole != "" {
+			role = dbRole
+		}
+	}
+	if role == "" {
+		role = "member"
 	}
 
 	var lastPromptAt string
@@ -565,6 +874,7 @@ func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"user": map[string]interface{}{
 			"id":                      userID,
+			"role":                    role,
 			"last_feedback_prompt_at": lastPromptAt,
 			"has_submitted_feedback":  hasSubmitted == 1,
 		},
@@ -620,5 +930,84 @@ func (api *APIHandler) UpdateFeedbackPrompt(w http.ResponseWriter, r *http.Reque
 		"success": true,
 		"lastAt":  now,
 		"updated": rows > 0,
+	})
+}
+
+// POST /api/v1/auth/sync-profile
+// Creates or updates user profile in SQLite Store with default role 'member' (Bagian 8.3 & 8.4).
+func (api *APIHandler) SyncProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, claims, err := hub.ParseAuthToken(r)
+	if err != nil || userID == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "unauthorized",
+		})
+		return
+	}
+
+	var req struct {
+		Email string `json:"email"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&req)
+
+	email := strings.TrimSpace(req.Email)
+	if email == "" && claims != nil {
+		if claimsEmail, ok := claims["email"].(string); ok {
+			email = strings.TrimSpace(claimsEmail)
+		}
+	}
+
+	role := "member"
+	if api.db != nil {
+		_, err := api.db.Exec(`
+			INSERT INTO users (id, email, role, updated_at)
+			VALUES (?, ?, 'member', datetime('now'))
+			ON CONFLICT(id) DO UPDATE SET
+				email = CASE WHEN excluded.email != '' THEN excluded.email ELSE users.email END,
+				updated_at = datetime('now')
+		`, userID, email)
+		if err != nil {
+			log.Printf("[handlers] SyncProfile db error: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"message": "database error",
+			})
+			return
+		}
+
+		var dbRole, dbEmail string
+		if err := api.db.QueryRow("SELECT role, email FROM users WHERE id = ?", userID).Scan(&dbRole, &dbEmail); err == nil {
+			if dbRole != "" {
+				role = dbRole
+			}
+			if dbEmail != "" {
+				email = dbEmail
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Profil berhasil disinkronisasi",
+		"user": map[string]interface{}{
+			"id":    userID,
+			"email": email,
+			"role":  role,
+		},
 	})
 }

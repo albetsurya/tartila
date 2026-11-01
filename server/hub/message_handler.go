@@ -105,6 +105,19 @@ func (c *Client) SendJSON(msg models.WSMessage) {
 	}
 }
 
+// requireAuth memvalidasi bahwa koneksi WebSocket telah terautentikasi dengan token JWT valid.
+// Tolak pesan dan kirim pesan error WS jika user tidak terautentikasi.
+func requireAuth(c *Client, onAuthorized func()) {
+	if c.UserID == "" {
+		c.SendJSON(models.WSMessage{
+			Type:    "error",
+			Payload: map[string]string{"message": "unauthorized: authentication required"},
+		})
+		return
+	}
+	onAuthorized()
+}
+
 func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 	h.Mu.Lock()
 	defer h.Mu.Unlock()
@@ -281,78 +294,101 @@ func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 
 	case "record_violation":
 		// Anti-Cheat Tahap 7: Deteksi perpindahan tab / fullscreen exit
-		player, playerExists := room.Players[c.PlayerID]
-		if !playerExists {
-			return
-		}
+		// Tolak request jika data pelanggaran dikirim oleh user yang tidak terautentikasi.
+		requireAuth(c, func() {
+			player, playerExists := room.Players[c.PlayerID]
+			if !playerExists {
+				return
+			}
 
-		player.Violations++
-		violation := models.ViolationRecord{
-			ID:            fmt.Sprintf("viol-%d", time.Now().UnixNano()),
-			PlayerID:      player.ID,
-			RoomID:        room.ID,
-			ViolationType: "tab_switch",
-			Timestamp:     time.Now(),
-		}
-		room.Violations = append(room.Violations, violation)
+			// Pastikan user tidak merekam pelanggaran untuk pemain lain jika bukan host
+			if player.UserID != "" && player.UserID != c.UserID && !c.IsHost && room.HostID != c.UserID {
+				c.SendJSON(models.WSMessage{
+					Type:    "error",
+					Payload: map[string]string{"message": "forbidden: cannot record violation for another player"},
+				})
+				return
+			}
 
-		log.Printf("[Anti-Cheat] Player %s (%s) violation #%d in Room %s", player.Nickname, player.ID, player.Violations, room.PIN)
+			player.Violations++
+			violation := models.ViolationRecord{
+				ID:            fmt.Sprintf("viol-%d", time.Now().UnixNano()),
+				PlayerID:      player.ID,
+				RoomID:        room.ID,
+				ViolationType: "tab_switch",
+				Timestamp:     time.Now(),
+			}
+			room.Violations = append(room.Violations, violation)
 
-		// Cek jika sudah melanggar 3x
-		autoSubmitted := false
-		if player.Violations >= 3 {
-			player.Disqualified = true
-			player.Submitted = true
-			autoSubmitted = true
-		}
+			log.Printf("[Anti-Cheat] Player %s (%s) violation #%d in Room %s", player.Nickname, player.ID, player.Violations, room.PIN)
 
-		// Kirim peringatan ke peserta
-		c.SendJSON(models.WSMessage{
-			Type: "violation_warning",
-			Payload: map[string]interface{}{
-				"violations":    player.Violations,
-				"maxViolations": 3,
-				"autoSubmitted": autoSubmitted,
-				"message":       "Peringatan! Dilarang meninggalkan layar ujian.",
-			},
-		})
+			// Cek jika sudah melanggar 3x
+			autoSubmitted := false
+			if player.Violations >= 3 {
+				player.Disqualified = true
+				player.Submitted = true
+				autoSubmitted = true
+			}
 
-		// Beritahu host tentang pelanggaran peserta
-		h.BroadcastToRoom(room.PIN, models.WSMessage{
-			Type: "player_violation",
-			Payload: map[string]interface{}{
-				"playerId":      player.ID,
-				"nickname":      player.Nickname,
-				"violations":    player.Violations,
-				"autoSubmitted": autoSubmitted,
-			},
+			// Kirim peringatan ke peserta
+			c.SendJSON(models.WSMessage{
+				Type: "violation_warning",
+				Payload: map[string]interface{}{
+					"violations":    player.Violations,
+					"maxViolations": 3,
+					"autoSubmitted": autoSubmitted,
+					"message":       "Peringatan! Dilarang meninggalkan layar ujian.",
+				},
+			})
+
+			// Beritahu host tentang pelanggaran peserta
+			h.BroadcastToRoom(room.PIN, models.WSMessage{
+				Type: "player_violation",
+				Payload: map[string]interface{}{
+					"playerId":      player.ID,
+					"nickname":      player.Nickname,
+					"violations":    player.Violations,
+					"autoSubmitted": autoSubmitted,
+				},
+			})
 		})
 
 	case "submit_score":
 		// Duel: pemain mengirim skor terkini; hub menyiarkannya ke lawan.
 		// Kontrak frontend: { "type": "submit_score", "score": <skor> }.
-		score := msg.Score
-		if payloadMap, ok := msg.Payload.(map[string]interface{}); ok {
-			score = payloadInt(payloadMap, "score")
-		}
-		if score < 0 {
-			score = 0
-		}
-		// Clamp keras: skor submit_score dari client tidak boleh melebihi 1000.
-		if score > 1000 {
-			score = 1000
-		}
-		player, playerExists := room.Players[c.PlayerID]
-		if !playerExists {
-			return
-		}
-		player.Score = score
-		h.BroadcastToRoomExcept(room.PIN, c, models.WSMessage{
-			Type: "opponent_score_update",
-			Payload: map[string]interface{}{
-				"playerId": player.ID,
-				"score":    score,
-			},
+		// Tolak request jika skor dikirim oleh user yang tidak terautentikasi.
+		requireAuth(c, func() {
+			score := msg.Score
+			if payloadMap, ok := msg.Payload.(map[string]interface{}); ok {
+				score = payloadInt(payloadMap, "score")
+			}
+			if score < 0 {
+				score = 0
+			}
+			// Clamp keras: skor submit_score dari client tidak boleh melebihi 1000.
+			if score > 1000 {
+				score = 1000
+			}
+			player, playerExists := room.Players[c.PlayerID]
+			if !playerExists {
+				return
+			}
+			// Pastikan user tidak mengirim skor untuk pemain lain
+			if player.UserID != "" && player.UserID != c.UserID {
+				c.SendJSON(models.WSMessage{
+					Type:    "error",
+					Payload: map[string]string{"message": "forbidden: cannot submit score for another player"},
+				})
+				return
+			}
+			player.Score = score
+			h.BroadcastToRoomExcept(room.PIN, c, models.WSMessage{
+				Type: "opponent_score_update",
+				Payload: map[string]interface{}{
+					"playerId": player.ID,
+					"score":    score,
+				},
+			})
 		})
 
 	case "duel_start":

@@ -231,6 +231,18 @@ func ServeWS(hub *RoomHub, w http.ResponseWriter, r *http.Request, pin string, p
 		return
 	}
 
+	// Defense-in-depth: status host wajib cocok dengan host_id room jika room ada di memori
+	hub.Mu.Lock()
+	if room, exists := hub.Rooms[pin]; exists {
+		if room.HostID != "" && room.HostID != userID {
+			isHost = false
+		}
+		if player, pExists := room.Players[playerID]; pExists && player.UserID == "" {
+			player.UserID = userID
+		}
+	}
+	hub.Mu.Unlock()
+
 	client := &Client{
 		Hub:      hub,
 		Conn:     conn,

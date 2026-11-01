@@ -434,8 +434,9 @@ export function awardProgress(
   achievementIds: string[] = [],
 ): GameProgress {
   gameId = gameId.split(":")[0];
-  score = nonNegativeInteger(score);
-  baseXp = nonNegativeInteger(baseXp);
+  // Sanitasi & batas wajar per sesi game: score max 100_000, base XP max 100
+  const validatedScore = Math.min(100_000, nonNegativeInteger(score));
+  const validatedBaseXp = Math.min(100, nonNegativeInteger(baseXp));
   const current = getProgress();
 
   const scope = getNgajiCeriaScope();
@@ -455,25 +456,29 @@ export function awardProgress(
     achievementIds = [...achievementIds, "pejuang-istiqomah"];
   achievements.add("first-game");
   achievementIds.forEach((id) => achievements.add(id));
-  const earnedCoins = Math.max(5, Math.floor((baseXp + score) / 10));
+  const earnedCoins = Math.max(5, Math.floor((validatedBaseXp + validatedScore) / 10));
+  const earnedXp = Math.max(validatedBaseXp, Math.floor(validatedScore / 10));
+
+  // LocalStorage bertindak sebagai display sementara sebelum sinkronisasi server selesai
   const next: GameProgress = {
-    xp: current.xp + Math.max(baseXp, Math.floor(score / 10)),
-    totalScore: current.totalScore + Math.max(0, score),
+    xp: current.xp + earnedXp,
+    totalScore: current.totalScore + validatedScore,
     gamesPlayed: current.gamesPlayed + 1,
     achievements: [...achievements],
     coins: (current.coins || 0) + earnedCoins,
     daily: {
       ...current.daily,
       gamesPlayed: current.daily.gamesPlayed + 1,
-      totalScore: current.daily.totalScore + score,
+      totalScore: current.daily.totalScore + validatedScore,
     },
   };
   saveProgress(next);
+
   const event: ServerProgressEvent = {
     eventId: newEventId(gameId),
     gameId,
-    score,
-    baseXp,
+    score: validatedScore,
+    baseXp: validatedBaseXp,
     achievementIds: [...new Set(["first-game", ...achievementIds])],
   };
   queueProgressEvent(event);

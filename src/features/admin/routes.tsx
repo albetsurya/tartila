@@ -22,7 +22,11 @@ import {
 import { isTartilaAdmin } from "@/lib/roles";
 
 function SuperAdminGuard({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading, isRoleVerified } = useAuth();
+
+  if (loading || !isRoleVerified) {
+    return null;
+  }
 
   if (!isTartilaAdmin(user?.role)) {
     console.warn(
