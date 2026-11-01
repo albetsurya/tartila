@@ -24,7 +24,10 @@ func (api *APIHandler) timelinePool() (*sql.DB, error) {
 	api.timelineOnce.Do(func() {
 		url := os.Getenv("TILAWATI_DATABASE_URL")
 		if url == "" {
-			url = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+			url = os.Getenv("DATABASE_URL")
+		}
+		if url == "" {
+			log.Fatal("[DB] FATAL: TILAWATI_DATABASE_URL environment variable is required; fallback superuser DSN has been removed")
 		}
 		db, err := sql.Open("pgx", url)
 		if err != nil {
