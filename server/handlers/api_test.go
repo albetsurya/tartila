@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +18,7 @@ import (
 
 func newTestHandler(t *testing.T) (*APIHandler, *sql.DB) {
 	t.Helper()
+	t.Setenv("SUPABASE_JWT_SECRET", "test-secret")
 	t.Setenv("JWT_SECRET", "test-secret")
 
 	roomHub := hub.NewRoomHub()
@@ -90,11 +90,14 @@ CREATE TABLE IF NOT EXISTS users (
 
 func signToken(userID string) string {
 	payload := jwt.MapClaims{
+		"sub":     userID,
 		"user_id": userID,
+		"email":   userID + "@tartila.com",
+		"role":    "authenticated",
 		"exp":     time.Now().Add(time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-	secret := []byte(os.Getenv("JWT_SECRET"))
+	secret := []byte(hub.GetJWTSecret())
 	if len(secret) == 0 {
 		secret = []byte("test-secret")
 	}
@@ -132,6 +135,21 @@ func TestGetUserProfile(t *testing.T) {
 
 	if rec.Code != 200 {
 		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var res struct {
+		Success bool `json:"success"`
+		User    struct {
+			ID    string `json:"id"`
+			Email string `json:"email"`
+			Role  string `json:"role"`
+		} `json:"user"`
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&res); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if !res.Success || res.User.ID != "user-123" || res.User.Email != "user-123@tartila.com" || res.User.Role != "member" {
+		t.Fatalf("unexpected profile response: %+v", res)
 	}
 }
 
