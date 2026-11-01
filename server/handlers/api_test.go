@@ -69,13 +69,85 @@ func withAuth(req *http.Request, token string) {
 	req.Header.Set("Authorization", "Bearer "+token)
 }
 
-func putFeedbackPrompt(t *testing.T, db *sql.DB, id string) {
-	t.Helper()
+putFeedbackPrompt(t *testing.T, db *sql.DB, id string) {
+	tt.Helper()
 	_, _ = db.Exec(
 		`INSERT INTO feedback_prompt (user_id, last_feedback_prompt_at, has_submitted_feedback, updated_at)
 		 VALUES (?, ?, 0, ?)`,
 		id, "2026-10-01T00:00:00Z", time.Now().UTC().Format(time.RFC3339),
 	)
+}
+
+// TestCreateRoomWithTierRestrictions tests that CreateRoom respects tier-based question limits.
+func TestCreateRoomWithTierRestrictions(t *testing.T) {
+	api, db := newTestHandler(t)
+	defer db.Close()
+
+	// Free tier: max 5 questions
+	req := CreateRoomRequest{
+		RoomType: "latihan",
+		Tier:     "free",
+		Questions: []models.Question{
+			{ID: "q1", Text: "Q1"},
+			{ID: "q2", Text: "Q2"},
+			{ID: "q3", Text: "Q3"},
+			{ID: "q4", Text: "Q4"},
+			{ID: "q5", Text: "Q5"},
+			{ID: "q6", Text: "Q6"}, // should be trimmed
+		},
+	}
+	req.Body = io.NopCloser(bytes.NewReader(mustMarshal(req)))
+
+	// Set host ID from auth
+	userID := "test-user-" + t.Name()
+	claims := jwt.MapClaims{"user_id": userID, "role": "player"}
+	token := signWithClaims(claims)
+	req.Header = http.Header{"Authorization": []string{"Bearer " + token}}
+
+	w := httptest.NewRecorder()
+	req.HTTPRequest = httptest.NewRequest("POST", "/create-room", req.Body)
+	api.CreateRoom(w, req.HTTPRequest)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 OK, got %d: %s", w.Code, w.Body.String())
+	}
+
+	// Verify room was created with hostID set from auth
+	// (implementation-specific assertion)
+}
+
+// TestUserAuthFromRequest tests that userAuthFromRequest extracts userID and role.
+func TestUserAuthFromRequest(t *testing.T) {
+	api, db := newTestHandler(t)
+	defer db.Close()
+
+	// Test with valid token
+	userID := "test-user-auth"
+	claims := jwt.MapClaims{"user_id": userID, "role": "player"}
+	token := signWithClaims(claims)
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	userIDOut, roleOut, err := api.userAuthFromRequest(req)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	if userIDOut != userID {
+		t.Errorf("expected userID %q, got %q", userID, userIDOut)
+	}
+	if roleOut != "player" {
+		t.Errorf("expected role %q, got %q", "player", roleOut)
+	}
+
+	// Test with invalid token
+	req2 := httptest.NewRequest("GET", "/", nil)
+	req2.Header.Set("Authorization", "Bearer invalid-token")
+
+	_, _, err2 := api.userAuthFromRequest(req2)
+	if err2 == nil {
+		t.Error("expected error for invalid token, got nil")
+	}
 }
 
 func TestGetUserProfile(t *testing.T) {

@@ -37,11 +37,22 @@ func (api *APIHandler) SetDB(db *sql.DB) {
 }
 
 // userIDFromRequest extracts the authenticated user's Tartila ID from the
-// request's Authorization: Bearer header, following the same convention the
+// request's Authorization: Bearer *** following the same convention the
 // WebSocket handlers use (HS256 token carrying a `user_id` claim).
 func (api *APIHandler) userIDFromRequest(r *http.Request) (string, error) {
 	userID, _, err := hub.ParseAuthToken(r)
 	return userID, err
+}
+
+// userAuthFromRequest extracts the authenticated user's ID and role from the
+// request's Authorization: Bearer token.
+func (api *APIHandler) userAuthFromRequest(r *http.Request) (string, string, error) {
+	userID, claims, err := hub.ParseAuthToken(r)
+	if err != nil {
+		return "", "", err
+	}
+	role, _ := claims["role"].(string)
+	return userID, role, nil
 }
 
 // Generate random 6-digit PIN
@@ -80,7 +91,13 @@ func (api *APIHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	if req.KKM <= 0 {
 		req.KKM = 75
 	}
-	if req.RoomType == "" {
+	if callerID, err := api.userIDFromRequest(r); err == nil && callerID != "" {
+		if req.HostID == "" {
+			req.HostID = callerID
+		}
+	}
+
+	// Terapkan batasan Tier (Tahap 4)
 		req.RoomType = models.RoomTypeLatihan
 	}
 
