@@ -1,6 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ScissorsSvg, SettingsSvg } from "@/components/ui/CustomIcons";
+import {
+  ArrowLeftSvg,
+  CheckSvg,
+  ChevronDownSvg,
+  ChevronLeftSvg,
+  ChevronRightSvg,
+  ChevronUpSvg,
+  CopySvg,
+  FileTextSvg,
+  LayersSvg,
+  MergeSvg,
+  PlaySvg,
+  PlusSvg,
+  RedoSvg,
+  ScissorsSvg,
+  SettingsSvg,
+  StopSvg,
+  UndoSvg,
+  Volume2Svg as VolumeSvg,
+  XSvg,
+} from "@/components/ui/CustomIcons";
 import { latinToArabic } from "../utils/translit";
 import { getTilawatiPageQuestions } from "../data/tilawatiPageDatasets";
 import {
@@ -25,15 +45,15 @@ import {
 } from "../utils/pageTimeline";
 import { ClipWaveform } from "../components/timeline-editor/ClipWaveform";
 import {
+  attachDragImage,
   buildDragGhost,
   flashDroppedClip,
-  followPointerWithGhost,
   placeGhostOnPoint,
   purgeStrayGhosts,
   startTouchEdgeScroll,
-  transparentDragPixel,
   type GhostInfo,
 } from "../components/timeline-editor/dragGhost";
+import { TimelinePageBadges } from "../components/timeline-editor/TimelinePageBadges";
 import "./TilawatiTimelineEditor.css";
 import {
   getPublishedTimeline,
@@ -44,6 +64,54 @@ import {
 import { useTimelineDraftSave } from "../hooks/useTimelineDraftSave";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
 import { getToken } from "../../../services/api";
+import { saveTimelineEdit } from "../services/tilawatiEditorApi";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+/**
+ * Upload hasil render audio (.ogg) ke Supabase Storage lalu ganti outputUrl
+ * dengan public URL storage. Clip tanpa outputUrl (aset static /audio/tilawati)
+ * tidak diunggah. Kegagalan upload tidak memblokir publish.
+ */
+async function uploadRenderedClips(
+  jilid: number,
+  hal: number,
+  published: PublishedTimeline,
+): Promise<PublishedTimeline> {
+  if (!isSupabaseConfigured) return published;
+  let uploaded = 0;
+  const clips = await Promise.all(
+    published.timeline.clips.map(async (clip) => {
+      if (!clip.outputUrl?.startsWith("/audio/tilawati/")) return clip;
+      try {
+        const res = await fetch(clip.outputUrl);
+        if (!res.ok) return clip;
+        const blob = await res.blob();
+        const filename =
+          clip.outputUrl.split("/").pop() || `clip-${clip.id}-${Date.now()}.ogg`;
+        const path = `jilid_${jilid}/hal${hal}/${filename}`;
+        const { error } = await supabase.storage
+          .from("audio-tilawati")
+          .upload(path, blob, { contentType: "audio/ogg", upsert: true });
+        if (error) {
+          console.warn(`Upload audio gagal: ${error.message}`);
+          return clip;
+        }
+        uploaded += 1;
+        const { data } = supabase.storage.from("audio-tilawati").getPublicUrl(path);
+        return { ...clip, outputUrl: data.publicUrl };
+      } catch (error) {
+        console.warn(
+          `Upload audio gagal: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return clip;
+      }
+    }),
+  );
+  if (uploaded > 0) {
+    console.warn(`${uploaded} audio dirender diunggah ke Storage audio-tilawati.`);
+  }
+  return { ...published, timeline: { ...published.timeline, clips } };
+}
 
 type Selection = { type: "audio" | "text"; id: string } | null;
 type DragData = { type: "asset" | "audio" | "text"; id: string };
@@ -112,6 +180,9 @@ export default function TilawatiTimelineEditorPage({
   const [cloudRevision, setCloudRevision] = useState("");
   const [loadedPage, setLoadedPage] = useState("");
   const [selection, setSelection] = useState<Selection>(null);
+  const [showPageBadges, setShowPageBadges] = useState(false);
+  const [showDraftList, setShowDraftList] = useState(true);
+  const [inspectorTab, setInspectorTab] = useState<"audio" | "text">("audio");
   const [mergeIds, setMergeIds] = useState<string[]>([]);
   const [history, setHistory] = useState<PageTimeline[]>([]);
   const [future, setFuture] = useState<PageTimeline[]>([]);
@@ -127,7 +198,7 @@ export default function TilawatiTimelineEditorPage({
   const [snapHint, setSnapHint] = useState<"cut" | "play" | "boundary" | null>(
     null,
   );
-  const [mobilePanel, setMobilePanel] = useState<"inspector" | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<"assets" | "inspector" | null>(null);
   const [assetsOpen, setAssetsOpen] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [panning, setPanning] = useState(false);
@@ -293,14 +364,36 @@ export default function TilawatiTimelineEditorPage({
 
   const clips = draft?.clips ?? [];
   const texts = draft?.texts ?? [];
-  const selectedText =
-    selection?.type === "text"
-      ? texts.find((text) => String(text.id) === selection.id)
-      : undefined;
-  const selectedClip =
+
+  const activeClip =
     selection?.type === "audio"
       ? clips.find((clip) => clip.id === selection.id)
-      : clips.find((clip) => clip.id === selectedText?.clipId);
+      : selection?.type === "text"
+        ? clips.find(
+            (clip) =>
+              clip.id ===
+              texts.find((t) => String(t.id) === selection.id)?.clipId,
+          )
+        : undefined;
+
+  const activeText =
+    selection?.type === "text"
+      ? texts.find((text) => String(text.id) === selection.id)
+      : selection?.type === "audio"
+        ? texts.find((text) => text.clipId === selection.id)
+        : undefined;
+
+  const selectedClip = activeClip;
+  const selectedText = activeText;
+
+  const handleSwitchTab = (tab: "audio" | "text") => {
+    setInspectorTab(tab);
+    if (tab === "audio" && activeClip) {
+      setSelection({ type: "audio", id: activeClip.id });
+    } else if (tab === "text" && activeText) {
+      setSelection({ type: "text", id: String(activeText.id) });
+    }
+  };
   let offset = 0;
   const positions = clips.map((clip) => {
     const start = offset;
@@ -562,6 +655,7 @@ export default function TilawatiTimelineEditorPage({
     localTime = clipDuration(clip) / 2,
   ) {
     setSelection({ type: "audio", id: clip.id });
+    setInspectorTab("audio");
     setCutAt(Math.max(0, Math.min(clipDuration(clip), localTime)));
     setMobilePanel("inspector");
   }
@@ -601,6 +695,26 @@ export default function TilawatiTimelineEditorPage({
       ],
     });
     setSelection({ type: "text", id });
+    setInspectorTab("text");
+    setMobilePanel("inspector");
+  }
+  function addTextForClip(clipId: string) {
+    if (!draft) return;
+    const id = `text-${crypto.randomUUID()}`;
+    const newText: TimelineText = {
+      id,
+      arabic: "",
+      transliterationParts: [],
+      options: [],
+      clipId,
+      hintTone: "",
+    };
+    change({
+      ...draft,
+      texts: [...texts, newText],
+    });
+    setSelection({ type: "text", id });
+    setInspectorTab("text");
     setMobilePanel("inspector");
   }
   function addAsset(asset: AudioAsset, beforeId: string | null = null) {
@@ -645,8 +759,14 @@ export default function TilawatiTimelineEditorPage({
   function dropOnText(textId: string) {
     if (!draft || !dragData.current) return;
     const drag = dragData.current;
-    if (drag.type === "audio") change(pairTimelineText(draft, textId, drag.id));
-    if (drag.type === "asset") {
+    if (drag.type === "text") {
+      const targetText = texts.find((item) => String(item.id) === textId);
+      if (targetText) {
+        change(pairTimelineText(draft, drag.id, targetText.clipId));
+      }
+    } else if (drag.type === "audio") {
+      change(pairTimelineText(draft, textId, drag.id));
+    } else if (drag.type === "asset") {
       const asset = assets.find((item) => item.audioUrl === drag.id);
       if (asset) {
         const clip = clipFromAsset(asset);
@@ -692,16 +812,11 @@ export default function TilawatiTimelineEditorPage({
     event.dataTransfer.effectAllowed = "move";
     dragData.current = data;
     (event.currentTarget as HTMLElement).classList.add("te-native-dragging");
-    purgeStrayGhosts();
-    const dragImage = buildDragGhost(describeDrag(data));
-    document.body.appendChild(dragImage);
-    // Gambar drag bawaan OS disembunyikan (hotspot-nya meleset di sebagian
-    // Chromium desktop); ghost mini digerakkan manual agar tepat di kursor.
-    event.dataTransfer.setDragImage(transparentDragPixel(), 0, 0);
-    followPointerWithGhost(dragImage, event.clientX, event.clientY);
+    attachDragImage(event, describeDrag(data));
   }
   function endDrag(event: React.DragEvent) {
     (event.currentTarget as HTMLElement).classList.remove("te-native-dragging");
+    purgeStrayGhosts();
     dragData.current = null;
   }
   function clearTouchDropTarget() {
@@ -1051,6 +1166,7 @@ export default function TilawatiTimelineEditorPage({
     setMessage("");
     try {
       await draftSave.save();
+      // Render klip final via plugin dev (ffmpeg); hasil filik tetap lokal.
       const response = await fetch("/api/tilawati-editor?action=publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1069,9 +1185,24 @@ export default function TilawatiTimelineEditorPage({
       };
       if (!response.ok || !data.ok)
         throw new Error(data.message || "Gagal menyimpan hasil akhir.");
-      setDraft(clone(data.published.timeline));
-      setBaseline(JSON.stringify(data.published.timeline));
-      setRevision(data.published.revision);
+      // Audio render baru diunggah ke Supabase Storage (bukan file statis).
+      const publishedForDb = await uploadRenderedClips(jilid, hal, data.published);
+      // Persistensi ke DB via Backend Go (role tartila_admin/superadmin).
+      let savedPublished: PublishedTimeline = publishedForDb;
+      try {
+        const edit = (await saveTimelineEdit(jilid, hal, {
+          published: publishedForDb,
+        })) as { published?: PublishedTimeline };
+        if (edit?.published) savedPublished = edit.published;
+      } catch (error) {
+        // Sesi/role/DB gagal: local publish tetap berlaku, perubahan tidak hilang.
+        setMessage(
+          `DB gagal: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+      setDraft(clone(savedPublished.timeline));
+      setBaseline(JSON.stringify(savedPublished.timeline));
+      setRevision(savedPublished.revision);
       setAssets(data.clips);
       setHistory([]);
       setFuture([]);
@@ -1165,7 +1296,9 @@ export default function TilawatiTimelineEditorPage({
   }
 
   const textButton = (text: TimelineText) => (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       key={String(text.id)}
       data-text-id={String(text.id)}
       className={`te-text ${selection?.type === "text" && selection.id === String(text.id) ? "is-selected" : ""}`}
@@ -1185,13 +1318,27 @@ export default function TilawatiTimelineEditorPage({
       }}
       onClick={() => {
         setSelection({ type: "text", id: String(text.id) });
+        setInspectorTab("text");
         setMobilePanel("inspector");
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setSelection({ type: "text", id: String(text.id) });
+          setInspectorTab("text");
+          setMobilePanel("inspector");
+        }
       }}
     >
       <span className="te-arabic" dir="rtl">
         {text.arabic}
       </span>
-    </button>
+      {text.hintTone && (
+        <span className="te-hint-tone">
+          {text.hintTone}
+        </span>
+      )}
+    </div>
   );
 
   const workspaceClass = [
@@ -1500,7 +1647,9 @@ export default function TilawatiTimelineEditorPage({
     .te-workspace {
       display: grid;
       grid-template-columns: 280px minmax(0, 1fr) 320px;
-      height: calc(100vh - 140px);
+      flex: 1 1 0%;
+      min-height: 0;
+      height: 100%;
       overflow: hidden;
       position: relative;
       transition: grid-template-columns 260ms cubic-bezier(.2,.7,.3,1.05);
@@ -1731,53 +1880,36 @@ export default function TilawatiTimelineEditorPage({
 
       <header className="te-header">
         <button
-          className="te-btn"
-          onClick={() =>
-            leave(`${backHref}?jilid=${jilid}&hal=${hal}`)
-          }
+          className="te-btn te-header-back"
+          onClick={() => leave(`${backHref}?jilid=${jilid}&hal=${hal}`)}
+          aria-label="Kembali ke Cek Audio"
+          title="Kembali ke Cek Audio"
         >
-          ← Cek Audio Manual
+          <span className="te-back-arrow flex items-center justify-center">
+            <ArrowLeftSvg size={16} />
+          </span>
+          <span className="te-back-text">Cek Audio</span>
         </button>
-        <div>
-          <h1>Page Timeline Editor</h1>
-          <p>
-            Jilid {jilid} · Halaman {hal} ·{" "}
-            {dirty ? "Draft belum disimpan" : "Sesuai hasil tersimpan"}
-          </p>
-        </div>
-        <div className="te-header-tools">
-          <button
-            type="button"
-            className="te-tool-toggle te-desktop-only-toggle"
-            onClick={() => setAssetsOpen((value) => !value)}
-            aria-pressed={assetsOpen}
-            aria-label={
-              assetsOpen ? "Sembunyikan panel aset" : "Tampilkan panel aset"
-            }
-            title={`${assetsOpen ? "Sembunyikan" : "Tampilkan"} panel aset ( [ )`}
-          >
-            <span className="te-tool-icon" aria-hidden="true">
-              ▤
+
+        <div className="te-header-title-wrap">
+          <div className="te-header-title te-desktop-only">
+            <h1>Page Timeline Editor</h1>
+            <p>
+              Jilid {jilid} · Halaman {hal} ·{" "}
+              {dirty ? "Draft belum disimpan" : "Sesuai hasil tersimpan"}
+            </p>
+          </div>
+          <div className="te-mobile-header-title">
+            <h1>
+              Jilid {jilid} · Hal {hal}
+            </h1>
+            <span
+              className={`te-mobile-save-status ${dirty ? "is-dirty" : ""}`}
+            >
+              {dirty ? "Draft" : "Tersimpan"}
             </span>
-            <span className="te-tool-label">Aset</span>
-          </button>
-          <button
-            type="button"
-            className="te-tool-toggle te-desktop-only-toggle"
-            onClick={() => setInspectorOpen((value) => !value)}
-            aria-pressed={inspectorOpen}
-            aria-label={
-              inspectorOpen
-                ? "Sembunyikan panel pengaturan"
-                : "Tampilkan panel pengaturan"
-            }
-            title={`${inspectorOpen ? "Sembunyikan" : "Tampilkan"} panel pengaturan ( ] )`}
-          >
-            <span className="te-tool-icon" aria-hidden="true">
-              <SettingsSvg size={14} />
-            </span>
-            <span className="te-tool-label">Pengaturan</span>
-          </button>
+          </div>
+
           <div className="te-page-select">
             <select
               aria-label="Jilid"
@@ -1805,9 +1937,63 @@ export default function TilawatiTimelineEditorPage({
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              className={`te-btn te-btn-toggle flex items-center gap-1 ${showPageBadges ? "is-active" : ""}`}
+              onClick={() => setShowPageBadges((v) => !v)}
+              title="Tampilkan / Sembunyikan Navigasi Halaman"
+            >
+              {showPageBadges ? <ChevronUpSvg size={13} /> : <ChevronDownSvg size={13} />}
+              <span>Hal</span>
+            </button>
+            <button
+              type="button"
+              className={`te-btn te-btn-toggle te-desktop-only flex items-center gap-1 ${showDraftList ? "is-active" : ""}`}
+              onClick={() => setShowDraftList((v) => !v)}
+              title="Tampilkan / Sembunyikan Daftar Item Draft"
+            >
+              {showDraftList ? <ChevronUpSvg size={13} /> : <ChevronDownSvg size={13} />}
+              <span>Draft</span>
+            </button>
           </div>
+        </div>
+
+        <div className="te-header-actions">
           <button
-            className="te-btn"
+            type="button"
+            className="te-tool-toggle te-desktop-only-toggle flex items-center gap-1"
+            onClick={() => setAssetsOpen((value) => !value)}
+            aria-pressed={assetsOpen}
+            aria-label={
+              assetsOpen ? "Sembunyikan panel aset" : "Tampilkan panel aset"
+            }
+            title={`${assetsOpen ? "Sembunyikan" : "Tampilkan"} panel aset ( [ )`}
+          >
+            <span className="te-tool-icon flex items-center justify-center" aria-hidden="true">
+              <LayersSvg size={14} />
+            </span>
+            <span className="te-tool-label">Aset</span>
+          </button>
+          <button
+            type="button"
+            className="te-tool-toggle te-desktop-only-toggle flex items-center gap-1"
+            onClick={() => setInspectorOpen((value) => !value)}
+            aria-pressed={inspectorOpen}
+            aria-label={
+              inspectorOpen
+                ? "Sembunyikan panel pengaturan"
+                : "Tampilkan panel pengaturan"
+            }
+            title={`${inspectorOpen ? "Sembunyikan" : "Tampilkan"} panel pengaturan ( ] )`}
+          >
+            <span className="te-tool-icon flex items-center justify-center" aria-hidden="true">
+              <SettingsSvg size={14} />
+            </span>
+            <span className="te-tool-label">Pengaturan</span>
+          </button>
+
+          <button
+            className="te-btn te-desktop-only"
             disabled={loading || saving || !draft}
             onClick={() => void draftSave.save()}
           >
@@ -1815,7 +2001,7 @@ export default function TilawatiTimelineEditorPage({
           </button>
           {isNgajiCeriaServerAvailable() && (
             <button
-              className="te-btn te-primary"
+              className="te-btn te-primary te-desktop-only"
               disabled={loading || saving || !draft || !getToken()}
               onClick={publishCloud}
             >
@@ -1823,21 +2009,52 @@ export default function TilawatiTimelineEditorPage({
             </button>
           )}
           <button
-            className="te-btn te-primary"
+            className="te-btn te-primary te-desktop-only"
             disabled={loading || saving || !draft || !dirty}
             onClick={saveFinal}
           >
-            {saving ? "Merender & menyimpan…" : "Simpan Hasil Akhir"}
+            {saving ? "Merender & menyimpan..." : "Simpan Hasil Akhir"}
           </button>
+
+          <div className="te-mobile-header-actions te-mobile-only flex items-center gap-1.5">
+            <button
+              type="button"
+              className="te-btn te-mobile-header-btn"
+              disabled={loading || saving || !draft}
+              onClick={() => void draftSave.save()}
+              title="Simpan Draft"
+            >
+              Draft
+            </button>
+            <button
+              type="button"
+              className="te-btn te-primary te-mobile-header-btn"
+              disabled={loading || saving || !draft || !dirty}
+              onClick={saveFinal}
+              title="Simpan Hasil Akhir"
+            >
+              {saving ? "..." : "Simpan"}
+            </button>
+          </div>
         </div>
       </header>
+
+      {showPageBadges && (
+        <TimelinePageBadges
+          currentJilid={jilid}
+          currentPage={hal}
+          disabled={saving}
+          onSwitchPage={switchPage}
+        />
+      )}
+
       <div className="te-status" aria-live="polite">
         {[error, message, draftSave.status].filter(Boolean).join(" · ") ||
           "Draft tersimpan otomatis; publish merender klip audio final."}
       </div>
 
       {loading ? (
-        <div className="te-empty">Membaca aset halaman…</div>
+        <div className="te-empty">Membaca aset halaman...</div>
       ) : (
         draft && (
           <div
@@ -1851,19 +2068,23 @@ export default function TilawatiTimelineEditorPage({
             }}
           >
             <aside
-              className="te-assets"
+              className={`te-assets ${mobilePanel === "assets" ? "is-mobile-open" : ""}`}
               aria-label="Daftar aset audio dan teks"
             >
-              <h2>
-                <span>1. Aset halaman</span>
+              <div className="te-mobile-handle" aria-hidden="true" />
+              <div className="te-inspector-header">
+                <h2>
+                  <span>1. Aset halaman</span>
+                </h2>
                 <button
-                  className="te-mobile-close"
+                  type="button"
+                  className="te-mobile-close flex items-center justify-center"
                   onClick={() => setMobilePanel(null)}
                   aria-label="Tutup panel aset"
                 >
-                  ×
+                  <XSvg size={14} />
                 </button>
-              </h2>
+              </div>
               <p className="te-help">
                 Tarik aset ke timeline atau klik +. Sumber tetap tersedia
                 setelah trim/gunting.
@@ -1892,7 +2113,7 @@ export default function TilawatiTimelineEditorPage({
                     </small>
                     <div>
                       <button
-                        className="te-btn"
+                        className="te-btn flex items-center justify-center"
                         aria-label={`Preview ${asset.filename}`}
                         onClick={() =>
                           previewingId === asset.audioUrl
@@ -1905,22 +2126,28 @@ export default function TilawatiTimelineEditorPage({
                               )
                         }
                       >
-                        {previewingId === asset.audioUrl ? "■" : "▶"}
+                        {previewingId === asset.audioUrl ? (
+                          <StopSvg size={12} />
+                        ) : (
+                          <PlaySvg size={12} />
+                        )}
                       </button>
                       <button
-                        className="te-btn"
+                        className="te-btn flex items-center gap-1"
                         aria-label={`Tambah ${asset.filename}`}
                         onClick={() => addAsset(asset)}
                       >
-                        + Timeline
+                        <PlusSvg size={12} />
+                        <span>Timeline</span>
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
               <h3>Teks belum dipasangkan</h3>
-              <button className="te-btn" onClick={addText}>
-                + Tambah teks
+              <button className="te-btn flex items-center gap-1" onClick={addText}>
+                <PlusSvg size={12} />
+                <span>Tambah teks</span>
               </button>
               <div
                 className="te-unlinked"
@@ -1945,29 +2172,33 @@ export default function TilawatiTimelineEditorPage({
 
             <section className="te-board" aria-label="Timeline audio dan teks">
               <h2>2. Timeline halaman</h2>
-              <div className="te-toolbar">
+              <div className="te-toolbar overflow-x-auto whitespace-nowrap hide-scrollbar flex items-center gap-1.5">
                 <button
-                  className="te-btn te-action-btn"
+                  className="te-btn te-action-btn shrink-0 te-desktop-only"
                   aria-label="Undo"
                   title="Undo"
                   onClick={undo}
                   disabled={!history.length}
                 >
-                  <span className="te-action-icon">↶</span>
+                  <span className="te-action-icon flex items-center justify-center">
+                    <UndoSvg size={14} />
+                  </span>
                   <span className="te-action-label">Undo</span>
                 </button>
                 <button
-                  className="te-btn te-action-btn"
+                  className="te-btn te-action-btn shrink-0 te-desktop-only"
                   aria-label="Redo"
                   title="Redo"
                   onClick={redo}
                   disabled={!future.length}
                 >
-                  <span className="te-action-icon">↷</span>
+                  <span className="te-action-icon flex items-center justify-center">
+                    <RedoSvg size={14} />
+                  </span>
                   <span className="te-action-label">Redo</span>
                 </button>
                 <button
-                  className="te-btn te-action-btn te-action-preview"
+                  className="te-btn te-action-btn te-action-preview shrink-0 te-desktop-only"
                   aria-label={
                     playing ? "Stop preview" : "Preview dari garis merah"
                   }
@@ -1979,13 +2210,32 @@ export default function TilawatiTimelineEditorPage({
                   }
                   disabled={!clips.length}
                 >
-                  <span className="te-action-icon">{playing ? "■" : "▶"}</span>
+                  <span className="te-action-icon flex items-center justify-center">
+                    {playing ? <StopSvg size={14} /> : <PlaySvg size={14} />}
+                  </span>
                   <span className="te-action-label">
                     {playing ? "Stop" : "Preview"}
                   </span>
                 </button>
                 <button
-                  className="te-btn te-action-btn te-action-cut"
+                  type="button"
+                  className={`te-btn te-action-btn shrink-0 te-desktop-only ${showDraftList ? "is-active" : ""}`}
+                  onClick={() => setShowDraftList((v) => !v)}
+                  title={
+                    showDraftList
+                      ? "Sembunyikan daftar draft"
+                      : "Tampilkan daftar draft"
+                  }
+                >
+                  <span className="te-action-icon flex items-center justify-center">
+                    <LayersSvg size={14} />
+                  </span>
+                  <span className="te-action-label">
+                    {showDraftList ? "Tutup Draft" : "Buka Draft"}
+                  </span>
+                </button>
+                <button
+                  className="te-btn te-action-btn te-action-cut shrink-0"
                   disabled={!selectedClip}
                   onClick={() => {
                     if (!selectedClip) return;
@@ -1995,13 +2245,13 @@ export default function TilawatiTimelineEditorPage({
                   aria-label="Gunting"
                   title="Gunting"
                 >
-                  <span className="te-action-icon">
+                  <span className="te-action-icon flex items-center justify-center">
                     <ScissorsSvg size={14} />
                   </span>
                   <span className="te-action-label">Gunting</span>
                 </button>
                 <button
-                  className="te-btn te-action-btn te-action-duplicate"
+                  className="te-btn te-action-btn te-action-duplicate shrink-0"
                   disabled={!selectedClip}
                   onClick={() => {
                     if (!selectedClip) return;
@@ -2010,11 +2260,13 @@ export default function TilawatiTimelineEditorPage({
                   aria-label="Duplikat"
                   title="Duplikat klip terpilih"
                 >
-                  <span className="te-action-icon">⧉</span>
+                  <span className="te-action-icon flex items-center justify-center">
+                    <CopySvg size={14} />
+                  </span>
                   <span className="te-action-label">Duplikat</span>
                 </button>
                 <button
-                  className="te-btn te-action-btn te-action-merge"
+                  className="te-btn te-action-btn te-action-merge shrink-0"
                   aria-label="Gabung klip terpilih"
                   title="Gabung klip terpilih"
                   disabled={
@@ -2029,12 +2281,14 @@ export default function TilawatiTimelineEditorPage({
                     setSelection(null);
                   }}
                 >
-                  <span className="te-action-icon">⊕</span>
+                  <span className="te-action-icon flex items-center justify-center">
+                    <MergeSvg size={14} />
+                  </span>
                   <span className="te-action-label">
                     Gabung {mergeIds.length}
                   </span>
                 </button>
-                <label className="te-zoom">
+                <label className="te-zoom shrink-0 flex items-center gap-1.5">
                   Zoom{" "}
                   <input
                     aria-label="Zoom timeline"
@@ -2054,10 +2308,7 @@ export default function TilawatiTimelineEditorPage({
                 <strong>Snap</strong>: garis merah & gunting akan menempel ke
                 tepi klip atau satu sama lain saat berdekatan.
               </p>
-              <div
-                className="te-scroll"
-                ref={scrollRef}
-              >
+              <div className="te-scroll" ref={scrollRef}>
                 <div className="te-tracks" style={{ width: timelineWidth }}>
                   <div
                     className="te-ruler"
@@ -2187,7 +2438,24 @@ export default function TilawatiTimelineEditorPage({
                       + Drop
                     </div>
                   </div>
-                  <div className="te-track-text">
+                  <div
+                    className="te-track-text"
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (dragData.current?.type === "text") {
+                        const rect =
+                          event.currentTarget.getBoundingClientRect();
+                        const dropX = (event.clientX - rect.left) / zoom;
+                        const matched = positions.find(
+                          ({ start, clip }) =>
+                            dropX >= start &&
+                            dropX <= start + clipDuration(clip),
+                        );
+                        dropOnClip(matched ? matched.clip.id : null);
+                      }
+                    }}
+                  >
                     {positions.map(({ clip, start }) => (
                       <div
                         className="te-linked-texts"
@@ -2228,7 +2496,7 @@ export default function TilawatiTimelineEditorPage({
                       )
                     }
                   >
-                    <span>▼</span>
+                    <div className="te-playhead-cap" />
                   </div>
                 </div>
 
@@ -2252,7 +2520,7 @@ export default function TilawatiTimelineEditorPage({
                     className="te-bottom-playhead"
                     style={{ left: playhead * zoom }}
                   >
-                    <span>●</span>
+                    <div className="te-bottom-playhead-dot" />
                   </div>
                 </div>
 
@@ -2291,7 +2559,7 @@ export default function TilawatiTimelineEditorPage({
                       </small>
                       <div>
                         <button
-                          className="te-btn"
+                          className="te-btn flex items-center justify-center"
                           aria-label={`Preview ${asset.filename}`}
                           onClick={() =>
                             previewingId === asset.audioUrl
@@ -2304,440 +2572,617 @@ export default function TilawatiTimelineEditorPage({
                                 )
                           }
                         >
-                          {previewingId === asset.audioUrl ? "■" : "▶"}
+                          {previewingId === asset.audioUrl ? (
+                            <StopSvg size={12} />
+                          ) : (
+                            <PlaySvg size={12} />
+                          )}
                         </button>
                         <button
-                          className="te-btn"
+                          className="te-btn flex items-center justify-center"
                           aria-label={`Tambah ${asset.filename}`}
                           onClick={() => addAsset(asset)}
                         >
-                          +
+                          <PlusSvg size={12} />
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="te-page-list">
-                <h3>Daftar item draft</h3>
-                {texts.map((text, index) => (
-                  <button
-                    key={String(text.id)}
-                    data-text-id={String(text.id)}
-                    className="te-list-row"
-                    draggable
-                    onDragStart={(event) =>
-                      startDrag(event, { type: "text", id: String(text.id) })
-                    }
-                    onDragEnd={endDrag}
-                    onPointerDown={(event) =>
-                      beginTouchDrag(event, {
-                        type: "text",
-                        id: String(text.id),
-                      })
-                    }
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      dropOnText(String(text.id));
-                    }}
-                    onClick={() => {
-                      setSelection({ type: "text", id: String(text.id) });
-                      setMobilePanel("inspector");
-                    }}
-                  >
-                    <span>
-                      {index + 1}.{" "}
-                      <span dir="rtl" className="te-arabic">
-                        {text.arabic}
-                      </span>
-                    </span>
-                    <small>
-                      {clips.find((clip) => clip.id === text.clipId)?.label ||
-                        "Belum ada audio"}{" "}
-                      · Edit
-                    </small>
-                  </button>
-                ))}
-              </div>
+              {showDraftList && (
+                <div className="te-page-list-wrapper shrink-0 max-h-[35vh] overflow-y-auto p-2">
+                  <div className="te-section-header flex items-center justify-between">
+                    <h3>Daftar item draft ({texts.length})</h3>
+                    <button
+                      type="button"
+                      className="te-btn te-btn-xs shrink-0 whitespace-nowrap flex items-center gap-1"
+                      onClick={() => setShowDraftList(false)}
+                      title="Sembunyikan daftar item"
+                    >
+                      <XSvg size={12} />
+                      <span>Tutup</span>
+                    </button>
+                  </div>
+                  <div className="te-page-list">
+                    {texts.map((text, index) => (
+                      <button
+                        key={String(text.id)}
+                        data-text-id={String(text.id)}
+                        className={`te-list-row ${selection?.type === "text" && selection.id === String(text.id) ? "is-selected" : ""}`}
+                        draggable
+                        onDragStart={(event) =>
+                          startDrag(event, {
+                            type: "text",
+                            id: String(text.id),
+                          })
+                        }
+                        onDragEnd={endDrag}
+                        onPointerDown={(event) =>
+                          beginTouchDrag(event, {
+                            type: "text",
+                            id: String(text.id),
+                          })
+                        }
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          dropOnText(String(text.id));
+                        }}
+                        onClick={() => {
+                          setSelection({ type: "text", id: String(text.id) });
+                          setInspectorTab("text");
+                          setMobilePanel("inspector");
+                        }}
+                      >
+                        <span className="te-list-row-main">
+                          <span className="te-list-row-num">{index + 1}.</span>{" "}
+                          <span dir="rtl" className="te-arabic">
+                            {text.arabic}
+                          </span>
+                          {text.hintTone && (
+                            <span className="te-hint-tone-sub">
+                              {text.hintTone}
+                            </span>
+                          )}
+                        </span>
+                        <small>
+                          {clips.find((clip) => clip.id === text.clipId)
+                            ?.label || "Belum ada audio"}
+                        </small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
 
             <aside
               className={`te-inspector ${mobilePanel === "inspector" ? "is-mobile-open" : ""}`}
               aria-label="Pengaturan klip dan teks"
             >
-              <h2>
-                <span>3. Pengaturan</span>
+              <div className="te-mobile-handle" aria-hidden="true" />
+              <div className="te-inspector-header">
+                <h2>
+                  <span>3. Pengaturan</span>
+                </h2>
                 <button
-                  className="te-mobile-close"
+                  type="button"
+                  className="te-mobile-close flex items-center justify-center"
                   onClick={() => setMobilePanel(null)}
                   aria-label="Tutup panel pengaturan"
                 >
-                  ×
+                  <XSvg size={14} />
                 </button>
-              </h2>
-              {!selection && (
-                <p className="te-help">
-                  Pilih audio atau teks melalui timeline / daftar item untuk
-                  mengeditnya.
-                </p>
-              )}
-              {(selectedClip || selectedText) && (
-                <label>
-                  Sumber audio halaman
-                  <select
-                    aria-label="Sumber audio"
-                    value={
-                      selectedClip?.segments.length === 1
-                        ? selectedClip.segments[0].sourceUrl
-                        : ""
-                    }
-                    onChange={(event) => assignSource(event.target.value)}
-                  >
-                    <option value="">
-                      {selectedClip?.segments.length &&
-                      selectedClip.segments.length > 1
-                        ? "Gabungan beberapa sumber"
-                        : "Pilih sumber audio…"}
-                    </option>
-                    {assets.map((asset) => (
-                      <option key={asset.audioUrl} value={asset.audioUrl}>
-                        {asset.filename} · {seconds(asset.duration)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              {selectedClip && (
-                <>
-                  <label>
-                    Nama klip
-                    <input
-                      value={selectedClip.label}
-                      onChange={(event) =>
-                        editClip({ label: event.target.value })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Jenis klip
-                    <select
-                      value={selectedClip.kind}
-                      onChange={(event) =>
-                        editClip({
-                          kind: event.target.value as TimelineAudioClip["kind"],
-                        })
-                      }
-                    >
-                      {kinds.map((kind) => (
-                        <option key={kind}>{kind}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="te-time-fields">
-                    <label>
-                      Mulai sumber (s)
-                      <input
-                        aria-label="Mulai sumber"
-                        type="number"
-                        min="0"
-                        max={selectedClip.trimEnd - 0.02}
-                        step="0.001"
-                        value={Number(selectedClip.trimStart.toFixed(3))}
-                        onChange={(event) =>
-                          editClip({
-                            trimStart: Math.max(
-                              0,
-                              Math.min(
-                                selectedClip.trimEnd - 0.02,
-                                Number(event.target.value),
+              </div>
+
+              {/* Segmented Tab Control: Edit Audio | Edit Teks */}
+              <div className="te-inspector-tabs" role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={inspectorTab === "audio"}
+                  className={`te-inspector-tab ${inspectorTab === "audio" ? "is-active" : ""}`}
+                  onClick={() => handleSwitchTab("audio")}
+                >
+                  <span>Edit Audio</span>
+                  {activeClip && (
+                    <span className="te-tab-dot" title="Audio aktif" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={inspectorTab === "text"}
+                  className={`te-inspector-tab ${inspectorTab === "text" ? "is-active" : ""}`}
+                  onClick={() => handleSwitchTab("text")}
+                >
+                  <span>Edit Teks</span>
+                  {activeText && (
+                    <span className="te-tab-dot" title="Teks aktif" />
+                  )}
+                </button>
+              </div>
+
+              <div className="te-inspector-content">
+                {inspectorTab === "audio" ? (
+                  activeClip ? (
+                    <>
+                      <label>
+                        Sumber audio halaman
+                        <select
+                          aria-label="Sumber audio"
+                          value={
+                            activeClip.segments.length === 1
+                              ? activeClip.segments[0].sourceUrl
+                              : ""
+                          }
+                          onChange={(event) => assignSource(event.target.value)}
+                        >
+                          <option value="">
+                            {activeClip.segments.length > 1
+                              ? "Gabungan beberapa sumber"
+                              : "Pilih sumber audio..."}
+                          </option>
+                          {assets.map((asset) => (
+                            <option key={asset.audioUrl} value={asset.audioUrl}>
+                              {asset.filename} · {seconds(asset.duration)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Nama klip
+                        <input
+                          value={activeClip.label}
+                          onChange={(event) =>
+                            editClip({ label: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        Jenis klip
+                        <select
+                          value={activeClip.kind}
+                          onChange={(event) =>
+                            editClip({
+                              kind: event.target
+                                .value as TimelineAudioClip["kind"],
+                            })
+                          }
+                        >
+                          {kinds.map((kind) => (
+                            <option key={kind}>{kind}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="te-time-fields">
+                        <label>
+                          Mulai sumber (s)
+                          <input
+                            aria-label="Mulai sumber"
+                            type="number"
+                            min="0"
+                            max={activeClip.trimEnd - 0.02}
+                            step="0.001"
+                            value={Number(activeClip.trimStart.toFixed(3))}
+                            onChange={(event) =>
+                              editClip({
+                                trimStart: Math.max(
+                                  0,
+                                  Math.min(
+                                    activeClip.trimEnd - 0.02,
+                                    Number(event.target.value),
+                                  ),
+                                ),
+                              })
+                            }
+                          />
+                        </label>
+                        <label>
+                          Selesai sumber (s)
+                          <input
+                            aria-label="Selesai sumber"
+                            type="number"
+                            min={activeClip.trimStart + 0.02}
+                            max={segmentDuration(activeClip.segments)}
+                            step="0.001"
+                            value={Number(activeClip.trimEnd.toFixed(3))}
+                            onChange={(event) =>
+                              editClip({
+                                trimEnd: Math.max(
+                                  activeClip.trimStart + 0.02,
+                                  Math.min(
+                                    segmentDuration(activeClip.segments),
+                                    Number(event.target.value),
+                                  ),
+                                ),
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+                      <label>
+                        Garis gunting (dalam klip, s)
+                        <input
+                          aria-label="Posisi gunting"
+                          type="number"
+                          min="0"
+                          max={clipDuration(activeClip)}
+                          step="0.001"
+                          value={Number(
+                            Math.min(cutAt, clipDuration(activeClip)).toFixed(
+                              3,
+                            ),
+                          )}
+                          onChange={(event) =>
+                            setCutAt(
+                              Math.max(
+                                0,
+                                Math.min(
+                                  clipDuration(activeClip),
+                                  Number(event.target.value),
+                                ),
                               ),
-                            ),
-                          })
-                        }
-                      />
-                    </label>
-                    <label>
-                      Selesai sumber (s)
-                      <input
-                        aria-label="Selesai sumber"
-                        type="number"
-                        min={selectedClip.trimStart + 0.02}
-                        max={segmentDuration(selectedClip.segments)}
-                        step="0.001"
-                        value={Number(selectedClip.trimEnd.toFixed(3))}
-                        onChange={(event) =>
-                          editClip({
-                            trimEnd: Math.max(
-                              selectedClip.trimStart + 0.02,
-                              Math.min(
-                                segmentDuration(selectedClip.segments),
-                                Number(event.target.value),
-                              ),
-                            ),
-                          })
-                        }
-                      />
-                    </label>
-                  </div>
-                  <label>
-                    Garis gunting (dalam klip, s)
-                    <input
-                      aria-label="Posisi gunting"
-                      type="number"
-                      min="0"
-                      max={clipDuration(selectedClip)}
-                      step="0.001"
-                      value={Number(
-                        Math.min(cutAt, clipDuration(selectedClip)).toFixed(3),
-                      )}
-                      onChange={(event) =>
-                        setCutAt(
-                          Math.max(
-                            0,
-                            Math.min(
-                              clipDuration(selectedClip),
-                              Number(event.target.value),
-                            ),
-                          ),
-                        )
-                      }
-                    />
-                  </label>
-                  <div className="te-detail-bar">
-                    <div
-                      className="te-detail-cut"
-                      style={{
-                        left: `${(selectedLocalCut / clipDuration(selectedClip)) * 100}%`,
-                      }}
-                    >
-                      <ScissorsSvg size={12} />
-                    </div>
-                    <div
-                      className="te-detail-play"
-                      style={{
-                        left: `${(selectedLocalPlay / clipDuration(selectedClip)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <div
-                    className={`te-detail-delta ${selectedAligned ? "is-aligned" : ""}`}
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <ScissorsSvg size={12} /> {seconds(selectedLocalCut)}
-                    </span>
-                    <span>▶ {seconds(selectedLocalPlay)}</span>
-                    <span>
-                      Δ {seconds(Math.abs(selectedDelta))}
-                      {selectedAligned ? " · Sejajar" : ""}
-                    </span>
-                  </div>
-                  <div className="te-align-actions">
-                    <button
-                      className="te-btn inline-flex items-center gap-1"
-                      onClick={alignCutToPlayhead}
-                      title="Pindahkan garis gunting ke posisi playhead"
-                    >
-                      <ScissorsSvg size={12} /> = ▶
-                    </button>
-                    <button
-                      className="te-btn inline-flex items-center gap-1"
-                      onClick={alignPlayheadToCut}
-                      title="Pindahkan playhead ke posisi garis gunting"
-                    >
-                      ▶ = <ScissorsSvg size={12} />
-                    </button>
-                  </div>
-                  <input
-                    aria-label="Slider gunting"
-                    type="range"
-                    min="0"
-                    max={clipDuration(selectedClip)}
-                    step="0.001"
-                    value={Math.min(cutAt, clipDuration(selectedClip))}
-                    onChange={(event) => setCutAt(Number(event.target.value))}
-                  />
-                  <div className="te-actions">
-                    <button
-                      className="te-btn"
-                      onClick={() =>
-                        previewingId === "clip"
-                          ? stopPreview()
-                          : preview(
-                              [selectedClip],
-                              0,
-                              selectedPosition?.start || 0,
-                              "clip",
                             )
-                      }
-                    >
-                      {previewingId === "clip" ? "■ Stop" : "▶ Preview klip"}
-                    </button>
-                    <button
-                      className="te-btn inline-flex items-center gap-1"
-                      disabled={
-                        cutAt <= 0 || cutAt >= clipDuration(selectedClip)
-                      }
-                      onClick={() => {
-                        change(
-                          splitTimelineClip(draft, selectedClip.id, cutAt),
-                        );
-                        setCutAt(0);
-                      }}
-                    >
-                      <ScissorsSvg size={12} /> Gunting
-                    </button>
-                    <button
-                      className="te-btn"
-                      onClick={() => {
-                        change(duplicateTimelineClip(draft, selectedClip.id));
-                      }}
-                    >
-                      ⧉ Duplikat
-                    </button>
-                  </div>
-                  <p className="te-help">
-                    Potongan A dan B tetap di timeline. Teks awal mengikuti A;
-                    pasangkan atau tambah teks B sesuai bacaan.
-                  </p>
-                  <label>
-                    Pasangkan teks
-                    <select
-                      value=""
-                      onChange={(event) => {
-                        if (event.target.value)
+                          }
+                        />
+                      </label>
+                      <div className="te-detail-bar">
+                        <div
+                          className="te-detail-cut"
+                          style={{
+                            left: `${(selectedLocalCut / clipDuration(activeClip)) * 100}%`,
+                          }}
+                        >
+                          <ScissorsSvg size={12} />
+                        </div>
+                        <div
+                          className="te-detail-play"
+                          style={{
+                            left: `${(selectedLocalPlay / clipDuration(activeClip)) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <div
+                        className={`te-detail-delta ${selectedAligned ? "is-aligned" : ""}`}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          <ScissorsSvg size={12} /> {seconds(selectedLocalCut)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <PlaySvg size={10} /> {seconds(selectedLocalPlay)}
+                        </span>
+                        <span>
+                          d {seconds(Math.abs(selectedDelta))}
+                          {selectedAligned ? " · Sejajar" : ""}
+                        </span>
+                      </div>
+                      <div className="te-align-actions">
+                        <button
+                          className="te-btn inline-flex items-center gap-1"
+                          onClick={alignCutToPlayhead}
+                          title="Pindahkan garis gunting ke posisi playhead"
+                        >
+                          <ScissorsSvg size={12} /> = <PlaySvg size={10} />
+                        </button>
+                        <button
+                          className="te-btn inline-flex items-center gap-1"
+                          onClick={alignPlayheadToCut}
+                          title="Pindahkan playhead ke posisi garis gunting"
+                        >
+                          <PlaySvg size={10} /> = <ScissorsSvg size={12} />
+                        </button>
+                      </div>
+                      <input
+                        aria-label="Slider gunting"
+                        type="range"
+                        min="0"
+                        max={clipDuration(activeClip)}
+                        step="0.001"
+                        value={Math.min(cutAt, clipDuration(activeClip))}
+                        onChange={(event) =>
+                          setCutAt(Number(event.target.value))
+                        }
+                      />
+                      <div className="te-actions">
+                        <button
+                          className="te-btn inline-flex items-center gap-1"
+                          onClick={() =>
+                            previewingId === "clip"
+                              ? stopPreview()
+                              : preview(
+                                  [activeClip],
+                                  0,
+                                  selectedPosition?.start || 0,
+                                  "clip",
+                                )
+                          }
+                        >
+                          {previewingId === "clip" ? (
+                            <>
+                              <StopSvg size={12} />
+                              <span>Stop</span>
+                            </>
+                          ) : (
+                            <>
+                              <PlaySvg size={12} />
+                              <span>Preview klip</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          className="te-btn inline-flex items-center gap-1"
+                          disabled={
+                            cutAt <= 0 || cutAt >= clipDuration(activeClip)
+                          }
+                          onClick={() => {
+                            change(
+                              splitTimelineClip(draft, activeClip.id, cutAt),
+                            );
+                            setCutAt(0);
+                          }}
+                        >
+                          <ScissorsSvg size={12} /> Gunting
+                        </button>
+                        <button
+                          className="te-btn inline-flex items-center gap-1"
+                          onClick={() => {
+                            change(duplicateTimelineClip(draft, activeClip.id));
+                          }}
+                        >
+                          <CopySvg size={12} />
+                          <span>Duplikat</span>
+                        </button>
+                      </div>
+                      <p className="te-help">
+                        Potongan A dan B tetap di timeline. Teks awal mengikuti
+                        A; pasangkan atau tambah teks B sesuai bacaan.
+                      </p>
+                      <label>
+                        Pasangkan teks
+                        <select
+                          value=""
+                          onChange={(event) => {
+                            if (event.target.value)
+                              change(
+                                pairTimelineText(
+                                  draft,
+                                  event.target.value,
+                                  activeClip.id,
+                                ),
+                              );
+                          }}
+                        >
+                          <option value="">Pilih teks tersedia...</option>
+                          {texts.map((text) => (
+                            <option
+                              key={String(text.id)}
+                              value={String(text.id)}
+                            >
+                              {text.arabic || "(Teks)"}{" "}
+                              {text.hintTone ? `· ${text.hintTone}` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        className="te-btn te-danger"
+                        onClick={() => {
+                          change(removeTimelineClips(draft, [activeClip.id]));
+                          setSelection(null);
+                          setMergeIds((ids) =>
+                            ids.filter((id) => id !== activeClip.id),
+                          );
+                        }}
+                      >
+                        Hapus klip dari hasil akhir
+                      </button>
+                    </>
+                  ) : (
+                    <div className="te-empty-tab">
+                      {activeText ? (
+                        <>
+                          <p className="te-help">
+                            Teks "{activeText.arabic || "terpilih"}" belum
+                            memiliki pasangan audio.
+                          </p>
+                          <label>
+                            Pilih klip audio untuk teks ini:
+                            <select
+                              value=""
+                              onChange={(event) => {
+                                if (event.target.value) {
+                                  change(
+                                    pairTimelineText(
+                                      draft,
+                                      String(activeText.id),
+                                      event.target.value,
+                                    ),
+                                  );
+                                }
+                              }}
+                            >
+                              <option value="">Pilih klip timeline...</option>
+                              {clips.map((clip) => (
+                                <option key={clip.id} value={clip.id}>
+                                  {clip.label} · {seconds(clipDuration(clip))}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </>
+                      ) : (
+                        <p className="te-help">
+                          Pilih klip audio pada timeline untuk mengeditnya.
+                        </p>
+                      )}
+                    </div>
+                  )
+                ) : /* inspectorTab === "text" */
+                activeText ? (
+                  <>
+                    <h3>Edit teks</h3>
+                    <label>
+                      Teks Arab
+                      <textarea
+                        aria-label="Teks Arab"
+                        dir="rtl"
+                        className="te-arabic"
+                        rows={3}
+                        value={activeText.arabic}
+                        onChange={(event) =>
+                          editText({ arabic: event.target.value })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Transliterasi (satu token per baris, auto-generate Arab)
+                      <textarea
+                        rows={3}
+                        value={activeText.transliterationParts.join("\n")}
+                        onChange={(event) => {
+                          const val = event.target.value;
+                          const parts = val.split("\n");
+                          const autoArabic = parts
+                            .map((p) => latinToArabic(p.trim()))
+                            .filter(Boolean)
+                            .join(" ");
+                          editText({
+                            transliterationParts: parts,
+                            arabic: autoArabic || activeText.arabic,
+                          });
+                        }}
+                      />
+                    </label>
+                    <label>
+                      Nada / keterangan
+                      <input
+                        value={activeText.hintTone}
+                        onChange={(event) =>
+                          editText({ hintTone: event.target.value })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Pasangan klip
+                      <select
+                        value={activeText.clipId || ""}
+                        onChange={(event) =>
                           change(
                             pairTimelineText(
                               draft,
-                              event.target.value,
-                              selectedClip.id,
+                              String(activeText.id),
+                              event.target.value || null,
                             ),
-                          );
-                      }}
-                    >
-                      <option value="">Pilih teks tersedia…</option>
-                      {texts.map((text) => (
-                        <option key={String(text.id)} value={String(text.id)}>
-                          {text.arabic}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    className="te-btn te-danger"
-                    onClick={() => {
-                      change(removeTimelineClips(draft, [selectedClip.id]));
-                      setSelection(null);
-                      setMergeIds((ids) =>
-                        ids.filter((id) => id !== selectedClip.id),
-                      );
-                    }}
-                  >
-                    Hapus klip dari hasil akhir
-                  </button>
-                </>
-              )}
-              {selectedText && (
-                <>
-                  <h3>Edit teks</h3>
-                  <label>
-                    Teks Arab
-                    <textarea
-                      aria-label="Teks Arab"
-                      dir="rtl"
-                      className="te-arabic"
-                      rows={3}
-                      value={selectedText.arabic}
-                      onChange={(event) =>
-                        editText({ arabic: event.target.value })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Transliterasi (satu token per baris, auto-generate Arab)
-                    <textarea
-                      rows={3}
-                      value={selectedText.transliterationParts.join("\n")}
-                      onChange={(event) => {
-                        const val = event.target.value;
-                        const parts = val.split("\n");
-                        const autoArabic = parts
-                          .map((p) => latinToArabic(p.trim()))
-                          .filter(Boolean)
-                          .join(" ");
-                        editText({
-                          transliterationParts: parts,
-                          arabic: autoArabic || selectedText.arabic,
-                        });
-                      }}
-                    />
-                  </label>
-                  <label>
-                    Nada / keterangan
-                    <input
-                      value={selectedText.hintTone}
-                      onChange={(event) =>
-                        editText({ hintTone: event.target.value })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Pasangan klip
-                    <select
-                      value={selectedText.clipId || ""}
-                      onChange={(event) =>
-                        change(
-                          pairTimelineText(
-                            draft,
-                            String(selectedText.id),
-                            event.target.value || null,
+                          )
+                        }
+                      >
+                        <option value="">Tanpa audio</option>
+                        {clips.map((clip) => (
+                          <option key={clip.id} value={clip.id}>
+                            {clip.label} · {seconds(clipDuration(clip))}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="te-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(activeText.isListenOnly)}
+                        onChange={(event) =>
+                          editText({
+                            isListenOnly: event.target.checked,
+                            isOpening: event.target.checked,
+                          })
+                        }
+                      />{" "}
+                      Contoh / demo (dengarkan saja)
+                    </label>
+                    <button
+                      className="te-btn te-danger"
+                      onClick={() => {
+                        change({
+                          ...draft,
+                          texts: texts.filter(
+                            (text) => text.id !== activeText.id,
                           ),
-                        )
-                      }
+                        });
+                        setSelection(null);
+                      }}
                     >
-                      <option value="">Tanpa audio</option>
-                      {clips.map((clip) => (
-                        <option key={clip.id} value={clip.id}>
-                          {clip.label} · {seconds(clipDuration(clip))}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="te-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedText.isListenOnly)}
-                      onChange={(event) =>
-                        editText({
-                          isListenOnly: event.target.checked,
-                          isOpening: event.target.checked,
-                        })
-                      }
-                    />{" "}
-                    Contoh / demo (dengarkan saja)
-                  </label>
-                  <button
-                    className="te-btn te-danger"
-                    onClick={() => {
-                      change({
-                        ...draft,
-                        texts: texts.filter(
-                          (text) => text.id !== selectedText.id,
-                        ),
-                      });
-                      setSelection(null);
-                    }}
-                  >
-                    Hapus teks dari hasil akhir
-                  </button>
-                </>
-              )}
+                      Hapus teks dari hasil akhir
+                    </button>
+                  </>
+                ) : (
+                  <div className="te-empty-tab">
+                    {activeClip ? (
+                      <>
+                        <p className="te-help">
+                          Klip audio "{activeClip.label}" belum memiliki teks
+                          terhubung.
+                        </p>
+                        <button
+                          type="button"
+                          className="te-btn te-primary inline-flex items-center justify-center gap-1.5"
+                          onClick={() => addTextForClip(activeClip.id)}
+                          style={{ width: "100%", marginBottom: 12 }}
+                        >
+                          <PlusSvg size={14} />
+                          <span>Buat Teks Baru untuk Klip Ini</span>
+                        </button>
+                        <label>
+                          Atau hubungkan teks yang sudah ada:
+                          <select
+                            value=""
+                            onChange={(event) => {
+                              if (event.target.value) {
+                                change(
+                                  pairTimelineText(
+                                    draft,
+                                    event.target.value,
+                                    activeClip.id,
+                                  ),
+                                );
+                              }
+                            }}
+                          >
+                            <option value="">Pilih teks tersedia...</option>
+                            {texts.map((text) => (
+                              <option
+                                key={String(text.id)}
+                                value={String(text.id)}
+                              >
+                                {text.arabic || "(Teks)"}{" "}
+                                {text.hintTone ? `· ${text.hintTone}` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </>
+                    ) : (
+                      <>
+                        <p className="te-help">Belum ada teks yang dipilih.</p>
+                        <button
+                          type="button"
+                          className="te-btn te-primary inline-flex items-center justify-center gap-1.5"
+                          onClick={addText}
+                          style={{ width: "100%" }}
+                        >
+                          <PlusSvg size={14} />
+                          <span>Tambah Teks Baru</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </aside>
 
             <button
               type="button"
-              className="te-edge-tab te-edge-tab-left"
+              className="te-edge-tab te-edge-tab-left flex items-center justify-center"
               onClick={() => setAssetsOpen((value) => !value)}
               aria-label={
                 assetsOpen ? "Sembunyikan panel aset" : "Tampilkan panel aset"
@@ -2745,11 +3190,13 @@ export default function TilawatiTimelineEditorPage({
               aria-pressed={assetsOpen}
               title={`${assetsOpen ? "Sembunyikan" : "Tampilkan"} panel aset ( [ )`}
             >
-              <span aria-hidden="true">{assetsOpen ? "‹" : "›"}</span>
+              <span aria-hidden="true" className="flex items-center justify-center">
+                {assetsOpen ? <ChevronLeftSvg size={14} /> : <ChevronRightSvg size={14} />}
+              </span>
             </button>
             <button
               type="button"
-              className="te-edge-tab te-edge-tab-right"
+              className="te-edge-tab te-edge-tab-right flex items-center justify-center"
               onClick={() => setInspectorOpen((value) => !value)}
               aria-label={
                 inspectorOpen
@@ -2759,7 +3206,9 @@ export default function TilawatiTimelineEditorPage({
               aria-pressed={inspectorOpen}
               title={`${inspectorOpen ? "Sembunyikan" : "Tampilkan"} panel pengaturan ( ] )`}
             >
-              <span aria-hidden="true">{inspectorOpen ? "›" : "‹"}</span>
+              <span aria-hidden="true" className="flex items-center justify-center">
+                {inspectorOpen ? <ChevronRightSvg size={14} /> : <ChevronLeftSvg size={14} />}
+              </span>
             </button>
 
             {mobilePanel && (
@@ -2773,42 +3222,94 @@ export default function TilawatiTimelineEditorPage({
               className="te-mobile-toolbar"
               aria-label="Toolbar mobile timeline"
             >
+              {/* 1. Undo */}
               <button
-                aria-label="Pengaturan"
-                onClick={() => setMobilePanel("inspector")}
+                type="button"
+                className="te-mobile-tool-btn"
+                aria-label="Undo perubahan"
+                onClick={undo}
+                disabled={!history.length}
+                title="Undo"
+              >
+                <span className="te-mobile-tool-icon">
+                  <UndoSvg size={18} />
+                </span>
+                <span className="te-mobile-tool-label">Undo</span>
+              </button>
+
+              {/* 2. Draft List Toggle */}
+              <button
+                type="button"
+                className={`te-mobile-tool-btn ${showDraftList ? "is-active" : ""}`}
+                aria-label={
+                  showDraftList ? "Tutup daftar draft" : "Buka daftar draft"
+                }
+                onClick={() => setShowDraftList((v) => !v)}
+                title={showDraftList ? "Tutup Draft" : "Buka Draft"}
+              >
+                <span className="te-mobile-tool-icon">
+                  <LayersSvg size={18} />
+                </span>
+                <span className="te-mobile-tool-label">
+                  {showDraftList ? "Draft On" : "Draft"}
+                </span>
+              </button>
+
+              {/* 3. Play / Preview (Lingkaran besar di tengah) */}
+              <div className="te-mobile-play-wrap">
+                <button
+                  type="button"
+                  className={`te-mobile-play-circle ${playing ? "is-playing" : ""}`}
+                  aria-label={
+                    playing ? "Stop preview" : "Preview dari playhead"
+                  }
+                  onClick={() =>
+                    playing
+                      ? stopPreview()
+                      : preview(clips, playhead, 0, "timeline")
+                  }
+                  disabled={!clips.length}
+                  title={playing ? "Stop" : "Preview"}
+                >
+                  <span className="te-play-icon">
+                    {playing ? <StopSvg size={20} /> : <PlaySvg size={20} />}
+                  </span>
+                </button>
+                <span className="te-play-label">
+                  {playing ? "Stop" : "Preview"}
+                </span>
+              </div>
+
+              {/* 4. Tambah Teks */}
+              <button
+                type="button"
+                className="te-mobile-tool-btn"
+                aria-label="Tambah teks baru"
+                onClick={addText}
+                title="Tambah Teks"
+              >
+                <span className="te-mobile-tool-icon">
+                  <FileTextSvg size={18} />
+                </span>
+                <span className="te-mobile-tool-label">+ Teks</span>
+              </button>
+
+              {/* 5. Pengaturan / Inspector */}
+              <button
+                type="button"
+                className={`te-mobile-tool-btn ${mobilePanel === "inspector" ? "is-active" : ""}`}
+                aria-label="Pengaturan klip dan teks"
+                onClick={() =>
+                  setMobilePanel(
+                    mobilePanel === "inspector" ? null : "inspector",
+                  )
+                }
                 title="Pengaturan"
               >
-                <span>
-                  <SettingsSvg size={14} />
+                <span className="te-mobile-tool-icon">
+                  <SettingsSvg size={18} />
                 </span>
-                Pengaturan
-              </button>
-              <button
-                aria-label={playing ? "Stop preview" : "Preview dari playhead"}
-                className="te-mobile-play"
-                onClick={() =>
-                  playing
-                    ? stopPreview()
-                    : preview(clips, playhead, 0, "timeline")
-                }
-                disabled={!clips.length}
-              >
-                <span>{playing ? "■" : "▶"}</span>
-                {playing ? "Stop" : "Preview"}
-              </button>
-              <button
-                aria-label="Tambah teks"
-                onClick={addText}
-                title="Tambah teks"
-              >
-                <span>文</span>Teks
-              </button>
-              <button
-                aria-label="Tambah zoom"
-                onClick={() => setZoom((value) => Math.min(100, value + 8))}
-                title="Tambah zoom"
-              >
-                <span>＋</span>Zoom
+                <span className="te-mobile-tool-label">Atur</span>
               </button>
             </nav>
           </div>
