@@ -10,7 +10,9 @@ export type SfxName =
   | "powerup" | "victory" | "defeat" | "gameover"
   // Kuis & Progress: correct/wrong, level-up, badge, reward, coin
   | "answer-correct" | "answer-wrong" | "level-up" | "badge-earned" | "chest-open" | "coin-collect"
-  | "punch" | "block" | "shuffle";
+  | "punch" | "block" | "shuffle"
+  // Game audio baru
+  | "game-start" | "game-bonus" | "game-bonus1" | "game-over" | "game-over-arcade" | "game-winner";
 
 // Freesound fallback — butuh VITE_FREE_SOUND_API_KEY dari freesound.org
 export const freesound = new (await import('./freesoundService')).FreesoundService;
@@ -37,6 +39,13 @@ const SFX_FILES: Record<SfxName, string | null> = {
   block: null,
   // Baru: shuffle SFX untuk memory game
   shuffle: null,
+  // Game audio baru
+  "game-start": "game-start.mp3",
+  "game-bonus": "game-bonus.mp3",
+  "game-bonus1": "game-bonus1.mp3",
+  "game-over": "game-over.mp3",
+  "game-over-arcade": "game-over-arcade.mp3",
+  "game-winner": "game-winner.mp3",
 };
 
 const MUTE_KEY = "ngajiceria:sound:muted";
@@ -200,7 +209,14 @@ class SoundManager {
 
   private synthBlip(ctx: AudioContext, name: SfxName, volume: number) {
     // Nada darurat bila file SFX belum tersedia.
-    const freq = name === "wrong" || name === "defeat" || name === "gameover" ? 196 : 660;
+    const freq =
+      name === "wrong" ||
+      name === "defeat" ||
+      name === "gameover" ||
+      name === "game-over" ||
+      name === "game-over-arcade"
+        ? 196
+        : 660;
     try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();

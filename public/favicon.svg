@@ -1,91 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="120 74 260 260" width="64" height="64" fill="none">
-  <!-- App Icon Frame -->
-  <rect x="132" y="86" width="240" height="240" rx="58" fill="#134E4A" />
-  <rect x="124" y="78" width="240" height="240" rx="58" fill="#FFFFFF" stroke="#134E4A" stroke-width="9" />
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="faceFrameClip">
+      <rect x="4" y="4" width="120" height="120" rx="28" />
+    </clipPath>
+  </defs>
 
-  <!-- Grup Maskot (Scale 0.84 agar sayap kiri-kanan muat utuh di dalam frame closeup) -->
-  <g transform="translate(246, 208) scale(0.84) translate(-250, -214)">
-    
-    <!-- Hard Shadow Badan & Sayap -->
-    <g transform="translate(6, 8)">
-      <g transform="rotate(-14 165 230)">
-        <path d="M 165 204 L 92 162 C 80 172, 87 198, 108 212 C 93 220, 98 242, 126 249 C 122 262, 138 274, 165 268 Z" fill="#134E4A" />
-      </g>
-      <g transform="rotate(14 335 230)">
-        <path d="M 335 204 L 408 162 C 420 172, 413 198, 392 212 C 407 220, 402 242, 374 249 C 378 262, 362 274, 335 268 Z" fill="#134E4A" />
-      </g>
-      <circle cx="250" cy="222" r="95" fill="#134E4A" />
+  <!-- Seluruh Isi Frame 100% Wajah Kuning Maskot (Tanpa Background Putih Sama Sekali) -->
+  <g clip-path="url(#faceFrameClip)">
+    <!-- Warna Dasar Wajah Kuning Penuh -->
+    <rect x="0" y="0" width="128" height="128" fill="#FACC15" />
+
+    <!-- Shading Dagu & Pipi Bawah (Kuning Keemasan) -->
+    <path d="M0 92 C34 108 94 108 128 92 V128 H0 Z" fill="#F59E0B" />
+
+    <!-- Highlight Kening di Bawah Peci -->
+    <ellipse cx="64" cy="44" rx="44" ry="10" fill="#FEF08A" />
+
+    <!-- Pipi Merona Coral (Kiri & Kanan) -->
+    <circle cx="14" cy="86" r="13" fill="#FF6B6B" />
+    <circle cx="114" cy="86" r="13" fill="#FF6B6B" />
+
+    <!-- Alis Ekspresif -->
+    <path d="M22 41 Q37 35 49 40" stroke="#134E4A" stroke-width="4.5" stroke-linecap="round" />
+    <path d="M106 41 Q91 35 79 40" stroke="#134E4A" stroke-width="4.5" stroke-linecap="round" />
+
+    <!-- MATA KIRI (Close-Up Besar) -->
+    <g>
+      <circle cx="37" cy="64" r="22" fill="#FFFFFF" stroke="#134E4A" stroke-width="5" />
+      <circle cx="38.5" cy="64" r="15.5" fill="#0D9488" stroke="#134E4A" stroke-width="3.5" />
+      <path d="M27.5 70 A12.5 12.5 0 0 0 49.5 70" stroke="#5EEAD4" stroke-width="3.5" stroke-linecap="round" />
+      <circle cx="38.5" cy="64" r="9.5" fill="#134E4A" />
+      <circle cx="33" cy="57.5" r="5" fill="#FFFFFF" />
+      <circle cx="43.5" cy="68.5" r="2.3" fill="#FFFFFF" />
     </g>
 
-    <!-- Sayap Samping Kiri (Asli TilaMascot) -->
-    <g id="left-side-wing" transform="rotate(-14 165 230)">
-      <path d="M 165 204 L 92 162 C 80 172, 87 198, 108 212 C 93 220, 98 242, 126 249 C 122 262, 138 274, 165 268 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-      <path d="M 108 212 C 116 217, 123 220, 130 222 M 126 249 C 134 251, 140 251, 146 251" fill="none" stroke="#07473C" stroke-width="5.5" stroke-linecap="round" />
-      <path d="M 165 198 C 145 184, 126 170, 110 162 C 104 180, 109 200, 124 215 C 136 227, 150 233, 163 235 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-      <path d="M 110 162 C 96 148, 82 134, 73 139 C 65 144, 71 170, 88 188 C 99 199, 112 208, 124 215 C 109 200, 104 180, 110 162 Z" fill="#00B894" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    <!-- MATA KANAN (Close-Up Besar) -->
+    <g>
+      <circle cx="91" cy="64" r="22" fill="#FFFFFF" stroke="#134E4A" stroke-width="5" />
+      <circle cx="89.5" cy="64" r="15.5" fill="#0D9488" stroke="#134E4A" stroke-width="3.5" />
+      <path d="M78.5 70 A12.5 12.5 0 0 0 100.5 70" stroke="#5EEAD4" stroke-width="3.5" stroke-linecap="round" />
+      <circle cx="89.5" cy="64" r="9.5" fill="#134E4A" />
+      <circle cx="84" cy="57.5" r="5" fill="#FFFFFF" />
+      <circle cx="94.5" cy="68.5" r="2.3" fill="#FFFFFF" />
     </g>
 
-    <!-- Sayap Samping Kanan (Asli TilaMascot) -->
-    <g id="right-side-wing" transform="rotate(14 335 230)">
-      <path d="M 335 204 L 408 162 C 420 172, 413 198, 392 212 C 407 220, 402 242, 374 249 C 378 262, 362 274, 335 268 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-      <path d="M 392 212 C 384 217, 377 220, 370 222 M 374 249 C 366 251, 360 251, 354 251" fill="none" stroke="#07473C" stroke-width="5.5" stroke-linecap="round" />
-      <path d="M 335 198 C 355 184, 374 170, 390 162 C 396 180, 391 200, 376 215 C 364 227, 350 233, 337 235 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-      <path d="M 390 162 C 404 148, 418 134, 427 139 C 435 144, 429 170, 412 188 C 401 199, 388 208, 376 215 C 391 200, 396 180, 390 162 Z" fill="#00B894" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    <!-- PARUH TENGAH TERSENYUM -->
+    <g>
+      <!-- Mulut / Paruh Bawah -->
+      <path d="M49 78 L64 106 L79 78 Z" fill="#9F1239" stroke="#134E4A" stroke-width="5" stroke-linejoin="round" />
+      <!-- Lidah -->
+      <path d="M53.5 87 Q64 82.5 74.5 87 L64 105 Z" fill="#FF6B6B" stroke="#134E4A" stroke-width="4" stroke-linejoin="round" />
+      <!-- Paruh Atas -->
+      <path d="M45 77 C45 65.5 83 65.5 83 77 C83 81.5 64 85 64 85 C64 85 45 81.5 45 77 Z" fill="#FF6B6B" stroke="#134E4A" stroke-width="5" stroke-linejoin="round" />
+      <!-- Highlight Paruh -->
+      <path d="M53 73 Q64 69.5 75 73" stroke="#FECDD3" stroke-width="3" stroke-linecap="round" />
     </g>
 
-    <!-- Body -->
-    <circle cx="250" cy="222" r="95" fill="#FBBF24" stroke="#07473C" stroke-width="7.5" />
-    <path d="M 160 252 C 185 298, 315 298, 340 252 C 320 315, 180 315, 160 252 Z" fill="#EAA012" />
-    <circle cx="250" cy="222" r="95" fill="none" stroke="#07473C" stroke-width="7.5" />
+    <!-- Detail Lekuk Dagu Bawah -->
+    <path d="M56 114 Q64 118 72 114" stroke="#134E4A" stroke-width="4" stroke-linecap="round" />
 
-    <!-- Face -->
-    <path d="M 232 216 L 268 216 L 250 246 Z" fill="#EAA012" />
-    <circle cx="174" cy="212" r="16" fill="#FF6B6B" />
-    <circle cx="326" cy="212" r="16" fill="#FF6B6B" />
-
-    <!-- Left Eye -->
-    <g transform="translate(202, 180)">
-      <ellipse cx="0" cy="0" rx="27" ry="29" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" />
-      <circle cx="0" cy="0" r="20.5" fill="#008F7A" />
-      <circle cx="0" cy="0" r="16" fill="#053B33" />
-      <circle cx="8" cy="-8" r="7.5" fill="#FFFFFF" />
-      <path d="M -6 1 Q -6 7 0 7 Q -6 7 -6 13 Q -6 7 -12 7 Q -6 7 -6 1 Z" fill="#FFFFFF" />
-    </g>
-
-    <!-- Right Eye -->
-    <g transform="translate(298, 180)">
-      <ellipse cx="0" cy="0" rx="27" ry="29" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" />
-      <circle cx="0" cy="0" r="20.5" fill="#008F7A" />
-      <circle cx="0" cy="0" r="16" fill="#053B33" />
-      <circle cx="8" cy="-8" r="7.5" fill="#FFFFFF" />
-      <path d="M -6 1 Q -6 7 0 7 Q -6 7 -6 13 Q -6 7 -12 7 Q -6 7 -6 1 Z" fill="#FFFFFF" />
-    </g>
-
-    <!-- Beak -->
-    <path d="M 228 202 L 250 238 L 272 202 Z" fill="#07473C" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-    <path d="M 237 214 Q 250 208 263 214 L 250 234 Z" fill="#FF6B6B" />
-    <path d="M 224 202 C 230 183, 270 183, 276 202 Q 250 211 224 202 Z" fill="#FF6B6B" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-
-    <!-- Songkok / Peci -->
-    <path d="M 188 140 L 196 90 Q 250 82 304 90 L 312 140 Q 250 148 188 140 Z" fill="#134E4A" stroke="#07473C" stroke-width="7.5" stroke-linejoin="round" />
-    <path d="M 191 133 Q 250 141 309 133" fill="none" stroke="#F59E0B" stroke-width="6" stroke-linecap="round" />
-    <polygon points="250,96 254.5,106 265,106 257,112 260,122 250,116 240,122 243,112 235,106 245.5,106" fill="#FBBF24" stroke="#07473C" stroke-width="2.5" stroke-linejoin="round" />
-
-    <!-- Open Book -->
-    <g transform="translate(250, 276)">
-      <path d="M -60 -22 Q -30 -32 0 -20 Q 30 -32 60 -22 V 28 Q 30 18 0 30 Q -30 18 -60 28 Z" fill="#FF6B6B" stroke="#07473C" stroke-width="7" stroke-linejoin="round" />
-      <path d="M -52 -29 Q -26 -38 0 -26 Q 26 -38 52 -29 V 16 Q 26 6 0 18 Q -26 6 -52 16 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-      <line x1="0" y1="-26" x2="0" y2="18" stroke="#07473C" stroke-width="6.5" stroke-linecap="round" />
-      <circle cx="-25" cy="-6" r="8" fill="#FBBF24" stroke="#07473C" stroke-width="4" />
-      <line x1="16" y1="-9" x2="34" y2="-9" stroke="#07473C" stroke-width="5.5" stroke-linecap="round" />
-    </g>
-
-    <!-- Front Wings Holding Book -->
-    <path d="M 152 242 C 144 286, 184 314, 232 302 C 240 288, 230 274, 212 262 C 194 252, 170 238, 152 242 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="7" stroke-linejoin="round" />
-    <path d="M 166 276 C 182 296, 208 302, 230 296 C 232 288, 226 280, 218 276 C 202 280, 182 280, 166 276 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
-    <g transform="translate(500 0) scale(-1 1)">
-      <path d="M 152 242 C 144 286, 184 314, 232 302 C 240 288, 230 274, 212 262 C 194 252, 170 238, 152 242 Z" fill="#FFFFFF" stroke="#07473C" stroke-width="7" stroke-linejoin="round" />
-      <path d="M 166 276 C 182 296, 208 302, 230 296 C 232 288, 226 280, 218 276 C 202 280, 182 280, 166 276 Z" fill="#00937D" stroke="#07473C" stroke-width="6.5" stroke-linejoin="round" />
+    <!-- PECI / SONGKOK TARTILA DI KEPALA ATAS -->
+    <g>
+      <path d="M22 0 H106 L110 31 H18 L22 0 Z" fill="#134E4A" stroke="#134E4A" stroke-width="4.5" stroke-linejoin="round" />
+      <rect x="18" y="24.5" width="92" height="7" rx="2" fill="#F59E0B" stroke="#134E4A" stroke-width="4" />
+      <polygon points="64,6.5 66.6,12 72.8,12.6 68.2,16.5 69.5,22.5 64,19.3 58.5,22.5 59.8,16.5 55.2,12.6 61.4,12" fill="#FEF08A" />
     </g>
   </g>
+
+  <!-- Border Frame Squircle Tegas (Edge-to-Edge) -->
+  <rect x="4" y="4" width="120" height="120" rx="28"  />
 </svg>

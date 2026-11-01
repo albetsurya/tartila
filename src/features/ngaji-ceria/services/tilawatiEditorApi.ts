@@ -2,11 +2,13 @@ import { API_BASE_URL } from "../../../constants";
 import { getToken } from "../../../services/api";
 import type { AudioAsset, PageTimeline, PublishedTimeline } from "../utils/pageTimeline";
 import { timelineQuestions } from "../utils/pageTimeline";
+import type { QuizQuestion } from "../data/tilawatiQuizTypes";
+import { getCachedTimelineEdits, loadTimelineEdits, type TimelineEdit } from "../utils/timelineEditsLoader";
 import { isNgajiCeriaServerAvailable } from "./ngajiCeriaApi";
 
 const root = API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "").replace(/\/+$/, "");
 export interface TimelineDraft { timeline: PageTimeline; updatedAt: number; revision: string }
-export interface EditorPage { clips: AudioAsset[]; published?: PublishedTimeline; revision: string }
+export interface EditorPage { clips: AudioAsset[]; published?: PublishedTimeline | null; revision: string; textLinks?: Record<string, string>; textAdditions?: QuizQuestion[] }
 
 async function request<T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const token = getToken();
@@ -23,6 +25,36 @@ async function request<T>(path: string, body?: unknown, signal?: AbortSignal): P
   return (result.data ?? result) as T;
 }
 
+/** Request ke Backend Go: /api/v1/tilawati/timeline/:jilid/:page (GET baca, POST simpan). */
+async function timelineRequest<T>(jilid: number, page: number, body?: unknown, signal?: AbortSignal): Promise<T> {
+  const token = getToken();
+  const response = await fetch(`${root}/api/v1/tilawati/timeline/${jilid}/${page}`, {
+    method: body === undefined ? "GET" : "POST", cache: "no-store", signal,
+    headers: { ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!response.headers.get("content-type")?.includes("application/json")) {
+    throw new Error("API timeline tidak tersedia.");
+  }
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || (response.status === 401 || response.status === 403
+      ? "Sesi berakhir atau role tidak diizinkan menyimpan timeline."
+      : "Gagal menyimpan timeline."));
+  }
+  return ((result.data ?? result) ?? {}) as T;
+}
+
+/** Simpan sebagian TimelineEdit (layout/teks). Server merge: published.timeline.clips tidak ikut hilang. */
+export function saveTimelineEdit(
+  jilid: number,
+  page: number,
+  edit: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<unknown> {
+  return timelineRequest(jilid, page, edit, signal);
+}
+
 const published = new Map<string, { value: PublishedTimeline | null; at: number }>();
 const pending = new Map<string, Promise<PublishedTimeline | null>>();
 export function invalidatePublishedTimeline(jilid: number, page: number) {
@@ -31,29 +63,91 @@ export function invalidatePublishedTimeline(jilid: number, page: number) {
 }
 
 export async function getPublishedTimeline(jilid: number, page: number): Promise<PublishedTimeline | null> {
-  if (!isNgajiCeriaServerAvailable()) return null;
   const key = `${jilid}:${page}`;
   const cached = published.get(key);
   if (cached && Date.now() - cached.at < 60_000) return cached.value;
   if (pending.has(key)) return pending.get(key)!;
-  const job = request<{ published: PublishedTimeline | null }>(`published?jilid=${jilid}&hal=${page}`)
-    .then(({ published: value }) => {
+  const job = (async () => {
+    try {
+      const edit = await timelineRequest<TimelineEdit>(jilid, page);
+      const value = edit.published ?? null;
       if (value) value.questions = timelineQuestions(value.timeline);
       published.set(key, { value, at: Date.now() });
       return value;
-    }).finally(() => pending.delete(key));
+    } catch {
+      // Fallback lokal jika API server/cloud tidak aktif
+      const edits = getCachedTimelineEdits() ?? (await loadTimelineEdits().catch(() => null));
+      const localPub = edits?.[key]?.published ?? null;
+      if (localPub && (!localPub.questions || localPub.questions.length === 0) && localPub.timeline) {
+        localPub.questions = timelineQuestions(localPub.timeline);
+      }
+      published.set(key, { value: localPub, at: Date.now() });
+      return localPub;
+    } finally {
+      pending.delete(key);
+    }
+  })();
   pending.set(key, job);
   return job;
 }
 
+/** AudioAsset master dari timeline published (sumber per segmen, bukan output render). */
+function assetsFromTimeline(timeline: PageTimeline): AudioAsset[] {
+  const byUrl = new Map<string, AudioAsset>();
+  for (const clip of timeline.clips) {
+    for (const segment of clip.segments) {
+      const duration = segment.end - segment.start;
+      const existing = byUrl.get(segment.sourceUrl);
+      if (!existing || existing.duration < duration) {
+        byUrl.set(segment.sourceUrl, {
+          audioUrl: segment.sourceUrl,
+          filename: clip.label || segment.sourceUrl.split("/").pop() || `${segment.sourceUrl}`,
+          duration,
+          type: clip.kind,
+        });
+      }
+    }
+  }
+  return [...byUrl.values()];
+}
+
 export const tilawatiEditorApi = {
-  list: (jilid: number, page: number, signal?: AbortSignal) => request<EditorPage>(`list?jilid=${jilid}&hal=${page}`, undefined, signal),
+  list: async (jilid: number, page: number, signal?: AbortSignal): Promise<EditorPage> => {
+    const edit = await timelineRequest<TimelineEdit>(jilid, page, undefined, signal);
+    const published = edit.published ?? null;
+    if (published) {
+      if (!published.questions || published.questions.length === 0) {
+        published.questions = timelineQuestions(published.timeline);
+      }
+      return {
+        clips: assetsFromTimeline(published.timeline),
+        published,
+        revision: published.revision || "",
+        textLinks: edit.textLinks || {},
+        textAdditions: edit.textAdditions || [],
+      };
+    }
+    // Halaman belum pernah diedit: baseline berupa file fisik via plugin dev.
+    let legacyClips: AudioAsset[] = [];
+    try {
+      legacyClips = (await request<EditorPage>(`list?jilid=${jilid}&hal=${page}`, undefined, signal)).clips;
+    } catch {
+      // Baseline aset tidak tersedia (tanpa plugin dev). Editor tetap terbuka.
+    }
+    return { clips: legacyClips, published: null, revision: "", textLinks: edit.textLinks || {}, textAdditions: edit.textAdditions || [] };
+  },
   getDraft: (jilid: number, page: number, signal?: AbortSignal) => request<{ draft: TimelineDraft | null }>(`draft?jilid=${jilid}&hal=${page}`, undefined, signal),
   saveDraft: (jilid: number, page: number, draft: TimelineDraft, signal?: AbortSignal) => request<{ draft: TimelineDraft }>("draft-save", { jilid, page, ...draft }, signal),
   publish: async (jilid: number, page: number, timeline: PageTimeline, expectedRevision: string) => {
-    const result = await request<EditorPage>("publish", { jilid, page, timeline, expectedRevision });
+    const published: PublishedTimeline = {
+      timeline,
+      questions: timelineQuestions(timeline),
+      revision: expectedRevision,
+    };
+    const edit = await timelineRequest<TimelineEdit>(jilid, page, { published });
+    const result = edit.published ?? published;
     invalidatePublishedTimeline(jilid, page);
-    return result;
+    return { published: result, clips: assetsFromTimeline(result.timeline), revision: result.revision } as EditorPage;
   },
 };
 

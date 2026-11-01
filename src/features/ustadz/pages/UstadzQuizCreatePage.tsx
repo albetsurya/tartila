@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { InputField } from "@/components/ui/InputField";
+import { ArrowLeft, Plus, Trash2 } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ALL_MATERI_POKOK,
@@ -30,7 +31,10 @@ const JILID_OPTIONS: JilidNumber[] = [1, 2, 3, 4, 5];
 
 export function UstadzQuizCreatePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMember = location.pathname.startsWith("/member/ngaji-ceria");
   const { user } = useAuth();
+
   const [rooms, setRooms] = useState<ClassroomRoom[]>([]);
   const [title, setTitle] = useState("");
   const [materi, setMateri] = useState<MateriPokok>("hijaiyah");
@@ -42,6 +46,9 @@ export function UstadzQuizCreatePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
+  // Ref untuk Auto-Scroll
+  const questionsEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const load = async () => {
       const owned = await listOwnedClassrooms(user?.id);
@@ -49,6 +56,15 @@ export function UstadzQuizCreatePage() {
     };
     void load();
   }, [user?.id]);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      questionsEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 100);
+  };
 
   const updateQuestion = (
     index: number,
@@ -59,7 +75,13 @@ export function UstadzQuizCreatePage() {
       const next = [...prev];
       const current = { ...next[index] };
       if (field === "prompt") current.prompt = value as string;
-      else current.options = [...(value as string[])] as [string, string, string, string];
+      else
+        current.options = [...(value as string[])] as [
+          string,
+          string,
+          string,
+          string,
+        ];
       next[index] = current;
       return next;
     });
@@ -70,6 +92,7 @@ export function UstadzQuizCreatePage() {
       ...prev,
       { prompt: "", options: ["", "", "", ""], answerIndex: 0 },
     ]);
+    scrollToBottom();
   };
 
   const removeQuestion = (index: number) => {
@@ -99,170 +122,252 @@ export function UstadzQuizCreatePage() {
     const result = await createQuiz(draft(), user?.id ?? "anon");
     setSaving(false);
     if (result.ok) {
-      navigate("/ustadz/kuis");
+      if (isMember) {
+        navigate("/arena/create", {
+          state: { selectedCustomQuizId: result.quiz?.id },
+        });
+      } else {
+        navigate("/ustadz/kuis");
+      }
     } else {
       setErrors(result.errors);
     }
   };
 
   return (
-    <>
-      <div className="w-full max-w-3xl space-y-4">
-        <StickerCard className="space-y-3 p-4">
+    <div
+      className={
+        isMember
+          ? "min-h-screen bg-[#F8FAFC] p-4 md:p-6"
+          : "w-full max-w-3xl mx-auto pb-10"
+      }
+    >
+      <div className="space-y-5">
+        {/* Header navigation */}
+        <div className="flex items-center gap-3">
           <div>
-            <label className="text-xs font-black uppercase text-[#134E4A]/70">
-              Judul Kuis
-            </label>
-            <InputField
-              placeholder="Mis. Pengenalan Harakat Dasar"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-black uppercase text-[#134E4A]/70">
-              Materi
-            </label>
-            <select
-              className="mt-1 w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2 text-xs font-black text-[#134E4A]"
-              value={materi}
-              onChange={(e) => setMateri(e.target.value as MateriPokok)}
-            >
-              {ALL_MATERI_POKOK.map((item) => (
-                <option key={item} value={item}>
-                  {MATERI_LABELS[item]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs font-black uppercase text-[#134E4A]/70">
-              Target Jilid (opsional)
-            </label>
-            <select
-              className="mt-1 w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2 text-xs font-black text-[#134E4A]"
-              value={targetJilid ?? ""}
-              onChange={(e) =>
-                setTargetJilid(
-                  e.target.value === "" ? null : (Number(e.target.value) as JilidNumber),
-                )
-              }
-            >
-              <option value="">Tanpa target jilid</option>
-              {JILID_OPTIONS.map((jilid) => (
-                <option key={jilid} value={jilid}>
-                  Jilid {jilid}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs font-black uppercase text-[#134E4A]/70">
-              Tugaskan ke kelas (opsional)
-            </label>
-            <select
-              className="mt-1 w-full rounded-xl border-2 border-[#134E4A] bg-white px-3 py-2 text-xs font-black text-[#134E4A]"
-              value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-            >
-              <option value="">Simpan di bank pribadi</option>
-              {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-[11px] font-semibold text-[#134E4A]/60">
-              Jika dipilih, kuis muncul di kelas santri pada halaman kelas.
+            <h1 className="text-xl font-black text-[#134E4A] tracking-tight">
+              {isMember ? "Buat Kuis Arena" : "Buat Kuis Baru"}
+            </h1>
+            <p className="text-xs font-semibold text-[#183B38]/70">
+              {isMember
+                ? "Rancang soal untuk dimainkan bersama teman"
+                : "Rancang instrumen evaluasi materi untuk santri"}
             </p>
           </div>
+        </div>
+
+        {/* Section 1: Informasi Kuis */}
+        <StickerCard
+          variant="elevated"
+          className="p-5 md:p-6 space-y-4 bg-white border-[3px] border-[#134E4A] shadow-[4px_4px_0px_#134E4A]"
+        >
+          <div className="mb-2 border-b-[3px] border-[#0D9488] pb-2">
+            <h2 className="text-sm font-black uppercase tracking-widest text-[#134E4A]">
+              Pengaturan Kuis
+            </h2>
+          </div>
+
+          <InputField
+            label="Judul Kuis"
+            placeholder="Contoh: Pengenalan Huruf Hijaiyah"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="bg-[#F8FAFC]"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-[#183B38] mb-1.5">
+                Kategori Materi
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none"
+                value={materi}
+                onChange={(e) => setMateri(e.target.value as MateriPokok)}
+              >
+                {ALL_MATERI_POKOK.map((item) => (
+                  <option key={item} value={item}>
+                    {MATERI_LABELS[item]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#183B38] mb-1.5">
+                Target Jilid
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none"
+                value={targetJilid ?? ""}
+                onChange={(e) =>
+                  setTargetJilid(
+                    e.target.value === ""
+                      ? null
+                      : (Number(e.target.value) as JilidNumber),
+                  )
+                }
+              >
+                <option value="">Umum (Tanpa Jilid)</option>
+                {JILID_OPTIONS.map((jilid) => (
+                  <option key={jilid} value={jilid}>
+                    Jilid {jilid}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {!isMember && (
+            <div>
+              <label className="block text-xs font-bold text-[#183B38] mb-1.5">
+                Tugaskan ke Kelas
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border-2 border-[#134E4A] bg-[#F8FAFC] px-3 text-xs font-black text-[#183B38] shadow-[2px_2px_0px_#134E4A] focus:outline-none"
+                value={roomId}
+                onChange={(e) => setRoomId(e.target.value)}
+              >
+                <option value="">Simpan di Bank Kuis Pribadi</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.name} (Jilid {room.targetJilid})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </StickerCard>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-black text-[#134E4A]">
-              Pertanyaan ({questions.length})
+        {/* Section 2: Pertanyaan */}
+        <div className="space-y-4">
+          <div className="mb-2 flex items-center justify-between border-b-[3px] border-[#F59E0B] pb-2">
+            <h2 className="text-sm font-black uppercase tracking-widest text-[#134E4A]">
+              Daftar Soal ({questions.length})
             </h2>
-            <StickerButton variant="secondary" size="sm" onClick={addQuestion}>
-              + Tambah
+            <StickerButton variant="outline" size="sm" onClick={addQuestion}>
+              <Plus size={14} className="mr-1" /> Tambah
             </StickerButton>
           </div>
 
           {questions.map((question, index) => (
-            <StickerCard key={index} className="space-y-2 p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-black text-[#134E4A]">
-                  Soal {index + 1}
-                </p>
-                <StickerButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeQuestion(index)}
-                >
-                  Hapus
-                </StickerButton>
+            <StickerCard
+              key={index}
+              variant="elevated"
+              className="p-4 sm:p-5 space-y-4 bg-white border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+            >
+              <div className="flex items-center justify-between border-b-2 border-dashed border-[#134E4A]/20 pb-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#134E4A] text-[10px] font-black text-white">
+                  {index + 1}
+                </span>
+                {questions.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeQuestion(index)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-[#EF4444] hover:underline"
+                  >
+                    <Trash2 size={12} /> Hapus
+                  </button>
+                )}
               </div>
+
               <InputField
-                placeholder="Teks pertanyaan"
+                placeholder="Tuliskan teks pertanyaan di sini..."
                 value={question.prompt}
-                onChange={(e) => updateQuestion(index, "prompt", e.target.value)}
+                onChange={(e) =>
+                  updateQuestion(index, "prompt", e.target.value)
+                }
+                className="bg-[#F8FAFC] font-bold"
               />
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {question.options.map((option, optionIndex) => (
-                  <div key={optionIndex} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={`answer-${index}`}
-                      className="h-4 w-4 accent-[#0D9488]"
-                      checked={question.answerIndex === optionIndex}
-                      onChange={() => {
-                        setQuestions((prev) => {
-                          const copy = [...prev];
-                          copy[index] = { ...copy[index], answerIndex: optionIndex };
-                          return copy;
-                        });
-                      }}
-                    />
-                    <InputField
-                      placeholder={`Pilihan ${optionIndex + 1}`}
-                      value={question.options[optionIndex]}
-                      onChange={(e) => {
-                        const next = [...question.options] as [string, string, string, string];
-                        next[optionIndex] = e.target.value;
-                        updateQuestion(index, "options", next);
-                      }}
-                    />
-                  </div>
-                ))}
+
+              <div>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                  Pilih jawaban yang benar:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {question.options.map((option, optionIndex) => {
+                    const isCorrect = question.answerIndex === optionIndex;
+                    return (
+                      <div
+                        key={optionIndex}
+                        onClick={() => {
+                          setQuestions((prev) => {
+                            const copy = [...prev];
+                            copy[index] = {
+                              ...copy[index],
+                              answerIndex: optionIndex,
+                            };
+                            return copy;
+                          });
+                        }}
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-lg border-2 p-2 transition-all ${
+                          isCorrect
+                            ? "border-[#0D9488] bg-[#CCFBF1] shadow-[1.5px_1.5px_0_#0D9488]"
+                            : "border-[#134E4A]/30 bg-[#F8FAFC] hover:border-[#134E4A]"
+                        }`}
+                      >
+                        <div
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${isCorrect ? "border-[#0D9488] bg-[#0D9488]" : "border-[#CBD5E1] bg-white"}`}
+                        >
+                          {isCorrect && (
+                            <div className="h-2 w-2 rounded-full bg-white" />
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          className={`flex-1 bg-transparent text-xs font-bold focus:outline-none ${isCorrect ? "text-[#134E4A]" : "text-[#64748B]"}`}
+                          placeholder={`Pilihan ${String.fromCharCode(65 + optionIndex)}`}
+                          value={question.options[optionIndex]}
+                          onChange={(e) => {
+                            const next = [...question.options] as [
+                              string,
+                              string,
+                              string,
+                              string,
+                            ];
+                            next[optionIndex] = e.target.value;
+                            updateQuestion(index, "options", next);
+                          }}
+                          onClick={(e) => e.stopPropagation()} // Mencegah klik input memicu pilih radio
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="text-[10px] font-semibold text-[#134E4A]/60">
-                Klik ikon radio pada pilihan yang benar (opsi ke-{" "}
-                {question.answerIndex + 1}).
-              </p>
             </StickerCard>
           ))}
 
-          <StickerButton
-            className="w-full"
-            loading={saving}
-            disabled={!title || questions.length === 0}
-            onClick={handleSave}
-          >
-            Simpan Kuis
-          </StickerButton>
+          {/* Ref untuk Auto-scroll */}
+          <div ref={questionsEndRef} className="h-4" />
 
           {errors.length > 0 && (
-            <ul className="rounded-xl border-2 border-[#FF6B6B] bg-[#FFF0F0] p-2 text-[10px] font-bold text-[#7C2D12]">
-              {errors.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
+            <div className="rounded-xl border-2 border-[#EF4444] bg-[#FEF2F2] p-4 text-xs font-bold text-[#991B1B] shadow-[2px_2px_0px_#EF4444]">
+              <p className="font-black mb-1">Mohon perbaiki:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                {errors.map((error, idx) => (
+                  <li key={idx}>{error}</li>
+                ))}
+              </ul>
+            </div>
           )}
+
+          <div className="sticky bottom-4 pt-2">
+            <StickerButton
+              variant="primary"
+              size="lg"
+              className="w-full shadow-[4px_4px_0px_#134E4A]"
+              loading={saving}
+              disabled={!title || questions.length === 0}
+              onClick={handleSave}
+            >
+              Simpan & Terbitkan Kuis
+            </StickerButton>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

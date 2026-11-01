@@ -10,6 +10,7 @@ import { useEconomyStore } from "../hooks/useEconomyStore";
 import { getMascotName, resolveMascotGender } from "@/utils/mascotHelper";
 import { SparklesSvg, GamepadSvg, StarSvg } from "@/components/ui/CustomIcons";
 import { TartilaLogoSvg } from "@/components/ui/TartilaLogo";
+import { soundManager } from "../services/soundManager";
 
 const TIPS = [
   "Awali belajar membaca Al-Qur'an dengan bacaan Ta'awudz & Basmalah.",
@@ -42,6 +43,7 @@ export function CeriaGameLoading({
   const mascotName = getMascotName(mascotGender);
 
   useEffect(() => {
+    soundManager.playSfx("game-start");
     const startTime = Date.now();
     let completionTimer: number | undefined;
     const interval = setInterval(() => {

@@ -23,16 +23,22 @@ export function buildDragGhost(info: GhostInfo): HTMLDivElement {
   const ghost = document.createElement("div");
   ghost.className = `te-drag-ghost${info.toneClass ? ` ${info.toneClass}` : ""}`;
 
-  const wave = document.createElement("div");
-  wave.className = "te-drag-ghost-wave";
-  wave.setAttribute("aria-hidden", "true");
-  ghost.appendChild(wave);
+  if (info.variant !== "text") {
+    const wave = document.createElement("div");
+    wave.className = "te-drag-ghost-wave";
+    wave.setAttribute("aria-hidden", "true");
+    ghost.appendChild(wave);
+  }
 
   const body = document.createElement("div");
   body.className = "te-drag-ghost-body";
 
   const title = document.createElement("strong");
   title.textContent = info.title;
+  if (info.variant === "text") {
+    title.className = "te-arabic";
+    title.dir = "rtl";
+  }
   body.appendChild(title);
 
   if (info.sub) {
@@ -52,13 +58,42 @@ export function buildDragGhost(info: GhostInfo): HTMLDivElement {
   return ghost;
 }
 
-/** Membersihkan sisa ghost dari sesi yang gagal cleanup (lebih tua dari batas). */
-export function purgeStrayGhosts(maxAgeMs = 30000) {
-  const now = Date.now();
-  document.querySelectorAll(".te-drag-ghost").forEach((el) => {
-    const t0 = Number((el as HTMLElement).dataset.t0 || 0);
-    if (!t0 || now - t0 > maxAgeMs) el.remove();
-  });
+/** Membersihkan seluruh sisa ghost dari DOM secara instan. */
+export function purgeStrayGhosts() {
+  document.querySelectorAll(".te-drag-ghost").forEach((el) => el.remove());
+}
+
+/**
+ * Menyiapkan ghost drag kustom untuk HTML5 native DnD via setDragImage.
+ * Mencegah ghost ganda dan memastikan ghost selalu muncul di Chromium/Linux.
+ */
+export function attachDragImage(
+  event: React.DragEvent,
+  info: GhostInfo,
+): HTMLElement {
+  purgeStrayGhosts();
+  const ghost = buildDragGhost(info);
+  // Posisikan di dalam viewport tetapi di belakang background agar browser
+  // dapat merender raster tile snapshot sebelum drag dimulai.
+  ghost.style.position = "fixed";
+  ghost.style.left = "0px";
+  ghost.style.top = "0px";
+  ghost.style.zIndex = "-9999";
+  ghost.style.pointerEvents = "none";
+  document.body.appendChild(ghost);
+
+  const w = ghost.offsetWidth || 184;
+  const h = ghost.offsetHeight || 60;
+  const offsetX = Math.round(w / 2);
+  const offsetY = Math.round(h / 2);
+
+  try {
+    event.dataTransfer.setDragImage(ghost, offsetX, offsetY);
+  } catch {
+    /* fallback jika browser tidak mengizinkan setDragImage */
+  }
+
+  return ghost;
 }
 
 /**
@@ -106,11 +141,20 @@ export function startTouchEdgeScroll(
  * Menempelkan ghost tepat di titik pointer (tengah ghost = titik sentuh),
  * dijepit agar tidak keluar layar.
  */
-export function placeGhostOnPoint(ghost: HTMLElement, clientX: number, clientY: number) {
+export function placeGhostOnPoint(
+  ghost: HTMLElement,
+  clientX: number,
+  clientY: number,
+) {
   placeGhostWithSize(ghost, clientX, clientY);
 }
 
-function placeGhostWithSize(ghost: HTMLElement, clientX: number, clientY: number, size?: { w: number; h: number }) {
+function placeGhostWithSize(
+  ghost: HTMLElement,
+  clientX: number,
+  clientY: number,
+  size?: { w: number; h: number },
+) {
   const w = size?.w || ghost.offsetWidth || 184;
   const h = size?.h || ghost.offsetHeight || 84;
   const margin = 8;
@@ -120,61 +164,15 @@ function placeGhostWithSize(ghost: HTMLElement, clientX: number, clientY: number
   ghost.style.top = `${Math.min(Math.max(clientY - h / 2, margin), maxY)}px`;
 }
 
-let pixel: HTMLCanvasElement | null = null;
-
-/** Piksel transparan 1x1 sebagai gambar drag bawaan OS (disembunyikan). */
-export function transparentDragPixel(): HTMLCanvasElement {
-  if (!pixel) {
-    pixel = document.createElement("canvas");
-    pixel.width = 1;
-    pixel.height = 1;
-  }
-  return pixel;
-}
-
-let stopActiveFollow: (() => void) | null = null;
-
-/**
- * Menggerakkan ghost mengikuti pointer selama drag mouse.
- * Lebih presisi daripada hotspot setDragImage yang meleset di sebagian
- * Chromium desktop (fractional display scaling / page zoom).
- * Berhenti dan membersihkan diri saat dragend / drop.
- */
-export function followPointerWithGhost(ghost: HTMLElement, startX: number, startY: number) {
-  stopActiveFollow?.();
-  ghost.classList.add("is-follow");
-  placeGhostWithSize(ghost, startX, startY);
-  // Ukur sekali agar handler dragover tidak memicu reflow berulang.
-  const size = { w: ghost.offsetWidth || 184, h: ghost.offsetHeight || 84 };
-  const move = (e: DragEvent) => {
-    if (e.clientX === 0 && e.clientY === 0) return;
-    placeGhostWithSize(ghost, e.clientX, e.clientY, size);
-  };
-  const stop = () => {
-    document.removeEventListener("dragover", move);
-    // Capture phase: handler drop React memanggil stopPropagation sehingga
-    // listener bubble tidak pernah sampai. Selain itu node sumber bisa sudah
-    // dilepas React sebelum dragend bubble.
-    document.removeEventListener("dragend", stop, true);
-    document.removeEventListener("drop", stop, true);
-    ghost.remove();
-    if (stopActiveFollow === stop) stopActiveFollow = null;
-  };
-  document.addEventListener("dragover", move);
-  document.addEventListener("dragend", stop, true);
-  document.addEventListener("drop", stop, true);
-  stopActiveFollow = stop;
-}
-
 /** Animasi kilat singkat pada klip yang baru di-drop agar terasa "mendarat". */
-export function flashDroppedClip(clipId: string | null) {  if (!clipId) return;
+export function flashDroppedClip(clipId: string | null) {
+  if (!clipId) return;
   requestAnimationFrame(() => {
     const element = document.querySelector<HTMLElement>(
       `[data-clip-id="${CSS.escape(clipId)}"]`,
     );
     if (!element) return;
     element.classList.remove("te-just-dropped");
-    // Paksa reflow agar animasi bisa diulang untuk drop beruntun.
     void element.offsetWidth;
     element.classList.add("te-just-dropped");
     window.setTimeout(() => element.classList.remove("te-just-dropped"), 650);

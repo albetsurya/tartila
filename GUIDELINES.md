@@ -162,7 +162,7 @@ Sistem ekonomi dan progres game dirancang dengan pola _Dual-Energy_ (Hati untuk 
 
 Tingkatan rank dihitung secara otomatis dari total akumulasi XP pengguna (`getRank(xp)` di `progression.ts`):
 
-| Pangkat (Title)  | Ambang Minimal XP (`minXp`) | XP ke Tingkat Berikutnya (`nextXp`) |
+| Rank (Title)     | Ambang Minimal XP (`minXp`) | XP ke Tingkat Berikutnya (`nextXp`) |
 | :--------------- | :-------------------------- | :---------------------------------- |
 | **Pemula**       | `0 XP`                      | `250 XP`                            |
 | **Penjelajah**   | `250 XP`                    | `700 XP`                            |
@@ -271,14 +271,16 @@ Platform Tartila memiliki arsitektur audio 4 lapis yang bekerja secara harmonis 
 
 ### 4.3 Mekanisme Autoplay Audio pada Kuis (Quiz Engine)
 
-Halaman kuis (`NgajiCeriaQuizPage.tsx` & `QuizEngine.tsx`) memiliki aturan ketat untuk mencegah *looping* dan memastikan audio berjalan sesuai jenis soal.
+Halaman kuis (`NgajiCeriaQuizPage.tsx` & `QuizEngine.tsx`) memiliki aturan ketat untuk mencegah _looping_ dan memastikan audio berjalan sesuai jenis soal.
 
 **A. Aturan Baku (SSOT):**
+
 1. **Semua model soal WAJIB Auto-play** saat pertama kali muncul (di-mount), termasuk Susun Huruf, Pilihan Ganda Teks, dan Pilihan Ganda Audio.
-2. **SATU-SATUNYA pengecualian** adalah model **Audio Matching**. Pada model ini, audio tidak boleh berbunyi otomatis, melainkan harus menunggu *user* mengklik opsi jawaban.
+2. **SATU-SATUNYA pengecualian** adalah model **Audio Matching**. Pada model ini, audio tidak boleh berbunyi otomatis, melainkan harus menunggu _user_ mengklik opsi jawaban.
 
 **B. Mekanisme Teknis Pencegahan Bug:**
-1. **Dependensi `useEffect`:** Efek pemutaran audio di `QuizEngine.tsx` HANYA boleh bergantung pada `[question.id]` atau `[currentIdx]`. 
+
+1. **Dependensi `useEffect`:** Efek pemutaran audio di `QuizEngine.tsx` HANYA boleh bergantung pada `[question.id]` atau `[currentIdx]`.
 2. **Anti Infinite Loop:** JANGOR PERNAH memasukkan fungsi callback (`onPlayAudio`), URL audio, atau state jawaban (seperti `selectedLetters`) ke dalam array dependensi `useEffect`. Fungsi callback wajib dibungkus dengan `useCallback` di komponen induk (`NgajiCeriaQuizPage.tsx`).
 3. **Reset State Antar Soal:** Saat berpindah soal, komponen induk wajib memanggil `tilawatiAudio.stop()` secara eksplisit, dan memberikan `key={question.id}` pada komponen `<QuizEngine />` untuk memaksa React me-reset seluruh state internal kuis agar audio soal baru bisa berputar.
 
@@ -565,15 +567,15 @@ _Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._
 
 ### 14.1 Thematic Palette (Outdoor)
 
-| Theme      | Hex Background      | Hex Border/Shadow   | Notes                        |
-| :--------- | :------------------ | :------------------ | :--------------------------- |
-| Gunung     | `#FFF4E5`           | `#F59E0B` / `#FCD34D` | Sunny highland, amber tones |
-| Savana     | `#DCFCE7`           | `#15803D` / `#86EFAC` | Grassland, emerald green    |
-| Hutan      | `#F0FDF4` (deep)    | `#166534` / `#AFE6A7` | Forest, deep green          |
-| Samudra    | `#E0F2FE`           | `#0284C7` / `#7DD3FC` | Ocean blue, sky tones       |
-| Oase       | `#FDE68A`           | `#B45309` / `#FCD34D` | Desert oasis, warm yellow   |
-| Puncak     | `#F1F5F9`           | `#475569` / `#94A3B8` | Rocky, slate grey           |
-| Sungai     | `#F0FDF4`           | `#134E4A` / `#99F6E4` | Water/clean, emerald deep   |
+| Theme   | Hex Background   | Hex Border/Shadow     | Notes                       |
+| :------ | :--------------- | :-------------------- | :-------------------------- |
+| Gunung  | `#FFF4E5`        | `#F59E0B` / `#FCD34D` | Sunny highland, amber tones |
+| Savana  | `#DCFCE7`        | `#15803D` / `#86EFAC` | Grassland, emerald green    |
+| Hutan   | `#F0FDF4` (deep) | `#166534` / `#AFE6A7` | Forest, deep green          |
+| Samudra | `#E0F2FE`        | `#0284C7` / `#7DD3FC` | Ocean blue, sky tones       |
+| Oase    | `#FDE68A`        | `#B45309` / `#FCD34D` | Desert oasis, warm yellow   |
+| Puncak  | `#F1F5F9`        | `#475569` / `#94A3B8` | Rocky, slate grey           |
+| Sungai  | `#F0FDF4`        | `#134E4A` / `#99F6E4` | Water/clean, emerald deep   |
 
 Rules:
 
@@ -593,4 +595,61 @@ Rules:
 - **JANGAN panggil** `playSfx("correct")` atau `playSfx("wrong")` (serta `soundManager.playSfx("correct"` / `soundManager.playSfx("wrong"`) di file game/kuis yang sudah memakai `AnswerFeedbackSheet`. Sheet sudah memutar suara otomatis; hanya hapus baris panggilan saja, SFX UI lain (misal: `pop`, `tap`) boleh tetap ada.
 - Komponen `AnswerFeedbackSheet` sudah menangani suara, jingle, dan reaksi Bibi; tidak perlu duplikasi efek tersebut.
 
+### 14.4 Mode Latihan vs Mode Ujian (Feedback)
+
+`AnswerFeedbackSheet` WAJIB membedakan dua mode:
+
+- **Mode Latihan (`isRetryable={true}`)**:
+  - Tidak menampilkan kunci jawaban.
+  - Tampilkan tombol "Coba Lagi" yang mengarah ke pertanyaan yang sama.
+  - Hati, koin, dan streak **tidak** terpengaruh.
+- **Mode Ujian (`isRetryable={false}`)**:
+  - Tampilkan **kunci jawaban** (`answerKey`) setelah feedback.
+  - Tampilkan tombol "Lihat Kunci Jawaban" yang mengarah ke penjelasan jawaban.
+  - Hati, koin, dan streak **tidak** terpengaruh (tidak ada XP).
+- **Pola WAJIB**:
+  ```tsx
+  <AnswerFeedbackSheet
+    isOpen={showFeedback}
+    isCorrect={isCorrect}
+    isRetryable={isPracticeMode} // true = Latihan, false = Ujian
+    answerKey={isPracticeMode ? undefined : explanation}
+    onNext={handleNext}
+    onRetry={handleRetry}
+  />
+  ```
+- **PENTING**: `isRetryable={true}` hanya boleh digunakan di Mode Latihan. `isRetryable={false}` + `answerKey` hanya boleh digunakan di Mode Ujian.
+
 ---
+
+## 15. Global Leaderboard
+
+- **Frontend dilarang melakukan JOIN langsung ke tabel `users`.** Arsitektur harus tetap dipisah: `users` ada di backend SQLite Go, Supabase hanya menyediakan API RPC.
+- Skor disimpan di tabel `quiz_attempts` dengan kolom `nickname` (denormalisasi). Ini agar leaderboard bisa dibaca tanpa JOIN dengan `users`.
+- Pembacaan peringkat (fetch leaderboard) **wajib melalui RPC** `get_leaderboard_for_game(p_game_id, p_period, p_limit)`. Fungsi ini menggunakan `SECURITY DEFINER` sehingga frontend dengan anon key bisa membaca tanpa akses langsung ke tabel.
+
+Key points for the leaderboard architecture:
+
+1. **No direct join**: `get_leaderboard_for_game` only selects from `quiz_attempts`. Never join `users` in the frontend or in the RPC (unless Supabase side with a proper view).
+2. **nickname denormalization**: Each row in `quiz_attempts` stores `nickname` directly. This means the same user may have different nicknames over time, but the leaderboard stays readable without user table access.
+3. **Upsert on submission**: `submitScore(gameId, score, userId, nickname)` uses `.upsert({...}, { onConflict: 'user_id, game_id' })` so a user plays the same game multiple times without creating duplicate rows.
+4. **Display**: `LeaderboardList` calls `fetchGlobalLeaderboard(gameId, period)` which prefers the REST fallback and falls back to the Supabase RPC. Loading, error, and empty states must always be handled.
+
+---
+
+## 16. Multiplayer State Machine
+
+- State machine wajib mengikuti pola Kahoot: `COUNTDOWN` -> `QUESTION_ACTIVE` -> `REVEAL_ANSWER` -> `LEADERBOARD`.
+- Setiap transisi dari state harus terjadi secara eksplisit (tidak mengizinkan skip fase tanpa event).
+- Gunakan `MultiplayerSetupSheet` untuk input nama & avatar sebelum memasuki sesi. Pastikan `useBotSimulator` (khusus `superadmin`) digunakan untuk QA tanpa memengaruhi scoring production.
+- Bypass bot sim hanya berlaku untuk `superadmin`. User biasa wajib dilalui lewat `MultiplayerSetupSheet`.
+
+---
+
+## 17. Feedback & Answer Logic
+
+_(Dokumen ini masih dikembangkan. Lihat Bab 14.4 untuk detail mode latihan vs ujian.)_
+
+---
+
+_Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._

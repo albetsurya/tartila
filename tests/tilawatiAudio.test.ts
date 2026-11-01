@@ -69,4 +69,40 @@ export const tests = {
     const filePath = path.join(publicAudioDir, res.url);
     assert.ok(fs.existsSync(filePath), `File audio harus ada di public: ${filePath}`);
   },
+
+  'resolveTilawatiAudio falls back to Arabic matching when question.id is missing': () => {
+    // Test resolution when question has no id, but arabic is provided
+    const res = resolveTilawatiAudio({
+      jilid: 1,
+      pageNumber: 1,
+      questionIndex: 0,
+      arabic: 'اَ بَ',
+    });
+
+    assert.ok(res.url, 'URL audio harus teresolusi');
+    assert.ok(
+      res.url.includes('editor_'),
+      `Audio yang teresolusi harus merupakan klip editor, got: ${res.url}`,
+    );
+    assert.equal(res.source, 'timeline', 'Sumber harus timeline');
+    const filePath = path.join(publicAudioDir, res.url);
+    assert.ok(fs.existsSync(filePath), `File audio harus ada di public: ${filePath}`);
+  },
+
+  'resolveTilawatiAudio works with questionIndex only': () => {
+    // Test resolution when neither question nor arabic is given (e.g. play page header)
+    const res = resolveTilawatiAudio({
+      jilid: 1,
+      pageNumber: 1,
+      questionIndex: 0,
+    });
+
+    assert.ok(res.url, 'URL audio harus teresolusi');
+    assert.ok(
+      res.url.includes('editor_'),
+      `Audio yang teresolusi harus merupakan klip editor, got: ${res.url}`,
+    );
+    const filePath = path.join(publicAudioDir, res.url);
+    assert.ok(fs.existsSync(filePath), `File audio harus ada di public: ${filePath}`);
+  },
 };

@@ -19,7 +19,8 @@ export interface MultiplayerProfile {
 export interface AvatarOption {
   id: string;
   gender: "boy" | "girl";
-  accessory: string;
+  accessory?: string;
+  variant?: 1 | 2 | 3;
 }
 
 export const AVATAR_OPTIONS: readonly AvatarOption[] = [
@@ -31,10 +32,41 @@ export const AVATAR_OPTIONS: readonly AvatarOption[] = [
   { id: "girl-scarf", gender: "girl", accessory: "scarf" },
 ];
 
+/** Parse avatarId yang berformat `boy-1`, `boy-2`, ..., `girl-3` (atau accessory). */
+export function parseAvatarId(avatarId: string): {
+  gender: "boy" | "girl";
+  variant: 1 | 2 | 3;
+  accessory?: string;
+} {
+  const exact = AVATAR_OPTIONS.find((opt) => opt.id === avatarId);
+  if (exact) {
+    return {
+      gender: exact.gender,
+      variant: exact.variant ?? 1,
+      accessory: exact.accessory,
+    };
+  }
+
+  const parts = avatarId.split("-");
+  const gender: "boy" | "girl" = parts[0] === "girl" ? "girl" : "boy";
+  const num = parseInt(parts[1], 10);
+  const variant: 1 | 2 | 3 = num === 1 || num === 2 || num === 3 ? (num as 1 | 2 | 3) : 1;
+  // Jika bagian setelah gender bukan angka, anggap accessory (misal "boy-peci")
+  const accessory = isNaN(num) && parts[1] ? parts[1] : undefined;
+
+  return { gender, variant, accessory };
+}
+
 export function getAvatarOption(avatarId: string): AvatarOption {
-  return (
-    AVATAR_OPTIONS.find((option) => option.id === avatarId) ?? AVATAR_OPTIONS[0]
-  );
+  const exact = AVATAR_OPTIONS.find((option) => option.id === avatarId);
+  if (exact) return exact;
+  const parsed = parseAvatarId(avatarId);
+  return {
+    id: avatarId,
+    gender: parsed.gender,
+    variant: parsed.variant,
+    accessory: parsed.accessory,
+  };
 }
 
 /** Avatar SVG sesuai profil tersimpan; fallback opsi pertama. */
@@ -49,7 +81,8 @@ export function MultiplayerAvatar({
   return (
     <AvatarSantriSvg
       gender={option.gender}
-      accessory={option.accessory}
+      variant={option.variant ?? 1}
+      accessory={option.accessory ?? "none"}
       mood="happy"
       size={size}
     />
@@ -91,15 +124,18 @@ export interface MultiplayerSetupSheetProps {
   /** Nama awal, biasanya nama user yang sedang login. */
   defaultName?: string;
   onSave: (profile: MultiplayerProfile) => void;
+  onClose?: () => void;
 }
 
 export function MultiplayerSetupSheet({
   isOpen,
   defaultName,
   onSave,
+  onClose,
 }: MultiplayerSetupSheetProps) {
-  const [name, setName] = useState((defaultName ?? "").slice(0, 12));
-  const [avatarId, setAvatarId] = useState(getAvatarOption("").id);
+  // State lokal di-isolasi sepenuhnya dari parent render
+  const [name, setName] = useState(() => (defaultName ?? "").slice(0, 12));
+  const [avatarId, setAvatarId] = useState(() => getAvatarOption("").id);
 
   const trimmed = name.trim();
   const canContinue = trimmed.length > 0;
@@ -111,8 +147,21 @@ export function MultiplayerSetupSheet({
     onSave(profile);
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      // Fallback jika parent tidak menyediakan onClose:
+      // Simpan profil default / saat ini agar sheet tertutup dan tidak stuck
+      const fallbackName = trimmed.length > 0 ? trimmed : (defaultName || "Santri").slice(0, 12);
+      const profile = { displayName: fallbackName, avatarId };
+      saveMultiplayerProfile(profile);
+      onSave(profile);
+    }
+  };
+
   return (
-    <AppBottomSheet isOpen={isOpen} onClose={() => {}} title="Profil Multiplayer">
+    <AppBottomSheet isOpen={isOpen} onClose={handleClose} title="Profil Multiplayer">
       <div className="pb-2">
         <p className="text-sm font-bold text-[#134E4A]/80">
           Kenalkan dirimu ke teman sepermainan!
@@ -132,6 +181,9 @@ export function MultiplayerSetupSheet({
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 12))}
           placeholder="Maks 12 karakter"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
           className="mt-1.5 w-full rounded-xl border-[3px] border-[#134E4A] bg-white px-4 py-3 font-display text-base font-black text-[#134E4A] placeholder:font-bold placeholder:text-[#134E4A]/30 focus:outline-none focus:bg-[#F0FDF4] cursor-text"
         />
         <p className="mt-1 text-right text-[10px] font-bold text-[#134E4A]/50">

@@ -1,18 +1,15 @@
 import React, { ReactNode, useEffect, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { NgajiCeriaBottomNav } from "./NgajiCeriaBottomNav";
 import { RewardChestModal } from "./RewardChestModal";
+import { OutOfEnergyModal } from "./OutOfEnergyModal";
 import { useEconomyStore, isUnlimitedUser } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeRole, isUstadzUser } from "@/lib/roles";
 import { getRank, useNgajiProgress } from "../pages/games/_shared/progression";
 import { ProgressionNotice } from "./ProgressionNotice";
 import { soundManager } from "../services/soundManager";
-import {
-  TilaCompanion,
-  type PageTipConfig,
-} from "../../../components/ui/TilaCompanion";
 import { TartilaFaviconSvg } from "../../../components/ui/TartilaLogo";
 import {
   TicketSvg,
@@ -26,10 +23,7 @@ import {
 } from "../../../components/ui/JuicyIcons";
 import { NotificationBell } from "../../../components/ui/NotificationBell";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
-import { pageVariants } from "@/lib/animationVariants";
 import type { NotificationRole } from "@/services/notificationService";
-
-export type { PageTipConfig };
 
 export type ImmersiveRealm =
   | "juz-amma"
@@ -61,18 +55,97 @@ const MAIN_TABS = [
   "/member/ngaji-ceria/profile",
 ];
 
+export type HeaderBadgeKind = "heart" | "ticket" | "xp" | "coin";
+
+export type PageTipConfig = {
+  jilid: number;
+  hal: number;
+  onOpenGuide: () => void;
+  onTipStateChange?: (state: { visible: boolean; hasAppeared: boolean }) => void;
+  guideButtonRef?: React.RefObject<HTMLElement | null>;
+};
+
+export function getHeaderBadgesForPath(pathname: string): HeaderBadgeKind[] {
+  const path = pathname.replace(/\/$/, "");
+
+  // Halaman Utama Beranda: Sembunyikan XP (ada di hero section)
+  if (path === "/member/ngaji-ceria" || path === "/member/ngaji-ceria/") {
+    return ["heart", "ticket", "coin"];
+  }
+
+  // Warung Santri: Koin -> Hati -> Tiket -> XP
+  if (path.includes("/warung-santri") || path.includes("/warung")) {
+    return ["coin", "heart", "ticket", "xp"];
+  }
+
+  // Kelas Saya (akademik/belajar): Hati
+  if (
+    path.startsWith("/member/ngaji-ceria/kelas") ||
+    path.startsWith("/member/ngaji-ceria/kelas/")
+  ) {
+    return ["heart", "coin", "xp"];
+  }
+
+  // Quiz Hub (tanpa Hati, dengan XP)
+  if (path.startsWith("/quiz-hub") || path.includes("/quiz-hub")) {
+    return ["ticket", "coin", "xp"];
+  }
+
+  // Quiz lain (tanpa Arena, tidak perlu XP)
+  if (path.includes("/quiz")) {
+    return ["ticket", "coin"];
+  }
+
+  // Arena (tanpa Hati, dengan XP)
+  if (path.startsWith("/arena") || path.includes("/arena")) {
+    return ["ticket", "coin", "xp"];
+  }
+
+  // Profile / Kamar: Koin -> XP -> Hati -> Tiket
+  if (path.includes("/profile") || path.includes("/kamar")) {
+    return ["coin", "xp", "heart", "ticket"];
+  }
+
+  // Halaman Games (/games/*): Tiket -> Koin -> XP (sembunyikan Hati untuk fokus bermain)
+  if (
+    path.startsWith("/games/") ||
+    path.startsWith("/member/ngaji-ceria/games/")
+  ) {
+    return ["ticket", "coin", "xp"];
+  }
+
+  // HUB Jelajah (/explore/*): Hati -> Koin (sembunyikan Tiket & XP untuk fokus belajar)
+  if (
+    path.startsWith("/explore") ||
+    path.includes("/explore") ||
+    path.includes("/training") ||
+    path.includes("/rhythm-memory") ||
+    path.includes("/arena-kartu") ||
+    path.includes("/path") ||
+    path.includes("/lab-irama")
+  ) {
+    return ["heart", "coin"];
+  }
+
+  // Halaman Utama lain (/member/ngaji-ceria, /map, /games): Tampilkan FULL.
+  // Urutan: Hati -> Tiket -> XP -> Koin
+  return ["heart", "ticket", "xp", "coin"];
+}
+
 interface NgajiCeriaLayoutProps {
   children: ReactNode;
   title?: ReactNode;
   hideNav?: boolean;
   hideHeader?: boolean;
+  hideMascot?: boolean;
   showBack?: boolean;
   onBack?: () => void;
   parentPath?: string;
   rightAction?: ReactNode;
-  pageTip?: PageTipConfig;
   themeScope?: ThemeScope;
   immersiveRealm?: ImmersiveRealm;
+  hideBadges?: boolean;
+  pageTip?: PageTipConfig;
 }
 
 function PageContentFallback() {
@@ -94,12 +167,13 @@ export function NgajiCeriaLayout({
   hideNav = false,
   hideHeader = false,
   showBack = true,
+  hideBadges = false,
   onBack,
   parentPath,
   rightAction,
-  pageTip,
   themeScope = "global",
   immersiveRealm,
+  hideMascot = false,
 }: NgajiCeriaLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -112,6 +186,8 @@ export function NgajiCeriaLayout({
   const tickets = useEconomyStore((s) => s.tickets);
   const isVip = useEconomyStore((s) => s.isVip);
   const syncTime = useEconomyStore((s) => s.syncTime);
+  const outOfEnergyKind = useEconomyStore((s) => s.outOfEnergyKind);
+  const clearOutOfEnergy = useEconomyStore((s) => s.clearOutOfEnergy);
   const equippedAppTheme =
     useEconomyStore((s) => s.equippedAppTheme) || "default";
   const storeCoins = useEconomyStore((s) => s.coins);
@@ -209,9 +285,11 @@ export function NgajiCeriaLayout({
       className={`${hideNav ? "h-dvh min-h-dvh overflow-hidden" : "min-h-screen"} ${containerBgClass} ${isImmersive ? "theme-isolated" : ""} flex relative flex-col justify-between overflow-x-clip font-sans text-[var(--text-main,#134E4A)] selection:bg-teal-emerald/20 transition-colors duration-200`}
     >
       {!hideHeader && !hideNav && (
-        <header className="sticky top-0 z-[60] shrink-0 border-b border-[var(--border-color,#134E4A)]/15 bg-[var(--bg-card,#FFFFFF)]/95 pt-safe text-[var(--text-main,#134E4A)] shadow-[0_2px_8px_rgba(19,78,74,0.05)] backdrop-blur-md transition-colors duration-200">
+        <header className="sticky top-0 z-[60] shrink-0 border-b border-[#134E4A]/15 bg-white/95 dark:bg-[#1E2937]/95 pt-safe text-[#134E4A] dark:text-white shadow-[0_2px_8px_rgba(19,78,74,0.05)] backdrop-blur-md transition-colors duration-200">
           <div className="relative z-10 mx-auto w-full max-w-md px-3 sm:max-w-3xl sm:px-6 lg:max-w-5xl">
-            <div className="flex min-h-12 items-center justify-between gap-2 py-1">
+            {/* SINGLE ROW: Back, Title, Badges, Notification */}
+            <div className="flex min-h-12 items-center justify-between gap-2 py-1.5">
+              {/* KIRI: Tombol Back & Judul */}
               <div className="flex min-w-0 shrink items-center gap-2">
                 {showBackButton && (
                   <button
@@ -219,86 +297,131 @@ export function NgajiCeriaLayout({
                     onClick={handleBack}
                     aria-label="Kembali ke halaman sebelumnya"
                     title="Kembali"
-                    className="flex h-10 w-10 min-h-[40px] min-w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] transition-transform hover:opacity-90 active:translate-y-0.5"
+                    className="flex h-8 w-8 min-h-[32px] min-w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 border-[#134E4A] bg-white dark:bg-[#1E2937] text-[#134E4A] dark:text-white shadow-[2px_2px_0px_#134E4A] transition-transform hover:opacity-90 active:translate-y-0.5"
                   >
-                    <ChevronLeftSvg size={20} />
+                    <ChevronLeftSvg size={18} />
                   </button>
                 )}
                 {title === "Tartila" && (
-                  <TartilaFaviconSvg variant="sticker" size={40} />
+                  <TartilaFaviconSvg variant="sticker" size={32} />
                 )}
                 <span
-                  className={`max-w-[160px] truncate font-display text-lg font-black tracking-tight text-[var(--text-main,#134E4A)] sm:max-w-[220px] sm:text-xl md:max-w-none ${title === "Tartila" ? "max-sm:hidden" : ""}`}
+                  className={`max-w-[120px] truncate font-display text-base font-black tracking-tight text-[#134E4A] dark:text-white sm:max-w-[200px] sm:text-lg ${title === "Tartila" ? "max-sm:hidden" : ""}`}
                 >
                   {title}
                 </span>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2">
-                {rightAction}
-                <NotificationBell
-                  userRole={userRole}
-                  className="relative z-10 shrink-0"
-                />
+              {/* KANAN: Badges & Notifikasi */}
+              <div className="flex shrink-0 items-center gap-1.5">
+                {/* Render Badges */}
+                {!hideBadges && !isUstadzAccount && (
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    {getHeaderBadgesForPath(location.pathname).map((badge) => {
+                      if (badge === "heart") {
+                        return (
+                          <div
+                            key="badge-heart"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#FFF0F0] text-[#134E4A]"
+                            }`}
+                            title={
+                              isUnlimited
+                                ? "Hati Tanpa Batas (Superadmin/VIP)"
+                                : `Hati: ${hearts}/5`
+                            }
+                          >
+                            <JuicyHeart size={14} value={hearts} />
+                            <span className="min-w-[1rem] text-center tabular-nums">
+                              {isUnlimited ? (
+                                "∞"
+                              ) : (
+                                <AnimatedCounter
+                                  value={hearts}
+                                  duration={0.4}
+                                />
+                              )}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (badge === "ticket") {
+                        return (
+                          <div
+                            key="badge-ticket"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#FEF3C7] text-[#134E4A]"
+                            }`}
+                            title={
+                              isUnlimited
+                                ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
+                                : `Tiket: ${tickets}/3`
+                            }
+                          >
+                            <TicketSvg size={14} />
+                            <span className="min-w-[1.2rem] text-center tabular-nums">
+                              {isUnlimited ? "∞" : `${tickets}/3`}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (badge === "xp") {
+                        return (
+                          <div
+                            key="badge-xp"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#CCFBF1] text-[#134E4A]"
+                            }`}
+                            title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
+                          >
+                            <MedalSvg size={14} className="text-[#0D9488]" />
+                            <span className="min-w-[2rem] text-center tabular-nums">
+                              <AnimatedCounter value={progress.xp} /> XP
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (badge === "coin") {
+                        return (
+                          <div
+                            key="badge-coin"
+                            className={`inline-flex h-8 select-none items-center gap-1 rounded-full border-2 border-[#134E4A] px-2 text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap ${
+                              isDarkTheme
+                                ? "bg-[#1E2937] text-white"
+                                : "bg-[#FEF08A] text-[#134E4A]"
+                            }`}
+                            title={`Koin: ${currentCoins}`}
+                          >
+                            <JuicyCoin size={14} value={currentCoins} />
+                            <span className="min-w-[1.2rem] text-center tabular-nums">
+                              <AnimatedCounter value={currentCoins} />
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })}
+                  </div>
+                )}
+
+                {isMainTab && (
+                  <NotificationBell
+                    userRole={userRole}
+                    className="relative z-10 shrink-0 ml-0.5"
+                  />
+                )}
               </div>
             </div>
-
-            {!isUstadzAccount && (
-              <div className="no-scrollbar -mx-1 flex w-full flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-2 pt-0.5">
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FFF0F0]"}`}
-                  title={
-                    isUnlimited
-                      ? "Hati Tanpa Batas (Superadmin/VIP)"
-                      : `Hati: ${hearts}/5`
-                  }
-                >
-                  <JuicyHeart size={17} value={hearts} />
-                  <span className="min-w-[1.5rem] text-center tabular-nums">
-                    {isUnlimited ? (
-                      "∞"
-                    ) : (
-                      <AnimatedCounter value={hearts} duration={0.4} />
-                    )}
-                  </span>
-                </div>
-
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF3C7]"}`}
-                  title={
-                    isUnlimited
-                      ? "Tiket Game Tanpa Batas (Superadmin/VIP)"
-                      : `Tiket: ${tickets}/3`
-                  }
-                >
-                  <TicketSvg size={17} />
-                  <span className="min-w-[1.8rem] text-center tabular-nums">
-                    {isUnlimited ? "∞" : `${tickets}/3`}
-                  </span>
-                </div>
-
-                {/* XP BADGE MENGGUNAKAN IKON ZAP (PETIR) */}
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#CCFBF1]"}`}
-                  title={`Peringkat: ${rank.title} (${progress.xp} XP)`}
-                >
-                  <MedalSvg size={17} className="text-[#0D9488]" />
-                  <span className="min-w-[2.6rem] text-center tabular-nums">
-                    <AnimatedCounter value={progress.xp} /> XP
-                  </span>
-                </div>
-
-                <div
-                  className={`flex min-h-[34px] shrink-0 select-none items-center gap-1.5 rounded-full border border-[var(--border-color,#134E4A)]/15 px-3 py-1.5 text-xs font-extrabold whitespace-nowrap ${isDarkTheme ? "bg-[#1E2937]" : "bg-[#FEF08A]"}`}
-                  title={`Koin: ${currentCoins}`}
-                >
-                  <JuicyCoin size={17} value={currentCoins} />
-                  <span className="min-w-[1.8rem] text-center tabular-nums">
-                    <AnimatedCounter value={currentCoins} />
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </header>
       )}
@@ -315,29 +438,28 @@ export function NgajiCeriaLayout({
                 : "mx-auto min-h-[50vh] w-full max-w-md px-2 pb-10 sm:max-w-3xl sm:px-4 md:px-6 lg:max-w-5xl"
         }`}
       >
-        {hideNav ? (
-          <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
-        ) : (
+        <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="relative min-h-[50vh] w-full"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={hideNav ? "h-full w-full" : "relative min-h-[50vh] w-full"}
           >
             <Suspense fallback={<PageContentFallback />}>{children}</Suspense>
           </motion.div>
-        )}
+        </AnimatePresence>
       </main>
 
       {!hideNav && isMainTab && <NgajiCeriaBottomNav />}
       {!hideNav && !isUstadzAccount && <RewardChestModal />}
       {!hideNav && !isUstadzAccount && <ProgressionNotice />}
-
-      <div data-tila-companion>
-        <TilaCompanion size={110} autoRoam reactiveSpeech pageTip={pageTip} />
-      </div>
+      <OutOfEnergyModal
+        visible={Boolean(outOfEnergyKind)}
+        type={outOfEnergyKind || "heart"}
+        onClose={clearOutOfEnergy}
+      />
     </div>
   );
 }

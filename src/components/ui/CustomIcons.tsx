@@ -1961,6 +1961,8 @@ export const StarSvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
   stroke,
+  fill,
+  ...props
 }) => (
   <svg
     width={size}
@@ -1969,11 +1971,12 @@ export const StarSvg: React.FC<SvgProps> = ({
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    {...props}
   >
     <polygon
       points="12,2 15,9 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,9"
-      fill="#FBBF24"
-      stroke={stroke || "var(--svg-primary)"}
+      fill={fill || "currentColor"}
+      stroke={stroke || "currentColor"}
       strokeWidth="2.5"
       strokeLinejoin="round"
     />
@@ -3176,6 +3179,7 @@ export const Settings = SettingsSvg;
 export const ChartLine = ChartLineSvg;
 export const LayerGroup = LayerGroupSvg;
 export const LayoutGrid = LayoutGridSvg;
+export const LayoutDashboard = LayoutGridSvg;
 export const Timer = TimerSvg;
 export const ScrollText = ScrollTextSvg;
 export const Plus = PlusSvg;
@@ -4652,6 +4656,8 @@ export const TargetSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
+export const Target = TargetSvg;
+
 export const ClockSvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
@@ -4856,5 +4862,154 @@ export const CameraSvg: React.FC<
     />
     {/* Titik Flash */}
     <circle cx="18" cy="11" r="1" fill={stroke} />
+  </svg>
+);
+
+export const UndoSvg: React.FC<SvgProps> = ({
+  size = 20,
+  className = "",
+  stroke,
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <path
+      d="M3 7v6h6"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const RedoSvg: React.FC<SvgProps> = ({
+  size = 20,
+  className = "",
+  stroke,
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <path
+      d="M21 7v6h-6"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const StopSvg: React.FC<SvgProps> = ({
+  size = 20,
+  className = "",
+  fill,
+  stroke,
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <rect
+      x="5"
+      y="5"
+      width="14"
+      height="14"
+      rx="2.5"
+      fill={fill || "currentColor"}
+      stroke={stroke || "currentColor"}
+      strokeWidth="1.5"
+    />
+  </svg>
+);
+
+export const MergeSvg: React.FC<SvgProps> = ({
+  size = 20,
+  className = "",
+  stroke,
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <circle
+      cx="12"
+      cy="12"
+      r="9"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.2"
+    />
+    <path
+      d="M12 8v8M8 12h8"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const LayersSvg: React.FC<SvgProps> = ({
+  size = 20,
+  className = "",
+  stroke,
+  style,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <path
+      d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+      stroke={stroke || "currentColor"}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );

@@ -87,9 +87,13 @@ func main() {
 	mux.HandleFunc("/api/exam/violation", api.RecordViolation)
 	mux.HandleFunc("/api/leaderboard/global", api.GetGlobalLeaderboard)
 
-	// User profile + feedback prompt routes (cross-session state persisted in SQLite).
-	mux.HandleFunc("/api/v1/user/profile", api.GetUserProfile)
-	mux.HandleFunc("/api/v1/user/feedback-prompt", api.UpdateFeedbackPrompt)
+	// Ngaji Ceria leaderboard routes (Supabase/REST).
+	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard/global", api.GetNgajiCeriaGlobalLeaderboard)
+	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard", api.GetNgajiCeriaLeaderboard)
+
+	// Tilawati timeline editor (Postgres-backed, override & fallback).
+	mux.HandleFunc("/api/v1/tilawati/timeline/all", api.GetAllTimelines)
+	mux.HandleFunc("/api/v1/tilawati/timeline/", api.TimelineOne)
 
 	// WebSocket Route: /api/ws/room/:pin
 	mux.HandleFunc("/api/ws/room/", func(w http.ResponseWriter, r *http.Request) {

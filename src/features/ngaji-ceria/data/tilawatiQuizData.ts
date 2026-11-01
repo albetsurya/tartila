@@ -8,6 +8,8 @@ import quizEdits from "./tilawatiQuizEdits.json";
 import type { PublishedTimeline } from "../utils/pageTimeline";
 import { isNgajiCeriaServerAvailable } from "../services/ngajiCeriaApi";
 import { getRawPages, loadJilidPages } from "./TilawatiDataProvider";
+import { resolveTilawatiAudio } from "../services/tilawatiAudio";
+import { getCachedTimelineEdits, loadTimelineEdits } from "../utils/timelineEditsLoader";
 
 const audioUrl = (jilid: number, pageNumber: number, filename: string): string =>
   `/audio/tilawati/jilid_${jilid}/hal${pageNumber}/${filename}`;
@@ -19,6 +21,7 @@ type TimelineEdit = {
   audioOrder?: string[];
   textLinks?: Record<string, string>;
   textAdditions?: QuizQuestion[];
+  textEdits?: Record<string, QuizEdit>;
 };
 
 // Fallback kosong ketika data timeline belum dimuat (async fetch belum selesai).
@@ -192,13 +195,31 @@ function applyQuizEdits(jilid: number, pages: Record<number, PageQuizData>): Rec
   ) as Record<number, PageQuizData>;
 }
 
-function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>, timelineData: Record<string, TimelineEdit> = EMPTY_TIMELINE_EDITS): Record<number, PageQuizData> {
+function applyTimelineEdits(
+  jilid: number,
+  pages: Record<number, PageQuizData>,
+  timelineData?: Record<string, TimelineEdit>,
+): Record<number, PageQuizData> {
+  const activeTimelineData =
+    (timelineData && Object.keys(timelineData).length > 0)
+      ? timelineData
+      : (getCachedTimelineEdits() ?? TIMELINE_EDITS ?? EMPTY_TIMELINE_EDITS);
+
   return Object.fromEntries(
     Object.entries(pages).map(([pageNumber, page]) => {
-      const edit = timelineData[`${jilid}:${pageNumber}`];
+      const edit = activeTimelineData[`${jilid}:${pageNumber}`];
       if (!edit) return [pageNumber, page];
-      if (edit.published) return [pageNumber, { ...page, questions: edit.published.questions }];
-      const audioRanks = new Map((edit.audioOrder || []).map((audioUrl, index) => [audioUrl, index]));
+      // Edit teks per soal (arabic/transliterasi/hintTone) tersimpan di DB
+      // via Go API (textEdit dalam POST timeline) dan dioverlay ke baseline.
+      const textEditFor = (question: QuizQuestion) => {
+        const textEdit = edit.textEdits?.[`${jilid}:${pageNumber}:${question.id}`];
+        if (!textEdit || textEdit.deleted) return question;
+        return { ...question, ...textEdit, id: question.id } as QuizQuestion;
+      };
+      if (edit.published) {
+        return [pageNumber, { ...page, questions: edit.published.questions.map(textEditFor) }];
+      }
+      const audioRanks = new Map((edit.audioOrder || []).map((url, idx) => [url, idx]));
       const addedQuestions = (edit.textAdditions || [])
         .map((question) => {
           const override = QUIZ_EDITS[`${jilid}:${pageNumber}:${question.id}`];
@@ -207,6 +228,7 @@ function applyTimelineEdits(jilid: number, pages: Record<number, PageQuizData>, 
         .filter((question) => !question.deleted)
         .map(({ deleted: _deleted, ...question }) => question);
       const questions = [...page.questions, ...addedQuestions]
+        .map(textEditFor)
         .map((question) => {
           const linkedAudio = edit.textLinks?.[String(question.id)];
           return linkedAudio
@@ -241,7 +263,8 @@ async function getTilawatiJilidPages(jilid: number): Promise<Record<number, Page
   const processed = jilid === 1
     ? applyQuizEdits(1, groupJilid1Footers(rawPages))
     : applyQuizEdits(jilid, groupDatasetByAudioRows(jilid, rawPages));
-  return applyTimelineEdits(jilid, processed, TIMELINE_EDITS);
+  const timelineData = getCachedTimelineEdits() ?? (await loadTimelineEdits().catch(() => ({})));
+  return applyTimelineEdits(jilid, processed, timelineData);
 }
 
 const TILAWATI_JILID_1_PAGES = applyTimelineEdits(
