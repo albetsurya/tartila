@@ -36,7 +36,7 @@ import { loadTimelineEdits } from "../utils/timelineEditsLoader";
 import { getNgajiActivity } from "../hooks/useNgajiCeriaStore";
 import { soundManager } from "../services/soundManager";
 import { awardProgress } from "./games/_shared/progression";
-import { addEvent } from "@/services/eventService";
+import { addEvent, markHasPlayedSession } from "@/services/eventService";
 import { QuizEngine } from "../components/quiz-models/QuizEngine";
 import { QuizSessionResult } from "../components/QuizSessionResult";
 import type {
@@ -285,6 +285,7 @@ export default function NgajiCeriaQuizPage() {
   >({});
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(true);
   useEffect(() => {
+    markHasPlayedSession();
     let alive = true;
     Promise.all([1, 2, 3, 4, 5, 6].map((jilid) => loadTilawatiDataset(jilid)))
       .then((results) => {
@@ -394,7 +395,7 @@ export default function NgajiCeriaQuizPage() {
 
   const handleTimeOut = () => {
     stopAllAudio();
-    soundManager.playSfx("gameover");
+    soundManager.playSfx("game-over");
     setIsWin(false);
     setShowResult(true);
   };
@@ -494,7 +495,7 @@ export default function NgajiCeriaQuizPage() {
 
   const scorePercent =
     totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-  const earnedStars = scorePercent >= 90 ? 3 : scorePercent >= 70 ? 2 : 1;
+  const earnedStars = isWin ? Math.min(Math.max(1, selectedLevel), 3) : 0;
 
   const handleNext = () => {
     tapFeedback();
@@ -507,17 +508,22 @@ export default function NgajiCeriaQuizPage() {
     // Sesi selesai: tentukan kemenangan (minimal 70% benar)
     const win = scorePercent >= 70;
     setIsWin(win);
+    const starsEarned = win ? Math.min(Math.max(1, selectedLevel), 3) : 0;
     if (win) {
-      soundManager.playSfx("victory");
+      if (scorePercent === 100) {
+        soundManager.playSfx("game-bonus");
+      } else {
+        soundManager.playSfx("victory");
+      }
       unlockNextLevel("tilawati-quiz", selectedLevel);
     } else {
-      soundManager.playSfx("wrong");
+      soundManager.playSfx("game-over");
     }
 
     // Halaman selesai: simpan bintang (ambil nilai terbaik) & progres jika bukan mode latihan.
     stopAllAudio();
-    if (!isPractice) {
-      awardStars(activeJilid, activePageNum, scorePercent);
+    if (!isPractice && win) {
+      awardStars(activeJilid, activePageNum, starsEarned);
       if (!pageAwarded.current) {
         pageAwarded.current = true;
         const stars = getNgajiActivity().stars;
@@ -542,7 +548,7 @@ export default function NgajiCeriaQuizPage() {
         percent: scorePercent,
         jilid: activeJilid,
         hal: activePageNum,
-        stars: earnedStars,
+        stars: starsEarned,
       },
     });
     setShowResult(true);
@@ -715,13 +721,6 @@ export default function NgajiCeriaQuizPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        onPointerDownCapture={(event) => {
-          if (
-            event.target instanceof Element &&
-            event.target.closest("button:not(:disabled)")
-          )
-            soundManager.playSfx("tap", 0.55);
-        }}
         className="min-h-screen bg-[var(--bg-app,#E0F2FE)] flex flex-col selection:bg-[var(--border-color,#0284C7)]/20"
       >
         {/* Top Header */}
@@ -836,7 +835,7 @@ export default function NgajiCeriaQuizPage() {
                 onNext={handleNext}
                 onPlayAudio={handlePlayAudio}
                 isAudioPlaying={isAudioPlaying}
-                isRetryable={true}
+                isRetryable={isPractice}
               />
             )}
           </>

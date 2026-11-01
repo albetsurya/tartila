@@ -259,6 +259,11 @@ export default function DuelPlayPage() {
 
   useEffect(() => {
     if (!isFinished) return;
+    if (result === "win") {
+      soundManager.playSfx("game-winner");
+    } else if (result === "lose") {
+      soundManager.playSfx("game-over");
+    }
     triggerBibiReaction(
       result === "win" ? "success" : result === "lose" ? "error" : "click",
     );

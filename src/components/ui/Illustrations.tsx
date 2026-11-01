@@ -6999,14 +6999,7 @@ function BoyCharacterLayers({
 
           {variant === 3 && (
             <g>
-              <path
-                d="M 32 64 L 26 73 L 33 72 L 32 81 L 41 74 L 40 82 L 46 74 Z
-                   M 96 64 L 102 73 L 95 72 L 96 81 L 87 74 L 88 82 L 82 74 Z"
-                fill="#F4D365"
-                stroke={INK}
-                strokeWidth={STROKE_MAIN}
-                strokeLinejoin="round"
-              />
+              {/* Rambut Atas (Tanpa Ekor/Nape di bawah) */}
               <path
                 d="M 32 56
                    L 25 51 L 29 46
@@ -7108,15 +7101,7 @@ function BoyCharacterLayers({
 
           {variant === 3 && (
             <g>
-              {/* Ekor rambut panjang di belakang leher (Nape) */}
-              <path
-                d="M 32 62 L 26 73 L 33 71 L 32 81 L 41 74 L 40 82 L 46 72 Z M 96 62 L 102 73 L 95 71 L 96 81 L 87 74 L 88 82 L 82 72 Z"
-                fill="#F4D365"
-                stroke={INK}
-                strokeWidth={STROKE_MAIN}
-                strokeLinejoin="round"
-              />
-              {/* Poni berantakan di bawah topi */}
+              {/* Poni berantakan di bawah topi (Nape/Ekor panjang dihapus) */}
               <path
                 d="M 35 50 C 45 42 85 42 93 50 L 90 58 L 85 52 L 81 58 L 75 48 L 68 55 L 64 46 L 60 55 L 54 48 L 48 56 L 42 50 L 38 56 Z"
                 fill="#F4D365"
@@ -7484,7 +7469,7 @@ function GirlCharacterLayers({
 }
 
 // ============================================================================
-// KOMPONEN UTAMA AVATAR SANTRI SVG
+// KOMPONEN UTAMA AVATAR SANTRI SVG (LINGKARAN)
 // ============================================================================
 export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
   size = 128,
@@ -7516,10 +7501,11 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
 
   const panelBg = isGirl ? panelColors.girl[variant] : panelColors.boy[variant];
 
+  // Lingkaran di dalam SVG (radius 60, posisi tengah 64)
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 128 140"
+      viewBox="0 0 128 128"
       width={size}
       height={size}
       fill="none"
@@ -7530,22 +7516,19 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
       {...props}
     >
       <defs>
+        {/* 1. Ubah ClipPath menjadi Lingkaran */}
         <clipPath id={clipId}>
-          <path d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z" />
+          <circle cx="64" cy="64" r="60" />
         </clipPath>
       </defs>
 
-      {/* Margin Kertas Komik Putih */}
-      <rect x="4" y="2" width="120" height="136" rx="3" fill="#FFFFFF" />
+      {/* 2. Latar Belakang Lingkaran */}
+      <circle cx="64" cy="64" r="62" fill="#FFFFFF" />
+      <circle cx="64" cy="64" r="60" fill={panelBg} />
 
-      {/* Background Panel Solid */}
-      <path
-        d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z"
-        fill={panelBg}
-      />
-
-      {/* Ornamen Sparkle & Garis Ekspresi Latar */}
+      {/* Karakter di dalam ClipPath */}
       <g clipPath={`url(#${clipId})`}>
+        {/* Ornamen Sparkle */}
         {isGirl && variant === 2 && (
           <path
             d="M 103 78 L 106 85 L 113 88 L 106 91 L 103 98 L 100 91 L 93 88 L 100 85 Z"
@@ -7576,13 +7559,14 @@ export const AvatarSantriSvg: React.FC<AvatarSantriSvgProps> = ({
         <AvatarAccessoryLayer accessory={accessory} />
       </g>
 
-      {/* Garis Tepi Panel Komik Hand-Drawn */}
-      <path
-        d="M 12 10 Q 64 9.5 116 10 Q 116.5 70 116 130 Q 64 130.5 12 130 Q 11.5 70 12 10 Z"
+      {/* 3. Garis Tepi Lingkaran (Border Neo-Brutalism) */}
+      <circle
+        cx="64"
+        cy="64"
+        r="60"
         fill="none"
         stroke={INK}
-        strokeWidth="2.5"
-        strokeLinejoin="round"
+        strokeWidth="3.5" // Garis border dipertebal sedikit agar tegas
       />
     </svg>
   );

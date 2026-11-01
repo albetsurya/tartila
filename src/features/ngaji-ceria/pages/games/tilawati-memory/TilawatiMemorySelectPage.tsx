@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { isUstadzUser, isTartilaAdmin } from '@/lib/roles';
 import { NgajiCeriaLayout } from '../../../components/NgajiCeriaLayout';
 import { ExploreHeader } from '../../../components/ExploreHeader';
 import { ARENA_KARTU_DATA, ArenaKartuLevel } from '../../../data/arenaKartuData';
@@ -26,6 +28,8 @@ import { AppBottomSheet } from '@/components/ui/AppBottomSheet';
 
 export default function TilawatiMemorySelectPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isBypass = isUstadzUser(user) || isTartilaAdmin(user?.role);
 
   // State Bottom Sheet Start Screen
   const [selectedJilid, setSelectedJilid] = useState<ArenaKartuLevel | null>(null);
@@ -40,7 +44,7 @@ export default function TilawatiMemorySelectPage() {
     setSelectedJilid(level);
 
     // Ambil level tertinggi yang sudah terbuka untuk jilid ini
-    const maxUnlocked = getUnlockedLevel(level.jilid);
+    const maxUnlocked = isBypass ? 4 : getUnlockedLevel(level.jilid);
     setChosenLevel(maxUnlocked);
   };
 
@@ -52,12 +56,12 @@ export default function TilawatiMemorySelectPage() {
   };
 
   const chosenConfig = getMemoryLevelConfig(chosenLevel);
-  const maxUnlockedLevel = selectedJilid ? getUnlockedLevel(selectedJilid.jilid) : 1;
+  const maxUnlockedLevel = isBypass ? 4 : (selectedJilid ? getUnlockedLevel(selectedJilid.jilid) : 1);
 
   return (
     <NgajiCeriaLayout
-      title="Pilih Jilid Tilawati Memory"
-      hideHeader={true}
+      title="Tilawati Memory"
+      showBack={true}
       themeScope="arena-kartu"
       onBack={() => navigate('/member/ngaji-ceria/games')}
     >
@@ -78,19 +82,6 @@ export default function TilawatiMemorySelectPage() {
         />
 
         <div className="relative z-20">
-          {/* Header Eksplorasi */}
-          <ExploreHeader
-            title="Tilawati Memory Match"
-            subtitle="Asah ingatan visual mencocokkan huruf & kata Arab!"
-            onBack={() => navigate('/member/ngaji-ceria/games')}
-            themeScope="arena-kartu"
-            themeColorClass="bg-[#065F46]"
-            borderColorClass="border-[#B45309]"
-            shadowClass="shadow-[0_4px_0px_#78350F]"
-            textColorClass="text-[#FEF3C7]"
-            backClass="bg-[#FEF3C7] text-[#7C2D12] border-[#B45309] shadow-[2px_2px_0px_#78350F] hover:bg-[#FDE68A]"
-          />
-
           {/* Banner Hero */}
           <section className="px-4 pt-6 max-w-4xl mx-auto">
             <div className="relative overflow-hidden rounded-2xl bg-[#FEF3C7] border-[3px] border-[#B45309] p-4 sm:p-5 shadow-[4px_4px_0px_#78350F]">

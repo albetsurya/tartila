@@ -9,6 +9,21 @@ import { awardProgress, getProgress, recordLeaderboard } from "./progression";
 import { soundManager } from "../../../services/soundManager";
 import { canonicalGameId } from "../../../data/gameAccess";
 import { addEvent } from "@/services/eventService";
+import { submitScore } from "@/features/ngaji-ceria/services/ngajiCeriaApi";
+import { useAuth } from "@/contexts/AuthContext";
+
+const ARCADE_GAME_IDS = new Set([
+  "harakat-rush",
+  "makhraj-master",
+  "hijaiyah-beats",
+  "hijaiyah-pop",
+  "hijaiyah-burst",
+  "hijaiyah-rush",
+  "hijaiyah-2048",
+  "ayat-scramble",
+  "word-builder",
+  "tajwid-tetris",
+]);
 
 export interface SecondChanceConfig {
   onSuccess: () => void;
@@ -34,6 +49,7 @@ export function GameOverModal({
 }: GameOverModalProps & { secondChance?: SecondChanceConfig }) {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
+  const { user } = useAuth();
   const committed = useRef(false);
   const [xpGained, setXpGained] = useState(0);
   const [coinsGained, setCoinsGained] = useState(0);
@@ -86,6 +102,16 @@ export function GameOverModal({
     setXpGained(progress.xp - before);
     setCoinsGained(progress.coins - beforeCoins);
     recordLeaderboard(gameId, score);
+    // Simpan skor user ke database (Supabase / REST).
+    // Satu row per game; userId + nickname opsional bila ada di AuthContext.
+    try {
+      const userId = user?.id || (user as any)?.userId || null;
+      const nick = user?.name || (user as any)?.displayName || user?.username || "Santri";
+      void submitScore(gameId, score, userId, nick);
+      void submitScore(gameId, score, userId, nick);
+    } catch {
+      // Gagal simpan skor ke DB, skor tetap tampil dari localStorage.
+    }
     try {
       sessionStorage.setItem("ngajiceria:recent-game-finished", gameId);
       sessionStorage.setItem("ngajiceria:recent-game-timestamp", String(Date.now()));
@@ -93,7 +119,13 @@ export function GameOverModal({
     } catch {
       // ignore
     }
-    soundManager.playSfx(victory ? "victory" : "defeat");
+    if (victory) {
+      soundManager.playSfx(isNewRecord ? "game-winner" : "victory");
+    } else {
+      soundManager.playSfx(
+        ARCADE_GAME_IDS.has(gameId) ? "game-over-arcade" : "game-over",
+      );
+    }
     addEvent({
       type: "game_completed",
       missionId: gameId,

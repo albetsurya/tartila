@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TrophySvg, SparklesSvg, CrownSvg, ChartBarSvg, WhatsAppSvg } from "@/components/ui/CustomIcons";
@@ -37,6 +38,14 @@ export default function ArenaPodiumPage() {
     (state.myName
       ? (leaderboard.find((p) => p.nickname === state.myName)?.rank ?? 1)
       : 1);
+
+  useEffect(() => {
+    if (myRank === 1) {
+      soundManager.playSfx("game-winner");
+    } else {
+      soundManager.playSfx("victory");
+    }
+  }, [myRank]);
 
   return (
     <NgajiCeriaLayout title="Podium Tartila Arena">

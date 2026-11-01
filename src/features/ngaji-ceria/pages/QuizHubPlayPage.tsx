@@ -21,6 +21,7 @@ import {
 } from "../data/quizHubData";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { playSoundEffect } from "../utils/audioPlayer";
+import { soundManager } from "../services/soundManager";
 
 export default function QuizHubPlayPage() {
   const navigate = useNavigate();
@@ -77,7 +78,11 @@ export default function QuizHubPlayPage() {
     } else {
       // Selesai kuis
       setIsFinished(true);
-      playSoundEffect("win");
+      if (correctCount + 1 >= totalQuestions) {
+        soundManager.playSfx("game-bonus");
+      } else {
+        playSoundEffect("win");
+      }
       if (levelNumber) {
         saveCategoryLevelCompleted(validCategory, levelNumber);
       }

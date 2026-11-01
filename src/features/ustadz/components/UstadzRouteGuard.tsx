@@ -36,7 +36,7 @@ export function UstadzRouteGuard() {
       <div className="flex min-h-dvh items-center justify-center bg-[#f4f1ea]">
         <div
           className="h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
-          style={{ borderColor: "#0A2540", borderTopColor: "transparent" }}
+          style={{ borderColor: "#134E4A", borderTopColor: "transparent" }}
           role="status"
           aria-label="Memuat"
         />

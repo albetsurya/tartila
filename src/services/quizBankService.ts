@@ -248,17 +248,26 @@ export async function getQuiz(quizId: string): Promise<Quiz | undefined> {
 }
 
 export async function listQuizzes(userId?: string): Promise<Quiz[]> {
+  const localQuizzes = readJsonArray(QUIZ_KEY).filter(isQuiz);
   if (isSupabaseConfigured) {
-    let qs = supabase
-      .from('quizzes')
-      .select('*, quiz_questions (*)')
-      .order('created_at', { ascending: false });
-    if (userId) qs = qs.eq('created_by', userId);
-    const { data } = await qs;
-    if (!data) return [];
-    return (data as unknown as QuizRow[]).map(toQuiz);
+    try {
+      let qs = supabase
+        .from('quizzes')
+        .select('*, quiz_questions (*)')
+        .order('created_at', { ascending: false });
+      if (userId) qs = qs.eq('created_by', userId);
+      const { data, error } = await qs;
+      if (!error && data && data.length > 0) {
+        const remote = (data as unknown as QuizRow[]).map(toQuiz);
+        const remoteIds = new Set(remote.map((q) => q.id));
+        const merged = [...remote, ...localQuizzes.filter((q) => !remoteIds.has(q.id))];
+        return merged;
+      }
+    } catch {
+      // fallback to local
+    }
   }
-  return readJsonArray(QUIZ_KEY).filter(isQuiz);
+  return localQuizzes;
 }
 
 export async function listQuizzesForRoom(roomId: string): Promise<Quiz[]> {
@@ -321,54 +330,7 @@ export async function createQuiz(
     position: questionIndex,
   }));
 
-  if (isSupabaseConfigured) {
-    const { data: quizRow, error: quizError } = await supabase
-      .from('quizzes')
-      .insert({
-        created_by: createdBy,
-        title: draft.title.trim(),
-        materi: draft.materi,
-        target_jilid: draft.targetJilid,
-        room_id: draft.roomId,
-      })
-      .select('id, created_at')
-      .single<{ id: string; created_at: string }>();
-    if (quizError || !quizRow) {
-      return { ok: false, errors: ['Gagal menyimpan kuis ke server.'] };
-    }
-    const { error: questionsError } = await supabase
-      .from('quiz_questions')
-      .insert(
-        questions.map((question) => ({
-          quiz_id: quizRow.id,
-          prompt: question.prompt,
-          options: question.options,
-          answer_index: question.answerIndex,
-          position: question.position,
-        })),
-      );
-    if (questionsError) {
-      await supabase.from('quizzes').delete().eq('id', quizRow.id);
-      return { ok: false, errors: ['Gagal menyimpan soal kuis ke server.'] };
-    }
-    return {
-      ok: true,
-      quiz: {
-        id: quizRow.id,
-        createdBy,
-        title: draft.title.trim(),
-        materi: draft.materi,
-        targetJilid: draft.targetJilid,
-        roomId: draft.roomId,
-        questions,
-        createdAt: quizRow.created_at,
-      },
-      errors: [],
-    };
-  }
-
-  const storage = safeStorage();
-  const quiz: Quiz = {
+  const localQuiz: Quiz = {
     id: makeId('quiz'),
     createdBy,
     title: draft.title.trim(),
@@ -378,10 +340,69 @@ export async function createQuiz(
     questions,
     createdAt: new Date().toISOString(),
   };
-  if (storage) {
-    storage.setItem(QUIZ_KEY, JSON.stringify([...(await listQuizzes(createdBy)), quiz]));
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data: quizRow, error: quizError } = await supabase
+        .from('quizzes')
+        .insert({
+          created_by: createdBy,
+          title: draft.title.trim(),
+          materi: draft.materi,
+          target_jilid: draft.targetJilid,
+          room_id: draft.roomId,
+        })
+        .select('id, created_at')
+        .single<{ id: string; created_at: string }>();
+
+      if (!quizError && quizRow) {
+        const { error: questionsError } = await supabase
+          .from('quiz_questions')
+          .insert(
+            questions.map((question) => ({
+              quiz_id: quizRow.id,
+              prompt: question.prompt,
+              options: question.options,
+              answer_index: question.answerIndex,
+              position: question.position,
+            })),
+          );
+
+        if (!questionsError) {
+          const remoteQuiz: Quiz = {
+            id: quizRow.id,
+            createdBy,
+            title: draft.title.trim(),
+            materi: draft.materi,
+            targetJilid: draft.targetJilid,
+            roomId: draft.roomId,
+            questions,
+            createdAt: quizRow.created_at,
+          };
+          const storage = safeStorage();
+          if (storage) {
+            const current = readJsonArray(QUIZ_KEY).filter(isQuiz);
+            storage.setItem(QUIZ_KEY, JSON.stringify([remoteQuiz, ...current.filter((q) => q.id !== remoteQuiz.id)]));
+          }
+          return { ok: true, quiz: remoteQuiz, errors: [] };
+        } else {
+          console.warn("[quizBankService] quiz_questions error, saving to local fallback:", questionsError.message);
+        }
+      } else if (quizError) {
+        console.warn("[quizBankService] quizzes error, saving to local fallback:", quizError.message);
+      }
+    } catch (err) {
+      console.warn("[quizBankService] Supabase exception, saving to local fallback:", err);
+    }
   }
-  return { ok: true, quiz, errors: [] };
+
+  // Simpan ke local storage jika Supabase tidak aktif atau gagal
+  const storage = safeStorage();
+  if (storage) {
+    const current = readJsonArray(QUIZ_KEY).filter(isQuiz);
+    storage.setItem(QUIZ_KEY, JSON.stringify([localQuiz, ...current.filter((q) => q.id !== localQuiz.id)]));
+  }
+  return { ok: true, quiz: localQuiz, errors: [] };
 }
 
 export interface DeleteQuizResult {

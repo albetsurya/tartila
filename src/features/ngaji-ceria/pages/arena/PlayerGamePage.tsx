@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Volume2, AlertCircle, CheckSvg, XSvg, CrownSvg } from "@/components/ui/CustomIcons";
+import { Volume2, AlertCircle, CheckSvg, XSvg, CrownSvg, ChevronLeftSvg } from "@/components/ui/CustomIcons";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ArenaSocket } from "../../services/arenaSocket";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
 import { getAudioUrl } from "../../utils/audioUrl";
@@ -38,6 +39,7 @@ export default function PlayerGamePage() {
   const [violations, setViolations] = useState(0);
   const [warningModal, setWarningModal] = useState<string | null>(null);
   const [disqualified, setDisqualified] = useState(false);
+  const [showBackModal, setShowBackModal] = useState(false);
   const [gamePhase, setGamePhase] = useState<"COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT">("COUNTDOWN");
   const [timeLeft, setTimeLeft] = useState(20);
   const [timeLimit, setTimeLimit] = useState(20);
@@ -122,8 +124,8 @@ export default function PlayerGamePage() {
       },
       onGameStarted: (data) => {
         setQuestion(data.question);
-        setQuestionIndex(data.questionIndex);
-        setTotalQuestions(data.totalQuestions);
+        setQuestionIndex(data.questionIndex ?? 0);
+        setTotalQuestions(data.totalQuestions ?? 1);
         setTimeLimit(data.timeLimit || 20);
         setTimeLeft(data.timeLimit || 20);
         setQuestionStartTime(Date.now());
@@ -180,7 +182,7 @@ export default function PlayerGamePage() {
       socket.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [pin, playerId, nickname, navigate, handleTabSwitch, totalScore]);
+  }, [pin, playerId, nickname, navigate, handleTabSwitch]);
 
   // Timer per soal & auto-timeout (Kahoot-style)
   useEffect(() => {
@@ -209,11 +211,21 @@ export default function PlayerGamePage() {
     <div className="h-[100dvh] w-full flex flex-col bg-[#F0FDF4] overflow-hidden select-none">
       {/* HUD Header Santri */}
       <header className="shrink-0 flex items-center justify-between px-4 py-3 bg-white border-b-[3px] border-[#134E4A] shadow-[0px_2px_0px_#134E4A] z-20">
-        <div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
-            Santri
-          </span>
-          <span className="font-black text-sm text-[#134E4A]">{nickname}</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowBackModal(true)}
+            aria-label="Kembali"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-0.5 cursor-pointer"
+          >
+            <ChevronLeftSvg size={18} />
+          </button>
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
+              Santri
+            </span>
+            <span className="font-black text-sm text-[#134E4A]">{nickname}</span>
+          </div>
         </div>
 
         <div className="text-center">
@@ -390,6 +402,29 @@ export default function PlayerGamePage() {
           </div>
         </div>
       )}
+      <div className="absolute top-3 left-3 z-10">
+        <button
+          type="button"
+          onClick={() => setShowBackModal(true)}
+          className="rounded-xl border-[2px] border-[#134E4A] bg-white px-3 py-1.5 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-[#F0FDF4] transition-all"
+        >
+          <ChevronLeftSvg size={14} />
+          <span className="hidden sm:inline">Kembali</span>
+        </button>
+      </div>
+
+      {/* Modal Konfirmasi Keluar */}
+      <ConfirmDialog
+        isOpen={showBackModal}
+        title="Keluar dari Room?"
+        description="Kamu akan keluar dari sesi permainan saat ini dan kembali ke menu."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowBackModal(false);
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowBackModal(false)}
+      />
     </div>
   );
 }

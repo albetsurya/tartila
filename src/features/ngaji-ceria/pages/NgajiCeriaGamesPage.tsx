@@ -36,6 +36,7 @@ import { getBest } from "./games/_shared/storage";
 import { triggerTilaReaction } from "../../../utils/tilaEvent";
 import { GameCard } from "./games/_shared/GameCard";
 import { useActiveGames, ActiveGameItem } from "../hooks/useActiveGames";
+import { useEconomyStore } from "../hooks/useEconomyStore";
 
 export interface GameEntry {
   id: string;
@@ -167,100 +168,6 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     bestKey: "hijaiyah-pop",
     isQuizBased: false,
   },
-  // Disabled: inactive game (ritme-ngaji … wudhu-flow)
-  /*
-  "ritme-ngaji": {
-    title: "Ritme Ngaji",
-    genre: "Musik · Ketukan Nada",
-    description:
-      "Gabungkan ketukan irama, harakat, dan makhraj dalam satu petualangan musik islami.",
-    cover: <HarakatSlasherCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/ritme-ngaji",
-    bestKey: "harakat-rush",
-    isQuizBased: false,
-  },
-  "puzzle-huruf": {
-    title: "Puzzle Huruf",
-    genre: "Puzzle · Otak",
-    description:
-      "Tantang logikamu dengan tebak kata, susun ayat, gabung huruf, dan buru kata tersembunyi.",
-    cover: <AyatScrambleCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/puzzle-huruf",
-    bestKey: "ayat-scramble:normal",
-    isQuizBased: true,
-  },
-  "tajwid-lab": {
-    title: "Tajwid Lab",
-    genre: "Strategi · Hukum Tajwid",
-    description:
-      "Kuasai hukum tajwid lewat pertarungan kartu, pertahanan markas, dan susun blok tajwid.",
-    cover: <TajwidArenaCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/tajwid-lab",
-    bestKey: "tajwid-arena",
-    isQuizBased: false,
-  },
-  "petualangan-santri": {
-    title: "Petualangan Santri",
-    genre: "RPG · Kisah Islami",
-    description:
-      "Jelajahi lorong waktu, temui para nabi dan malaikat, serta kumpulkan doa dalam petualangan epik.",
-    cover: <AdabRpgCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/petualangan-santri",
-    bestKey: "adab-rpg",
-    isNew: true,
-    isQuizBased: false,
-  },
-  "makhraj-master": {
-    title: "Makhraj Master",
-    genre: "Musik · Tajwid",
-    description:
-      "Ikuti irama makhraj huruf dengan tepat. Raih kombo sempurna dan jadilah Master Makhraj!",
-    cover: <MakhrajMasterCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/makhraj-master",
-    bestKey: "makhraj-master",
-    isQuizBased: false,
-  },
-  "hijaiyah-beats": {
-    title: "Hijaiyah Beats",
-    genre: "Musik · Huruf",
-    description:
-      "Ketuk nada sesuai bentuk huruf hijaiyah. Mainkan mode Normal atau tantang dirimu di mode Endless!",
-    cover: <HijaiyahBeatsCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/hijaiyah-beats",
-    bestKey: "hijaiyah-beats",
-    isQuizBased: false,
-  },
-  "doa-dungeon": {
-    title: "Doa Dungeon",
-    genre: "RPG · Petualangan",
-    description:
-      "Masuki gua penuh misteri. Kalahkan rintangan dengan menghafal doa-doa harian!",
-    cover: <DoaDungeonCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/doa-dungeon",
-    bestKey: "doa-dungeon",
-    isQuizBased: true,
-  },
-  "sholat-hero": {
-    title: "Sholat Hero",
-    genre: "Edukasi · Gerakan",
-    description:
-      "Jadilah pahlawan ibadah! Pelajari gerakan dan bacaan sholat dengan cara yang seru.",
-    cover: <SholatHeroCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/sholat-hero",
-    bestKey: "sholat-hero",
-    isQuizBased: true,
-  },
-  "wudhu-flow": {
-    title: "Wudhu Flow",
-    genre: "Edukasi · Urutan",
-    description:
-      "Bersih itu sebagian dari iman. Susun langkah wudhu dengan cepat dan tepat!",
-    cover: <WudhuFlowCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/wudhu-flow",
-    bestKey: "wudhu-flow",
-    isQuizBased: true,
-  },
-  */
 };
 
 function resolveGameEntry(item: ActiveGameItem): GameEntry {
@@ -298,6 +205,7 @@ export default function NgajiCeriaGamesPage() {
   const { tier } = useGameAccess("games");
   const [promptOpen, setPromptOpen] = useState(false);
   const { activeGames, isLoading } = useActiveGames();
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const gamesToDisplay = useMemo(() => {
     const filtered = activeGames.filter((g) => {
@@ -321,11 +229,23 @@ export default function NgajiCeriaGamesPage() {
     return uniqueEntries;
   }, [activeGames]);
 
-  const openGame = (path: string, locked: boolean) => {
+  const openGame = async (path: string, locked: boolean) => {
     if (locked && tier === "guest") {
       setPromptOpen(true);
       return;
     }
+
+    const isDirectGame =
+      !path.includes("/select") &&
+      !path.includes("/ritme-ngaji") &&
+      !path.startsWith("/quiz-hub") &&
+      !path.includes("/quiz-hub");
+
+    if (isDirectGame) {
+      const ok = await consumeTicket();
+      if (!ok) return;
+    }
+
     triggerTilaReaction("play");
     navigate(path);
   };

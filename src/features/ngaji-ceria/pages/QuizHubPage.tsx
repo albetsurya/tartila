@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import {
-  ArrowLeftSvg,
-  CoinSvg,
   GraduationCapSvg,
   CardsSvg,
   TilawatiLearningSvg,
@@ -218,45 +217,12 @@ export default function QuizHubPage() {
     : 1;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-app,#F0FDF4)] pb-[calc(6rem+env(safe-area-inset-bottom))] font-sans text-[var(--text-main,#134E4A)] selection:bg-[#FEF08A]">
-      <header className="sticky top-0 z-30 border-b-[3px] border-[var(--border-color,#134E4A)] bg-[#FEF08A] px-3 py-3 shadow-[0_3px_0_var(--shadow-color,#134E4A)] pt-[calc(0.75rem+env(safe-area-inset-top))] sm:px-5">
-        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/member/ngaji-ceria/games")}
-              aria-label="Kembali ke Mini Games"
-              title="Kembali ke Games"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[2.5px] border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#F8FAFC] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2"
-            >
-              <ArrowLeftSvg size={20} />
-            </button>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#0D9488] sm:text-[11px]">
-                Belajar sambil bermain
-              </p>
-              <h1 className="truncate font-display text-lg font-black leading-tight tracking-tight text-[#134E4A] sm:text-2xl">
-                Pusat Kuis
-              </h1>
-              <p className="hidden text-xs font-bold text-[#134E4A]/70 sm:block">
-                Quiz Hub &amp; Latihan Soal
-              </p>
-            </div>
-          </div>
-
-          <div
-            aria-label={`${coins} koin`}
-            className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border-2 border-[#134E4A] bg-white px-2.5 py-1.5 text-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:px-3"
-          >
-            <CoinSvg size={18} />
-            <span className="text-xs font-black tabular-nums sm:text-sm">
-              {coins}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-3 pb-8 pt-5 sm:gap-7 sm:px-5 sm:pt-6 md:px-6">
+    <NgajiCeriaLayout
+      title="Pusat Kuis"
+      showBack={true}
+      onBack={() => navigate("/member/ngaji-ceria/games")}
+    >
+      <div className="flex w-full flex-col gap-6 pb-12 pt-2 sm:gap-7">
         <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[#134E4A] px-4 py-5 text-white shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] sm:rounded-[28px] sm:px-6 sm:py-6">
           <div className="pointer-events-none absolute -right-8 -top-9 h-32 w-32 rounded-full border-[8px] border-white/10 sm:h-40 sm:w-40" />
           <div className="pointer-events-none absolute bottom-2 right-3 rotate-12 text-[#FEF08A]/30 sm:bottom-4 sm:right-6">
@@ -424,7 +390,7 @@ export default function QuizHubPage() {
             </span>
           </motion.button>
         </section>
-      </main>
+      </div>
 
       <AppBottomSheet
         isOpen={isChallengeSheetOpen}
@@ -569,6 +535,6 @@ export default function QuizHubPage() {
           }}
         />
       )}
-    </div>
+    </NgajiCeriaLayout>
   );
 }

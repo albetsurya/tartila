@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
+import { callREST } from "@/services/api";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -432,7 +433,44 @@ export default function PremiumPage() {
     return BENEFITS_BY_TYPE.vip;
   }, [selectedTier]);
 
-  // Fungsi upgrade subscription
+  // Handler pembelian langganan VIP. Mengarahkan user ke DOKU Checkout.
+  // Logic verifikasi & secret DOKU TIDAK ada di frontend (aturan kaku).
+  const handleSubscribe = async (tierId: TierType) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+      const { userId } = useEconomyStore.getState();
+
+      if (!userId) {
+        throw new Error("Belum login. Silakan login terlebih dahulu.");
+      }
+
+      const res = await callREST<{
+        success: boolean;
+        data: { paymentUrl: string; invoiceNumber: string };
+      }>("POST", "/api/v1/payment/doku/create", {
+        userId,
+        planId: tierId,
+      });
+
+      if (!res.success || !res.data.paymentUrl) {
+        throw new Error("Gagal memulai pembayaran");
+      }
+
+      // Arahkan user ke halaman DOKU Checkout
+      window.location.href = res.data.paymentUrl;
+    } catch (err: any) {
+      setIsProcessing(false);
+      const message =
+        err instanceof Error ? err.message : "Gagal memproses langganan VIP";
+      // TODO: ganti dengan toast komponen UI yang sudah ada (mis. sonner/useToast)
+      console.error("[PremiumPage] subscribe error:", err);
+      alert(message);
+    }
+  };
+
+  // Fungsi upgrade subscription (dipakai oleh komponen lain / test)
   const upgradeSubscription = async (tierId: TierType) => {
     if (isProcessing) return;
     setIsProcessing(true);
@@ -838,7 +876,7 @@ export default function PremiumPage() {
           <button
             type="button"
             disabled={isProcessing}
-            onClick={() => upgradeSubscription(selectedTier.id)}
+            onClick={() => handleSubscribe(selectedTier.id)}
             className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#10B981] hover:bg-[#059669] active:translate-y-0.5 px-5 py-3 text-xs sm:text-sm font-black uppercase tracking-wider text-white shadow-[0_4px_0px_#134E4A] transition-all cursor-pointer disabled:opacity-60"
           >
             <Crown size={18} className="text-[#FEF08A]" />

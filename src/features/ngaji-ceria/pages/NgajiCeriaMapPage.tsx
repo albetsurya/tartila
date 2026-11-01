@@ -1,6 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { isUstadzUser, isTartilaAdmin } from "@/lib/roles";
 import { NgajiCeriaLayout } from "../components/NgajiCeriaLayout";
 import { triggerBibiReaction } from "../../../utils/bibiEvent";
 import {
@@ -153,6 +155,8 @@ const RECOMMENDATIONS = [
 
 export default function NgajiCeriaMapPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isBypass = isUstadzUser(user) || isTartilaAdmin(user?.role);
 
   const handleNavigate = (to: string) => {
     triggerBibiReaction("play");

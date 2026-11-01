@@ -8,9 +8,11 @@ import {
   LogOut,
   User as ProfileIcon,
   Users,
+  Trophy,
 } from "@/components/ui/CustomIcons";
 import { StickerButton } from "@/components/ui/StickerButton";
 import { StickerCard } from "@/components/ui/StickerCard";
+import { StickerBadge } from "@/components/ui/StickerBadge";
 import { listOwnedClassrooms } from "@/services/classroomService";
 import { listQuizzes } from "@/services/quizBankService";
 import { normalizeRole } from "@/lib/roles";
@@ -44,169 +46,194 @@ export function UstadzProfilPage() {
 
   const displayName = user?.name || user?.username || "Ustadz/Ustadzah";
   const periodLabel =
-    normalizeRole(user?.role) === "ustadzah" ? "Ustadzah" : "Ustadz/Ustadzah";
+    normalizeRole(user?.role) === "ustadzah" ? "Ustadzah" : "Ustadz";
 
   const unlockedCount =
     1 + (roomCount > 0 ? 1 : 0) + (quizCount > 0 ? 1 : 0);
 
   return (
-    <div className="w-full max-w-3xl space-y-4">
-      <StickerCard className="flex items-center gap-4 p-5">
-        <span className="ustadz-accent-soft flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl">
-          <GraduationCap size={30} />
-        </span>
-        <div className="min-w-0">
-          <h2 className="truncate text-lg font-black">{displayName}</h2>
-          <p className="text-xs font-bold ustadz-muted">{periodLabel}</p>
-          {user?.email ? (
-            <p className="mt-1 truncate text-xs ustadz-muted">{user.email}</p>
-          ) : null}
+    <div className="w-full max-w-4xl mx-auto space-y-5">
+      {/* Educator Hero Card */}
+      <StickerCard variant="elevated" className="p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-[#134E4A] bg-[#CCFBF1] text-[#0D9488] shadow-[2px_2px_0px_#134E4A]">
+              <GraduationCap size={32} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-lg md:text-xl font-black text-[#183B38]">
+                  {displayName}
+                </h1>
+                <StickerBadge variant="primary" size="sm">
+                  {periodLabel}
+                </StickerBadge>
+              </div>
+              {user?.email && (
+                <p className="mt-0.5 truncate text-xs text-[#64748B]">
+                  {user.email}
+                </p>
+              )}
+              <p className="mt-1 text-[11px] font-semibold text-[#0D9488]">
+                Pengajar Terverifikasi Tartila
+              </p>
+            </div>
+          </div>
+
+          <StickerButton
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/member/ngaji-ceria/profile")}
+            className="shrink-0"
+          >
+            <ProfileIcon size={14} className="mr-1.5" /> Buka Profil Publik
+          </StickerButton>
         </div>
       </StickerCard>
 
-      <StickerCard className="p-5">
-        <p className="text-sm font-black">Laporan Santri</p>
-        <p className="mt-1 text-xs font-semibold ustadz-muted">
-          Lihat siapa yang rajin, yang hanya mengerjakan kuis, dan yang butuh
-          perhatian.
-        </p>
-        <StickerButton
-          variant="primary"
-          className="mt-3 w-full"
-          onClick={() => navigate("/ustadz/laporan")}
-        >
-          Buka Laporan
-        </StickerButton>
-      </StickerCard>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <StickerCard className="p-5">
-          <div className="flex items-center gap-3">
-            <Users size={18} />
-            <p className="text-sm font-black">Kelas Dimiliki</p>
+      {/* Stats Summary Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <StickerCard variant="elevated" className="p-5 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+              Kelas Dikelola
+            </span>
+            <p className="mt-1 text-2xl font-black text-[#0D9488]">
+              {roomCount} <span className="text-xs font-normal text-[#64748B]">ruang kelas</span>
+            </p>
+            <p className="mt-1 text-[11px] text-[#64748B]">
+              Termasuk kelas aktif & arsip
+            </p>
           </div>
-          <p className="mt-2 text-2xl font-black text-[var(--ustadz-accent)]">
-            {roomCount}
-          </p>
-          <p className="mt-1 text-[10px] font-bold ustadz-muted">
-            Termasuk kelas aktif dan arsip.
-          </p>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#E0E7FF] text-[#4338CA] shadow-[2px_2px_0px_#134E4A]">
+            <Users size={22} />
+          </div>
         </StickerCard>
 
-        <StickerCard className="p-5">
-          <div className="flex items-center gap-3">
-            <ProfileIcon size={18} />
-            <p className="text-sm font-black">Akun Santri</p>
+        <StickerCard variant="elevated" className="p-5 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+              Bank Kuis Dibuat
+            </span>
+            <p className="mt-1 text-2xl font-black text-[#0D9488]">
+              {quizCount} <span className="text-xs font-normal text-[#64748B]">kuis evaluasi</span>
+            </p>
+            <p className="mt-1 text-[11px] text-[#64748B]">
+              Siap ditugaskan ke kelas
+            </p>
           </div>
-          <p className="mt-2 text-xs font-semibold ustadz-muted">
-            Data profil publik dan riwayat belajar dikelola di area santri.
-          </p>
-          <StickerButton
-            variant="primary"
-            className="mt-3 w-full"
-            onClick={() => navigate("/member/ngaji-ceria/profile")}
-          >
-            Buka Profil Santri
-          </StickerButton>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEF3C7] text-[#B45309] shadow-[2px_2px_0px_#134E4A]">
+            <Trophy size={22} />
+          </div>
         </StickerCard>
       </div>
 
-      <StickerCard className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-black">Lencana Dedikasi</p>
+      {/* Lencana Dedikasi Section */}
+      <StickerCard variant="elevated" className="p-5 md:p-6 space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b-2 border-[#134E4A]/10">
+          <div>
+            <h2 className="text-sm font-black text-[#183B38]">
+              Lencana Dedikasi Pendidik
+            </h2>
+            <p className="text-xs text-[#64748B]">
+              Apresiasi perjalanan mengajar dan kontribusi dalam pembelajaran Al-Qur'an
+            </p>
+          </div>
           <span className="text-xs font-black text-[#0D9488]">
-            {unlockedCount}/4 terbuka
+            {unlockedCount}/4 Terbuka
           </span>
         </div>
-        <div className="mt-1 text-xs font-semibold ustadz-muted">
-          Lencana penghargaan untuk perjalanan mengajarmu: tanpa poin, murni
-          apresiasi.
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Badge
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <DedicationBadge
             label="Pendidik Baru"
-            description="Masuk panel ustadz"
+            description="Masuk ke panel ustadz"
             unlocked
-            iconBg="bg-[#BBF7D0]"
+            bg="bg-[#CCFBF1]"
+            text="text-[#0D9488]"
           />
-          <Badge
+          <BadgeRequirement
             label="Kelas Aktif"
-            description="Punya kelas digital"
+            description="Membuka kelas digital pertama"
             unlocked={roomCount > 0}
-            iconBg="bg-[#FEF08A]"
+            bg="bg-[#FEF3C7]"
+            text="text-[#B45309]"
           />
-          <Badge
-            label="Ahli Kuis"
-            description="Buat kuis pertama"
+          <BadgeRequirement
+            label="Penyusun Kuis"
+            description="Membuat kuis pertama di bank soal"
             unlocked={quizCount > 0}
-            iconBg="bg-[#BFDBFE]"
+            bg="bg-[#E0E7FF]"
+            text="text-[#4338CA]"
           />
-          <Badge
-            label="Guru Terpercaya"
-            description="Kelola minimal 3 kelas"
+          <BadgeRequirement
+            label="Guru Teladan"
+            description="Mengelola 3 kelas aktif"
             unlocked={roomCount >= 3}
-            iconBg="bg-[#E9D5FF]"
+            bg="bg-[#FCE7F3]"
+            text="text-[#BE185D]"
           />
         </div>
       </StickerCard>
 
-      <StickerCard className="p-5">
-        <p className="text-sm font-black">Keluar Akun</p>
-        <p className="mt-1 text-xs font-semibold ustadz-muted">
-          Akhiri sesi dari perangkat ini.
-        </p>
-        <button
-          type="button"
-          onClick={logout}
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border-[3px] border-[var(--ustadz-border)] bg-[var(--ustadz-danger-soft)] px-4 py-2 text-sm font-black text-[var(--ustadz-danger)] shadow-[3px_3px_0_var(--ustadz-border)] transition-transform hover:-translate-y-0.5"
-        >
-          <LogOut size={16} />
-          Keluar
-        </button>
+      {/* Logout Card */}
+      <StickerCard variant="elevated" className="p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#183B38]">
+              Sesi Masuk
+            </h3>
+            <p className="text-xs text-[#64748B]">
+              Keluar dari akun pengajar pada perangkat ini.
+            </p>
+          </div>
+          <StickerButton
+            variant="danger"
+            size="sm"
+            onClick={logout}
+          >
+            <LogOut size={14} className="mr-1.5" /> Keluar Akun
+          </StickerButton>
+        </div>
       </StickerCard>
     </div>
   );
 }
 
-function Badge({
+function DedicationBadge({
   label,
   description,
   unlocked,
-  iconBg,
+  bg,
+  text,
 }: {
   label: string;
   description: string;
   unlocked: boolean;
-  iconBg: string;
+  bg: string;
+  text: string;
 }) {
   return (
     <div
-      className={`rounded-2xl border-[3px] border-[#0A2540] p-3 text-center shadow-[3px_3px_0_#0A2540] ${
-        unlocked ? "bg-white" : "bg-[#F4F1EA]"
+      className={`rounded-2xl p-3.5 text-center transition-all ${
+        unlocked
+          ? "border-2 border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A]"
+          : "border-2 border-[#134E4A]/30 bg-[#F8FAFC] opacity-60"
       }`}
     >
-      <span
-        className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl border-[2.5px] border-[#0A2540] ${
-          unlocked ? `${iconBg} text-[#0A2540] shadow-[2px_2px_0_#0A2540]` : "bg-[#E3E0D8] text-[#9AA2AB] shadow-none"
-        }`}
-        title={unlocked ? "Lencana terbuka" : "Lencana terkunci"}
-      >
-        {unlocked ? <Check size={18} /> : <Lock size={18} />}
-      </span>
-      <p
-        className={`mt-2 text-[11px] font-black ${
-          unlocked ? "text-[#134E4A]" : "text-[#9AA2AB]"
+      <div
+        className={`mx-auto flex h-11 w-11 items-center justify-center rounded-xl border-2 border-[#134E4A] ${
+          unlocked ? `${bg} ${text}` : "bg-[#E2E8F0] text-[#94A3B8]"
         }`}
       >
-        {label}
-      </p>
-      <p
-        className={`text-[10px] font-semibold ${
-          unlocked ? "ustadz-muted" : "text-[#9AA2AB]"
-        }`}
-      >
+        {unlocked ? <Check size={20} /> : <Lock size={18} />}
+      </div>
+      <p className="mt-2 text-xs font-black text-[#183B38]">{label}</p>
+      <p className="mt-0.5 text-[10px] text-[#64748B] leading-tight">
         {description}
       </p>
     </div>
   );
 }
+
+const BadgeRequirement = DedicationBadge;

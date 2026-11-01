@@ -59,66 +59,62 @@ export type JilidNumber = 1 | 2 | 3 | 4 | 5;
 export type GameAccessLevel = 'guest-open' | 'member-only';
 export type CatalogType = 'materi' | 'quiz' | 'game';
 
-export interface GameCatalogEntry {
+export interface BaseCatalogEntry {
   id: string;
-  gameId: string;
   title: string;
-  type: 'game';
+  type: CatalogType;
   materiPokok: readonly MateriPokok[];
   jilidRelevan: readonly JilidNumber[];
   learningObjective: string;
   caraMain: string;
   tipsUstadz: readonly string[];
-  access: GameAccessLevel;
   needsContentValidation: boolean;
+  /** Aktif tersembunyikan di panel Ustadz. Game yang `false` tidak ditampilkan filter. */
+  isActive?: boolean;
 }
 
-interface RawGameCatalogEntry extends GameCatalogEntry {
+export interface GameCatalogEntry extends BaseCatalogEntry {
+  type: 'game';
+  gameId: string;
+  access: GameAccessLevel;
+}
+
+export interface RawGameCatalogEntry extends GameCatalogEntry {
   /** ID rute alias yang juga menunjuk game ini (GAME_ALIASES). */
   routeAliases?: readonly string[];
 }
 
-export interface MateriCatalogEntry {
-  id: string;
-  title: string;
+export interface MateriCatalogEntry extends BaseCatalogEntry {
   type: 'materi';
-  materiPokok: readonly MateriPokok[];
-  jilidRelevan: readonly JilidNumber[];
-  learningObjective: string;
-  caraMain: string;
-  tipsUstadz: readonly string[];
-  /** Rute halaman materi (menu Jelajah). */
   route: string;
-  needsContentValidation: boolean;
 }
 
-export interface QuizCatalogEntry {
-  id: string;
-  title: string;
+export interface QuizCatalogEntry extends BaseCatalogEntry {
   type: 'quiz';
-  materiPokok: readonly MateriPokok[];
-  jilidRelevan: readonly JilidNumber[];
-  learningObjective: string;
-  caraMain: string;
-  tipsUstadz: readonly string[];
-  /** Rute kuis yang sudah tersedia untuk member. */
   route?: string;
-  needsContentValidation: boolean;
 }
 
-export type CatalogEntry =
-  | RawGameCatalogEntry
-  | MateriCatalogEntry
-  | QuizCatalogEntry;
+export type CatalogEntry = RawGameCatalogEntry | MateriCatalogEntry | QuizCatalogEntry;
 
-/** Label tipe katalog untuk UI. */
+/** Label tipe katalog untuk UI (sinkron dengan panel Member/Santri). */
 export const CATALOG_TYPE_LABELS: Readonly<Record<CatalogType, string>> = {
-  materi: 'Materi',
-  quiz: 'Kuis',
-  game: 'Game',
+  materi: 'Belajar',
+  quiz: 'Ujian',
+  game: 'Main',
 };
 
-export const GAME_CATALOG: readonly RawGameCatalogEntry[] = [
+export const PUBLIC_ACTIVE_GAME_IDS: ReadonlySet<string> = new Set([
+  'quiz-hub',
+  'hijaiyah-pop',
+  'harakat-rush',
+  'harakat-slasher',
+  'tilawati-memory',
+  'memory-match',
+  'ayat-scramble',
+  'hijaiyah-2048',
+]);
+
+const RAW_GAME_CATALOG: readonly RawGameCatalogEntry[] = [
   {
     gameId: 'quiz-hub',
     id: 'quiz-hub',
@@ -137,6 +133,25 @@ export const GAME_CATALOG: readonly RawGameCatalogEntry[] = [
     access: 'member-only',
     needsContentValidation: true,
     routeAliases: ['quiz-hub-page'],
+  },
+  {
+    gameId: 'tilawati-memory',
+    id: 'tilawati-memory',
+    type: 'game',
+    title: 'Tilawati Memori',
+    materiPokok: ['tilawati', 'hijaiyah'],
+    jilidRelevan: [1, 2, 3, 4, 5],
+    learningObjective:
+      'Asah ingatanmu! Temukan pasangan kartu huruf dan kata Arab secepat mungkin sebelum waktu habis.',
+    caraMain:
+      'Santri membalik kartu dan mencari pasangan huruf atau kata yang identik sebelum waktu habis.',
+    tipsUstadz: [
+      'Gunakan untuk melatih daya ingat visual santri pada huruf hijaiyah.',
+      'Sangat baik untuk selingan belajar interaktif.',
+    ],
+    access: 'member-only',
+    needsContentValidation: false,
+    routeAliases: ['memory-match'],
   },
   {
     gameId: 'hijaiyah-pop',
@@ -643,6 +658,20 @@ export const GAME_CATALOG: readonly RawGameCatalogEntry[] = [
   },
 ];
 
+/** Game catalog yang sudah disinkronkan dengan status aktif publik */
+export const GAME_CATALOG: readonly RawGameCatalogEntry[] = RAW_GAME_CATALOG.map(
+  (entry) => {
+    const isPublicActive =
+      PUBLIC_ACTIVE_GAME_IDS.has(entry.gameId) ||
+      (entry.routeAliases?.some((alias) => PUBLIC_ACTIVE_GAME_IDS.has(alias)) ??
+        false);
+    return {
+      ...entry,
+      isActive: isPublicActive,
+    };
+  },
+);
+
 // ── MATERI: menu Jelajah (kurikulum utama) ──────────────────────
 
 export const MATERI_CATALOG: readonly MateriCatalogEntry[] = [
@@ -653,7 +682,7 @@ export const MATERI_CATALOG: readonly MateriCatalogEntry[] = [
     materiPokok: ['tilawati'],
     jilidRelevan: [1, 2, 3, 4, 5],
     learningObjective:
-      'Membaca Al-Qur\'an bertahap sesuai kurikulum Tilawati dari Jilid 1 sampai 5.',
+      'Membaca Al-Qur\'an bertahap sesuai kurikulum Tartila dari Jilid 1 sampai 5.',
     caraMain:
       'Santri menaiki menara jilid per jilid: setiap jilid berisi peta halaman yang dikerjakan berurutan dengan unggah audio setoran.',
     tipsUstadz: [
@@ -928,13 +957,19 @@ export function catalogMatchesFilter(
 }
 
 export function filterCatalogItems(filter: CatalogFilter): CatalogEntry[] {
-  return LEARNING_CATALOG.filter((entry) => catalogMatchesFilter(entry, filter));
+  return LEARNING_CATALOG.filter(
+    (entry) =>
+      (entry.type !== 'game' || entry.isActive !== false) &&
+      catalogMatchesFilter(entry, filter),
+  );
 }
 
 export function filterCatalogGames(
   filter: Omit<CatalogFilter, 'type'>,
 ): GameCatalogEntry[] {
-  return GAME_CATALOG.filter((entry) => catalogMatchesFilter(entry, filter));
+  return GAME_CATALOG.filter(
+    (entry) => entry.isActive !== false && catalogMatchesFilter(entry, filter),
+  );
 }
 
 export interface ClassroomFocus {
@@ -956,7 +991,8 @@ export interface GameRecommendation {
 export function recommendGamesForClassroom(
   focus: ClassroomFocus,
 ): GameRecommendation[] {
-  const scored = GAME_CATALOG.map((entry) => {
+  const activeGames = GAME_CATALOG.filter((entry) => entry.isActive !== false);
+  const scored = activeGames.map((entry) => {
     const alignedMateri = focus.focusMateri.filter((m) =>
       entry.materiPokok.includes(m),
     );
