@@ -21,6 +21,7 @@ type TimelineEdit = {
   audioOrder?: string[];
   textLinks?: Record<string, string>;
   textAdditions?: QuizQuestion[];
+  textEdits?: Record<string, QuizEdit>;
 };
 
 // Fallback kosong ketika data timeline belum dimuat (async fetch belum selesai).
@@ -208,8 +209,15 @@ function applyTimelineEdits(
     Object.entries(pages).map(([pageNumber, page]) => {
       const edit = activeTimelineData[`${jilid}:${pageNumber}`];
       if (!edit) return [pageNumber, page];
+      // Edit teks per soal (arabic/transliterasi/hintTone) tersimpan di DB
+      // via Go API (textEdit dalam POST timeline) dan dioverlay ke baseline.
+      const textEditFor = (question: QuizQuestion) => {
+        const textEdit = edit.textEdits?.[`${jilid}:${pageNumber}:${question.id}`];
+        if (!textEdit || textEdit.deleted) return question;
+        return { ...question, ...textEdit, id: question.id } as QuizQuestion;
+      };
       if (edit.published) {
-        return [pageNumber, { ...page, questions: edit.published.questions }];
+        return [pageNumber, { ...page, questions: edit.published.questions.map(textEditFor) }];
       }
       const audioRanks = new Map((edit.audioOrder || []).map((url, idx) => [url, idx]));
       const addedQuestions = (edit.textAdditions || [])
@@ -220,6 +228,7 @@ function applyTimelineEdits(
         .filter((question) => !question.deleted)
         .map(({ deleted: _deleted, ...question }) => question);
       const questions = [...page.questions, ...addedQuestions]
+        .map(textEditFor)
         .map((question) => {
           const linkedAudio = edit.textLinks?.[String(question.id)];
           return linkedAudio

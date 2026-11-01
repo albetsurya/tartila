@@ -12,6 +12,19 @@ import { addEvent } from "@/services/eventService";
 import { submitScore } from "@/features/ngaji-ceria/services/ngajiCeriaApi";
 import { useAuth } from "@/contexts/AuthContext";
 
+const ARCADE_GAME_IDS = new Set([
+  "harakat-rush",
+  "makhraj-master",
+  "hijaiyah-beats",
+  "hijaiyah-pop",
+  "hijaiyah-burst",
+  "hijaiyah-rush",
+  "hijaiyah-2048",
+  "ayat-scramble",
+  "word-builder",
+  "tajwid-tetris",
+]);
+
 export interface SecondChanceConfig {
   onSuccess: () => void;
   question?: string;
@@ -106,7 +119,13 @@ export function GameOverModal({
     } catch {
       // ignore
     }
-    soundManager.playSfx(victory ? "victory" : "defeat");
+    if (victory) {
+      soundManager.playSfx(isNewRecord ? "game-winner" : "victory");
+    } else {
+      soundManager.playSfx(
+        ARCADE_GAME_IDS.has(gameId) ? "game-over-arcade" : "game-over",
+      );
+    }
     addEvent({
       type: "game_completed",
       missionId: gameId,

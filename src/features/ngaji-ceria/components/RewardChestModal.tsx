@@ -61,6 +61,7 @@ export function RewardChestModal() {
     if (opened) return;
     tapFeedback([10, 30, 20]);
     playSfx("chest-open");
+    playSfx("game-bonus");
     setTimeout(() => {
       playSfx("coin-collect");
     }, 300);

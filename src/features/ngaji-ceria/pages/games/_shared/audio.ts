@@ -44,7 +44,13 @@ type Sound =
   | "level-up"
   | "badge-earned"
   | "chest-open"
-  | "coin-collect";
+  | "coin-collect"
+  | "game-start"
+  | "game-bonus"
+  | "game-bonus1"
+  | "game-over"
+  | "game-over-arcade"
+  | "game-winner";
 const FORWARD: Record<Sound, SfxName> = {
   pop: "pop",
   correct: "correct",
@@ -58,6 +64,12 @@ const FORWARD: Record<Sound, SfxName> = {
   "badge-earned": "badge-earned",
   "chest-open": "chest-open",
   "coin-collect": "coin-collect",
+  "game-start": "game-start",
+  "game-bonus": "game-bonus",
+  "game-bonus1": "game-bonus1",
+  "game-over": "game-over",
+  "game-over-arcade": "game-over-arcade",
+  "game-winner": "game-winner",
 };
 
 /** SFX game — diteruskan ke soundManager terpusat (file Kenney CC0 + fallback sintesis). */

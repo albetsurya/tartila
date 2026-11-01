@@ -13,6 +13,7 @@ import {
   SparklesSvg,
 } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
+import { soundManager } from "../services/soundManager";
 
 export type ArenaRole = "santri" | "ustadz";
 
@@ -61,6 +62,7 @@ export function OnboardingModal({
   if (!visible) return null;
 
   const handleSelectRole = (role: ArenaRole) => {
+    soundManager.playSfx("game-start");
     setSelectedRole(role);
     setPage([0, 0]);
   };

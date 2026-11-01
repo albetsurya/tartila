@@ -51,7 +51,7 @@ function loadState(scope: string): NgajiCeriaState {
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
-        stars: parsed.stars || {},
+        stars: (parsed && typeof parsed.stars === "object" && parsed.stars !== null) ? parsed.stars : {},
         lastPlayedAt: parsed.lastPlayedAt || null,
         currentStreak: parsed.currentStreak || 0,
         streakDays: Array.isArray(parsed.streakDays) ? parsed.streakDays : Array(7).fill(false),

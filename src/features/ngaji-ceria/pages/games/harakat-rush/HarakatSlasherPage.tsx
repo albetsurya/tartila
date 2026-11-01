@@ -119,7 +119,7 @@ function Game() {
       soundManager.playSfx("victory");
       unlockNextLevel("harakat-rush", selectedLevel);
     } else {
-      soundManager.playSfx("gameover");
+      soundManager.playSfx("game-over-arcade");
     }
   };
 

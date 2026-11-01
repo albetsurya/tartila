@@ -18,6 +18,7 @@ import { AppModal } from "@/components/ui/AppModal";
 import { PetiHartaSvg } from "@/components/ui/Illustrations";
 import { useNgajiProgress } from "../pages/games/_shared/progression";
 import { AnimatedProgressBar } from "@/components/ui/AnimatedProgressBar";
+import { soundManager } from "../services/soundManager";
 
 const getMissionIcon = (id: string, isCompletedOnYellow?: boolean) => {
   if (isCompletedOnYellow) {
@@ -321,6 +322,7 @@ export function DailyMissionsCard() {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         claimMission(selectedMission);
+                        soundManager.playSfx("game-bonus");
                         setRefresh((r) => r + 1);
                         setSelectedMission(null);
                       }}
