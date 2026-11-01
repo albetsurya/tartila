@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"log"
+	"sync"
 
 	"tartila-server/hub"
 	"tartila-server/models"
@@ -19,6 +20,11 @@ import (
 type APIHandler struct {
 	Hub *hub.RoomHub
 	db  *sql.DB
+
+	// Tilawati timeline Postgres pool, opened lazily on first request.
+	timelineOnce sync.Once
+	timelineDB   *sql.DB
+	timelineErr  error
 }
 
 func NewAPIHandler(h *hub.RoomHub) *APIHandler {
@@ -403,7 +409,7 @@ func (api *APIHandler) GetGlobalLeaderboard(w http.ResponseWriter, r *http.Reque
 
 	entries := make([]map[string]interface{}, 0)
 	for dataRaw.Next() {
-		var userId, gameId, createdAt string
+		var userId, nickname, gameId, createdAt string
 		var score int
 		if err := dataRaw.Scan(&userId, &nickname, &score, &gameId, &createdAt); err != nil {
 			continue
@@ -426,7 +432,100 @@ func (api *APIHandler) GetGlobalLeaderboard(w http.ResponseWriter, r *http.Reque
 }
 
 // GET /api/v1/ngaji-ceria/leaderboard/global (Tahap 7)
+// shortcut: runtime sebelumnya rusak sejak commit 9fc65058 (fungsi kosong);
+// dibangun ulang minimal dari quiz_attempts SQLite, upgrade saat leaderboard
+// ngaji-ceria pindah ke tabel sendiri.
 func (api *APIHandler) GetNgajiCeriaGlobalLeaderboard(w http.ResponseWriter, r *http.Request) {
+	dataRaw, err := api.db.Query(`
+		SELECT user_id, score, game_id, created_at
+		FROM quiz_attempts
+		WHERE game_id LIKE 'ngaji%' AND created_at >= datetime('now', '-7 days')
+		ORDER BY score DESC
+		LIMIT 50
+	`)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "Gagal mengambil leaderboard: " + err.Error(),
+		})
+		return
+	}
+	defer dataRaw.Close()
+
+	entries := make([]map[string]interface{}, 0)
+	for dataRaw.Next() {
+		var userId, gameId, createdAt string
+		var score int
+		if err := dataRaw.Scan(&userId, &score, &gameId, &createdAt); err != nil {
+			continue
+		}
+		entries = append(entries, map[string]interface{}{
+			"id":         userId,
+			"score":      score,
+			"game_id":    gameId,
+			"created_at": createdAt,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":     true,
+		"leaderboard": entries,
+		"timeframe":   "weekly",
+	})
+}
+
+// GET /api/v1/ngaji-ceria/leaderboard (Tahap 7) — skor pribadi user login.
+func (api *APIHandler) GetNgajiCeriaLeaderboard(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, err := api.userIDFromRequest(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	dataRaw, err := api.db.Query(`
+		SELECT game_id, MAX(score), MAX(updated_at)
+		FROM quiz_attempts
+		WHERE user_id = ?
+		GROUP BY game_id
+	`, userID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "Gagal mengambil leaderboard: " + err.Error(),
+		})
+		return
+	}
+	defer dataRaw.Close()
+
+	entries := make([]map[string]interface{}, 0)
+	for dataRaw.Next() {
+		var gameId string
+		var score int
+		var updatedAt string
+		if err := dataRaw.Scan(&gameId, &score, &updatedAt); err != nil {
+			continue
+		}
+		entries = append(entries, map[string]interface{}{
+			"game_id":    gameId,
+			"score":      score,
+			"updated_at": updatedAt,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":     true,
+		"leaderboard": entries,
+	})
+}
 
 // GET /api/v1/user/profile returns the authenticated user's profile,
 // including feedback-prompt fields that are persisted server-side so a user
