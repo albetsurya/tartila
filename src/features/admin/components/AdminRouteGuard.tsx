@@ -3,10 +3,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isTartilaAdmin } from "@/lib/roles";
 
 export function AdminRouteGuard() {
-  const { user, loading } = useAuth();
+  const { user, loading, isRoleVerified } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || !isRoleVerified) {
     return (
       <div className="admin-shell flex min-h-dvh items-center justify-center">
         <div

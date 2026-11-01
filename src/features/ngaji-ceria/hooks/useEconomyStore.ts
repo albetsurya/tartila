@@ -295,7 +295,7 @@ export const useEconomyStore = create<EconomyState>()(
   persist(
     (set, get) => ({
       // Initial state
-      userId: getInitialUserId(),
+      userId: null,
       setUserId: (userId: string | null) => set({ userId }),
       username: null,
       role: null,
@@ -382,7 +382,7 @@ export const useEconomyStore = create<EconomyState>()(
   dailyRewardsClaimed: [],
   lastDailyClaimDate: null,
   lastClaimDate: null,
-  coins: typeof window !== 'undefined' ? (getProgress().coins || 0) : 0,
+  coins: 0,
 
   // Arena Kartu Progress (Papan Progres per Jilid)
   completedArenaCards: { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
@@ -441,8 +441,7 @@ export const useEconomyStore = create<EconomyState>()(
       }
     }
 
-    const currentProgressCoins = typeof window !== 'undefined' ? (getProgress().coins || 0) : 0;
-    const finalCoins = typeof profileData.coins === 'number' ? profileData.coins : currentProgressCoins;
+    const finalCoins = typeof profileData.coins === 'number' ? profileData.coins : get().coins;
     const finalClaimDate = isClaimedToday ? today : (claimDate ? claimDate.slice(0, 10) : null);
 
     set({
@@ -574,6 +573,7 @@ export const useEconomyStore = create<EconomyState>()(
         tickets: TICKET_MAX,
         level: 1,
         xp: 0,
+        coins: 0,
         subscriptionType: 'free',
         roomLimit: 1,
         participantLimit: 5,

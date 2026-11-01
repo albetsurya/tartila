@@ -84,16 +84,24 @@ func main() {
 		http.Error(w, "Not found", http.StatusNotFound)
 	})
 
-	mux.HandleFunc("/api/exam/violation", api.RecordViolation)
+	mux.HandleFunc("/api/exam/violation", api.AuthMiddleware(api.RecordViolation))
 	mux.HandleFunc("/api/leaderboard/global", api.GetGlobalLeaderboard)
 
-	// Ngaji Ceria leaderboard routes (Supabase/REST).
+	// Ngaji Ceria leaderboard & progress routes (authoritative server-side XP & coins).
 	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard/global", api.GetNgajiCeriaGlobalLeaderboard)
-	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard", api.GetNgajiCeriaLeaderboard)
+	mux.HandleFunc("/api/v1/ngaji-ceria/leaderboard", api.NgajiCeriaLeaderboardHandler)
+	mux.HandleFunc("/api/v1/ngaji-ceria/progress", api.NgajiCeriaProgressHandler)
+	mux.HandleFunc("/api/v1/ngaji-ceria/progress/events", api.AuthMiddleware(api.SubmitNgajiCeriaProgress))
+	mux.HandleFunc("/api/submit-score", api.AuthMiddleware(api.SubmitNgajiCeriaProgress))
 
 	// Tilawati timeline editor (Postgres-backed, override & fallback).
 	mux.HandleFunc("/api/v1/tilawati/timeline/all", api.GetAllTimelines)
 	mux.HandleFunc("/api/v1/tilawati/timeline/", api.TimelineOne)
+
+	// Auth & User Profile routes (OAuth sync & feedback prompt)
+	mux.HandleFunc("/api/v1/auth/sync-profile", api.SyncProfile)
+	mux.HandleFunc("/api/v1/user/profile", api.GetUserProfile)
+	mux.HandleFunc("/api/v1/user/feedback-prompt", api.UpdateFeedbackPrompt)
 
 	// WebSocket Route: /api/ws/room/:pin
 	mux.HandleFunc("/api/ws/room/", func(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +112,16 @@ func main() {
 		}
 
 		playerID := r.URL.Query().Get("playerId")
-		isHost := r.URL.Query().Get("isHost") == "true"
+
+		// Validasi token JWT yang dikirim lewat header/koneksi
+		userID, _, err := hub.ParseAuthToken(r)
+		if err != nil {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Status "Host" diverifikasi di database (apakah user ID adalah host_id dari room PIN yang dimaksud)
+		isHost := api.VerifyRoomHost(pin, userID)
 
 		hub.ServeWS(roomHub, w, r, pin, playerID, isHost)
 	})

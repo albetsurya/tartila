@@ -28,10 +28,13 @@ import { triggerBibiReaction } from "@/utils/bibiEvent";
 import { TartilaLogo } from "@/features/ngaji-ceria/components/TartilaLogo";
 import { TartilaLogoSvg } from "@/components/ui/TartilaLogo";
 import { WelcomeAnimation } from "../components/WelcomeAnimation";
+import { supabase } from "@/lib/supabase";
 
 const WELCOMED_KEY = "tartila_welcomed_v1";
 const WELCOME_DURATION_MS = 2500;
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const isOAuthAvailable = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 function shouldShowWelcome(): boolean {
   if (typeof window === "undefined") return false;
@@ -100,7 +103,7 @@ function GoogleIcon({ size = 20 }: { size?: number }) {
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { user, login, loginWithGoogle } = useAuth();
+  const { user, login } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -120,13 +123,105 @@ export function LoginPage() {
     return () => window.clearTimeout(timer);
   }, [showWelcome]);
 
-  // Setelah session tersedia (email/password atau redirect OAuth Google),
-  // tampilkan reaksi sukses lalu arahkan ke beranda.
+  // Deteksi sesi Supabase yang aktif setelah redirect OAuth Google dan sinkronisasi ke Backend Go
   useEffect(() => {
-    if (!user) return;
+    let isCancelled = false;
+
+    const syncProfileAndRedirect = async (accessToken: string, email?: string) => {
+      setIsLoading(true);
+      try {
+        const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+        const response = await fetch(`${apiBase}/api/v1/auth/sync-profile`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Gagal sinkronisasi profil akun ke server.");
+        }
+
+        if (!isCancelled) {
+          setIsSuccess(true);
+          triggerBibiReaction("success");
+          navigate("/member/ngaji-ceria", { replace: true });
+        }
+      } catch (err: unknown) {
+        if (!isCancelled) {
+          console.error("[OAuth] Sync profile error:", err);
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Gagal sinkronisasi profil akun ke server.",
+          );
+          setIsLoading(false);
+        }
+      }
+    };
+
+    const checkSessionOnMount = async () => {
+      const hasOAuthHash =
+        window.location.hash.includes("access_token") ||
+        window.location.hash.includes("error=");
+      const hasOAuthQuery =
+        window.location.search.includes("code=") ||
+        window.location.search.includes("error=");
+
+      if (!hasOAuthHash && !hasOAuthQuery) return;
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("[OAuth] Session fetch error:", sessionError);
+        setError(sessionError.message);
+        return;
+      }
+
+      if (session?.access_token) {
+        await syncProfileAndRedirect(session.access_token, session.user?.email);
+      }
+    };
+
+    void checkSessionOnMount();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.access_token) {
+        const hasOAuthParams =
+          window.location.hash.includes("access_token") ||
+          window.location.search.includes("code=") ||
+          session.user?.app_metadata?.provider === "google";
+
+        if (hasOAuthParams) {
+          await syncProfileAndRedirect(session.access_token, session.user?.email);
+        }
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Setelah session tersedia (email/password), tampilkan reaksi sukses lalu arahkan ke beranda.
+  useEffect(() => {
+    if (!user || error) return;
+    const hasOAuthParams =
+      window.location.hash.includes("access_token") ||
+      window.location.search.includes("code=");
+    if (hasOAuthParams) return;
+
     triggerBibiReaction("success");
     navigate("/member/ngaji-ceria", { replace: true });
-  }, [user, navigate]);
+  }, [user, error, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -155,8 +250,19 @@ export function LoginPage() {
     setError("");
     setIsLoading(true);
     try {
-      await loginWithGoogle();
-    } catch (err) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/login`,
+        },
+      });
+      if (error) {
+        console.error(error.message);
+        setError(error.message);
+        setIsLoading(false);
+      }
+    } catch (err: unknown) {
+      console.error(err);
       setError(
         err instanceof Error ? err.message : "Gagal masuk dengan Google.",
       );
@@ -276,28 +382,6 @@ export function LoginPage() {
               </div>
             ) : null}
 
-            {GOOGLE_CLIENT_ID ? (
-              <div className="mb-5">
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-[3px] border-[#134E4A] bg-white px-4 py-3 text-sm font-black text-[#134E4A] shadow-[3px_3px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60"
-                >
-                  <GoogleIcon size={20} />
-                  Masuk dengan Google
-                </button>
-                <div className="relative mt-4 flex items-center justify-center">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t-2 border-[#134E4A]/20" />
-                  </div>
-                  <div className="relative bg-white px-3 text-[11px] font-black text-[#134E4A]/50">
-                    atau masuk dengan email
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <InputField
                 id="identifier"
@@ -373,6 +457,29 @@ export function LoginPage() {
                 )}
               </StickerButton>
             </form>
+
+            {isOAuthAvailable ? (
+              <div className="mt-5">
+                <div className="relative mb-4 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t-2 border-[#134E4A]/20" />
+                  </div>
+                  <div className="relative bg-white px-3 text-xs font-black text-[#134E4A]/60">
+                    atau masuk dengan
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white px-4 py-3.5 text-sm font-black text-[#134E4A] shadow-[4px_4px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-[2px] active:shadow-none disabled:opacity-60 cursor-pointer"
+                >
+                  <GoogleIcon size={22} />
+                  <span>Masuk dengan Google</span>
+                </button>
+              </div>
+            ) : null}
 
             <p className="mt-6 text-center text-xs font-bold text-[#134E4A]/70">
               Belum memiliki akun?{" "}

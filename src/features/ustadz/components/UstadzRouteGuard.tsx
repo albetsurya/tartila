@@ -27,11 +27,11 @@ function DeniedScreen() {
 }
 
 export function UstadzRouteGuard() {
-  const { user, loading } = useAuth();
+  const { user, loading, isRoleVerified } = useAuth();
   const location = useLocation();
   const classroomRole = classroomRoleForUser(user);
 
-  if (loading) {
+  if (loading || !isRoleVerified) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-[#f4f1ea]">
         <div
