@@ -57,28 +57,37 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user_id    ON quiz_attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_game_id    ON quiz_attempts(game_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_created_at ON quiz_attempts(created_at);
-`,
-		`,
-+CREATE TABLE IF NOT EXISTS rooms (
-+  id          TEXT PRIMARY KEY,
-+  host_id     TEXT NOT NULL,
-+  pin         TEXT NOT NULL UNIQUE,
-+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+
+CREATE TABLE IF NOT EXISTS rooms (
+  id          TEXT PRIMARY KEY,
+  host_id     TEXT NOT NULL,
+  pin         TEXT NOT NULL UNIQUE,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
-+
-+CREATE INDEX IF NOT EXISTS idx_rooms_pin     ON rooms(pin);
-+CREATE INDEX IF NOT EXISTS idx_rooms_host_id ON rooms(host_id);
-+
-+CREATE TABLE IF NOT EXISTS user_progress (
-+  user_id      TEXT PRIMARY KEY,
-+  xp           INTEGER NOT NULL DEFAULT 0,
-+  coins        INTEGER NOT NULL DEFAULT 0,
-+  total_score  INTEGER NOT NULL DEFAULT 0,
-+  games_played INTEGER NOT NULL DEFAULT 0,
-+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+
+CREATE INDEX IF NOT EXISTS idx_rooms_pin     ON rooms(pin);
+CREATE INDEX IF NOT EXISTS idx_rooms_host_id ON rooms(host_id);
+
+CREATE TABLE IF NOT EXISTS user_progress (
+  user_id      TEXT PRIMARY KEY,
+  xp           INTEGER NOT NULL DEFAULT 0,
+  coins        INTEGER NOT NULL DEFAULT 0,
+  total_score  INTEGER NOT NULL DEFAULT 0,
+  games_played INTEGER NOT NULL DEFAULT 0,
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
-+
-+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
+
+CREATE TABLE IF NOT EXISTS users (
+  id          TEXT PRIMARY KEY,
+  email       TEXT,
+  role        TEXT NOT NULL DEFAULT 'member',
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 `
 	if _, err := db.Exec(schema); err != nil {
 		return fmt.Errorf("create schema: %w", err)

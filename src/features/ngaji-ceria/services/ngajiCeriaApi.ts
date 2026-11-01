@@ -23,8 +23,12 @@ export interface ServerProgressEvent {
   eventId: string;
   gameId: string;
   score: number;
-  baseXp: number;
+  baseXp?: number;
+  correctCount?: number;
+  duration?: number;
   achievementIds: string[];
+  // Catatan Keamanan: Client DILARANG mengirim earnedXp atau earnedCoins secara langsung.
+  // Seluruh XP dan Koin dihitung ulang secara otoritatif di Backend Go.
 }
 
 export interface MissionRewardResponse {

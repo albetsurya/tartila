@@ -15,15 +15,8 @@ var ErrMissingJWTSecret = errors.New("JWT_SECRET is not configured")
 // ErrInvalidToken is returned when the token is missing or invalid.
 var ErrInvalidToken = errors.New("token is missing or invalid")
 
-// ParseAuthToken validates the JWT and returns the user_id claim.
-// Priority: query param "token", then "Authorization: Bearer".
-func ParseAuthToken(r *http.Request) (string, jwt.MapClaims, error) {
-	tok := r.URL.Query().Get("token")
-	if tok == "" {
-		if auth := r.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
-			tok = auth[7:]
-		}
-	}
+// ParseTokenString validates the raw JWT string and returns the user_id claim.
+func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 	if tok == "" {
 		return "", nil, ErrInvalidToken
 	}
@@ -45,9 +38,26 @@ func ParseAuthToken(r *http.Request) (string, jwt.MapClaims, error) {
 		return "", nil, ErrInvalidToken
 	}
 
-	userID, ok := claims["user_id"].(string)
+	userID, _ := claims["user_id"].(string)
+	if userID == "" {
+		if sub, ok := claims["sub"].(string); ok && sub != "" {
+			userID = sub
+		}
+	}
 	if userID == "" {
 		return "", nil, ErrInvalidToken
 	}
 	return userID, claims, nil
+}
+
+// ParseAuthToken validates the JWT and returns the user_id claim.
+// Priority: query param "token", then "Authorization: Bearer".
+func ParseAuthToken(r *http.Request) (string, jwt.MapClaims, error) {
+	tok := r.URL.Query().Get("token")
+	if tok == "" {
+		if auth := r.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
+			tok = strings.TrimPrefix(auth, "Bearer ")
+		}
+	}
+	return ParseTokenString(tok)
 }

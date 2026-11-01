@@ -9,7 +9,7 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import { authApi } from "@/services/authApi";
-import { getToken, clearToken } from "@/services/api";
+import { getToken, setToken, clearToken } from "@/services/api";
 import { isUstadzRole, isUstadzUser, normalizeRole } from "@/lib/roles";
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { MASCOT_STORAGE_KEY } from "@/constants/mascot";
@@ -39,6 +39,7 @@ interface AuthContextValue {
   user: CeriaUser | null;
   loading: boolean;
   isAuthLoading: boolean; // Flag loading autentikasi awal untuk mencegah flicker ke guest
+  isRoleVerified: boolean; // Flag verifikasi role otoritatif dari server
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
@@ -94,19 +95,25 @@ function clearAuthCache() {
 // bocor menjadi Admin Tartila.
 function createCeriaUser(
   sbUser: any,
-  ustadzFlag: boolean = false,
+  _ustadzFlag: boolean = false,
   roleOverride?: string | null,
 ): CeriaUser {
-  const role = toTartilaRole(roleOverride || sbUser.user_metadata?.role);
+  // KEAMANAN (Phase 3): Role harus berasal dari backend Go yang terverifikasi (roleOverride).
+  // Metadata Supabase dan localStorage TIDAK BOLEH memberikan role istimewa
+  // (ustadz, ustadzah, tartila_admin, superadmin).
+  const verifiedRole = toTartilaRole(roleOverride);
+  const safeRole = roleOverride ? verifiedRole : "member";
+  const isUstadz = isUstadzRole(safeRole);
+
   return {
     id: sbUser.id,
     email: sbUser.email,
     username: sbUser.user_metadata?.username || null,
     name: sbUser.user_metadata?.name || null,
-    role: role,
+    role: safeRole,
     group_id: sbUser.user_metadata?.group_id || null,
     is_vip: sbUser.user_metadata?.is_vip || false,
-    is_ustadz: ustadzFlag || isUstadzRole(role),
+    is_ustadz: isUstadz,
     photo_url: sbUser.user_metadata?.photo_url || null,
     gender: sbUser.user_metadata?.mascot_gender || sbUser.user_metadata?.gender || null,
   };
@@ -128,19 +135,10 @@ async function fetchGoRole(): Promise<string | undefined> {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CeriaUser | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("tartila_cached_user");
-        if (cached) return JSON.parse(cached);
-      } catch {
-        // noop
-      }
-    }
-    return null;
-  });
+  const [user, setUser] = useState<CeriaUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isRoleVerified, setIsRoleVerified] = useState(false);
   const initInFlightRef = useRef<Promise<void> | null>(null);
   const mountedRef = useRef(false);
 
@@ -164,14 +162,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
     if (initInFlightRef.current) return initInFlightRef.current;
     const promise = (async () => {
       let goRole: string | undefined;
+      let roleVerified = false;
       try {
         // 1. Cek session Supabase DULU — jangan panggil getUserProfile tanpa session terverifikasi
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
-          // Sinkronisasi data profil & maskot dari Backend Go (Single Source of Truth)
+          if (session.access_token) {
+            setToken(session.access_token);
+          }
+          // Paksa aplikasi selalu melakukan fetching profil ulang dari backend Go (GET /api/v1/user/profile) saat pertama kali dimuat
           try {
             const profileRes = await userApi.getUserProfile();
             if (profileRes) {
+              roleVerified = true;
               useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
               const goUser = profileRes.user || profileRes.profile;
               goRole = goUser?.role || undefined;
@@ -181,14 +184,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 void useEconomyStore.getState().setTilaGender(mascotGender);
               }
             }
-          } catch {
-            // offline atau belum login
+          } catch (err) {
+            console.warn("[AuthContext] Backend Go profile fetch offline/failed:", err);
           }
-          const isUstadz = 
-            session.user.user_metadata?.role === 'ustadz' ||
-            session.user.user_metadata?.role === 'ustadzah' ||
-            session.user.user_metadata?.is_ustadz === true;
-          const ceriaUser = createCeriaUser(session.user, isUstadz, goRole);
+
+          const ceriaUser = createCeriaUser(session.user, false, goRole);
           if (mountedRef.current) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
@@ -202,33 +202,57 @@ function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           // Fallback bila pengguna login via REST token legacy
           const token = getToken();
-          const cached = localStorage.getItem("tartila_cached_user");
-          if (token && cached) {
+          if (token) {
             try {
-              const parsed = JSON.parse(cached);
-              if (mountedRef.current) {
-                setUser(parsed);
-                void useEconomyStore.getState().setUserId(parsed.id || parsed.user_id || null);
-                if (parsed.gender) {
-                  const mascotGender = resolveMascotGender(parsed.gender);
-                  void useEconomyStore.getState().setTilaGender(mascotGender);
+              const profileRes = await userApi.getUserProfile();
+              if (profileRes) {
+                roleVerified = true;
+                useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
+                const goUser = profileRes.user || profileRes.profile;
+                goRole = goUser?.role || undefined;
+                const safeRole = toTartilaRole(goRole);
+                const ceriaUser: CeriaUser = {
+                  id: goUser?.id || goUser?.user_id || "legacy-user",
+                  email: goUser?.email || null,
+                  username: goUser?.username || null,
+                  name: goUser?.name || null,
+                  role: safeRole,
+                  group_id: goUser?.group_id || null,
+                  is_vip: Boolean(goUser?.is_vip),
+                  is_ustadz: isUstadzRole(safeRole),
+                  photo_url: goUser?.photo_url || null,
+                  gender: profileRes.mascot_gender || goUser?.gender || null,
+                };
+                if (mountedRef.current) {
+                  setUser(ceriaUser);
+                  localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+                  void useEconomyStore.getState().setUserId(ceriaUser.id);
                 }
+              } else if (mountedRef.current) {
+                setUser(null);
+                clearAuthCache();
               }
             } catch {
-              // noop
+              if (mountedRef.current) {
+                setUser(null);
+                clearAuthCache();
+              }
             }
-          } else if (!token && mountedRef.current) {
+          } else if (mountedRef.current) {
             setUser(null);
-            localStorage.removeItem("tartila_cached_user");
-            void useEconomyStore.getState().setUserId(null);
+            clearAuthCache();
+            roleVerified = true;
           }
         }
       } catch (err) {
         console.error("[AuthContext] Session init error:", err);
       } finally {
         initInFlightRef.current = null;
-        setLoading(false); // Unconditional: stuck loading > React warning
-        setIsAuthLoading(false);
+        if (mountedRef.current) {
+          setIsRoleVerified(roleVerified);
+          setLoading(false); // Unconditional: stuck loading > React warning
+          setIsAuthLoading(false);
+        }
       }
     })();
     initInFlightRef.current = promise;
@@ -242,14 +266,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session && session.user) {
-          const isUstadz =
-            session.user.user_metadata?.role === 'ustadz' ||
-            session.user.user_metadata?.role === 'ustadzah' ||
-            session.user.user_metadata?.is_ustadz === true;
-          // Hanya fetch role saat SIGNED_IN — TOKEN_REFRESHED/INITIAL_SESSION reuse cached state
-          const shouldFetchRole = event === "SIGNED_IN";
-          const goRole = shouldFetchRole ? await fetchGoRole() : undefined;
-          const ceriaUser = createCeriaUser(session.user, isUstadz, goRole);
+          if (session.access_token) {
+            setToken(session.access_token);
+          }
+          // Selalu ambil role otoritatif dari Backend Go
+          const goRole = await fetchGoRole();
+          const ceriaUser = createCeriaUser(session.user, false, goRole);
           if (mountedRef.current) {
             setUser(ceriaUser);
             localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
@@ -258,6 +280,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
               const mascotGender = resolveMascotGender(ceriaUser.gender);
               void useEconomyStore.getState().setTilaGender(mascotGender);
             }
+            setIsRoleVerified(Boolean(goRole));
             setLoading(false);
             setIsAuthLoading(false);
           }
@@ -268,6 +291,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             clearAuthCache();
             clearToken();
             void useEconomyStore.getState().setUserId(null);
+            setIsRoleVerified(true);
             setLoading(false);
             setIsAuthLoading(false);
           }
@@ -460,6 +484,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
           is_vip: goData.is_vip ?? prev?.is_vip ?? false,
         }));
       }
+      setIsRoleVerified(Boolean(goData.role));
     } catch (err) {
       console.error('Refresh user error:', err);
     }
@@ -533,6 +558,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     user,
     loading,
     isAuthLoading,
+    isRoleVerified,
     loginWithGoogle,
     loginWithEmail,
     register,
