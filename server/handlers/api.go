@@ -835,19 +835,45 @@ func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, role, err := api.userAuthFromRequest(r)
-	if err != nil {
+	userID, claims, err := hub.ParseAuthToken(r)
+	if err != nil || userID == "" {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	tokenEmail, _ := claims["email"].(string)
+	tokenRole, _ := claims["role"].(string)
+
+	role := "member"
+	if tokenRole != "" && tokenRole != "authenticated" {
+		role = tokenRole
+	}
+	email := tokenEmail
+
 	if api.db != nil {
-		var dbRole string
-		if err := api.db.QueryRow("SELECT role FROM users WHERE id = ?", userID).Scan(&dbRole); err == nil && dbRole != "" {
-			role = dbRole
+		var dbRole, dbEmail string
+		queryErr := api.db.QueryRow("SELECT role, email FROM users WHERE id = ?", userID).Scan(&dbRole, &dbEmail)
+		if queryErr == nil {
+			if dbRole != "" && dbRole != "authenticated" {
+				role = dbRole
+			}
+			if dbEmail != "" {
+				email = dbEmail
+			}
+		} else if queryErr == sql.ErrNoRows {
+			// Auto-register profil user baru di database SQLite dengan role 'member'
+			_, _ = api.db.Exec(`
+				INSERT INTO users (id, email, role, updated_at)
+				VALUES (?, ?, 'member', datetime('now'))
+				ON CONFLICT(id) DO UPDATE SET
+					email = CASE WHEN excluded.email != '' THEN excluded.email ELSE users.email END,
+					updated_at = datetime('now')
+			`, userID, tokenEmail)
 		}
 	}
-	if role == "" {
+
+	// Normalisasi role Tartila
+	if role == "" || role == "authenticated" {
 		role = "member"
 	}
 
@@ -874,6 +900,7 @@ func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"user": map[string]interface{}{
 			"id":                      userID,
+			"email":                   email,
 			"role":                    role,
 			"last_feedback_prompt_at": lastPromptAt,
 			"has_submitted_feedback":  hasSubmitted == 1,
