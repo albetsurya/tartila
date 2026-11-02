@@ -36,7 +36,7 @@ export function GameShell({
   children: ReactNode;
 }) {
   const controlBtnStyle =
-    "pointer-events-auto flex items-center justify-center gap-1 h-10 w-10 min-h-[40px] min-w-[40px] rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-xs font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer";
+    "pointer-events-auto flex items-center justify-center gap-1 h-10 w-10 min-h-[40px] min-w-[40px] rounded-xl border-2 border-[#134E4A] bg-[#FFFFFF] text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer";
   const exit = useGameExit();
   const { muted, toggle } = useGameAudio();
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
@@ -84,6 +84,9 @@ export function GameShell({
     const handleVisibility = () => {
       if (document.hidden && phase === "playing") onPause();
     };
+    const handleBlur = () => {
+      if (phase === "playing") onPause();
+    };
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (phase === "playing") onPause();
@@ -91,9 +94,11 @@ export function GameShell({
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("blur", handleBlur);
     document.addEventListener("keydown", handleKey);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("blur", handleBlur);
       document.removeEventListener("keydown", handleKey);
     };
   }, [phase, onPause, onResume]);
@@ -153,18 +158,24 @@ export function GameShell({
             type="button"
             onClick={toggle}
             aria-label={muted ? "Nyalakan suara" : "Matikan suara"}
+            title={muted ? "Nyalakan suara" : "Matikan suara"}
             className={controlBtnStyle}
           >
-            {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            {muted ? (
+              <VolumeX size={16} stroke="#EF4444" />
+            ) : (
+              <Volume2 size={16} stroke="#134E4A" />
+            )}
           </button>
           {(phase === "playing" || phase === "paused") && (
             <button
               type="button"
               onClick={onPause}
               aria-label="Jeda permainan"
+              title="Jeda permainan"
               className={controlBtnStyle}
             >
-              <Pause size={14} />
+              <Pause size={16} stroke="#134E4A" />
             </button>
           )}
         </div>

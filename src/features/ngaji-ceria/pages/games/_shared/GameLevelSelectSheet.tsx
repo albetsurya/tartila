@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { LockSvg, InfoSvg } from "@/components/ui/CustomIcons";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 
@@ -20,6 +20,7 @@ export function GameLevelSelectSheet({
   gameIcon,
   levels,
   unlockedCount,
+  initialMode = "practice",
   onSelectLevel,
   onOpenGuide,
 }: {
@@ -29,9 +30,12 @@ export function GameLevelSelectSheet({
   gameIcon: ReactNode;
   levels: GameLevelItem[];
   unlockedCount: number;
-  onSelectLevel: (index: number) => void;
+  initialMode?: "practice" | "challenge";
+  onSelectLevel: (index: number, mode: "practice" | "challenge") => void;
   onOpenGuide?: () => void;
 }) {
+  const [mode, setMode] = useState<"practice" | "challenge">(initialMode);
+
   return (
     <AppBottomSheet isOpen={isOpen} onClose={onClose} title={gameTitle}>
       <div className="px-5 pb-2 pt-1">
@@ -60,6 +64,42 @@ export function GameLevelSelectSheet({
               <InfoSvg size={16} />
             </button>
           )}
+        </div>
+
+        {/* Switch Mode: Latihan (Gratis) vs Tantangan (1 Tiket) */}
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl border-[3px] border-[#134E4A] bg-[#F8FAFC] shadow-[2px_2px_0px_#134E4A]">
+            <button
+              type="button"
+              onClick={() => setMode("practice")}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl font-display font-black text-xs transition-all cursor-pointer ${
+                mode === "practice"
+                  ? "bg-[#FEF08A] text-[#134E4A] border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+                  : "bg-transparent text-[#64748B] hover:text-[#134E4A]"
+              }`}
+            >
+              <span className="text-xs uppercase tracking-wider">Latihan</span>
+              <span className="text-[10px] font-bold opacity-80">Gratis • Bebas</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("challenge")}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl font-display font-black text-xs transition-all cursor-pointer ${
+                mode === "challenge"
+                  ? "bg-[#0D9488] text-white border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+                  : "bg-transparent text-[#64748B] hover:text-[#134E4A]"
+              }`}
+            >
+              <span className="text-xs uppercase tracking-wider">Tantangan</span>
+              <span className="text-[10px] font-bold opacity-90">1 Tiket • 3 Nyawa</span>
+            </button>
+          </div>
+
+          <p className="mt-2 text-center text-[11px] font-bold text-[#64748B]">
+            {mode === "practice"
+              ? "Mode Latihan: Belajar santai tanpa batas nyawa dan tanpa memotong tiket."
+              : "Mode Tantangan: Menggunakan 1 tiket sesi, 3 nyawa, dan batas waktu."}
+          </p>
         </div>
 
         {/* Daftar Level — list vertikal (psikologi anak: ramah jempol) */}
@@ -102,10 +142,10 @@ export function GameLevelSelectSheet({
                 {isUnlocked ? (
                   <button
                     type="button"
-                    onClick={() => onSelectLevel(idx)}
+                    onClick={() => onSelectLevel(idx, mode)}
                     className="shrink-0 rounded-lg bg-[#0D9488] px-4 py-1.5 text-xs font-black text-white border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] hover:bg-[#0F766E] transition-all cursor-pointer"
                   >
-                    Main
+                    {mode === "practice" ? "Latihan" : "Main"}
                   </button>
                 ) : (
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center">

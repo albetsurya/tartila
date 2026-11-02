@@ -21,6 +21,14 @@ export const useGameAudio = create<{ muted: boolean; toggle: () => void }>(
     muted: soundManager.muted,
     toggle: () => {
       soundManager.toggleMuted();
+      try {
+        localStorage.setItem(
+          "ngajiceria:games:muted",
+          soundManager.muted ? "true" : "false",
+        );
+      } catch {
+        /* storage opsional */
+      }
       set({ muted: soundManager.muted });
     },
   }),

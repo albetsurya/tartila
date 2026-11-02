@@ -13,6 +13,7 @@ export interface GameHudProps {
   combo?: number;
   className?: string;
   onHelpClick?: () => void;
+  mode?: "practice" | "challenge";
 }
 
 export const GameHud: React.FC<GameHudProps> = ({
@@ -26,8 +27,10 @@ export const GameHud: React.FC<GameHudProps> = ({
   combo,
   className = "",
   onHelpClick,
+  mode = "challenge",
 }) => {
-  const isUrgent = timeLeft !== undefined && timeLeft < 10;
+  const isPractice = mode === "practice";
+  const isUrgent = !isPractice && timeLeft !== undefined && timeLeft < 10;
 
   const formatTime = (seconds: number) => {
     const s = Math.max(0, Math.floor(seconds));
@@ -70,8 +73,14 @@ export const GameHud: React.FC<GameHudProps> = ({
         )}
       </div>
 
-      {/* Bagian Tengah: TIMER (Hanya muncul jika timeLeft dikirim) */}
-      {timeLeft !== undefined && (
+      {/* Bagian Tengah: BADGE LATIHAN (Practice) atau TIMER (Challenge) */}
+      {isPractice ? (
+        <div className="flex items-center gap-1.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] px-3.5 py-1 text-center font-display shadow-[3px_3px_0px_#134E4A]">
+          <span className="text-xs font-black uppercase tracking-wider text-[#134E4A]">
+            Mode Latihan
+          </span>
+        </div>
+      ) : timeLeft !== undefined ? (
         <motion.div
           animate={isUrgent ? { scale: [1, 1.08, 1] } : { scale: 1 }}
           transition={isUrgent ? { repeat: Infinity, duration: 0.6 } : {}}
@@ -88,12 +97,12 @@ export const GameHud: React.FC<GameHudProps> = ({
             {formatTime(timeLeft)}
           </span>
         </motion.div>
-      )}
+      ) : null}
 
       {/* Sisi Kanan: Skor, Target & Nyawa */}
       <div className="flex items-center gap-2 pointer-events-auto">
-        {/* Nyawa (Hearts) */}
-        {lives !== undefined && (
+        {/* Nyawa (Hearts) - Hanya di Challenge Mode */}
+        {!isPractice && lives !== undefined && (
           <div className="flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-white px-2 py-1 shadow-[2px_2px_0px_#134E4A]">
             {Array.from({ length: maxLives }).map((_, i) => (
               <HeartSvg

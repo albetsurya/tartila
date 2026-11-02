@@ -16,7 +16,7 @@ export function ComboBadge({
       className={`pointer-events-none flex items-center justify-center ${className}`}
     >
       <AnimatePresence mode="popLayout">
-        {combo >= 2 && (
+        {combo >= 3 && (
           <motion.div
             key={combo}
             initial={{ scale: 0.65, opacity: 0, y: -6 }}
