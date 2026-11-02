@@ -1,6 +1,7 @@
 import { getTilawatiJilidPages, applyTimelineEdits } from "./tilawatiQuizData";
 import type { PageQuizData, QuizQuestion } from "./tilawatiQuizTypes";
 export type { PageQuizData } from "./tilawatiQuizTypes";
+export { loadJilidPages, getRawPages } from "./TilawatiDataProvider";
 import { loadTimelineEdits, type TimelineEdits } from "../utils/timelineEditsLoader";
 import { TILAWATI_JILID_1_PAGES } from "./tilawatiQuizJilid1";
 import { getQuestionAudioUrl } from "./tilawatiAudioQuestionMap";

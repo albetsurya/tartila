@@ -11,7 +11,10 @@ import (
 	"tartila-server/hub"
 )
 
-// loadEnv membaca berkas .env sederhana bila tersedia (.env, server/.env, ../.env)
+// loadEnv membaca berkas .env sederhana bila tersedia (.env, server/.env, ../.env).
+// Tidak berhenti di file pertama: runner bisa dijalankan dari root (root .env
+// hanya berisi VITE_*) sehingga GOOGLE_* di server/.env harus tetap terbaca.
+// Gantikan env yang sudah terisi tidak di-override.
 func loadEnv() {
 	paths := []string{".env", "server/.env", "../.env"}
 	for _, p := range paths {
@@ -36,7 +39,6 @@ func loadEnv() {
 			}
 		}
 		log.Printf("[Env] Memuat variabel lingkungan dari %s", p)
-		break
 	}
 }
 

@@ -21,10 +21,12 @@ import {
   GameCardSvg,
   ClockSvg,
   TargetSvg,
+  InfoSvg,
 } from '@/components/ui/CustomIcons';
 import { triggerBibiReaction } from '@/utils/bibiEvent';
 import { soundManager } from '@/features/ngaji-ceria/services/soundManager';
 import { AppBottomSheet } from '@/components/ui/AppBottomSheet';
+import { GameGuideModal } from '@/components/ui/GameGuideModal';
 
 export default function TilawatiMemorySelectPage() {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ export default function TilawatiMemorySelectPage() {
   // State Bottom Sheet Start Screen
   const [selectedJilid, setSelectedJilid] = useState<ArenaKartuLevel | null>(null);
   const [chosenLevel, setChosenLevel] = useState<number>(1);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const getUnlockedLevel = useTilawatiMemoryStore((s) => s.getUnlockedLevel);
   const levelRecords = useTilawatiMemoryStore((s) => s.levelRecords);
@@ -90,9 +93,20 @@ export default function TilawatiMemorySelectPage() {
                   <GameCardSvg size={28} stroke="#FEF3C7" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-[#B45309] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#FEF3C7] mb-1">
-                    <Sparkles size={11} /> Time Attack Mode
-                  </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-[#B45309] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#FEF3C7] mb-1">
+                      <Sparkles size={11} /> Time Attack Mode
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsGuideOpen(true)}
+                      aria-label="Panduan Bermain"
+                      className="flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-2.5 py-1 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-0.5 active:shadow-none hover:bg-[#FDE047] transition-all cursor-pointer"
+                    >
+                      <InfoSvg size={14} />
+                      <span>Panduan</span>
+                    </button>
+                  </div>
                   <h1 className="font-display font-black text-lg sm:text-2xl text-[#7C2D12] leading-tight">
                     Tilawati Memory Match
                   </h1>
@@ -275,6 +289,12 @@ export default function TilawatiMemorySelectPage() {
           </>
         )}
       </AppBottomSheet>
+
+      <GameGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        gameId="tilawati-memory"
+      />
     </NgajiCeriaLayout>
   );
 }

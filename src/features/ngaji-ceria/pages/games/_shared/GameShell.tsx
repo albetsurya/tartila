@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeftSvg, Pause, Volume2, VolumeX, TrophySvg, XSvg } from "@/components/ui/CustomIcons";
+import { ChevronLeftSvg, Pause, Volume2, VolumeX, TrophySvg, XSvg, InfoSvg } from "@/components/ui/CustomIcons";
 import { PauseOverlay } from "./PauseOverlay";
 import { useGameAudio } from "./audio";
 import { useGameExit } from "./hooks";
@@ -8,6 +8,7 @@ import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { stopGameAudio } from "./gameAudio";
 import { soundManager } from "../../../services/soundManager";
 import { GameTutorialModal } from "../../../components/GameTutorialModal";
+import { GameGuideModal, type GameGuideId } from "@/components/ui/GameGuideModal";
 import { canonicalGameId } from "../../../data/gameAccess";
 import { LeaderboardList } from "@/components/ui/LeaderboardList";
 import "./games.css";
@@ -20,6 +21,7 @@ export function GameShell({
   onResume,
   accent,
   tutorialGameId,
+  guideGameId,
   floatingTopBar,
   children,
 }: {
@@ -29,6 +31,7 @@ export function GameShell({
   onResume: () => void;
   accent: GameAccent;
   tutorialGameId?: string;
+  guideGameId?: GameGuideId;
   floatingTopBar?: boolean;
   children: ReactNode;
 }) {
@@ -37,6 +40,7 @@ export function GameShell({
   const exit = useGameExit();
   const { muted, toggle } = useGameAudio();
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const currentGameId =
     tutorialGameId ||
@@ -119,6 +123,20 @@ export function GameShell({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {guideGameId && (
+            <button
+              type="button"
+              onClick={() => {
+                if (phase === "playing") onPause();
+                setIsGuideOpen(true);
+              }}
+              aria-label="Panduan Bermain"
+              className={controlBtnStyle}
+              title="Panduan Bermain"
+            >
+              <InfoSvg size={14} className="text-[#134E4A]" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -158,6 +176,17 @@ export function GameShell({
       </main>
 
       {tutorialGameId && <GameTutorialModal gameId={tutorialGameId} />}
+
+      {guideGameId && (
+        <GameGuideModal
+          isOpen={isGuideOpen}
+          onClose={() => {
+            setIsGuideOpen(false);
+            if (phase === "paused") onResume();
+          }}
+          gameId={guideGameId}
+        />
+      )}
 
       <PauseOverlay
         visible={phase === "paused"}

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LockSvg } from "@/components/ui/CustomIcons";
+import { LockSvg, InfoSvg } from "@/components/ui/CustomIcons";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 
 export interface GameLevelItem {
@@ -21,6 +21,7 @@ export function GameLevelSelectSheet({
   levels,
   unlockedCount,
   onSelectLevel,
+  onOpenGuide,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -29,23 +30,36 @@ export function GameLevelSelectSheet({
   levels: GameLevelItem[];
   unlockedCount: number;
   onSelectLevel: (index: number) => void;
+  onOpenGuide?: () => void;
 }) {
   return (
     <AppBottomSheet isOpen={isOpen} onClose={onClose} title={gameTitle}>
       <div className="px-5 pb-2 pt-1">
         {/* Header: ikon game, judul, indikator level terbuka */}
-        <div className="mb-4 flex items-center gap-2.5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-[#134E4A] text-[#FEF08A] shadow-[2px_2px_0px_#134E4A]">
-            {gameIcon}
+        <div className="mb-4 flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-[#134E4A] text-[#FEF08A] shadow-[2px_2px_0px_#134E4A]">
+              {gameIcon}
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-display text-base font-black text-[#134E4A] truncate">
+                {gameTitle}
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                Jumlah level terbuka: {unlockedCount}/{levels.length}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-display text-base font-black text-[#134E4A]">
-              {gameTitle}
-            </h3>
-            <p className="text-xs text-[#64748B]">
-              Jumlah level terbuka: {unlockedCount}/{levels.length}
-            </p>
-          </div>
+          {onOpenGuide && (
+            <button
+              type="button"
+              onClick={onOpenGuide}
+              aria-label="Panduan Bermain"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none hover:bg-[#FDE047] transition-all cursor-pointer"
+            >
+              <InfoSvg size={16} />
+            </button>
+          )}
         </div>
 
         {/* Daftar Level — list vertikal (psikologi anak: ramah jempol) */}
