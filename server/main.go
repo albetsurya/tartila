@@ -11,7 +11,10 @@ import (
 	"tartila-server/hub"
 )
 
-// loadEnv membaca berkas .env sederhana bila tersedia (.env, server/.env, ../.env)
+// loadEnv membaca berkas .env sederhana bila tersedia (.env, server/.env, ../.env).
+// Tidak berhenti di file pertama: runner bisa dijalankan dari root (root .env
+// hanya berisi VITE_*) sehingga GOOGLE_* di server/.env harus tetap terbaca.
+// Gantikan env yang sudah terisi tidak di-override.
 func loadEnv() {
 	paths := []string{".env", "server/.env", "../.env"}
 	for _, p := range paths {
@@ -36,7 +39,6 @@ func loadEnv() {
 			}
 		}
 		log.Printf("[Env] Memuat variabel lingkungan dari %s", p)
-		break
 	}
 }
 
@@ -47,8 +49,9 @@ func enableCORS(next http.Handler) http.Handler {
 		if origin := r.Header.Get("Origin"); origin != "" {
 			if hub.OriginAllowed(origin) {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
-				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie")
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
 		}
 
@@ -63,6 +66,7 @@ func enableCORS(next http.Handler) http.Handler {
 
 func main() {
 	loadEnv()
+	handlers.InitAuth()
 
 	roomHub := hub.NewRoomHub()
 	go roomHub.Run()
@@ -130,8 +134,16 @@ func main() {
 	mux.HandleFunc("/api/v1/tilawati/timeline/all", api.GetAllTimelines)
 	mux.HandleFunc("/api/v1/tilawati/timeline/", api.TimelineOne)
 
-	// Auth & User Profile routes (OAuth sync & feedback prompt)
+	// Auth routes (Goth Google OAuth & Cookie Session)
+	mux.HandleFunc("/api/auth/google", api.HandleGoogleLogin)
+	mux.HandleFunc("/api/auth/google/callback", api.HandleGoogleCallback)
+	mux.HandleFunc("/api/auth/logout", api.HandleLogout)
+	mux.HandleFunc("/api/v1/auth/google", api.HandleGoogleLogin)
+	mux.HandleFunc("/api/v1/auth/google/callback", api.HandleGoogleCallback)
+
+	// Auth & User Profile routes (Legacy sync & feedback prompt)
 	mux.HandleFunc("/api/v1/auth/sync-profile", api.SyncProfile)
+	mux.HandleFunc("/api/v1/auth/logout", api.HandleLogout)
 	mux.HandleFunc("/api/v1/user/profile", api.GetUserProfile)
 	mux.HandleFunc("/api/v1/user/feedback-prompt", api.UpdateFeedbackPrompt)
 

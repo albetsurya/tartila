@@ -13,12 +13,32 @@ import {
 import { LeaderboardList } from "@/components/ui/LeaderboardList";
 
 const GAME_TABS = [
-  { id: "hijaiyah-pop", title: "Hijaiyah Harvest", icon: <GamepadSvg size={16} /> },
-  { id: "harakat-rush", title: "Harakat Slasher", icon: <SwordsSvg size={16} /> },
-  { id: "ayat-scramble", title: "Ayat Scramble", icon: <ScrollTextSvg size={16} /> },
+  {
+    id: "hijaiyah-pop",
+    title: "Hijaiyah Harvest",
+    icon: <GamepadSvg size={16} />,
+  },
+  {
+    id: "harakat-slasher",
+    title: "Harakat Slasher",
+    icon: <SwordsSvg size={16} />,
+  },
+  {
+    id: "ayat-scramble",
+    title: "Ayat Scramble",
+    icon: <ScrollTextSvg size={16} />,
+  },
   { id: "quiz-hub", title: "Arena Kuis", icon: <Trophy size={16} /> },
-  { id: "hijaiyah-2048", title: "Puzzle 2048", icon: <LayoutGridSvg size={16} /> },
-  { id: "tilawati-memory", title: "Tilawati Memory", icon: <CardsSvg size={16} /> },
+  {
+    id: "hijaiyah-2048",
+    title: "Puzzle 2048",
+    icon: <LayoutGridSvg size={16} />,
+  },
+  {
+    id: "tilawati-memory",
+    title: "Tilawati Memory",
+    icon: <CardsSvg size={16} />,
+  },
 ];
 
 export default function NgajiCeriaLeaderboardPage() {
@@ -30,7 +50,11 @@ export default function NgajiCeriaLeaderboardPage() {
     GAME_TABS.find((t) => t.id === activeTab) || GAME_TABS[0];
 
   return (
-    <NgajiCeriaLayout title="Papan Skor" showBack onBack={() => navigate("/member/ngaji-ceria")}>
+    <NgajiCeriaLayout
+      title="Papan Skor"
+      showBack
+      onBack={() => navigate("/member/ngaji-ceria")}
+    >
       <div className="space-y-4 bg-[#F0FDF4] text-[#134E4A] min-h-full pb-32">
         {/* Hero Banner */}
         <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-6 pb-12 text-white rounded-b-[36px] border-b-[3px] border-[#134E4A]">

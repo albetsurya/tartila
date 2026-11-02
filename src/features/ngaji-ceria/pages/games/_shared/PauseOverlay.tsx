@@ -13,7 +13,7 @@ export function PauseOverlay({
   if (!visible) return null;
   return (
     <AppModal isOpen={true} title="Lagi Jeda" onClose={onResume}>
-      <p className="mb-5 mt-2 text-sm text-white/70">
+      <p className="mb-5 mt-2 text-sm ">
         Ambil napas dulu. Waktu dan permainan berhenti di sini.
       </p>
       <StickerButton variant="primary" size="lg" fullWidth onClick={onResume}>

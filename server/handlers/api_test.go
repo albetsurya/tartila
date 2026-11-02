@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS user_progress (
 CREATE TABLE IF NOT EXISTS users (
   id          TEXT PRIMARY KEY,
   email       TEXT,
+  name        TEXT NOT NULL DEFAULT '',
   role        TEXT NOT NULL DEFAULT 'member',
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -127,6 +128,8 @@ func TestGetUserProfile(t *testing.T) {
 
 	putFeedbackPrompt(t, db, "user-123")
 
+	_, _ = db.Exec("INSERT OR IGNORE INTO users (id, email, name) VALUES ('user-123', 'user-123@tartila.com', 'Albet Surya Kembara')")
+
 	token := signToken("user-123")
 	req := httptest.NewRequest("GET", "/api/v1/user/profile", nil)
 	withAuth(req, token)
@@ -142,13 +145,14 @@ func TestGetUserProfile(t *testing.T) {
 		User    struct {
 			ID    string `json:"id"`
 			Email string `json:"email"`
+			Name  string `json:"name"`
 			Role  string `json:"role"`
 		} `json:"user"`
 	}
 	if err := json.NewDecoder(rec.Body).Decode(&res); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if !res.Success || res.User.ID != "user-123" || res.User.Email != "user-123@tartila.com" || res.User.Role != "member" {
+	if !res.Success || res.User.ID != "user-123" || res.User.Email != "user-123@tartila.com" || res.User.Name != "Albet Surya Kembara" || res.User.Role != "member" {
 		t.Fatalf("unexpected profile response: %+v", res)
 	}
 }

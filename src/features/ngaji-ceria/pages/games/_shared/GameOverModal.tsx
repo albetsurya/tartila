@@ -13,7 +13,7 @@ import { submitScore } from "@/features/ngaji-ceria/services/ngajiCeriaApi";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ARCADE_GAME_IDS = new Set([
-  "harakat-rush",
+  "harakat-slasher",
   "makhraj-master",
   "hijaiyah-beats",
   "hijaiyah-pop",
@@ -106,7 +106,8 @@ export function GameOverModal({
     // Satu row per game; userId + nickname opsional bila ada di AuthContext.
     try {
       const userId = user?.id || (user as any)?.userId || null;
-      const nick = user?.name || (user as any)?.displayName || user?.username || "Santri";
+      const nick =
+        user?.name || (user as any)?.displayName || user?.username || "Santri";
       void submitScore(gameId, score, userId, nick);
       void submitScore(gameId, score, userId, nick);
     } catch {
@@ -114,8 +115,15 @@ export function GameOverModal({
     }
     try {
       sessionStorage.setItem("ngajiceria:recent-game-finished", gameId);
-      sessionStorage.setItem("ngajiceria:recent-game-timestamp", String(Date.now()));
-      window.dispatchEvent(new CustomEvent("ngajiceria:game-finished", { detail: { gameId, score } }));
+      sessionStorage.setItem(
+        "ngajiceria:recent-game-timestamp",
+        String(Date.now()),
+      );
+      window.dispatchEvent(
+        new CustomEvent("ngajiceria:game-finished", {
+          detail: { gameId, score },
+        }),
+      );
     } catch {
       // ignore
     }
@@ -129,7 +137,9 @@ export function GameOverModal({
     addEvent({
       type: "game_completed",
       missionId: gameId,
-      missionName: gameId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      missionName: gameId
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
       details: {
         score,
         best,
@@ -161,7 +171,12 @@ export function GameOverModal({
 
   if (secondChance && !skipped)
     return (
-      <AppModal isOpen={true} title="Jangan Menyerah!" variant="warm" onClose={onExit}>
+      <AppModal
+        isOpen={true}
+        title="Jangan Menyerah!"
+        variant="warm"
+        onClose={onExit}
+      >
         <p className="mb-1 mt-2 text-sm font-black text-[#FF6B6B]">
           Kesempatan Kedua
         </p>
@@ -186,8 +201,12 @@ export function GameOverModal({
                 if (index === correctIndex) {
                   secondChance.onSuccess();
                 } else {
-                  if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
-                  timeoutRef.current = window.setTimeout(() => setSelected(null), 450);
+                  if (timeoutRef.current !== null)
+                    window.clearTimeout(timeoutRef.current);
+                  timeoutRef.current = window.setTimeout(
+                    () => setSelected(null),
+                    450,
+                  );
                 }
               }}
               className={`w-full min-h-[44px] flex items-center justify-center rounded-xl border-[2px] py-2.5 px-3 text-sm font-black transition-all ${
@@ -232,8 +251,7 @@ export function GameOverModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className="mt-2 flex items-center justify-center gap-1.5 rounded-xl border-[2px] border-[#F59E0B] bg-[#FEF3C7] p-2.5 text-center text-sm font-black text-[#B45309]"
         >
-          <CoinSvg size={20} />
-          +{coinsGained} Koin
+          <CoinSvg size={20} />+{coinsGained} Koin
         </motion.p>
       )}
 

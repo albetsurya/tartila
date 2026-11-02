@@ -765,7 +765,6 @@ export default function NgajiCeriaQuizPage() {
               timeLeft={timeLeft}
               score={score}
               targetScore={Math.ceil(totalQuestions * 0.7)}
-              onPause={() => setIsPaused((p) => !p)}
             />
           </div>
         </div>

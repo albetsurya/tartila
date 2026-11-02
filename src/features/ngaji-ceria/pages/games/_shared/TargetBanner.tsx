@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { normalizeArabicText } from "@/utils/arabic";
 
 type LetterBoxProps = {
   letter: string;
@@ -8,6 +9,8 @@ type LetterBoxProps = {
 };
 
 function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
+  const cleanLetter = normalizeArabicText(letter);
+
   if (isCollected) {
     return (
       <motion.div
@@ -16,9 +19,9 @@ function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
         animate={{ scale: 1.1, opacity: 1 }}
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 400, damping: 20 }}
-        className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#DCFCE7] text-[#166534] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl"
+        className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#DCFCE7] text-[#166534] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl font-arabic"
       >
-        {letter}
+        {cleanLetter}
       </motion.div>
     );
   }
@@ -29,9 +32,9 @@ function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
         key={`active-${letter}-${index}`}
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-        className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#FEF3C7] text-[#B45309] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl animate-pulse"
+        className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#FEF3C7] text-[#B45309] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl font-arabic animate-pulse"
       >
-        {letter}
+        {cleanLetter}
       </motion.div>
     );
   }
@@ -41,9 +44,9 @@ function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
       key={`pending-${letter}-${index}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-[#94A3B8]/60 shadow-[2px_2px_0px_#CBD5E1] font-black text-2xl sm:text-3xl"
+      className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-[#94A3B8]/60 shadow-[2px_2px_0px_#CBD5E1] font-black text-2xl sm:text-3xl font-arabic"
     >
-      {letter}
+      {cleanLetter}
     </motion.div>
   );
 }
@@ -63,7 +66,13 @@ export function TargetBanner({
     return null;
   }
 
-  const allCollected = collectedLetters.length >= targetLetters.length;
+  // Font-size menyesuaikan panjang kata supaya tidak terpotong (Level 6 bisa 6+ huruf).
+  const wordFontSize =
+    targetLetters.length >= 9
+      ? "text-xl sm:text-2xl"
+      : targetLetters.length >= 6
+        ? "text-2xl sm:text-3xl"
+        : "text-3xl sm:text-4xl";
 
   return (
     <motion.div
@@ -81,21 +90,21 @@ export function TargetBanner({
       {isWord && targetLetters.length > 1 ? (
         <div
           dir="rtl"
-          className="font-arabic text-3xl sm:text-4xl font-black leading-none"
+          className={`font-arabic ${wordFontSize} font-black leading-none max-w-full`}
         >
           <span
             style={{
               color: "#16A34A",
             }}
           >
-            {targetLetters.slice(0, collectedLetters.length).join("")}
+            {targetLetters.slice(0, collectedLetters.length).map((l) => normalizeArabicText(l)).join("")}
           </span>
           <span
             style={{
               color: "#94A3B8",
             }}
           >
-            {targetLetters.slice(collectedLetters.length).join("")}
+            {targetLetters.slice(collectedLetters.length).map((l) => normalizeArabicText(l)).join("")}
           </span>
         </div>
       ) : (

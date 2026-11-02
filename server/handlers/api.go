@@ -879,6 +879,10 @@ func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
 	var lastPromptAt string
 	var hasSubmitted int
+	var userName string
+	if api.db != nil {
+		_ = api.db.QueryRow("SELECT name FROM users WHERE id = ?", userID).Scan(&userName)
+	}
 	err = api.db.QueryRow(
 		`SELECT last_feedback_prompt_at, has_submitted_feedback
 		 FROM feedback_prompt
@@ -901,6 +905,7 @@ func (api *APIHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		"user": map[string]interface{}{
 			"id":                      userID,
 			"email":                   email,
+			"name":                    userName,
 			"role":                    role,
 			"last_feedback_prompt_at": lastPromptAt,
 			"has_submitted_feedback":  hasSubmitted == 1,

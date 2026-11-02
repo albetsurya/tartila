@@ -14,7 +14,7 @@ interface TutorialStep {
 }
 
 const TUTORIALS: Record<string, { title: string; steps: TutorialStep[] }> = {
-  "harakat-rush": {
+  "harakat-slasher": {
     title: "Cara Bermain Harakat Slasher",
     steps: [
       {

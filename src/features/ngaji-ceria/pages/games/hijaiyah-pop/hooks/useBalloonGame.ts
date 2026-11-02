@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef } from "react";
 import { useBestScore, useGameState } from "../../_shared/hooks";
 import type { GamePhase } from "../../_shared/types";
 import { HIJAIYAH_LETTERS } from "../data/hijaiyah-letters";
-import { getWordsForLevel } from "../data";
+import { getWordsForLevel, getFallbackWords, LEVELS } from "../data";
+import { playSfx } from "../../_shared/audio";
+import { normalizeArabicText } from "@/utils/arabic";
 
 export interface BalloonData {
   id: string;
@@ -14,7 +16,13 @@ export interface BalloonData {
   popped: boolean;
   popAge: number;
   color: number;
+  /** Offset menuju pusat keranjang (untuk animasi suck-in buah benar). */
+  suckX: number;
+  suckY: number;
 }
+
+/** Durasi efek pop (salah) & suck-in (benar) sebelum buah di-unmount. */
+const POP_LIFETIME = 0.5;
 
 interface BalloonState {
   phase: GamePhase;
@@ -36,6 +44,10 @@ interface BalloonState {
   displayLetters: string[];
   levelIndex: number;
   isWord: boolean;
+  timeLeft: number;
+  targetScore: number;
+  loseReason: "lives" | "time" | null;
+  isWin: boolean;
 }
 
 const initial = (): BalloonState => ({
@@ -58,6 +70,10 @@ const initial = (): BalloonState => ({
   displayLetters: [],
   levelIndex: 0,
   isWord: false,
+  timeLeft: 60,
+  targetScore: 300,
+  loseReason: null,
+  isWin: false,
 });
 
 /** Target letter yang sedang dicari (urutan ke-collectedLetters.length) */
@@ -77,18 +93,19 @@ export function useBalloonGame() {
   const record = useBestScore("hijaiyah-pop", state.phase, state.score);
   const wordsRef = useRef<string[][]>([]);
 
-  /** Fallback kata bila dataset Tilawati kosong/gagal dimuat */
-  const FALLBACK_WORDS = [["ب", "ا", "ب"], ["ا", "ل", "ل", "ه"]];
-
   /** Mulai game pada level tertentu (async: muat kata dari Tilawati) */
   const startGame = useCallback(
     async (levelIndex: number) => {
       // Prevent double-start while the game is already running.
       if (state.phase === "playing") return;
+      const cfg = LEVELS[levelIndex] ?? LEVELS[0];
+      const initialTime = cfg.durationSeconds;
+      const targetScore = cfg.targetScore;
       try {
         const words = await getWordsForLevel(levelIndex);
         wordsRef.current = words;
-        const activeWord = pickRandomWord(words) || FALLBACK_WORDS[0];
+        const rawWord = pickRandomWord(words) || getFallbackWords(0)[0];
+        const activeWord = rawWord.map(normalizeArabicText);
         const isWord = activeWord.length > 1;
         const firstLetter = activeWord[0] || "";
         update(() => ({
@@ -100,23 +117,34 @@ export function useBalloonGame() {
           targetName: firstLetter,
           displayLetters: activeWord.map(() => ""),
           isWord,
+          timeLeft: initialTime,
+          targetScore,
+          isWin: false,
+          loseReason: null,
         }));
       } catch {
-        // Dataset gagal dimuat: pakai fallback agar gameplay tetap berjalan
-        wordsRef.current = FALLBACK_WORDS;
+        // Dataset gagal dimuat: pakai fallback per-level agar gameplay tetap berjalan
+        const fallback = getFallbackWords(levelIndex);
+        wordsRef.current = fallback;
+        const rawWord = fallback[0] ?? ["ب", "ا", "ب"];
+        const activeWord = rawWord.map(normalizeArabicText);
         update(() => ({
           ...initial(),
           phase: "playing",
           levelIndex,
-          targetLetters: FALLBACK_WORDS[0],
-          target: FALLBACK_WORDS[0][0] ?? "",
-          targetName: FALLBACK_WORDS[0][0] ?? "",
-          displayLetters: FALLBACK_WORDS[0].map(() => ""),
-          isWord: true,
+          targetLetters: activeWord,
+          target: activeWord[0] ?? "",
+          targetName: activeWord[0] ?? "",
+          displayLetters: activeWord.map(() => ""),
+          isWord: activeWord.length > 1,
+          timeLeft: initialTime,
+          targetScore,
+          isWin: false,
+          loseReason: null,
         }));
       }
     },
-    [update, state],
+    [update, state.phase],
   );
 
   /** Lanjut ke kata berikutnya pada level yang sama (setelah menang) */
@@ -129,7 +157,8 @@ export function useBalloonGame() {
         state.collectedLetters.length >= state.targetLetters.length;
       if (state.phase === "idle" && !isWordCompleted) return;
       const words = wordsRef.current;
-      const newWord = pickRandomWord(words) || FALLBACK_WORDS[0];
+      const rawWord = pickRandomWord(words) || getFallbackWords(levelIndex)[0] || ["ب", "ا", "ب"];
+      const newWord = rawWord.map(normalizeArabicText);
       const isWord = newWord.length > 1;
       const firstLetter = newWord[0] || "";
       update((s) => ({
@@ -161,18 +190,44 @@ export function useBalloonGame() {
         const balloon = s.balloons.find((item) => item.id === id);
         if (!balloon || balloon.popped) return s;
 
-        const expected = currentTargetLetter(s);
-        const correct = balloon.letter === expected;
+        const expected = normalizeArabicText(currentTargetLetter(s));
+        const cleanBalloonLetter = normalizeArabicText(balloon.letter);
+        const correct = cleanBalloonLetter === expected;
         const combo = correct ? s.combo + 1 : 0;
         const lives = s.lives - (correct ? 0 : 1);
+        playSfx(correct ? "correct" : "wrong");
+
+        // Target tarikan buah benar: pusat keranjang (bawah tengah arena).
+        const rect = fieldRef.current?.getBoundingClientRect();
+        const centerX = rect ? rect.width / 2 - 40 : balloon.x;
+        const bottomY = rect ? rect.height - 70 : balloon.y;
+        const suckX = correct ? centerX - balloon.x : 0;
+        const suckY = correct ? bottomY - balloon.y : 0;
 
         const balloons = s.balloons.map((item) =>
-          item.id === id ? { ...item, popped: true, popAge: 0 } : item,
+          item.id === id
+            ? { ...item, popped: true, popAge: 0, suckX, suckY }
+            : item,
         );
 
         const score = s.score + (correct ? Math.round(100 * Math.min(1 + combo * 0.1, 5)) : 0);
 
         if (correct) {
+          // Cek kemenangan: skor mencapai target level
+          if (score >= s.targetScore) {
+            return {
+              ...s,
+              balloons,
+              score,
+              combo,
+              maxCombo: Math.max(s.maxCombo, combo),
+              lives,
+              phase: "gameover",
+              isWin: true,
+              loseReason: null,
+            };
+          }
+
           const collectedLetters = [...s.collectedLetters, balloon.letter];
           const nextDisplayLetters = [...s.displayLetters];
           nextDisplayLetters[collectedLetters.length - 1] = balloon.letter;
@@ -195,10 +250,10 @@ export function useBalloonGame() {
           }
 
           // Huruf masih ada → lanjut ke huruf berikutnya
-          const nextLetter = s.targetLetters[collectedLetters.length] || s.target;
+          const nextLetter = normalizeArabicText(s.targetLetters[collectedLetters.length] || s.target);
           return {
             ...s,
-            balloons: balloons.map((b) => ({ ...b, isTarget: b.letter === nextLetter })),
+            balloons: balloons.map((b) => ({ ...b, isTarget: normalizeArabicText(b.letter) === nextLetter })),
             score,
             combo,
             maxCombo: Math.max(s.maxCombo, combo),
@@ -219,10 +274,12 @@ export function useBalloonGame() {
             balloons,
             score,
             combo: 0,
-            lives,
+            lives: 0,
             shakeLeft: 0.25,
             missedTargets: s.missedTargets + 1,
             phase: "gameover",
+            isWin: false,
+            loseReason: "lives",
           };
         }
 
@@ -259,12 +316,13 @@ export function useBalloonGame() {
         let lives = s.lives;
         const balloons = s.balloons.flatMap((balloon) => {
           if (balloon.popped)
-            return balloon.popAge + delta < 0.2
+            // Efek pop/suck-in tetap hidup sampai animasinya selesai, lalu unmount.
+            return balloon.popAge + delta < POP_LIFETIME
               ? [{ ...balloon, popAge: balloon.popAge + delta }]
               : [];
           // Buah jatuh dari atas ke bawah
           const y = balloon.y + balloon.speed * 60 * delta;
-          if (y > height + 60) {
+          if (y > height - 70) {
             if (balloon.isTarget) {
               missedTargets++;
               if (missedTargets >= 2) {
@@ -272,11 +330,48 @@ export function useBalloonGame() {
                 missedTargets = 0;
               }
               lives -= 1;
+              return [];
             }
-            return [];
+            // Buah salah menyentuh keranjang/tanah: ledak + reset kombo.
+            combo = 0;
+            playSfx("wrong");
+            return [{ ...balloon, y: height - 70, popped: true, popAge: 0, speed: 0 }];
           }
           return [{ ...balloon, y }];
         });
+
+        const nextTimeLeft = Math.max(0, s.timeLeft - delta);
+        if (nextTimeLeft <= 0) {
+          if (s.score >= s.targetScore) {
+            return {
+              ...s,
+              timeLeft: 0,
+              phase: "gameover",
+              isWin: true,
+              loseReason: null,
+            };
+          }
+          return {
+            ...s,
+            timeLeft: 0,
+            phase: "gameover",
+            isWin: false,
+            loseReason: "time",
+            shakeLeft: 0.25,
+          };
+        }
+
+        if (lives <= 0) {
+          return {
+            ...s,
+            lives: 0,
+            timeLeft: nextTimeLeft,
+            phase: "gameover",
+            isWin: false,
+            loseReason: "lives",
+            shakeLeft: 0.25,
+          };
+        }
 
         let next: BalloonState = {
           ...s,
@@ -284,6 +379,7 @@ export function useBalloonGame() {
           combo,
           missedTargets,
           lives,
+          timeLeft: nextTimeLeft,
           targetLeft: s.targetLeft - delta,
           spawnLeft: s.spawnLeft - delta,
           shakeLeft: Math.max(0, s.shakeLeft - delta),
@@ -291,32 +387,39 @@ export function useBalloonGame() {
 
         // Target otomatis di-reset (memastikan target selalu ter-spawn)
         if (next.targetLeft <= 0) {
-          const letter = currentTargetLetter(next) || s.target;
+          const letter = normalizeArabicText(currentTargetLetter(next) || s.target);
           next = {
             ...next,
             target: letter,
             targetName: letter,
             targetLeft: 5,
-            balloons: next.balloons.map((balloon) => ({ ...balloon, isTarget: balloon.letter === letter })),
+            balloons: next.balloons.map((balloon) => ({ ...balloon, isTarget: normalizeArabicText(balloon.letter) === letter })),
             forceTarget: true,
           };
         }
 
-        // Game over hanya ketika lives habis
+        // Game over jika lives habis
         if (next.lives <= 0) {
-          next = { ...next, phase: "gameover", shakeLeft: 0.25 };
+          next = { ...next, phase: "gameover", isWin: false, loseReason: "lives", shakeLeft: 0.25 };
         }
 
         // Spawn balon (mekanik physics tetap: posisi x acak, y dari atas, kecepatan turun)
         if (next.spawnLeft <= 0) {
           const wantTarget = next.forceTarget || next.spawned % 3 === 0 || Math.random() < 0.35;
-          const currentLetter = currentTargetLetter(next) || s.target;
-          const choices = HIJAIYAH_LETTERS.filter((item) => item.letter !== currentLetter);
-          const letter = wantTarget
+          const currentLetter = normalizeArabicText(currentTargetLetter(next) || s.target);
+          // Penceti salah hanya dari huruf yang ada di kata target (bukan huruf acak semua).
+          const distractorPool = Array.from(
+            new Set(next.targetLetters.map(normalizeArabicText).filter((l) => l !== currentLetter)),
+          );
+          const choices = distractorPool.length
+            ? distractorPool
+            : HIJAIYAH_LETTERS.map((item) => normalizeArabicText(item.letter)).filter((l) => l !== currentLetter);
+          const rawLetter = wantTarget
             ? currentLetter
             : choices.length
-              ? choices[Math.floor(Math.random() * choices.length)].letter
+              ? choices[Math.floor(Math.random() * choices.length)]
               : currentLetter;
+          const letter = normalizeArabicText(rawLetter);
           next = {
             ...next,
             spawned: next.spawned + 1,
@@ -334,6 +437,8 @@ export function useBalloonGame() {
                 popped: false,
                 popAge: 0,
                 color: next.spawned % 4,
+                suckX: 0,
+                suckY: 0,
               },
             ],
           };

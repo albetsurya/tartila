@@ -133,11 +133,17 @@ export async function submitScore(
     return { success: false, id: null };
   }
 
+  // Tanpa session, auth.uid() NULL -> upsert pasti ditolak RLS (42501).
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData?.session) {
+    return { success: false, id: null };
+  }
+
   const { data, error } = await supabase
     .from("quiz_attempts")
     .upsert(
       {
-        user_id: userId || null,
+        user_id: userId || sessionData.session.user.id,
         game_id: gameId,
         score: Number(score ?? 0),
         nickname: nickname || "Pengguna",

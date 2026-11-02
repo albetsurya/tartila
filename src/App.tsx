@@ -311,7 +311,7 @@ const JuzAmmaSpeedrunPage = lazy(
 */
 const HarakatSlasherPage = lazy(
   () =>
-    import("./features/ngaji-ceria/pages/games/harakat-rush/HarakatSlasherPage"),
+    import("./features/ngaji-ceria/pages/games/harakat-slasher/HarakatSlasherPage"),
 );
 const AyatScramblePage = lazy(
   () =>
@@ -467,7 +467,7 @@ const GAME_ROUTES: Array<{ path: string; element: React.ReactNode }> = [
   { path: "juz-amma-speedrun", element: <JuzAmmaSpeedrunPage /> },
   { path: "verse-quest", element: <JuzAmmaSpeedrunPage /> },
   */
-  { path: "harakat-rush", element: <HarakatSlasherPage /> },
+  { path: "harakat-slasher", element: <HarakatSlasherPage /> },
   { path: "ayat-scramble", element: <AyatScramblePage /> },
   { path: "word-builder", element: <AyatScramblePage /> },
   // Disabled: inactive game (ayat-hunter … tebak-ayat)

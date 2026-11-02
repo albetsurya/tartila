@@ -7,26 +7,109 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// ErrMissingJWTSecret is returned when neither SUPABASE_JWT_SECRET nor JWT_SECRET is configured.
-var ErrMissingJWTSecret = errors.New("SUPABASE_JWT_SECRET (or JWT_SECRET) is not configured")
+// ErrMissingJWTSecret is returned when neither JWT_SECRET nor SUPABASE_JWT_SECRET is configured.
+var ErrMissingJWTSecret = errors.New("JWT_SECRET is not configured")
 
 // ErrInvalidToken is returned when the token is missing, invalid, or expired.
 var ErrInvalidToken = errors.New("token is missing or invalid")
 
-// GetJWTSecret returns SUPABASE_JWT_SECRET (preferred for Supabase Auth) or JWT_SECRET (legacy fallback).
+// GetJWTSecret returns JWT_SECRET or SUPABASE_JWT_SECRET (legacy fallback).
 func GetJWTSecret() string {
-	secret := strings.TrimSpace(os.Getenv("SUPABASE_JWT_SECRET"))
+	secret := strings.TrimSpace(os.Getenv("JWT_SECRET"))
 	if secret == "" {
-		secret = strings.TrimSpace(os.Getenv("JWT_SECRET"))
+		secret = strings.TrimSpace(os.Getenv("SUPABASE_JWT_SECRET"))
+	}
+	if secret == "" {
+		secret = "tartila-default-jwt-secret-key-change-in-production"
 	}
 	return secret
 }
 
-// ParseTokenString validates the raw JWT string using the Supabase JWT secret and returns the user ID and claims.
+// GetFrontendURL returns the frontend application URL for redirects.
+func GetFrontendURL() string {
+	if u := strings.TrimSpace(os.Getenv("FRONTEND_URL")); u != "" {
+		return strings.TrimRight(u, "/")
+	}
+	return "https://tartila.pages.dev"
+}
+
+// GenerateToken creates a signed HS256 JWT for the given user (valid for 30 days).
+func GenerateToken(userID, email, role string) (string, error) {
+	secret := GetJWTSecret()
+	if secret == "" {
+		return "", ErrMissingJWTSecret
+	}
+
+	if role == "" {
+		role = "member"
+	}
+
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"sub":     userID,
+		"user_id": userID,
+		"email":   email,
+		"role":    role,
+		"iat":     now.Unix(),
+		"exp":     now.Add(30 * 24 * time.Hour).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+// SetAuthCookie writes the JWT into an HttpOnly cookie.
+func SetAuthCookie(w http.ResponseWriter, r *http.Request, tokenStr string) {
+	frontendURL := GetFrontendURL()
+	secure := true
+	sameSite := http.SameSiteNoneMode
+
+	// Jika murni di localhost non-HTTPS, SameSite=Lax tanpa Secure flag agar cookie diterima browser lokal
+	if r.TLS == nil && (strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1")) && !strings.HasPrefix(frontendURL, "https://") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    tokenStr,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: sameSite,
+		MaxAge:   86400 * 30, // 30 hari
+	})
+}
+
+// ClearAuthCookie deletes the JWT auth cookie.
+func ClearAuthCookie(w http.ResponseWriter, r *http.Request) {
+	frontendURL := GetFrontendURL()
+	secure := true
+	sameSite := http.SameSiteNoneMode
+
+	if r.TLS == nil && (strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1")) && !strings.HasPrefix(frontendURL, "https://") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: sameSite,
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+	})
+}
+
+// ParseTokenString validates the raw JWT string using HS256 secret.
 func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 	tok = strings.TrimSpace(tok)
 	if tok == "" {
@@ -35,12 +118,11 @@ func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 
 	secret := GetJWTSecret()
 	if secret == "" {
-		log.Printf("[Auth] Error: SUPABASE_JWT_SECRET (or JWT_SECRET) is not configured")
+		log.Printf("[Auth] Error: JWT_SECRET is not configured")
 		return "", nil, ErrMissingJWTSecret
 	}
 
 	parsed, err := jwt.Parse(tok, func(t *jwt.Token) (interface{}, error) {
-		// Validasi algoritma HMAC (HS256) sesuai standar token Supabase JWT
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing algorithm: %v", t.Header["alg"])
 		}
@@ -52,7 +134,7 @@ func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 		return "", nil, ErrInvalidToken
 	}
 
-	if !parsed.Valid {
+	if parsed == nil || !parsed.Valid {
 		log.Printf("[Auth] JWT is invalid")
 		return "", nil, ErrInvalidToken
 	}
@@ -63,7 +145,6 @@ func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 		return "", nil, ErrInvalidToken
 	}
 
-	// 1. Ambil UUID user dari klaim 'sub' (standar Supabase Auth), fallback ke 'user_id'
 	userID, _ := claims["sub"].(string)
 	if userID == "" {
 		if uid, ok := claims["user_id"].(string); ok && uid != "" {
@@ -72,29 +153,37 @@ func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 	}
 
 	if userID == "" {
-		log.Printf("[Auth] Token missing user UUID in 'sub' or 'user_id' claim")
+		log.Printf("[Auth] Token missing user identifier (sub or user_id)")
 		return "", nil, errors.New("token missing user identifier (sub or user_id)")
 	}
 
 	return userID, claims, nil
 }
 
-// ParseAuthToken extracts and validates the JWT from Authorization: Bearer <token> header
-// or ?token=<token> query parameter.
+// ParseAuthToken extracts and validates the JWT from HttpOnly Cookie 'token',
+// with fallback to Authorization: Bearer <token> and ?token=<token>.
 func ParseAuthToken(r *http.Request) (string, jwt.MapClaims, error) {
 	tok := ""
-	auth := strings.TrimSpace(r.Header.Get("Authorization"))
-	if auth != "" {
-		parts := strings.SplitN(auth, " ", 2)
-		if len(parts) == 2 && strings.EqualFold(parts[0], "bearer") {
-			tok = strings.TrimSpace(parts[1])
-		} else if !strings.Contains(auth, " ") {
-			// Jika client mengirimkan token mentah langsung di header Authorization
-			tok = auth
+
+	// 1. Prioritaskan pengecekan dari HttpOnly Cookie
+	if cookie, err := r.Cookie("token"); err == nil && strings.TrimSpace(cookie.Value) != "" {
+		tok = strings.TrimSpace(cookie.Value)
+	}
+
+	// 2. Fallback: Authorization: Bearer <token>
+	if tok == "" {
+		auth := strings.TrimSpace(r.Header.Get("Authorization"))
+		if auth != "" {
+			parts := strings.SplitN(auth, " ", 2)
+			if len(parts) == 2 && strings.EqualFold(parts[0], "bearer") {
+				tok = strings.TrimSpace(parts[1])
+			} else if !strings.Contains(auth, " ") {
+				tok = auth
+			}
 		}
 	}
 
-	// Fallback ke parameter URL ?token=
+	// 3. Fallback: URL query ?token=
 	if tok == "" {
 		tok = strings.TrimSpace(r.URL.Query().Get("token"))
 	}

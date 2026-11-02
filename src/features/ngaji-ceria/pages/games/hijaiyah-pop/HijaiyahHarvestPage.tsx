@@ -6,15 +6,19 @@ import {
   type TilaMood,
   type TilaDirection,
 } from "@/components/ui/TilaMascot";
-import { HijaiyahHarvestCoverSvg } from "@/components/ui/Illustrations";
+import {
+  BasketCatchSvg,
+  HijaiyahHarvestCoverSvg,
+} from "@/components/ui/Illustrations";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { useGameExit } from "../_shared/hooks";
 import { GameOverModal } from "../_shared/GameOverModal";
-import { HUD } from "../_shared/HUD";
 import { ComboBadge } from "../_shared/ComboBadge";
+import { GameHud } from "../_shared/GameHud";
+import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { FallingFruit } from "./components/FallingFruit";
 import { TargetBanner } from "../_shared/TargetBanner";
 import { GameLevelSelectSheet } from "../_shared/GameLevelSelectSheet";
@@ -42,18 +46,31 @@ function Game() {
   const navigate = useNavigate();
   const exit = useGameExit("/member/ngaji-ceria/games");
 
-  // Level selection: stay idle until the user picks a level via GameLevelSelectSheet.
   const [levelIndex, setLevelIndex] = useState(0);
   const levelConfig = LEVELS[levelIndex] ?? LEVELS[0];
 
+  const [showRules, setShowRules] = useState(false);
   const [showCombo, setShowCombo] = useState(false);
   const lastComboRef = useRef(game.combo);
 
-  // Victory transition state
   const [isVictoryTransition, setIsVictoryTransition] = useState(false);
   const targetBannerControls = useAnimation();
   const victoryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const powerupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (game.phase === "gameover" && game.isWin) {
+      const unlocked = JSON.parse(
+        localStorage.getItem("hijaiyah-pop-unlocked") || "[]",
+      );
+      if (!unlocked.includes(levelIndex)) {
+        localStorage.setItem(
+          "hijaiyah-pop-unlocked",
+          JSON.stringify([...unlocked, levelIndex]),
+        );
+      }
+    }
+  }, [game.phase, game.isWin, levelIndex]);
 
   useEffect(() => {
     if (game.combo >= 3 && game.combo > lastComboRef.current) {
@@ -64,10 +81,7 @@ function Game() {
     }
   }, [game.combo]);
 
-  // Victory transition effect
   useEffect(() => {
-    // Strict guard: kata harus ada (len > 0) supaya kondisi 0>=0 di state idle
-    // tidak memicu victory → auto-start tanpa pilih level.
     const isWinCondition =
       game.phase === "playing" &&
       game.targetLetters.length > 0 &&
@@ -77,21 +91,17 @@ function Game() {
       setIsVictoryTransition(true);
       playSfx("level-up");
 
-      // Zoom in animation
       targetBannerControls.start({
         scale: 1.5,
         opacity: 1,
         transition: { duration: 0.5, ease: "easeOut" },
       });
 
-      // Play powerup SFX after 1.5s during zoom
       powerupTimeoutRef.current = setTimeout(() => {
         playSfx("powerup");
       }, 1500);
 
-      // Continue to next word after 1.5s
       victoryTimeoutRef.current = setTimeout(() => {
-        // Zoom out animation
         targetBannerControls.start({
           scale: 1,
           opacity: 1,
@@ -101,11 +111,10 @@ function Game() {
         setTimeout(() => {
           setIsVictoryTransition(false);
           game.continueToNextWord(levelIndex);
-          // Simpan level yang berhasil diselesaikan ke localStorage
           const unlocked = JSON.parse(
             localStorage.getItem("hijaiyah-pop-unlocked") || "[]",
           );
-          const currentLevelIndex = levelIndex; // level yang baru selesai
+          const currentLevelIndex = levelIndex;
           if (!unlocked.includes(currentLevelIndex)) {
             localStorage.setItem(
               "hijaiyah-pop-unlocked",
@@ -125,7 +134,6 @@ function Game() {
     game,
   ]);
 
-  // Cleanup timeouts on unmount or when isVictoryTransition becomes false
   useEffect(() => {
     return () => {
       if (victoryTimeoutRef.current) clearTimeout(victoryTimeoutRef.current);
@@ -150,7 +158,6 @@ function Game() {
 
   useEffect(() => {
     if (game.phase === "playing" && game.targetLetter) {
-      // Pelafalan TTS tidak diaktifkan di build (tanpa aset Tilawati).
       playLetterAudio(game.targetLetter);
     }
   }, [game.targetLetter, game.phase]);
@@ -159,12 +166,18 @@ function Game() {
   const [mascotMood, setMascotMood] = useState<TilaMood>("happy");
   const [mascotDirection, setMascotDirection] =
     useState<TilaDirection>("front");
+  const basketControls = useAnimation();
 
   const handlePopFruit = useCallback(
     async (fruit: BalloonData) => {
+      const wasTarget = fruit.isTarget;
       game.pop(fruit.id);
-      if (fruit.isTarget) {
-        playSfx("pop");
+
+      if (wasTarget) {
+        basketControls.start({
+          scale: [1, 1.22, 1],
+          transition: { duration: 0.3, ease: "easeOut" },
+        });
       }
 
       if (!game.fieldRef.current) return;
@@ -199,7 +212,7 @@ function Game() {
       setMascotDirection("front");
       setMascotMood(game.combo > 0 ? "excited" : "happy");
     },
-    [game, mascotControls],
+    [game, mascotControls, basketControls],
   );
 
   return (
@@ -210,6 +223,7 @@ function Game() {
       onResume={game.resume}
       accent="cyan"
       tutorialGameId="hijaiyah-pop"
+      guideGameId="hijaiyah-harvest"
       floatingTopBar
     >
       {game.phase === "playing" ||
@@ -222,49 +236,57 @@ function Game() {
             game.shakeLeft > 0 ? "game-shake" : ""
           } ${isVictoryTransition ? "pointer-events-none" : ""}`}
         >
-          {/* TOP HUD: Skor, Nyawa, Timer, dan Target Banner */}
+          {/* ========================================================= */}
+          {/* TOP HUD MENGGUNAKAN GAMEHUD */}
+          {/* ========================================================= */}
           <div className="absolute top-16 inset-x-0 z-30 flex flex-col items-center px-3 pointer-events-none">
-            {/* Baris 1: HUD Skor, Nyawa & Hati di kiri */}
-            <div className="flex w-full max-w-[640px] flex-row items-center justify-between px-4 py-2">
-              <HUD score={game.score} lives={game.lives} />
-            </div>
-
-            {/* Baris 2: Target Banner ditengah - disembunyikan saat victory transition */}
+            <GameHud
+              level={levelConfig.id}
+              score={game.score}
+              targetScore={game.targetScore}
+              timeLeft={game.timeLeft}
+              lives={game.lives}
+              maxLives={3}
+              combo={game.combo}
+              onHelpClick={() => {
+                setShowRules(true);
+                game.pause();
+              }}
+            />
             <div
-              className={`w-full max-w-[640px] flex justify-center mt-2 ${isVictoryTransition ? "opacity-0 pointer-events-none" : ""}`}
+              className={`mt-2 flex justify-center w-full ${isVictoryTransition ? "opacity-0 pointer-events-none" : ""}`}
             >
               <TargetBanner
                 targetLetters={game.targetLetters}
                 collectedLetters={game.collectedLetters}
                 isWord={levelConfig.isWord}
-                className="shadow-[4px_4px_0px_#134E4A] scale-90 sm:scale-100 origin-top-right"
+                className="shadow-[4px_4px_0px_#134E4A] scale-90 sm:scale-100 origin-top"
               />
             </div>
-
-            {/* VICTORY MODAL OVERLAY - Zoom ke tengah */}
-            <AnimatePresence>
-              {isVictoryTransition && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: -50 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: 50 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 pointer-events-none p-4"
-                >
-                  <motion.div className="w-[90vw] max-w-sm origin-top-center">
-                    <div className="bg-white rounded-[32px] p-6 border-[4px] border-[#134E4A] shadow-[8px_8px_0px_#134E4A]">
-                      <TargetBanner
-                        targetLetters={game.targetLetters}
-                        collectedLetters={game.targetLetters}
-                        isWord={levelConfig.isWord}
-                        className="bg-white"
-                      />
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
+
+          <AnimatePresence>
+            {isVictoryTransition && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, y: -50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 pointer-events-none p-4"
+              >
+                <motion.div className="w-[90vw] max-w-sm origin-top-center">
+                  <div className="bg-white rounded-[32px] p-6 border-[4px] border-[#134E4A] shadow-[8px_8px_0px_#134E4A]">
+                    <TargetBanner
+                      targetLetters={game.targetLetters}
+                      collectedLetters={game.targetLetters}
+                      isWord={levelConfig.isWord}
+                      className="bg-white"
+                    />
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Latar Belakang Pola Titik Neo-Brutalism */}
           <div
@@ -285,15 +307,12 @@ function Game() {
               xmlns="http://www.w3.org/2000/svg"
               style={{ overflow: "hidden" }}
             >
-              {/* Batang Kayu Cabang Atas */}
               <path
                 d="M0,0 L1000,0 L1000,18 Q800,28 650,15 T300,24 T0,16 Z"
                 fill="#78350F"
                 stroke="#134E4A"
                 strokeWidth="4"
               />
-
-              {/* Layer 1: Daun Belakang Gelap */}
               <path
                 d="M -20,0 L 1020,0 L 1020,80 C 940,110 860,70 780,100 C 700,130 620,80 540,110 C 460,140 380,90 300,120 C 220,140 140,90 60,110 C 20,120 -10,100 -20,90 Z"
                 fill="#064E3B"
@@ -301,8 +320,6 @@ function Game() {
                 strokeWidth="4"
                 strokeLinejoin="round"
               />
-
-              {/* Layer 2: Daun Utama Hijau Zamrud */}
               <path
                 d="M -20,0 L 1020,0 L 1020,60 C 930,90 870,50 800,80 C 730,110 660,60 580,90 C 500,115 430,65 350,95 C 270,115 200,65 120,90 C 60,105 10,70 -20,70 Z"
                 fill="#059669"
@@ -310,8 +327,6 @@ function Game() {
                 strokeWidth="4"
                 strokeLinejoin="round"
               />
-
-              {/* Layer 3: Daun Menjuntai & Rimbun Terang */}
               <path
                 d="M -20,0 L 1020,0 L 1020,40 C 950,65 890,30 830,58 C 760,80 690,35 610,62 C 530,85 460,40 380,68 C 300,90 230,40 150,64 C 80,80 20,45 -20,45 Z"
                 fill="#10B981"
@@ -319,7 +334,6 @@ function Game() {
                 strokeWidth="4"
                 strokeLinejoin="round"
               />
-
               <ellipse
                 cx="180"
                 cy="90"
@@ -360,7 +374,6 @@ function Game() {
                 strokeWidth="3.5"
                 transform="rotate(5 620 105)"
               />
-
               <circle
                 cx="180"
                 cy="100"
@@ -403,7 +416,6 @@ function Game() {
                 stroke="#134E4A"
                 strokeWidth="4"
               />
-
               <path
                 d="M0,58 Q200,38 420,54 T850,44 Q930,48 1000,56 L1000,100 L0,100 Z"
                 fill="#059669"
@@ -416,7 +428,6 @@ function Game() {
                 stroke="#134E4A"
                 strokeWidth="4"
               />
-
               <polygon
                 points="120,45 126,28 132,45"
                 fill="#34D399"
@@ -441,7 +452,6 @@ function Game() {
                 stroke="#134E4A"
                 strokeWidth="3"
               />
-
               <circle
                 cx="240"
                 cy="62"
@@ -451,7 +461,6 @@ function Game() {
                 strokeWidth="2.5"
               />
               <circle cx="240" cy="62" r="2.5" fill="#F59E0B" />
-
               <circle
                 cx="780"
                 cy="58"
@@ -473,10 +482,20 @@ function Game() {
             />
           ))}
 
-          {/* MASKOT UTAMA */}
+          <motion.div
+            animate={basketControls}
+            className="pointer-events-none absolute z-20"
+            style={{ left: "calc(50% - 45px)", bottom: 4 }}
+          >
+            <BasketCatchSvg
+              size={90}
+              className="drop-shadow-[3px_3px_0px_#78350F]"
+            />
+          </motion.div>
+
           <motion.div
             animate={mascotControls}
-            className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center"
+            className="pointer-events-none absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center"
             style={{ transformOrigin: "bottom center" }}
           >
             {game.combo >= 3 && (
@@ -484,7 +503,6 @@ function Game() {
                 <span>Kombo x{game.combo}!</span>
               </div>
             )}
-
             <TilaMascot
               size={88}
               gender={mascotGender}
@@ -492,13 +510,11 @@ function Game() {
               animation="none"
               direction={mascotDirection}
             />
-
             <div className="w-24 h-5 -mt-2 rounded-[50%] border-2 border-[#134E4A] bg-[#FEF3C7] shadow-[2px_2px_0px_#134E4A] flex items-center justify-center -z-10">
               <div className="w-18 h-3 rounded-[50%] border border-dashed border-[#134E4A]/30" />
             </div>
           </motion.div>
 
-          {/* FLOATING COMBO TOAST */}
           <AnimatePresence>
             {showCombo && (
               <motion.div
@@ -516,18 +532,28 @@ function Game() {
             )}
           </AnimatePresence>
 
-          {/* GAME OVER MODAL */}
           <GameOverModal
             visible={game.phase === "gameover"}
             score={game.score}
             maxCombo={game.maxCombo}
-            victory={game.lives > 0}
+            victory={game.isWin}
+            title={
+              game.isWin
+                ? "Target Tercapai!"
+                : game.loseReason === "lives"
+                  ? "Nyawa Habis"
+                  : "Waktu Habis"
+            }
             best={game.best}
             isNewRecord={game.isNewRecord}
             accent="cyan"
-            description={`${
-              game.lives <= 0 ? "Nyawa habis" : "Waktu habis"
-            } · kombo tertinggi ${game.maxCombo}`}
+            description={
+              game.isWin
+                ? `Target skor ${game.targetScore} tercapai · Kombo tertinggi ${game.maxCombo}`
+                : game.loseReason === "lives"
+                  ? `Nyawa habis · kombo tertinggi ${game.maxCombo}`
+                  : `Waktu habis · skor ${game.score}/${game.targetScore}`
+            }
             onRetry={() => game.startGame(levelIndex)}
             onExit={exit}
           />
@@ -536,7 +562,7 @@ function Game() {
       <GameLevelSelectSheet
         isOpen={game.phase === "idle"}
         onClose={exit}
-        gameTitle="PHijaiyah Harvest"
+        gameTitle="Hijaiyah Harvest"
         gameIcon={<HijaiyahHarvestCoverSvg size={22} />}
         levels={LEVELS.map((level) => ({
           id: level.id,
@@ -548,6 +574,17 @@ function Game() {
           setLevelIndex(idx);
           game.startGame(idx);
         }}
+        onOpenGuide={() => setShowRules(true)}
+      />
+      <GameGuideModal
+        isOpen={showRules}
+        onClose={() => {
+          setShowRules(false);
+          if (game.phase === "paused") {
+            game.resume();
+          }
+        }}
+        gameId="hijaiyah-harvest"
       />
     </GameShell>
   );
