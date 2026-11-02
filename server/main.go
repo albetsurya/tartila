@@ -47,8 +47,9 @@ func enableCORS(next http.Handler) http.Handler {
 		if origin := r.Header.Get("Origin"); origin != "" {
 			if hub.OriginAllowed(origin) {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
-				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie")
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
 		}
 
@@ -63,13 +64,7 @@ func enableCORS(next http.Handler) http.Handler {
 
 func main() {
 	loadEnv()
-
-	log.Printf("[Auth] Supabase URL: %s (JWKS: %s)", hub.GetSupabaseURL(), hub.GetSupabaseJWKSURL())
-	go func() {
-		if _, err := hub.GetJWKS(); err != nil {
-			log.Printf("[Auth] Notice: initial JWKS setup: %v", err)
-		}
-	}()
+	handlers.InitAuth()
 
 	roomHub := hub.NewRoomHub()
 	go roomHub.Run()
@@ -137,8 +132,14 @@ func main() {
 	mux.HandleFunc("/api/v1/tilawati/timeline/all", api.GetAllTimelines)
 	mux.HandleFunc("/api/v1/tilawati/timeline/", api.TimelineOne)
 
-	// Auth & User Profile routes (OAuth sync & feedback prompt)
+	// Auth routes (Goth Google OAuth & Cookie Session)
+	mux.HandleFunc("/api/auth/google", api.HandleGoogleLogin)
+	mux.HandleFunc("/api/auth/google/callback", api.HandleGoogleCallback)
+	mux.HandleFunc("/api/auth/logout", api.HandleLogout)
+
+	// Auth & User Profile routes (Legacy sync & feedback prompt)
 	mux.HandleFunc("/api/v1/auth/sync-profile", api.SyncProfile)
+	mux.HandleFunc("/api/v1/auth/logout", api.HandleLogout)
 	mux.HandleFunc("/api/v1/user/profile", api.GetUserProfile)
 	mux.HandleFunc("/api/v1/user/feedback-prompt", api.UpdateFeedbackPrompt)
 

@@ -7,161 +7,130 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
+	"time"
 
-	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// ErrMissingJWTSecret is returned when HMAC algorithm is used but no secret is configured.
-var ErrMissingJWTSecret = errors.New("SUPABASE_JWT_SECRET (or JWT_SECRET) is not configured")
+// ErrMissingJWTSecret is returned when neither JWT_SECRET nor SUPABASE_JWT_SECRET is configured.
+var ErrMissingJWTSecret = errors.New("JWT_SECRET is not configured")
 
 // ErrInvalidToken is returned when the token is missing, invalid, or expired.
 var ErrInvalidToken = errors.New("token is missing or invalid")
 
-var (
-	jwksKeyfunc keyfunc.Keyfunc
-	jwksMu      sync.RWMutex
-	lastJWKSURL string
-)
-
-// GetJWTSecret returns SUPABASE_JWT_SECRET (preferred for Supabase Auth) or JWT_SECRET (legacy fallback).
+// GetJWTSecret returns JWT_SECRET or SUPABASE_JWT_SECRET (legacy fallback).
 func GetJWTSecret() string {
-	secret := strings.TrimSpace(os.Getenv("SUPABASE_JWT_SECRET"))
+	secret := strings.TrimSpace(os.Getenv("JWT_SECRET"))
 	if secret == "" {
-		secret = strings.TrimSpace(os.Getenv("JWT_SECRET"))
+		secret = strings.TrimSpace(os.Getenv("SUPABASE_JWT_SECRET"))
+	}
+	if secret == "" {
+		secret = "tartila-default-jwt-secret-key-change-in-production"
 	}
 	return secret
 }
 
-// GetSupabaseURL returns the base URL of the Supabase project.
-// Prioritizes SUPABASE_URL, then VITE_SUPABASE_URL, falling back to the project default.
-func GetSupabaseURL() string {
-	u := strings.TrimSpace(os.Getenv("SUPABASE_URL"))
-	if u == "" {
-		u = strings.TrimSpace(os.Getenv("VITE_SUPABASE_URL"))
+// GetFrontendURL returns the frontend application URL for redirects.
+func GetFrontendURL() string {
+	if u := strings.TrimSpace(os.Getenv("FRONTEND_URL")); u != "" {
+		return strings.TrimRight(u, "/")
 	}
-	if u == "" {
-		u = "https://esmeeghztkcwxqyqbvza.supabase.co"
-	}
-	return strings.TrimRight(u, "/")
+	return "https://tartila.pages.dev"
 }
 
-// GetSupabaseIssuer returns the expected JWT issuer (iss) URL.
-func GetSupabaseIssuer() string {
-	if iss := strings.TrimSpace(os.Getenv("SUPABASE_JWT_ISSUER")); iss != "" {
-		return strings.TrimRight(iss, "/")
+// GenerateToken creates a signed HS256 JWT for the given user (valid for 30 days).
+func GenerateToken(userID, email, role string) (string, error) {
+	secret := GetJWTSecret()
+	if secret == "" {
+		return "", ErrMissingJWTSecret
 	}
-	return GetSupabaseURL() + "/auth/v1"
+
+	if role == "" {
+		role = "member"
+	}
+
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"sub":     userID,
+		"user_id": userID,
+		"email":   email,
+		"role":    role,
+		"iat":     now.Unix(),
+		"exp":     now.Add(30 * 24 * time.Hour).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
 }
 
-// GetSupabaseJWKSURL returns the Supabase JWKS endpoint URL.
-func GetSupabaseJWKSURL() string {
-	if jwksURL := strings.TrimSpace(os.Getenv("SUPABASE_JWKS_URL")); jwksURL != "" {
-		return jwksURL
+// SetAuthCookie writes the JWT into an HttpOnly cookie.
+func SetAuthCookie(w http.ResponseWriter, r *http.Request, tokenStr string) {
+	frontendURL := GetFrontendURL()
+	secure := true
+	sameSite := http.SameSiteNoneMode
+
+	// Jika murni di localhost non-HTTPS, SameSite=Lax tanpa Secure flag agar cookie diterima browser lokal
+	if r.TLS == nil && (strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1")) && !strings.HasPrefix(frontendURL, "https://") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
 	}
-	return GetSupabaseURL() + "/auth/v1/.well-known/jwks.json"
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    tokenStr,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: sameSite,
+		MaxAge:   86400 * 30, // 30 hari
+	})
 }
 
-// SetJWKS sets or resets the active JWKS Keyfunc instance (primarily for testing).
-func SetJWKS(kf keyfunc.Keyfunc) {
-	jwksMu.Lock()
-	defer jwksMu.Unlock()
-	jwksKeyfunc = kf
-	if kf == nil {
-		lastJWKSURL = ""
+// ClearAuthCookie deletes the JWT auth cookie.
+func ClearAuthCookie(w http.ResponseWriter, r *http.Request) {
+	frontendURL := GetFrontendURL()
+	secure := true
+	sameSite := http.SameSiteNoneMode
+
+	if r.TLS == nil && (strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1")) && !strings.HasPrefix(frontendURL, "https://") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: sameSite,
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+	})
 }
 
-// GetJWKS returns or initializes the JWKS Keyfunc client for Supabase Auth.
-func GetJWKS() (keyfunc.Keyfunc, error) {
-	jwksURL := GetSupabaseJWKSURL()
-
-	jwksMu.RLock()
-	if jwksKeyfunc != nil && lastJWKSURL == jwksURL {
-		defer jwksMu.RUnlock()
-		return jwksKeyfunc, nil
-	}
-	jwksMu.RUnlock()
-
-	jwksMu.Lock()
-	defer jwksMu.Unlock()
-
-	if jwksKeyfunc != nil && lastJWKSURL == jwksURL {
-		return jwksKeyfunc, nil
-	}
-
-	kf, err := keyfunc.NewDefault([]string{jwksURL})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create JWKS keyfunc for %s: %w", jwksURL, err)
-	}
-
-	jwksKeyfunc = kf
-	lastJWKSURL = jwksURL
-	return jwksKeyfunc, nil
-}
-
-// ParseTokenString validates the raw JWT string.
-// Supports Supabase ES256 tokens verified via JWKS and legacy/test HS256 tokens.
+// ParseTokenString validates the raw JWT string using HS256 secret.
 func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 	tok = strings.TrimSpace(tok)
 	if tok == "" {
 		return "", nil, ErrInvalidToken
 	}
 
-	// 1. Parsing token tanpa memverifikasi signature terlebih dahulu
-	// untuk membaca header kid (Key ID) dan alg (ES256 / HS256).
-	unverified, _, err := jwt.NewParser().ParseUnverified(tok, jwt.MapClaims{})
+	secret := GetJWTSecret()
+	if secret == "" {
+		log.Printf("[Auth] Error: JWT_SECRET is not configured")
+		return "", nil, ErrMissingJWTSecret
+	}
+
+	parsed, err := jwt.Parse(tok, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing algorithm: %v", t.Header["alg"])
+		}
+		return []byte(secret), nil
+	}, jwt.WithValidMethods([]string{"HS256", "HS384", "HS512"}))
+
 	if err != nil {
-		log.Printf("[Auth] Failed to parse unverified token: %v", err)
-		return "", nil, ErrInvalidToken
-	}
-
-	alg, _ := unverified.Header["alg"].(string)
-	kid, _ := unverified.Header["kid"].(string)
-
-	var parsed *jwt.Token
-	var parseErr error
-
-	switch alg {
-	case "ES256":
-		// Supabase Asymmetric Key (ES256)
-		if kid == "" {
-			log.Printf("[Auth] ES256 token missing 'kid' in header")
-			return "", nil, ErrInvalidToken
-		}
-
-		kf, err := GetJWKS()
-		if err != nil {
-			log.Printf("[Auth] Failed to get JWKS keyfunc: %v", err)
-			return "", nil, ErrInvalidToken
-		}
-
-		// 2. Ambil Public Key yang cocok dari JWKS Supabase berdasarkan kid & verifikasi signature
-		parsed, parseErr = jwt.Parse(tok, kf.Keyfunc, jwt.WithValidMethods([]string{"ES256"}))
-
-	case "HS256", "HS384", "HS512":
-		// Fallback HMAC untuk backwards-compatibility / unit test
-		secret := GetJWTSecret()
-		if secret == "" {
-			log.Printf("[Auth] Error: SUPABASE_JWT_SECRET (or JWT_SECRET) is not configured for HMAC token")
-			return "", nil, ErrMissingJWTSecret
-		}
-
-		parsed, parseErr = jwt.Parse(tok, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing algorithm: %v", t.Header["alg"])
-			}
-			return []byte(secret), nil
-		}, jwt.WithValidMethods([]string{"HS256", "HS384", "HS512"}))
-
-	default:
-		log.Printf("[Auth] Unsupported JWT algorithm: %v", alg)
-		return "", nil, fmt.Errorf("%w: unsupported algorithm %s", ErrInvalidToken, alg)
-	}
-
-	if parseErr != nil {
-		log.Printf("[Auth] JWT verification failed (%s): %v", alg, parseErr)
+		log.Printf("[Auth] JWT verification failed: %v", err)
 		return "", nil, ErrInvalidToken
 	}
 
@@ -176,51 +145,6 @@ func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 		return "", nil, ErrInvalidToken
 	}
 
-	// 3. Validasi Klaim (Claims):
-	// - Pastikan iss (Issuer) sesuai dengan https://<ref>.supabase.co/auth/v1
-	// - Pastikan aud (Audience) sesuai dengan 'authenticated'
-	expectedIssuer := GetSupabaseIssuer()
-	if alg == "ES256" {
-		iss, _ := claims.GetIssuer()
-		if iss != expectedIssuer {
-			log.Printf("[Auth] JWT invalid issuer: got %q, expected %q", iss, expectedIssuer)
-			return "", nil, ErrInvalidToken
-		}
-
-		auds, _ := claims.GetAudience()
-		audMatched := false
-		for _, a := range auds {
-			if a == "authenticated" {
-				audMatched = true
-				break
-			}
-		}
-		if !audMatched {
-			log.Printf("[Auth] JWT invalid audience: got %v, expected 'authenticated'", auds)
-			return "", nil, ErrInvalidToken
-		}
-	} else {
-		// Untuk token HMAC, jika klaim iss / aud ada, validasi agar konsisten
-		if iss, _ := claims.GetIssuer(); iss != "" && iss != expectedIssuer {
-			log.Printf("[Auth] JWT invalid issuer: got %q, expected %q", iss, expectedIssuer)
-			return "", nil, ErrInvalidToken
-		}
-		if auds, _ := claims.GetAudience(); len(auds) > 0 {
-			audMatched := false
-			for _, a := range auds {
-				if a == "authenticated" {
-					audMatched = true
-					break
-				}
-			}
-			if !audMatched {
-				log.Printf("[Auth] JWT invalid audience: got %v, expected 'authenticated'", auds)
-				return "", nil, ErrInvalidToken
-			}
-		}
-	}
-
-	// 4. Ambil UUID user dari klaim 'sub' (standar Supabase Auth), fallback ke 'user_id'
 	userID, _ := claims["sub"].(string)
 	if userID == "" {
 		if uid, ok := claims["user_id"].(string); ok && uid != "" {
@@ -229,29 +153,37 @@ func ParseTokenString(tok string) (string, jwt.MapClaims, error) {
 	}
 
 	if userID == "" {
-		log.Printf("[Auth] Token missing user UUID in 'sub' or 'user_id' claim")
+		log.Printf("[Auth] Token missing user identifier (sub or user_id)")
 		return "", nil, errors.New("token missing user identifier (sub or user_id)")
 	}
 
 	return userID, claims, nil
 }
 
-// ParseAuthToken extracts and validates the JWT from Authorization: Bearer <token> header
-// or ?token=<token> query parameter.
+// ParseAuthToken extracts and validates the JWT from HttpOnly Cookie 'token',
+// with fallback to Authorization: Bearer <token> and ?token=<token>.
 func ParseAuthToken(r *http.Request) (string, jwt.MapClaims, error) {
 	tok := ""
-	auth := strings.TrimSpace(r.Header.Get("Authorization"))
-	if auth != "" {
-		parts := strings.SplitN(auth, " ", 2)
-		if len(parts) == 2 && strings.EqualFold(parts[0], "bearer") {
-			tok = strings.TrimSpace(parts[1])
-		} else if !strings.Contains(auth, " ") {
-			// Jika client mengirimkan token mentah langsung di header Authorization
-			tok = auth
+
+	// 1. Prioritaskan pengecekan dari HttpOnly Cookie
+	if cookie, err := r.Cookie("token"); err == nil && strings.TrimSpace(cookie.Value) != "" {
+		tok = strings.TrimSpace(cookie.Value)
+	}
+
+	// 2. Fallback: Authorization: Bearer <token>
+	if tok == "" {
+		auth := strings.TrimSpace(r.Header.Get("Authorization"))
+		if auth != "" {
+			parts := strings.SplitN(auth, " ", 2)
+			if len(parts) == 2 && strings.EqualFold(parts[0], "bearer") {
+				tok = strings.TrimSpace(parts[1])
+			} else if !strings.Contains(auth, " ") {
+				tok = auth
+			}
 		}
 	}
 
-	// Fallback ke parameter URL ?token=
+	// 3. Fallback: URL query ?token=
 	if tok == "" {
 		tok = strings.TrimSpace(r.URL.Query().Get("token"))
 	}
