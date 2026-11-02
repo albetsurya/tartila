@@ -19,7 +19,7 @@ function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
         animate={{ scale: 1.1, opacity: 1 }}
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 400, damping: 20 }}
-        className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#DCFCE7] text-[#166534] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl font-arabic"
+        className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#DCFCE7] text-[#166534] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl font-arabic leading-normal"
       >
         {cleanLetter}
       </motion.div>
@@ -32,7 +32,7 @@ function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
         key={`active-${letter}-${index}`}
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-        className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#FEF3C7] text-[#B45309] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl font-arabic animate-pulse"
+        className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-[#16A34A] bg-[#FEF3C7] text-[#B45309] shadow-[2px_2px_0px_#16A34A] font-black text-2xl sm:text-3xl font-arabic leading-normal animate-pulse"
       >
         {cleanLetter}
       </motion.div>
@@ -44,7 +44,7 @@ function LetterBox({ letter, index, isCollected, isActive }: LetterBoxProps) {
       key={`pending-${letter}-${index}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-[#94A3B8]/60 shadow-[2px_2px_0px_#CBD5E1] font-black text-2xl sm:text-3xl font-arabic"
+      className="flex-shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border-[3px] border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-[#94A3B8]/60 shadow-[2px_2px_0px_#CBD5E1] font-black text-2xl sm:text-3xl font-arabic leading-normal"
     >
       {cleanLetter}
     </motion.div>
@@ -90,7 +90,7 @@ export function TargetBanner({
       {isWord && targetLetters.length > 1 ? (
         <div
           dir="rtl"
-          className={`font-arabic ${wordFontSize} font-black leading-none max-w-full`}
+          className={`font-arabic ${wordFontSize} font-black leading-normal py-1 max-w-full`}
         >
           <span
             style={{

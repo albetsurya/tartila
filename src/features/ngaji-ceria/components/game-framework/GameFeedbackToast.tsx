@@ -53,7 +53,7 @@ export const GameFeedbackToast: React.FC<GameFeedbackToastProps> = ({
             {feedback.arabicText && (
               <span
                 dir="rtl"
-                className="font-arabic text-base sm:text-lg font-black leading-none text-[#134E4A] px-1"
+                className="font-arabic text-base sm:text-lg font-black leading-normal text-[#134E4A] px-1 py-0.5"
               >
                 {feedback.arabicText}
               </span>

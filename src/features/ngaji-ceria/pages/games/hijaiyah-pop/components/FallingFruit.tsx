@@ -19,10 +19,12 @@ const ITEM_COMPONENTS = [
 export function FallingFruit({
   fruit,
   disabled,
+  reducedMotion = false,
   onPop,
 }: {
   fruit: BalloonData;
   disabled: boolean;
+  reducedMotion?: boolean;
   onPop: (fruit: BalloonData) => void;
 }) {
   const ItemSvg =
@@ -59,29 +61,39 @@ export function FallingFruit({
       disabled={disabled || fruit.popped}
       className="absolute left-0 top-0 h-28 min-w-[5.5rem] w-fit p-1.5 touch-none select-none flex items-center justify-center cursor-pointer"
       style={{
-        transform: isPoppingWrong
-          ? `translate3d(${fruit.x}px, ${fruit.y}px, 0) scale(${
-              1 + fruit.popAge * 2
-            })`
-          : fruit.popped
-            ? `translate3d(${fruit.x + fruit.suckX * suckEase}px, ${
-                fruit.y + fruit.suckY * suckEase
-              }px, 0) scale(${Math.max(0.05, 1 - 0.85 * suckEase)})`
-            : `translate3d(${fruit.x}px, ${fruit.y}px, 0) scale(1)`,
-        opacity: isPoppingWrong
-          ? Math.max(0, 1 - fruit.popAge * 2)
-          : fruit.popped
-            ? suckProgress >= 1
-              ? 0
-              : Math.max(0, 1 - Math.max(0, fruit.popAge - 0.35) * 10)
-            : 1,
+        transform: reducedMotion
+          ? `translate3d(${fruit.x}px, ${fruit.y}px, 0)`
+          : isPoppingWrong
+            ? `translate3d(${fruit.x}px, ${fruit.y}px, 0) scale(${
+                1 + fruit.popAge * 2
+              })`
+            : fruit.popped
+              ? `translate3d(${fruit.x + fruit.suckX * suckEase}px, ${
+                  fruit.y + fruit.suckY * suckEase
+                }px, 0) scale(${Math.max(0.05, 1 - 0.85 * suckEase)})`
+              : `translate3d(${fruit.x}px, ${fruit.y}px, 0) scale(1)`,
+        opacity: reducedMotion
+          ? fruit.popped
+            ? Math.max(0, 1 - fruit.popAge / 0.35)
+            : 1
+          : isPoppingWrong
+            ? Math.max(0, 1 - fruit.popAge * 2)
+            : fruit.popped
+              ? suckProgress >= 1
+                ? 0
+                : Math.max(0, 1 - Math.max(0, fruit.popAge - 0.35) * 10)
+              : 1,
         willChange: "transform",
       }}
     >
       {fruit.isRotten ? (
         fruit.popped ? (
           <div className="h-full w-full flex items-center justify-center">
-            <EfekPopSvg size={84} className="h-full w-full object-contain" />
+            {reducedMotion ? (
+              <div className="h-14 w-14 rounded-2xl border-[3px] border-[#134E4A] bg-[#4B5563] opacity-50" />
+            ) : (
+              <EfekPopSvg size={84} className="h-full w-full object-contain" />
+            )}
           </div>
         ) : (
           <div className="relative flex items-center justify-center">
@@ -108,7 +120,14 @@ export function FallingFruit({
       ) : fruit.popped ? (
         isPoppingWrong ? (
           <div className="h-full w-full flex items-center justify-center">
-            <EfekPopSvg size={84} className="h-full w-full object-contain" />
+            {reducedMotion ? (
+              <ItemSvg
+                size={80}
+                className="h-full w-full object-contain opacity-50"
+              />
+            ) : (
+              <EfekPopSvg size={84} className="h-full w-full object-contain" />
+            )}
           </div>
         ) : (
           <div className="relative h-full w-full flex items-center justify-center">
@@ -118,10 +137,10 @@ export function FallingFruit({
             />
             {/* HTML Overlay Neo-Brutalism */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 w-fit flex items-center justify-center">
+              <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[34px] w-fit flex items-center justify-center">
                 <span
                   dir="rtl"
-                  className={`font-arabic font-black whitespace-nowrap text-[#134E4A] ${
+                  className={`font-arabic font-black whitespace-nowrap text-[#134E4A] leading-normal ${
                     cleanLetter.length <= 2 ? "text-xl" : "text-sm sm:text-base"
                   }`}
                 >
@@ -139,10 +158,10 @@ export function FallingFruit({
           />
           {/* HTML Overlay Neo-Brutalism */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 w-fit flex items-center justify-center">
+            <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[34px] w-fit flex items-center justify-center">
               <span
                 dir="rtl"
-                className={`font-arabic font-black whitespace-nowrap text-[#134E4A] ${
+                className={`font-arabic font-black whitespace-nowrap text-[#134E4A] leading-normal ${
                   cleanLetter.length <= 2 ? "text-xl" : "text-sm sm:text-base"
                 }`}
               >

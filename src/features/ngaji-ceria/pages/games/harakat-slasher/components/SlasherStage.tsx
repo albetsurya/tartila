@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   HARAKAT_LIST,
   getSlasherItems,
@@ -266,6 +266,7 @@ export default function SlasherStage({
 
   const [slashFx, setSlashFx] = useState<SlashFx[]>([]);
   const fxSeq = useRef(0);
+  const shouldReduceMotion = useReducedMotion();
 
   // FAIR SPAWNER: Menjamin minimal 2 buah target per siklus 5 buah dan anti-overlap
   const waveState = useRef({
@@ -431,6 +432,7 @@ export default function SlasherStage({
   };
 
   const addSlashFx = (x: number, y: number, angle: number) => {
+    if (shouldReduceMotion) return;
     const fx: SlashFx = { id: fxSeq.current++, x, y, angle };
     setSlashFx((f) => [...f, fx]);
     setTimeout(
@@ -712,18 +714,33 @@ export default function SlasherStage({
                     className="relative h-24 w-24 flex items-center justify-center"
                     style={{ transform: `rotate(${item.sliceAngle}deg)` }}
                   >
-                    <motion.div
-                      initial={{ scale: 0.3, opacity: 1 }}
-                      animate={{ scale: 1.5, opacity: 0 }}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <div className="h-20 w-20 rounded-full border-[3.5px] border-[#134E4A] bg-[#DC2626] flex items-center justify-center shadow-[3px_3px_0px_#134E4A]">
-                        <span className="font-black text-white text-xs uppercase tracking-wider">
-                          DUARR
-                        </span>
-                      </div>
-                    </motion.div>
+                    {shouldReduceMotion ? (
+                      <motion.div
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: 0 }}
+                        transition={{ duration: 0.35, ease: "easeOut" }}
+                        className="flex items-center justify-center"
+                      >
+                        <div className="h-16 w-16 rounded-full border-[3px] border-[#134E4A] bg-[#DC2626] flex items-center justify-center shadow-[2px_2px_0px_#134E4A]">
+                          <span className="font-black text-white text-[10px] uppercase tracking-wider">
+                            BOM
+                          </span>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0.3, opacity: 1 }}
+                        animate={{ scale: 1.5, opacity: 0 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="absolute inset-0 flex items-center justify-center"
+                      >
+                        <div className="h-20 w-20 rounded-full border-[3.5px] border-[#134E4A] bg-[#DC2626] flex items-center justify-center shadow-[3px_3px_0px_#134E4A]">
+                          <span className="font-black text-white text-xs uppercase tracking-wider">
+                            DUARR
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
                 ) : (
                   <motion.div
@@ -759,60 +776,76 @@ export default function SlasherStage({
                   </motion.div>
                 )
               ) : item.isSliced ? (
-                <div
-                  className="relative h-24 w-24"
-                  style={{ transform: `rotate(${item.sliceAngle}deg)` }}
-                >
-                  {/* Splatter jus sesuai warna buah */}
-                  <motion.div
-                    initial={{ scale: 0.4, opacity: 0.9 }}
-                    animate={{ scale: 1.15, opacity: 0 }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
-                    className="absolute -z-10 inset-[-26px]"
-                  >
-                    <CipratanJusSvg size={140} />
-                    {[
-                      [-34, -26, 9],
-                      [30, -34, 7],
-                      [38, 28, 11],
-                      [-40, 30, 6],
-                    ].map(([dx, dy, r], i) => (
-                      <span
-                        key={i}
-                        className="absolute rounded-full border-2 border-[#134E4A]"
-                        style={{
-                          left: 68 + dx,
-                          top: 68 + dy,
-                          width: r * 2,
-                          height: r * 2,
-                          backgroundColor: fruit.color,
-                        }}
+                shouldReduceMotion ? (
+                  <div className="relative h-24 w-24 flex items-center justify-center">
+                    <motion.div
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                      className="flex items-center justify-center"
+                    >
+                      <fruit.FruitSliced
+                        size={fruit.id === "watermelon" ? 120 : 96}
+                        className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]"
                       />
-                    ))}
-                  </motion.div>
-                  {/* Dua potongan slicedImg terbang berlawanan */}
-                  <motion.div
-                    initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
-                    animate={{ x: -54, y: 70, rotate: -46, opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="absolute inset-0"
-                    style={{ clipPath: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }}
+                    </motion.div>
+                  </div>
+                ) : (
+                  <div
+                    className="relative h-24 w-24"
+                    style={{ transform: `rotate(${item.sliceAngle}deg)` }}
                   >
-                    <fruit.FruitSliced size={fruit.id === "watermelon" ? 120 : 96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
-                  </motion.div>
-                  <motion.div
-                    initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
-                    animate={{ x: 56, y: 84, rotate: 40, opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="absolute inset-0"
-                    style={{ clipPath: "polygon(0 50%, 100% 50%, 100% 100%, 0 100%)" }}
-                  >
-                    <fruit.FruitSliced size={fruit.id === "watermelon" ? 120 : 96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
-                  </motion.div>
-                </div>
+                    {/* Splatter jus sesuai warna buah */}
+                    <motion.div
+                      initial={{ scale: 0.4, opacity: 0.9 }}
+                      animate={{ scale: 1.15, opacity: 0 }}
+                      transition={{ duration: 0.7, ease: "easeOut" }}
+                      className="absolute -z-10 inset-[-26px]"
+                    >
+                      <CipratanJusSvg size={140} />
+                      {[
+                        [-34, -26, 9],
+                        [30, -34, 7],
+                        [38, 28, 11],
+                        [-40, 30, 6],
+                      ].map(([dx, dy, r], i) => (
+                        <span
+                          key={i}
+                          className="absolute rounded-full border-2 border-[#134E4A]"
+                          style={{
+                            left: 68 + dx,
+                            top: 68 + dy,
+                            width: r * 2,
+                            height: r * 2,
+                            backgroundColor: fruit.color,
+                          }}
+                        />
+                      ))}
+                    </motion.div>
+                    {/* Dua potongan slicedImg terbang berlawanan */}
+                    <motion.div
+                      initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+                      animate={{ x: -54, y: 70, rotate: -46, opacity: 0 }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      className="absolute inset-0"
+                      style={{ clipPath: "polygon(0 0, 100% 0, 100% 50%, 0 50%)" }}
+                    >
+                      <fruit.FruitSliced size={fruit.id === "watermelon" ? 120 : 96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
+                    </motion.div>
+                    <motion.div
+                      initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+                      animate={{ x: 56, y: 84, rotate: 40, opacity: 0 }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      className="absolute inset-0"
+                      style={{ clipPath: "polygon(0 50%, 100% 50%, 100% 100%, 0 100%)" }}
+                    >
+                      <fruit.FruitSliced size={fruit.id === "watermelon" ? 120 : 96} className="drop-shadow-[3px_3px_0px_rgba(19,78,74,0.8)]" />
+                    </motion.div>
+                  </div>
+                )
               ) : (
                 <motion.div
-                  initial={{ scale: 0.4, opacity: 0 }}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0.4, opacity: 0 }}
                   animate={{ scale: fruit.id === "watermelon" ? 1.2 : 1, opacity: 1 }}
                   transition={{ duration: 0.18 }}
                   className={`relative flex items-center justify-center ${
@@ -825,10 +858,10 @@ export default function SlasherStage({
                   />
                   {/* OVERLAY TEKS (Neo-Brutalism HTML Overlay Responsif) */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                    <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 w-fit flex items-center justify-center max-w-[130px]">
+                    <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[36px] w-fit flex items-center justify-center max-w-[130px]">
                       <span
                         dir="rtl"
-                        className={`font-arabic font-black whitespace-nowrap text-[#134E4A] ${
+                        className={`font-arabic font-black whitespace-nowrap text-[#134E4A] leading-normal ${
                           symbolText.length <= 2 ? "text-xl" : "text-sm sm:text-base"
                         }`}
                       >
@@ -864,19 +897,20 @@ export default function SlasherStage({
         />
       </svg>
 
-      {/* FX sabetan pedang mengikuti arah swipe */}
-      {slashFx.map((fx) => (
-        <motion.div
-          key={fx.id}
-          initial={{ opacity: 1, scale: 0.7, rotate: (fx.angle * 180) / Math.PI }}
-          animate={{ opacity: 0, scale: 1.3 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="pointer-events-none absolute z-50 -translate-x-1/2 -translate-y-1/2"
-          style={{ left: fx.x, top: fx.y }}
-        >
-          <SabetanPedangSvg size={120} />
-        </motion.div>
-      ))}
+      {/* FX sabetan pedang mengikuti arah swipe (dinonaktifkan jika prefers-reduced-motion aktif) */}
+      {!shouldReduceMotion &&
+        slashFx.map((fx) => (
+          <motion.div
+            key={fx.id}
+            initial={{ opacity: 1, scale: 0.7, rotate: (fx.angle * 180) / Math.PI }}
+            animate={{ opacity: 0, scale: 1.3 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="pointer-events-none absolute z-50 -translate-x-1/2 -translate-y-1/2"
+            style={{ left: fx.x, top: fx.y }}
+          >
+            <SabetanPedangSvg size={120} />
+          </motion.div>
+        ))}
     </div>
   );
 }

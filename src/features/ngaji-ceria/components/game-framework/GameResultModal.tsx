@@ -1,8 +1,9 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { StarSvg, RotateCcwSvg, ChevronRight, HomeSvg, BookOpenSvg } from "@/components/ui/CustomIcons";
 import { AppModal } from "@/components/ui/AppModal";
 import type { LearningSummary } from "@/features/ngaji-ceria/types/game";
+import { VictoryConfetti } from "./VictoryConfetti";
 
 export interface GameResultModalProps {
   isOpen: boolean;
@@ -64,52 +65,60 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
         ? "Nyawa kamu telah habis. Ayo lebih teliti memperhatikan target hurufnya!"
         : "Waktu bermain telah selesai. Ayo latih terus kecepatan dan ketepatanmu!");
 
-  return (
-    <AppModal isOpen={isOpen} onClose={onBackToHub} title={displayTitle} variant="warm">
-      {/* Header Badge Status */}
-      <div className="mb-3 text-center">
-        <span
-          className={`inline-block rounded-full border-2 border-[#134E4A] px-4 py-1 text-xs font-black uppercase tracking-widest shadow-[2px_2px_0px_#134E4A] ${
-            isWin
-              ? "bg-[#DCFCE7] text-[#15803D]"
-              : "bg-[#FEE2E2] text-[#B91C1C]"
-          }`}
-        >
-          {isWin ? "Level Selesai" : "Coba Lagi"}
-        </span>
-        <p className="mt-2 text-xs font-medium text-[#134E4A]/70 leading-relaxed px-2">
-          {displayMessage}
-        </p>
-      </div>
+  const shouldReduceMotion = useReducedMotion();
 
-      {/* Bintang Penilaian (1 - 3 Bintang) */}
-      <div className="my-5 flex items-center justify-center gap-3">
-        {[1, 2, 3].map((starIndex) => {
-          const isEarned = starIndex <= displayStars;
-          return (
-            <motion.div
-              key={starIndex}
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{
-                delay: 0.15 * starIndex,
-                type: "spring",
-                stiffness: 300,
-              }}
-              className={`flex h-14 w-14 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] ${
-                isEarned
-                  ? "bg-[#FEF08A] text-[#D97706]"
-                  : "bg-gray-100 text-gray-300"
-              }`}
-            >
-              <StarSvg
-                size={32}
-                className={isEarned ? "fill-[#D97706]" : "fill-transparent"}
-              />
-            </motion.div>
-          );
-        })}
-      </div>
+  return (
+    <>
+      <VictoryConfetti active={isOpen && isWin} />
+      <AppModal isOpen={isOpen} onClose={onBackToHub} title={displayTitle} variant="warm">
+        {/* Header Badge Status */}
+        <div className="mb-3 text-center">
+          <span
+            className={`inline-block rounded-full border-2 border-[#134E4A] px-4 py-1 text-xs font-black uppercase tracking-widest shadow-[2px_2px_0px_#134E4A] ${
+              isWin
+                ? "bg-[#DCFCE7] text-[#15803D]"
+                : "bg-[#FEE2E2] text-[#B91C1C]"
+            }`}
+          >
+            {isWin ? "Level Selesai" : "Coba Lagi"}
+          </span>
+          <p className="mt-2 text-xs font-medium text-[#134E4A]/70 leading-relaxed px-2">
+            {displayMessage}
+          </p>
+        </div>
+
+        {/* Bintang Penilaian (1 - 3 Bintang) */}
+        <div className="my-5 flex items-center justify-center gap-3">
+          {[1, 2, 3].map((starIndex) => {
+            const isEarned = starIndex <= displayStars;
+            return (
+              <motion.div
+                key={starIndex}
+                initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0, rotate: -30 }}
+                animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, rotate: 0 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0.2 }
+                    : {
+                        delay: 0.15 * starIndex,
+                        type: "spring",
+                        stiffness: 300,
+                      }
+                }
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] ${
+                  isEarned
+                    ? "bg-[#FEF08A] text-[#D97706]"
+                    : "bg-gray-100 text-gray-300"
+                }`}
+              >
+                <StarSvg
+                  size={32}
+                  className={isEarned ? "fill-[#D97706]" : "fill-transparent"}
+                />
+              </motion.div>
+            );
+          })}
+        </div>
 
       {/* Papan Skor Ringkasan */}
       <div className="mb-4 rounded-2xl border-2 border-[#134E4A] bg-white p-3 shadow-[3px_3px_0px_#134E4A]">
@@ -261,5 +270,6 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
         </button>
       </div>
     </AppModal>
+    </>
   );
 };

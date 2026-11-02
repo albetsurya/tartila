@@ -409,7 +409,7 @@ function Game() {
 
                     <div
                       dir="rtl"
-                      className="my-1 flex min-h-[38px] items-center justify-center px-2"
+                      className="my-1 flex min-h-[44px] items-center justify-center px-2 py-1"
                     >
                       <span
                         className={`font-arabic font-black leading-normal text-[#451A03] text-center max-w-[280px] drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] ${

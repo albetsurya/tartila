@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import { motion, useAnimation, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   TilaMascot,
   type TilaMood,
@@ -159,6 +159,7 @@ function Game() {
   const [mascotDirection, setMascotDirection] =
     useState<TilaDirection>("front");
   const basketControls = useAnimation();
+  const shouldReduceMotion = useReducedMotion();
 
   const handlePopFruit = useCallback(
     async (fruit: BalloonData) => {
@@ -199,7 +200,7 @@ function Game() {
 
       game.pop(fruit.id);
 
-      if (wasTarget) {
+      if (wasTarget && !shouldReduceMotion) {
         basketControls.start({
           scale: [1, 1.22, 1],
           transition: { duration: 0.3, ease: "easeOut" },
@@ -216,29 +217,31 @@ function Game() {
       setMascotDirection(deltaX >= 0 ? "right" : "left");
       setMascotMood("excited");
 
-      await mascotControls.start({
-        x: deltaX * 0.88,
-        y: Math.min(-20, deltaY * 0.88),
-        scale: 1.18,
-        rotate: deltaX >= 0 ? 15 : -15,
-        transition: { duration: 0.15, ease: "easeOut" },
-      });
+      if (!shouldReduceMotion) {
+        await mascotControls.start({
+          x: deltaX * 0.88,
+          y: Math.min(-20, deltaY * 0.88),
+          scale: 1.18,
+          rotate: deltaX >= 0 ? 15 : -15,
+          transition: { duration: 0.15, ease: "easeOut" },
+        });
 
-      await mascotControls.start({
-        x: 0,
-        y: 0,
-        scale: 1,
-        rotate: 0,
-        transition: {
-          duration: 0.22,
-          ease: [0.34, 1.56, 0.64, 1],
-        },
-      });
+        await mascotControls.start({
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotate: 0,
+          transition: {
+            duration: 0.22,
+            ease: [0.34, 1.56, 0.64, 1],
+          },
+        });
+      }
 
       setMascotDirection("front");
       setMascotMood(game.combo > 0 ? "excited" : "happy");
     },
-    [game, mascotControls, basketControls],
+    [game, mascotControls, basketControls, shouldReduceMotion],
   );
 
   return (
@@ -259,7 +262,7 @@ function Game() {
           ref={game.fieldRef}
           aria-label="Arena buah jatuh"
           className={`absolute inset-0 w-full overflow-hidden border-t-[3.5px] border-[#134E4A] ${arenaStyle.bg} select-none ${
-            game.shakeLeft > 0 ? "game-shake" : ""
+            game.shakeLeft > 0 && !shouldReduceMotion ? "game-shake" : ""
           }`}
         >
           {/* ========================================================= */}
@@ -484,6 +487,7 @@ function Game() {
               key={fruit.id}
               fruit={fruit}
               disabled={game.phase !== "playing"}
+              reducedMotion={Boolean(shouldReduceMotion)}
               onPop={handlePopFruit}
             />
           ))}
