@@ -23,7 +23,7 @@ export { matchesSlasherTarget };
 
 export type SlasherPhase = "idle" | "playing" | "paused" | "gameover";
 
-export type SlashResultKind = "correct" | "wrong" | "miss";
+export type SlashResultKind = "correct" | "wrong" | "miss" | "bomb";
 
 export interface SlasherLevelOptions {
   level?: number;
@@ -396,6 +396,46 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
             isFailed,
             accuracy: summary.accuracy,
             learningSummary: summary,
+          };
+        });
+      } else if (kind === "bomb") {
+        // HAZARD BOM (Bab 6.11): Kurangi 1 nyawa di challenge mode, reset combo, mainkan SFX, TANPA instant game over
+        playSfx("wrong");
+        const isPractice = session.mode === "practice";
+        if (session.mode === "challenge") {
+          const next = Math.max(0, scoreRef.current - 20);
+          scoreRef.current = next;
+        }
+
+        setLevel((prev) => {
+          const nextL = isPractice ? prev.lives : Math.max(0, prev.lives - 1);
+          const isFailed = !isPractice && nextL <= 0;
+          if (isFailed) {
+            setIsWin(false);
+            setLoseReason("lives");
+            setPhase("gameover");
+            playSfx("gameover");
+          }
+          const nextWrong = prev.wrongCount + 1;
+          const summary = computeSlasherSummary(
+            prev.correctCount,
+            nextWrong,
+            prev.missedCount,
+            prev.accuracyByHarakat ?? INITIAL_HARAKAT_STATS,
+            false
+          );
+          return {
+            ...prev,
+            score: isPractice ? prev.score : scoreRef.current,
+            lives: nextL,
+            combo: 0,
+            wrongCount: nextWrong,
+            isFailed,
+            accuracy: summary.accuracy,
+            learningSummary: {
+              ...summary,
+              recommendation: "Awas bom bahaya! Hindari menebas bom di mode tantangan.",
+            },
           };
         });
       }

@@ -246,7 +246,7 @@ function Game() {
   ]);
 
   const handleResult = (
-    kind: "correct" | "wrong" | "miss",
+    kind: "correct" | "wrong" | "miss" | "bomb",
     symbol?: string,
     item?: SlasherTargetItem,
   ) => {
@@ -279,6 +279,11 @@ function Game() {
     } else if (kind === "miss") {
       triggerFeedback({
         text: "Target terlewat! Tetap fokus ya.",
+        type: "wrong",
+      });
+    } else if (kind === "bomb") {
+      triggerFeedback({
+        text: "Awas bom! Jangan tebas yang bertanda bahaya.",
         type: "wrong",
       });
     }
@@ -441,6 +446,7 @@ function Game() {
                   currentTarget={currentTarget}
                   currentTargetItem={currentTargetItem}
                   mode={mode}
+                  gameMode={session.mode}
                   levelConfig={currentLevelConfig}
                   onResult={handleResult}
                 />

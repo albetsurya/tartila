@@ -167,7 +167,12 @@ function Game() {
       const cleanFruitLetter = normalizeArabicText(fruit.letter);
       const isCorrect = cleanFruitLetter === expected;
 
-      if (isCorrect) {
+      if (fruit.isRotten) {
+        triggerFeedback({
+          text: "Awas buah busuk! Jangan disentuh ya.",
+          type: "wrong",
+        });
+      } else if (isCorrect) {
         triggerFeedback({
           text: `Hebat! Huruf ${fruit.letter} tersusun.`,
           type: "correct",

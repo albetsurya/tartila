@@ -78,7 +78,34 @@ export function FallingFruit({
         willChange: "transform",
       }}
     >
-      {fruit.popped ? (
+      {fruit.isRotten ? (
+        fruit.popped ? (
+          <div className="h-full w-full flex items-center justify-center">
+            <EfekPopSvg size={84} className="h-full w-full object-contain" />
+          </div>
+        ) : (
+          <div className="relative flex items-center justify-center">
+            <div className="h-16 w-16 rounded-2xl border-[3.5px] border-[#134E4A] bg-[#4B5563] shadow-[3px_4px_0px_#134E4A] flex flex-col items-center justify-center gap-0.5">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#EF4444"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              <span className="text-[9px] font-black uppercase tracking-wider text-[#FEE2E2]">
+                BUSUK
+              </span>
+            </div>
+          </div>
+        )
+      ) : fruit.popped ? (
         isPoppingWrong ? (
           <div className="h-full w-full flex items-center justify-center">
             <EfekPopSvg size={84} className="h-full w-full object-contain" />

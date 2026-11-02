@@ -14,6 +14,7 @@ export interface BalloonData {
   y: number;
   speed: number;
   isTarget: boolean;
+  isRotten?: boolean;
   popped: boolean;
   popAge: number;
   color: number;
@@ -480,6 +481,56 @@ export function useBalloonGame() {
 
         const expected = normalizeArabicText(currentTargetLetter(s));
         const cleanBalloonLetter = normalizeArabicText(balloon.letter);
+
+        // HAZARD BUAH BUSUK (Bab 7.11): Kurangi 1 nyawa di challenge mode, reset combo, TANPA instant game over
+        if (balloon.isRotten) {
+          playSfx("wrong");
+          const isPractice = s.session.mode === "practice";
+          const lives = isPractice ? s.lives : Math.max(0, s.lives - 1);
+          const isFailed = !isPractice && lives <= 0;
+          if (isFailed) {
+            playSfx("gameover");
+          }
+          const nextWrong = s.level.wrongCount + 1;
+          const summary = computeBalloonSummary(
+            s.level.correctCount,
+            nextWrong,
+            s.level.missedCount,
+            s.level.sequenceErrors ?? 0,
+            s.level.troubleLetters ?? [],
+            false
+          );
+
+          const balloons = s.balloons.map((item) =>
+            item.id === id ? { ...item, popped: true, popAge: 0, suckX: 0, suckY: 0 } : item,
+          );
+
+          const nextLevelState: LevelState = {
+            ...s.level,
+            combo: 0,
+            lives,
+            wrongCount: nextWrong,
+            accuracy: summary.accuracy,
+            learningSummary: {
+              ...summary,
+              recommendation: "Awas buah busuk! Hindari memetik buah bertanda silang.",
+            },
+            isFailed,
+          };
+
+          return {
+            ...s,
+            balloons,
+            combo: 0,
+            lives,
+            level: nextLevelState,
+            shakeLeft: 0.35,
+            phase: isFailed ? "gameover" : s.phase,
+            isWin: false,
+            loseReason: isFailed ? "lives" : null,
+          };
+        }
+
         const correct = cleanBalloonLetter === expected;
         const combo = correct ? s.combo + 1 : 0;
         const isPractice = s.session.mode === "practice";
@@ -662,7 +713,7 @@ export function useBalloonGame() {
               : [];
           const y = balloon.y + balloon.speed * 60 * delta;
           if (y > height - 70) {
-            if (balloon.isTarget) {
+            if (balloon.isTarget && !balloon.isRotten) {
               missedTargets++;
               combo = 0;
               if (!isPractice) {
@@ -670,7 +721,7 @@ export function useBalloonGame() {
               }
               return [];
             }
-            // Pengecoh jatuh lolos ke bawah: wajar dan tidak kena penalti (Bab 7.6)
+            // Pengecoh dan buah busuk jatuh lolos ke bawah: wajar dan tidak kena penalti (Bab 7.6 & 7.11)
             return [];
           }
           return [{ ...balloon, y }];
@@ -796,7 +847,7 @@ export function useBalloonGame() {
         if (next.spawnLeft <= 0) {
           const currentLetter = normalizeArabicText(currentTargetLetter(next) || s.target);
           const hasTargetOnScreen = next.balloons.some(
-            (b) => !b.popped && normalizeArabicText(b.letter) === currentLetter && b.y < height - 100,
+            (b) => !b.popped && !b.isRotten && normalizeArabicText(b.letter) === currentLetter && b.y < height - 100,
           );
           const wantTarget = !hasTargetOnScreen || next.forceTarget || next.spawned % 2 === 0 || Math.random() < 0.45;
           const distractorPool = Array.from(
@@ -810,7 +861,15 @@ export function useBalloonGame() {
             : choices.length
               ? choices[Math.floor(Math.random() * choices.length)]
               : currentLetter;
-          const letter = normalizeArabicText(rawLetter);
+
+          // HAZARD BUAH BUSUK (Bab 7.11): Muncul berkala hanya di Challenge Mode (~12% peluang)
+          const isRotten =
+            !isPractice &&
+            hasTargetOnScreen &&
+            next.spawned >= 3 &&
+            Math.random() < 0.12;
+
+          const letter = isRotten ? "X" : normalizeArabicText(rawLetter);
 
           // ANTI-OVERLAP: Pastikan buah baru tidak menumpuk horizontal dengan buah aktif di atas layar
           const MIN_BALLOON_GAP = 90;
@@ -836,10 +895,11 @@ export function useBalloonGame() {
                 x: candidateX,
                 y: -100,
                 speed: 1.3 + Math.floor(next.spawned / 10) * 0.08,
-                isTarget: letter === currentLetter,
+                isTarget: !isRotten && letter === currentLetter,
+                isRotten,
                 popped: false,
                 popAge: 0,
-                color: next.spawned % 4,
+                color: isRotten ? -1 : next.spawned % 4,
                 suckX: 0,
                 suckY: 0,
               },

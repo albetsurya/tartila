@@ -25,6 +25,7 @@ export interface SlasherStageProps {
   currentTarget: string;
   currentTargetItem?: SlasherTargetItem;
   mode?: SlasherMode;
+  gameMode?: "practice" | "challenge";
   levelConfig?: {
     spawnRate?: number;
     fallSpeed?: number;
@@ -179,7 +180,7 @@ function generateDecoyItem(
 
 interface SlashItem {
   id: number;
-  role: "correct" | "decoy";
+  role: "correct" | "decoy" | "bomb";
   target: SlasherTargetItem;
   fruitIndex: number; // acak dari FRUIT_VARIANTS
   x: number; // px dari kiri container
@@ -227,6 +228,7 @@ export default function SlasherStage({
   currentTarget,
   currentTargetItem,
   mode = "harakat",
+  gameMode = "challenge",
   levelConfig,
   onResult,
 }: SlasherStageProps) {
@@ -255,6 +257,8 @@ export default function SlasherStage({
   const levelConfigRef = useRef(levelConfig);
   levelConfigRef.current = levelConfig;
   const modeRef = useRef(mode);
+  const gameModeRef = useRef(gameMode);
+  gameModeRef.current = gameMode;
   const onResultRef = useRef(onResult);
   targetRef.current = currentTarget;
   modeRef.current = mode;
@@ -331,13 +335,33 @@ export default function SlasherStage({
       ws.consecutiveDecoys = 0;
     }
 
-    const currentItem = currentTargetItemRef.current;
-    const target = isDecoy
-      ? generateDecoyItem(pool, targetLength, currentItem)
-      : generateTargetItem(pool, targetLength, currentItem);
+    const isChallenge = gameModeRef.current === "challenge";
+    // HAZARD BOM (Bab 6.11): Muncul di Challenge Mode secara terukur (~12%), hanya jika target batch sudah ada
+    const allowBomb =
+      isChallenge &&
+      ws.targetsInBatch >= 1 &&
+      ws.consecutiveDecoys < 2 &&
+      Math.random() < 0.12;
 
-    const isMatch = matchesSlasherTarget(currentItem, target);
-    const role: "correct" | "decoy" = isMatch ? "correct" : "decoy";
+    const currentItem = currentTargetItemRef.current;
+    let target: SlasherTargetItem;
+    let role: "correct" | "decoy" | "bomb";
+
+    if (allowBomb) {
+      role = "bomb";
+      target = {
+        id: `hazard-bomb-${idSeq.current}`,
+        name: "Bom Bahaya",
+        symbol: "BOM",
+        category: modeRef.current,
+      };
+    } else {
+      target = isDecoy
+        ? generateDecoyItem(pool, targetLength, currentItem)
+        : generateTargetItem(pool, targetLength, currentItem);
+      const isMatch = matchesSlasherTarget(currentItem, target);
+      role = isMatch ? "correct" : "decoy";
+    }
 
     // FASE 2: Perhitungan Fisika & Peluncuran Tepat Melewati Tengah Layar (Eye-Level)
     const fallSpeed = levelConfigRef.current?.fallSpeed ?? 10;
@@ -428,18 +452,23 @@ export default function SlasherStage({
 
     addSlashFx(hitX, hitY, slashAngle);
 
-    const isCorrect = matchesSlasherTarget(
-      currentTargetItemRef.current,
-      item.target
-    );
-
-    if (isCorrect) {
-      onResultRef.current("correct", item.target.symbol, item.target);
+    if (item.role === "bomb") {
+      // HAZARD BOM (Bab 6.11): Kurangi 1 nyawa, mainkan SFX salah, reset combo
+      onResultRef.current("bomb", "BOM", item.target);
     } else {
-      // Penalti maksimal 1 kali per gesture swipe sesuai Bab 6.5
-      if (!gesturePenalized.current) {
-        gesturePenalized.current = true;
-        onResultRef.current("wrong", item.target.symbol, item.target);
+      const isCorrect = matchesSlasherTarget(
+        currentTargetItemRef.current,
+        item.target
+      );
+
+      if (isCorrect) {
+        onResultRef.current("correct", item.target.symbol, item.target);
+      } else {
+        // Penalti maksimal 1 kali per gesture swipe sesuai Bab 6.5
+        if (!gesturePenalized.current) {
+          gesturePenalized.current = true;
+          onResultRef.current("wrong", item.target.symbol, item.target);
+        }
       }
     }
 
@@ -508,8 +537,13 @@ export default function SlasherStage({
         }
 
         // Melewati bawah layar tanpa ditebas:
-        // Penalti Jatuh: Hanya Buah Target yang mengurangi nyawa. Pengecoh lolos tanpa penalti.
+        // Penalti Jatuh: Hanya Buah Target yang mengurangi nyawa. Pengecoh & Bom lolos tanpa penalti.
         if (item.y > h + 90 && item.vy > 0) {
+          if (item.role === "bomb") {
+            // Bom lolos ke bawah: berhasil dihindari, tidak ada penalti (Bab 6.11)
+            domRefs.current.delete(item.id);
+            continue;
+          }
           const isTargetMatch = matchesSlasherTarget(
             currentTargetItemRef.current,
             item.target
@@ -672,7 +706,59 @@ export default function SlasherStage({
             style={{ transform: `translate(${item.x}px, ${item.y}px)` }}
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
-              {item.isSliced ? (
+              {item.role === "bomb" ? (
+                item.isSliced ? (
+                  <div
+                    className="relative h-24 w-24 flex items-center justify-center"
+                    style={{ transform: `rotate(${item.sliceAngle}deg)` }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.3, opacity: 1 }}
+                      animate={{ scale: 1.5, opacity: 0 }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div className="h-20 w-20 rounded-full border-[3.5px] border-[#134E4A] bg-[#DC2626] flex items-center justify-center shadow-[3px_3px_0px_#134E4A]">
+                        <span className="font-black text-white text-xs uppercase tracking-wider">
+                          DUARR
+                        </span>
+                      </div>
+                    </motion.div>
+                  </div>
+                ) : (
+                  <motion.div
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.18 }}
+                    className="relative flex items-center justify-center h-24 w-24"
+                  >
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-[3.5px] border-[#134E4A] bg-[#1F2937] shadow-[4px_4px_0px_#134E4A]">
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                        <span className="h-2 w-2 rounded-full bg-[#EF4444] animate-ping" />
+                        <span className="h-2.5 w-1 bg-[#F59E0B] rounded-t" />
+                      </div>
+                      <div className="flex flex-col items-center justify-center">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#EF4444"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#EF4444]">
+                          BOM
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              ) : item.isSliced ? (
                 <div
                   className="relative h-24 w-24"
                   style={{ transform: `rotate(${item.sliceAngle}deg)` }}
