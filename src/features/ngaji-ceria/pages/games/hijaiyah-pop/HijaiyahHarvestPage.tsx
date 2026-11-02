@@ -19,11 +19,16 @@ import { GameResultModal } from "../_shared/GameResultModal";
 import { ComboBadge } from "../_shared/ComboBadge";
 import { GameHud } from "../_shared/GameHud";
 import { GameGuideModal } from "@/components/ui/GameGuideModal";
+import {
+  GameFeedbackToast,
+  type GameFeedbackMessage,
+} from "../_shared/GameFeedbackToast";
 import { FallingFruit } from "./components/FallingFruit";
 import { TargetBanner } from "../_shared/TargetBanner";
 import { GameLevelSelectSheet } from "../_shared/GameLevelSelectSheet";
 import { playLetterAudio } from "../_shared/gameAudio";
 import { playSfx } from "../_shared/audio";
+import { normalizeArabicText } from "@/utils/arabic";
 import { useBalloonGame, type BalloonData } from "./hooks/useBalloonGame";
 import { LEVELS } from "./data";
 
@@ -53,6 +58,23 @@ function Game() {
   const [showRules, setShowRules] = useState(false);
   const [showCombo, setShowCombo] = useState(false);
   const lastComboRef = useRef(game.combo);
+  const [feedback, setFeedback] = useState<GameFeedbackMessage | null>(null);
+  const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerFeedback = useCallback(
+    (msg: { text: string; type: "correct" | "wrong"; arabicText?: string }) => {
+      if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+      setFeedback({ id: Date.now(), ...msg });
+      feedbackTimeout.current = setTimeout(() => setFeedback(null), 1800);
+    },
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+    };
+  }, []);
 
   const handleSelectLevel = async (
     idx: number,
@@ -119,6 +141,35 @@ function Game() {
   const handlePopFruit = useCallback(
     async (fruit: BalloonData) => {
       const wasTarget = fruit.isTarget;
+      const expected = normalizeArabicText(game.targetLetter);
+      const cleanFruitLetter = normalizeArabicText(fruit.letter);
+      const isCorrect = cleanFruitLetter === expected;
+
+      if (isCorrect) {
+        triggerFeedback({
+          text: `Hebat! Huruf ${fruit.letter} tersusun.`,
+          type: "correct",
+          arabicText: fruit.letter,
+        });
+      } else {
+        const isSequenceError = game.targetLetters.some(
+          (l) => normalizeArabicText(l) === cleanFruitLetter
+        );
+        if (isSequenceError) {
+          triggerFeedback({
+            text: `Belum waktunya. Cari huruf ${game.targetLetter} dulu ya.`,
+            type: "wrong",
+            arabicText: fruit.letter,
+          });
+        } else {
+          triggerFeedback({
+            text: `Salah, itu huruf ${fruit.letter}.`,
+            type: "wrong",
+            arabicText: fruit.letter,
+          });
+        }
+      }
+
       game.pop(fruit.id);
 
       if (wasTarget) {
@@ -190,6 +241,7 @@ function Game() {
           <div className="absolute top-16 inset-x-0 z-30 flex flex-col items-center px-3 pointer-events-none">
             <GameHud
               level={levelConfig.id}
+              mode={game.session.mode}
               score={game.score}
               targetScore={game.targetScore}
               timeLeft={game.session.mode === "practice" ? undefined : game.timeLeft}
@@ -209,6 +261,10 @@ function Game() {
                 className="shadow-[4px_4px_0px_#134E4A] scale-90 sm:scale-100 origin-top"
               />
             </div>
+            <GameFeedbackToast
+              feedback={feedback}
+              className="top-36 sm:top-40"
+            />
           </div>
 
           {/* Latar Belakang Pola Titik Neo-Brutalism */}

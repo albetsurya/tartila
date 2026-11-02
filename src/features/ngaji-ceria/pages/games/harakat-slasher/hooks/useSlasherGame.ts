@@ -228,7 +228,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
   // 2. wrong (menebas pengecoh): penalti nyawa -1 (challenge) & penalti skor (-15 di challenge)
   // 3. miss (target jatuh lolos melewati batas bawah): penalti nyawa -1 (challenge)
   const onSliceResult = useCallback(
-    (kind: SlashResultKind, symbol?: string) => {
+    (kind: SlashResultKind, symbol?: string, _item?: SlasherTargetItem) => {
       if (kind === "correct") {
         const next = scoreRef.current + 25;
         bumpScore(next);

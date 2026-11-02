@@ -21,6 +21,7 @@ import { normalizeArabicText } from "@/utils/arabic";
 
 export interface SlasherStageProps {
   isPlaying: boolean;
+  isPaused?: boolean;
   currentTarget: string;
   currentTargetItem?: SlasherTargetItem;
   mode?: SlasherMode;
@@ -30,7 +31,11 @@ export interface SlasherStageProps {
     distractorRatio?: number;
     targetLength?: number;
   };
-  onResult: (kind: SlashResultKind, symbol?: string) => void;
+  onResult: (
+    kind: SlashResultKind,
+    symbol?: string,
+    item?: SlasherTargetItem
+  ) => void;
 }
 
 /**
@@ -218,6 +223,7 @@ function distPointToSegment(
 
 export default function SlasherStage({
   isPlaying,
+  isPaused = false,
   currentTarget,
   currentTargetItem,
   mode = "harakat",
@@ -355,9 +361,9 @@ export default function SlasherStage({
     );
 
     if (isCorrect) {
-      onResultRef.current("correct", item.target.symbol);
+      onResultRef.current("correct", item.target.symbol, item.target);
     } else {
-      onResultRef.current("wrong", item.target.symbol);
+      onResultRef.current("wrong", item.target.symbol, item.target);
     }
 
     syncItems();
@@ -370,6 +376,9 @@ export default function SlasherStage({
 
   // Game tick loop: fisika + render posisi lewat direct DOM transform
   useEffect(() => {
+    if (isPaused) {
+      return;
+    }
     if (!isPlaying) {
       clearItems();
       return;
@@ -429,7 +438,7 @@ export default function SlasherStage({
             item.target
           );
           if (isTargetMatch) {
-            onResultRef.current("miss", item.target.symbol);
+            onResultRef.current("miss", item.target.symbol, item.target);
           }
           domRefs.current.delete(item.id);
           continue;
@@ -457,7 +466,7 @@ export default function SlasherStage({
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying]);
+  }, [isPlaying, isPaused]);
 
   // Deteksi geseran: pointer/touch yang melintasi objek
   useEffect(() => {
@@ -470,13 +479,14 @@ export default function SlasherStage({
     };
 
     const handleDown = (e: PointerEvent) => {
+      if (isPaused) return;
       slicingRef.current = true;
       prevPointRef.current = toLocal(e);
       trailRef.current = [];
     };
 
     const handleMove = (e: PointerEvent) => {
-      if (!slicingRef.current) return;
+      if (!slicingRef.current || isPaused) return;
       const p = toLocal(e);
       const prev = prevPointRef.current;
       prevPointRef.current = p;

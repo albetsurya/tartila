@@ -84,6 +84,9 @@ export function GameShell({
     const handleVisibility = () => {
       if (document.hidden && phase === "playing") onPause();
     };
+    const handleBlur = () => {
+      if (phase === "playing") onPause();
+    };
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (phase === "playing") onPause();
@@ -91,9 +94,11 @@ export function GameShell({
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("blur", handleBlur);
     document.addEventListener("keydown", handleKey);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("blur", handleBlur);
       document.removeEventListener("keydown", handleKey);
     };
   }, [phase, onPause, onResume]);
