@@ -390,11 +390,11 @@ function Game() {
 
                 <div className="mt-2.5 flex flex-col items-center">
                   <motion.div
-                    key={currentTargetItem.symbol}
+                    key={currentTargetItem.id + currentTargetItem.symbol}
                     initial={{ scale: 0.92, y: -4 }}
                     animate={{ scale: celebrate ? [1, 1.08, 1] : 1, y: 0 }}
                     transition={{ type: "spring", stiffness: 360, damping: 22 }}
-                    className={`relative flex flex-col items-center rounded-2xl border-[3px] border-[#134E4A] px-5 py-2 shadow-[0_4px_0px_#134E4A] min-w-[155px] sm:min-w-[180px] transition-colors ${
+                    className={`relative flex flex-col items-center rounded-2xl border-[3px] border-[#134E4A] px-6 py-2.5 shadow-[0_4px_0px_#134E4A] min-w-[170px] sm:min-w-[210px] transition-colors ${
                       celebrate ? "bg-[#A7F3D0]" : "bg-[#FEF08A]"
                     }`}
                   >
@@ -409,26 +409,30 @@ function Game() {
 
                     <div
                       dir="rtl"
-                      className="my-1 flex min-h-[44px] items-center justify-center px-2 py-1"
+                      className="my-1 flex min-h-[56px] items-center justify-center px-4 py-1 flex-shrink-0"
                     >
                       <span
-                        className={`font-arabic font-black leading-normal text-[#451A03] text-center max-w-[280px] drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] ${
-                          currentTargetItem.symbol.length > 12
-                            ? "text-base sm:text-lg"
-                            : currentTargetItem.symbol.length > 6
+                        className={`font-arabic font-black leading-relaxed text-[#134E4A] text-center drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] select-none ${
+                          mode === "harakat" || currentTargetItem.symbol.length <= 3
+                            ? "text-4xl sm:text-5xl"
+                            : currentTargetItem.symbol.length > 12
                               ? "text-lg sm:text-xl"
-                              : currentTargetItem.symbol.length > 2
+                              : currentTargetItem.symbol.length > 6
                                 ? "text-xl sm:text-2xl"
-                                : "text-3xl sm:text-4xl"
+                                : "text-2xl sm:text-3xl"
                         }`}
                       >
                         {currentTargetItem.symbol}
                       </span>
                     </div>
 
-                    <span className="rounded-md bg-[#78350F]/10 px-2.5 py-0.5 font-display text-[11px] font-black leading-tight text-[#7C2D12] text-center max-w-[260px] truncate">
-                      “{currentTargetItem.name}”
-                    </span>
+                    <div className="rounded-lg border-2 border-[#134E4A] bg-[#FFFBEB] px-3 py-0.5 shadow-[1px_1px_0px_#134E4A]">
+                      <span className="font-display text-xs sm:text-sm font-black text-[#7C2D12] text-center max-w-[240px] truncate block">
+                        {mode === "harakat"
+                          ? `Tebas Harakat: ${currentTargetItem.name}`
+                          : `“${currentTargetItem.name}”`}
+                      </span>
+                    </div>
                   </motion.div>
 
                   <ComboBadge

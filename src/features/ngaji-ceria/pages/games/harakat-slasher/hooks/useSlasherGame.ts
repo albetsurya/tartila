@@ -7,6 +7,7 @@ import type {
 } from "@/features/ngaji-ceria/types/game";
 import {
   HARAKAT_LIST,
+  HARAKAT_DEFINITIONS,
   getSlasherItems,
   extractHarakat,
   matchesSlasherTarget,
@@ -102,55 +103,67 @@ export function computeSlasherSummary(
  * Menggabungkan item dari pool (harakat/huruf/kata/ayat).
  * Contoh Level 2: 'بَ' + 'تَ' = 'بَ تَ' (keduanya Fathah)
  */
+/**
+ * Helper untuk membuat target pembelajaran Harakat Slasher (Bab 6.2 & 6.3).
+ * - Mode "harakat": Target HANYA tanda harakat murni (Fathah, Kasrah, Dhammah, Sukun, dll).
+ *   Namanya murni tanda baca ("Fathah") dan simbolnya huruf jelas ('بَ').
+ *   DILARANG menghasilkan nama gabungan spesifik seperti "Ra Sukun" di mode ini!
+ * - Mode lainnya ("huruf" | "kata" | "ayat"): Menggunakan targetMode "syllable"
+ *   dengan pencocokan string teks spesifik.
+ */
 export function generateSlasherTarget(
   pool: readonly SlasherTargetItem[],
-  targetLength: number
+  targetLength: number = 1,
+  modeOverride?: SlasherMode
 ): SlasherTargetItem {
-  if (!pool || pool.length === 0) {
-    return HARAKAT_LIST[0];
-  }
-  const length = Math.max(1, targetLength);
-  const first = pool[0];
-  const isHarakatCategory = first.category === "harakat";
+  const currentMode = modeOverride ?? pool[0]?.category ?? "harakat";
 
-  if (length === 1) {
-    const item = pool[Math.floor(Math.random() * pool.length)] || HARAKAT_LIST[0];
-    const harakat = item.harakatName ?? extractHarakat(item.symbol) ?? undefined;
+  if (currentMode === "harakat") {
+    const def =
+      HARAKAT_DEFINITIONS[
+        Math.floor(Math.random() * HARAKAT_DEFINITIONS.length)
+      ];
     return {
-      ...item,
-      targetMode: item.targetMode ?? (isHarakatCategory ? "harakat" : "syllable"),
-      harakatName: harakat,
+      id: `harakat_${def.harakatName}`,
+      name: def.name,
+      symbol: def.exampleLetter,
+      category: "harakat",
+      targetMode: "harakat",
+      harakatName: def.harakatName,
+      sound: def.sound,
     };
   }
 
-  // Jika kategori harakat dan targetLength > 1, pilih huruf-huruf dengan harakat yang sama
-  let candidatePool = pool;
-  let targetHarakat: HarakatName | undefined = undefined;
-  if (isHarakatCategory) {
-    const randomBase = pool[Math.floor(Math.random() * pool.length)];
-    targetHarakat = randomBase.harakatName ?? extractHarakat(randomBase.symbol) ?? undefined;
-    if (targetHarakat) {
-      const filtered = pool.filter(
-        (p) => (p.harakatName ?? extractHarakat(p.symbol)) === targetHarakat
-      );
-      if (filtered.length > 0) {
-        candidatePool = filtered;
-      }
-    }
+  if (!pool || pool.length === 0) {
+    return {
+      id: "alif",
+      name: "Alif",
+      symbol: "ا",
+      category: "huruf",
+      targetMode: "syllable",
+    };
+  }
+
+  const length = Math.max(1, targetLength);
+  if (length === 1) {
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    return {
+      ...item,
+      targetMode: "syllable",
+    };
   }
 
   const picked: SlasherTargetItem[] = [];
   for (let i = 0; i < length; i++) {
-    picked.push(candidatePool[Math.floor(Math.random() * candidatePool.length)]);
+    picked.push(pool[Math.floor(Math.random() * pool.length)]);
   }
 
   return {
     id: picked.map((p) => p.id).join("_"),
     name: picked.map((p) => p.name).join(" - "),
     symbol: picked.map((p) => p.symbol).join(" "),
-    category: first.category,
-    targetMode: isHarakatCategory ? "harakat" : "syllable",
-    harakatName: targetHarakat ?? picked[0].harakatName ?? extractHarakat(picked[0].symbol) ?? undefined,
+    category: currentMode,
+    targetMode: "syllable",
   };
 }
 
@@ -208,7 +221,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
   const targetLength = Math.max(1, levelConfig?.targetLength ?? 1);
 
   const [currentTargetItem, setCurrentTargetItem] = useState<SlasherTargetItem>(() =>
-    generateSlasherTarget(activePool, targetLength)
+    generateSlasherTarget(activePool, targetLength, mode)
   );
   const [best, setBestState] = useState(() => getBest("harakat-rush"));
 
@@ -216,7 +229,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
 
   const pickNewTarget = useCallback(() => {
     const items = getSlasherItems(mode);
-    setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+    setCurrentTargetItem(generateSlasherTarget(items, targetLength, mode));
   }, [mode, targetLength]);
 
   // Saat mode atau targetLength berganti, perbarui target aktif
@@ -498,7 +511,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         learningSummary: initialSummary,
       });
       const items = getSlasherItems(mode);
-      setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+      setCurrentTargetItem(generateSlasherTarget(items, targetLength, mode));
       setPhase("playing");
     },
     [mode, targetLength, session.mode, levelConfig?.targetTotal, levelConfig?.durationSeconds]
@@ -546,7 +559,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         learningSummary: initialSummary,
       }));
       const items = getSlasherItems(mode);
-      setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+      setCurrentTargetItem(generateSlasherTarget(items, targetLength, mode));
       setPhase("playing");
     },
     [mode, targetLength, session.currentLevel, session.mode, levelConfig?.targetTotal, levelConfig?.durationSeconds]
@@ -575,7 +588,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       learningSummary: initialSummary,
     }));
     const items = getSlasherItems(mode);
-    setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+    setCurrentTargetItem(generateSlasherTarget(items, targetLength, mode));
     setPhase("idle");
   }, [mode, targetLength]);
 

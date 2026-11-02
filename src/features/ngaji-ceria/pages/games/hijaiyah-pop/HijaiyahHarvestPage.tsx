@@ -1,6 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useAnimation, AnimatePresence, useReducedMotion } from "framer-motion";
+import {
+  motion,
+  useAnimation,
+  AnimatePresence,
+  useReducedMotion,
+} from "framer-motion";
 import {
   TilaMascot,
   type TilaMood,
@@ -68,7 +73,7 @@ function Game() {
       setFeedback({ id: Date.now(), ...msg });
       feedbackTimeout.current = setTimeout(() => setFeedback(null), 1800);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -79,7 +84,7 @@ function Game() {
 
   const handleSelectLevel = async (
     idx: number,
-    mode: "practice" | "challenge"
+    mode: "practice" | "challenge",
   ) => {
     if (mode === "challenge") {
       const ok = await consumeTicket();
@@ -114,7 +119,7 @@ function Game() {
       recordLearningResult(
         "hijaiyah-harvest",
         game.level.accuracy,
-        game.level.troubleLetters
+        game.level.troubleLetters,
       );
     }
   }, [
@@ -181,7 +186,7 @@ function Game() {
         });
       } else {
         const isSequenceError = game.targetLetters.some(
-          (l) => normalizeArabicText(l) === cleanFruitLetter
+          (l) => normalizeArabicText(l) === cleanFruitLetter,
         );
         if (isSequenceError) {
           triggerFeedback({
@@ -274,7 +279,9 @@ function Game() {
               mode={game.session.mode}
               score={game.score}
               targetScore={game.targetScore}
-              timeLeft={game.session.mode === "practice" ? undefined : game.timeLeft}
+              timeLeft={
+                game.session.mode === "practice" ? undefined : game.timeLeft
+              }
               lives={game.session.mode === "practice" ? undefined : game.lives}
               maxLives={3}
               combo={game.combo}

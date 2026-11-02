@@ -40,13 +40,14 @@ export interface SlasherStageProps {
 }
 
 /**
- * Helper untuk membuat buah target:
- * - Mode harakat: Bisa variasi huruf hijaiyah apa saja asalkan harakatnya sama dengan target.
+ * Helper untuk membuat buah target (Bab 6.2 & 6.3):
+ * - Mode harakat: Buah yang muncul WAJIB memiliki tanda harakat yang sama dengan target
+ *   (misal target Fathah -> buah berupa بَ, تَ, نَ, مَ, dll).
  * - Mode lainnya: Menggunakan target asli.
  */
 function generateTargetItem(
   pool: readonly SlasherTargetItem[],
-  targetLength: number,
+  _targetLength: number,
   targetItem: SlasherTargetItem
 ): SlasherTargetItem {
   const isHarakatMode =
@@ -63,38 +64,23 @@ function generateTargetItem(
   );
   if (!matchingPool.length) return targetItem;
 
-  const length = Math.max(1, targetLength);
-  if (length === 1) {
-    const item = matchingPool[Math.floor(Math.random() * matchingPool.length)];
-    return {
-      ...item,
-      targetMode: "harakat",
-      harakatName: targetHarakat,
-    };
-  }
-
-  const picked: SlasherTargetItem[] = [];
-  for (let i = 0; i < length; i++) {
-    picked.push(matchingPool[Math.floor(Math.random() * matchingPool.length)]);
-  }
+  const item = matchingPool[Math.floor(Math.random() * matchingPool.length)];
   return {
-    id: picked.map((p) => p.id).join("_"),
-    name: picked.map((p) => p.name).join(" - "),
-    symbol: picked.map((p) => p.symbol).join(" "),
-    category: targetItem.category,
+    ...item,
     targetMode: "harakat",
     harakatName: targetHarakat,
   };
 }
 
 /**
- * Helper untuk membuat buah pengecoh:
- * - Mode harakat: HARUS memiliki harakat BERBEDA dari target (Bab 6.3).
+ * Helper untuk membuat buah pengecoh (Bab 6.3):
+ * - Mode harakat: Buah pengecoh WAJIB memiliki harakat BERBEDA dari target
+ *   (misal target Fathah -> buah pengecoh berupa Kasrah, Dhammah, Sukun).
  * - Mode lainnya: teks simbol tidak boleh sama persis dengan target.
  */
 function generateDecoyItem(
   pool: readonly SlasherTargetItem[],
-  targetLength: number,
+  _targetLength: number,
   targetItem: SlasherTargetItem
 ): SlasherTargetItem {
   if (!pool || pool.length === 0) {
@@ -102,7 +88,6 @@ function generateDecoyItem(
   }
   const isHarakatMode =
     targetItem.targetMode === "harakat" || targetItem.category === "harakat";
-  const length = Math.max(1, targetLength);
 
   if (isHarakatMode) {
     const targetHarakat =
@@ -112,32 +97,13 @@ function generateDecoyItem(
       (p) => (p.harakatName ?? extractHarakat(p.symbol)) !== targetHarakat
     );
     const availablePool = decoyPool.length > 0 ? decoyPool : pool;
-
-    if (length === 1) {
-      const item =
-        availablePool[Math.floor(Math.random() * availablePool.length)] ||
-        availablePool[0];
-      return {
-        ...item,
-        targetMode: "harakat",
-        harakatName: item.harakatName ?? extractHarakat(item.symbol) ?? undefined,
-      };
-    }
-
-    const picked: SlasherTargetItem[] = [];
-    for (let i = 0; i < length; i++) {
-      picked.push(
-        availablePool[Math.floor(Math.random() * availablePool.length)]
-      );
-    }
+    const item =
+      availablePool[Math.floor(Math.random() * availablePool.length)] ||
+      availablePool[0];
     return {
-      id: picked.map((p) => p.id).join("_"),
-      name: picked.map((p) => p.name).join(" - "),
-      symbol: picked.map((p) => p.symbol).join(" "),
-      category: targetItem.category,
+      ...item,
       targetMode: "harakat",
-      harakatName:
-        picked[0].harakatName ?? extractHarakat(picked[0].symbol) ?? undefined,
+      harakatName: item.harakatName ?? extractHarakat(item.symbol) ?? undefined,
     };
   }
 
@@ -147,35 +113,10 @@ function generateDecoyItem(
     (p) => normalizeArabicText(p.symbol) !== normalizedTarget
   );
   const availablePool = decoyPool.length > 0 ? decoyPool : pool;
-
-  if (length === 1) {
-    const item =
-      availablePool[Math.floor(Math.random() * availablePool.length)] ||
-      availablePool[0];
-    return { ...item, targetMode: "syllable" };
-  }
-
-  for (let attempt = 0; attempt < 12; attempt++) {
-    const picked: SlasherTargetItem[] = [];
-    for (let i = 0; i < length; i++) {
-      picked.push(
-        availablePool[Math.floor(Math.random() * availablePool.length)]
-      );
-    }
-    const symbol = picked.map((p) => p.symbol).join(" ");
-    if (normalizeArabicText(symbol) !== normalizedTarget) {
-      return {
-        id: picked.map((p) => p.id).join("_"),
-        name: picked.map((p) => p.name).join(" - "),
-        symbol,
-        category: targetItem.category,
-        targetMode: "syllable",
-      };
-    }
-  }
-
-  const diff = availablePool[0] || pool[0];
-  return { ...diff, targetMode: "syllable" };
+  return (
+    availablePool[Math.floor(Math.random() * availablePool.length)] ||
+    availablePool[0]
+  );
 }
 
 interface SlashItem {
@@ -263,6 +204,21 @@ export default function SlasherStage({
   targetRef.current = currentTarget;
   modeRef.current = mode;
   onResultRef.current = onResult;
+
+  // FAIR SPAWNER: Reset batch agar buah target yang baru langsung diprioritaskan
+  useEffect(() => {
+    targetRef.current = currentTarget;
+    if (currentTargetItem) {
+      currentTargetItemRef.current = currentTargetItem;
+    }
+    modeRef.current = mode;
+    waveState.current = {
+      batchSize: 5,
+      spawnedInBatch: 0,
+      targetsInBatch: 0,
+      consecutiveDecoys: 0,
+    };
+  }, [currentTarget, currentTargetItem, mode]);
 
   const [slashFx, setSlashFx] = useState<SlashFx[]>([]);
   const fxSeq = useRef(0);
@@ -862,7 +818,7 @@ export default function SlasherStage({
                       <span
                         dir="rtl"
                         className={`font-arabic font-black whitespace-nowrap text-[#134E4A] leading-normal ${
-                          symbolText.length <= 2 ? "text-xl" : "text-sm sm:text-base"
+                          symbolText.length <= 3 ? "text-xl" : "text-sm sm:text-base"
                         }`}
                       >
                         {symbolText}
