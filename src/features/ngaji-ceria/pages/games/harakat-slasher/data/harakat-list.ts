@@ -1,4 +1,15 @@
+import { normalizeArabicText } from "@/utils/arabic";
+
 export type SlasherMode = "harakat" | "huruf" | "kata" | "ayat";
+export type HarakatName =
+  | "fathah"
+  | "kasrah"
+  | "dhammah"
+  | "sukun"
+  | "fathatain"
+  | "kasratain"
+  | "dhammatain";
+export type HarakatTargetMode = "harakat" | "syllable";
 
 export interface SlasherTargetItem {
   id: string;
@@ -6,6 +17,54 @@ export interface SlasherTargetItem {
   symbol: string;
   sound?: string;
   category: SlasherMode;
+  targetMode?: HarakatTargetMode;
+  harakatName?: HarakatName;
+}
+
+export const HARAKAT_CHAR_MAP: Record<string, HarakatName> = {
+  "\u064E": "fathah",      // َ Fathah
+  "\u0650": "kasrah",      // ِ Kasrah
+  "\u064F": "dhammah",     // ُ Dhammah
+  "\u0652": "sukun",       // ْ Sukun
+  "\u064B": "fathatain",   // ً Fathatain
+  "\u064D": "kasratain",   // ٍ Kasratain
+  "\u064C": "dhammatain",  // ٌ Dhammatain
+};
+
+/** Mengekstrak harakat pertama yang ditemukan dari teks Arab */
+export function extractHarakat(text?: string | null): HarakatName | null {
+  if (!text) return null;
+  for (const ch of text) {
+    if (HARAKAT_CHAR_MAP[ch]) {
+      return HARAKAT_CHAR_MAP[ch];
+    }
+  }
+  return null;
+}
+
+/**
+ * Memeriksa kecocokan target tebasan:
+ * - mode === "harakat": tebas huruf apa saja dengan harakat sama dianggap BENAR.
+ * - mode === "syllable" / lainnya: tebas huruf/kata/ayat dengan teks SAMA PERSIS.
+ */
+export function matchesSlasherTarget(
+  target: SlasherTargetItem,
+  item: SlasherTargetItem
+): boolean {
+  const mode =
+    target.targetMode ?? (target.category === "harakat" ? "harakat" : "syllable");
+
+  if (mode === "harakat") {
+    const targetHarakat =
+      target.harakatName ?? extractHarakat(target.symbol);
+    const itemHarakat =
+      item.harakatName ?? extractHarakat(item.symbol);
+    if (targetHarakat && itemHarakat) {
+      return targetHarakat === itemHarakat;
+    }
+  }
+
+  return normalizeArabicText(target.symbol) === normalizeArabicText(item.symbol);
 }
 
 export const SLASHER_MODE_LABELS: Record<SlasherMode, { title: string; subtitle: string }> = {
@@ -17,19 +76,37 @@ export const SLASHER_MODE_LABELS: Record<SlasherMode, { title: string; subtitle:
 
 // Mode 1: Harakat
 export const HARAKAT_LIST: readonly SlasherTargetItem[] = [
-  { id: "fathah", name: "Ba Fathah", symbol: "بَ", sound: "ba", category: "harakat" },
-  { id: "ta_fathah", name: "Ta Fathah", symbol: "تَ", sound: "ta", category: "harakat" },
-  { id: "tsa_fathah", name: "Tsa Fathah", symbol: "ثَ", sound: "tsa", category: "harakat" },
-  { id: "jim_fathah", name: "Jim Fathah", symbol: "جَ", sound: "ja", category: "harakat" },
-  { id: "ha_fathah", name: "Ha Fathah", symbol: "حَ", sound: "ha", category: "harakat" },
-  { id: "dal_fathah", name: "Dal Fathah", symbol: "دَ", sound: "da", category: "harakat" },
-  { id: "ra_fathah", name: "Ra Fathah", symbol: "رَ", sound: "ra", category: "harakat" },
-  { id: "kasrah", name: "Ba Kasrah", symbol: "بِ", sound: "bi", category: "harakat" },
-  { id: "dhammah", name: "Ba Dhammah", symbol: "بُ", sound: "bu", category: "harakat" },
-  { id: "sukun", name: "Ba Sukun", symbol: "بْ", sound: "mati", category: "harakat" },
-  { id: "fathatain", name: "Ba Fathatain", symbol: "بً", sound: "ban", category: "harakat" },
-  { id: "kasratain", name: "Ba Kasratain", symbol: "بٍ", sound: "bin", category: "harakat" },
-  { id: "dhammatain", name: "Ba Dhammatain", symbol: "بٌ", sound: "bun", category: "harakat" },
+  // Fathah
+  { id: "fathah", name: "Ba Fathah", symbol: "بَ", sound: "ba", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  { id: "ta_fathah", name: "Ta Fathah", symbol: "تَ", sound: "ta", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  { id: "tsa_fathah", name: "Tsa Fathah", symbol: "ثَ", sound: "tsa", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  { id: "jim_fathah", name: "Jim Fathah", symbol: "جَ", sound: "ja", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  { id: "ha_fathah", name: "Ha Fathah", symbol: "حَ", sound: "ha", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  { id: "dal_fathah", name: "Dal Fathah", symbol: "دَ", sound: "da", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  { id: "ra_fathah", name: "Ra Fathah", symbol: "رَ", sound: "ra", category: "harakat", targetMode: "harakat", harakatName: "fathah" },
+  // Kasrah
+  { id: "kasrah", name: "Ba Kasrah", symbol: "بِ", sound: "bi", category: "harakat", targetMode: "harakat", harakatName: "kasrah" },
+  { id: "ta_kasrah", name: "Ta Kasrah", symbol: "تِ", sound: "ti", category: "harakat", targetMode: "harakat", harakatName: "kasrah" },
+  { id: "tsa_kasrah", name: "Tsa Kasrah", symbol: "ثِ", sound: "tsi", category: "harakat", targetMode: "harakat", harakatName: "kasrah" },
+  { id: "jim_kasrah", name: "Jim Kasrah", symbol: "جِ", sound: "ji", category: "harakat", targetMode: "harakat", harakatName: "kasrah" },
+  { id: "dal_kasrah", name: "Dal Kasrah", symbol: "دِ", sound: "di", category: "harakat", targetMode: "harakat", harakatName: "kasrah" },
+  { id: "ra_kasrah", name: "Ra Kasrah", symbol: "رِ", sound: "ri", category: "harakat", targetMode: "harakat", harakatName: "kasrah" },
+  // Dhammah
+  { id: "dhammah", name: "Ba Dhammah", symbol: "بُ", sound: "bu", category: "harakat", targetMode: "harakat", harakatName: "dhammah" },
+  { id: "ta_dhammah", name: "Ta Dhammah", symbol: "تُ", sound: "tu", category: "harakat", targetMode: "harakat", harakatName: "dhammah" },
+  { id: "tsa_dhammah", name: "Tsa Dhammah", symbol: "ثُ", sound: "tsu", category: "harakat", targetMode: "harakat", harakatName: "dhammah" },
+  { id: "jim_dhammah", name: "Jim Dhammah", symbol: "جُ", sound: "ju", category: "harakat", targetMode: "harakat", harakatName: "dhammah" },
+  { id: "dal_dhammah", name: "Dal Dhammah", symbol: "دُ", sound: "du", category: "harakat", targetMode: "harakat", harakatName: "dhammah" },
+  { id: "ra_dhammah", name: "Ra Dhammah", symbol: "رُ", sound: "ru", category: "harakat", targetMode: "harakat", harakatName: "dhammah" },
+  // Sukun
+  { id: "sukun", name: "Ba Sukun", symbol: "بْ", sound: "mati", category: "harakat", targetMode: "harakat", harakatName: "sukun" },
+  { id: "ta_sukun", name: "Ta Sukun", symbol: "تْ", sound: "mati", category: "harakat", targetMode: "harakat", harakatName: "sukun" },
+  { id: "dal_sukun", name: "Dal Sukun", symbol: "دْ", sound: "mati", category: "harakat", targetMode: "harakat", harakatName: "sukun" },
+  { id: "ra_sukun", name: "Ra Sukun", symbol: "رْ", sound: "mati", category: "harakat", targetMode: "harakat", harakatName: "sukun" },
+  // Tanwin
+  { id: "fathatain", name: "Ba Fathatain", symbol: "بً", sound: "ban", category: "harakat", targetMode: "harakat", harakatName: "fathatain" },
+  { id: "kasratain", name: "Ba Kasratain", symbol: "بٍ", sound: "bin", category: "harakat", targetMode: "harakat", harakatName: "kasratain" },
+  { id: "dhammatain", name: "Ba Dhammatain", symbol: "بٌ", sound: "bun", category: "harakat", targetMode: "harakat", harakatName: "dhammatain" },
 ] as const;
 
 // Mode 2: Huruf Hijaiyah

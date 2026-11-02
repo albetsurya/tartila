@@ -576,18 +576,14 @@ export function useBalloonGame() {
           if (y > height - 70) {
             if (balloon.isTarget) {
               missedTargets++;
-              if (missedTargets >= 2) {
-                combo = 0;
-                missedTargets = 0;
-              }
+              combo = 0;
               if (!isPractice) {
                 lives -= 1;
               }
               return [];
             }
-            combo = 0;
-            playSfx("wrong");
-            return [{ ...balloon, y: height - 70, popped: true, popAge: 0, speed: 0 }];
+            // Pengecoh jatuh lolos ke bawah: wajar dan tidak kena penalti (Bab 7.6)
+            return [];
           }
           return [{ ...balloon, y }];
         });

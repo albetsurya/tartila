@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import {
   HARAKAT_LIST,
   getSlasherItems,
+  extractHarakat,
+  matchesSlasherTarget,
   type SlasherMode,
   type SlasherTargetItem,
 } from "../data/harakat-list";
@@ -15,6 +17,7 @@ import {
   LantaiDojoSvg,
 } from "@/components/ui/Illustrations";
 import type { SlashResultKind } from "../hooks/useSlasherGame";
+import { normalizeArabicText } from "@/utils/arabic";
 
 export interface SlasherStageProps {
   isPlaying: boolean;
@@ -30,33 +33,143 @@ export interface SlasherStageProps {
   onResult: (kind: SlashResultKind, symbol?: string) => void;
 }
 
-/** Helper untuk membuat buah pengecoh dengan panjang teks targetLength yang sama tapi simbol berbeda */
+/**
+ * Helper untuk membuat buah target:
+ * - Mode harakat: Bisa variasi huruf hijaiyah apa saja asalkan harakatnya sama dengan target.
+ * - Mode lainnya: Menggunakan target asli.
+ */
+function generateTargetItem(
+  pool: readonly SlasherTargetItem[],
+  targetLength: number,
+  targetItem: SlasherTargetItem
+): SlasherTargetItem {
+  const isHarakatMode =
+    targetItem.targetMode === "harakat" || targetItem.category === "harakat";
+  if (!isHarakatMode) {
+    return targetItem;
+  }
+  const targetHarakat =
+    targetItem.harakatName ?? extractHarakat(targetItem.symbol);
+  if (!targetHarakat) return targetItem;
+
+  const matchingPool = pool.filter(
+    (p) => (p.harakatName ?? extractHarakat(p.symbol)) === targetHarakat
+  );
+  if (!matchingPool.length) return targetItem;
+
+  const length = Math.max(1, targetLength);
+  if (length === 1) {
+    const item = matchingPool[Math.floor(Math.random() * matchingPool.length)];
+    return {
+      ...item,
+      targetMode: "harakat",
+      harakatName: targetHarakat,
+    };
+  }
+
+  const picked: SlasherTargetItem[] = [];
+  for (let i = 0; i < length; i++) {
+    picked.push(matchingPool[Math.floor(Math.random() * matchingPool.length)]);
+  }
+  return {
+    id: picked.map((p) => p.id).join("_"),
+    name: picked.map((p) => p.name).join(" - "),
+    symbol: picked.map((p) => p.symbol).join(" "),
+    category: targetItem.category,
+    targetMode: "harakat",
+    harakatName: targetHarakat,
+  };
+}
+
+/**
+ * Helper untuk membuat buah pengecoh:
+ * - Mode harakat: HARUS memiliki harakat BERBEDA dari target (Bab 6.3).
+ * - Mode lainnya: teks simbol tidak boleh sama persis dengan target.
+ */
 function generateDecoyItem(
   pool: readonly SlasherTargetItem[],
   targetLength: number,
-  forbiddenSymbol: string
+  targetItem: SlasherTargetItem
 ): SlasherTargetItem {
   if (!pool || pool.length === 0) {
     return HARAKAT_LIST[0];
   }
+  const isHarakatMode =
+    targetItem.targetMode === "harakat" || targetItem.category === "harakat";
   const length = Math.max(1, targetLength);
+
+  if (isHarakatMode) {
+    const targetHarakat =
+      targetItem.harakatName ?? extractHarakat(targetItem.symbol);
+    // Pengecoh TIDAK boleh memiliki harakat yang sama dengan target!
+    const decoyPool = pool.filter(
+      (p) => (p.harakatName ?? extractHarakat(p.symbol)) !== targetHarakat
+    );
+    const availablePool = decoyPool.length > 0 ? decoyPool : pool;
+
+    if (length === 1) {
+      const item =
+        availablePool[Math.floor(Math.random() * availablePool.length)] ||
+        availablePool[0];
+      return {
+        ...item,
+        targetMode: "harakat",
+        harakatName: item.harakatName ?? extractHarakat(item.symbol) ?? undefined,
+      };
+    }
+
+    const picked: SlasherTargetItem[] = [];
+    for (let i = 0; i < length; i++) {
+      picked.push(
+        availablePool[Math.floor(Math.random() * availablePool.length)]
+      );
+    }
+    return {
+      id: picked.map((p) => p.id).join("_"),
+      name: picked.map((p) => p.name).join(" - "),
+      symbol: picked.map((p) => p.symbol).join(" "),
+      category: targetItem.category,
+      targetMode: "harakat",
+      harakatName:
+        picked[0].harakatName ?? extractHarakat(picked[0].symbol) ?? undefined,
+    };
+  }
+
+  // Mode syllable / huruf / kata / ayat: simbol tidak boleh sama persis
+  const normalizedTarget = normalizeArabicText(targetItem.symbol);
+  const decoyPool = pool.filter(
+    (p) => normalizeArabicText(p.symbol) !== normalizedTarget
+  );
+  const availablePool = decoyPool.length > 0 ? decoyPool : pool;
+
+  if (length === 1) {
+    const item =
+      availablePool[Math.floor(Math.random() * availablePool.length)] ||
+      availablePool[0];
+    return { ...item, targetMode: "syllable" };
+  }
+
   for (let attempt = 0; attempt < 12; attempt++) {
     const picked: SlasherTargetItem[] = [];
     for (let i = 0; i < length; i++) {
-      picked.push(pool[Math.floor(Math.random() * pool.length)]);
+      picked.push(
+        availablePool[Math.floor(Math.random() * availablePool.length)]
+      );
     }
     const symbol = picked.map((p) => p.symbol).join(" ");
-    if (symbol !== forbiddenSymbol) {
+    if (normalizeArabicText(symbol) !== normalizedTarget) {
       return {
         id: picked.map((p) => p.id).join("_"),
         name: picked.map((p) => p.name).join(" - "),
         symbol,
-        category: pool[0].category,
+        category: targetItem.category,
+        targetMode: "syllable",
       };
     }
   }
-  const diff = pool.find((p) => p.symbol !== forbiddenSymbol) || pool[0];
-  return { ...diff };
+
+  const diff = availablePool[0] || pool[0];
+  return { ...diff, targetMode: "syllable" };
 }
 
 interface SlashItem {
@@ -166,10 +279,11 @@ export default function SlasherStage({
 
     const currentItem = currentTargetItemRef.current;
     const target = isDecoy
-      ? generateDecoyItem(pool, targetLength, currentItem.symbol)
-      : currentItem;
+      ? generateDecoyItem(pool, targetLength, currentItem)
+      : generateTargetItem(pool, targetLength, currentItem);
 
-    const role: "correct" | "decoy" = isDecoy ? "decoy" : "correct";
+    const isMatch = matchesSlasherTarget(currentItem, target);
+    const role: "correct" | "decoy" = isMatch ? "correct" : "decoy";
 
     // FASE 2: Perhitungan Fisika & Peluncuran Tepat Melewati Tengah Layar (Eye-Level)
     // Kecepatan jatuh & gravitasi disesuaikan dengan fallSpeed level
@@ -235,7 +349,12 @@ export default function SlasherStage({
 
     addSlashFx(hitX, hitY, slashAngle);
 
-    if (item.role === "correct") {
+    const isCorrect = matchesSlasherTarget(
+      currentTargetItemRef.current,
+      item.target
+    );
+
+    if (isCorrect) {
       onResultRef.current("correct", item.target.symbol);
     } else {
       onResultRef.current("wrong", item.target.symbol);
@@ -305,7 +424,11 @@ export default function SlasherStage({
         // Melewati bawah layar tanpa ditebas:
         // Penalti Jatuh: Hanya Buah Target yang mengurangi nyawa. Pengecoh lolos tanpa penalti.
         if (item.y > h + 90 && item.vy > 0) {
-          if (item.role === "correct") {
+          const isTargetMatch = matchesSlasherTarget(
+            currentTargetItemRef.current,
+            item.target
+          );
+          if (isTargetMatch) {
             onResultRef.current("miss", item.target.symbol);
           }
           domRefs.current.delete(item.id);
