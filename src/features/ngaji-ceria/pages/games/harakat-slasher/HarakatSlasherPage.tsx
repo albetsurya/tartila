@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GameBoundary } from "../_shared/GameBoundary";
@@ -9,12 +9,32 @@ import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { GameHud } from "../_shared/GameHud";
 import { GameResultModal } from "../_shared/GameResultModal";
 import { ComboBadge } from "../_shared/ComboBadge";
+import {
+  GameFeedbackToast,
+  type GameFeedbackMessage,
+} from "../_shared/GameFeedbackToast";
 import SlasherStage from "./components/SlasherStage";
 import { useSlasherGame } from "./hooks/useSlasherGame";
-import { SLASHER_MODE_LABELS, type SlasherMode } from "./data/harakat-list";
+import {
+  SLASHER_MODE_LABELS,
+  extractHarakat,
+  type SlasherMode,
+  type SlasherTargetItem,
+} from "./data/harakat-list";
 import type { GamePhase } from "../_shared/types";
 import { useGameStore } from "@/features/ngaji-ceria/hooks/useGameStore";
+import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { soundManager } from "@/features/ngaji-ceria/services/soundManager";
+
+const HARAKAT_TITLES: Record<string, string> = {
+  fathah: "Fathah",
+  kasrah: "Kasrah",
+  dhammah: "Dhammah",
+  sukun: "Sukun",
+  fathatain: "Fathatain",
+  kasratain: "Kasratain",
+  dhammatain: "Dhammatain",
+};
 
 const MODES: SlasherMode[] = ["harakat", "huruf", "kata", "ayat"];
 
@@ -22,6 +42,7 @@ export interface SlasherLevelConfig {
   level: number;
   title: string;
   targetScore: number;
+  targetTotal: number;
   durationSeconds: number;
   description: string;
   spawnRate: number; // jeda muncul buah dalam ms
@@ -35,8 +56,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 1,
     title: "Level 1: Pemula",
     targetScore: 100,
+    targetTotal: 10,
     durationSeconds: 60,
-    description: "Capai target 100 poin dalam 60 detik.",
+    description: "Tebas 10 buah berharakat target dalam 60 detik.",
     spawnRate: 1200,
     fallSpeed: 8,
     distractorRatio: 0.2,
@@ -46,8 +68,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 2,
     title: "Level 2: Terampil",
     targetScore: 200,
+    targetTotal: 12,
     durationSeconds: 60,
-    description: "Capai target 200 poin dalam 60 detik.",
+    description: "Tebas 12 buah berharakat target dalam 60 detik.",
     spawnRate: 1000,
     fallSpeed: 10,
     distractorRatio: 0.35,
@@ -57,8 +80,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 3,
     title: "Level 3: Mahir",
     targetScore: 350,
+    targetTotal: 15,
     durationSeconds: 60,
-    description: "Capai target 350 poin dalam 60 detik.",
+    description: "Tebas 15 buah berharakat target dalam 60 detik.",
     spawnRate: 800,
     fallSpeed: 12,
     distractorRatio: 0.5,
@@ -68,8 +92,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 4,
     title: "Level 4: Pendekar",
     targetScore: 500,
+    targetTotal: 18,
     durationSeconds: 60,
-    description: "Capai target 500 poin dalam 60 detik.",
+    description: "Tebas 18 buah berharakat target dalam 60 detik.",
     spawnRate: 600,
     fallSpeed: 15,
     distractorRatio: 0.65,
@@ -79,8 +104,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 5,
     title: "Level 5: Master",
     targetScore: 750,
+    targetTotal: 20,
     durationSeconds: 60,
-    description: "Capai target 750 poin dalam 60 detik.",
+    description: "Tebas 20 buah berharakat target dalam 60 detik.",
     spawnRate: 450,
     fallSpeed: 18,
     distractorRatio: 0.75,
@@ -89,38 +115,59 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
 ];
 
 function Game() {
-  const [selectedLevel, setSelectedLevel] = useState<number>(1);
-  const currentLevelConfig =
-    SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
-  const game = useSlasherGame(currentLevelConfig);
-  const navigate = useNavigate();
   const [celebrate, setCelebrate] = useState(false);
   const celebrateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [feedback, setFeedback] = useState<GameFeedbackMessage | null>(null);
+  const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
+
+  const triggerFeedback = useCallback(
+    (msg: { text: string; type: "correct" | "wrong"; arabicText?: string }) => {
+      if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+      setFeedback({ id: Date.now(), ...msg });
+      feedbackTimeout.current = setTimeout(() => setFeedback(null), 1800);
+    },
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+    };
+  }, []);
 
   const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("harakat-rush"));
   const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
+  const recordLearningResult = useGameStore((s) => s.recordLearningResult);
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
-  const [timeLeft, setTimeLeft] = useState<number>(
-    currentLevelConfig.durationSeconds,
-  );
-  const [isWin, setIsWin] = useState<boolean>(false);
-  const [isResultOpen, setIsResultOpen] = useState<boolean>(false);
-  // Judul modal kalah berdasarkan penyebab: nyawa habis vs waktu habis.
-  const [loseReason, setLoseReason] = useState<"lives" | "time">("time");
+  const game = useSlasherGame();
 
   const {
     phase,
     mode,
     setMode,
+    session,
+    level,
     score,
     combo,
     lives,
     currentTarget,
     currentTargetItem,
     onSliceResult,
-    resetRun,
     setPhase,
+    isWin,
+    loseReason,
+    handleTimeout,
   } = game;
+
+  const selectedLevel = session.currentLevel;
+  const currentLevelConfig =
+    SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
+
+  const [timeLeft, setTimeLeft] = useState<number | undefined>(
+    session.mode === "practice" ? undefined : currentLevelConfig.durationSeconds,
+  );
 
   useEffect(() => {
     return () => {
@@ -128,79 +175,125 @@ function Game() {
     };
   }, []);
 
-  const handleStartLevel = (lvl: number) => {
-    setSelectedLevel(lvl);
-    const cfg = SLASHER_LEVELS[lvl - 1] || SLASHER_LEVELS[0];
-    setTimeLeft(cfg.durationSeconds);
-    setIsWin(false);
-    setIsResultOpen(false);
-    setLoseReason("time");
-    resetRun();
-    setPhase("playing");
+  const handleSelectLevel = async (
+    idx: number,
+    gameMode: "practice" | "challenge"
+  ) => {
+    if (gameMode === "challenge") {
+      const ok = await consumeTicket();
+      if (!ok) return;
+    }
+    const cfg = SLASHER_LEVELS[idx] || SLASHER_LEVELS[0];
+    setTimeLeft(gameMode === "practice" ? undefined : cfg.durationSeconds);
+    game.handleStartLevel(idx + 1, cfg.targetTotal, gameMode);
   };
 
-  const handleGameOver = (win: boolean) => {
-    setIsWin(win);
-    setPhase("gameover");
-    setIsResultOpen(true);
-    if (win) {
-      soundManager.playSfx("victory");
-      unlockNextLevel("harakat-rush", selectedLevel);
+  const handleStartLevel = (lvl: number, mode?: "practice" | "challenge") => {
+    const activeMode = mode ?? session.mode;
+    const cfg = SLASHER_LEVELS[lvl - 1] || SLASHER_LEVELS[0];
+    setTimeLeft(activeMode === "practice" ? undefined : cfg.durationSeconds);
+    game.handleStartLevel(lvl, cfg.targetTotal, activeMode);
+  };
+
+  const handleNextLevel = () => {
+    if (selectedLevel < SLASHER_LEVELS.length) {
+      const nextLvl = selectedLevel + 1;
+      const nextCfg = SLASHER_LEVELS[nextLvl - 1] || SLASHER_LEVELS[0];
+      setTimeLeft(session.mode === "practice" ? undefined : nextCfg.durationSeconds);
+      game.handleNextLevel(nextCfg.targetTotal);
     } else {
-      soundManager.playSfx("game-over-arcade");
+      navigate("/member/ngaji-ceria/games");
     }
   };
 
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || session.mode === "practice") return;
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
+        if (prev === undefined) return undefined;
         if (prev <= 1) {
           clearInterval(interval);
-          handleGameOver(false);
+          handleTimeout();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [phase, selectedLevel]);
+  }, [phase, session.mode, handleTimeout]);
 
   useEffect(() => {
-    if (phase !== "playing") return;
-    if (score >= currentLevelConfig.targetScore) {
-      handleGameOver(true);
+    if (phase === "gameover") {
+      if (isWin) {
+        unlockNextLevel("harakat-rush", selectedLevel);
+      }
+      if (level.accuracy !== undefined && level.accuracy !== null) {
+        recordLearningResult(
+          "harakat-rush",
+          level.accuracy,
+          level.learningSummary?.recommendation ? [level.learningSummary.recommendation] : []
+        );
+      }
     }
-  }, [score, phase, currentLevelConfig.targetScore]);
-
-  useEffect(() => {
-    if (
-      phase === "gameover" &&
-      !isResultOpen &&
-      score < currentLevelConfig.targetScore
-    ) {
-      setIsWin(false);
-      setLoseReason(lives <= 0 ? "lives" : "time");
-      setIsResultOpen(true);
-    }
-  }, [phase, isResultOpen, score, currentLevelConfig.targetScore, lives]);
+  }, [
+    phase,
+    isWin,
+    selectedLevel,
+    unlockNextLevel,
+    level.accuracy,
+    level.learningSummary,
+    recordLearningResult,
+  ]);
 
   const handleResult = (
-    kind: "correct" | "wrong" | "miss",
+    kind: "correct" | "wrong" | "miss" | "bomb",
     symbol?: string,
+    item?: SlasherTargetItem,
   ) => {
     if (kind === "correct") {
       setCelebrate(true);
       if (celebrateTimeout.current) clearTimeout(celebrateTimeout.current);
       celebrateTimeout.current = setTimeout(() => setCelebrate(false), 600);
+
+      const targetHarakat =
+        currentTargetItem.harakatName ??
+        extractHarakat(currentTargetItem.symbol);
+      const harakatName = targetHarakat
+        ? HARAKAT_TITLES[targetHarakat] || targetHarakat
+        : "";
+      const text =
+        mode === "harakat" && harakatName
+          ? `Hebat! Itu ${harakatName}.`
+          : "Hebat! Tebasan tepat.";
+      triggerFeedback({ text, type: "correct", arabicText: symbol });
+    } else if (kind === "wrong") {
+      const slicedHarakat = item?.harakatName ?? extractHarakat(symbol);
+      const harakatName = slicedHarakat
+        ? HARAKAT_TITLES[slicedHarakat] || slicedHarakat
+        : "";
+      const text =
+        mode === "harakat" && harakatName
+          ? `Hampir benar! Itu ${harakatName}.`
+          : `Bukan itu. Cari ${currentTargetItem.symbol} ya!`;
+      triggerFeedback({ text, type: "wrong", arabicText: symbol });
+    } else if (kind === "miss") {
+      triggerFeedback({
+        text: "Target terlewat! Tetap fokus ya.",
+        type: "wrong",
+      });
+    } else if (kind === "bomb") {
+      triggerFeedback({
+        text: "Awas bom! Jangan tebas yang bertanda bahaya.",
+        type: "wrong",
+      });
     }
-    onSliceResult(kind, symbol);
+    onSliceResult(kind, symbol, item);
   };
 
   const calculatedStars = isWin
-    ? score >= currentLevelConfig.targetScore * 1.3 || lives === 3
+    ? lives === 3 || score >= currentLevelConfig.targetScore * 1.2
       ? 3
-      : score >= currentLevelConfig.targetScore
+      : lives === 2 || score >= currentLevelConfig.targetScore * 0.7
         ? 2
         : 1
     : 0;
@@ -223,7 +316,7 @@ function Game() {
         onResume={() => setPhase("playing")}
       >
         <GameBoundary>
-          {phase === "idle" || phase === "paused" ? (
+          {phase === "idle" ? (
             <div className="relative flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#1E1B4B] via-[#312E81] to-[#4C1D95] p-4">
               <div className="z-20 mb-3 w-full max-w-md rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFDF0] p-3 text-center shadow-[0_5px_0px_#134E4A]">
                 <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-[#134E4A]">
@@ -267,7 +360,7 @@ function Game() {
                   description: l.description,
                 }))}
                 unlockedCount={unlockedLevel}
-                onSelectLevel={(idx) => handleStartLevel(idx + 1)}
+                onSelectLevel={handleSelectLevel}
                 onOpenGuide={() => setIsGuideOpen(true)}
               />
               <GameGuideModal
@@ -282,20 +375,26 @@ function Game() {
                 <div className="pointer-events-auto w-full">
                   <GameHud
                     level={selectedLevel}
-                    timeLeft={timeLeft}
+                    mode={session.mode}
+                    timeLeft={session.mode === "practice" ? undefined : timeLeft}
                     score={score}
                     targetScore={currentLevelConfig.targetScore}
-                    lives={lives}
+                    lives={session.mode === "practice" ? undefined : lives}
                   />
                 </div>
 
+                <GameFeedbackToast
+                  feedback={feedback}
+                  className="top-48 sm:top-44"
+                />
+
                 <div className="mt-2.5 flex flex-col items-center">
                   <motion.div
-                    key={currentTargetItem.symbol}
+                    key={currentTargetItem.id + currentTargetItem.symbol}
                     initial={{ scale: 0.92, y: -4 }}
                     animate={{ scale: celebrate ? [1, 1.08, 1] : 1, y: 0 }}
                     transition={{ type: "spring", stiffness: 360, damping: 22 }}
-                    className={`relative flex flex-col items-center rounded-2xl border-[3px] border-[#134E4A] px-5 py-2 shadow-[0_4px_0px_#134E4A] min-w-[155px] sm:min-w-[180px] transition-colors ${
+                    className={`relative flex flex-col items-center rounded-2xl border-[3px] border-[#134E4A] px-6 py-2.5 shadow-[0_4px_0px_#134E4A] min-w-[170px] sm:min-w-[210px] transition-colors ${
                       celebrate ? "bg-[#A7F3D0]" : "bg-[#FEF08A]"
                     }`}
                   >
@@ -310,26 +409,30 @@ function Game() {
 
                     <div
                       dir="rtl"
-                      className="my-1 flex min-h-[38px] items-center justify-center px-2"
+                      className="my-1 flex min-h-[56px] items-center justify-center px-4 py-1 flex-shrink-0"
                     >
                       <span
-                        className={`font-arabic font-black leading-normal text-[#451A03] text-center max-w-[280px] drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] ${
-                          currentTargetItem.symbol.length > 12
-                            ? "text-base sm:text-lg"
-                            : currentTargetItem.symbol.length > 6
+                        className={`font-arabic font-black leading-relaxed text-[#134E4A] text-center drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] select-none ${
+                          mode === "harakat" || currentTargetItem.symbol.length <= 3
+                            ? "text-4xl sm:text-5xl"
+                            : currentTargetItem.symbol.length > 12
                               ? "text-lg sm:text-xl"
-                              : currentTargetItem.symbol.length > 2
+                              : currentTargetItem.symbol.length > 6
                                 ? "text-xl sm:text-2xl"
-                                : "text-3xl sm:text-4xl"
+                                : "text-2xl sm:text-3xl"
                         }`}
                       >
                         {currentTargetItem.symbol}
                       </span>
                     </div>
 
-                    <span className="rounded-md bg-[#78350F]/10 px-2.5 py-0.5 font-display text-[11px] font-black leading-tight text-[#7C2D12] text-center max-w-[260px] truncate">
-                      “{currentTargetItem.name}”
-                    </span>
+                    <div className="rounded-lg border-2 border-[#134E4A] bg-[#FFFBEB] px-3 py-0.5 shadow-[1px_1px_0px_#134E4A]">
+                      <span className="font-display text-xs sm:text-sm font-black text-[#7C2D12] text-center max-w-[240px] truncate block">
+                        {mode === "harakat"
+                          ? `Tebas Harakat: ${currentTargetItem.name}`
+                          : `“${currentTargetItem.name}”`}
+                      </span>
+                    </div>
                   </motion.div>
 
                   <ComboBadge
@@ -343,9 +446,11 @@ function Game() {
               <div className="absolute inset-0 z-10">
                 <SlasherStage
                   isPlaying={phase === "playing"}
+                  isPaused={phase === "paused"}
                   currentTarget={currentTarget}
                   currentTargetItem={currentTargetItem}
                   mode={mode}
+                  gameMode={session.mode}
                   levelConfig={currentLevelConfig}
                   onResult={handleResult}
                 />
@@ -354,22 +459,17 @@ function Game() {
           )}
 
           <GameResultModal
-            isOpen={isResultOpen}
+            isOpen={phase === "gameover"}
             isWin={isWin}
-            title={
-              isWin
-                ? undefined
-                : loseReason === "lives"
-                  ? "Nyawa Habis! Jangan Menyerah!"
-                  : "Waktu Habis! Jangan Menyerah!"
-            }
+            loseReason={loseReason}
             score={score}
             targetScore={currentLevelConfig.targetScore}
             stars={calculatedStars}
             level={selectedLevel}
             hasNextLevel={selectedLevel < SLASHER_LEVELS.length}
+            learningSummary={level.learningSummary}
             onRetry={() => handleStartLevel(selectedLevel)}
-            onNextLevel={() => handleStartLevel(selectedLevel + 1)}
+            onNextLevel={handleNextLevel}
             onBackToHub={() => navigate("/member/ngaji-ceria/games")}
           />
         </GameBoundary>

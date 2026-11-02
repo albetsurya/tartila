@@ -19,11 +19,10 @@ export const DEFAULT_ACTIVE_GAMES: ActiveGameItem[] = [
   { game_id: "ayat-scramble", is_active: true, display_type: "standalone", sort_order: 4 },
   { game_id: "hijaiyah-2048", is_active: true, display_type: "standalone", sort_order: 5 },
   { game_id: "hijaiyah-pop", is_active: true, display_type: "standalone", sort_order: 6 },
-  // Disabled: inactive game (quiz-ngaji)
-  /*
-  { game_id: "quiz-ngaji", is_active: true, display_type: "standalone", sort_order: 7 },
-  */
 ];
+
+/** Game yang dinonaktifkan / placeholder yang belum dirilis */
+export const DISABLED_GAME_IDS = new Set<string>(["quiz-ngaji"]);
 
 interface ActiveGamesState {
   activeGameIds: Set<string>;
@@ -49,7 +48,9 @@ export const useActiveGamesStore = create<ActiveGamesState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await callREST<ActiveGameItem[]>("GET", "/api/v1/games");
-      const list = Array.isArray(data) ? data : [];
+      const list = (Array.isArray(data) ? data : []).filter(
+        (g) => !DISABLED_GAME_IDS.has(g.game_id),
+      );
       const idSet = new Set<string>(list.map((g) => canonicalGameId(g.game_id)));
       set({
         activeGames: list,
@@ -68,9 +69,11 @@ export const useActiveGamesStore = create<ActiveGamesState>((set, get) => ({
 
   isGameActive: (gameId: string) => {
     const { hasLoaded, activeGameIds } = get();
+    if (DISABLED_GAME_IDS.has(gameId)) return false;
+    const canonical = canonicalGameId(gameId);
+    if (DISABLED_GAME_IDS.has(canonical)) return false;
     // Jika belum selesai inisialisasi load dari backend, anggap aktif sementara (agar tidak flashing lock)
     if (!hasLoaded) return true;
-    const canonical = canonicalGameId(gameId);
     return activeGameIds.has(canonical);
   },
 }));

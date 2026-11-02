@@ -914,6 +914,12 @@ function AppRoutesContent() {
         />
       ))}
 
+      {/* Redirect placeholder quiz-ngaji ke Arena Kuis (/quiz-hub) agar routing tidak rusak */}
+      <Route
+        path="/member/ngaji-ceria/games/quiz-ngaji"
+        element={<Navigate to="/quiz-hub" replace />}
+      />
+
       {/* TILAWATI MEMORY MATCH */}
       <Route
         path="/member/ngaji-ceria/games/memory/select"

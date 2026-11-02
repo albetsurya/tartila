@@ -11,6 +11,7 @@ import {
   getMemoryLevelConfig,
 } from '../../../data/tilawatiMemoryData';
 import { useTilawatiMemoryStore } from '../../../hooks/useTilawatiMemoryStore';
+import { useEconomyStore } from '../../../hooks/useEconomyStore';
 import {
   ChevronRight,
   Sparkles,
@@ -40,6 +41,7 @@ export default function TilawatiMemorySelectPage() {
 
   const getUnlockedLevel = useTilawatiMemoryStore((s) => s.getUnlockedLevel);
   const levelRecords = useTilawatiMemoryStore((s) => s.levelRecords);
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const handleSelectJilid = (level: ArenaKartuLevel) => {
     triggerBibiReaction('click');
@@ -51,8 +53,10 @@ export default function TilawatiMemorySelectPage() {
     setChosenLevel(maxUnlocked);
   };
 
-  const handleStartGame = () => {
+  const handleStartGame = async () => {
     if (!selectedJilid) return;
+    const ok = await consumeTicket();
+    if (!ok) return;
     triggerBibiReaction('play');
     soundManager.playSfx('tap');
     navigate(`/member/ngaji-ceria/games/memory/${selectedJilid.jilid}/${chosenLevel}`);

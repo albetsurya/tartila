@@ -3,7 +3,17 @@
  * - Ayat Al-Quran: CDN EveryAyah (rekaman Syaikh Mishary Alafasy).
  */
 
+import { soundManager } from "../../../services/soundManager";
+
 let activeVerseAudio: HTMLAudioElement | null = null;
+
+if (typeof window !== "undefined") {
+  soundManager.subscribe(() => {
+    if (soundManager.muted) {
+      stopVerseAudio();
+    }
+  });
+}
 
 export function stopVerseAudio() {
   if (!activeVerseAudio) return;
@@ -38,6 +48,7 @@ export function stopLetterAudio(): void {
 export function playVerseAudio(surah: number, ayah: number) {
   if (typeof window === "undefined" || typeof Audio === "undefined") return;
   if (!surah || !ayah || surah > 114 || ayah > 300) return;
+  if (soundManager.muted) return;
   stopVerseAudio();
   try {
     const url = `https://everyayah.com/data/Alafasy_128kbps/${String(surah).padStart(3, "0")}${String(ayah).padStart(3, "0")}.mp3`;

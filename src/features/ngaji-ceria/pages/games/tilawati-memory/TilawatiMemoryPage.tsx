@@ -15,7 +15,6 @@ import {
   calculateMemoryStars,
 } from '../../../data/tilawatiMemoryData';
 import { useTilawatiMemoryStore } from '../../../hooks/useTilawatiMemoryStore';
-import { useEconomyStore } from '../../../hooks/useEconomyStore';
 import {
   StarSvg,
   RotateCcwSvg,
@@ -72,8 +71,6 @@ export default function TilawatiMemoryPage() {
     const parsed = Number(levelParam || searchParams.get('level'));
     return parsed >= 1 && parsed <= 4 ? parsed : 1;
   }, [levelParam, searchParams]);
-
-  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const levelConfig = useMemo(() => {
     return getMemoryLevelConfig(currentLevel);
@@ -616,12 +613,10 @@ export default function TilawatiMemoryPage() {
           description: cfg.desc,
         }))}
         unlockedCount={unlockedLevel}
-        onSelectLevel={async (idx) => {
+        onSelectLevel={(idx) => {
           const lvl = MEMORY_LEVELS_CONFIG[idx]?.level ?? 1;
           setIsStartSheetOpen(false);
           if (lvl !== currentLevel) {
-            const ok = await consumeTicket();
-            if (!ok) return;
             navigate(`/member/ngaji-ceria/games/memory/${currentJilid}/${lvl}`);
           } else {
             handleResetGame();
@@ -640,7 +635,11 @@ export default function TilawatiMemoryPage() {
         onRetry={handleResetGame}
         onNextLevel={() => {
           const next = Math.min(4, currentLevel + 1);
-          navigate(`/member/ngaji-ceria/games/tilawati-memory/${currentJilid}/${next}`);
+          if (currentLevel < 4) {
+            navigate(`/member/ngaji-ceria/games/memory/${currentJilid}/${next}`);
+          } else {
+            navigate('/member/ngaji-ceria/games');
+          }
         }}
         onBackToHub={() => navigate('/member/ngaji-ceria/games')}
       />
