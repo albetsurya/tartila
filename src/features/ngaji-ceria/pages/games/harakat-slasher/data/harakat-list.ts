@@ -17,13 +17,19 @@ export const SLASHER_MODE_LABELS: Record<SlasherMode, { title: string; subtitle:
 
 // Mode 1: Harakat
 export const HARAKAT_LIST: readonly SlasherTargetItem[] = [
-  { id: "fathah", name: "Fathah", symbol: "بَ", sound: "a", category: "harakat" },
-  { id: "kasrah", name: "Kasrah", symbol: "بِ", sound: "i", category: "harakat" },
-  { id: "dhammah", name: "Dhammah", symbol: "بُ", sound: "u", category: "harakat" },
-  { id: "sukun", name: "Sukun", symbol: "بْ", sound: "mati", category: "harakat" },
-  { id: "fathatain", name: "Fathatain", symbol: "بً", sound: "an", category: "harakat" },
-  { id: "kasratain", name: "Kasratain", symbol: "بٍ", sound: "in", category: "harakat" },
-  { id: "dhammatain", name: "Dhammatain", symbol: "بٌ", sound: "un", category: "harakat" },
+  { id: "fathah", name: "Ba Fathah", symbol: "بَ", sound: "ba", category: "harakat" },
+  { id: "ta_fathah", name: "Ta Fathah", symbol: "تَ", sound: "ta", category: "harakat" },
+  { id: "tsa_fathah", name: "Tsa Fathah", symbol: "ثَ", sound: "tsa", category: "harakat" },
+  { id: "jim_fathah", name: "Jim Fathah", symbol: "جَ", sound: "ja", category: "harakat" },
+  { id: "ha_fathah", name: "Ha Fathah", symbol: "حَ", sound: "ha", category: "harakat" },
+  { id: "dal_fathah", name: "Dal Fathah", symbol: "دَ", sound: "da", category: "harakat" },
+  { id: "ra_fathah", name: "Ra Fathah", symbol: "رَ", sound: "ra", category: "harakat" },
+  { id: "kasrah", name: "Ba Kasrah", symbol: "بِ", sound: "bi", category: "harakat" },
+  { id: "dhammah", name: "Ba Dhammah", symbol: "بُ", sound: "bu", category: "harakat" },
+  { id: "sukun", name: "Ba Sukun", symbol: "بْ", sound: "mati", category: "harakat" },
+  { id: "fathatain", name: "Ba Fathatain", symbol: "بً", sound: "ban", category: "harakat" },
+  { id: "kasratain", name: "Ba Kasratain", symbol: "بٍ", sound: "bin", category: "harakat" },
+  { id: "dhammatain", name: "Ba Dhammatain", symbol: "بٌ", sound: "bun", category: "harakat" },
 ] as const;
 
 // Mode 2: Huruf Hijaiyah

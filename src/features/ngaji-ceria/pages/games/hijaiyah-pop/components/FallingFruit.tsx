@@ -57,7 +57,7 @@ export function FallingFruit({
         if (event.detail === 0) handleTrigger();
       }}
       disabled={disabled || fruit.popped}
-      className="absolute left-0 top-0 h-24 w-20 touch-none select-none flex items-center justify-center cursor-pointer"
+      className="absolute left-0 top-0 h-24 min-w-[5rem] w-fit px-1 touch-none select-none flex items-center justify-center cursor-pointer"
       style={{
         transform: isPoppingWrong
           ? `translate3d(${fruit.x}px, ${fruit.y}px, 0) scale(${
@@ -87,18 +87,42 @@ export function FallingFruit({
           <div className="relative h-full w-full flex items-center justify-center">
             <ItemSvg
               size={80}
-              letter={cleanLetter}
               className="h-full w-full object-contain drop-shadow-[3px_4px_0_#134E4A]"
             />
+            {/* HTML Overlay Neo-Brutalism */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 w-fit flex items-center justify-center">
+                <span
+                  dir="rtl"
+                  className={`font-arabic font-black whitespace-nowrap text-[#134E4A] ${
+                    cleanLetter.length <= 2 ? "text-xl" : "text-sm sm:text-base"
+                  }`}
+                >
+                  {cleanLetter}
+                </span>
+              </div>
+            </div>
           </div>
         )
       ) : (
         <div className="relative h-full w-full flex items-center justify-center">
           <ItemSvg
             size={80}
-            letter={cleanLetter}
             className="h-full w-full object-contain drop-shadow-[3px_4px_0_#134E4A]"
           />
+          {/* HTML Overlay Neo-Brutalism */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 w-fit flex items-center justify-center">
+              <span
+                dir="rtl"
+                className={`font-arabic font-black whitespace-nowrap text-[#134E4A] ${
+                  cleanLetter.length <= 2 ? "text-xl" : "text-sm sm:text-base"
+                }`}
+              >
+                {cleanLetter}
+              </span>
+            </div>
+          </div>
         </div>
       )}
     </button>

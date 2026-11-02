@@ -19,8 +19,44 @@ import type { SlashResultKind } from "../hooks/useSlasherGame";
 export interface SlasherStageProps {
   isPlaying: boolean;
   currentTarget: string;
+  currentTargetItem?: SlasherTargetItem;
   mode?: SlasherMode;
+  levelConfig?: {
+    spawnRate?: number;
+    fallSpeed?: number;
+    distractorRatio?: number;
+    targetLength?: number;
+  };
   onResult: (kind: SlashResultKind, symbol?: string) => void;
+}
+
+/** Helper untuk membuat buah pengecoh dengan panjang teks targetLength yang sama tapi simbol berbeda */
+function generateDecoyItem(
+  pool: readonly SlasherTargetItem[],
+  targetLength: number,
+  forbiddenSymbol: string
+): SlasherTargetItem {
+  if (!pool || pool.length === 0) {
+    return HARAKAT_LIST[0];
+  }
+  const length = Math.max(1, targetLength);
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const picked: SlasherTargetItem[] = [];
+    for (let i = 0; i < length; i++) {
+      picked.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    const symbol = picked.map((p) => p.symbol).join(" ");
+    if (symbol !== forbiddenSymbol) {
+      return {
+        id: picked.map((p) => p.id).join("_"),
+        name: picked.map((p) => p.name).join(" - "),
+        symbol,
+        category: pool[0].category,
+      };
+    }
+  }
+  const diff = pool.find((p) => p.symbol !== forbiddenSymbol) || pool[0];
+  return { ...diff };
 }
 
 interface SlashItem {
@@ -70,7 +106,9 @@ function distPointToSegment(
 export default function SlasherStage({
   isPlaying,
   currentTarget,
+  currentTargetItem,
   mode = "harakat",
+  levelConfig,
   onResult,
 }: SlasherStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,6 +122,19 @@ export default function SlasherStage({
   const trailPathRef = useRef<SVGPathElement | null>(null);
   const trailGlowRef = useRef<SVGPathElement | null>(null);
   const targetRef = useRef(currentTarget);
+  const currentTargetItemRef = useRef<SlasherTargetItem>(
+    currentTargetItem ?? {
+      id: currentTarget,
+      name: currentTarget,
+      symbol: currentTarget,
+      category: mode,
+    }
+  );
+  if (currentTargetItem) {
+    currentTargetItemRef.current = currentTargetItem;
+  }
+  const levelConfigRef = useRef(levelConfig);
+  levelConfigRef.current = levelConfig;
   const modeRef = useRef(mode);
   const onResultRef = useRef(onResult);
   targetRef.current = currentTarget;
@@ -109,20 +160,27 @@ export default function SlasherStage({
     const h = container.clientHeight;
 
     const pool = getSlasherItems(modeRef.current);
-    const isCorrect = Math.random() < 0.5;
-    const target = isCorrect
-      ? pool.find((item) => item.id === targetRef.current) ??
-        pool[Math.floor(Math.random() * pool.length)] ??
-        HARAKAT_LIST[0]
-      : pool[Math.floor(Math.random() * pool.length)] ?? HARAKAT_LIST[0];
+    const distractorRatio = levelConfigRef.current?.distractorRatio ?? 0.35;
+    const targetLength = Math.max(1, levelConfigRef.current?.targetLength ?? 1);
+    const isDecoy = Math.random() < distractorRatio;
+
+    const currentItem = currentTargetItemRef.current;
+    const target = isDecoy
+      ? generateDecoyItem(pool, targetLength, currentItem.symbol)
+      : currentItem;
+
+    const role: "correct" | "decoy" = isDecoy ? "decoy" : "correct";
 
     // FASE 2: Perhitungan Fisika & Peluncuran Tepat Melewati Tengah Layar (Eye-Level)
-    // Titik puncak (apex) diatur di area tengah pandangan (34% - 46% tinggi layar)
+    // Kecepatan jatuh & gravitasi disesuaikan dengan fallSpeed level
+    const fallSpeed = levelConfigRef.current?.fallSpeed ?? 10;
+    const currentGravity = GRAVITY * (fallSpeed / 10);
+
     const apexY = h * (0.34 + Math.random() * 0.12);
     const spawnY = h + 70;
     const deltaY = spawnY - apexY;
-    const vy = -Math.sqrt(2 * GRAVITY * deltaY);
-    const tApex = -vy / GRAVITY; // Waktu tempuh ke puncak parabola (~1.0s)
+    const vy = -Math.sqrt(2 * currentGravity * deltaY);
+    const tApex = -vy / currentGravity; // Waktu tempuh ke puncak parabola
 
     // Titik tengah X tujuan (antara 38% - 62% lebar layar)
     const targetX = w * (0.38 + Math.random() * 0.24);
@@ -142,7 +200,7 @@ export default function SlasherStage({
 
     itemsRef.current.push({
       id: idSeq.current++,
-      role: isCorrect ? "correct" : "decoy",
+      role,
       target,
       fruitIndex: Math.floor(Math.random() * FRUIT_VARIANTS.length),
       x,
@@ -209,29 +267,33 @@ export default function SlasherStage({
       if (!container) return;
       const h = container.clientHeight;
 
-      // 1. Spawn gelombang lemparan
+      // 1. Spawn gelombang lemparan berdasarkan spawnRate level
       spawnTimer.current -= dt * 1000;
       if (spawnTimer.current <= 0 && itemsRef.current.length < MAX_ITEMS) {
-        const volley = 1 + Math.floor(Math.random() * 3);
+        const volley = 1 + Math.floor(Math.random() * 2);
         for (let i = 0; i < volley; i++) {
           setTimeout(
             () => {
               if (isPlaying) spawnItem();
             },
-            i * (140 + Math.random() * 120)
+            i * (120 + Math.random() * 100)
           );
         }
-        spawnTimer.current = 1350 + Math.random() * 500;
+        const spawnRate = levelConfigRef.current?.spawnRate ?? 1000;
+        spawnTimer.current = spawnRate * (0.8 + Math.random() * 0.4);
       }
 
-      // 2. Fisika parabola
+      // 2. Fisika parabola dinamis
       const keep: SlashItem[] = [];
+      const fallSpeed = levelConfigRef.current?.fallSpeed ?? 10;
+      const currentGravity = GRAVITY * (fallSpeed / 10);
+
       for (const item of itemsRef.current) {
         if (item.isSliced) {
           keep.push(item);
           continue;
         }
-        item.vy += GRAVITY * dt;
+        item.vy += currentGravity * dt;
         item.x += item.vx * dt;
         item.y += item.vy * dt;
 
@@ -240,7 +302,8 @@ export default function SlasherStage({
           el.style.transform = `translate(${item.x}px, ${item.y}px)`;
         }
 
-        // Melewati bawah layar tanpa ditebas
+        // Melewati bawah layar tanpa ditebas:
+        // Penalti Jatuh: Hanya Buah Target yang mengurangi nyawa. Pengecoh lolos tanpa penalti.
         if (item.y > h + 90 && item.vy > 0) {
           if (item.role === "correct") {
             onResultRef.current("miss", item.target.symbol);
@@ -444,52 +507,24 @@ export default function SlasherStage({
                   className={`relative flex items-center justify-center ${
                     fruit.id === "watermelon" ? "h-28 w-28" : "h-24 w-24"
                   }`}
-                  style={{
-                    filter: highlight
-                      ? "drop-shadow(0 0 0 4px #FDE68A)"
-                      : undefined,
-                  }}
                 >
                   <fruit.FruitWhole
                     size={fruit.id === "watermelon" ? 120 : 96}
                     className="drop-shadow-[4px_5px_0px_rgba(19,78,74,0.75)]"
                   />
-                  {/* OVERLAY TEKS TARGET: Stiker putih dengan font Arab dinamis & responsif */}
-                  <span
-                    className={`absolute z-10 flex items-center justify-center border-[3px] border-[#134E4A] bg-white transition-all ${
-                      textLen > 6
-                        ? "h-11 min-w-[76px] max-w-[104px] px-2.5 rounded-2xl"
-                        : textLen > 2
-                          ? "h-11 min-w-[58px] max-w-[84px] px-2 rounded-2xl"
-                          : "h-11 w-11 rounded-full"
-                    }`}
-                    style={
-                      highlight
-                        ? { boxShadow: "0 0 0 3px #FDE68A, 2px 3px 0px rgba(19,78,74,0.6)" }
-                        : { boxShadow: "2px 3px 0px rgba(19,78,74,0.6)" }
-                    }
-                  >
-                    <span
-                      className={`font-arabic font-black leading-none text-[#134E4A] whitespace-nowrap text-center ${
-                        textLen > 8
-                          ? "text-[11px]"
-                          : textLen > 6
-                            ? "text-xs"
-                            : textLen > 2
-                              ? "text-base"
-                              : "text-2xl"
-                      }`}
-                    >
-                      {symbolText}
-                    </span>
-                  </span>
-
-                  {/* FASE 1: Label TARGET Lebih Kontras, Berpola Neo-Brutalism dengan Hard Shadow */}
-                  {highlight && (
-                    <span className="absolute -top-3 z-20 whitespace-nowrap rounded-md border-2 border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
-                      TARGET
-                    </span>
-                  )}
+                  {/* OVERLAY TEKS (Neo-Brutalism HTML Overlay Responsif) */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 w-fit flex items-center justify-center max-w-[130px]">
+                      <span
+                        dir="rtl"
+                        className={`font-arabic font-black whitespace-nowrap text-[#134E4A] ${
+                          symbolText.length <= 2 ? "text-xl" : "text-sm sm:text-base"
+                        }`}
+                      >
+                        {symbolText}
+                      </span>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </div>

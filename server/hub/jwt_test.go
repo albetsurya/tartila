@@ -158,3 +158,26 @@ func TestCookieSetAndClear(t *testing.T) {
 		t.Fatalf("expected MaxAge -1, got %d", clearCookies[0].MaxAge)
 	}
 }
+
+func TestGetFrontendURL(t *testing.T) {
+	// Explicit FRONTEND_URL takes precedence
+	t.Setenv("FRONTEND_URL", "http://custom-frontend:3000/")
+	t.Setenv("APP_ENV", "production")
+	if got := GetFrontendURL(); got != "http://custom-frontend:3000" {
+		t.Fatalf("expected http://custom-frontend:3000, got %s", got)
+	}
+
+	// Fallback to production domain when FRONTEND_URL is unset and APP_ENV=production
+	t.Setenv("FRONTEND_URL", "")
+	t.Setenv("APP_ENV", "production")
+	if got := GetFrontendURL(); got != "https://tartila.pages.dev" {
+		t.Fatalf("expected https://tartila.pages.dev, got %s", got)
+	}
+
+	// Fallback to localhost when FRONTEND_URL is unset and APP_ENV is development / empty
+	t.Setenv("FRONTEND_URL", "")
+	t.Setenv("APP_ENV", "development")
+	if got := GetFrontendURL(); got != "http://localhost:5173" {
+		t.Fatalf("expected http://localhost:5173, got %s", got)
+	}
+}

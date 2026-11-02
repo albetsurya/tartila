@@ -93,12 +93,18 @@ function clearAuthCache() {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CeriaUser | null>(null);
+  const [user, setUser] = useState<CeriaUser | null>(() => {
+    try {
+      const cached = localStorage.getItem("tartila_cached_user");
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isRoleVerified, setIsRoleVerified] = useState(false);
   const initInFlightRef = useRef<Promise<void> | null>(null);
-  const mountedRef = useRef(false);
 
   // Initialize: cek session profil langsung ke Backend Go via credentials: include
   const initAuth = useCallback(() => {
@@ -120,67 +126,107 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
         if (res.ok) {
           const profileRes = await res.json();
-          const goUser = profileRes.user || profileRes.profile || profileRes.data?.user;
+          const goUser =
+            profileRes.user ||
+            profileRes.profile ||
+            profileRes.data?.user ||
+            profileRes.data;
+
           console.log("[AuthContext] Profile 200 OK:", {
             status: res.status,
-            id: goUser?.id,
+            id: goUser?.id || goUser?.user_id,
             name: goUser?.name,
             email: goUser?.email,
             role: goUser?.role,
           });
-          const safeRole = toTartilaRole(goUser?.role);
-          const rawMascot = profileRes.mascot_gender || goUser?.mascot_gender || goUser?.gender;
+
+          const rawRole = goUser?.role || profileRes.role;
+          const safeRole = toTartilaRole(rawRole);
+          const rawMascot =
+            profileRes.mascot_gender ||
+            goUser?.mascot_gender ||
+            goUser?.gender;
+
+          const isVipUser = Boolean(
+            goUser?.is_vip ??
+            profileRes.is_vip ??
+            (rawRole === "SUPER_ADMIN" || safeRole === "superadmin")
+          );
+
+          const userEmail = goUser?.email || profileRes.email || null;
+          const userName =
+            goUser?.name ||
+            profileRes.name ||
+            (userEmail ? userEmail.split("@")[0] : null);
 
           const ceriaUser: CeriaUser = {
-            id: goUser?.id || goUser?.user_id || "google-user",
-            email: goUser?.email || null,
-            username: goUser?.username || null,
-            name: goUser?.name || null,
+            id:
+              goUser?.user_id ||
+              goUser?.id ||
+              profileRes?.user_id ||
+              profileRes?.id ||
+              "google-user",
+            email: userEmail,
+            username:
+              goUser?.username ||
+              profileRes.username ||
+              (userEmail ? userEmail.split("@")[0] : null),
+            name: userName,
             role: safeRole,
-            group_id: goUser?.group_id || null,
-            is_vip: Boolean(goUser?.is_vip || profileRes.is_vip),
-            is_ustadz: isUstadzRole(safeRole),
-            photo_url: goUser?.photo_url || null,
+            group_id: goUser?.group_id || profileRes.group_id || null,
+            is_vip: isVipUser,
+            is_ustadz: isUstadzRole(safeRole) || Boolean(goUser?.is_ustadz),
+            photo_url: goUser?.photo_url || profileRes.photo_url || null,
             gender: rawMascot || null,
           };
 
-          if (mountedRef.current) {
-            setUser(ceriaUser);
-            localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
-            void useEconomyStore.getState().setUserId(ceriaUser.id);
-            useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
-            if (rawMascot) {
-              const mascotGender = resolveMascotGender(rawMascot);
-              void useEconomyStore.getState().setTilaGender(mascotGender);
-            }
-            roleVerified = true;
+          setUser(ceriaUser);
+          localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+          void useEconomyStore.getState().setUserId(ceriaUser.id);
+          useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
+          useEconomyStore.setState({
+            isVip: isVipUser,
+            subscriptionType: isVipUser ? "vip" : "free",
+            groupId: ceriaUser.group_id,
+            role: ceriaUser.role,
+            username: ceriaUser.username || undefined,
+          });
+
+          if (rawMascot) {
+            const mascotGender = resolveMascotGender(rawMascot);
+            void useEconomyStore.getState().setTilaGender(mascotGender);
           }
+          roleVerified = true;
         } else {
           console.log(
             "[AuthContext] Profile gagal (guest): status",
             res.status,
           );
           // Response 401 Unauthorized atau tidak ok -> user null
-          if (mountedRef.current) {
-            setUser(null);
-            clearAuthCache();
-            clearToken();
-            void useEconomyStore.getState().setUserId(null);
-            roleVerified = true;
-          }
+          setUser(null);
+          clearAuthCache();
+          clearToken();
+          void useEconomyStore.getState().setUserId(null);
+          useEconomyStore.setState({ isVip: false, subscriptionType: "free" });
+          roleVerified = true;
         }
       } catch (err) {
         console.error("[AuthContext] Session init error:", err);
-        if (mountedRef.current) {
+        const cached = localStorage.getItem("tartila_cached_user");
+        if (cached) {
+          try {
+            setUser(JSON.parse(cached));
+          } catch {
+            setUser(null);
+          }
+        } else {
           setUser(null);
         }
       } finally {
         initInFlightRef.current = null;
-        if (mountedRef.current) {
-          setIsRoleVerified(roleVerified);
-          setLoading(false);
-          setIsAuthLoading(false);
-        }
+        setIsRoleVerified(roleVerified);
+        setLoading(false);
+        setIsAuthLoading(false);
       }
     })();
     initInFlightRef.current = promise;
@@ -188,12 +234,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    mountedRef.current = true;
     void initAuth();
-
-    return () => {
-      mountedRef.current = false;
-    };
   }, [initAuth]);
 
   // Fungsi redirect ke endpoint Goth Google OAuth di backend
@@ -219,41 +260,71 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
       if (res.ok) {
         const profileRes = await res.json();
-        const goUser = profileRes.user || profileRes.profile;
-        const safeRole = toTartilaRole(goUser?.role);
-        const rawMascot = profileRes.mascot_gender || goUser?.mascot_gender || goUser?.gender;
+        const goUser =
+          profileRes.user ||
+          profileRes.profile ||
+          profileRes.data?.user ||
+          profileRes.data;
+
+        const rawRole = goUser?.role || profileRes.role;
+        const safeRole = toTartilaRole(rawRole);
+        const rawMascot =
+          profileRes.mascot_gender ||
+          goUser?.mascot_gender ||
+          goUser?.gender;
+
+        const isVipUser = Boolean(
+          goUser?.is_vip ??
+          profileRes.is_vip ??
+          (rawRole === "SUPER_ADMIN" || safeRole === "superadmin")
+        );
+
+        const userEmail = goUser?.email || profileRes.email || null;
+        const userName =
+          goUser?.name ||
+          profileRes.name ||
+          (userEmail ? userEmail.split("@")[0] : null);
 
         const ceriaUser: CeriaUser = {
-          id: goUser?.id || goUser?.user_id || "google-user",
-          email: goUser?.email || null,
-          username: goUser?.username || null,
-          name: goUser?.name || null,
+          id:
+            goUser?.user_id ||
+            goUser?.id ||
+            profileRes?.user_id ||
+            profileRes?.id ||
+            "google-user",
+          email: userEmail,
+          username:
+            goUser?.username ||
+            profileRes.username ||
+            (userEmail ? userEmail.split("@")[0] : null),
+          name: userName,
           role: safeRole,
-          group_id: goUser?.group_id || null,
-          is_vip: Boolean(goUser?.is_vip || profileRes.is_vip),
-          is_ustadz: isUstadzRole(safeRole),
-          photo_url: goUser?.photo_url || null,
+          group_id: goUser?.group_id || profileRes.group_id || null,
+          is_vip: isVipUser,
+          is_ustadz: isUstadzRole(safeRole) || Boolean(goUser?.is_ustadz),
+          photo_url: goUser?.photo_url || profileRes.photo_url || null,
           gender: rawMascot || null,
         };
 
-        if (mountedRef.current) {
-          setUser(ceriaUser);
-          localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
-          void useEconomyStore.getState().setUserId(ceriaUser.id);
-          useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
-          if (rawMascot) {
-            const mascotGender = resolveMascotGender(rawMascot);
-            void useEconomyStore.getState().setTilaGender(mascotGender);
-          }
-          setIsRoleVerified(true);
+        setUser(ceriaUser);
+        localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
+        void useEconomyStore.getState().setUserId(ceriaUser.id);
+        useEconomyStore.getState().syncDailyRewardFromProfile(profileRes);
+        useEconomyStore.setState({
+          isVip: isVipUser,
+          subscriptionType: isVipUser ? "vip" : "free",
+          groupId: ceriaUser.group_id,
+          role: ceriaUser.role,
+          username: ceriaUser.username || undefined,
+        });
+
+        if (rawMascot) {
+          const mascotGender = resolveMascotGender(rawMascot);
+          void useEconomyStore.getState().setTilaGender(mascotGender);
         }
+        setIsRoleVerified(true);
       } else {
-        if (mountedRef.current) {
-          setUser(null);
-          clearAuthCache();
-          clearToken();
-          void useEconomyStore.getState().setUserId(null);
-        }
+        console.log("[AuthContext] Refresh user gagal (state login dipertahankan):", res.status);
       }
     } catch (err) {
       console.error("Refresh user error:", err);
@@ -264,21 +335,50 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (identifier: string, password: string) => {
     try {
       const legacyUser = await authApi.login(identifier, password);
+      // Bersihkan cache user sebelumnya sebelum state baru dipasang.
+      clearAuthCache();
+
+      const rawRole = legacyUser.role;
+      const safeRole = toTartilaRole(rawRole);
+      const isVipUser = Boolean(
+        legacyUser.is_vip ||
+        rawRole === "SUPER_ADMIN" ||
+        safeRole === "superadmin"
+      );
+
+      const userEmail =
+        legacyUser.email || (identifier.includes("@") ? identifier : null);
+      const userName =
+        legacyUser.name ||
+        (userEmail ? userEmail.split("@")[0] : identifier);
+
       const ceriaUser: CeriaUser = {
         id: legacyUser.user_id || legacyUser.id || identifier,
-        email: null,
-        username: legacyUser.username || identifier,
-        name: legacyUser.name || identifier,
-        role: toTartilaRole(legacyUser.role),
+        email: userEmail,
+        username:
+          legacyUser.username ||
+          (identifier.includes("@") ? identifier.split("@")[0] : identifier),
+        name: userName,
+        role: safeRole,
         group_id: legacyUser.group_id || null,
-        is_vip: false,
-        is_ustadz: isUstadzUser(legacyUser),
+        is_vip: isVipUser,
+        is_ustadz: isUstadzUser(legacyUser) || isUstadzRole(safeRole),
         photo_url: legacyUser.photo_url || null,
         gender: legacyUser.gender || null,
       };
+
+      console.log("[Login] User state before set:", ceriaUser);
       setUser(ceriaUser);
       localStorage.setItem("tartila_cached_user", JSON.stringify(ceriaUser));
       void useEconomyStore.getState().setUserId(ceriaUser.id);
+      useEconomyStore.setState({
+        isVip: isVipUser,
+        subscriptionType: isVipUser ? "vip" : "free",
+        groupId: ceriaUser.group_id,
+        role: ceriaUser.role,
+        username: ceriaUser.username || undefined,
+      });
+
       if (ceriaUser.gender) {
         const mascotGender = resolveMascotGender(ceriaUser.gender);
         void useEconomyStore.getState().setTilaGender(mascotGender);
@@ -315,13 +415,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      if (mountedRef.current) {
-        setUser(null);
-        clearAuthCache();
-        clearToken();
-        void useEconomyStore.getState().setUserId(null);
-        setIsRoleVerified(true);
-      }
+      setUser(null);
+      clearAuthCache();
+      clearToken();
+      void useEconomyStore.getState().setUserId(null);
+      useEconomyStore.setState({ isVip: false, subscriptionType: "free" });
+      setIsRoleVerified(true);
     }
   };
 

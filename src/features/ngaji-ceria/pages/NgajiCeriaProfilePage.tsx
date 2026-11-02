@@ -397,7 +397,8 @@ export default function NgajiCeriaProfilePage() {
 
   const hearts = useEconomyStore((s) => s.hearts);
   const tickets = useEconomyStore((s) => s.tickets);
-  const isVip = useEconomyStore((s) => s.isVip);
+  const storeIsVip = useEconomyStore((s) => s.isVip);
+  const isVip = Boolean(user?.is_vip || user?.role === "superadmin" || storeIsVip);
   const isUnlimited = isUnlimitedUser(user, isVip, user?.group_id);
 
   const isSuperAdmin = isAdminRole(user?.role);
@@ -447,10 +448,19 @@ export default function NgajiCeriaProfilePage() {
   const [nameDraft, setNameDraft] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const displayName = nameOverride || user?.name || "Tamu Tartila";
-  const email = user?.username
-    ? `${user.username}@santri.ngajiceria.id`
-    : "Belum terhubung akun";
+  const displayName =
+    nameOverride ||
+    user?.name ||
+    (user
+      ? user.username || (user.email ? user.email.split("@")[0] : "Santri Tartila")
+      : "Tamu Tartila");
+  const email =
+    user?.email ||
+    (user?.username
+      ? `${user.username}@santri.ngajiceria.id`
+      : user
+        ? "Akun Terhubung"
+        : "Belum terhubung akun");
 
   const openModal = (modal: ActiveModal) => {
     setSubmitted(false);
@@ -694,18 +704,22 @@ export default function NgajiCeriaProfilePage() {
                   </h2>
                   <span
                     className={`inline-flex items-center rounded-md border border-[#134E4A] px-2 py-1 text-[10px] font-black tracking-wide text-white ${
-                      isSuperAdmin
-                        ? "bg-[#FF6B6B]"
-                        : isVip
-                          ? "bg-[#FBBF24] text-[#134E4A]"
-                          : "bg-[#0D9488]"
+                      !user
+                        ? "bg-[#64748B]"
+                        : isSuperAdmin
+                          ? "bg-[#FF6B6B]"
+                          : isVip
+                            ? "bg-[#FBBF24] text-[#134E4A]"
+                            : "bg-[#0D9488]"
                     }`}
                   >
-                    {isSuperAdmin
-                      ? "SUPER ADMIN"
-                      : isVip
-                        ? "MEMBER VIP"
-                        : "SANTRI AKTIF"}
+                    {!user
+                      ? "TAMU TARTILA"
+                      : isSuperAdmin
+                        ? "SUPER ADMIN"
+                        : isVip
+                          ? "MEMBER VIP"
+                          : "SANTRI AKTIF"}
                   </span>
                   {isUnlimited && (
                     <span className="inline-flex items-center rounded-md border border-[#134E4A] bg-[#FEF08A] px-2 py-1 text-[10px] font-black text-[#134E4A]">
