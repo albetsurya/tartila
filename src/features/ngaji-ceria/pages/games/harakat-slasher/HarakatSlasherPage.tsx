@@ -18,54 +18,81 @@ import { soundManager } from "@/features/ngaji-ceria/services/soundManager";
 
 const MODES: SlasherMode[] = ["harakat", "huruf", "kata", "ayat"];
 
-interface SlasherLevelConfig {
+export interface SlasherLevelConfig {
   level: number;
   title: string;
   targetScore: number;
   durationSeconds: number;
   description: string;
+  spawnRate: number; // jeda muncul buah dalam ms
+  fallSpeed: number; // kecepatan jatuh
+  distractorRatio: number; // persentase buah pengecoh (0.0 - 1.0)
+  targetLength: number; // jumlah karakter target
 }
 
-const SLASHER_LEVELS: SlasherLevelConfig[] = [
+export const SLASHER_LEVELS: SlasherLevelConfig[] = [
   {
     level: 1,
     title: "Level 1: Pemula",
     targetScore: 100,
     durationSeconds: 60,
     description: "Capai target 100 poin dalam 60 detik.",
+    spawnRate: 1200,
+    fallSpeed: 8,
+    distractorRatio: 0.2,
+    targetLength: 1,
   },
   {
     level: 2,
     title: "Level 2: Terampil",
-    targetScore: 250,
+    targetScore: 200,
     durationSeconds: 60,
-    description: "Capai target 250 poin dalam 60 detik.",
+    description: "Capai target 200 poin dalam 60 detik.",
+    spawnRate: 1000,
+    fallSpeed: 10,
+    distractorRatio: 0.35,
+    targetLength: 2,
   },
   {
     level: 3,
     title: "Level 3: Mahir",
-    targetScore: 500,
+    targetScore: 350,
     durationSeconds: 60,
-    description: "Capai target 500 poin dalam 60 detik.",
+    description: "Capai target 350 poin dalam 60 detik.",
+    spawnRate: 800,
+    fallSpeed: 12,
+    distractorRatio: 0.5,
+    targetLength: 3,
   },
   {
     level: 4,
     title: "Level 4: Pendekar",
-    targetScore: 800,
+    targetScore: 500,
     durationSeconds: 60,
-    description: "Capai target 800 poin dalam 60 detik.",
+    description: "Capai target 500 poin dalam 60 detik.",
+    spawnRate: 600,
+    fallSpeed: 15,
+    distractorRatio: 0.65,
+    targetLength: 4,
   },
   {
     level: 5,
     title: "Level 5: Master",
-    targetScore: 1200,
+    targetScore: 750,
     durationSeconds: 60,
-    description: "Capai target 1200 poin dalam 60 detik.",
+    description: "Capai target 750 poin dalam 60 detik.",
+    spawnRate: 450,
+    fallSpeed: 18,
+    distractorRatio: 0.75,
+    targetLength: 5,
   },
 ];
 
 function Game() {
-  const game = useSlasherGame();
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const currentLevelConfig =
+    SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
+  const game = useSlasherGame(currentLevelConfig);
   const navigate = useNavigate();
   const [celebrate, setCelebrate] = useState(false);
   const celebrateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -73,9 +100,6 @@ function Game() {
   const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("harakat-rush"));
   const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
 
-  const [selectedLevel, setSelectedLevel] = useState<number>(1);
-  const currentLevelConfig =
-    SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
   const [timeLeft, setTimeLeft] = useState<number>(
     currentLevelConfig.durationSeconds,
   );
@@ -289,13 +313,13 @@ function Game() {
                       className="my-1 flex min-h-[38px] items-center justify-center px-2"
                     >
                       <span
-                        className={`font-arabic font-black leading-normal text-[#451A03] text-center max-w-[220px] truncate drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] ${
-                          currentTargetItem.symbol.length > 8
-                            ? "text-lg sm:text-xl"
-                            : currentTargetItem.symbol.length > 5
-                              ? "text-xl sm:text-2xl"
+                        className={`font-arabic font-black leading-normal text-[#451A03] text-center max-w-[280px] drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] ${
+                          currentTargetItem.symbol.length > 12
+                            ? "text-base sm:text-lg"
+                            : currentTargetItem.symbol.length > 6
+                              ? "text-lg sm:text-xl"
                               : currentTargetItem.symbol.length > 2
-                                ? "text-2xl sm:text-3xl"
+                                ? "text-xl sm:text-2xl"
                                 : "text-3xl sm:text-4xl"
                         }`}
                       >
@@ -303,7 +327,7 @@ function Game() {
                       </span>
                     </div>
 
-                    <span className="rounded-md bg-[#78350F]/10 px-2.5 py-0.5 font-display text-[11px] font-black leading-tight text-[#7C2D12] text-center max-w-[200px] truncate">
+                    <span className="rounded-md bg-[#78350F]/10 px-2.5 py-0.5 font-display text-[11px] font-black leading-tight text-[#7C2D12] text-center max-w-[260px] truncate">
                       “{currentTargetItem.name}”
                     </span>
                   </motion.div>
@@ -320,7 +344,9 @@ function Game() {
                 <SlasherStage
                   isPlaying={phase === "playing"}
                   currentTarget={currentTarget}
+                  currentTargetItem={currentTargetItem}
                   mode={mode}
+                  levelConfig={currentLevelConfig}
                   onResult={handleResult}
                 />
               </div>
