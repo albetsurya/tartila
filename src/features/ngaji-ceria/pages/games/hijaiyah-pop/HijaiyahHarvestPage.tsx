@@ -246,7 +246,7 @@ function Game() {
       setMascotDirection("front");
       setMascotMood(game.combo > 0 ? "excited" : "happy");
     },
-    [game, mascotControls, basketControls, shouldReduceMotion],
+    [game, mascotControls, basketControls, shouldReduceMotion, triggerFeedback],
   );
 
   return (
@@ -313,179 +313,732 @@ function Game() {
             }}
           />
 
-          {/* ILUSTRASI 1: KANOPI POHON RIMBUN */}
-          <div className="pointer-events-none absolute top-0 inset-x-0 h-24 sm:h-32 z-10 overflow-hidden">
+          {/* ========================================================= */}
+          {/* ILUSTRASI 1: KANOPI POHON RIMBUN (ATAS)                   */}
+          {/* ========================================================= */}
+          <div className="pointer-events-none absolute top-0 inset-x-0 h-52 sm:h-60 z-10 overflow-hidden">
             <svg
-              viewBox="0 0 1000 160"
-              preserveAspectRatio="none"
+              viewBox="0 0 1000 260"
+              preserveAspectRatio="xMidYMax slice"
               className="w-full h-full"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              style={{ overflow: "hidden" }}
             >
+              {/* LAYER 1: HARD OFFSET SHADOW NEO-BRUTALISM */}
               <path
-                d="M0,0 L1000,0 L1000,18 Q800,28 650,15 T300,24 T0,16 Z"
-                fill="#78350F"
-                stroke="#134E4A"
-                strokeWidth="4"
+                d="M-40,0 L1040,0 L1040,228 C990,254 920,250 870,228 C830,256 760,252 720,222 C670,236 620,228 580,214 C530,228 470,228 420,214 C380,228 330,236 280,222 C240,252 170,256 130,228 C80,250 10,254 -40,228 Z"
+                fill="#134E4A"
               />
+
+              {/* LAYER 2: DEDAUNAN HUTAN DALAM (DARK BACK FOLIAGE) */}
               <path
-                d="M -20,0 L 1020,0 L 1020,80 C 940,110 860,70 780,100 C 700,130 620,80 540,110 C 460,140 380,90 300,120 C 220,140 140,90 60,110 C 20,120 -10,100 -20,90 Z"
+                d="M-40,0 L1040,0 L1040,216 C990,242 920,238 870,216 C830,244 760,240 720,210 C670,224 620,216 580,202 C530,216 470,216 420,202 C380,216 330,224 280,210 C240,240 170,244 130,216 C80,238 10,242 -40,216 Z"
                 fill="#064E3B"
                 stroke="#134E4A"
-                strokeWidth="4"
+                strokeWidth="4.5"
                 strokeLinejoin="round"
               />
+
+              {/* LAYER 3: SULUR DAUN GANTUNG & DAHAN POHON PENYANGGA BANNER */}
               <path
-                d="M -20,0 L 1020,0 L 1020,60 C 930,90 870,50 800,80 C 730,110 660,60 580,90 C 500,115 430,65 350,95 C 270,115 200,65 120,90 C 60,105 10,70 -20,70 Z"
-                fill="#059669"
+                d="M235,195 Q220,225 238,248"
                 stroke="#134E4A"
-                strokeWidth="4"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M230,218 C212,212 206,226 224,230 Z"
+                fill="#34D399"
+                stroke="#134E4A"
+                strokeWidth="3.5"
                 strokeLinejoin="round"
               />
               <path
-                d="M -20,0 L 1020,0 L 1020,40 C 950,65 890,30 830,58 C 760,80 690,35 610,62 C 530,85 460,40 380,68 C 300,90 230,40 150,64 C 80,80 20,45 -20,45 Z"
+                d="M233,234 C250,228 256,242 238,246 Z"
                 fill="#10B981"
                 stroke="#134E4A"
-                strokeWidth="4"
+                strokeWidth="3.5"
                 strokeLinejoin="round"
               />
-              <ellipse
-                cx="180"
-                cy="90"
-                rx="35"
-                ry="22"
+
+              <path
+                d="M765,195 Q780,225 762,248"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M770,218 C788,212 794,226 776,230 Z"
                 fill="#34D399"
                 stroke="#134E4A"
                 strokeWidth="3.5"
-                transform="rotate(-10 180 90)"
+                strokeLinejoin="round"
               />
-              <ellipse
-                cx="460"
-                cy="96"
-                rx="40"
-                ry="24"
-                fill="#34D399"
+              <path
+                d="M767,234 C750,228 744,242 762,246 Z"
+                fill="#10B981"
                 stroke="#134E4A"
                 strokeWidth="3.5"
-                transform="rotate(8 460 96)"
+                strokeLinejoin="round"
               />
+
+              {/* Dahan Kayu Utama Kiri & Kanan */}
+              <path
+                d="M-20,165 C90,155 180,175 290,192 C330,198 370,196 410,188 L405,172 C360,178 310,178 260,168 C170,150 90,130 -20,135 Z"
+                fill="#78350F"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M1020,165 C910,155 820,175 710,192 C670,198 630,196 590,188 L595,172 C640,178 690,178 740,168 C830,150 910,130 1020,135 Z"
+                fill="#78350F"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M40,152 Q160,156 270,178 M960,152 Q840,156 730,178"
+                stroke="#B45309"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+
+              {/* Tali Kayu Penyangga TargetBanner di Tengah */}
+              <rect
+                x="384"
+                y="140"
+                width="10"
+                height="58"
+                rx="5"
+                fill="#D97706"
+                stroke="#134E4A"
+                strokeWidth="3.5"
+              />
+              <rect
+                x="606"
+                y="140"
+                width="10"
+                height="58"
+                rx="5"
+                fill="#D97706"
+                stroke="#134E4A"
+                strokeWidth="3.5"
+              />
+
+              {/* LAYER 4: RUMPUN DAUN TENGAH (LUSH MID-CANOPY) */}
+              <path
+                d="M-40,0 L1040,0 L1040,182 C985,212 910,206 865,180 C820,214 745,210 700,178 C655,198 595,192 560,174 C520,194 480,194 440,174 C405,192 345,198 300,178 C255,210 180,214 135,180 C90,206 15,212 -40,182 Z"
+                fill="#059669"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+
+              <circle
+                cx="195"
+                cy="186"
+                r="42"
+                fill="#10B981"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+              />
+              <circle
+                cx="265"
+                cy="178"
+                r="36"
+                fill="#059669"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+              />
+              <circle
+                cx="805"
+                cy="186"
+                r="42"
+                fill="#10B981"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+              />
+              <circle
+                cx="735"
+                cy="178"
+                r="36"
+                fill="#059669"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+              />
+
+              {/* LAYER 5: BUAH-BUAHAN MENGINTIP */}
+              <g transform="translate(225, 198) rotate(-12)">
+                <circle cx="2" cy="2" r="14" fill="#134E4A" />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="14"
+                  fill="#EF4444"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                />
+                <path
+                  d="M-6,-5 C-4,-9 0,-10 4,-9"
+                  stroke="#FCA5A5"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </g>
+
+              <g transform="translate(775, 198) rotate(12)">
+                <circle cx="2" cy="2" r="14" fill="#134E4A" />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="14"
+                  fill="#FACC15"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                />
+                <circle cx="-4" cy="-4" r="2.5" fill="#FEF9C3" />
+              </g>
+
+              <circle
+                cx="330"
+                cy="182"
+                r="11"
+                fill="#3B82F6"
+                stroke="#134E4A"
+                strokeWidth="3.5"
+              />
+              <circle cx="327" cy="179" r="2.5" fill="#BAE6FD" />
+              <circle
+                cx="670"
+                cy="182"
+                r="11"
+                fill="#F43F5E"
+                stroke="#134E4A"
+                strokeWidth="3.5"
+              />
+              <circle cx="667" cy="179" r="2.5" fill="#FECDD3" />
+
+              {/* LAYER 6: DEDAUNAN UTAMA CERAH */}
+              <path
+                d="M-40,0 L1040,0 L1040,142 C980,174 910,162 860,136 C810,172 735,168 685,138 C635,166 565,162 500,140 C435,162 365,166 315,138 C265,168 190,172 140,136 C90,162 20,174 -40,142 Z"
+                fill="#10B981"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+
+              <path
+                d="M-40,0 L1040,0 L1040,92 C975,122 900,108 845,84 C790,118 710,114 655,86 C595,116 535,112 500,90 C465,112 405,116 345,86 C290,114 210,118 155,84 C100,108 25,122 -40,92 Z"
+                fill="#34D399"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+
+              <path
+                d="M0,0 L1000,0 L1000,26 Q830,42 660,22 T320,34 T0,22 Z"
+                fill="#78350F"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+              />
+
+              {/* LAYER 7: DETAIL PUFF DAUN, BUNGA MEKAR & KILAP CAHAYA */}
               <ellipse
-                cx="760"
-                cy="88"
+                cx="145"
+                cy="152"
                 rx="38"
                 ry="22"
+                transform="rotate(-8 145 152)"
                 fill="#34D399"
                 stroke="#134E4A"
-                strokeWidth="3.5"
-                transform="rotate(-6 760 88)"
+                strokeWidth="4"
               />
               <ellipse
-                cx="620"
-                cy="105"
-                rx="30"
-                ry="18"
+                cx="855"
+                cy="152"
+                rx="38"
+                ry="22"
+                transform="rotate(8 855 152)"
                 fill="#34D399"
                 stroke="#134E4A"
-                strokeWidth="3.5"
-                transform="rotate(5 620 105)"
+                strokeWidth="4"
+              />
+              <ellipse
+                cx="350"
+                cy="148"
+                rx="32"
+                ry="18"
+                transform="rotate(6 350 148)"
+                fill="#34D399"
+                stroke="#134E4A"
+                strokeWidth="4"
+              />
+              <ellipse
+                cx="650"
+                cy="148"
+                rx="32"
+                ry="18"
+                transform="rotate(-6 650 148)"
+                fill="#34D399"
+                stroke="#134E4A"
+                strokeWidth="4"
+              />
+
+              <path
+                d="M125,146 Q145,136 165,144 M835,144 Q855,136 875,146 M475,72 Q500,62 525,72 M285,70 Q310,60 335,70 M665,70 Q690,60 715,70"
+                stroke="#A7F3D0"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+
+              <g transform="translate(185, 162)">
+                <circle
+                  cx="0"
+                  cy="-7"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="7"
+                  cy="0"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="0"
+                  cy="7"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="-7"
+                  cy="0"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="5.5"
+                  fill="#FACC15"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+              </g>
+
+              <g transform="translate(815, 162)">
+                <circle
+                  cx="0"
+                  cy="-7"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="7"
+                  cy="0"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="0"
+                  cy="7"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="-7"
+                  cy="0"
+                  r="6"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="5.5"
+                  fill="#F43F5E"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+              </g>
+
+              <circle
+                cx="280"
+                cy="126"
+                r="5.5"
+                fill="#FEF08A"
+                stroke="#134E4A"
+                strokeWidth="3"
               />
               <circle
-                cx="180"
-                cy="100"
-                r="7"
-                fill="#FBBF24"
+                cx="720"
+                cy="126"
+                r="5.5"
+                fill="#FEF08A"
                 stroke="#134E4A"
-                strokeWidth="2.5"
+                strokeWidth="3"
               />
               <circle
-                cx="460"
-                cy="106"
-                r="8"
-                fill="#FF6B6B"
+                cx="500"
+                cy="122"
+                r="5"
+                fill="#FEF08A"
                 stroke="#134E4A"
-                strokeWidth="2.5"
-              />
-              <circle
-                cx="760"
-                cy="98"
-                r="7.5"
-                fill="#FBBF24"
-                stroke="#134E4A"
-                strokeWidth="2.5"
+                strokeWidth="3"
               />
             </svg>
           </div>
 
-          {/* ILUSTRASI 2: RUMPUT & TANAH SUBUR */}
-          <div className="pointer-events-none absolute bottom-0 inset-x-0 h-20 sm:h-24 z-10 overflow-hidden">
+          {/* ========================================================= */}
+          {/* ILUSTRASI 2: PADANG RUMPUT, PAGAR KEBUN & PANGGUNG PANEN  */}
+          {/* ========================================================= */}
+          <div className="pointer-events-none absolute bottom-0 inset-x-0 h-28 sm:h-32 z-10 overflow-hidden">
             <svg
-              viewBox="0 0 1000 100"
-              preserveAspectRatio="none"
+              viewBox="0 0 1000 130"
+              preserveAspectRatio="xMidYMin slice"
               className="w-full h-full"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
+              {/* PAGAR KAYU KEBUN KIRI & KANAN (ORCHARD FENCE) */}
+              <g>
+                {/* Palang Horizontal Kiri */}
+                <rect
+                  x="60"
+                  y="32"
+                  width="170"
+                  height="10"
+                  rx="4"
+                  fill="#92400E"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                />
+                <rect
+                  x="60"
+                  y="50"
+                  width="170"
+                  height="10"
+                  rx="4"
+                  fill="#92400E"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                />
+                {/* Tiang Vertikal Kiri */}
+                <path
+                  d="M80,22 L90,14 L100,22 L100,75 L80,75 Z"
+                  fill="#D97706"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M135,20 L145,12 L155,20 L155,75 L135,75 Z"
+                  fill="#D97706"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M190,24 L200,16 L210,24 L210,75 L190,75 Z"
+                  fill="#D97706"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+
+                {/* Palang Horizontal Kanan */}
+                <rect
+                  x="770"
+                  y="32"
+                  width="170"
+                  height="10"
+                  rx="4"
+                  fill="#92400E"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                />
+                <rect
+                  x="770"
+                  y="50"
+                  width="170"
+                  height="10"
+                  rx="4"
+                  fill="#92400E"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                />
+                {/* Tiang Vertikal Kanan */}
+                <path
+                  d="M790,24 L800,16 L810,24 L810,75 L790,75 Z"
+                  fill="#D97706"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M845,20 L855,12 L865,20 L865,75 L845,75 Z"
+                  fill="#D97706"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M900,22 L910,14 L920,22 L920,75 L900,75 Z"
+                  fill="#D97706"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+              </g>
+
+              {/* LAYER 1: BUKIT SEMAK GELAP BELAKANG + HARD SHADOW */}
               <path
-                d="M0,45 Q250,30 500,48 T1000,38 L1000,100 L0,100 Z"
+                d="M-20,54 C120,28 260,64 400,48 C500,36 580,44 660,52 C780,64 890,28 1020,50 L1020,130 L-20,130 Z"
                 fill="#064E3B"
                 stroke="#134E4A"
-                strokeWidth="4"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
               />
+
+              {/* LAYER 2: BUKIT RUMPUT TENGAH (MID-MEADOW) */}
               <path
-                d="M0,58 Q200,38 420,54 T850,44 Q930,48 1000,56 L1000,100 L0,100 Z"
+                d="M-20,72 C150,46 280,82 440,62 C540,50 640,76 780,56 C880,42 960,64 1020,68 L1020,130 L-20,130 Z"
                 fill="#059669"
                 stroke="#134E4A"
-                strokeWidth="4"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+
+              {/* JAMUR PAYUNG LUCU & RUMPUT TAJAM */}
+              {/* Jamur Merah Kiri */}
+              <g transform="translate(255, 62) rotate(-8)">
+                <rect
+                  x="-5"
+                  y="0"
+                  width="10"
+                  height="14"
+                  rx="3"
+                  fill="#FEF3C7"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M-16,2 C-16,-14 16,-14 16,2 Z"
+                  fill="#F43F5E"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+                <circle cx="-5" cy="-4" r="2.5" fill="#FFFBEB" />
+                <circle cx="5" cy="-3" r="2" fill="#FFFBEB" />
+              </g>
+
+              {/* Jamur Merah Kanan */}
+              <g transform="translate(745, 58) rotate(10)">
+                <rect
+                  x="-5"
+                  y="0"
+                  width="10"
+                  height="14"
+                  rx="3"
+                  fill="#FEF3C7"
+                  stroke="#134E4A"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M-16,2 C-16,-14 16,-14 16,2 Z"
+                  fill="#F43F5E"
+                  stroke="#134E4A"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                />
+                <circle cx="-4" cy="-4" r="2" fill="#FFFBEB" />
+                <circle cx="5" cy="-4" r="2.5" fill="#FFFBEB" />
+              </g>
+
+              {/* Rumpun Daun Rumput Mencuat */}
+              <path
+                d="M170,68 L162,48 L176,60 L182,44 L188,62 L198,50 L190,68 Z"
+                fill="#34D399"
+                stroke="#134E4A"
+                strokeWidth="3.5"
+                strokeLinejoin="round"
               />
               <path
-                d="M0,70 Q300,50 600,68 T1000,62 L1000,100 L0,100 Z"
+                d="M810,66 L802,48 L814,58 L820,42 L826,58 L836,48 L828,66 Z"
+                fill="#34D399"
+                stroke="#134E4A"
+                strokeWidth="3.5"
+                strokeLinejoin="round"
+              />
+
+              {/* LAYER 3: HAMPARAN RUMPUT DEPAN CERAH (FOREGROUND LAWN) */}
+              <path
+                d="M-20,88 C180,68 320,96 500,80 C680,96 820,68 1020,88 L1020,130 L-20,130 Z"
                 fill="#10B981"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+                strokeLinejoin="round"
+              />
+
+              {/* Highlight Kilap Rumput */}
+              <path
+                d="M90,88 Q140,80 190,86 M810,86 Q860,80 910,88 M350,72 Q390,66 430,70"
+                stroke="#6EE7B7"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+
+              {/* Bunga Daisy Kebun */}
+              <g transform="translate(310, 92)">
+                <circle
+                  cx="-5"
+                  cy="0"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="5"
+                  cy="0"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="0"
+                  cy="-5"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="0"
+                  cy="5"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="4"
+                  fill="#FACC15"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+              </g>
+
+              <g transform="translate(690, 92)">
+                <circle
+                  cx="-5"
+                  cy="0"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="5"
+                  cy="0"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="0"
+                  cy="-5"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="0"
+                  cy="5"
+                  r="4.5"
+                  fill="#FFFBEB"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="4"
+                  fill="#FACC15"
+                  stroke="#134E4A"
+                  strokeWidth="2.5"
+                />
+              </g>
+
+              {/* LAYER 4: TANAH SUBUR & DERMAGA PIJAKAN KERANJANG (BAWAH) */}
+              <path
+                d="M-20,108 Q250,100 500,106 T1020,108 L1020,130 L-20,130 Z"
+                fill="#78350F"
+                stroke="#134E4A"
+                strokeWidth="4.5"
+              />
+              {/* Papan Pijakan Tengah Tempat Keranjang & Maskot Berdiri */}
+              <rect
+                x="410"
+                y="98"
+                width="180"
+                height="16"
+                rx="6"
+                fill="#B45309"
                 stroke="#134E4A"
                 strokeWidth="4"
               />
-              <polygon
-                points="120,45 126,28 132,45"
-                fill="#34D399"
-                stroke="#134E4A"
+              <line
+                x1="425"
+                y1="104"
+                x2="575"
+                y2="104"
+                stroke="#F59E0B"
                 strokeWidth="3"
+                strokeLinecap="round"
               />
-              <polygon
-                points="128,46 135,32 142,46"
-                fill="#34D399"
-                stroke="#134E4A"
-                strokeWidth="3"
-              />
-              <polygon
-                points="860,42 866,26 872,42"
-                fill="#34D399"
-                stroke="#134E4A"
-                strokeWidth="3"
-              />
-              <polygon
-                points="868,43 875,30 882,43"
-                fill="#34D399"
-                stroke="#134E4A"
-                strokeWidth="3"
-              />
-              <circle
-                cx="240"
-                cy="62"
-                r="6"
-                fill="#FEF08A"
+
+              {/* Batu Kerikil Tanah */}
+              <ellipse
+                cx="220"
+                cy="118"
+                rx="10"
+                ry="4"
+                fill="#92400E"
                 stroke="#134E4A"
                 strokeWidth="2.5"
               />
-              <circle cx="240" cy="62" r="2.5" fill="#F59E0B" />
-              <circle
+              <ellipse
                 cx="780"
-                cy="58"
-                r="6"
-                fill="#FEF08A"
+                cy="118"
+                rx="12"
+                ry="4.5"
+                fill="#92400E"
                 stroke="#134E4A"
                 strokeWidth="2.5"
               />
-              <circle cx="780" cy="58" r="2.5" fill="#F59E0B" />
             </svg>
           </div>
 
@@ -499,24 +1052,26 @@ function Game() {
             />
           ))}
 
+          {/* Keranjang Panen */}
           <motion.div
             animate={basketControls}
             className="pointer-events-none absolute z-20"
-            style={{ left: "calc(50% - 45px)", bottom: 4 }}
+            style={{ left: "calc(50% - 45px)", bottom: 6 }}
           >
             <BasketCatchSvg
               size={90}
-              className="drop-shadow-[3px_3px_0px_#78350F]"
+              className="drop-shadow-[3px_3px_0px_#134E4A]"
             />
           </motion.div>
 
+          {/* Maskot Tila & Pijakan */}
           <motion.div
             animate={mascotControls}
             className="pointer-events-none absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center"
             style={{ transformOrigin: "bottom center" }}
           >
             {game.combo >= 3 && (
-              <div className="mb-1 px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] text-[10px] font-black shadow-[1.5px_1.5px_0px_#134E4A] whitespace-nowrap animate-bounce">
+              <div className="mb-1 px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] text-[10px] font-black shadow-[2px_2px_0px_#134E4A] whitespace-nowrap animate-bounce">
                 <span>Kombo x{game.combo}!</span>
               </div>
             )}
@@ -527,8 +1082,8 @@ function Game() {
               animation="none"
               direction={mascotDirection}
             />
-            <div className="w-24 h-5 -mt-2 rounded-[50%] border-2 border-[#134E4A] bg-[#FEF3C7] shadow-[2px_2px_0px_#134E4A] flex items-center justify-center -z-10">
-              <div className="w-18 h-3 rounded-[50%] border border-dashed border-[#134E4A]/30" />
+            <div className="w-28 h-6 -mt-2 rounded-[50%] border-[3px] border-[#134E4A] bg-[#FDE68A] shadow-[3px_3px_0px_#134E4A] flex items-center justify-center -z-10">
+              <div className="w-20 h-3.5 rounded-[50%] border-[1.5px] border-dashed border-[#B45309]" />
             </div>
           </motion.div>
 
