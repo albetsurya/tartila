@@ -293,7 +293,9 @@ export default function NgajiCeriaHomePage() {
     setIsLoading(false);
   }, []);
 
-  const displayName = user?.name ? user.name.split(" ")[0] : "Hamba Allah";
+  const displayName = user?.name
+    ? user.name.split(" ")[0]
+    : user?.username || (user?.email ? user.email.split("@")[0] : "Hamba Allah");
   const { currentJilid, currentPage, progressPercentage } =
     useNgajiCeriaProgress();
   const currentJilidNumber = Number(currentJilid.replace("jilid-", "")) || 1;

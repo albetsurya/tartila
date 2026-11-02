@@ -13,7 +13,45 @@ export type SlasherPhase = "idle" | "playing" | "paused" | "gameover";
 
 export type SlashResultKind = "correct" | "wrong" | "miss";
 
-export function useSlasherGame() {
+export interface SlasherLevelOptions {
+  level?: number;
+  spawnRate?: number;
+  fallSpeed?: number;
+  distractorRatio?: number;
+  targetLength?: number;
+  targetScore?: number;
+}
+
+/**
+ * Helper untuk membuat target dinamis dengan panjang targetLength.
+ * Menggabungkan item dari pool (harakat/huruf/kata/ayat).
+ * Contoh Level 2: 'بَ' + 'تَ' = 'بَ تَ'
+ */
+export function generateSlasherTarget(
+  pool: readonly SlasherTargetItem[],
+  targetLength: number
+): SlasherTargetItem {
+  if (!pool || pool.length === 0) {
+    return HARAKAT_LIST[0];
+  }
+  const length = Math.max(1, targetLength);
+  if (length === 1) {
+    const item = pool[Math.floor(Math.random() * pool.length)] || HARAKAT_LIST[0];
+    return { ...item };
+  }
+  const picked: SlasherTargetItem[] = [];
+  for (let i = 0; i < length; i++) {
+    picked.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  return {
+    id: picked.map((p) => p.id).join("_"),
+    name: picked.map((p) => p.name).join(" - "),
+    symbol: picked.map((p) => p.symbol).join(" "),
+    category: pool[0].category,
+  };
+}
+
+export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
   const [phase, setPhase] = useState<SlasherPhase>("idle");
   const [mode, setMode] = useState<SlasherMode>("harakat");
   const [score, setScore] = useState(0);
@@ -21,19 +59,24 @@ export function useSlasherGame() {
   const [lives, setLives] = useState(3);
 
   const activePool = useMemo(() => getSlasherItems(mode), [mode]);
+  const targetLength = Math.max(1, levelConfig?.targetLength ?? 1);
 
-  const [currentTarget, setCurrentTarget] = useState<string>(() => activePool[0]?.id || "fathah");
+  const [currentTargetItem, setCurrentTargetItem] = useState<SlasherTargetItem>(() =>
+    generateSlasherTarget(activePool, targetLength)
+  );
   const [best, setBestState] = useState(() => getBest("harakat-rush"));
 
   const scoreRef = useRef(0);
 
-  // Saat mode berganti, reset target ke item pertama dari mode tersebut
-  useEffect(() => {
+  const pickNewTarget = useCallback(() => {
     const items = getSlasherItems(mode);
-    if (items.length > 0) {
-      setCurrentTarget(items[0].id);
-    }
-  }, [mode]);
+    setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+  }, [mode, targetLength]);
+
+  // Saat mode atau targetLength berganti, perbarui target aktif
+  useEffect(() => {
+    pickNewTarget();
+  }, [pickNewTarget]);
 
   const bumpScore = useCallback((next: number) => {
     scoreRef.current = next;
@@ -53,15 +96,16 @@ export function useSlasherGame() {
       if (nextL <= 0) {
         setPhase("gameover");
         playSfx("gameover");
-      } else {
-        /* silence: correct/wrong SFX delegated to feedback layer */
       }
       return nextL;
     });
     setCombo(0);
   }, []);
 
-  // Hasil tebasan dari SlasherStage: tebasan benar / pengecoh / target lolos
+  // Hasil tebasan / lolos dari SlasherStage:
+  // 1. correct: tambah skor (+25) & combo, mainkan audio
+  // 2. wrong (menebas pengecoh): penalti nyawa -1 & penalti skor (-15)
+  // 3. miss (target jatuh lolos melewati batas bawah): penalti nyawa -1
   const onSliceResult = useCallback(
     (kind: SlashResultKind, symbol?: string) => {
       if (kind === "correct") {
@@ -69,26 +113,25 @@ export function useSlasherGame() {
         bumpScore(next);
         setCombo((c) => c + 1);
         if (symbol) playLetterAudio(symbol);
-        /* silence: correct SFX delegated to feedback layer */
-      } else {
+      } else if (kind === "wrong") {
+        loseLife();
+        const next = Math.max(0, scoreRef.current - 15);
+        bumpScore(next);
+      } else if (kind === "miss") {
         loseLife();
       }
     },
     [bumpScore, loseLife]
   );
 
-  // Target berganti berkala agar variasi sesuai mode yang dipilih
+  // Target berganti berkala (12 detik) saat game berlangsung
   useEffect(() => {
     if (phase !== "playing") return;
     const interval = setInterval(() => {
-      const items = getSlasherItems(mode);
-      if (items.length > 0) {
-        const nextTarget = items[Math.floor(Math.random() * items.length)];
-        setCurrentTarget(nextTarget.id);
-      }
+      pickNewTarget();
     }, 12000);
     return () => clearInterval(interval);
-  }, [phase, mode]);
+  }, [phase, pickNewTarget]);
 
   const resetRun = useCallback(() => {
     scoreRef.current = 0;
@@ -96,17 +139,9 @@ export function useSlasherGame() {
     setCombo(0);
     setLives(3);
     const items = getSlasherItems(mode);
-    setCurrentTarget(items[0]?.id || HARAKAT_LIST[0].id);
+    setCurrentTargetItem(generateSlasherTarget(items, targetLength));
     setPhase("idle");
-  }, [mode]);
-
-  const currentTargetItem: SlasherTargetItem = useMemo(() => {
-    return (
-      activePool.find((item) => item.id === currentTarget) ??
-      activePool[0] ??
-      HARAKAT_LIST[0]
-    );
-  }, [activePool, currentTarget]);
+  }, [mode, targetLength]);
 
   return {
     phase,
@@ -116,7 +151,7 @@ export function useSlasherGame() {
     score,
     combo,
     lives,
-    currentTarget,
+    currentTarget: currentTargetItem.id,
     currentTargetItem,
     best,
     onSliceResult,

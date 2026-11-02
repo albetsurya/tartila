@@ -35,7 +35,14 @@ func GetFrontendURL() string {
 	if u := strings.TrimSpace(os.Getenv("FRONTEND_URL")); u != "" {
 		return strings.TrimRight(u, "/")
 	}
-	return "https://tartila.pages.dev"
+	appEnv := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+	if appEnv == "" {
+		appEnv = strings.ToLower(strings.TrimSpace(os.Getenv("GO_ENV")))
+	}
+	if appEnv == "production" {
+		return "https://tartila.pages.dev"
+	}
+	return "http://localhost:5173"
 }
 
 // GenerateToken creates a signed HS256 JWT for the given user (valid for 30 days).

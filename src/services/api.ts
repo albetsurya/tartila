@@ -253,7 +253,7 @@ export async function callREST<T>(
         statusCode: res.status,
       });
     }
-    return json.data as T;
+    return (json.data !== undefined ? json.data : json) as T;
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === "AbortError") {

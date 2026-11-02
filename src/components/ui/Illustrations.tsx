@@ -742,31 +742,6 @@ export const ItemMerahSvg: React.FC<SvgProps> = ({
     />
     <circle cx="27" cy="63" r="2.5" fill="#FFFFFF" />
 
-    {/* Medali Tengah Tempat Huruf Hijaiyah */}
-    <circle
-      cx="64"
-      cy="68"
-      r="31"
-      fill="#FFFBEB"
-      stroke="#134E4A"
-      strokeWidth="4.5"
-    />
-    {letter && (
-      <text
-        x="64"
-        y="68"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#134E4A"
-        fontSize="34"
-        fontWeight="bold"
-        fontFamily="Amiri, Scheherazade New, sans-serif"
-        className="select-none pointer-events-none font-arabic"
-        style={{ direction: "rtl" }}
-      >
-        {normalizeArabicText(letter)}
-      </text>
-    )}
   </svg>
 );
 
@@ -842,31 +817,6 @@ export const ItemBiruSvg: React.FC<SvgProps> = ({
     />
     <circle cx="26" cy="65" r="3" fill="#BAE6FD" />
 
-    {/* Medali Tengah Tempat Huruf Hijaiyah */}
-    <circle
-      cx="64"
-      cy="68"
-      r="31"
-      fill="#FFFBEB"
-      stroke="#134E4A"
-      strokeWidth="4.5"
-    />
-    {letter && (
-      <text
-        x="64"
-        y="68"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#134E4A"
-        fontSize="34"
-        fontWeight="bold"
-        fontFamily="Amiri, Scheherazade New, sans-serif"
-        className="select-none pointer-events-none font-arabic"
-        style={{ direction: "rtl" }}
-      >
-        {normalizeArabicText(letter)}
-      </text>
-    )}
   </svg>
 );
 
@@ -950,31 +900,6 @@ export const ItemKuningSvg: React.FC<SvgProps> = ({
       strokeLinecap="round"
     />
 
-    {/* Medali Tengah Tempat Huruf Hijaiyah */}
-    <circle
-      cx="64"
-      cy="68"
-      r="31"
-      fill="#FFFBEB"
-      stroke="#134E4A"
-      strokeWidth="4.5"
-    />
-    {letter && (
-      <text
-        x="64"
-        y="68"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#134E4A"
-        fontSize="34"
-        fontWeight="bold"
-        fontFamily="Amiri, Scheherazade New, sans-serif"
-        className="select-none pointer-events-none font-arabic"
-        style={{ direction: "rtl" }}
-      >
-        {normalizeArabicText(letter)}
-      </text>
-    )}
   </svg>
 );
 
@@ -1056,31 +981,6 @@ export const ItemHijauSvg: React.FC<SvgProps> = ({
       strokeLinecap="round"
     />
 
-    {/* Medali Tengah Tempat Huruf Hijaiyah */}
-    <circle
-      cx="64"
-      cy="68"
-      r="31"
-      fill="#FFFBEB"
-      stroke="#134E4A"
-      strokeWidth="4.5"
-    />
-    {letter && (
-      <text
-        x="64"
-        y="68"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#134E4A"
-        fontSize="34"
-        fontWeight="bold"
-        fontFamily="Amiri, Scheherazade New, sans-serif"
-        className="select-none pointer-events-none font-arabic"
-        style={{ direction: "rtl" }}
-      >
-        {normalizeArabicText(letter)}
-      </text>
-    )}
   </svg>
 );
 
