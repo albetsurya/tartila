@@ -13,6 +13,7 @@ export interface GameResultModalProps {
   hasNextLevel?: boolean;
   title?: string;
   message?: string;
+  loseReason?: "lives" | "time" | string | null;
   onRetry: () => void;
   onNextLevel?: () => void;
   onBackToHub: () => void;
@@ -28,6 +29,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   hasNextLevel = true,
   title,
   message,
+  loseReason,
   onRetry,
   onNextLevel,
   onBackToHub,
@@ -45,7 +47,9 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
     title ||
     (isWin
       ? "Alhamdulillah! Berhasil!"
-      : "Waktu Habis! Jangan Menyerah!");
+      : loseReason === "lives"
+        ? "Kesempatan Habis! Jangan Menyerah!"
+        : "Waktu Habis! Jangan Menyerah!");
 
   const displayMessage =
     message ||
@@ -53,7 +57,9 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
       ? level !== undefined
         ? `Hebat! Kamu berhasil menuntaskan Level ${level} dengan baik.`
         : "Hebat! Kamu berhasil menyelesaikan tantangan ini."
-      : "Ayo latih terus fokus dan ketepatanmu, coba lagi sekarang!");
+      : loseReason === "lives"
+        ? "Nyawa kamu telah habis. Ayo lebih teliti memperhatikan target hurufnya!"
+        : "Waktu bermain telah selesai. Ayo latih terus kecepatan dan ketepatanmu!");
 
   return (
     <AppModal isOpen={isOpen} onClose={onBackToHub} title={displayTitle} variant="warm">
@@ -131,6 +137,18 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
             className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] py-3.5 text-base font-black text-white shadow-[4px_4px_0px_#134E4A] hover:bg-[#0F766E] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
           >
             <span>Lanjut Level Berikutnya</span>
+            <ChevronRight size={20} />
+          </button>
+        )}
+
+        {/* Tombol Selesai Tamat (Jika menang di level terakhir) */}
+        {isWin && !hasNextLevel && (
+          <button
+            type="button"
+            onClick={onBackToHub}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] py-3.5 text-base font-black text-white shadow-[4px_4px_0px_#134E4A] hover:bg-[#0F766E] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+          >
+            <span>Alhamdulillah! Tamat (Kembali ke Menu)</span>
             <ChevronRight size={20} />
           </button>
         )}

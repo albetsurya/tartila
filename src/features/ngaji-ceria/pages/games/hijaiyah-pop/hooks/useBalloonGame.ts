@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import type { SessionState, LevelState } from "@/features/ngaji-ceria/types/game";
 import { useBestScore, useGameState } from "../../_shared/hooks";
 import type { GamePhase } from "../../_shared/types";
 import { HIJAIYAH_LETTERS } from "../data/hijaiyah-letters";
@@ -26,6 +27,8 @@ const POP_LIFETIME = 0.5;
 
 interface BalloonState {
   phase: GamePhase;
+  session: SessionState;
+  level: LevelState;
   score: number;
   combo: number;
   maxCombo: number;
@@ -50,8 +53,38 @@ interface BalloonState {
   isWin: boolean;
 }
 
-const initial = (): BalloonState => ({
+const initial = (levelIndex = 0): BalloonState => ({
   phase: "idle",
+  session: {
+    sessionId: `harvest-${Date.now()}`,
+    userId: "guest",
+    gameId: "hijaiyah-harvest",
+    mode: "challenge",
+    currentLevel: levelIndex + 1,
+    totalScore: 0,
+    completedLevels: [],
+    status: "active",
+    ticketConsumed: true,
+    rewardClaimedLevelIds: [],
+    startedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  level: {
+    levelId: `harvest-level-${levelIndex + 1}`,
+    score: 0,
+    lives: 3,
+    combo: 0,
+    maxCombo: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    missedCount: 0,
+    targetProgress: 0,
+    targetTotal: 3,
+    remainingTime: 60,
+    isCompleted: false,
+    isFailed: false,
+    startedAt: Date.now(),
+  },
   score: 0,
   combo: 0,
   maxCombo: 0,
@@ -68,7 +101,7 @@ const initial = (): BalloonState => ({
   targetLetters: [],
   collectedLetters: [],
   displayLetters: [],
-  levelIndex: 0,
+  levelIndex,
   isWord: false,
   timeLeft: 60,
   targetScore: 300,
@@ -94,10 +127,8 @@ export function useBalloonGame() {
   const wordsRef = useRef<string[][]>([]);
 
   /** Mulai game pada level tertentu (async: muat kata dari Tilawati) */
-  const startGame = useCallback(
+  const handleStartLevel = useCallback(
     async (levelIndex: number) => {
-      // Prevent double-start while the game is already running.
-      if (state.phase === "playing") return;
       const cfg = LEVELS[levelIndex] ?? LEVELS[0];
       const initialTime = cfg.durationSeconds;
       const targetScore = cfg.targetScore;
@@ -108,50 +139,242 @@ export function useBalloonGame() {
         const activeWord = rawWord.map(normalizeArabicText);
         const isWord = activeWord.length > 1;
         const firstLetter = activeWord[0] || "";
-        update(() => ({
-          ...initial(),
+        const targetTotal = activeWord.length;
+        update((s) => ({
+          ...s,
           phase: "playing",
+          session: {
+            ...s.session,
+            currentLevel: levelIndex + 1,
+            status: "active",
+            updatedAt: new Date().toISOString(),
+          },
+          level: {
+            levelId: `harvest-level-${levelIndex + 1}`,
+            score: 0,
+            lives: 3,
+            combo: 0,
+            maxCombo: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            missedCount: 0,
+            targetProgress: 0,
+            targetTotal,
+            remainingTime: initialTime,
+            isCompleted: false,
+            isFailed: false,
+            startedAt: Date.now(),
+          },
+          score: 0,
+          combo: 0,
+          maxCombo: 0,
+          lives: 3,
           levelIndex,
           targetLetters: activeWord,
           target: firstLetter,
           targetName: firstLetter,
+          collectedLetters: [],
           displayLetters: activeWord.map(() => ""),
           isWord,
           timeLeft: initialTime,
           targetScore,
           isWin: false,
           loseReason: null,
+          balloons: [],
+          spawnLeft: 0.05,
+          spawned: 0,
+          targetLeft: 5,
+          missedTargets: 0,
+          shakeLeft: 0,
+          forceTarget: true,
         }));
       } catch {
-        // Dataset gagal dimuat: pakai fallback per-level agar gameplay tetap berjalan
         const fallback = getFallbackWords(levelIndex);
         wordsRef.current = fallback;
         const rawWord = fallback[0] ?? ["ب", "ا", "ب"];
         const activeWord = rawWord.map(normalizeArabicText);
-        update(() => ({
-          ...initial(),
+        const targetTotal = activeWord.length;
+        update((s) => ({
+          ...s,
           phase: "playing",
+          session: {
+            ...s.session,
+            currentLevel: levelIndex + 1,
+            status: "active",
+            updatedAt: new Date().toISOString(),
+          },
+          level: {
+            levelId: `harvest-level-${levelIndex + 1}`,
+            score: 0,
+            lives: 3,
+            combo: 0,
+            maxCombo: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            missedCount: 0,
+            targetProgress: 0,
+            targetTotal,
+            remainingTime: initialTime,
+            isCompleted: false,
+            isFailed: false,
+            startedAt: Date.now(),
+          },
+          score: 0,
+          combo: 0,
+          maxCombo: 0,
+          lives: 3,
           levelIndex,
           targetLetters: activeWord,
           target: activeWord[0] ?? "",
           targetName: activeWord[0] ?? "",
+          collectedLetters: [],
           displayLetters: activeWord.map(() => ""),
           isWord: activeWord.length > 1,
           timeLeft: initialTime,
           targetScore,
           isWin: false,
           loseReason: null,
+          balloons: [],
+          spawnLeft: 0.05,
+          spawned: 0,
+          targetLeft: 5,
+          missedTargets: 0,
+          shakeLeft: 0,
+          forceTarget: true,
         }));
       }
     },
-    [update, state.phase],
+    [update],
   );
 
-  /** Lanjut ke kata berikutnya pada level yang sama (setelah menang) */
+  /** Alias untuk startGame lama */
+  const startGame = handleStartLevel;
+
+  /** Naik ke level berikutnya: mereset level state & timer, tidak memotong tiket */
+  const handleNextLevel = useCallback(async () => {
+    const nextLevelIndex = state.session.currentLevel; // next 0-indexed level
+    if (nextLevelIndex >= LEVELS.length) return;
+    const cfg = LEVELS[nextLevelIndex] ?? LEVELS[0];
+    const initialTime = cfg.durationSeconds;
+    const targetScore = cfg.targetScore;
+    try {
+      const words = await getWordsForLevel(nextLevelIndex);
+      wordsRef.current = words;
+      const rawWord = pickRandomWord(words) || getFallbackWords(0)[0];
+      const activeWord = rawWord.map(normalizeArabicText);
+      const isWord = activeWord.length > 1;
+      const firstLetter = activeWord[0] || "";
+      const targetTotal = activeWord.length;
+      update((s) => ({
+        ...s,
+        phase: "playing",
+        session: {
+          ...s.session,
+          currentLevel: nextLevelIndex + 1,
+          totalScore: s.session.totalScore + s.level.score,
+          completedLevels: Array.from(new Set([...s.session.completedLevels, s.session.currentLevel])),
+          updatedAt: new Date().toISOString(),
+        },
+        level: {
+          levelId: `harvest-level-${nextLevelIndex + 1}`,
+          score: 0,
+          lives: 3,
+          combo: 0,
+          maxCombo: 0,
+          correctCount: 0,
+          wrongCount: 0,
+          missedCount: 0,
+          targetProgress: 0,
+          targetTotal,
+          remainingTime: initialTime,
+          isCompleted: false,
+          isFailed: false,
+          startedAt: Date.now(),
+        },
+        score: 0,
+        combo: 0,
+        maxCombo: 0,
+        lives: 3,
+        levelIndex: nextLevelIndex,
+        targetLetters: activeWord,
+        target: firstLetter,
+        targetName: firstLetter,
+        collectedLetters: [],
+        displayLetters: activeWord.map(() => ""),
+        isWord,
+        timeLeft: initialTime,
+        targetScore,
+        isWin: false,
+        loseReason: null,
+        balloons: [],
+        spawnLeft: 0.05,
+        spawned: 0,
+        targetLeft: 5,
+        missedTargets: 0,
+        shakeLeft: 0,
+        forceTarget: true,
+      }));
+    } catch {
+      const fallback = getFallbackWords(nextLevelIndex);
+      wordsRef.current = fallback;
+      const rawWord = fallback[0] ?? ["ب", "ا", "ب"];
+      const activeWord = rawWord.map(normalizeArabicText);
+      const targetTotal = activeWord.length;
+      update((s) => ({
+        ...s,
+        phase: "playing",
+        session: {
+          ...s.session,
+          currentLevel: nextLevelIndex + 1,
+          totalScore: s.session.totalScore + s.level.score,
+          completedLevels: Array.from(new Set([...s.session.completedLevels, s.session.currentLevel])),
+          updatedAt: new Date().toISOString(),
+        },
+        level: {
+          levelId: `harvest-level-${nextLevelIndex + 1}`,
+          score: 0,
+          lives: 3,
+          combo: 0,
+          maxCombo: 0,
+          correctCount: 0,
+          wrongCount: 0,
+          missedCount: 0,
+          targetProgress: 0,
+          targetTotal,
+          remainingTime: initialTime,
+          isCompleted: false,
+          isFailed: false,
+          startedAt: Date.now(),
+        },
+        score: 0,
+        combo: 0,
+        maxCombo: 0,
+        lives: 3,
+        levelIndex: nextLevelIndex,
+        targetLetters: activeWord,
+        target: activeWord[0] ?? "",
+        targetName: activeWord[0] ?? "",
+        collectedLetters: [],
+        displayLetters: activeWord.map(() => ""),
+        isWord: activeWord.length > 1,
+        timeLeft: initialTime,
+        targetScore,
+        isWin: false,
+        loseReason: null,
+        balloons: [],
+        spawnLeft: 0.05,
+        spawned: 0,
+        targetLeft: 5,
+        missedTargets: 0,
+        shakeLeft: 0,
+        forceTarget: true,
+      }));
+    }
+  }, [state.session.currentLevel, update]);
+
+  /** Lanjut ke kata berikutnya pada level yang sama */
   const continueToNextWord = useCallback(
     (levelIndex: number) => {
-      // Anti auto-start: 0 >= 0 pada state idle memenuhi gejala "kata selesai",
-      // jadi wajib targetLetters tidak kosong untuk dianggap kata selesai.
       const isWordCompleted =
         state.targetLetters.length > 0 &&
         state.collectedLetters.length >= state.targetLetters.length;
@@ -211,53 +434,68 @@ export function useBalloonGame() {
         );
 
         const score = s.score + (correct ? Math.round(100 * Math.min(1 + combo * 0.1, 5)) : 0);
+        const maxCombo = Math.max(s.maxCombo, combo);
+
+        const nextLevelState: LevelState = {
+          ...s.level,
+          score,
+          combo,
+          maxCombo,
+          lives,
+          correctCount: correct ? s.level.correctCount + 1 : s.level.correctCount,
+          wrongCount: correct ? s.level.wrongCount : s.level.wrongCount + 1,
+          targetProgress: correct ? s.level.targetProgress + 1 : s.level.targetProgress,
+        };
 
         if (correct) {
-          // Cek kemenangan: skor mencapai target level
-          if (score >= s.targetScore) {
+          const collectedLetters = [...s.collectedLetters, balloon.letter];
+          const nextDisplayLetters = [...s.displayLetters];
+          nextDisplayLetters[collectedLetters.length - 1] = balloon.letter;
+          const targetProgress = collectedLetters.length;
+          const targetTotal = s.targetLetters.length;
+          const isWin = targetProgress >= targetTotal;
+
+          // Semua huruf terkumpul -> susunan kata 100% selesai (WIN CONDITION)
+          if (isWin) {
+            playSfx("level-up");
             return {
               ...s,
               balloons,
               score,
               combo,
-              maxCombo: Math.max(s.maxCombo, combo),
+              maxCombo,
               lives,
               phase: "gameover",
               isWin: true,
               loseReason: null,
-            };
-          }
-
-          const collectedLetters = [...s.collectedLetters, balloon.letter];
-          const nextDisplayLetters = [...s.displayLetters];
-          nextDisplayLetters[collectedLetters.length - 1] = balloon.letter;
-
-          // Semua huruf terkumpul → lanjut ke kata berikutnya
-          if (collectedLetters.length >= s.targetLetters.length) {
-            return {
-              ...s,
-              balloons,
-              score,
-              combo,
-              maxCombo: Math.max(s.maxCombo, combo),
-              lives,
+              level: {
+                ...nextLevelState,
+                targetProgress,
+                targetTotal,
+                isCompleted: true,
+              },
               collectedLetters,
               displayLetters: nextDisplayLetters,
-              forceTarget: true,
+              forceTarget: false,
               targetLeft: 5,
               shakeLeft: 0,
             };
           }
 
-          // Huruf masih ada → lanjut ke huruf berikutnya
+          // Huruf masih ada -> lanjut ke huruf berikutnya
           const nextLetter = normalizeArabicText(s.targetLetters[collectedLetters.length] || s.target);
           return {
             ...s,
             balloons: balloons.map((b) => ({ ...b, isTarget: normalizeArabicText(b.letter) === nextLetter })),
             score,
             combo,
-            maxCombo: Math.max(s.maxCombo, combo),
+            maxCombo,
             lives,
+            level: {
+              ...nextLevelState,
+              targetProgress,
+              targetTotal,
+            },
             collectedLetters,
             displayLetters: nextDisplayLetters,
             forceTarget: true,
@@ -269,12 +507,18 @@ export function useBalloonGame() {
 
         // Salah klik
         if (lives <= 0) {
+          playSfx("gameover");
           return {
             ...s,
             balloons,
             score,
             combo: 0,
             lives: 0,
+            level: {
+              ...nextLevelState,
+              lives: 0,
+              isFailed: true,
+            },
             shakeLeft: 0.25,
             missedTargets: s.missedTargets + 1,
             phase: "gameover",
@@ -289,6 +533,7 @@ export function useBalloonGame() {
           score,
           combo: 0,
           lives,
+          level: nextLevelState,
           shakeLeft: 0.25,
           missedTargets: s.missedTargets + 1,
         };
@@ -316,11 +561,9 @@ export function useBalloonGame() {
         let lives = s.lives;
         const balloons = s.balloons.flatMap((balloon) => {
           if (balloon.popped)
-            // Efek pop/suck-in tetap hidup sampai animasinya selesai, lalu unmount.
             return balloon.popAge + delta < POP_LIFETIME
               ? [{ ...balloon, popAge: balloon.popAge + delta }]
               : [];
-          // Buah jatuh dari atas ke bawah
           const y = balloon.y + balloon.speed * 60 * delta;
           if (y > height - 70) {
             if (balloon.isTarget) {
@@ -332,7 +575,6 @@ export function useBalloonGame() {
               lives -= 1;
               return [];
             }
-            // Buah salah menyentuh keranjang/tanah: ledak + reset kombo.
             combo = 0;
             playSfx("wrong");
             return [{ ...balloon, y: height - 70, popped: true, popAge: 0, speed: 0 }];
@@ -342,26 +584,24 @@ export function useBalloonGame() {
 
         const nextTimeLeft = Math.max(0, s.timeLeft - delta);
         if (nextTimeLeft <= 0) {
-          if (s.score >= s.targetScore) {
-            return {
-              ...s,
-              timeLeft: 0,
-              phase: "gameover",
-              isWin: true,
-              loseReason: null,
-            };
-          }
+          playSfx("gameover");
           return {
             ...s,
             timeLeft: 0,
             phase: "gameover",
             isWin: false,
             loseReason: "time",
+            level: {
+              ...s.level,
+              remainingTime: 0,
+              isFailed: true,
+            },
             shakeLeft: 0.25,
           };
         }
 
         if (lives <= 0) {
+          playSfx("gameover");
           return {
             ...s,
             lives: 0,
@@ -369,6 +609,12 @@ export function useBalloonGame() {
             phase: "gameover",
             isWin: false,
             loseReason: "lives",
+            level: {
+              ...s.level,
+              lives: 0,
+              remainingTime: nextTimeLeft,
+              isFailed: true,
+            },
             shakeLeft: 0.25,
           };
         }
@@ -380,12 +626,18 @@ export function useBalloonGame() {
           missedTargets,
           lives,
           timeLeft: nextTimeLeft,
+          level: {
+            ...s.level,
+            lives,
+            combo,
+            missedCount: missedTargets,
+            remainingTime: nextTimeLeft,
+          },
           targetLeft: s.targetLeft - delta,
           spawnLeft: s.spawnLeft - delta,
           shakeLeft: Math.max(0, s.shakeLeft - delta),
         };
 
-        // Target otomatis di-reset (memastikan target selalu ter-spawn)
         if (next.targetLeft <= 0) {
           const letter = normalizeArabicText(currentTargetLetter(next) || s.target);
           next = {
@@ -398,16 +650,25 @@ export function useBalloonGame() {
           };
         }
 
-        // Game over jika lives habis
         if (next.lives <= 0) {
-          next = { ...next, phase: "gameover", isWin: false, loseReason: "lives", shakeLeft: 0.25 };
+          playSfx("gameover");
+          next = {
+            ...next,
+            phase: "gameover",
+            isWin: false,
+            loseReason: "lives",
+            level: {
+              ...next.level,
+              lives: 0,
+              isFailed: true,
+            },
+            shakeLeft: 0.25,
+          };
         }
 
-        // Spawn balon (mekanik physics tetap: posisi x acak, y dari atas, kecepatan turun)
         if (next.spawnLeft <= 0) {
           const wantTarget = next.forceTarget || next.spawned % 3 === 0 || Math.random() < 0.35;
           const currentLetter = normalizeArabicText(currentTargetLetter(next) || s.target);
-          // Penceti salah hanya dari huruf yang ada di kata target (bukan huruf acak semua).
           const distractorPool = Array.from(
             new Set(next.targetLetters.map(normalizeArabicText).filter((l) => l !== currentLetter)),
           );
@@ -423,7 +684,7 @@ export function useBalloonGame() {
           next = {
             ...next,
             spawned: next.spawned + 1,
-            spawnLeft: 0.8 - (0.5 * (60 - 0)) / 60,
+            spawnLeft: 0.95 + Math.random() * 0.45,
             forceTarget: false,
             balloons: [
               ...next.balloons,
@@ -431,7 +692,7 @@ export function useBalloonGame() {
                 id: `balloon-${next.spawned}`,
                 letter,
                 x: Math.random() * Math.max(0, width - 80),
-                y: -100, // Muncul dari atas layar
+                y: -100,
                 speed: 1.3 + Math.floor(next.spawned / 10) * 0.08,
                 isTarget: letter === currentLetter,
                 popped: false,
@@ -453,9 +714,19 @@ export function useBalloonGame() {
 
   return {
     ...state,
+    session: state.session,
+    level: state.level,
+    score: state.level.score,
+    combo: state.level.combo,
+    maxCombo: state.level.maxCombo,
+    lives: state.level.lives,
+    targetProgress: state.level.targetProgress,
+    targetTotal: state.level.targetTotal,
     ...record,
     fieldRef,
     startGame,
+    handleStartLevel,
+    handleNextLevel,
     continueToNextWord,
     pause,
     resume,

@@ -22,6 +22,7 @@ export interface SlasherLevelConfig {
   level: number;
   title: string;
   targetScore: number;
+  targetTotal: number;
   durationSeconds: number;
   description: string;
   spawnRate: number; // jeda muncul buah dalam ms
@@ -35,8 +36,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 1,
     title: "Level 1: Pemula",
     targetScore: 100,
+    targetTotal: 10,
     durationSeconds: 60,
-    description: "Capai target 100 poin dalam 60 detik.",
+    description: "Tebas 10 buah berharakat target dalam 60 detik.",
     spawnRate: 1200,
     fallSpeed: 8,
     distractorRatio: 0.2,
@@ -46,8 +48,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 2,
     title: "Level 2: Terampil",
     targetScore: 200,
+    targetTotal: 12,
     durationSeconds: 60,
-    description: "Capai target 200 poin dalam 60 detik.",
+    description: "Tebas 12 buah berharakat target dalam 60 detik.",
     spawnRate: 1000,
     fallSpeed: 10,
     distractorRatio: 0.35,
@@ -57,8 +60,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 3,
     title: "Level 3: Mahir",
     targetScore: 350,
+    targetTotal: 15,
     durationSeconds: 60,
-    description: "Capai target 350 poin dalam 60 detik.",
+    description: "Tebas 15 buah berharakat target dalam 60 detik.",
     spawnRate: 800,
     fallSpeed: 12,
     distractorRatio: 0.5,
@@ -68,8 +72,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 4,
     title: "Level 4: Pendekar",
     targetScore: 500,
+    targetTotal: 18,
     durationSeconds: 60,
-    description: "Capai target 500 poin dalam 60 detik.",
+    description: "Tebas 18 buah berharakat target dalam 60 detik.",
     spawnRate: 600,
     fallSpeed: 15,
     distractorRatio: 0.65,
@@ -79,8 +84,9 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
     level: 5,
     title: "Level 5: Master",
     targetScore: 750,
+    targetTotal: 20,
     durationSeconds: 60,
-    description: "Capai target 750 poin dalam 60 detik.",
+    description: "Tebas 20 buah berharakat target dalam 60 detik.",
     spawnRate: 450,
     fallSpeed: 18,
     distractorRatio: 0.75,
@@ -89,38 +95,39 @@ export const SLASHER_LEVELS: SlasherLevelConfig[] = [
 ];
 
 function Game() {
-  const [selectedLevel, setSelectedLevel] = useState<number>(1);
-  const currentLevelConfig =
-    SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
-  const game = useSlasherGame(currentLevelConfig);
-  const navigate = useNavigate();
   const [celebrate, setCelebrate] = useState(false);
   const celebrateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
 
   const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("harakat-rush"));
   const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
 
-  const [timeLeft, setTimeLeft] = useState<number>(
-    currentLevelConfig.durationSeconds,
-  );
-  const [isWin, setIsWin] = useState<boolean>(false);
-  const [isResultOpen, setIsResultOpen] = useState<boolean>(false);
-  // Judul modal kalah berdasarkan penyebab: nyawa habis vs waktu habis.
-  const [loseReason, setLoseReason] = useState<"lives" | "time">("time");
+  const game = useSlasherGame();
 
   const {
     phase,
     mode,
     setMode,
+    session,
     score,
     combo,
     lives,
     currentTarget,
     currentTargetItem,
     onSliceResult,
-    resetRun,
     setPhase,
+    isWin,
+    loseReason,
+    handleTimeout,
   } = game;
+
+  const selectedLevel = session.currentLevel;
+  const currentLevelConfig =
+    SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
+
+  const [timeLeft, setTimeLeft] = useState<number>(
+    currentLevelConfig.durationSeconds,
+  );
 
   useEffect(() => {
     return () => {
@@ -129,25 +136,19 @@ function Game() {
   }, []);
 
   const handleStartLevel = (lvl: number) => {
-    setSelectedLevel(lvl);
     const cfg = SLASHER_LEVELS[lvl - 1] || SLASHER_LEVELS[0];
     setTimeLeft(cfg.durationSeconds);
-    setIsWin(false);
-    setIsResultOpen(false);
-    setLoseReason("time");
-    resetRun();
-    setPhase("playing");
+    game.handleStartLevel(lvl, cfg.targetTotal);
   };
 
-  const handleGameOver = (win: boolean) => {
-    setIsWin(win);
-    setPhase("gameover");
-    setIsResultOpen(true);
-    if (win) {
-      soundManager.playSfx("victory");
-      unlockNextLevel("harakat-rush", selectedLevel);
+  const handleNextLevel = () => {
+    if (selectedLevel < SLASHER_LEVELS.length) {
+      const nextLvl = selectedLevel + 1;
+      const nextCfg = SLASHER_LEVELS[nextLvl - 1] || SLASHER_LEVELS[0];
+      setTimeLeft(nextCfg.durationSeconds);
+      game.handleNextLevel(nextCfg.targetTotal);
     } else {
-      soundManager.playSfx("game-over-arcade");
+      navigate("/member/ngaji-ceria/games");
     }
   };
 
@@ -157,33 +158,20 @@ function Game() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          handleGameOver(false);
+          handleTimeout();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [phase, selectedLevel]);
+  }, [phase, handleTimeout]);
 
   useEffect(() => {
-    if (phase !== "playing") return;
-    if (score >= currentLevelConfig.targetScore) {
-      handleGameOver(true);
+    if (phase === "gameover" && isWin) {
+      unlockNextLevel("harakat-rush", selectedLevel);
     }
-  }, [score, phase, currentLevelConfig.targetScore]);
-
-  useEffect(() => {
-    if (
-      phase === "gameover" &&
-      !isResultOpen &&
-      score < currentLevelConfig.targetScore
-    ) {
-      setIsWin(false);
-      setLoseReason(lives <= 0 ? "lives" : "time");
-      setIsResultOpen(true);
-    }
-  }, [phase, isResultOpen, score, currentLevelConfig.targetScore, lives]);
+  }, [phase, isWin, selectedLevel, unlockNextLevel]);
 
   const handleResult = (
     kind: "correct" | "wrong" | "miss",
@@ -198,9 +186,9 @@ function Game() {
   };
 
   const calculatedStars = isWin
-    ? score >= currentLevelConfig.targetScore * 1.3 || lives === 3
+    ? lives === 3 || score >= currentLevelConfig.targetScore * 1.2
       ? 3
-      : score >= currentLevelConfig.targetScore
+      : lives === 2 || score >= currentLevelConfig.targetScore * 0.7
         ? 2
         : 1
     : 0;
@@ -354,22 +342,16 @@ function Game() {
           )}
 
           <GameResultModal
-            isOpen={isResultOpen}
+            isOpen={phase === "gameover"}
             isWin={isWin}
-            title={
-              isWin
-                ? undefined
-                : loseReason === "lives"
-                  ? "Nyawa Habis! Jangan Menyerah!"
-                  : "Waktu Habis! Jangan Menyerah!"
-            }
+            loseReason={loseReason}
             score={score}
             targetScore={currentLevelConfig.targetScore}
             stars={calculatedStars}
             level={selectedLevel}
             hasNextLevel={selectedLevel < SLASHER_LEVELS.length}
             onRetry={() => handleStartLevel(selectedLevel)}
-            onNextLevel={() => handleStartLevel(selectedLevel + 1)}
+            onNextLevel={handleNextLevel}
             onBackToHub={() => navigate("/member/ngaji-ceria/games")}
           />
         </GameBoundary>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { SessionState, LevelState } from "@/features/ngaji-ceria/types/game";
 import {
   HARAKAT_LIST,
   getSlasherItems,
@@ -20,6 +21,8 @@ export interface SlasherLevelOptions {
   distractorRatio?: number;
   targetLength?: number;
   targetScore?: number;
+  durationSeconds?: number;
+  targetTotal?: number;
 }
 
 /**
@@ -54,9 +57,46 @@ export function generateSlasherTarget(
 export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
   const [phase, setPhase] = useState<SlasherPhase>("idle");
   const [mode, setMode] = useState<SlasherMode>("harakat");
-  const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(0);
-  const [lives, setLives] = useState(3);
+  const [isWin, setIsWin] = useState<boolean>(false);
+  const [loseReason, setLoseReason] = useState<"lives" | "time" | null>(null);
+
+  const initialTargetTotal =
+    levelConfig?.targetTotal ??
+    (levelConfig?.level ? 8 + levelConfig.level * 2 : 10);
+
+  // State Session (bertahan selama 1 sesi game, tiket hanya dipotong sekali di lobby)
+  const [session, setSession] = useState<SessionState>(() => ({
+    sessionId: `slasher-${Date.now()}`,
+    userId: "guest",
+    gameId: "harakat-slasher",
+    mode: "challenge",
+    currentLevel: levelConfig?.level ?? 1,
+    totalScore: 0,
+    completedLevels: [],
+    status: "active",
+    ticketConsumed: true,
+    rewardClaimedLevelIds: [],
+    startedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }));
+
+  // State Level (direset setiap retry atau pindah level)
+  const [level, setLevel] = useState<LevelState>(() => ({
+    levelId: `slasher-level-${levelConfig?.level ?? 1}`,
+    score: 0,
+    lives: 3,
+    combo: 0,
+    maxCombo: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    missedCount: 0,
+    targetProgress: 0,
+    targetTotal: initialTargetTotal,
+    remainingTime: levelConfig?.durationSeconds ?? 60,
+    isCompleted: false,
+    isFailed: false,
+    startedAt: Date.now(),
+  }));
 
   const activePool = useMemo(() => getSlasherItems(mode), [mode]);
   const targetLength = Math.max(1, levelConfig?.targetLength ?? 1);
@@ -80,7 +120,25 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
 
   const bumpScore = useCallback((next: number) => {
     scoreRef.current = next;
-    setScore(next);
+    setLevel((prev) => {
+      const nextProgress = prev.targetProgress + 1;
+      const won = nextProgress >= prev.targetTotal;
+      if (won) {
+        setIsWin(true);
+        setLoseReason(null);
+        setPhase("gameover");
+        playSfx("level-up");
+      }
+      return {
+        ...prev,
+        score: next,
+        combo: prev.combo + 1,
+        maxCombo: Math.max(prev.maxCombo, prev.combo + 1),
+        correctCount: prev.correctCount + 1,
+        targetProgress: nextProgress,
+        isCompleted: won,
+      };
+    });
     setBestState((prevBest) => {
       if (next > prevBest) {
         setBest("harakat-rush", next);
@@ -90,16 +148,35 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     });
   }, []);
 
-  const loseLife = useCallback(() => {
-    setLives((l) => {
-      const nextL = Math.max(0, l - 1);
+  const loseLife = useCallback((kind: "wrong" | "miss") => {
+    setLevel((prev) => {
+      const nextL = Math.max(0, prev.lives - 1);
       if (nextL <= 0) {
+        setIsWin(false);
+        setLoseReason("lives");
         setPhase("gameover");
         playSfx("gameover");
       }
-      return nextL;
+      return {
+        ...prev,
+        lives: nextL,
+        combo: 0,
+        wrongCount: kind === "wrong" ? prev.wrongCount + 1 : prev.wrongCount,
+        missedCount: kind === "miss" ? prev.missedCount + 1 : prev.missedCount,
+        isFailed: nextL <= 0,
+      };
     });
-    setCombo(0);
+  }, []);
+
+  const handleTimeout = useCallback(() => {
+    setIsWin(false);
+    setLoseReason("time");
+    setPhase("gameover");
+    playSfx("gameover");
+    setLevel((prev) => ({
+      ...prev,
+      isFailed: true,
+    }));
   }, []);
 
   // Hasil tebasan / lolos dari SlasherStage:
@@ -111,14 +188,14 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       if (kind === "correct") {
         const next = scoreRef.current + 25;
         bumpScore(next);
-        setCombo((c) => c + 1);
         if (symbol) playLetterAudio(symbol);
       } else if (kind === "wrong") {
-        loseLife();
+        loseLife("wrong");
         const next = Math.max(0, scoreRef.current - 15);
-        bumpScore(next);
+        scoreRef.current = next;
+        setLevel((prev) => ({ ...prev, score: next }));
       } else if (kind === "miss") {
-        loseLife();
+        loseLife("miss");
       }
     },
     [bumpScore, loseLife]
@@ -133,11 +210,103 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     return () => clearInterval(interval);
   }, [phase, pickNewTarget]);
 
+  // handleStartLevel: inisialisasi level tertentu atau retry (TIDAK memotong tiket)
+  const handleStartLevel = useCallback(
+    (lvl: number, totalTargets?: number) => {
+      const targetTot =
+        totalTargets ??
+        (levelConfig?.targetTotal ?? (lvl ? 8 + lvl * 2 : 10));
+      setSession((s) => ({
+        ...s,
+        currentLevel: lvl,
+        status: "active",
+        updatedAt: new Date().toISOString(),
+      }));
+      scoreRef.current = 0;
+      setIsWin(false);
+      setLoseReason(null);
+      setLevel({
+        levelId: `slasher-level-${lvl}`,
+        score: 0,
+        lives: 3,
+        combo: 0,
+        maxCombo: 0,
+        correctCount: 0,
+        wrongCount: 0,
+        missedCount: 0,
+        targetProgress: 0,
+        targetTotal: targetTot,
+        remainingTime: levelConfig?.durationSeconds ?? 60,
+        isCompleted: false,
+        isFailed: false,
+        startedAt: Date.now(),
+      });
+      const items = getSlasherItems(mode);
+      setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+      setPhase("playing");
+    },
+    [mode, targetLength, levelConfig?.targetTotal, levelConfig?.durationSeconds]
+  );
+
+  // handleNextLevel: HANYA menaikkan currentLevel & mereset state level (DILARANG navigate atau potong tiket)
+  const handleNextLevel = useCallback(
+    (nextLvlTotal?: number) => {
+      const nextLvl = session.currentLevel + 1;
+      const targetTot =
+        nextLvlTotal ??
+        (levelConfig?.targetTotal ?? (nextLvl ? 8 + nextLvl * 2 : 10));
+      setSession((s) => ({
+        ...s,
+        currentLevel: nextLvl,
+        totalScore: s.totalScore + scoreRef.current,
+        completedLevels: Array.from(new Set([...s.completedLevels, s.currentLevel])),
+        updatedAt: new Date().toISOString(),
+      }));
+      scoreRef.current = 0;
+      setIsWin(false);
+      setLoseReason(null);
+      setLevel((prev) => ({
+        ...prev,
+        levelId: `slasher-level-${nextLvl}`,
+        score: 0,
+        lives: 3,
+        combo: 0,
+        maxCombo: 0,
+        correctCount: 0,
+        wrongCount: 0,
+        missedCount: 0,
+        targetProgress: 0,
+        targetTotal: targetTot,
+        remainingTime: levelConfig?.durationSeconds ?? 60,
+        isCompleted: false,
+        isFailed: false,
+        startedAt: Date.now(),
+      }));
+      const items = getSlasherItems(mode);
+      setCurrentTargetItem(generateSlasherTarget(items, targetLength));
+      setPhase("playing");
+    },
+    [mode, targetLength, session.currentLevel, levelConfig?.targetTotal, levelConfig?.durationSeconds]
+  );
+
   const resetRun = useCallback(() => {
     scoreRef.current = 0;
-    setScore(0);
-    setCombo(0);
-    setLives(3);
+    setIsWin(false);
+    setLoseReason(null);
+    setLevel((prev) => ({
+      ...prev,
+      score: 0,
+      lives: 3,
+      combo: 0,
+      maxCombo: 0,
+      correctCount: 0,
+      wrongCount: 0,
+      missedCount: 0,
+      targetProgress: 0,
+      isCompleted: false,
+      isFailed: false,
+      startedAt: Date.now(),
+    }));
     const items = getSlasherItems(mode);
     setCurrentTargetItem(generateSlasherTarget(items, targetLength));
     setPhase("idle");
@@ -148,13 +317,22 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     setPhase,
     mode,
     setMode,
-    score,
-    combo,
-    lives,
+    session,
+    level,
+    score: level.score,
+    combo: level.combo,
+    lives: level.lives,
+    targetProgress: level.targetProgress,
+    targetTotal: level.targetTotal,
+    isWin,
+    loseReason,
     currentTarget: currentTargetItem.id,
     currentTargetItem,
     best,
     onSliceResult,
+    handleStartLevel,
+    handleNextLevel,
+    handleTimeout,
     resetRun,
   };
 }

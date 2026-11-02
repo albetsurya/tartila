@@ -15,7 +15,7 @@ import { resolveMascotGender } from "@/utils/mascotHelper";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { useGameExit } from "../_shared/hooks";
-import { GameOverModal } from "../_shared/GameOverModal";
+import { GameResultModal } from "../_shared/GameResultModal";
 import { ComboBadge } from "../_shared/ComboBadge";
 import { GameHud } from "../_shared/GameHud";
 import { GameGuideModal } from "@/components/ui/GameGuideModal";
@@ -53,11 +53,6 @@ function Game() {
   const [showCombo, setShowCombo] = useState(false);
   const lastComboRef = useRef(game.combo);
 
-  const [isVictoryTransition, setIsVictoryTransition] = useState(false);
-  const targetBannerControls = useAnimation();
-  const victoryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const powerupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
     if (game.phase === "gameover" && game.isWin) {
       const unlocked = JSON.parse(
@@ -80,66 +75,6 @@ function Game() {
       return () => clearTimeout(t);
     }
   }, [game.combo]);
-
-  useEffect(() => {
-    const isWinCondition =
-      game.phase === "playing" &&
-      game.targetLetters.length > 0 &&
-      game.collectedLetters.length >= game.targetLetters.length;
-
-    if (isWinCondition && !isVictoryTransition) {
-      setIsVictoryTransition(true);
-      playSfx("level-up");
-
-      targetBannerControls.start({
-        scale: 1.5,
-        opacity: 1,
-        transition: { duration: 0.5, ease: "easeOut" },
-      });
-
-      powerupTimeoutRef.current = setTimeout(() => {
-        playSfx("powerup");
-      }, 1500);
-
-      victoryTimeoutRef.current = setTimeout(() => {
-        targetBannerControls.start({
-          scale: 1,
-          opacity: 1,
-          transition: { duration: 0.5, ease: "easeIn" },
-        });
-
-        setTimeout(() => {
-          setIsVictoryTransition(false);
-          game.continueToNextWord(levelIndex);
-          const unlocked = JSON.parse(
-            localStorage.getItem("hijaiyah-pop-unlocked") || "[]",
-          );
-          const currentLevelIndex = levelIndex;
-          if (!unlocked.includes(currentLevelIndex)) {
-            localStorage.setItem(
-              "hijaiyah-pop-unlocked",
-              JSON.stringify([...unlocked, currentLevelIndex]),
-            );
-          }
-        }, 500);
-      }, 1500);
-    }
-  }, [
-    game.phase,
-    game.collectedLetters.length,
-    game.targetLetters.length,
-    isVictoryTransition,
-    targetBannerControls,
-    levelIndex,
-    game,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      if (victoryTimeoutRef.current) clearTimeout(victoryTimeoutRef.current);
-      if (powerupTimeoutRef.current) clearTimeout(powerupTimeoutRef.current);
-    };
-  }, []);
 
   const rawGender = useEconomyStore((s) => s.tilaGender || s.bibiGender);
   const mascotGender = resolveMascotGender(rawGender);
@@ -234,7 +169,7 @@ function Game() {
           aria-label="Arena buah jatuh"
           className={`absolute inset-0 w-full overflow-hidden border-t-[3.5px] border-[#134E4A] ${arenaStyle.bg} select-none ${
             game.shakeLeft > 0 ? "game-shake" : ""
-          } ${isVictoryTransition ? "pointer-events-none" : ""}`}
+          }`}
         >
           {/* ========================================================= */}
           {/* TOP HUD MENGGUNAKAN GAMEHUD */}
@@ -253,9 +188,7 @@ function Game() {
                 game.pause();
               }}
             />
-            <div
-              className={`mt-2 flex justify-center w-full ${isVictoryTransition ? "opacity-0 pointer-events-none" : ""}`}
-            >
+            <div className="mt-2 flex justify-center w-full">
               <TargetBanner
                 targetLetters={game.targetLetters}
                 collectedLetters={game.collectedLetters}
@@ -264,29 +197,6 @@ function Game() {
               />
             </div>
           </div>
-
-          <AnimatePresence>
-            {isVictoryTransition && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8, y: -50 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: 50 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 pointer-events-none p-4"
-              >
-                <motion.div className="w-[90vw] max-w-sm origin-top-center">
-                  <div className="bg-white rounded-[32px] p-6 border-[4px] border-[#134E4A] shadow-[8px_8px_0px_#134E4A]">
-                    <TargetBanner
-                      targetLetters={game.targetLetters}
-                      collectedLetters={game.targetLetters}
-                      isWord={levelConfig.isWord}
-                      className="bg-white"
-                    />
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Latar Belakang Pola Titik Neo-Brutalism */}
           <div
@@ -477,7 +387,7 @@ function Game() {
             <FallingFruit
               key={fruit.id}
               fruit={fruit}
-              disabled={game.phase !== "playing" || isVictoryTransition}
+              disabled={game.phase !== "playing"}
               onPop={handlePopFruit}
             />
           ))}
@@ -532,30 +442,33 @@ function Game() {
             )}
           </AnimatePresence>
 
-          <GameOverModal
-            visible={game.phase === "gameover"}
+          <GameResultModal
+            isOpen={game.phase === "gameover"}
+            isWin={game.isWin}
+            loseReason={game.loseReason}
             score={game.score}
-            maxCombo={game.maxCombo}
-            victory={game.isWin}
-            title={
+            targetScore={game.targetScore}
+            stars={
               game.isWin
-                ? "Target Tercapai!"
-                : game.loseReason === "lives"
-                  ? "Nyawa Habis"
-                  : "Waktu Habis"
+                ? game.lives === 3 || game.score >= game.targetScore * 1.2
+                  ? 3
+                  : game.lives === 2 || game.score >= game.targetScore * 0.7
+                    ? 2
+                    : 1
+                : 0
             }
-            best={game.best}
-            isNewRecord={game.isNewRecord}
-            accent="cyan"
-            description={
-              game.isWin
-                ? `Target skor ${game.targetScore} tercapai · Kombo tertinggi ${game.maxCombo}`
-                : game.loseReason === "lives"
-                  ? `Nyawa habis · kombo tertinggi ${game.maxCombo}`
-                  : `Waktu habis · skor ${game.score}/${game.targetScore}`
-            }
-            onRetry={() => game.startGame(levelIndex)}
-            onExit={exit}
+            level={levelIndex + 1}
+            hasNextLevel={levelIndex < LEVELS.length - 1}
+            onRetry={() => game.handleStartLevel(levelIndex)}
+            onNextLevel={() => {
+              if (levelIndex < LEVELS.length - 1) {
+                setLevelIndex((prev) => prev + 1);
+                game.handleNextLevel();
+              } else {
+                exit();
+              }
+            }}
+            onBackToHub={exit}
           />
         </div>
       ) : null}
@@ -572,7 +485,7 @@ function Game() {
         unlockedCount={getPopupUnlockedCount()}
         onSelectLevel={(idx) => {
           setLevelIndex(idx);
-          game.startGame(idx);
+          game.handleStartLevel(idx);
         }}
         onOpenGuide={() => setShowRules(true)}
       />
