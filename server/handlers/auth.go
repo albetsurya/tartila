@@ -78,10 +78,15 @@ func (api *APIHandler) UpsertGoogleUser(email, name string) (string, string, err
 		return uuid.NewString(), "member", nil
 	}
 
-	var userID, role string
-	err := api.db.QueryRow("SELECT id, role FROM users WHERE LOWER(email) = ?", email).Scan(&userID, &role)
+	var userID, role, existingName string
+	err := api.db.QueryRow("SELECT id, role, name FROM users WHERE LOWER(email) = ?", email).Scan(&userID, &role, &existingName)
 	if err == nil && userID != "" {
-		_, _ = api.db.Exec("UPDATE users SET updated_at = datetime('now') WHERE id = ?", userID)
+		// Simpan nama Google saat user belum punya nama (user lama tanpa name).
+		if name != "" && existingName == "" {
+			_, _ = api.db.Exec("UPDATE users SET name = ?, updated_at = datetime('now') WHERE id = ?", name, userID)
+		} else {
+			_, _ = api.db.Exec("UPDATE users SET updated_at = datetime('now') WHERE id = ?", userID)
+		}
 		if role == "" {
 			role = "member"
 		}
@@ -91,12 +96,13 @@ func (api *APIHandler) UpsertGoogleUser(email, name string) (string, string, err
 	userID = uuid.NewString()
 	role = "member"
 	_, err = api.db.Exec(`
-		INSERT INTO users (id, email, role, created_at, updated_at)
-		VALUES (?, ?, 'member', datetime('now'), datetime('now'))
+		INSERT INTO users (id, email, name, role, created_at, updated_at)
+		VALUES (?, ?, ?, 'member', datetime('now'), datetime('now'))
 		ON CONFLICT(id) DO UPDATE SET
 			email = excluded.email,
+			name = excluded.name,
 			updated_at = datetime('now')
-	`, userID, email)
+	`, userID, email, name)
 	if err != nil {
 		return "", "", fmt.Errorf("upsert user failed: %w", err)
 	}

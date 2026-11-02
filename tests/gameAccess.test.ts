@@ -13,7 +13,6 @@ import {
 } from "../src/features/ngaji-ceria/data/gameAccess.ts";
 import {
   HarakatSlasherCoverSvg,
-  HarakatSlasherCoverSvg,
 } from "../src/components/ui/Illustrations.tsx";
 import { HarakatSlasherSvg } from "../src/components/ui/CustomIcons.tsx";
 
@@ -67,7 +66,7 @@ export const tests = {
   },
 
   "canonicalGameId: memetakan alias harakat-slasher dan memory-match": () => {
-    assert.equal(canonicalGameId("harakat-slasher"), "harakat-rush");
+    assert.equal(canonicalGameId("harakat-slasher"), "harakat-slasher");
     assert.equal(canonicalGameId("memory-match"), "tilawati-memory");
     assert.equal(canonicalGameId("hijaiyah-burst"), "hijaiyah-pop");
     assert.equal(canonicalGameId("ayat-scramble"), "ayat-scramble");

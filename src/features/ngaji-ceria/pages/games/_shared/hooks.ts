@@ -5,33 +5,56 @@ import { playSfx } from "./audio";
 import type { GamePhase } from "./types";
 
 export const GAME_HUB_PARENTS: Record<string, string> = {
-  "/member/ngaji-ceria/games/harakat-rush": "/member/ngaji-ceria/games/ritme-ngaji",
-  "/member/ngaji-ceria/games/makhraj-master": "/member/ngaji-ceria/games/ritme-ngaji",
-  "/member/ngaji-ceria/games/hijaiyah-beats": "/member/ngaji-ceria/games/ritme-ngaji",
-  "/member/ngaji-ceria/games/hijaiyah-pop": "/member/ngaji-ceria/games/ritme-ngaji",
-  "/member/ngaji-ceria/games/hijaiyah-rush": "/member/ngaji-ceria/games/ritme-ngaji",
-  "/member/ngaji-ceria/games/hijaiyah-match-arena": "/member/ngaji-ceria/games/ritme-ngaji",
+  "/member/ngaji-ceria/games/harakat-slasher":
+    "/member/ngaji-ceria/games/ritme-ngaji",
+  "/member/ngaji-ceria/games/makhraj-master":
+    "/member/ngaji-ceria/games/ritme-ngaji",
+  "/member/ngaji-ceria/games/hijaiyah-beats":
+    "/member/ngaji-ceria/games/ritme-ngaji",
+  "/member/ngaji-ceria/games/hijaiyah-pop":
+    "/member/ngaji-ceria/games/ritme-ngaji",
+  "/member/ngaji-ceria/games/hijaiyah-rush":
+    "/member/ngaji-ceria/games/ritme-ngaji",
+  "/member/ngaji-ceria/games/hijaiyah-match-arena":
+    "/member/ngaji-ceria/games/ritme-ngaji",
 
-  "/member/ngaji-ceria/games/juz-amma-speedrun": "/member/ngaji-ceria/games/quiz-ngaji",
-  "/member/ngaji-ceria/games/quran-quiz-royale": "/member/ngaji-ceria/games/quiz-ngaji",
-  "/member/ngaji-ceria/games/nur-battle": "/member/ngaji-ceria/games/quiz-ngaji",
+  "/member/ngaji-ceria/games/juz-amma-speedrun":
+    "/member/ngaji-ceria/games/quiz-ngaji",
+  "/member/ngaji-ceria/games/quran-quiz-royale":
+    "/member/ngaji-ceria/games/quiz-ngaji",
+  "/member/ngaji-ceria/games/nur-battle":
+    "/member/ngaji-ceria/games/quiz-ngaji",
 
-  "/member/ngaji-ceria/games/arabic-wordle": "/member/ngaji-ceria/games/puzzle-huruf",
-  "/member/ngaji-ceria/games/ayat-scramble": "/member/ngaji-ceria/games/puzzle-huruf",
-  "/member/ngaji-ceria/games/hijaiyah-2048": "/member/ngaji-ceria/games/puzzle-huruf",
-  "/member/ngaji-ceria/games/ayat-hunter": "/member/ngaji-ceria/games/puzzle-huruf",
+  "/member/ngaji-ceria/games/arabic-wordle":
+    "/member/ngaji-ceria/games/puzzle-huruf",
+  "/member/ngaji-ceria/games/ayat-scramble":
+    "/member/ngaji-ceria/games/puzzle-huruf",
+  "/member/ngaji-ceria/games/hijaiyah-2048":
+    "/member/ngaji-ceria/games/puzzle-huruf",
+  "/member/ngaji-ceria/games/ayat-hunter":
+    "/member/ngaji-ceria/games/puzzle-huruf",
 
-  "/member/ngaji-ceria/games/tajwid-arena": "/member/ngaji-ceria/games/tajwid-lab",
-  "/member/ngaji-ceria/games/tajwid-defense": "/member/ngaji-ceria/games/tajwid-lab",
-  "/member/ngaji-ceria/games/tajwid-tetris": "/member/ngaji-ceria/games/tajwid-lab",
+  "/member/ngaji-ceria/games/tajwid-arena":
+    "/member/ngaji-ceria/games/tajwid-lab",
+  "/member/ngaji-ceria/games/tajwid-defense":
+    "/member/ngaji-ceria/games/tajwid-lab",
+  "/member/ngaji-ceria/games/tajwid-tetris":
+    "/member/ngaji-ceria/games/tajwid-lab",
 
-  "/member/ngaji-ceria/games/adab-rpg": "/member/ngaji-ceria/games/petualangan-santri",
-  "/member/ngaji-ceria/games/doa-dungeon": "/member/ngaji-ceria/games/petualangan-santri",
-  "/member/ngaji-ceria/games/nabi-chronicles": "/member/ngaji-ceria/games/petualangan-santri",
-  "/member/ngaji-ceria/games/malaikat-mission": "/member/ngaji-ceria/games/petualangan-santri",
-  "/member/ngaji-ceria/games/santri-idle": "/member/ngaji-ceria/games/petualangan-santri",
-  "/member/ngaji-ceria/games/sholat-hero": "/member/ngaji-ceria/games/petualangan-santri",
-  "/member/ngaji-ceria/games/wudhu-flow": "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/adab-rpg":
+    "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/doa-dungeon":
+    "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/nabi-chronicles":
+    "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/malaikat-mission":
+    "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/santri-idle":
+    "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/sholat-hero":
+    "/member/ngaji-ceria/games/petualangan-santri",
+  "/member/ngaji-ceria/games/wudhu-flow":
+    "/member/ngaji-ceria/games/petualangan-santri",
 };
 
 export function getGameParentHub(pathname: string): string {

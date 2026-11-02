@@ -73,25 +73,14 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     isNew: true,
     isQuizBased: true,
   },
-  "harakat-rush": {
-    title: "Harakat Slasher",
-    genre: "Arkade · Refleks",
-    description:
-      "Ayunkan pedangmu, tebas harakat yang tepat, dan hindari jebakan pengecoh sebelum waktu habis!",
-    cover: <HarakatSlasherCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/harakat-rush",
-    bestKey: "harakat-rush",
-    isNew: true,
-    isQuizBased: false,
-  },
   "harakat-slasher": {
     title: "Harakat Slasher",
     genre: "Arkade · Refleks",
     description:
       "Ayunkan pedangmu, tebas harakat yang tepat, dan hindari jebakan pengecoh sebelum waktu habis!",
     cover: <HarakatSlasherCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/harakat-rush",
-    bestKey: "harakat-rush",
+    path: "/member/ngaji-ceria/games/harakat-slasher",
+    bestKey: "harakat-slasher",
     isNew: true,
     isQuizBased: false,
   },

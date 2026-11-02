@@ -764,7 +764,7 @@ export const BasketCatchSvg: React.FC<SvgProps> = ({
   </svg>
 );
 
-// 3. HijaiyahHarvestCoverSvg: Burung Tito dikelilingi bintang hijaiyah
+// 3. HijaiyahHarvestCoverSvg
 export const HijaiyahHarvestCoverSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5321,10 +5321,10 @@ export const PotonganPisangSvg: React.FC<SvgProps> = ({
 );
 
 // ============================================================================
-// KATEGORI 5: VISUAL EFFECTS & UI ENVIRONMENT (NEO-BRUTALISM)
+// KATEGORI 5: VISUAL EFFECTS & UI ENVIRONMENT (MODERN NEO-BRUTALISM)
 // ============================================================================
 
-// 17. Sabetan Pedang (Crescent Sword Slash Arc)
+// 17. Sabetan Pedang (Dynamic Arcade Crescent Slash VFX)
 export const SabetanPedangSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5341,24 +5341,76 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
+    {/* Hard Offset Shadow */}
     <path
-      d="M16 112 C32 40 88 16 112 16 C88 32 48 64 32 112 Z"
-      fill="#22D3EE"
+      d="M18 114 C26 42 74 14 116 18 C86 38 50 68 38 114 Z"
+      fill="var(--svg-primary)"
+    />
+
+    {/* Outer Cyan Energy Arc */}
+    <path
+      d="M12 108 C20 36 68 8 110 12 C80 32 44 62 32 108 Z"
+      fill="#06B6D4"
       stroke="var(--svg-primary)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
+
+    {/* Mid Electric Layer */}
     <path
-      d="M28 104 C40 56 80 32 96 32 C80 44 52 68 40 104 Z"
+      d="M18 102 C28 46 66 20 102 18 C76 34 46 60 32 100 Z"
+      fill="#67E8F9"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
+
+    {/* Inner White-Hot Core */}
+    <path
+      d="M24 92 C34 54 62 32 90 26 C68 40 46 62 34 90 Z"
       fill="#FFFFFF"
       stroke="var(--svg-primary)"
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
+
+    {/* Kinetic Speed Lines */}
+    <path
+      d="M20 56 C32 34 54 20 78 14"
+      stroke="#FFFFFF"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+    <path
+      d="M46 96 C58 72 78 54 104 42"
+      stroke="var(--svg-primary)"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+      strokeDasharray="10 8"
+    />
+
+    {/* 4-Point Impact Sparkle (Top Right) */}
+    <path
+      d="M104 42 L108 52 L118 56 L108 60 L104 70 L100 60 L90 56 L100 52 Z"
+      fill="#FACC15"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Small Accent Sparkle (Bottom Left) */}
+    <circle
+      cx="18"
+      cy="78"
+      r="5"
+      fill="#F43F5E"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
   </svg>
 );
 
-// 18. Cipratan Jus (Juice Splatter)
+// 18. Cipratan Jus (Vibrant Comic Liquid Splatter)
 export const CipratanJusSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5375,41 +5427,84 @@ export const CipratanJusSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
+    {/* Hard Offset Shadow - Main Splash */}
     <path
-      d="M64 48 C72 32 88 36 84 52 C96 52 100 68 88 74 C92 92 72 96 68 84 C56 96 40 88 48 74 C32 68 36 52 48 52 C44 36 60 32 64 48 Z"
+      d="M68 38 C76 18 98 24 90 44 C110 40 118 64 98 70 C112 88 92 108 76 92 C68 112 44 108 48 88 C26 92 20 68 40 62 C24 44 44 24 58 40 Z"
+      fill="var(--svg-primary)"
+    />
+
+    {/* Main Splash Body */}
+    <path
+      d="M62 32 C70 12 92 18 84 38 C104 34 112 58 92 64 C106 82 86 102 70 86 C62 106 38 102 42 82 C20 86 14 62 34 56 C18 38 38 18 52 34 Z"
       fill="#F43F5E"
       stroke="var(--svg-primary)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
+
+    {/* Inner Lighter Liquid Layer */}
+    <path
+      d="M62 46 C70 36 82 42 76 52 C88 54 88 68 76 70 C80 82 66 86 62 76 C52 84 44 76 50 66 C40 62 44 48 54 50 Z"
+      fill="#FB7185"
+    />
+
+    {/* Glossy White Highlights */}
+    <path
+      d="M46 42 C50 38 56 38 60 42"
+      stroke="#FFFFFF"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+    />
+    <circle cx="68" cy="48" r="3" fill="#FFFFFF" />
+
+    {/* Droplet 1 - Cyan (Top Left) */}
+    <circle cx="24" cy="30" r="9" fill="var(--svg-primary)" />
     <circle
-      cx="24"
-      cy="40"
-      r="8"
+      cx="20"
+      cy="26"
+      r="9"
       fill="#38BDF8"
       stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      strokeWidth="4"
     />
+    <circle cx="17" cy="23" r="2.5" fill="#FFFFFF" />
+
+    {/* Droplet 2 - Yellow (Bottom Right) */}
+    <circle cx="108" cy="96" r="11" fill="var(--svg-primary)" />
     <circle
       cx="104"
-      cy="88"
-      r="10"
-      fill="#FBBF24"
+      cy="92"
+      r="11"
+      fill="#FACC15"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+    />
+    <circle cx="100" cy="88" r="3" fill="#FFFFFF" />
+
+    {/* Droplet 3 - Lime (Top Right) */}
+    <circle cx="108" cy="26" r="7" fill="var(--svg-primary)" />
+    <circle
+      cx="105"
+      cy="23"
+      r="7"
+      fill="#4ADE80"
       stroke="var(--svg-primary)"
       strokeWidth="3.5"
     />
+
+    {/* Droplet 4 - Orange (Bottom Left) */}
     <circle
-      cx="96"
-      cy="28"
+      cx="22"
+      cy="96"
       r="6"
-      fill="#34D399"
+      fill="#FB923C"
       stroke="var(--svg-primary)"
       strokeWidth="3.5"
     />
   </svg>
 );
 
-// 19. Papan Kayu Skor (Wide Wooden Signboard)
+// 19. Papan Kayu Skor (3D Neo-Brutalist Wooden Scoreboard)
 export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5426,56 +5521,103 @@ export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="116" rx="46" ry="7" fill="var(--svg-primary)" />
-    {/* Tiang Kayu */}
+    {/* Ground Shadow */}
+    <ellipse cx="64" cy="116" rx="48" ry="7" fill="var(--svg-primary)" />
+
+    {/* Wooden Posts Shadow & Base */}
+    <rect x="38" y="72" width="14" height="44" fill="var(--svg-primary)" />
+    <rect x="82" y="72" width="14" height="44" fill="var(--svg-primary)" />
     <rect
-      x="42"
+      x="34"
       y="68"
-      width="12"
-      height="48"
+      width="14"
+      height="46"
       fill="#78350F"
       stroke="var(--svg-primary)"
       strokeWidth="4.5"
     />
     <rect
-      x="74"
+      x="78"
       y="68"
-      width="12"
-      height="48"
+      width="14"
+      height="46"
       fill="#78350F"
       stroke="var(--svg-primary)"
       strokeWidth="4.5"
     />
-    {/* Papan Utama */}
+
+    {/* Main Board Hard Offset Shadow */}
     <rect
-      x="16"
-      y="32"
-      width="96"
-      height="48"
-      rx="8"
+      x="18"
+      y="30"
+      width="98"
+      height="54"
+      rx="10"
+      fill="var(--svg-primary)"
+    />
+
+    {/* Outer Wooden Frame */}
+    <rect
+      x="12"
+      y="24"
+      width="98"
+      height="54"
+      rx="10"
       fill="#B45309"
       stroke="var(--svg-primary)"
       strokeWidth="5"
     />
-    <rect
-      x="22"
-      y="38"
-      width="84"
-      height="36"
-      rx="4"
-      fill="#D97706"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+
+    {/* Top Highlight Strip on Frame */}
+    <path
+      d="M22 29 H100"
+      stroke="#F59E0B"
+      strokeWidth="4"
+      strokeLinecap="round"
     />
-    {/* Paku Neo-Brutalism */}
-    <circle cx="28" cy="46" r="3.5" fill="var(--svg-primary)" />
-    <circle cx="100" cy="46" r="3.5" fill="var(--svg-primary)" />
-    <circle cx="28" cy="66" r="3.5" fill="var(--svg-primary)" />
-    <circle cx="100" cy="66" r="3.5" fill="var(--svg-primary)" />
+
+    {/* Inner Display Panel */}
+    <rect
+      x="20"
+      y="32"
+      width="82"
+      height="38"
+      rx="6"
+      fill="#FEF3C7"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+    />
+
+    {/* Wood Grain / Score Divider Details */}
+    <line x1="20" y1="51" x2="102" y2="51" stroke="#FDE68A" strokeWidth="3.5" />
+    <path
+      d="M32 42 H52 M72 60 H90"
+      stroke="#D97706"
+      strokeWidth="3.5"
+      strokeLinecap="round"
+    />
+
+    {/* Top Banner / Crown Tag */}
+    <rect
+      x="43"
+      y="14"
+      width="36"
+      height="14"
+      rx="4"
+      fill="#F43F5E"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+    />
+
+    {/* Industrial Bolts */}
+    <circle cx="27" cy="39" r="3" fill="var(--svg-primary)" />
+    <circle cx="95" cy="39" r="3" fill="var(--svg-primary)" />
+    <circle cx="27" cy="63" r="3" fill="var(--svg-primary)" />
+    <circle cx="95" cy="63" r="3" fill="var(--svg-primary)" />
   </svg>
 );
 
-// 20. Plakat Target Harakat (Square Wooden Plaque)
+// 20. Plakat Target Harakat (Layered Tactical Target Plaque)
 export const PlakatTargetHarakatSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5492,39 +5634,69 @@ export const PlakatTargetHarakatSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="116" rx="40" ry="7" fill="var(--svg-primary)" />
+    {/* Ground Shadow */}
+    <ellipse cx="64" cy="118" rx="42" ry="6" fill="var(--svg-primary)" />
+
+    {/* Deep Neo-Brutalist Block Shadow */}
     <rect
-      x="24"
-      y="20"
-      width="80"
-      height="80"
-      rx="12"
+      x="26"
+      y="22"
+      width="84"
+      height="84"
+      rx="14"
       fill="var(--svg-primary)"
     />
+
+    {/* Main Outer Frame */}
     <rect
-      x="20"
-      y="16"
-      width="80"
-      height="80"
-      rx="12"
-      fill="#FBBF24"
+      x="18"
+      y="14"
+      width="84"
+      height="84"
+      rx="14"
+      fill="#F59E0B"
       stroke="var(--svg-primary)"
       strokeWidth="5"
     />
+
+    {/* Top-Left Bevel Highlight */}
+    <path
+      d="M26 22 H92"
+      stroke="#FDE047"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+
+    {/* Inner Accent Canvas */}
     <rect
-      x="32"
-      y="28"
-      width="56"
-      height="56"
+      x="30"
+      y="26"
+      width="60"
+      height="60"
       rx="8"
       fill="var(--svg-accent)"
       stroke="var(--svg-primary)"
-      strokeWidth="4"
+      strokeWidth="4.5"
     />
+
+    {/* Corner Target Brackets */}
+    <path
+      d="M38 42 V34 H46 M74 34 H82 V42 M82 70 V78 H74 M46 78 H38 V70"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+
+    {/* Decorative Corner Rivets */}
+    <circle cx="25" cy="21" r="2.5" fill="var(--svg-primary)" />
+    <circle cx="95" cy="21" r="2.5" fill="var(--svg-primary)" />
+    <circle cx="25" cy="91" r="2.5" fill="var(--svg-primary)" />
+    <circle cx="95" cy="91" r="2.5" fill="var(--svg-primary)" />
   </svg>
 );
 
-// 21. Lantai Dojo (Wooden Dojo Floor Platform)
+// 21. Lantai Dojo (3D Isometric Dojo Stage Platform)
 export const LantaiDojoSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5541,34 +5713,111 @@ export const LantaiDojoSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="52" ry="9" fill="var(--svg-primary)" />
+    {/* Solid Offset Base Shadow */}
     <rect
-      x="14"
-      y="44"
-      width="100"
-      height="64"
-      rx="8"
+      x="16"
+      y="48"
+      width="102"
+      height="66"
+      rx="10"
+      fill="var(--svg-primary)"
+    />
+
+    {/* 3D Front Extrusion / Stage Base */}
+    <rect
+      x="10"
+      y="42"
+      width="102"
+      height="66"
+      rx="10"
       fill="#78350F"
       stroke="var(--svg-primary)"
       strokeWidth="5"
     />
+
+    {/* Top Wooden Deck Surface */}
     <rect
-      x="20"
-      y="52"
-      width="88"
-      height="48"
-      rx="4"
-      fill="#92400E"
+      x="10"
+      y="42"
+      width="102"
+      height="50"
+      rx="8"
+      fill="#D97706"
       stroke="var(--svg-primary)"
-      strokeWidth="4"
+      strokeWidth="5"
     />
-    {/* Garis Papan Lantai */}
-    <line x1="20" y1="68" x2="108" y2="68" stroke="#78350F" strokeWidth="4" />
-    <line x1="20" y1="84" x2="108" y2="84" stroke="#78350F" strokeWidth="4" />
+
+    {/* Inner Tatami / Plank Frame */}
+    <rect
+      x="18"
+      y="50"
+      width="86"
+      height="34"
+      rx="4"
+      fill="#F59E0B"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
+
+    {/* Plank Horizontal Lines */}
+    <line
+      x1="18"
+      y1="61"
+      x2="104"
+      y2="61"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
+    <line
+      x1="18"
+      y1="73"
+      x2="104"
+      y2="73"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
+
+    {/* Plank Vertical Staggered Joints */}
+    <line
+      x1="48"
+      y1="50"
+      x2="48"
+      y2="61"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
+    <line
+      x1="78"
+      y1="61"
+      x2="78"
+      y2="73"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
+    <line
+      x1="38"
+      y1="73"
+      x2="38"
+      y2="84"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
+
+    {/* Dojo Front Accent Trim */}
+    <rect
+      x="44"
+      y="92"
+      width="34"
+      height="8"
+      rx="2"
+      fill="#EF4444"
+      stroke="var(--svg-primary)"
+      strokeWidth="3.5"
+    />
   </svg>
 );
 
-// 22. Awan Putih (Fluffy Cloud)
+// 22. Awan Putih (Stylized Pop-Art Fluffy Cloud)
 export const AwanPutihSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5585,18 +5834,58 @@ export const AwanPutihSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="66" cy="94" rx="40" ry="6" fill="var(--svg-primary)" />
+    {/* Hard Offset Cloud Shadow */}
     <path
-      d="M30 84 C18 84 14 66 30 58 C26 40 48 34 58 48 C68 32 94 38 94 58 C108 62 106 84 90 84 Z"
+      d="M32 92 C16 92 12 72 28 64 C24 44 48 36 60 50 C70 30 100 36 100 60 C116 62 114 92 96 92 Z"
+      fill="var(--svg-primary)"
+    />
+
+    {/* Main Cloud Body */}
+    <path
+      d="M26 86 C10 86 6 66 22 58 C18 38 42 30 54 44 C64 24 94 30 94 54 C110 56 108 86 90 86 Z"
       fill="#FFFFFF"
       stroke="var(--svg-primary)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
+
+    {/* Cel-Shaded Cyan Underside */}
+    <path
+      d="M22 74 C22 80 26 83 32 83 H88 C96 83 102 76 100 68 C94 74 84 74 78 70 C70 76 56 76 48 70 C40 76 28 76 22 74 Z"
+      fill="#BAE6FD"
+    />
+
+    {/* Re-stroke Outer Contour for Clean Overlap */}
+    <path
+      d="M26 86 C10 86 6 66 22 58 C18 38 42 30 54 44 C64 24 94 30 94 54 C110 56 108 86 90 86 Z"
+      stroke="var(--svg-primary)"
+      strokeWidth="5"
+      strokeLinejoin="round"
+    />
+
+    {/* Internal Puff Contour Lines */}
+    <path
+      d="M54 44 C58 50 58 56 54 60"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+    <path
+      d="M22 58 C28 58 34 62 36 66"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+    <path
+      d="M94 54 C88 56 84 60 82 66"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
-// 23. Batang Bambu (Green Bamboo Stalk)
+// 23. Batang Bambu (Cel-Shaded Segmented Bamboo with Leaves)
 export const BatangBambuSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5613,40 +5902,93 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="116" rx="20" ry="6" fill="var(--svg-primary)" />
+    {/* Ground Shadow */}
+    <ellipse cx="64" cy="118" rx="26" ry="6" fill="var(--svg-primary)" />
+
+    {/* Hard Offset Stalk Shadow */}
     <rect
-      x="48"
-      y="16"
+      x="52"
+      y="18"
       width="32"
-      height="96"
+      height="98"
+      rx="8"
+      fill="var(--svg-primary)"
+    />
+
+    {/* Back Leaf (Left) */}
+    <path
+      d="M46 50 C26 46 14 58 18 70 C30 70 42 62 46 50 Z"
+      fill="#16A34A"
+      stroke="var(--svg-primary)"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Main Bamboo Stalk */}
+    <rect
+      x="46"
+      y="14"
+      width="32"
+      height="98"
       rx="8"
       fill="#22C55E"
       stroke="var(--svg-primary)"
       strokeWidth="5"
     />
-    {/* Ruas Bambu */}
-    <path
-      d="M48 44 H80 M48 76 H80"
+
+    {/* Left Highlight Strip (Cel-Shading) */}
+    <rect x="51" y="18" width="7" height="90" rx="3.5" fill="#86EFAC" />
+
+    {/* Right Shadow Strip (Cel-Shading) */}
+    <rect x="67" y="18" width="8" height="90" fill="#15803D" />
+
+    {/* Re-stroke Stalk Border */}
+    <rect
+      x="46"
+      y="14"
+      width="32"
+      height="98"
+      rx="8"
+      stroke="var(--svg-primary)"
+      strokeWidth="5"
+    />
+
+    {/* Bamboo Knuckle Nodes (Protruding Rings) */}
+    <rect
+      x="42"
+      y="42"
+      width="40"
+      height="9"
+      rx="4.5"
+      fill="#4ADE80"
       stroke="var(--svg-primary)"
       strokeWidth="4.5"
     />
-    <ellipse
-      cx="64"
-      cy="44"
-      rx="16"
-      ry="4"
-      fill="#16A34A"
+    <rect
+      x="42"
+      y="76"
+      width="40"
+      height="9"
+      rx="4.5"
+      fill="#4ADE80"
       stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      strokeWidth="4.5"
     />
-    <ellipse
-      cx="64"
-      cy="76"
-      rx="16"
-      ry="4"
-      fill="#16A34A"
+
+    {/* Front Leaf (Top Right) */}
+    <path
+      d="M80 44 C98 34 114 42 112 56 C98 60 86 54 80 44 Z"
+      fill="#4ADE80"
       stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M82 46 C94 24 108 24 110 36 C98 42 88 44 82 46 Z"
+      fill="#22C55E"
+      stroke="var(--svg-primary)"
+      strokeWidth="4"
+      strokeLinejoin="round"
     />
   </svg>
 );

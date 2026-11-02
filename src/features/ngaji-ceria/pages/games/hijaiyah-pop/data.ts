@@ -85,39 +85,71 @@ function pickRandom<T>(items: T[], count: number): T[] {
   return shuffled.slice(0, count);
 }
 
-/** Fallback kata bila dataset tidak tersedia */
-function getFallbackWords(jilid: number): string[][] {
-  const fallbackBase: string[][] = [
+/** Fallback kata per level (0-indexed), sesuai batasan panjang tiap level. */
+export function getFallbackWords(levelIndex: number): string[][] {
+  const twoLetters = [
     ["ا", "ب"],
-    ["ا", "ا"],
-    ["ب", "ب"],
     ["ت", "ت"],
-    ["ث", "ث"],
-    ["ح", "ح"],
-    ["خ", "خ"],
     ["د", "د"],
-    ["ذ", "ذ"],
-    ["ر", "ر"],
-    ["ز", "ز"],
     ["س", "س"],
-    ["ش", "ش"],
-    ["ص", "ص"],
-    ["ض", "ض"],
-    ["ط", "ط"],
-    ["ظ", "ظ"],
     ["ع", "ع"],
-    ["غ", "غ"],
     ["ف", "ف"],
-    ["ق", "ق"],
-    ["ك", "ك"],
     ["ل", "ل"],
-    ["م", "م"],
     ["ن", "ن"],
-    ["ه", "ه"],
     ["و", "و"],
     ["ي", "ي"],
   ];
-  return jilid >= 4 ? [...fallbackBase, ["ال", "له"], ["بِس", "مِ"]] : fallbackBase;
+  const threeLetters = [
+    ["ب", "ا", "ب"],
+    ["م", "ا", "ت"],
+    ["ن", "ا", "ر"],
+    ["ق", "ل", "م"],
+    ["ت", "ي", "ن"],
+    ["ج", "ي", "ل"],
+  ];
+  const fourOrFive = [
+    ["ا", "ل", "ل", "ه"],
+    ["ك", "ت", "ا", "ب"],
+    ["ج", "ا", "م", "ي"],
+    ["ا", "ل", "م", "ا", "س"],
+    ["ق", "م", "ي", "ن"],
+  ];
+  const sixPlus = [
+    ["م", "س", "ا", "ف", "ر", "ة"],
+    ["ج", "م", "ع", "ي", "ة"],
+    ["م", "ص", "ن", "و", "ع", "ا", "ت"],
+    ["ط", "ل", "ب", "ة", "ك", "م"],
+  ];
+
+  switch (levelIndex) {
+    case 0:
+      return twoLetters;
+    case 1:
+      return threeLetters;
+    case 2:
+      // Dua kata masing-masing tepat 3 huruf
+      return [
+        [...threeLetters[0], ...threeLetters[1]],
+        [...threeLetters[2], ...threeLetters[3]],
+        [...threeLetters[4], ...threeLetters[5]],
+        [...threeLetters[1], ...threeLetters[2]],
+        [...threeLetters[3], ...threeLetters[0]],
+      ];
+    case 3:
+      return fourOrFive;
+    case 4:
+      // Dua kata masing-masing 4-5 huruf
+      return [
+        [...fourOrFive[0], ...fourOrFive[1]],
+        [...fourOrFive[2], ...fourOrFive[3]],
+        [...fourOrFive[4], ...fourOrFive[0]],
+        [...fourOrFive[1], ...fourOrFive[2]],
+      ];
+    case 5:
+      return sixPlus;
+    default:
+      return twoLetters;
+  }
 }
 
 /**
@@ -157,57 +189,60 @@ async function collectWordsFromDataset(jilid: number): Promise<string[][]> {
 
 /**
  * Ambil kata untuk level tertentu (0-indexed).
- * Mengembalikan minimal 20 kata acak.
  * Setiap kata adalah array huruf (dengan harakat).
- * 
- * Level 1 (isWord: false): 2-3 huruf per kata
- * Level 2-5 (isWord: true): 3+ huruf per kata
- * Level 3 & 5 (2 kata): menggabungkan 2 kata menjadi 1 target
+ *
+ * Progresi gradual berdasarkan batas panjang huruf:
+ * - Level 1: 2-3 huruf
+ * - Level 2: tepat 3 huruf
+ * - Level 3: gabungan 2 kata masing-masing tepat 3 huruf
+ * - Level 4: 4-5 huruf
+ * - Level 5: gabungan 2 kata masing-masing 4-5 huruf
+ * - Level 6: >= 6 huruf
  */
+
+/** Batas panjang huruf per level (0-indexed): [min, max] — max null = tanpa batas atas. */
+const LEVEL_WORD_LENGTHS: [number, number | null][] = [
+  [2, 3],
+  [3, 3],
+  [3, 3],
+  [4, 5],
+  [4, 5],
+  [6, null],
+];
+
+/** Gabungkan setiap 2 kata berbeda menjadi satu target (maks 100 kombinasi). */
+function combineWordPairs(words: string[][]): string[][] {
+  const out: string[][] = [];
+  for (let i = 0; i < words.length && out.length < 100; i++) {
+    for (let j = i + 1; j < words.length && out.length < 100; j++) {
+      out.push([...words[i], ...words[j]]);
+    }
+  }
+  return out;
+}
+
 export async function getWordsForLevel(levelIndex: number): Promise<string[][]> {
-  const jilid = levelIndex + 1; // level 1 = jilid 1
-  const levelConfig = LEVELS[levelIndex];
-  const isWord = levelConfig?.isWord ?? true;
-  
-  let allWords = await collectWordsFromDataset(jilid);
+  const jilid = Math.min(levelIndex + 1, LEVELS.length); // level 1 = jilid 1
+  const [min, max] = LEVEL_WORD_LENGTHS[levelIndex] ?? [3, null];
 
-  // Jika dataset tidak tersedia, kembalikan data fallback
-  if (allWords.length === 0) {
-    allWords = getFallbackWords(jilid);
+  const allWords = await collectWordsFromDataset(jilid);
+
+  // Filter ketat panjang huruf sesuai level
+  const filteredWords = allWords.filter(
+    (w) => w.length >= min && (max === null || w.length <= max),
+  );
+
+  // Gabungan 2 kata (Level 3 & 5)
+  let finalWords = filteredWords;
+  if (levelIndex === 2 || levelIndex === 4) {
+    const pairs = combineWordPairs(filteredWords);
+    if (pairs.length > 0) finalWords = pairs;
   }
 
-  // Filter berdasarkan level
-  let filteredWords: string[][] = [];
-  
-  if (!isWord) {
-    // Level 1: Huruf Lepas - 2-3 huruf per kata
-    filteredWords = allWords.filter(w => w.length >= 2 && w.length <= 3);
-  } else if (levelIndex === 2) {
-    // Level 3: 2 Kata Sambung (3 huruf masing-masing) - gabung jadi 6 huruf
-    const twoWordTargets = allWords
-      .filter(w => w.length === 3)
-      .flatMap(w1 => 
-        allWords
-          .filter(w2 => w2.length === 3 && w2 !== w1)
-          .map(w2 => [...w1, ...w2])
-      )
-      .slice(0, 100);
-    return pickRandom(twoWordTargets.length > 0 ? twoWordTargets : allWords, Math.max(MIN_WORDS_PER_LEVEL / 2, 15));
-  } else if (levelIndex === 4) {
-    // Level 5: 2 Kata Panjang - gabung 2 kata
-    const twoWordTargets = allWords
-      .filter(w => w.length >= 5)
-      .flatMap(w1 => 
-        allWords
-          .filter(w2 => w2.length >= 5 && w2 !== w1)
-          .map(w2 => [...w1, ...w2])
-      )
-      .slice(0, 100);
-    return pickRandom(twoWordTargets.length > 0 ? twoWordTargets : allWords, Math.max(MIN_WORDS_PER_LEVEL / 2, 15));
-  } else {
-    // Level 2, 4, 6: Kata Sambung - 3+ huruf
-    filteredWords = allWords.filter(w => w.length >= 3);
+  // Dataset/filter gagal dipenuhi -> fallback per level
+  if (finalWords.length === 0) {
+    finalWords = getFallbackWords(levelIndex);
   }
 
-  return pickRandom(filteredWords.length > 0 ? filteredWords : allWords, Math.max(MIN_WORDS_PER_LEVEL, filteredWords.length));
+  return pickRandom(finalWords, Math.max(MIN_WORDS_PER_LEVEL, finalWords.length));
 }

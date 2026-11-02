@@ -120,7 +120,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
         if (res.ok) {
           const profileRes = await res.json();
-          const goUser = profileRes.user || profileRes.profile;
+          const goUser = profileRes.user || profileRes.profile || profileRes.data?.user;
+          console.log("[AuthContext] Profile 200 OK:", {
+            status: res.status,
+            id: goUser?.id,
+            name: goUser?.name,
+            email: goUser?.email,
+            role: goUser?.role,
+          });
           const safeRole = toTartilaRole(goUser?.role);
           const rawMascot = profileRes.mascot_gender || goUser?.mascot_gender || goUser?.gender;
 
@@ -149,6 +156,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
             roleVerified = true;
           }
         } else {
+          console.log(
+            "[AuthContext] Profile gagal (guest): status",
+            res.status,
+          );
           // Response 401 Unauthorized atau tidak ok -> user null
           if (mountedRef.current) {
             setUser(null);

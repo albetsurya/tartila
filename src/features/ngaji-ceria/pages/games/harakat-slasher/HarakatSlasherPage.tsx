@@ -123,10 +123,8 @@ function Game() {
     }
   };
 
-  // Timer hitung mundur saat bermain
   useEffect(() => {
     if (phase !== "playing") return;
-
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -137,11 +135,9 @@ function Game() {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [phase, selectedLevel]);
 
-  // Evaluasi win condition saat skor bertambah
   useEffect(() => {
     if (phase !== "playing") return;
     if (score >= currentLevelConfig.targetScore) {
@@ -149,7 +145,6 @@ function Game() {
     }
   }, [score, phase, currentLevelConfig.targetScore]);
 
-  // Evaluasi game over jika nyawa habis
   useEffect(() => {
     if (
       phase === "gameover" &&
@@ -173,7 +168,6 @@ function Game() {
     onSliceResult(kind, symbol);
   };
 
-  // Hitung perolehan bintang
   const calculatedStars = isWin
     ? score >= currentLevelConfig.targetScore * 1.3 || lives === 3
       ? 3
@@ -199,7 +193,6 @@ function Game() {
         <GameBoundary>
           {phase === "idle" || phase === "paused" ? (
             <div className="relative flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#1E1B4B] via-[#312E81] to-[#4C1D95] p-4">
-              {/* PILIHAN MODE LATIHAN */}
               <div className="z-20 mb-3 w-full max-w-md rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFDF0] p-3 text-center shadow-[0_5px_0px_#134E4A]">
                 <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-[#134E4A]">
                   Pilih Materi Tebasan:
@@ -247,11 +240,7 @@ function Game() {
             </div>
           ) : (
             <div className="relative flex h-full w-full flex-col overflow-hidden bg-gradient-to-b from-[#7DD3FC] via-[#BAE6FD] to-[#FEF9C3]">
-              {/* ============================================================
-                  1. TOP HUD CLUSTER
-                 ============================================================ */}
               <div className="pointer-events-none relative z-30 mx-auto flex w-full max-w-xl flex-col items-center px-3 pt-14 sm:px-4 sm:pt-3">
-                {/* Baris 1: Universal Game HUD */}
                 <div className="pointer-events-auto w-full">
                   <GameHud
                     level={selectedLevel}
@@ -259,24 +248,15 @@ function Game() {
                     score={score}
                     targetScore={currentLevelConfig.targetScore}
                     lives={lives}
-                    onPause={() => setPhase("paused")}
                   />
                 </div>
 
-                {/* Baris 2: Plakat Target Tebasan & Combo Badge */}
                 <div className="mt-2.5 flex flex-col items-center">
                   <motion.div
                     key={currentTargetItem.symbol}
                     initial={{ scale: 0.92, y: -4 }}
-                    animate={{
-                      scale: celebrate ? [1, 1.08, 1] : 1,
-                      y: 0,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 360,
-                      damping: 22,
-                    }}
+                    animate={{ scale: celebrate ? [1, 1.08, 1] : 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 360, damping: 22 }}
                     className={`relative flex flex-col items-center rounded-2xl border-[3px] border-[#134E4A] px-5 py-2 shadow-[0_4px_0px_#134E4A] min-w-[155px] sm:min-w-[180px] transition-colors ${
                       celebrate ? "bg-[#A7F3D0]" : "bg-[#FEF08A]"
                     }`}
@@ -314,7 +294,6 @@ function Game() {
                     </span>
                   </motion.div>
 
-                  {/* Baris 3: Combo Badge */}
                   <ComboBadge
                     combo={combo}
                     multiplier={comboMultiplier}
@@ -323,9 +302,6 @@ function Game() {
                 </div>
               </div>
 
-              {/* ============================================================
-                  2. ARENA SLASHER
-                 ============================================================ */}
               <div className="absolute inset-0 z-10">
                 <SlasherStage
                   isPlaying={phase === "playing"}
@@ -337,7 +313,6 @@ function Game() {
             </div>
           )}
 
-          {/* UNIVERSAL GAME RESULT MODAL */}
           <GameResultModal
             isOpen={isResultOpen}
             isWin={isWin}

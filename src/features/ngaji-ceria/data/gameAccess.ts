@@ -17,7 +17,7 @@ const GAME_ALIASES: Record<string, string> = {
   "hijaiyah-match": "hijaiyah-match-arena",
   "verse-quest": "juz-amma-speedrun",
   "word-builder": "ayat-scramble",
-  "harakat-slasher": "harakat-rush",
+  "harakat-rush": "harakat-slasher",
   "memory-match": "tilawati-memory",
 };
 
@@ -39,9 +39,7 @@ export const GUEST_OPEN_GAME_IDS: ReadonlySet<string> = new Set([
 ]);
 
 /** Daftar hub yang terbuka untuk tamu (ritme-ngaji terbuka agar tamu dapat mencoba Hijaiyah Pop). */
-export const OPEN_HUB_IDS: ReadonlySet<string> = new Set([
-  "ritme-ngaji",
-]);
+export const OPEN_HUB_IDS: ReadonlySet<string> = new Set(["ritme-ngaji"]);
 
 export function isGameOpenForGuest(routeId: string): boolean {
   const canonical = canonicalGameId(routeId);

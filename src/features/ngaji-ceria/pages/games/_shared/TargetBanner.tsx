@@ -65,6 +65,14 @@ export function TargetBanner({
 
   const allCollected = collectedLetters.length >= targetLetters.length;
 
+  // Font-size menyesuaikan panjang kata supaya tidak terpotong (Level 6 bisa 6+ huruf).
+  const wordFontSize =
+    targetLetters.length >= 9
+      ? "text-xl sm:text-2xl"
+      : targetLetters.length >= 6
+        ? "text-2xl sm:text-3xl"
+        : "text-3xl sm:text-4xl";
+
   return (
     <motion.div
       className={`flex flex-col items-center gap-1.5 border-[3px] border-[#134E4A] rounded-2xl bg-[#CCFBF1] px-3 py-2 shadow-[4px_4px_0px_#134E4A] ${className}`}
@@ -81,7 +89,7 @@ export function TargetBanner({
       {isWord && targetLetters.length > 1 ? (
         <div
           dir="rtl"
-          className="font-arabic text-3xl sm:text-4xl font-black leading-none"
+          className={`font-arabic ${wordFontSize} font-black leading-none max-w-full`}
         >
           <span
             style={{

@@ -73,9 +73,9 @@ const HUBS: Record<
         title: "Harakat Slasher",
         description:
           "Tebas huruf harakat target ala fruit ninja dan hindari pengecoh.",
-        path: "/member/ngaji-ceria/games/harakat-rush",
+        path: "/member/ngaji-ceria/games/harakat-slasher",
         cover: <HarakatSlasherCoverSvg size={88} />,
-        bestKey: "harakat-rush",
+        bestKey: "harakat-slasher",
         bgColor: "bg-[#F0FDF4]",
       },
       {

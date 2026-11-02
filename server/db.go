@@ -82,6 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
 CREATE TABLE IF NOT EXISTS users (
   id          TEXT PRIMARY KEY,
   email       TEXT,
+  name        TEXT NOT NULL DEFAULT '',
   role        TEXT NOT NULL DEFAULT 'member',
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -92,6 +93,8 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 	if _, err := db.Exec(schema); err != nil {
 		return fmt.Errorf("create schema: %w", err)
 	}
+	// Migrasi DB lama: tambah kolom name bila belum ada (biarkan error-nya).
+	_, _ = db.Exec("ALTER TABLE users ADD COLUMN name TEXT NOT NULL DEFAULT ''")
 
 	log.Printf("[DB] SQLite store ready at %s", path)
 	Store = db

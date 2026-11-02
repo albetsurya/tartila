@@ -344,7 +344,6 @@ export default function TilawatiMemoryPage() {
               timeLeft={timeLeft}
               score={score}
               targetScore={levelConfig.pairsCount * 100}
-              onPause={() => setIsPaused((p) => !p)}
             />
           </section>
 

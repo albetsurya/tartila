@@ -136,6 +136,8 @@ func main() {
 	mux.HandleFunc("/api/auth/google", api.HandleGoogleLogin)
 	mux.HandleFunc("/api/auth/google/callback", api.HandleGoogleCallback)
 	mux.HandleFunc("/api/auth/logout", api.HandleLogout)
+	mux.HandleFunc("/api/v1/auth/google", api.HandleGoogleLogin)
+	mux.HandleFunc("/api/v1/auth/google/callback", api.HandleGoogleCallback)
 
 	// Auth & User Profile routes (Legacy sync & feedback prompt)
 	mux.HandleFunc("/api/v1/auth/sync-profile", api.SyncProfile)
