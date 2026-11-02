@@ -11,6 +11,7 @@ import {
   HijaiyahHarvestCoverSvg,
 } from "@/components/ui/Illustrations";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
+import { useGameStore } from "@/features/ngaji-ceria/hooks/useGameStore";
 import { resolveMascotGender } from "@/utils/mascotHelper";
 import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
@@ -101,6 +102,27 @@ function Game() {
       }
     }
   }, [game.phase, game.isWin, levelIndex]);
+
+  const recordLearningResult = useGameStore((s) => s.recordLearningResult);
+
+  useEffect(() => {
+    if (
+      game.phase === "gameover" &&
+      game.level.accuracy !== undefined &&
+      game.level.accuracy !== null
+    ) {
+      recordLearningResult(
+        "hijaiyah-harvest",
+        game.level.accuracy,
+        game.level.troubleLetters
+      );
+    }
+  }, [
+    game.phase,
+    game.level.accuracy,
+    game.level.troubleLetters,
+    recordLearningResult,
+  ]);
 
   useEffect(() => {
     if (game.combo >= 3 && game.combo > lastComboRef.current) {
@@ -528,6 +550,7 @@ function Game() {
             }
             level={levelIndex + 1}
             hasNextLevel={levelIndex < LEVELS.length - 1}
+            learningSummary={game.level.learningSummary}
             onRetry={() => game.handleStartLevel(levelIndex, game.session.mode)}
             onNextLevel={() => {
               if (levelIndex < LEVELS.length - 1) {

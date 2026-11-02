@@ -27,6 +27,23 @@ export interface SessionState {
   updatedAt: string;
 }
 
+export interface HarakatAccuracyStat {
+  correct: number;
+  wrong: number;
+}
+
+export interface LearningSummary {
+  accuracy: number | null;
+  totalCorrect: number;
+  totalWrong: number;
+  totalMissed: number;
+  accuracyByHarakat?: Partial<Record<string, HarakatAccuracyStat>>;
+  sequenceErrors?: number;
+  troubleLetters?: string[];
+  recommendation?: string;
+  appreciation?: string;
+}
+
 export interface LevelState {
   levelId: string;
   score: number;
@@ -42,6 +59,11 @@ export interface LevelState {
   isCompleted: boolean;
   isFailed?: boolean;
   startedAt: number;
+  accuracy?: number | null;
+  accuracyByHarakat?: Partial<Record<string, HarakatAccuracyStat>>;
+  sequenceErrors?: number;
+  troubleLetters?: string[];
+  learningSummary?: LearningSummary;
 }
 
 export interface GameUIState {

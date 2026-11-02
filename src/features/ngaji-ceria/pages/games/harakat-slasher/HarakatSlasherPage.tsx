@@ -138,6 +138,7 @@ function Game() {
 
   const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("harakat-rush"));
   const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
+  const recordLearningResult = useGameStore((s) => s.recordLearningResult);
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const game = useSlasherGame();
@@ -147,6 +148,7 @@ function Game() {
     mode,
     setMode,
     session,
+    level,
     score,
     combo,
     lives,
@@ -221,10 +223,27 @@ function Game() {
   }, [phase, session.mode, handleTimeout]);
 
   useEffect(() => {
-    if (phase === "gameover" && isWin) {
-      unlockNextLevel("harakat-rush", selectedLevel);
+    if (phase === "gameover") {
+      if (isWin) {
+        unlockNextLevel("harakat-rush", selectedLevel);
+      }
+      if (level.accuracy !== undefined && level.accuracy !== null) {
+        recordLearningResult(
+          "harakat-rush",
+          level.accuracy,
+          level.learningSummary?.recommendation ? [level.learningSummary.recommendation] : []
+        );
+      }
     }
-  }, [phase, isWin, selectedLevel, unlockNextLevel]);
+  }, [
+    phase,
+    isWin,
+    selectedLevel,
+    unlockNextLevel,
+    level.accuracy,
+    level.learningSummary,
+    recordLearningResult,
+  ]);
 
   const handleResult = (
     kind: "correct" | "wrong" | "miss",
@@ -438,6 +457,7 @@ function Game() {
             stars={calculatedStars}
             level={selectedLevel}
             hasNextLevel={selectedLevel < SLASHER_LEVELS.length}
+            learningSummary={level.learningSummary}
             onRetry={() => handleStartLevel(selectedLevel)}
             onNextLevel={handleNextLevel}
             onBackToHub={() => navigate("/member/ngaji-ceria/games")}

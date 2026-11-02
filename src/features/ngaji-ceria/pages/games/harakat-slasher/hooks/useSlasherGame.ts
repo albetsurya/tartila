@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SessionState, LevelState } from "@/features/ngaji-ceria/types/game";
+import type {
+  SessionState,
+  LevelState,
+  LearningSummary,
+  HarakatAccuracyStat,
+} from "@/features/ngaji-ceria/types/game";
 import {
   HARAKAT_LIST,
   getSlasherItems,
@@ -29,6 +34,67 @@ export interface SlasherLevelOptions {
   targetScore?: number;
   durationSeconds?: number;
   targetTotal?: number;
+}
+
+const INITIAL_HARAKAT_STATS: Record<string, HarakatAccuracyStat> = {
+  fathah: { correct: 0, wrong: 0 },
+  kasrah: { correct: 0, wrong: 0 },
+  dhammah: { correct: 0, wrong: 0 },
+};
+
+export function computeSlasherSummary(
+  correct: number,
+  wrong: number,
+  missed: number,
+  byHarakat: Partial<Record<string, HarakatAccuracyStat>>,
+  won: boolean
+): LearningSummary {
+  const total = correct + wrong;
+  const accuracy = total > 0 ? Math.round((correct / total) * 100) : null;
+
+  const titleMap: Record<string, string> = {
+    fathah: "Fathah",
+    kasrah: "Kasrah",
+    dhammah: "Dhammah",
+  };
+
+  let bestHarakat = "";
+  let maxCorrect = -1;
+  let worstHarakat = "";
+  let maxWrong = 0;
+
+  for (const [key, stat] of Object.entries(byHarakat)) {
+    if (stat && stat.correct > maxCorrect) {
+      maxCorrect = stat.correct;
+      bestHarakat = titleMap[key] || key;
+    }
+    if (stat && stat.wrong > maxWrong) {
+      maxWrong = stat.wrong;
+      worstHarakat = titleMap[key] || key;
+    }
+  }
+
+  const appreciation = won
+    ? bestHarakat && maxCorrect > 0
+      ? `Kamu sudah sangat baik mengenali ${bestHarakat}!`
+      : "Alhamdulillah! Akurasi tebasan harakatmu sangat baik."
+    : "Usaha yang bagus! Tetap semangat berlatih mengenali harakat.";
+
+  const recommendation = !won
+    ? worstHarakat && maxWrong > 0
+      ? `Ayo latih lagi membedakan ${worstHarakat} dengan harakat lainnya.`
+      : "Ayo lebih teliti memperhatikan posisi baris harakat sebelum menebas!"
+    : "Pertahankan ketelitianmu untuk level tantangan berikutnya!";
+
+  return {
+    accuracy,
+    totalCorrect: correct,
+    totalWrong: wrong,
+    totalMissed: missed,
+    accuracyByHarakat: byHarakat,
+    appreciation,
+    recommendation,
+  };
 }
 
 /**
@@ -115,22 +181,28 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
   }));
 
   // State Level (direset setiap retry atau pindah level)
-  const [level, setLevel] = useState<LevelState>(() => ({
-    levelId: `slasher-level-${levelConfig?.level ?? 1}`,
-    score: 0,
-    lives: 3,
-    combo: 0,
-    maxCombo: 0,
-    correctCount: 0,
-    wrongCount: 0,
-    missedCount: 0,
-    targetProgress: 0,
-    targetTotal: initialTargetTotal,
-    remainingTime: levelConfig?.durationSeconds ?? 60,
-    isCompleted: false,
-    isFailed: false,
-    startedAt: Date.now(),
-  }));
+  const [level, setLevel] = useState<LevelState>(() => {
+    const summary = computeSlasherSummary(0, 0, 0, INITIAL_HARAKAT_STATS, false);
+    return {
+      levelId: `slasher-level-${levelConfig?.level ?? 1}`,
+      score: 0,
+      lives: 3,
+      combo: 0,
+      maxCombo: 0,
+      correctCount: 0,
+      wrongCount: 0,
+      missedCount: 0,
+      targetProgress: 0,
+      targetTotal: initialTargetTotal,
+      remainingTime: levelConfig?.durationSeconds ?? 60,
+      isCompleted: false,
+      isFailed: false,
+      startedAt: Date.now(),
+      accuracy: null,
+      accuracyByHarakat: { ...INITIAL_HARAKAT_STATS },
+      learningSummary: summary,
+    };
+  });
 
   const activePool = useMemo(() => getSlasherItems(mode), [mode]);
   const targetLength = Math.max(1, levelConfig?.targetLength ?? 1);
@@ -152,99 +224,183 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     pickNewTarget();
   }, [pickNewTarget]);
 
-  const bumpScore = useCallback((next: number) => {
-    scoreRef.current = next;
-    setLevel((prev) => {
-      const nextProgress = prev.targetProgress + 1;
-      const won = nextProgress >= prev.targetTotal;
-      if (won) {
-        setIsWin(true);
-        setLoseReason(null);
-        setPhase("gameover");
-        playSfx("level-up");
-      }
-      return {
-        ...prev,
-        score: next,
-        combo: prev.combo + 1,
-        maxCombo: Math.max(prev.maxCombo, prev.combo + 1),
-        correctCount: prev.correctCount + 1,
-        targetProgress: nextProgress,
-        isCompleted: won,
-      };
-    });
-    setBestState((prevBest) => {
-      if (next > prevBest) {
-        setBest("harakat-rush", next);
-        return next;
-      }
-      return prevBest;
-    });
-  }, []);
-
-  const loseLife = useCallback((kind: "wrong" | "miss") => {
-    // Di Mode Practice: Tidak ada penalti pengurangan nyawa
-    if (session.mode === "practice") {
-      setLevel((prev) => ({
-        ...prev,
-        wrongCount: kind === "wrong" ? prev.wrongCount + 1 : prev.wrongCount,
-        missedCount: kind === "miss" ? prev.missedCount + 1 : prev.missedCount,
-      }));
-      return;
-    }
-
-    setLevel((prev) => {
-      const nextL = Math.max(0, prev.lives - 1);
-      if (nextL <= 0) {
-        setIsWin(false);
-        setLoseReason("lives");
-        setPhase("gameover");
-        playSfx("gameover");
-      }
-      return {
-        ...prev,
-        lives: nextL,
-        combo: 0,
-        wrongCount: kind === "wrong" ? prev.wrongCount + 1 : prev.wrongCount,
-        missedCount: kind === "miss" ? prev.missedCount + 1 : prev.missedCount,
-        isFailed: nextL <= 0,
-      };
-    });
-  }, [session.mode]);
-
   const handleTimeout = useCallback(() => {
     setIsWin(false);
     setLoseReason("time");
     setPhase("gameover");
     playSfx("gameover");
-    setLevel((prev) => ({
-      ...prev,
-      isFailed: true,
-    }));
+    setLevel((prev) => {
+      const summary = computeSlasherSummary(
+        prev.correctCount,
+        prev.wrongCount,
+        prev.missedCount,
+        prev.accuracyByHarakat ?? INITIAL_HARAKAT_STATS,
+        false
+      );
+      return {
+        ...prev,
+        isFailed: true,
+        accuracy: summary.accuracy,
+        learningSummary: {
+          ...summary,
+          recommendation: "Waktu tantangan selesai! Ayo latih kecepatan dan ketelitian mengenali harakat.",
+        },
+      };
+    });
   }, []);
 
   // Hasil tebasan / lolos dari SlasherStage:
-  // 1. correct: tambah skor (+25) & combo, mainkan audio
-  // 2. wrong (menebas pengecoh): penalti nyawa -1 (challenge) & penalti skor (-15 di challenge)
+  // 1. correct: tambah skor (+25) & combo, mainkan audio, rekam statistik harakat
+  // 2. wrong (menebas pengecoh): penalti nyawa -1 (challenge) & penalti skor (-15 di challenge), rekam statistik salah
   // 3. miss (target jatuh lolos melewati batas bawah): penalti nyawa -1 (challenge)
   const onSliceResult = useCallback(
-    (kind: SlashResultKind, symbol?: string, _item?: SlasherTargetItem) => {
+    (kind: SlashResultKind, symbol?: string, item?: SlasherTargetItem) => {
+      const rawTargetHarakat =
+        item?.harakatName ??
+        extractHarakat(symbol) ??
+        currentTargetItem.harakatName ??
+        extractHarakat(currentTargetItem.symbol);
+      const harakatKey =
+        rawTargetHarakat && ["fathah", "kasrah", "dhammah"].includes(rawTargetHarakat)
+          ? rawTargetHarakat
+          : "fathah";
+
       if (kind === "correct") {
         const next = scoreRef.current + 25;
-        bumpScore(next);
+        scoreRef.current = next;
+
+        setLevel((prev) => {
+          const nextProgress = prev.targetProgress + 1;
+          const won = nextProgress >= prev.targetTotal;
+          if (won) {
+            setIsWin(true);
+            setLoseReason(null);
+            setPhase("gameover");
+            playSfx("level-up");
+          }
+          const nextCorrect = prev.correctCount + 1;
+          const prevHarakat = prev.accuracyByHarakat ?? INITIAL_HARAKAT_STATS;
+          const currentStat = prevHarakat[harakatKey] ?? { correct: 0, wrong: 0 };
+          const nextByHarakat = {
+            ...prevHarakat,
+            [harakatKey]: {
+              ...currentStat,
+              correct: currentStat.correct + 1,
+            },
+          };
+          const summary = computeSlasherSummary(
+            nextCorrect,
+            prev.wrongCount,
+            prev.missedCount,
+            nextByHarakat,
+            won
+          );
+          return {
+            ...prev,
+            score: next,
+            combo: prev.combo + 1,
+            maxCombo: Math.max(prev.maxCombo, prev.combo + 1),
+            correctCount: nextCorrect,
+            targetProgress: nextProgress,
+            isCompleted: won,
+            accuracy: summary.accuracy,
+            accuracyByHarakat: nextByHarakat,
+            learningSummary: summary,
+          };
+        });
+
+        setBestState((prevBest) => {
+          if (next > prevBest) {
+            setBest("harakat-rush", next);
+            return next;
+          }
+          return prevBest;
+        });
+
         if (symbol) playLetterAudio(symbol);
       } else if (kind === "wrong") {
-        loseLife("wrong");
+        const slicedHarakat = item?.harakatName ?? extractHarakat(symbol);
+        const wrongKey =
+          slicedHarakat && ["fathah", "kasrah", "dhammah"].includes(slicedHarakat)
+            ? slicedHarakat
+            : harakatKey;
+
+        const isPractice = session.mode === "practice";
         if (session.mode === "challenge") {
           const next = Math.max(0, scoreRef.current - 15);
           scoreRef.current = next;
-          setLevel((prev) => ({ ...prev, score: next }));
         }
+
+        setLevel((prev) => {
+          const nextL = isPractice ? prev.lives : Math.max(0, prev.lives - 1);
+          const isFailed = !isPractice && nextL <= 0;
+          if (isFailed) {
+            setIsWin(false);
+            setLoseReason("lives");
+            setPhase("gameover");
+            playSfx("gameover");
+          }
+          const nextWrong = prev.wrongCount + 1;
+          const prevHarakat = prev.accuracyByHarakat ?? INITIAL_HARAKAT_STATS;
+          const currentStat = prevHarakat[wrongKey] ?? { correct: 0, wrong: 0 };
+          const nextByHarakat = {
+            ...prevHarakat,
+            [wrongKey]: {
+              ...currentStat,
+              wrong: currentStat.wrong + 1,
+            },
+          };
+          const summary = computeSlasherSummary(
+            prev.correctCount,
+            nextWrong,
+            prev.missedCount,
+            nextByHarakat,
+            false
+          );
+          return {
+            ...prev,
+            score: isPractice ? prev.score : scoreRef.current,
+            lives: nextL,
+            combo: 0,
+            wrongCount: nextWrong,
+            isFailed,
+            accuracy: summary.accuracy,
+            accuracyByHarakat: nextByHarakat,
+            learningSummary: summary,
+          };
+        });
       } else if (kind === "miss") {
-        loseLife("miss");
+        const isPractice = session.mode === "practice";
+        setLevel((prev) => {
+          const nextL = isPractice ? prev.lives : Math.max(0, prev.lives - 1);
+          const isFailed = !isPractice && nextL <= 0;
+          if (isFailed) {
+            setIsWin(false);
+            setLoseReason("lives");
+            setPhase("gameover");
+            playSfx("gameover");
+          }
+          const nextMissed = prev.missedCount + 1;
+          const summary = computeSlasherSummary(
+            prev.correctCount,
+            prev.wrongCount,
+            nextMissed,
+            prev.accuracyByHarakat ?? INITIAL_HARAKAT_STATS,
+            false
+          );
+          return {
+            ...prev,
+            lives: nextL,
+            combo: 0,
+            missedCount: nextMissed,
+            isFailed,
+            accuracy: summary.accuracy,
+            learningSummary: summary,
+          };
+        });
       }
     },
-    [bumpScore, loseLife, session.mode]
+    [session.mode, currentTargetItem]
   );
 
   // Target berganti berkala (12 detik) saat game berlangsung
@@ -278,6 +434,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       scoreRef.current = 0;
       setIsWin(false);
       setLoseReason(null);
+      const initialSummary = computeSlasherSummary(0, 0, 0, INITIAL_HARAKAT_STATS, false);
       setLevel({
         levelId: `slasher-level-${lvl}`,
         score: 0,
@@ -296,6 +453,9 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         isCompleted: false,
         isFailed: false,
         startedAt: Date.now(),
+        accuracy: null,
+        accuracyByHarakat: { ...INITIAL_HARAKAT_STATS },
+        learningSummary: initialSummary,
       });
       const items = getSlasherItems(mode);
       setCurrentTargetItem(generateSlasherTarget(items, targetLength));
@@ -321,6 +481,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       scoreRef.current = 0;
       setIsWin(false);
       setLoseReason(null);
+      const initialSummary = computeSlasherSummary(0, 0, 0, INITIAL_HARAKAT_STATS, false);
       setLevel((prev) => ({
         ...prev,
         levelId: `slasher-level-${nextLvl}`,
@@ -340,6 +501,9 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         isCompleted: false,
         isFailed: false,
         startedAt: Date.now(),
+        accuracy: null,
+        accuracyByHarakat: { ...INITIAL_HARAKAT_STATS },
+        learningSummary: initialSummary,
       }));
       const items = getSlasherItems(mode);
       setCurrentTargetItem(generateSlasherTarget(items, targetLength));
@@ -352,6 +516,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     scoreRef.current = 0;
     setIsWin(false);
     setLoseReason(null);
+    const initialSummary = computeSlasherSummary(0, 0, 0, INITIAL_HARAKAT_STATS, false);
     setLevel((prev) => ({
       ...prev,
       score: 0,
@@ -365,6 +530,9 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       isCompleted: false,
       isFailed: false,
       startedAt: Date.now(),
+      accuracy: null,
+      accuracyByHarakat: { ...INITIAL_HARAKAT_STATS },
+      learningSummary: initialSummary,
     }));
     const items = getSlasherItems(mode);
     setCurrentTargetItem(generateSlasherTarget(items, targetLength));

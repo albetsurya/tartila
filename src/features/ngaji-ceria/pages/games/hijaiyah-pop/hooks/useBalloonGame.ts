@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import type { SessionState, LevelState } from "@/features/ngaji-ceria/types/game";
+import type { SessionState, LevelState, LearningSummary } from "@/features/ngaji-ceria/types/game";
 import { useBestScore, useGameState } from "../../_shared/hooks";
 import type { GamePhase } from "../../_shared/types";
 import { HIJAIYAH_LETTERS } from "../data/hijaiyah-letters";
@@ -24,6 +24,42 @@ export interface BalloonData {
 
 /** Durasi efek pop (salah) & suck-in (benar) sebelum buah di-unmount. */
 const POP_LIFETIME = 0.5;
+
+export function computeBalloonSummary(
+  correct: number,
+  wrong: number,
+  missed: number,
+  sequenceErrors: number,
+  troubleLetters: string[],
+  won: boolean
+): LearningSummary {
+  const total = correct + wrong;
+  const accuracy = total > 0 ? Math.round((correct / total) * 100) : null;
+
+  const troubleList = troubleLetters.slice(0, 3);
+  const appreciation = won
+    ? "Masya Allah! Kamu berhasil menyusun rangkaian huruf kata ini dengan urutan tepat."
+    : "Usaha yang baik! Terus latih ketelitian menyusun huruf hijaiyah.";
+
+  const recommendation = !won
+    ? troubleList.length > 0
+      ? `Ayo lebih teliti pada huruf: ${troubleList.join(", ")}. Pastikan urutannya benar!`
+      : sequenceErrors > 0
+        ? "Perhatikan urutan huruf kata dari kanan ke kiri sebelum memetik buah."
+        : "Ayo latih terus ketepatan memetik buah huruf target sebelum jatuh ke bawah."
+    : "Pertahankan ketelitian susunan katamu untuk level berikutnya!";
+
+  return {
+    accuracy,
+    totalCorrect: correct,
+    totalWrong: wrong,
+    totalMissed: missed,
+    sequenceErrors,
+    troubleLetters,
+    appreciation,
+    recommendation,
+  };
+}
 
 interface BalloonState {
   phase: GamePhase;
@@ -53,61 +89,68 @@ interface BalloonState {
   isWin: boolean;
 }
 
-const initial = (levelIndex = 0): BalloonState => ({
-  phase: "idle",
-  session: {
-    sessionId: `harvest-${Date.now()}`,
-    userId: "guest",
-    gameId: "hijaiyah-harvest",
-    mode: "challenge",
-    currentLevel: levelIndex + 1,
-    totalScore: 0,
-    completedLevels: [],
-    status: "active",
-    ticketConsumed: true,
-    rewardClaimedLevelIds: [],
-    startedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  level: {
-    levelId: `harvest-level-${levelIndex + 1}`,
+const initial = (levelIndex = 0): BalloonState => {
+  const initialSummary = computeBalloonSummary(0, 0, 0, 0, [], false);
+  return {
+    phase: "idle",
+    session: {
+      sessionId: `harvest-${Date.now()}`,
+      userId: "guest",
+      gameId: "hijaiyah-harvest",
+      mode: "challenge",
+      currentLevel: levelIndex + 1,
+      totalScore: 0,
+      completedLevels: [],
+      status: "active",
+      ticketConsumed: true,
+      rewardClaimedLevelIds: [],
+      startedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    level: {
+      levelId: `harvest-level-${levelIndex + 1}`,
+      score: 0,
+      lives: 3,
+      combo: 0,
+      maxCombo: 0,
+      correctCount: 0,
+      wrongCount: 0,
+      missedCount: 0,
+      targetProgress: 0,
+      targetTotal: 3,
+      remainingTime: 60,
+      isCompleted: false,
+      isFailed: false,
+      startedAt: Date.now(),
+      accuracy: null,
+      sequenceErrors: 0,
+      troubleLetters: [],
+      learningSummary: initialSummary,
+    },
     score: 0,
-    lives: 3,
     combo: 0,
     maxCombo: 0,
-    correctCount: 0,
-    wrongCount: 0,
-    missedCount: 0,
-    targetProgress: 0,
-    targetTotal: 3,
-    remainingTime: 60,
-    isCompleted: false,
-    isFailed: false,
-    startedAt: Date.now(),
-  },
-  score: 0,
-  combo: 0,
-  maxCombo: 0,
-  lives: 3,
-  target: "",
-  targetName: "",
-  balloons: [],
-  targetLeft: 5,
-  missedTargets: 0,
-  spawnLeft: 0.05,
-  spawned: 0,
-  forceTarget: true,
-  shakeLeft: 0,
-  targetLetters: [],
-  collectedLetters: [],
-  displayLetters: [],
-  levelIndex,
-  isWord: false,
-  timeLeft: 60,
-  targetScore: 300,
-  loseReason: null,
-  isWin: false,
-});
+    lives: 3,
+    target: "",
+    targetName: "",
+    balloons: [],
+    targetLeft: 5,
+    missedTargets: 0,
+    spawnLeft: 0.05,
+    spawned: 0,
+    forceTarget: true,
+    shakeLeft: 0,
+    targetLetters: [],
+    collectedLetters: [],
+    displayLetters: [],
+    levelIndex,
+    isWord: false,
+    timeLeft: 60,
+    targetScore: 300,
+    loseReason: null,
+    isWin: false,
+  };
+};
 
 /** Target letter yang sedang dicari (urutan ke-collectedLetters.length) */
 function currentTargetLetter(state: BalloonState): string {
@@ -167,6 +210,10 @@ export function useBalloonGame() {
             isCompleted: false,
             isFailed: false,
             startedAt: Date.now(),
+            accuracy: null,
+            sequenceErrors: 0,
+            troubleLetters: [],
+            learningSummary: computeBalloonSummary(0, 0, 0, 0, [], false),
           },
           score: 0,
           combo: 0,
@@ -223,6 +270,10 @@ export function useBalloonGame() {
             isCompleted: false,
             isFailed: false,
             startedAt: Date.now(),
+            accuracy: null,
+            sequenceErrors: 0,
+            troubleLetters: [],
+            learningSummary: computeBalloonSummary(0, 0, 0, 0, [], false),
           },
           score: 0,
           combo: 0,
@@ -296,6 +347,10 @@ export function useBalloonGame() {
           isCompleted: false,
           isFailed: false,
           startedAt: Date.now(),
+          accuracy: null,
+          sequenceErrors: 0,
+          troubleLetters: [],
+          learningSummary: computeBalloonSummary(0, 0, 0, 0, [], false),
         },
         score: 0,
         combo: 0,
@@ -351,6 +406,10 @@ export function useBalloonGame() {
           isCompleted: false,
           isFailed: false,
           startedAt: Date.now(),
+          accuracy: null,
+          sequenceErrors: 0,
+          troubleLetters: [],
+          learningSummary: computeBalloonSummary(0, 0, 0, 0, [], false),
         },
         score: 0,
         combo: 0,
@@ -443,17 +502,6 @@ export function useBalloonGame() {
         const score = s.score + (correct ? Math.round(100 * Math.min(1 + combo * 0.1, 5)) : 0);
         const maxCombo = Math.max(s.maxCombo, combo);
 
-        const nextLevelState: LevelState = {
-          ...s.level,
-          score,
-          combo,
-          maxCombo,
-          lives,
-          correctCount: correct ? s.level.correctCount + 1 : s.level.correctCount,
-          wrongCount: correct ? s.level.wrongCount : s.level.wrongCount + 1,
-          targetProgress: correct ? s.level.targetProgress + 1 : s.level.targetProgress,
-        };
-
         if (correct) {
           const collectedLetters = [...s.collectedLetters, balloon.letter];
           const nextDisplayLetters = [...s.displayLetters];
@@ -461,6 +509,31 @@ export function useBalloonGame() {
           const targetProgress = collectedLetters.length;
           const targetTotal = s.targetLetters.length;
           const isWin = targetProgress >= targetTotal;
+          const nextCorrect = s.level.correctCount + 1;
+          const summary = computeBalloonSummary(
+            nextCorrect,
+            s.level.wrongCount,
+            s.level.missedCount,
+            s.level.sequenceErrors ?? 0,
+            s.level.troubleLetters ?? [],
+            isWin
+          );
+
+          const nextLevelState: LevelState = {
+            ...s.level,
+            score,
+            combo,
+            maxCombo,
+            lives,
+            correctCount: nextCorrect,
+            targetProgress,
+            targetTotal,
+            isCompleted: isWin,
+            accuracy: summary.accuracy,
+            sequenceErrors: s.level.sequenceErrors ?? 0,
+            troubleLetters: s.level.troubleLetters ?? [],
+            learningSummary: summary,
+          };
 
           // Semua huruf terkumpul -> susunan kata 100% selesai (WIN CONDITION)
           if (isWin) {
@@ -475,12 +548,7 @@ export function useBalloonGame() {
               phase: "gameover",
               isWin: true,
               loseReason: null,
-              level: {
-                ...nextLevelState,
-                targetProgress,
-                targetTotal,
-                isCompleted: true,
-              },
+              level: nextLevelState,
               collectedLetters,
               displayLetters: nextDisplayLetters,
               forceTarget: false,
@@ -498,11 +566,7 @@ export function useBalloonGame() {
             combo,
             maxCombo,
             lives,
-            level: {
-              ...nextLevelState,
-              targetProgress,
-              targetTotal,
-            },
+            level: nextLevelState,
             collectedLetters,
             displayLetters: nextDisplayLetters,
             forceTarget: true,
@@ -512,8 +576,36 @@ export function useBalloonGame() {
           };
         }
 
-        // Salah klik (hanya di Challenge Mode)
-        if (!isPractice && lives <= 0) {
+        // Salah klik (memetik buah bukan urutan/target saat ini)
+        const nextWrong = s.level.wrongCount + 1;
+        const nextSeqErrors = (s.level.sequenceErrors ?? 0) + 1;
+        const nextTroubleLetters = Array.from(
+          new Set([...(s.level.troubleLetters ?? []), cleanBalloonLetter])
+        );
+        const isFailed = !isPractice && lives <= 0;
+        const summary = computeBalloonSummary(
+          s.level.correctCount,
+          nextWrong,
+          s.level.missedCount,
+          nextSeqErrors,
+          nextTroubleLetters,
+          false
+        );
+
+        const nextLevelState: LevelState = {
+          ...s.level,
+          score,
+          combo: 0,
+          lives,
+          wrongCount: nextWrong,
+          sequenceErrors: nextSeqErrors,
+          troubleLetters: nextTroubleLetters,
+          accuracy: summary.accuracy,
+          learningSummary: summary,
+          isFailed,
+        };
+
+        if (isFailed) {
           playSfx("gameover");
           return {
             ...s,
@@ -521,11 +613,7 @@ export function useBalloonGame() {
             score,
             combo: 0,
             lives: 0,
-            level: {
-              ...nextLevelState,
-              lives: 0,
-              isFailed: true,
-            },
+            level: nextLevelState,
             shakeLeft: 0.25,
             missedTargets: s.missedTargets + 1,
             phase: "gameover",
@@ -591,6 +679,14 @@ export function useBalloonGame() {
         const nextTimeLeft = isPractice ? s.timeLeft : Math.max(0, s.timeLeft - delta);
         if (!isPractice && nextTimeLeft <= 0) {
           playSfx("gameover");
+          const summary = computeBalloonSummary(
+            s.level.correctCount,
+            s.level.wrongCount,
+            missedTargets,
+            s.level.sequenceErrors ?? 0,
+            s.level.troubleLetters ?? [],
+            false
+          );
           return {
             ...s,
             timeLeft: 0,
@@ -601,6 +697,11 @@ export function useBalloonGame() {
               ...s.level,
               remainingTime: 0,
               isFailed: true,
+              accuracy: summary.accuracy,
+              learningSummary: {
+                ...summary,
+                recommendation: "Waktu tantangan selesai! Ayo latih kecepatan memetik buah huruf sebelum jatuh.",
+              },
             },
             shakeLeft: 0.25,
           };
@@ -608,6 +709,14 @@ export function useBalloonGame() {
 
         if (!isPractice && lives <= 0) {
           playSfx("gameover");
+          const summary = computeBalloonSummary(
+            s.level.correctCount,
+            s.level.wrongCount,
+            missedTargets,
+            s.level.sequenceErrors ?? 0,
+            s.level.troubleLetters ?? [],
+            false
+          );
           return {
             ...s,
             lives: 0,
@@ -620,6 +729,8 @@ export function useBalloonGame() {
               lives: 0,
               remainingTime: nextTimeLeft,
               isFailed: true,
+              accuracy: summary.accuracy,
+              learningSummary: summary,
             },
             shakeLeft: 0.25,
           };
@@ -658,6 +769,14 @@ export function useBalloonGame() {
 
         if (!isPractice && next.lives <= 0) {
           playSfx("gameover");
+          const summary = computeBalloonSummary(
+            next.level.correctCount,
+            next.level.wrongCount,
+            next.missedTargets,
+            next.level.sequenceErrors ?? 0,
+            next.level.troubleLetters ?? [],
+            false
+          );
           next = {
             ...next,
             phase: "gameover",
@@ -667,6 +786,8 @@ export function useBalloonGame() {
               ...next.level,
               lives: 0,
               isFailed: true,
+              accuracy: summary.accuracy,
+              learningSummary: summary,
             },
             shakeLeft: 0.25,
           };
