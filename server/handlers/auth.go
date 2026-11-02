@@ -40,7 +40,14 @@ func InitAuth() {
 	}
 
 	clientID := strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_ID"))
+	if clientID == "" {
+		// Fallback: server/.env sering kosong; kredensial VITE_ ada di root .env.
+		clientID = strings.TrimSpace(os.Getenv("VITE_GOOGLE_CLIENT_ID"))
+	}
 	clientSecret := strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_SECRET"))
+	if clientSecret == "" {
+		clientSecret = strings.TrimSpace(os.Getenv("VITE_GOOGLE_CLIENT_SECRET"))
+	}
 	callbackURL := getGoogleCallbackURL()
 
 	if clientID != "" && clientSecret != "" {

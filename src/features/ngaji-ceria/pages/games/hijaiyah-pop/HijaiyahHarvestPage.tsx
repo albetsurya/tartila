@@ -18,6 +18,7 @@ import { useGameExit } from "../_shared/hooks";
 import { GameOverModal } from "../_shared/GameOverModal";
 import { ComboBadge } from "../_shared/ComboBadge";
 import { GameHud } from "../_shared/GameHud";
+import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { FallingFruit } from "./components/FallingFruit";
 import { TargetBanner } from "../_shared/TargetBanner";
 import { GameLevelSelectSheet } from "../_shared/GameLevelSelectSheet";
@@ -48,6 +49,7 @@ function Game() {
   const [levelIndex, setLevelIndex] = useState(0);
   const levelConfig = LEVELS[levelIndex] ?? LEVELS[0];
 
+  const [showRules, setShowRules] = useState(false);
   const [showCombo, setShowCombo] = useState(false);
   const lastComboRef = useRef(game.combo);
 
@@ -55,6 +57,20 @@ function Game() {
   const targetBannerControls = useAnimation();
   const victoryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const powerupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (game.phase === "gameover" && game.isWin) {
+      const unlocked = JSON.parse(
+        localStorage.getItem("hijaiyah-pop-unlocked") || "[]",
+      );
+      if (!unlocked.includes(levelIndex)) {
+        localStorage.setItem(
+          "hijaiyah-pop-unlocked",
+          JSON.stringify([...unlocked, levelIndex]),
+        );
+      }
+    }
+  }, [game.phase, game.isWin, levelIndex]);
 
   useEffect(() => {
     if (game.combo >= 3 && game.combo > lastComboRef.current) {
@@ -207,6 +223,7 @@ function Game() {
       onResume={game.resume}
       accent="cyan"
       tutorialGameId="hijaiyah-pop"
+      guideGameId="hijaiyah-harvest"
       floatingTopBar
     >
       {game.phase === "playing" ||
@@ -226,9 +243,15 @@ function Game() {
             <GameHud
               level={levelConfig.id}
               score={game.score}
+              targetScore={game.targetScore}
+              timeLeft={game.timeLeft}
               lives={game.lives}
               maxLives={3}
               combo={game.combo}
+              onHelpClick={() => {
+                setShowRules(true);
+                game.pause();
+              }}
             />
             <div
               className={`mt-2 flex justify-center w-full ${isVictoryTransition ? "opacity-0 pointer-events-none" : ""}`}
@@ -513,11 +536,24 @@ function Game() {
             visible={game.phase === "gameover"}
             score={game.score}
             maxCombo={game.maxCombo}
-            victory={game.lives > 0}
+            victory={game.isWin}
+            title={
+              game.isWin
+                ? "Target Tercapai!"
+                : game.loseReason === "lives"
+                  ? "Nyawa Habis"
+                  : "Waktu Habis"
+            }
             best={game.best}
             isNewRecord={game.isNewRecord}
             accent="cyan"
-            description={`Nyawa habis · kombo tertinggi ${game.maxCombo}`}
+            description={
+              game.isWin
+                ? `Target skor ${game.targetScore} tercapai · Kombo tertinggi ${game.maxCombo}`
+                : game.loseReason === "lives"
+                  ? `Nyawa habis · kombo tertinggi ${game.maxCombo}`
+                  : `Waktu habis · skor ${game.score}/${game.targetScore}`
+            }
             onRetry={() => game.startGame(levelIndex)}
             onExit={exit}
           />
@@ -538,6 +574,17 @@ function Game() {
           setLevelIndex(idx);
           game.startGame(idx);
         }}
+        onOpenGuide={() => setShowRules(true)}
+      />
+      <GameGuideModal
+        isOpen={showRules}
+        onClose={() => {
+          setShowRules(false);
+          if (game.phase === "paused") {
+            game.resume();
+          }
+        }}
+        gameId="hijaiyah-harvest"
       />
     </GameShell>
   );

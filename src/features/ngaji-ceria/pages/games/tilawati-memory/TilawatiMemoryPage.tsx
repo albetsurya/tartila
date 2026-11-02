@@ -32,6 +32,7 @@ import { getBest, setBest } from '../_shared/storage';
 import { GameLevelSelectSheet } from '../_shared/GameLevelSelectSheet';
 import { GameHud } from '../_shared/GameHud';
 import { GameResultModal } from '../_shared/GameResultModal';
+import { GameGuideModal } from '@/components/ui/GameGuideModal';
 import { AppModal } from '@/components/ui/AppModal';
 import { useGameStore } from '@/features/ngaji-ceria/hooks/useGameStore';
 
@@ -92,6 +93,7 @@ export default function TilawatiMemoryPage() {
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [matchedPairIds, setMatchedPairIds] = useState<string[]>([]);
   const [isChecking, setIsChecking] = useState<boolean>(false);
+  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
   const [moves, setMoves] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
@@ -344,6 +346,7 @@ export default function TilawatiMemoryPage() {
               timeLeft={timeLeft}
               score={score}
               targetScore={levelConfig.pairsCount * 100}
+              onHelpClick={() => setIsGuideOpen(true)}
             />
           </section>
 
@@ -640,6 +643,12 @@ export default function TilawatiMemoryPage() {
           navigate(`/member/ngaji-ceria/games/tilawati-memory/${currentJilid}/${next}`);
         }}
         onBackToHub={() => navigate('/member/ngaji-ceria/games')}
+      />
+
+      <GameGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        gameId="tilawati-memory"
       />
     </NgajiCeriaLayout>
   );

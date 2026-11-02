@@ -86,6 +86,7 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="emerald"
+      guideGameId="ayat-scramble"
     >
       {game.phase === "idle" ? (
         <StartScreen

@@ -58,6 +58,7 @@ function Game() {
       onPause={game.pause}
       onResume={game.resume}
       accent="cyan"
+      guideGameId="hijaiyah-2048"
       floatingTopBar
     >
       {game.phase === "idle" ? (

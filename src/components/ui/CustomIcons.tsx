@@ -10,6 +10,7 @@ export interface SvgProps {
   strokeWidth?: number | string;
   x?: number | string;
   y?: number | string;
+  letter?: string;
 }
 
 export type LucideIcon = React.FC<SvgProps>;
@@ -382,8 +383,11 @@ export const HeartSvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
   stroke,
+  fill,
 }) => {
-  const strokeColor = stroke || "var(--svg-primary)";
+  const strokeColor = stroke || "#134E4A";
+  const fillColor = fill || "#FF6B6B";
+  const isInactive = fillColor === "#CBD5E1" || fillColor === "#E2E8F0" || className.includes("gray");
   return (
     <svg
       width={size}
@@ -395,18 +399,20 @@ export const HeartSvg: React.FC<SvgProps> = ({
     >
       <path
         d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-        fill="#FF6B6B"
+        fill={fillColor}
         stroke={strokeColor}
         strokeWidth="2.5"
         strokeLinejoin="round"
       />
       {/* Highlight kilap */}
-      <path
-        d="M6.5 6.5C5.5 7.5 5.5 9 5.5 9"
-        stroke="#FFFFFF"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      {!isInactive && (
+        <path
+          d="M6.5 6.5C5.5 7.5 5.5 9 5.5 9"
+          stroke="#FFFFFF"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      )}
     </svg>
   );
 };
@@ -2213,37 +2219,41 @@ export const PauseSvg: React.FC<SvgProps> = ({
 export const InfoSvg: React.FC<SvgProps> = ({
   size = 20,
   className = "",
+  stroke,
   style,
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={style}
-  >
-    <circle
-      cx="12"
-      cy="12"
-      r="9.5"
-      fill="#38BDF8"
-      stroke="var(--svg-primary)"
-      strokeWidth="2.5"
-    />
-    <line
-      x1="12"
-      y1="16"
-      x2="12"
-      y2="11"
-      stroke="var(--svg-primary)"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
-    <circle cx="12" cy="8" r="1.2" fill="var(--svg-primary)" />
-  </svg>
-);
+}) => {
+  const strokeColor = stroke || "#134E4A";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={style}
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9.5"
+        fill="#38BDF8"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+      />
+      <line
+        x1="12"
+        y1="16"
+        x2="12"
+        y2="11"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="8" r="1.2" fill={strokeColor} />
+    </svg>
+  );
+};
 
 export const RefreshCwSvg: React.FC<SvgProps> = ({
   size = 20,

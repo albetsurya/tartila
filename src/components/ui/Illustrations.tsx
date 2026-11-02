@@ -1,4 +1,5 @@
 import React, { useId } from "react";
+import { normalizeArabicText } from "@/utils/arabic";
 import type { SvgProps } from "./CustomIcons";
 
 export type { SvgProps };
@@ -34,13 +35,13 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
       style={style}
     >
       {/* Bayangan Blok Solid (Hard Shadow, Tanpa Opacity) */}
-      <ellipse cx="64" cy="116" rx="46" ry="8" fill="var(--svg-primary)" />
+      <ellipse cx="64" cy="116" rx="46" ry="8" fill="#134E4A" />
 
       {/* Tutup Peti (Atas) */}
       <path
         d="M18 64 V52 C18 34 36 22 64 22 C92 22 110 34 110 52 V64 Z"
         fill="#B45309"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="5"
         strokeLinejoin="round"
       />
@@ -48,7 +49,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
       {/* Highlight Kilap di Tepi Atas Tutup */}
       <path
         d="M32 36 C42 29 52 28 64 28"
-        stroke="var(--svg-accent)"
+        stroke="#FEF08A"
         strokeWidth="4"
         strokeLinecap="round"
       />
@@ -60,7 +61,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         width="12"
         height="39"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -72,7 +73,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         width="12"
         height="39"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -85,7 +86,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         height="50"
         rx="9"
         fill="#78350F"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="5"
         strokeLinejoin="round"
       />
@@ -98,7 +99,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         height="36"
         rx="4"
         fill="#92400E"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="3.5"
       />
 
@@ -109,7 +110,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         width="12"
         height="50"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -121,7 +122,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         width="12"
         height="50"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -134,7 +135,7 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         height="30"
         rx="6"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4.5"
       />
       <rect
@@ -144,16 +145,13 @@ export const PetiHartaSvg: React.FC<SvgProps> = ({
         height="20"
         rx="3"
         fill="#FDE68A"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="3"
       />
 
       {/* Lubang Kunci Solid */}
-      <circle cx="64" cy="64" r="3.5" fill="var(--svg-primary)" />
-      <polygon
-        points="61.5,65 66.5,65 67.5,73 60.5,73"
-        fill="var(--svg-primary)"
-      />
+      <circle cx="64" cy="64" r="3.5" fill="#134E4A" />
+      <polygon points="61.5,65 66.5,65 67.5,73 60.5,73" fill="#134E4A" />
     </svg>
   );
 };
@@ -196,7 +194,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
             cy="0"
             r="15"
             fill="#FBBF24"
-            stroke="var(--svg-primary)"
+            stroke="#134E4A"
             strokeWidth="4"
           />
           <circle
@@ -204,19 +202,19 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
             cy="0"
             r="10.5"
             fill="#FDE68A"
-            stroke="var(--svg-primary)"
+            stroke="#134E4A"
             strokeWidth="3"
           />
           <polygon
             points="0,-7 2,-2.8 6.7,-2.3 3.3,0.8 4.2,5.5 0,3 -4.2,5.5 -3.3,0.8 -6.7,-2.3 -2,-2.8"
             fill="#B45309"
-            stroke="var(--svg-primary)"
+            stroke="#134E4A"
             strokeWidth="3"
             strokeLinejoin="round"
           />
           <path
             d="M-7.8 -6.2 C-6 -8.5 -3.1 -10 0 -10"
-            stroke="var(--svg-accent)"
+            stroke="#FEF08A"
             strokeWidth="3"
             strokeLinecap="round"
           />
@@ -235,85 +233,85 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
         />
         <polygon
           points="100,100 190,88 190,112"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 185,140 175,160"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 160,180 140,160"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 110,190 90,190"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 60,180 40,160"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 20,160 15,140"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 10,112 10,88"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 15,60 20,40"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 40,20 60,10"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 90,10 110,10"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 140,10 160,20"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <polygon
           points="100,100 160,40 175,60"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
         />
@@ -325,7 +323,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
         cy="100"
         r="64"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
       >
         <animate
@@ -337,7 +335,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
       </circle>
 
       {/* Bayangan Dasar Blok Solid (Hard Shadow, Tanpa Opacity) */}
-      <ellipse cx="100" cy="178" rx="64" ry="10" fill="var(--svg-primary)" />
+      <ellipse cx="100" cy="178" rx="64" ry="10" fill="#134E4A" />
 
       {/* Struktur Peti Terbuka */}
       <g transform="translate(100 128) scale(1.2)">
@@ -346,13 +344,13 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           <path
             d="M-46 0 V-18 C-46 -38 -28 -50 0 -50 C28 -50 46 -38 46 -18 V0 Z"
             fill="#B45309"
-            stroke="var(--svg-primary)"
+            stroke="#134E4A"
             strokeWidth="5"
             strokeLinejoin="round"
           />
           <path
             d="M-30 -36 C-20 -42 -10 -43 4 -43"
-            stroke="var(--svg-accent)"
+            stroke="#FEF08A"
             strokeWidth="4"
             strokeLinecap="round"
           />
@@ -362,7 +360,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
             width="11"
             height="47"
             fill="#FBBF24"
-            stroke="var(--svg-primary)"
+            stroke="#134E4A"
             strokeWidth="4"
             strokeLinejoin="round"
           />
@@ -372,7 +370,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
             width="11"
             height="47"
             fill="#FBBF24"
-            stroke="var(--svg-primary)"
+            stroke="#134E4A"
             strokeWidth="4"
             strokeLinejoin="round"
           />
@@ -385,7 +383,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           rx="42"
           ry="10"
           fill="#FBBF24"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4"
         />
         <ellipse cx="0" cy="-1" rx="32" ry="6" fill="#FDE68A" />
@@ -398,7 +396,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           height="46"
           rx="9"
           fill="#78350F"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="5"
           strokeLinejoin="round"
         />
@@ -409,7 +407,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           height="32"
           rx="4"
           fill="#92400E"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="3.5"
         />
         <rect
@@ -418,7 +416,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           width="11"
           height="46"
           fill="#FBBF24"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4"
           strokeLinejoin="round"
         />
@@ -428,7 +426,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           width="11"
           height="46"
           fill="#FBBF24"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4"
           strokeLinejoin="round"
         />
@@ -441,7 +439,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           height="24"
           rx="5"
           fill="#FBBF24"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4.5"
         />
         <rect
@@ -451,11 +449,11 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
           height="16"
           rx="2.5"
           fill="#FDE68A"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="3"
         />
-        <circle cx="0" cy="20" r="3" fill="var(--svg-primary)" />
-        <polygon points="-2,21 2,21 3,27 -3,27" fill="var(--svg-primary)" />
+        <circle cx="0" cy="20" r="3" fill="#134E4A" />
+        <polygon points="-2,21 2,21 3,27 -3,27" fill="#134E4A" />
       </g>
 
       {/* 3 Koin Melayang (Menggunakan coinId Unik) */}
@@ -494,16 +492,16 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
       <g>
         <path
           transform="translate(40 50) scale(1.3)"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
           d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z"
         />
         <path
           transform="translate(164 80) scale(1.1)"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
           d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z"
@@ -513,7 +511,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
         <path
           transform="translate(160 36) scale(1.2)"
           fill="#FBBF24"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
           d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z"
@@ -521,7 +519,7 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
         <path
           transform="translate(34 120) scale(1)"
           fill="#FBBF24"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="3"
           strokeLinejoin="round"
           d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z"
@@ -532,13 +530,14 @@ export const PetiBonusEmasSvg: React.FC<SvgProps> = ({
 };
 
 // ============================================================================
-// KATEGORI 1: ASET GAME HIJAIYAH POP
+// KATEGORI 1: ASET GAME HIJAIYAH POP (MODERN NEO-BRUTALISM)
 // ============================================================================
 
-// 1. EfekPopSvg: Efek ledakan komik "POW!"
+// 1. EfekPopSvg: Efek ledakan komik "POW!" berlapis dengan partikel
 export const EfekPopSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
+  style,
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -549,50 +548,122 @@ export const EfekPopSvg: React.FC<SvgProps> = ({
     role="img"
     aria-label="efekPop"
     className={className}
+    style={style}
   >
-    {/* Hard Shadow Neo-Brutalism */}
-    <polygon
-      points="68,12 82,36 112,24 98,52 124,68 96,82 108,112 78,96 64,122 50,96 20,112 32,82 8,68 34,52 20,24 50,36"
-      fill="var(--svg-primary)"
+    {/* Partikel Komik Luar */}
+    <circle
+      cx="16"
+      cy="34"
+      r="5"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="3.5"
     />
-    {/* Ledakan Luar Kuning */}
+    <circle
+      cx="114"
+      cy="28"
+      r="6"
+      fill="#F43F5E"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+    <circle
+      cx="18"
+      cy="98"
+      r="6"
+      fill="#4ADE80"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+    <circle
+      cx="112"
+      cy="100"
+      r="4.5"
+      fill="#FACC15"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+
+    {/* Hard Offset Shadow Neo-Brutalism */}
     <polygon
-      points="64,6 78,30 108,18 94,46 120,62 92,76 104,106 74,90 60,116 46,90 16,106 28,76 4,62 30,46 16,18 46,30"
-      fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      points="68,12 83,34 114,22 98,51 124,67 96,82 110,112 78,96 64,124 50,96 18,112 32,82 8,67 34,51 18,22 49,34"
+      fill="#134E4A"
+    />
+
+    {/* Ledakan Luar Kuning Cerah */}
+    <polygon
+      points="62,6 77,28 108,16 92,45 118,61 90,76 104,106 72,90 58,118 44,90 12,106 26,76 2,61 28,45 12,16 43,28"
+      fill="#FACC15"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
-    {/* Ledakan Dalam Merah-Oranye */}
+
+    {/* Ledakan Tengah Oranye-Merah */}
     <polygon
-      points="64,22 73,40 94,32 84,52 104,62 82,72 90,92 70,80 60,98 50,80 30,92 38,72 18,62 38,52 28,32 49,40"
-      fill="#EF4444"
-      stroke="var(--svg-primary)"
+      points="62,20 73,37 95,29 84,49 104,61 82,71 91,91 69,79 58,99 47,79 25,91 34,71 14,61 34,49 23,29 45,37"
+      fill="#F43F5E"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
-    {/* Teks POW! */}
+
+    {/* Inti Ledakan Putih untuk Kontras */}
+    <circle
+      cx="58"
+      cy="61"
+      r="18"
+      fill="#FFFBEB"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+
+    {/* Garis Aksen Kecepatan */}
+    <path
+      d="M52 16 L58 26 M102 52 L92 56 M22 52 L32 56"
+      stroke="#FFFFFF"
+      strokeWidth="3.5"
+      strokeLinecap="round"
+    />
+
+    {/* Teks POW! dengan Offset Tebal */}
     <text
-      x="62"
-      y="70"
+      x="61"
+      y="71"
       textAnchor="middle"
-      fontSize="24"
+      fontSize="25"
       fontWeight="900"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
+      fill="#134E4A"
+      fontFamily="system-ui, sans-serif"
+      transform="rotate(-8 61 65)"
+    >
+      POW!
+    </text>
+    <text
+      x="58"
+      y="68"
+      textAnchor="middle"
+      fontSize="25"
+      fontWeight="900"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="4.5"
       paintOrder="stroke"
       fontFamily="system-ui, sans-serif"
-      transform="rotate(-8 62 64)"
+      transform="rotate(-8 58 62)"
     >
       POW!
     </text>
   </svg>
 );
 
-const BaseItemPopSvg: React.FC<
-  SvgProps & { mainColor: string; lightColor: string; label: string }
-> = ({ size = 128, className = "", mainColor, lightColor, label }) => (
+// 2a. ItemMerahSvg: Apel Merah Segar (Crisp Red Apple)
+export const ItemMerahSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  letter,
+}) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 128 128"
@@ -600,98 +671,424 @@ const BaseItemPopSvg: React.FC<
     height={size}
     fill="none"
     role="img"
-    aria-label={label}
+    aria-label="itemMerah"
     className={className}
+    style={style}
   >
-    {/* Hard Shadow */}
-    <circle cx="68" cy="72" r="44" fill="var(--svg-primary)" />
-    {/* Daun Tangkai Buah di Atas */}
+    {/* Hard Offset Shadow Apel */}
     <path
-      d="M64 26 C64 14 82 10 88 18 C82 28 70 28 64 26 Z"
+      d="M68 32 C50 22 22 34 22 68 C22 100 46 116 68 110 C90 116 114 100 114 68 C114 34 86 22 68 32 Z"
+      fill="#134E4A"
+    />
+
+    {/* Tangkai Kayu */}
+    <path
+      d="M64 30 C64 18 70 10 76 10"
+      stroke="#134E4A"
+      strokeWidth="8"
+      strokeLinecap="round"
+    />
+    <path
+      d="M64 30 C64 18 70 10 76 10"
+      stroke="#78350F"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+
+    {/* Daun Apel Hijau dengan Tulang Daun */}
+    <path
+      d="M62 24 C48 10 28 14 32 28 C42 34 54 30 62 24 Z"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     <path
-      d="M64 26 C64 16 48 12 42 20 C48 28 58 28 64 26 Z"
-      fill="#4ADE80"
-      stroke="var(--svg-primary)"
+      d="M38 22 Q50 22 58 24"
+      stroke="#134E4A"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+
+    {/* Badan Buah Apel */}
+    <path
+      d="M64 28 C46 18 18 30 18 64 C18 96 42 112 64 106 C86 112 110 96 110 64 C110 30 82 18 64 28 Z"
+      fill="#EF4444"
+      stroke="#134E4A"
+      strokeWidth="5"
+      strokeLinejoin="round"
+    />
+
+    {/* Cel-Shading Sisi Kanan Bawah */}
+    <path
+      d="M98 44 C104 68 94 96 70 102 C88 104 106 90 106 64 C106 54 103 48 98 44 Z"
+      fill="#DC2626"
+    />
+
+    {/* Lekukan Lesung Atas Apel */}
+    <path
+      d="M54 29 Q64 35 74 29"
+      stroke="#134E4A"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+
+    {/* Highlight Kilap Putih */}
+    <path
+      d="M28 52 C30 40 38 32 48 30"
+      stroke="#FFFFFF"
+      strokeWidth="5"
+      strokeLinecap="round"
+    />
+    <circle cx="27" cy="63" r="2.5" fill="#FFFFFF" />
+
+    {/* Medali Tengah Tempat Huruf Hijaiyah */}
+    <circle
+      cx="64"
+      cy="68"
+      r="31"
+      fill="#FFFBEB"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+    />
+    {letter && (
+      <text
+        x="64"
+        y="68"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#134E4A"
+        fontSize="34"
+        fontWeight="bold"
+        fontFamily="Amiri, Scheherazade New, sans-serif"
+        className="select-none pointer-events-none font-arabic"
+        style={{ direction: "rtl" }}
+      >
+        {normalizeArabicText(letter)}
+      </text>
+    )}
+  </svg>
+);
+
+// 2b. ItemBiruSvg: Blueberry Raksasa Bermahkota (Crowned Blueberry)
+export const ItemBiruSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  letter,
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 128 128"
+    width={size}
+    height={size}
+    fill="none"
+    role="img"
+    aria-label="itemBiru"
+    className={className}
+    style={style}
+  >
+    {/* Hard Offset Shadow */}
+    <ellipse cx="68" cy="73" rx="46" ry="42" fill="#134E4A" />
+
+    {/* Daun Berry Kembar di Belakang */}
+    <path
+      d="M46 28 C30 16 18 24 26 36 C34 40 42 34 46 28 Z"
+      fill="#10B981"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
-    {/* Badan Buah / Bintang Bulat */}
+    <path
+      d="M82 28 C98 16 110 24 102 36 C94 40 86 34 82 28 Z"
+      fill="#34D399"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Mahkota Khas Blueberry (Calyx Crown) */}
+    <path
+      d="M44 30 L50 14 L64 24 L78 14 L84 30 Z"
+      fill="#1D4ED8"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Badan Utama Blueberry (Agak Pipih Bulat) */}
+    <ellipse
+      cx="64"
+      cy="68"
+      rx="46"
+      ry="42"
+      fill="#3B82F6"
+      stroke="#134E4A"
+      strokeWidth="5"
+    />
+
+    {/* Cel-Shading Indigo Gelap */}
+    <path
+      d="M96 44 C104 68 90 96 64 104 C88 106 106 88 106 68 C106 58 102 50 96 44 Z"
+      fill="#2563EB"
+    />
+
+    {/* Highlight Kilap Berry */}
+    <path
+      d="M28 54 C32 42 42 35 54 34"
+      stroke="#BAE6FD"
+      strokeWidth="5.5"
+      strokeLinecap="round"
+    />
+    <circle cx="26" cy="65" r="3" fill="#BAE6FD" />
+
+    {/* Medali Tengah Tempat Huruf Hijaiyah */}
+    <circle
+      cx="64"
+      cy="68"
+      r="31"
+      fill="#FFFBEB"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+    />
+    {letter && (
+      <text
+        x="64"
+        y="68"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#134E4A"
+        fontSize="34"
+        fontWeight="bold"
+        fontFamily="Amiri, Scheherazade New, sans-serif"
+        className="select-none pointer-events-none font-arabic"
+        style={{ direction: "rtl" }}
+      >
+        {normalizeArabicText(letter)}
+      </text>
+    )}
+  </svg>
+);
+
+// 2c. ItemKuningSvg: Jeruk Sitrun / Sunkist Cerah (Zesty Citrus)
+export const ItemKuningSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  letter,
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 128 128"
+    width={size}
+    height={size}
+    fill="none"
+    role="img"
+    aria-label="itemKuning"
+    className={className}
+    style={style}
+  >
+    {/* Hard Offset Shadow Jeruk */}
+    <path
+      d="M68 26 C94 26 118 46 118 72 C118 98 94 116 68 116 C42 116 18 98 18 72 C18 46 42 26 68 26 Z"
+      fill="#134E4A"
+    />
+
+    {/* Tangkai & Daun Jeruk Segar */}
+    <path
+      d="M64 24 C64 12 84 8 92 18 C84 28 72 28 64 24 Z"
+      fill="#22C55E"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M64 24 C60 14 46 12 40 20 C46 28 56 26 64 24 Z"
+      fill="#86EFAC"
+      stroke="#134E4A"
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
+
+    {/* Badan Jeruk Sitrun */}
+    <path
+      d="M64 22 C90 22 114 42 114 68 C114 94 90 112 64 112 C38 112 14 94 14 68 C14 42 38 22 64 22 Z"
+      fill="#FACC15"
+      stroke="#134E4A"
+      strokeWidth="5"
+      strokeLinejoin="round"
+    />
+
+    {/* Cel-Shading Oranye Keemasan */}
+    <path
+      d="M98 42 C108 66 96 96 68 106 C92 108 110 90 110 68 C110 56 105 48 98 42 Z"
+      fill="#F59E0B"
+    />
+
+    {/* Kelopak Kancing Atas Jeruk */}
+    <circle
+      cx="64"
+      cy="24"
+      r="5"
+      fill="#16A34A"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+
+    {/* Detail Pori-Pori Kulit Jeruk */}
+    <circle cx="96" cy="56" r="2" fill="#D97706" />
+    <circle cx="100" cy="66" r="2.5" fill="#D97706" />
+    <circle cx="94" cy="76" r="2" fill="#D97706" />
+    <circle cx="30" cy="84" r="2" fill="#D97706" />
+    <circle cx="36" cy="92" r="2" fill="#D97706" />
+
+    {/* Highlight Kilap Putih */}
+    <path
+      d="M26 54 C30 40 42 32 54 30"
+      stroke="#FFFFFF"
+      strokeWidth="5.5"
+      strokeLinecap="round"
+    />
+
+    {/* Medali Tengah Tempat Huruf Hijaiyah */}
+    <circle
+      cx="64"
+      cy="68"
+      r="31"
+      fill="#FFFBEB"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+    />
+    {letter && (
+      <text
+        x="64"
+        y="68"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#134E4A"
+        fontSize="34"
+        fontWeight="bold"
+        fontFamily="Amiri, Scheherazade New, sans-serif"
+        className="select-none pointer-events-none font-arabic"
+        style={{ direction: "rtl" }}
+      >
+        {normalizeArabicText(letter)}
+      </text>
+    )}
+  </svg>
+);
+
+// 2d. ItemHijauSvg: Semangka Bulat Bergaris dengan Sulur (Striped Watermelon)
+export const ItemHijauSvg: React.FC<SvgProps> = ({
+  size = 128,
+  className = "",
+  style,
+  letter,
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 128 128"
+    width={size}
+    height={size}
+    fill="none"
+    role="img"
+    aria-label="itemHijau"
+    className={className}
+    style={style}
+  >
+    {/* Hard Offset Shadow */}
+    <circle cx="68" cy="73" r="44" fill="#134E4A" />
+
+    {/* Tangkai Sulur Melingkar Khas Semangka/Melon */}
+    <path
+      d="M64 26 C64 14 52 10 46 16 C40 22 48 28 54 22"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M64 24 C72 12 88 12 92 22 C82 28 72 26 64 24 Z"
+      fill="#4ADE80"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Badan Utama Semangka Hijau */}
     <circle
       cx="64"
       cy="68"
       r="44"
-      fill={mainColor}
-      stroke="var(--svg-primary)"
+      fill="#10B981"
+      stroke="#134E4A"
       strokeWidth="5"
     />
-    {/* Highlight Kilap */}
+
+    {/* Corak Belang Semangka Hijau Tua */}
     <path
-      d="M34 48 C40 38 50 32 62 32"
-      stroke={lightColor}
+      d="M36 32 C26 52 26 84 36 104"
+      stroke="#047857"
+      strokeWidth="7"
+      strokeLinecap="round"
+    />
+    <path
+      d="M92 32 C102 52 102 84 92 104"
+      stroke="#047857"
+      strokeWidth="7"
+      strokeLinecap="round"
+    />
+    <path
+      d="M64 24 V112"
+      stroke="#047857"
+      strokeWidth="6"
+      strokeLinecap="round"
+    />
+
+    {/* Re-stroke Lingkaran Luar agar Garis Belang Rapi */}
+    <circle cx="64" cy="68" r="44" stroke="#134E4A" strokeWidth="5" />
+
+    {/* Highlight Kilap Putih */}
+    <path
+      d="M30 48 C36 38 46 32 56 31"
+      stroke="#A7F3D0"
       strokeWidth="5"
       strokeLinecap="round"
     />
-    {/* Area Kosong di Tengah (Untuk Tempat Huruf Hijaiyah) */}
+
+    {/* Medali Tengah Tempat Huruf Hijaiyah */}
     <circle
       cx="64"
       cy="68"
-      r="27"
+      r="31"
       fill="#FFFBEB"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
+    {letter && (
+      <text
+        x="64"
+        y="68"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#134E4A"
+        fontSize="34"
+        fontWeight="bold"
+        fontFamily="Amiri, Scheherazade New, sans-serif"
+        className="select-none pointer-events-none font-arabic"
+        style={{ direction: "rtl" }}
+      >
+        {normalizeArabicText(letter)}
+      </text>
+    )}
   </svg>
 );
 
-// 2a. ItemMerahSvg
-export const ItemMerahSvg: React.FC<SvgProps> = (props) => (
-  <BaseItemPopSvg
-    {...props}
-    mainColor="#EF4444"
-    lightColor="#FCA5A5"
-    label="itemMerah"
-  />
-);
-
-// 2b. ItemBiruSvg
-export const ItemBiruSvg: React.FC<SvgProps> = (props) => (
-  <BaseItemPopSvg
-    {...props}
-    mainColor="#3B82F6"
-    lightColor="#93C5FD"
-    label="itemBiru"
-  />
-);
-
-// 2c. ItemKuningSvg
-export const ItemKuningSvg: React.FC<SvgProps> = (props) => (
-  <BaseItemPopSvg
-    {...props}
-    mainColor="#FBBF24"
-    lightColor="#FEF08A"
-    label="itemKuning"
-  />
-);
-
-// 2d. ItemHijauSvg
-export const ItemHijauSvg: React.FC<SvgProps> = (props) => (
-  <BaseItemPopSvg
-    {...props}
-    mainColor="#10B981"
-    lightColor="#6EE7B7"
-    label="itemHijau"
-  />
-);
-
-// 3. BasketCatchSvg: Keranjang rotan Neo-Brutalism
+// 3. BasketCatchSvg: Keranjang Panen Rotan Anyaman Lebar (Woven Harvest Basket)
 export const BasketCatchSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
+  style,
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -702,72 +1099,115 @@ export const BasketCatchSvg: React.FC<SvgProps> = ({
     role="img"
     aria-label="basketCatch"
     className={className}
+    style={style}
   >
-    {/* Hard Shadow */}
-    <ellipse cx="64" cy="108" rx="48" ry="10" fill="var(--svg-primary)" />
-    {/* Keranjang Body */}
+    {/* Ground Shadow */}
+    <ellipse cx="64" cy="112" rx="46" ry="8" fill="#134E4A" />
+
+    {/* Hard Offset Shadow Keranjang */}
     <path
-      d="M34 40 C30 26 98 26 94 40 L94 72 C94 84 34 84 34 72 Z"
+      d="M20 48 H114 L100 100 C98 106 92 108 86 108 H48 C42 108 36 106 34 100 Z"
+      fill="#134E4A"
+    />
+
+    {/* Pegangan Telinga Keranjang (Kiri & Kanan) */}
+    <circle
+      cx="20"
+      cy="48"
+      r="10"
+      fill="#92400E"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+    />
+    <circle
+      cx="108"
+      cy="48"
+      r="10"
+      fill="#92400E"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+    />
+
+    {/* Mulut Dalam Keranjang (Gelap agar Terlihat Berongga) */}
+    <ellipse
+      cx="64"
+      cy="42"
+      rx="46"
+      ry="12"
+      fill="#451A03"
+      stroke="#134E4A"
+      strokeWidth="4.5"
+    />
+
+    {/* Badan Utama Keranjang Rotan (Trapesium Membulat) */}
+    <path
+      d="M16 44 H112 L98 96 C96 102 90 104 84 104 H44 C38 104 32 102 30 96 Z"
       fill="#D97706"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
-    {/* Kancing Keranjang */}
-    <rect
-      x="50"
-      y="34"
-      width="28"
-      height="10"
-      rx="2"
-      fill="#78350F"
-      stroke="var(--svg-primary)"
-      strokeWidth="3"
-    />
-    {/* Garing Keranjang (Pola) */}
-    <line
-      x1="34"
-      y1="48"
-      x2="94"
-      y2="48"
-      stroke="#B45309"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <line
-      x1="34"
-      y1="60"
-      x2="94"
-      y2="60"
-      stroke="#B45309"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    {/* Elan / Busur Atas */}
+
+    {/* Cel-Shading Sisi Kanan Keranjang */}
     <path
-      d="M34 40 C34 28 94 28 94 40 Z"
-      fill="#78350F"
-      stroke="var(--svg-primary)"
-      strokeWidth="3"
-    />
-    {/* Tangan Kotor (Grip) */}
-    <rect
-      x="46"
-      y="70"
-      width="36"
-      height="14"
-      rx="3"
+      d="M86 44 H112 L98 96 C96 102 90 104 84 104 H72 L86 44 Z"
       fill="#B45309"
-      stroke="var(--svg-primary)"
-      strokeWidth="3"
+    />
+
+    {/* Pola Anyaman Rotan Horizontal & Vertikal */}
+    <line x1="22" y1="64" x2="106" y2="64" stroke="#134E4A" strokeWidth="4" />
+    <line x1="26" y1="84" x2="102" y2="84" stroke="#134E4A" strokeWidth="4" />
+    <line x1="44" y1="48" x2="48" y2="104" stroke="#134E4A" strokeWidth="4" />
+    <line x1="64" y1="48" x2="64" y2="104" stroke="#134E4A" strokeWidth="4" />
+    <line x1="84" y1="48" x2="80" y2="104" stroke="#134E4A" strokeWidth="4" />
+
+    {/* Re-stroke Outline Badan Keranjang */}
+    <path
+      d="M16 44 H112 L98 96 C96 102 90 104 84 104 H44 C38 104 32 102 30 96 Z"
+      stroke="#134E4A"
+      strokeWidth="5"
+      strokeLinejoin="round"
+    />
+
+    {/* Bibir Atas Keranjang (Braided Rim Tebal) */}
+    <rect
+      x="12"
+      y="36"
+      width="104"
+      height="14"
+      rx="7"
+      fill="#F59E0B"
+      stroke="#134E4A"
+      strokeWidth="5"
+    />
+
+    {/* Detail Tekstur Bibir Keranjang */}
+    <path
+      d="M28 36 L34 50 M52 36 L58 50 M76 36 L82 50 M100 36 L94 50"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+      strokeLinecap="round"
+    />
+
+    {/* Plakat Label Depan Keranjang */}
+    <rect
+      x="48"
+      y="68"
+      width="32"
+      height="14"
+      rx="4"
+      fill="#FEF3C7"
+      stroke="#134E4A"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 3. HijaiyahHarvestCoverSvg
+// 4. HijaiyahHarvestCoverSvg: Cover Ikonik Burung Tito & Buah Hijaiyah Variatif
 export const HijaiyahHarvestCoverSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
+  style,
 }) => {
   return (
     <svg
@@ -779,212 +1219,236 @@ export const HijaiyahHarvestCoverSvg: React.FC<SvgProps> = ({
       role="img"
       aria-label="qirraPopCover"
       className={className}
+      style={style}
     >
-      {/* Background Badge */}
-      <circle cx="67" cy="69" r="50" fill="var(--svg-primary)" />
+      {/* Background Badge Hard Offset Shadow */}
+      <circle cx="68" cy="70" r="50" fill="#134E4A" />
+
+      {/* Background Badge Utama */}
       <circle
         cx="64"
         cy="66"
         r="50"
         fill="#CCFBF1"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="5"
       />
 
-      {/* Sayap Burung Tito */}
-      <ellipse
-        cx="34"
-        cy="74"
-        rx="14"
-        ry="9"
-        transform="rotate(-25 34 74)"
-        fill="var(--svg-secondary)"
-        stroke="var(--svg-primary)"
-        strokeWidth="4.5"
+      {/* Ring Dalam Dekoratif */}
+      <circle
+        cx="64"
+        cy="66"
+        r="42"
+        stroke="#99F6E4"
+        strokeWidth="3.5"
+        strokeDasharray="8 6"
       />
-      <ellipse
-        cx="94"
-        cy="74"
-        rx="14"
-        ry="9"
-        transform="rotate(25 94 74)"
-        fill="var(--svg-secondary)"
-        stroke="var(--svg-primary)"
+
+      {/* Sayap Burung Tito (Terangkat Ceria) */}
+      <path
+        d="M38 72 C20 60 14 74 24 86 C30 92 38 86 40 82 Z"
+        fill="#0D9488"
+        stroke="#134E4A"
         strokeWidth="4.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M90 72 C108 60 114 74 104 86 C98 92 90 86 88 82 Z"
+        fill="#0D9488"
+        stroke="#134E4A"
+        strokeWidth="4.5"
+        strokeLinejoin="round"
       />
 
       {/* Badan Burung Tito */}
       <ellipse
         cx="64"
-        cy="74"
-        rx="26"
+        cy="76"
+        rx="27"
         ry="28"
         fill="#14B8A6"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="5"
       />
-      {/* Perut Krem */}
+
+      {/* Perut Krem Tito */}
       <ellipse
         cx="64"
-        cy="82"
-        rx="17"
+        cy="84"
+        rx="18"
         ry="18"
-        fill="var(--svg-accent)"
-        stroke="var(--svg-primary)"
+        fill="#FEF08A"
+        stroke="#134E4A"
         strokeWidth="4"
       />
-      {/* Jambul */}
+
+      {/* Jambul Emas Tito */}
       <path
-        d="M58 46 C54 34 64 32 64 44 C68 34 76 38 70 46 Z"
-        fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        d="M56 48 C50 34 62 30 64 44 C68 32 78 36 72 48 Z"
+        fill="#FACC15"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
-      {/* Mata */}
+
+      {/* Pipi Merona */}
+      <ellipse cx="45" cy="72" rx="4" ry="2.5" fill="#FB7185" />
+      <ellipse cx="83" cy="72" rx="4" ry="2.5" fill="#FB7185" />
+
+      {/* Mata Ekspresif dengan Kilap */}
       <circle
-        cx="53"
+        cx="52"
         cy="64"
-        r="6"
+        r="6.5"
         fill="#FFFFFF"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="3.5"
       />
-      <circle cx="54" cy="64" r="2.5" fill="var(--svg-primary)" />
+      <circle cx="53.5" cy="64" r="3" fill="#134E4A" />
+      <circle cx="51.5" cy="62" r="1.5" fill="#FFFFFF" />
+
       <circle
-        cx="75"
+        cx="76"
         cy="64"
-        r="6"
+        r="6.5"
         fill="#FFFFFF"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="3.5"
       />
-      <circle cx="74" cy="64" r="2.5" fill="var(--svg-primary)" />
-      {/* Paruh */}
+      <circle cx="74.5" cy="64" r="3" fill="#134E4A" />
+      <circle cx="72.5" cy="62" r="1.5" fill="#FFFFFF" />
+
+      {/* Paruh Ceria */}
       <polygon
-        points="59,68 69,68 64,77"
+        points="58,68 70,68 64,78"
         fill="#F97316"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="3.5"
         strokeLinejoin="round"
       />
 
-      {/* ==================== */}
-      {/* BUAH HIJAIYAH KIRI  */}
-      {/* ==================== */}
+      {/* ========================================= */}
+      {/* BUAH HIJAIYAH KIRI (Apel Merah - Alif)    */}
+      {/* ========================================= */}
       <g transform="translate(24, 38)">
-        <circle cx="1" cy="1" r="15" fill="var(--svg-primary)" /> {/* Shadow */}
+        <circle cx="2" cy="2" r="15" fill="#134E4A" />
+        <path
+          d="M 0 -14 C -4 -21 -12 -19 -10 -13 C -6 -11 -2 -12 0 -14 Z"
+          fill="#22C55E"
+          stroke="#134E4A"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
         <circle
           cx="0"
           cy="0"
           r="15"
           fill="#EF4444"
-          stroke="var(--svg-primary)"
-          strokeWidth="3"
-        />
-        <path
-          d="M 0 -15 C 0 -22 8 -24 10 -20 C 6 -15 2 -15 0 -15 Z"
-          fill="#22C55E"
-          stroke="var(--svg-primary)"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
+          stroke="#134E4A"
+          strokeWidth="3.5"
         />
         <circle
           cx="0"
           cy="0"
           r="9.5"
           fill="#FFFBEB"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="2.5"
         />
         <text
           x="0"
-          y="4"
+          y="0"
           textAnchor="middle"
-          fontSize="11"
-          fontWeight="900"
-          fill="var(--svg-primary)"
+          dominantBaseline="central"
+          fontSize="12"
+          fontWeight="bold"
+          fontFamily="Amiri, Scheherazade New, sans-serif"
+          fill="#134E4A"
         >
           أ
         </text>
       </g>
 
-      {/* ==================== */}
-      {/* BUAH HIJAIYAH KANAN */}
-      {/* ==================== */}
+      {/* ========================================= */}
+      {/* BUAH HIJAIYAH KANAN (Blueberry - Ba)      */}
+      {/* ========================================= */}
       <g transform="translate(104, 38)">
-        <circle cx="1" cy="1" r="15" fill="var(--svg-primary)" /> {/* Shadow */}
+        <circle cx="2" cy="2" r="15" fill="#134E4A" />
+        {/* Mahkota Blueberry */}
+        <polygon
+          points="-7,-12 -4,-20 0,-15 4,-20 7,-12"
+          fill="#1D4ED8"
+          stroke="#134E4A"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
         <circle
           cx="0"
           cy="0"
           r="15"
           fill="#3B82F6"
-          stroke="var(--svg-primary)"
-          strokeWidth="3"
-        />
-        <path
-          d="M 0 -15 C 0 -22 8 -24 10 -20 C 6 -15 2 -15 0 -15 Z"
-          fill="#22C55E"
-          stroke="var(--svg-primary)"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
+          stroke="#134E4A"
+          strokeWidth="3.5"
         />
         <circle
           cx="0"
           cy="0"
           r="9.5"
           fill="#FFFBEB"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="2.5"
         />
         <text
           x="0"
-          y="4"
+          y="0"
           textAnchor="middle"
-          fontSize="11"
-          fontWeight="900"
-          fill="var(--svg-primary)"
+          dominantBaseline="central"
+          fontSize="12"
+          fontWeight="bold"
+          fontFamily="Amiri, Scheherazade New, sans-serif"
+          fill="#134E4A"
         >
           ب
         </text>
       </g>
 
-      {/* ==================== */}
-      {/* BUAH HIJAIYAH ATAS  */}
-      {/* ==================== */}
-      {/* Posisi Y diturunkan dari 16 menjadi 28 agar daun tidak terpotong */}
-      <g transform="translate(64, 28)">
-        <circle cx="1" cy="1" r="15" fill="var(--svg-primary)" /> {/* Shadow */}
-        <circle
-          cx="0"
-          cy="0"
-          r="15"
-          fill="#FBBF24"
-          stroke="var(--svg-primary)"
-          strokeWidth="3"
-        />
+      {/* ========================================= */}
+      {/* BUAH HIJAIYAH ATAS (Jeruk Kuning - Ta)    */}
+      {/* ========================================= */}
+      <g transform="translate(64, 24)">
+        <circle cx="2" cy="2" r="15" fill="#134E4A" />
         <path
-          d="M 0 -15 C 0 -22 8 -24 10 -20 C 6 -15 2 -15 0 -15 Z"
+          d="M 0 -15 C 2 -22 10 -22 12 -16 C 8 -12 3 -13 0 -15 Z"
           fill="#22C55E"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="2.5"
           strokeLinejoin="round"
         />
         <circle
           cx="0"
           cy="0"
+          r="15"
+          fill="#FACC15"
+          stroke="#134E4A"
+          strokeWidth="3.5"
+        />
+        <circle
+          cx="0"
+          cy="0"
           r="9.5"
           fill="#FFFBEB"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="2.5"
         />
         <text
           x="0"
-          y="4"
+          y="0"
           textAnchor="middle"
-          fontSize="11"
-          fontWeight="900"
-          fill="var(--svg-primary)"
+          dominantBaseline="central"
+          fontSize="12"
+          fontWeight="bold"
+          fontFamily="Amiri, Scheherazade New, sans-serif"
+          fill="#134E4A"
         >
           ت
         </text>
@@ -1016,14 +1480,14 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M50 94 L64 122 L78 94 Z"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     <path
       d="M56 94 L64 110 L72 94 Z"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
@@ -1031,14 +1495,14 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M42 70 L22 92 L42 94 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     <path
       d="M86 70 L106 92 L86 94 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -1046,7 +1510,7 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M64 12 C42 32 40 62 42 94 H86 C88 62 86 32 64 12 Z"
       fill="#F8FAFC"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -1054,7 +1518,7 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M64 12 C53 22 47 34 45 42 H83 C81 34 75 22 64 12 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -1064,7 +1528,7 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
       cy="64"
       r="16"
       fill="#38BDF8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <circle
@@ -1072,7 +1536,7 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
       cy="64"
       r="12"
       fill="#E0F2FE"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <text
@@ -1081,7 +1545,7 @@ export const HijaiyahRushCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="20"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       ج
     </text>
@@ -1104,19 +1568,19 @@ export const HijaiyahBeatsCoverSvg: React.FC<SvgProps> = ({
     className={className}
   >
     {/* Lingkaran Vinyl / Piringan */}
-    <circle cx="68" cy="68" r="48" fill="var(--svg-primary)" />
+    <circle cx="68" cy="68" r="48" fill="#134E4A" />
     <circle
       cx="64"
       cy="64"
       r="48"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     {/* Batang Not Balok Biru */}
     <path
       d="M52 84 V30 L96 22 V76"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="12"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -1134,7 +1598,7 @@ export const HijaiyahBeatsCoverSvg: React.FC<SvgProps> = ({
       cy="84"
       r="18"
       fill="#3B82F6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <text
@@ -1144,7 +1608,7 @@ export const HijaiyahBeatsCoverSvg: React.FC<SvgProps> = ({
       fontSize="22"
       fontWeight="900"
       fill="#FFFFFF"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
       paintOrder="stroke"
     >
@@ -1156,7 +1620,7 @@ export const HijaiyahBeatsCoverSvg: React.FC<SvgProps> = ({
       cy="76"
       r="15"
       fill="#60A5FA"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
   </svg>
@@ -1178,14 +1642,7 @@ export const Hijaiyah2048CoverSvg: React.FC<SvgProps> = ({
     className={className}
   >
     {/* Tile Belakang (ب) */}
-    <rect
-      x="20"
-      y="22"
-      width="56"
-      height="56"
-      rx="10"
-      fill="var(--svg-primary)"
-    />
+    <rect x="20" y="22" width="56" height="56" rx="10" fill="#134E4A" />
     <rect
       x="16"
       y="18"
@@ -1193,7 +1650,7 @@ export const Hijaiyah2048CoverSvg: React.FC<SvgProps> = ({
       height="56"
       rx="10"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <text
@@ -1202,19 +1659,12 @@ export const Hijaiyah2048CoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="30"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       ب
     </text>
     {/* Tile Depan (ت) */}
-    <rect
-      x="58"
-      y="58"
-      width="56"
-      height="56"
-      rx="10"
-      fill="var(--svg-primary)"
-    />
+    <rect x="58" y="58" width="56" height="56" rx="10" fill="#134E4A" />
     <rect
       x="54"
       y="54"
@@ -1222,7 +1672,7 @@ export const Hijaiyah2048CoverSvg: React.FC<SvgProps> = ({
       height="56"
       rx="10"
       fill="#34D399"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <text
@@ -1231,7 +1681,7 @@ export const Hijaiyah2048CoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="30"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       ت
     </text>
@@ -1260,7 +1710,7 @@ export const HijaiyahMatchArenaCoverSvg: React.FC<SvgProps> = ({
         <path
           id={shieldId}
           d="M-22 -28 H22 V-4 C22 14 0 26 0 26 C0 26 -22 14 -22 -4 Z"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4.5"
           strokeLinejoin="round"
         />
@@ -1269,7 +1719,7 @@ export const HijaiyahMatchArenaCoverSvg: React.FC<SvgProps> = ({
       <polygon
         points="66,14 54,56 72,56 60,114 78,66 60,66"
         fill="#FBBF24"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -1282,8 +1732,8 @@ export const HijaiyahMatchArenaCoverSvg: React.FC<SvgProps> = ({
           textAnchor="middle"
           fontSize="24"
           fontWeight="900"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3.5"
           paintOrder="stroke"
         >
@@ -1299,8 +1749,8 @@ export const HijaiyahMatchArenaCoverSvg: React.FC<SvgProps> = ({
           textAnchor="middle"
           fontSize="24"
           fontWeight="900"
-          fill="var(--svg-accent)"
-          stroke="var(--svg-primary)"
+          fill="#FEF08A"
+          stroke="#134E4A"
           strokeWidth="3.5"
           paintOrder="stroke"
         >
@@ -1327,14 +1777,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
     className={className}
   >
     {/* Hard Shadow Board */}
-    <rect
-      x="22"
-      y="22"
-      width="90"
-      height="90"
-      rx="10"
-      fill="var(--svg-primary)"
-    />
+    <rect x="22" y="22" width="90" height="90" rx="10" fill="#134E4A" />
     <rect
       x="18"
       y="18"
@@ -1342,7 +1785,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="90"
       rx="10"
       fill="#FFFBEB"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     {/* Baris 1 */}
@@ -1353,7 +1796,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <rect
@@ -1363,7 +1806,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#94A3B8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <rect
@@ -1373,7 +1816,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     {/* Baris 2 */}
@@ -1384,7 +1827,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <rect
@@ -1394,7 +1837,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <rect
@@ -1404,7 +1847,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#94A3B8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     {/* Baris 3 (Hijau Semua - Menang) */}
@@ -1415,7 +1858,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <rect
@@ -1425,7 +1868,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <rect
@@ -1435,7 +1878,7 @@ export const ArabicWordleCoverSvg: React.FC<SvgProps> = ({
       height="22"
       rx="4"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -1460,7 +1903,7 @@ export const AyatScrambleCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M16 36 H56 V52 C64 52 64 68 56 68 V88 H16 Z"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -1470,7 +1913,7 @@ export const AyatScrambleCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="22"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       قُلْ
     </text>
@@ -1479,7 +1922,7 @@ export const AyatScrambleCoverSvg: React.FC<SvgProps> = ({
       <path
         d="M64 36 H108 V88 H64 V68 C72 68 72 52 64 52 Z"
         fill="#34D399"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="5"
         strokeLinejoin="round"
       />
@@ -1489,7 +1932,7 @@ export const AyatScrambleCoverSvg: React.FC<SvgProps> = ({
         textAnchor="middle"
         fontSize="20"
         fontWeight="900"
-        fill="var(--svg-primary)"
+        fill="#134E4A"
       >
         هُوَ
       </text>
@@ -1515,26 +1958,19 @@ export const AyatHunterCoverSvg: React.FC<SvgProps> = ({
     {/* Kitab Terbuka */}
     <path
       d="M16 36 Q40 30 64 38 Q88 30 112 36 V92 Q88 86 64 94 Q40 86 16 92 Z"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
-    <line
-      x1="64"
-      y1="38"
-      x2="64"
-      y2="94"
-      stroke="var(--svg-primary)"
-      strokeWidth="4.5"
-    />
+    <line x1="64" y1="38" x2="64" y2="94" stroke="#134E4A" strokeWidth="4.5" />
     {/* Baris Teks Kitab */}
     <line
       x1="26"
       y1="52"
       x2="54"
       y2="52"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinecap="round"
     />
@@ -1543,14 +1979,14 @@ export const AyatHunterCoverSvg: React.FC<SvgProps> = ({
       y1="66"
       x2="54"
       y2="66"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinecap="round"
     />
     {/* Gagang Kaca Pembesar */}
     <path
       d="M86 82 L110 106"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="14"
       strokeLinecap="round"
     />
@@ -1566,7 +2002,7 @@ export const AyatHunterCoverSvg: React.FC<SvgProps> = ({
       cy="64"
       r="24"
       fill="#BAE6FD"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <text
@@ -1575,7 +2011,7 @@ export const AyatHunterCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="22"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       آيَة
     </text>
@@ -1605,7 +2041,7 @@ export const JuzAmmaSpeedrunCoverSvg: React.FC<SvgProps> = ({
       height="74"
       rx="6"
       fill="#10B981"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <rect
@@ -1614,8 +2050,8 @@ export const JuzAmmaSpeedrunCoverSvg: React.FC<SvgProps> = ({
       width="36"
       height="24"
       rx="3"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <text
@@ -1624,7 +2060,7 @@ export const JuzAmmaSpeedrunCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="14"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       عمّ
     </text>
@@ -1636,7 +2072,7 @@ export const JuzAmmaSpeedrunCoverSvg: React.FC<SvgProps> = ({
       height="10"
       rx="3"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     {/* Badan Stopwatch di Kanan Bawah */}
@@ -1645,7 +2081,7 @@ export const JuzAmmaSpeedrunCoverSvg: React.FC<SvgProps> = ({
       cy="78"
       r="30"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <circle
@@ -1653,7 +2089,7 @@ export const JuzAmmaSpeedrunCoverSvg: React.FC<SvgProps> = ({
       cy="78"
       r="22"
       fill="#FFFFFF"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     {/* Jarum Stopwatch */}
@@ -1686,13 +2122,13 @@ export const QuranQuizRoyaleCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M44 26 H84 V40 C84 52 44 52 44 40 Z"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     <path
       d="M64 50 V62 M52 62 H76"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinecap="round"
     />
@@ -1703,7 +2139,7 @@ export const QuranQuizRoyaleCoverSvg: React.FC<SvgProps> = ({
       width="32"
       height="36"
       fill="#60A5FA"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Podium Juara 1 (Tengah) */}
@@ -1713,7 +2149,7 @@ export const QuranQuizRoyaleCoverSvg: React.FC<SvgProps> = ({
       width="32"
       height="50"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <text
@@ -1722,7 +2158,7 @@ export const QuranQuizRoyaleCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="20"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       1
     </text>
@@ -1733,7 +2169,7 @@ export const QuranQuizRoyaleCoverSvg: React.FC<SvgProps> = ({
       width="32"
       height="28"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
   </svg>
@@ -1762,7 +2198,7 @@ export const TajwidArenaCoverSvg: React.FC<SvgProps> = ({
       height="68"
       rx="8"
       fill="#10B981"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <rect
@@ -1771,14 +2207,14 @@ export const TajwidArenaCoverSvg: React.FC<SvgProps> = ({
       width="60"
       height="48"
       rx="4"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     {/* Pedang 1 (Kiri Bawah ke Kanan Atas) */}
     <path
       d="M22 106 L102 26"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="12"
       strokeLinecap="round"
     />
@@ -1791,7 +2227,7 @@ export const TajwidArenaCoverSvg: React.FC<SvgProps> = ({
     {/* Pedang 2 (Kanan Bawah ke Kiri Atas) */}
     <path
       d="M106 106 L26 26"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="12"
       strokeLinecap="round"
     />
@@ -1822,21 +2258,21 @@ export const TajwidDefenseCoverSvg: React.FC<SvgProps> = ({
     {/* Hard Shadow Perisai */}
     <path
       d="M28 24 H108 V64 C108 94 68 114 68 114 C68 114 28 94 28 64 Z"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     />
     {/* Perisai Utama */}
     <path
       d="M24 20 H104 V60 C104 90 64 110 64 110 C64 110 24 90 24 60 Z"
       fill="#3B82F6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
     {/* Bingkai Dalam Perisai */}
     <path
       d="M34 30 H94 V58 C94 80 64 96 64 96 C64 96 34 80 34 58 Z"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -1849,7 +2285,7 @@ export const TajwidDefenseCoverSvg: React.FC<SvgProps> = ({
     />
     <path
       d="M44 62 Q54 46 64 62 T84 62"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
       strokeLinecap="round"
     />
@@ -1878,7 +2314,7 @@ export const TajwidTetrisCoverSvg: React.FC<SvgProps> = ({
       width="28"
       height="28"
       fill="#A855F7"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -1887,7 +2323,7 @@ export const TajwidTetrisCoverSvg: React.FC<SvgProps> = ({
       width="28"
       height="28"
       fill="#A855F7"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -1896,7 +2332,7 @@ export const TajwidTetrisCoverSvg: React.FC<SvgProps> = ({
       width="28"
       height="28"
       fill="#A855F7"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -1905,7 +2341,7 @@ export const TajwidTetrisCoverSvg: React.FC<SvgProps> = ({
       width="28"
       height="28"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Simbol Waqaf (م / قلى) */}
@@ -1915,7 +2351,7 @@ export const TajwidTetrisCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="18"
       fontWeight="900"
-      fill="var(--svg-accent)"
+      fill="#FEF08A"
     >
       مـ
     </text>
@@ -1925,7 +2361,7 @@ export const TajwidTetrisCoverSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="16"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       قلى
     </text>
@@ -1951,31 +2387,24 @@ export const AdabRpgCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M44 26 C44 12 72 12 72 26 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Helm Ksatria */}
     <path
       d="M24 52 C24 30 68 30 68 52 V84 H24 Z"
       fill="#94A3B8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
     {/* Visor Helm */}
-    <rect
-      x="30"
-      y="54"
-      width="32"
-      height="12"
-      rx="3"
-      fill="var(--svg-primary)"
-    />
+    <rect x="30" y="54" width="32" height="12" rx="3" fill="#134E4A" />
     {/* Perisai di Kanan Bawah */}
     <path
       d="M58 50 H106 V78 C106 98 82 110 82 110 C82 110 58 98 58 78 Z"
       fill="#34D399"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -1985,7 +2414,7 @@ export const AdabRpgCoverSvg: React.FC<SvgProps> = ({
       cy="70"
       r="7"
       fill="#F472B6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
     />
     <circle
@@ -1993,7 +2422,7 @@ export const AdabRpgCoverSvg: React.FC<SvgProps> = ({
       cy="84"
       r="7"
       fill="#F472B6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
     />
     <circle
@@ -2001,7 +2430,7 @@ export const AdabRpgCoverSvg: React.FC<SvgProps> = ({
       cy="77"
       r="7"
       fill="#F472B6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
     />
     <circle
@@ -2009,7 +2438,7 @@ export const AdabRpgCoverSvg: React.FC<SvgProps> = ({
       cy="77"
       r="7"
       fill="#F472B6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
     />
     <circle
@@ -2017,7 +2446,7 @@ export const AdabRpgCoverSvg: React.FC<SvgProps> = ({
       cy="77"
       r="5"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
     />
   </svg>
@@ -2042,7 +2471,7 @@ export const DoaDungeonCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M14 108 V56 C14 24 114 24 114 56 V108 Z"
       fill="#475569"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2051,8 +2480,8 @@ export const DoaDungeonCoverSvg: React.FC<SvgProps> = ({
       cx="40"
       cy="48"
       r="22"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     {/* Obor Kayu & Api */}
@@ -2063,13 +2492,13 @@ export const DoaDungeonCoverSvg: React.FC<SvgProps> = ({
       height="30"
       rx="2"
       fill="#92400E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     <path
       d="M40 28 C30 40 32 54 40 56 C48 54 50 40 40 28 Z"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -2081,17 +2510,10 @@ export const DoaDungeonCoverSvg: React.FC<SvgProps> = ({
       height="30"
       rx="4"
       fill="#B45309"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
-    <line
-      x1="58"
-      y1="82"
-      x2="100"
-      y2="82"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-    />
+    <line x1="58" y1="82" x2="100" y2="82" stroke="#134E4A" strokeWidth="4" />
     <rect
       x="74"
       y="77"
@@ -2099,7 +2521,7 @@ export const DoaDungeonCoverSvg: React.FC<SvgProps> = ({
       height="12"
       rx="2"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -2124,14 +2546,14 @@ export const MalaikatMissionCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M36 52 C10 34 6 62 22 72 C12 80 22 92 36 86 Z"
       fill="#F8FAFC"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     <path
       d="M92 52 C118 34 122 62 106 72 C116 80 106 92 92 86 Z"
       fill="#F8FAFC"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -2143,7 +2565,7 @@ export const MalaikatMissionCoverSvg: React.FC<SvgProps> = ({
       height="76"
       rx="8"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <rect
@@ -2153,7 +2575,7 @@ export const MalaikatMissionCoverSvg: React.FC<SvgProps> = ({
       height="56"
       rx="4"
       fill="#FFFFFF"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     {/* Penjepit Clipboard Atas */}
@@ -2164,7 +2586,7 @@ export const MalaikatMissionCoverSvg: React.FC<SvgProps> = ({
       height="12"
       rx="4"
       fill="#94A3B8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     {/* Checklist Hijau */}
@@ -2180,7 +2602,7 @@ export const MalaikatMissionCoverSvg: React.FC<SvgProps> = ({
       y1="80"
       x2="76"
       y2="80"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinecap="round"
     />
@@ -2209,7 +2631,7 @@ export const NabiChroniclesCoverSvg: React.FC<SvgProps> = ({
       width="68"
       height="80"
       fill="#FDE68A"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     {/* Batang Gulungan Atas */}
@@ -2220,7 +2642,7 @@ export const NabiChroniclesCoverSvg: React.FC<SvgProps> = ({
       height="14"
       rx="7"
       fill="#B45309"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Batang Gulungan Bawah */}
@@ -2231,7 +2653,7 @@ export const NabiChroniclesCoverSvg: React.FC<SvgProps> = ({
       height="14"
       rx="7"
       fill="#B45309"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Garis Kaligrafi Kuno */}
@@ -2240,7 +2662,7 @@ export const NabiChroniclesCoverSvg: React.FC<SvgProps> = ({
       y1="48"
       x2="84"
       y2="48"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinecap="round"
     />
@@ -2249,7 +2671,7 @@ export const NabiChroniclesCoverSvg: React.FC<SvgProps> = ({
       y1="64"
       x2="84"
       y2="64"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinecap="round"
     />
@@ -2258,7 +2680,7 @@ export const NabiChroniclesCoverSvg: React.FC<SvgProps> = ({
       y1="80"
       x2="84"
       y2="80"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinecap="round"
     />
@@ -2288,7 +2710,7 @@ export const SantriIdleCoverSvg: React.FC<SvgProps> = ({
       height="18"
       rx="4"
       fill="#10B981"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -2298,7 +2720,7 @@ export const SantriIdleCoverSvg: React.FC<SvgProps> = ({
       height="18"
       rx="4"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Kepala Santri Tidur */}
@@ -2307,21 +2729,21 @@ export const SantriIdleCoverSvg: React.FC<SvgProps> = ({
       cy="54"
       r="18"
       fill="#FDE68A"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Peci / Kopiah Hitam */}
     <path
       d="M38 46 L42 32 H70 L74 46 Z"
       fill="#1E293B"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     {/* Mata Merem */}
     <path
       d="M48 56 Q52 60 56 56"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
       strokeLinecap="round"
     />
@@ -2332,7 +2754,7 @@ export const SantriIdleCoverSvg: React.FC<SvgProps> = ({
       fontSize="18"
       fontWeight="900"
       fill="#3B82F6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
       paintOrder="stroke"
     >
@@ -2360,7 +2782,7 @@ export const WudhuFlowCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M18 36 H68 C78 36 84 42 84 52 V62 H64 V54 H18 Z"
       fill="#94A3B8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2372,22 +2794,15 @@ export const WudhuFlowCoverSvg: React.FC<SvgProps> = ({
       height="10"
       rx="4"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
-    <line
-      x1="54"
-      y1="28"
-      x2="54"
-      y2="36"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
-    />
+    <line x1="54" y1="28" x2="54" y2="36" stroke="#134E4A" strokeWidth="5" />
     {/* Tetesan Air Besar */}
     <path
       d="M74 68 C62 84 62 104 74 104 C86 104 86 84 74 68 Z"
       fill="#38BDF8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -2397,7 +2812,7 @@ export const WudhuFlowCoverSvg: React.FC<SvgProps> = ({
       cy="86"
       r="12"
       fill="#BAE6FD"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     <circle
@@ -2405,7 +2820,7 @@ export const WudhuFlowCoverSvg: React.FC<SvgProps> = ({
       cy="96"
       r="9"
       fill="#BAE6FD"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
   </svg>
@@ -2430,7 +2845,7 @@ export const SholatHeroCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M36 28 L14 96 L64 88 L114 96 L92 28 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2442,14 +2857,14 @@ export const SholatHeroCoverSvg: React.FC<SvgProps> = ({
       height="84"
       rx="6"
       fill="#10B981"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     {/* Kubah Mihrab Sajadah */}
     <path
       d="M46 88 V52 C46 38 64 32 64 32 C64 32 82 38 82 52 V88 Z"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -2490,14 +2905,14 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
     <polygon
       points="68,26 71,32 77,35 71,38 68,44 65,38 59,35 65,32"
       fill="#FDE047"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="2"
       strokeLinejoin="round"
     />
     <polygon
       points="36,88 38,92 42,94 38,96 36,100 34,96 30,94 34,92"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="1.5"
       strokeLinejoin="round"
     />
@@ -2508,7 +2923,7 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
       <path
         d="M26 62 C 26 38, 46 22, 68 22 C 78 22, 86 26, 92 32 L 32 72 Z"
         fill="#10B981"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -2518,8 +2933,8 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
         fill="#EF4444"
       />
       {/* Biji Semangka */}
-      <circle cx="52" cy="38" r="2" fill="var(--svg-primary)" />
-      <circle cx="68" cy="40" r="2" fill="var(--svg-primary)" />
+      <circle cx="52" cy="38" r="2" fill="#134E4A" />
+      <circle cx="68" cy="40" r="2" fill="#134E4A" />
     </g>
 
     {/* BELAHAN SEMANGKA BAGIAN BAWAH (KANAN BAWAH) */}
@@ -2528,7 +2943,7 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
       <path
         d="M44 82 L 102 44 C 108 52, 110 62, 108 74 C 104 96, 82 110, 60 108 C 48 106, 42 98, 44 82 Z"
         fill="#10B981"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4"
         strokeLinejoin="round"
       />
@@ -2538,9 +2953,9 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
         fill="#EF4444"
       />
       {/* Biji Semangka */}
-      <circle cx="78" cy="74" r="2" fill="var(--svg-primary)" />
-      <circle cx="88" cy="64" r="2" fill="var(--svg-primary)" />
-      <circle cx="66" cy="88" r="2" fill="var(--svg-primary)" />
+      <circle cx="78" cy="74" r="2" fill="#134E4A" />
+      <circle cx="88" cy="64" r="2" fill="#134E4A" />
+      <circle cx="66" cy="88" r="2" fill="#134E4A" />
     </g>
 
     {/* HURUF ARAB "بَ" (Ba dengan Fathah) DI TENGAH SABETAN */}
@@ -2567,7 +2982,7 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
       <path
         d="M12 8 C 12 24, 22 34, 42 34 C 54 34, 58 26, 58 12"
         fill="none"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -2578,7 +2993,7 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
         cy="45"
         r="4"
         fill="#DC2626"
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="2.5"
       />
     </g>
@@ -2588,7 +3003,7 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M14 112 L 102 24 C 108 18, 116 16, 120 18 C 120 22, 116 30, 110 36 L 22 120 Z"
       fill="#F1F5F9"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
@@ -2605,14 +3020,14 @@ export const HarakatSlasherCoverSvg: React.FC<SvgProps> = ({
       ry="13"
       transform="rotate(-45 24 102)"
       fill="#F59E0B"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
     />
     {/* Gagang Pedang (Tsuka) Bertali Biru Gelap */}
     <path
       d="M20 106 L 6 120 C 4 122, 2 122, 1 120 C 0 118, 1 116, 3 114 L 17 100 Z"
       fill="#1E293B"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3"
       strokeLinejoin="round"
     />
@@ -2642,7 +3057,7 @@ export const MakhrajMasterCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M30 20 H74 C88 20 92 38 92 48 L104 60 L90 68 V88 C90 96 76 100 68 100 V112 H30 Z"
       fill="#FDE68A"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2652,7 +3067,7 @@ export const MakhrajMasterCoverSvg: React.FC<SvgProps> = ({
       cy="78"
       r="20"
       fill="#FCA5A5"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     <circle
@@ -2660,25 +3075,11 @@ export const MakhrajMasterCoverSvg: React.FC<SvgProps> = ({
       cy="78"
       r="10"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
-    <line
-      x1="58"
-      y1="78"
-      x2="106"
-      y2="78"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
-    <line
-      x1="82"
-      y1="54"
-      x2="82"
-      y2="102"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
+    <line x1="58" y1="78" x2="106" y2="78" stroke="#134E4A" strokeWidth="3.5" />
+    <line x1="82" y1="54" x2="82" y2="102" stroke="#134E4A" strokeWidth="3.5" />
   </svg>
 );
 
@@ -2701,7 +3102,7 @@ export const NurBattleCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M72 32 C92 22 114 38 106 58 C118 72 106 98 84 96 C70 96 68 76 74 64 Z"
       fill="#475569"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2709,7 +3110,7 @@ export const NurBattleCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M32 34 H56 L50 22 H38 Z"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -2719,8 +3120,8 @@ export const NurBattleCoverSvg: React.FC<SvgProps> = ({
       width="36"
       height="50"
       rx="6"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <rect
@@ -2730,14 +3131,14 @@ export const NurBattleCoverSvg: React.FC<SvgProps> = ({
       height="10"
       rx="3"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     {/* Nyala Api di Dalam Lentera */}
     <path
       d="M44 46 C36 56 38 68 44 70 C50 68 52 56 44 46 Z"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -2766,7 +3167,7 @@ export const TebakSurahCoverSvg: React.FC<SvgProps> = ({
       height="72"
       rx="6"
       fill="#FDE68A"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <text
@@ -2776,7 +3177,7 @@ export const TebakSurahCoverSvg: React.FC<SvgProps> = ({
       fontSize="34"
       fontWeight="900"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       paintOrder="stroke"
     >
@@ -2786,7 +3187,7 @@ export const TebakSurahCoverSvg: React.FC<SvgProps> = ({
     <path
       d="M28 98 C16 98 14 82 26 78 C30 64 50 64 56 74 C66 62 88 66 90 80 C104 80 104 98 90 98 Z"
       fill="#E0F2FE"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2812,25 +3213,25 @@ export const CoverRodaHijaiyahSvg: React.FC<SvgProps> = ({
     <path
       d="M64 64 L64 16 A48 48 0 0 1 112 64 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <path
       d="M64 64 L112 64 A48 48 0 0 1 64 112 Z"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <path
       d="M64 64 L64 112 A48 48 0 0 1 16 64 Z"
       fill="#10B981"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <path
       d="M64 64 L16 64 A48 48 0 0 1 64 16 Z"
       fill="#3B82F6"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Poros Tengah */}
@@ -2838,15 +3239,15 @@ export const CoverRodaHijaiyahSvg: React.FC<SvgProps> = ({
       cx="64"
       cy="64"
       r="12"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Jarum Penunjuk Atas */}
     <polygon
       points="54,8 74,8 64,26"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -2881,7 +3282,7 @@ export const HeroStreakSvg: React.FC<SvgProps> = ({
       rx="6"
       transform="rotate(-12 64 100)"
       fill="#92400E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -2892,14 +3293,14 @@ export const HeroStreakSvg: React.FC<SvgProps> = ({
       rx="6"
       transform="rotate(12 64 100)"
       fill="#B45309"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Lidah Api Luar Oranye */}
     <path
       d="M64 14 C32 42 26 76 46 92 C58 100 70 100 82 92 C102 76 96 42 64 14 Z"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -2907,7 +3308,7 @@ export const HeroStreakSvg: React.FC<SvgProps> = ({
     <path
       d="M64 42 C48 60 46 80 56 90 C62 94 66 94 72 90 C82 80 80 60 64 42 Z"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -2938,7 +3339,7 @@ export const HeroKartuNgajiSvg: React.FC<SvgProps> = ({
       rx="8"
       transform="rotate(-14 50 63)"
       fill="#38BDF8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Kartu Tengah Kanan */}
@@ -2950,7 +3351,7 @@ export const HeroKartuNgajiSvg: React.FC<SvgProps> = ({
       rx="8"
       transform="rotate(12 78 63)"
       fill="#34D399"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     {/* Kartu Utama Depan */}
@@ -2961,7 +3362,7 @@ export const HeroKartuNgajiSvg: React.FC<SvgProps> = ({
       height="80"
       rx="8"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     <rect
@@ -2971,7 +3372,7 @@ export const HeroKartuNgajiSvg: React.FC<SvgProps> = ({
       height="64"
       rx="4"
       fill="#FFFBEB"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
     <text
@@ -2980,7 +3381,7 @@ export const HeroKartuNgajiSvg: React.FC<SvgProps> = ({
       textAnchor="middle"
       fontSize="34"
       fontWeight="900"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     >
       أ
     </text>
@@ -3005,7 +3406,7 @@ export const HeroLanjutkanSvg: React.FC<SvgProps> = ({
     {/* Jalur Panah Melengkung */}
     <path
       d="M20 98 C24 58 48 48 76 52"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="14"
       strokeLinecap="round"
     />
@@ -3019,7 +3420,7 @@ export const HeroLanjutkanSvg: React.FC<SvgProps> = ({
     <polygon
       points="68,38 88,52 68,66"
       fill="#34D399"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -3027,7 +3428,7 @@ export const HeroLanjutkanSvg: React.FC<SvgProps> = ({
     <polygon
       points="98,18 103,30 116,32 106,41 109,54 98,47 87,54 90,41 80,32 93,30"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -3053,14 +3454,14 @@ export const HeroNyawaHabisSvg: React.FC<SvgProps> = ({
     <path
       d="M64 106 C64 106 16 76 16 44 C16 26 32 18 46 24 C56 28 64 38 64 38 C64 38 72 28 82 24 C96 18 112 26 112 44 C112 76 64 106 64 106 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
     {/* Retakan Zig-Zag di Tengah */}
     <polyline
       points="64,38 56,54 70,68 58,84 64,106"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -3074,7 +3475,7 @@ export const HeroNyawaHabisSvg: React.FC<SvgProps> = ({
       rx="4"
       transform="rotate(-25 38 37)"
       fill="#FDE68A"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -3096,19 +3497,19 @@ export const HeroCobaLagiSvg: React.FC<SvgProps> = ({
     className={className}
   >
     {/* Lingkaran Badge Belakang */}
-    <circle cx="67" cy="67" r="46" fill="var(--svg-primary)" />
+    <circle cx="67" cy="67" r="46" fill="#134E4A" />
     <circle
       cx="64"
       cy="64"
       r="46"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
     {/* Busur Panah Refresh */}
     <path
       d="M86 54 A24 24 0 1 0 82 78"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="12"
       strokeLinecap="round"
     />
@@ -3122,7 +3523,7 @@ export const HeroCobaLagiSvg: React.FC<SvgProps> = ({
     <polygon
       points="72,56 94,58 88,38"
       fill="#FFFFFF"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -3170,19 +3571,12 @@ export const BukuTilawatiSvg: React.FC<BukuTilawatiProps> = ({
           cy="68"
           r="18"
           fill="#FFFBEB"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4.5"
         />
       </defs>
       {/* Hard Shadow Buku */}
-      <rect
-        x="30"
-        y="20"
-        width="74"
-        height="96"
-        rx="8"
-        fill="var(--svg-primary)"
-      />
+      <rect x="30" y="20" width="74" height="96" rx="8" fill="#134E4A" />
       {/* Cover Buku Utama */}
       <rect
         x="24"
@@ -3191,7 +3585,7 @@ export const BukuTilawatiSvg: React.FC<BukuTilawatiProps> = ({
         height="96"
         rx="8"
         fill={theme.cover}
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="5"
       />
       {/* Punggung Buku (Spine) di Kiri */}
@@ -3202,7 +3596,7 @@ export const BukuTilawatiSvg: React.FC<BukuTilawatiProps> = ({
         height="96"
         rx="4"
         fill={theme.accent}
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="4.5"
       />
       {/* Ornamen Header Atas */}
@@ -3213,7 +3607,7 @@ export const BukuTilawatiSvg: React.FC<BukuTilawatiProps> = ({
         height="12"
         rx="4"
         fill={theme.accent}
-        stroke="var(--svg-primary)"
+        stroke="#134E4A"
         strokeWidth="3.5"
       />
       {/* Lingkaran Nomor Jilid */}
@@ -3224,7 +3618,7 @@ export const BukuTilawatiSvg: React.FC<BukuTilawatiProps> = ({
         textAnchor="middle"
         fontSize="22"
         fontWeight="900"
-        fill="var(--svg-primary)"
+        fill="#134E4A"
         fontFamily="system-ui, sans-serif"
       >
         {jilid}
@@ -4566,10 +4960,10 @@ export const HeroExplorerSvg: React.FC<SvgProps> = ({
 );
 
 // ============================================================================
-// KATEGORI 4: ASET GAME FRUIT NINJA / HIJAIYAH SLICE (WHOLE & SLICED FRUITS)
+// KATEGORI 4: ASET GAME FRUIT NINJA / HIJAIYAH SLICE (AIRBORNE NEO-BRUTALISM)
 // ============================================================================
 
-// 1. Buah Apel (Whole)
+// 1. Buah Apel (Whole - Airborne)
 export const BuahApelSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4586,42 +4980,83 @@ export const BuahApelSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="66" cy="114" rx="38" ry="7" fill="var(--svg-primary)" />
-    {/* Tangkai & Daun */}
+    {/* Attached 3D Offset Shadow */}
     <path
-      d="M64 26 C64 16 74 14 78 20 C72 26 66 26 64 26 Z"
-      fill="#22C55E"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-      strokeLinejoin="round"
+      d="M68 32 C46 20 22 36 22 66 C22 96 44 112 68 106 C92 112 114 96 114 66 C114 36 90 20 68 32 Z"
+      fill="var(--svg-primary, #134E4A)"
+    />
+
+    {/* Tangkai Kayu */}
+    <path
+      d="M64 28 C64 16 70 10 76 8"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="8"
+      strokeLinecap="round"
     />
     <path
-      d="M64 28 V18"
+      d="M64 28 C64 16 70 10 76 8"
       stroke="#78350F"
       strokeWidth="4"
       strokeLinecap="round"
     />
+
+    {/* Daun Apel Segar */}
+    <path
+      d="M62 24 C46 10 26 14 30 28 C40 34 54 30 62 24 Z"
+      fill="#22C55E"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M36 22 Q48 22 58 24"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+
     {/* Badan Apel */}
     <path
-      d="M64 34 C40 34 30 52 30 72 C30 96 46 108 64 102 C82 108 98 96 98 72 C98 52 88 34 64 34 Z"
+      d="M64 28 C42 16 18 32 18 62 C18 92 40 108 64 102 C88 108 110 92 110 62 C110 32 86 16 64 28 Z"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
-    {/* Area Kosong Tengah untuk Teks/Harakat */}
+
+    {/* Cel-Shading Sisi Kanan */}
+    <path
+      d="M96 40 C104 64 94 92 68 99 C88 103 106 88 106 62 C106 52 102 45 96 40 Z"
+      fill="#DC2626"
+    />
+
+    {/* Lekukan Lesung Atas & Kilap */}
+    <path
+      d="M53 29 Q64 35 75 29"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+    <path
+      d="M28 50 C30 38 38 30 48 28"
+      stroke="#FFFFFF"
+      strokeWidth="5"
+      strokeLinecap="round"
+    />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
     <circle
       cx="64"
-      cy="74"
-      r="24"
+      cy="66"
+      r="25"
       fill="#FEF2F2"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 2. Potongan Apel (Sliced)
+// 2. Potongan Apel (Sliced - 3D Airborne Cut & Splash)
 export const PotonganApelSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4638,28 +5073,111 @@ export const PotonganApelSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="38" ry="7" fill="var(--svg-primary)" />
-    <path
-      d="M26 72 C26 42 46 28 64 28 C82 28 102 42 102 72 C102 96 84 104 64 104 C44 104 26 96 26 72 Z"
+    {/* Cipratan Jus di Udara */}
+    <circle
+      cx="18"
+      cy="38"
+      r="6"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
-      strokeLinejoin="round"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    {/* Daging & Biji */}
-    <path
-      d="M34 72 C34 48 48 36 64 36 C80 36 94 48 94 72 C94 92 80 96 64 96 C48 96 34 92 34 72 Z"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-      strokeLinejoin="round"
+    <circle
+      cx="110"
+      cy="88"
+      r="7"
+      fill="#FEF08A"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <ellipse cx="56" cy="70" rx="3.5" ry="5" fill="var(--svg-primary)" />
-    <ellipse cx="72" cy="70" rx="3.5" ry="5" fill="var(--svg-primary)" />
+    <circle
+      cx="106"
+      cy="30"
+      r="4.5"
+      fill="#EF4444"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3"
+    />
+
+    <g transform="rotate(-12 64 64)">
+      {/* Attached 3D Offset Shadow */}
+      <path
+        d="M68 32 C46 22 24 38 24 66 C24 94 46 108 68 102 C90 108 112 94 112 66 C112 38 90 22 68 32 Z"
+        fill="var(--svg-primary, #134E4A)"
+      />
+
+      {/* Tangkai */}
+      <path
+        d="M64 26 V14"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M64 26 V14"
+        stroke="#78350F"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+
+      {/* Kulit Belakang 3D (Merah) */}
+      <path
+        d="M64 28 C42 18 20 34 20 62 C20 90 42 104 64 98 C86 104 108 90 108 62 C108 34 86 18 64 28 Z"
+        fill="#EF4444"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="5"
+        strokeLinejoin="round"
+      />
+
+      {/* Daging Apel Dalam (Kuning Krem Segar) */}
+      <path
+        d="M62 34 C44 26 26 40 26 62 C26 84 44 96 62 90 C80 96 98 84 98 62 C98 40 80 26 62 34 Z"
+        fill="#FEF9C3"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+
+      {/* Garis Empulur & Biji Apel */}
+      <path
+        d="M62 34 V90"
+        stroke="#FDE047"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M52 54 C46 58 46 68 52 72"
+        stroke="#FACC15"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M72 54 C78 58 78 68 72 72"
+        stroke="#FACC15"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <ellipse
+        cx="55"
+        cy="63"
+        rx="3.5"
+        ry="6"
+        transform="rotate(-15 55 63)"
+        fill="var(--svg-primary, #134E4A)"
+      />
+      <ellipse
+        cx="69"
+        cy="63"
+        rx="3.5"
+        ry="6"
+        transform="rotate(15 69 63)"
+        fill="var(--svg-primary, #134E4A)"
+      />
+    </g>
   </svg>
 );
 
-// 3. Buah Semangka Slice (Whole/Wedge)
+// 3. Buah Semangka (Whole/Wedge - Airborne)
 export const BuahSemangkaSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4676,35 +5194,57 @@ export const BuahSemangkaSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="42" ry="7" fill="var(--svg-primary)" />
-    {/* Kulit Luar Hijau */}
+    {/* Attached 3D Offset Shadow */}
     <path
-      d="M20 86 C20 50 40 30 64 30 C88 30 108 50 108 86 Z"
+      d="M18 82 C18 40 40 22 68 22 C96 22 118 40 118 82 C118 92 108 98 68 98 C28 98 18 92 18 82 Z"
+      fill="var(--svg-primary, #134E4A)"
+    />
+
+    {/* Kulit Luar Hijau Semangka */}
+    <path
+      d="M14 78 C14 36 36 18 64 18 C92 18 114 36 114 78 C114 88 104 94 64 94 C24 94 14 88 14 78 Z"
       fill="#10B981"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
-    {/* Daging Merah & Area Teks */}
+
+    {/* Lapisan Kulit Putih Dalam (Rind) */}
     <path
-      d="M28 86 C28 56 44 38 64 38 C84 38 100 56 100 86 Z"
-      fill="#EF4444"
-      stroke="var(--svg-primary)"
+      d="M22 76 C22 42 40 26 64 26 C88 26 106 42 106 76 C106 82 94 86 64 86 C34 86 22 82 22 76 Z"
+      fill="#ECFDF5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+
+    {/* Daging Merah Semangka */}
+    <path
+      d="M28 74 C28 46 44 32 64 32 C84 32 100 46 100 74 C100 78 88 82 64 82 C40 82 28 78 28 74 Z"
+      fill="#F43F5E"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="4"
       strokeLinejoin="round"
     />
+
+    {/* Biji Semangka di Pinggir */}
+    <circle cx="38" cy="64" r="3" fill="var(--svg-primary, #134E4A)" />
+    <circle cx="90" cy="64" r="3" fill="var(--svg-primary, #134E4A)" />
+    <circle cx="44" cy="50" r="2.5" fill="var(--svg-primary, #134E4A)" />
+    <circle cx="84" cy="50" r="2.5" fill="var(--svg-primary, #134E4A)" />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
     <circle
       cx="64"
-      cy="68"
-      r="18"
-      fill="#FEE2E2"
-      stroke="var(--svg-primary)"
-      strokeWidth="3"
+      cy="60"
+      r="22"
+      fill="#FFE4E6"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 4. Potongan Semangka (Sliced)
+// 4. Potongan Semangka (Sliced - Dynamic Split Wedge & Splash)
 export const PotonganSemangkaSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4721,29 +5261,102 @@ export const PotonganSemangkaSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="42" ry="7" fill="var(--svg-primary)" />
-    <path
-      d="M20 90 L64 30 L108 90 Z"
+    {/* Cipratan Jus Semangka */}
+    <circle
+      cx="22"
+      cy="34"
+      r="6.5"
+      fill="#F43F5E"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+    <circle
+      cx="106"
+      cy="40"
+      r="5"
       fill="#10B981"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
-      strokeLinejoin="round"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <path
-      d="M28 90 L64 42 L100 90 Z"
-      fill="#EF4444"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-      strokeLinejoin="round"
+    <circle
+      cx="98"
+      cy="102"
+      r="6"
+      fill="#F43F5E"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    {/* Biji Hitam Solid */}
-    <circle cx="52" cy="74" r="3.5" fill="var(--svg-primary)" />
-    <circle cx="64" cy="64" r="3.5" fill="var(--svg-primary)" />
-    <circle cx="76" cy="74" r="3.5" fill="var(--svg-primary)" />
+
+    <g transform="rotate(14 64 64)">
+      {/* Attached 3D Offset Shadow */}
+      <path
+        d="M20 88 L68 22 L114 88 C94 102 40 102 20 88 Z"
+        fill="var(--svg-primary, #134E4A)"
+      />
+
+      {/* Kulit Hijau 3D */}
+      <path
+        d="M16 84 L64 18 L110 84 C90 98 36 98 16 84 Z"
+        fill="#10B981"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="5"
+        strokeLinejoin="round"
+      />
+
+      {/* Lapisan Kulit Putih */}
+      <path
+        d="M24 80 L64 26 L102 80 C84 90 42 90 24 80 Z"
+        fill="#ECFDF5"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="3.5"
+        strokeLinejoin="round"
+      />
+
+      {/* Daging Merah Segar */}
+      <path
+        d="M30 76 L64 30 L96 76 C80 84 46 84 30 76 Z"
+        fill="#F43F5E"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+
+      {/* Biji Hitam Teardrop */}
+      <ellipse
+        cx="64"
+        cy="52"
+        rx="3"
+        ry="4.5"
+        fill="var(--svg-primary, #134E4A)"
+      />
+      <ellipse
+        cx="52"
+        cy="66"
+        rx="3"
+        ry="4.5"
+        transform="rotate(20 52 66)"
+        fill="var(--svg-primary, #134E4A)"
+      />
+      <ellipse
+        cx="76"
+        cy="66"
+        rx="3"
+        ry="4.5"
+        transform="rotate(-20 76 66)"
+        fill="var(--svg-primary, #134E4A)"
+      />
+      <ellipse
+        cx="64"
+        cy="70"
+        rx="3"
+        ry="4.5"
+        fill="var(--svg-primary, #134E4A)"
+      />
+    </g>
   </svg>
 );
 
-// 5. Buah Jeruk (Whole)
+// 5. Buah Jeruk (Whole - Airborne)
 export const BuahJerukSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4760,34 +5373,68 @@ export const BuahJerukSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="38" ry="7" fill="var(--svg-primary)" />
+    {/* Attached 3D Offset Shadow */}
+    <circle cx="68" cy="69" r="42" fill="var(--svg-primary, #134E4A)" />
+
+    {/* Daun Jeruk */}
     <path
-      d="M64 28 C64 18 72 16 76 22 C70 26 66 26 64 28 Z"
+      d="M64 24 C66 10 86 8 92 18 C84 28 72 26 64 24 Z"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
       strokeLinejoin="round"
     />
+
+    {/* Badan Jeruk */}
     <circle
       cx="64"
-      cy="72"
-      r="38"
+      cy="64"
+      r="42"
       fill="#F97316"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
     />
+
+    {/* Cel-Shading Oranye Tua */}
+    <path
+      d="M94 36 C104 60 92 90 66 100 C88 102 104 84 104 64 C104 52 100 43 94 36 Z"
+      fill="#EA580C"
+    />
+
+    {/* Kancing Kelopak Atas & Pori Kulit */}
     <circle
       cx="64"
-      cy="72"
-      r="22"
-      fill="#FFEDD5"
-      stroke="var(--svg-primary)"
+      cy="24"
+      r="4.5"
+      fill="#16A34A"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="3.5"
+    />
+    <circle cx="94" cy="56" r="2" fill="#C2410C" />
+    <circle cx="96" cy="66" r="2.5" fill="#C2410C" />
+    <circle cx="90" cy="76" r="2" fill="#C2410C" />
+
+    {/* Highlight Kilap */}
+    <path
+      d="M30 48 C34 36 44 30 54 28"
+      stroke="#FFEDD5"
+      strokeWidth="5"
+      strokeLinecap="round"
+    />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
+    <circle
+      cx="64"
+      cy="66"
+      r="24"
+      fill="#FFEDD5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 6. Potongan Jeruk (Sliced)
+// 6. Potongan Jeruk (Sliced - 3D Citrus Cross-Section)
 export const PotonganJerukSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4804,42 +5451,86 @@ export const PotonganJerukSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="38" ry="7" fill="var(--svg-primary)" />
+    {/* Cipratan Jus Jeruk */}
     <circle
-      cx="64"
-      cy="72"
-      r="38"
+      cx="18"
+      cy="32"
+      r="6"
+      fill="#F97316"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+    <circle
+      cx="112"
+      cy="92"
+      r="7"
+      fill="#FACC15"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+    <circle
+      cx="20"
+      cy="96"
+      r="4.5"
+      fill="#FB923C"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3"
+    />
+
+    {/* Attached 3D Offset Shadow */}
+    <circle cx="69" cy="69" r="42" fill="var(--svg-primary, #134E4A)" />
+
+    {/* Ketebalan Kulit Luar 3D */}
+    <circle
+      cx="66"
+      cy="66"
+      r="42"
       fill="#EA580C"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
     />
+
+    {/* Lapisan Putih Kulit Dalam (Pith) */}
     <circle
-      cx="64"
-      cy="72"
-      r="30"
-      fill="#F97316"
-      stroke="var(--svg-primary)"
+      cx="62"
+      cy="62"
+      r="38"
+      fill="#FFEDD5"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="4"
     />
-    {/* Segmen Jeruk */}
-    <path
-      d="M64 42 V102 M34 72 H94 M43 51 L85 93 M43 93 L85 51"
-      stroke="#FFEDD5"
+
+    {/* Daging Segmen Jeruk */}
+    <circle
+      cx="62"
+      cy="62"
+      r="32"
+      fill="#F97316"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="3.5"
+    />
+
+    {/* Garis-Garis Segmen Bulir Jeruk */}
+    <path
+      d="M62 30 V94 M30 62 H94 M39 39 L85 85 M39 85 L85 39"
+      stroke="#FFEDD5"
+      strokeWidth="4"
       strokeLinecap="round"
     />
+
+    {/* Inti Putih Tengah */}
     <circle
-      cx="64"
-      cy="72"
-      r="8"
+      cx="62"
+      cy="62"
+      r="7"
       fill="#FFEDD5"
-      stroke="var(--svg-primary)"
-      strokeWidth="2.5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3"
     />
   </svg>
 );
 
-// 7. Buah Anggur (Whole)
+// 7. Buah Anggur (Whole Cluster - Airborne dengan Area Teks Lega)
 export const BuahAnggurSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4856,76 +5547,111 @@ export const BuahAnggurSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="36" ry="7" fill="var(--svg-primary)" />
+    {/* Attached 3D Cluster Offset Shadow */}
     <path
-      d="M64 30 C64 18 78 14 82 22 C76 28 68 28 64 30 Z"
+      d="M42 36 C24 42 22 72 38 88 C44 106 68 116 84 102 C104 92 108 62 94 44 C82 28 58 28 42 36 Z"
+      fill="var(--svg-primary, #134E4A)"
+    />
+
+    {/* Tangkai & Sulur Anggur */}
+    <path
+      d="M64 28 V14 M64 18 C52 12 44 18 48 24"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M64 24 C70 12 88 10 92 20 C82 28 72 26 64 24 Z"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
       strokeLinejoin="round"
     />
-    {/* Kelompok Buah Anggur */}
+
+    {/* Butiran Anggur Luar (Membentuk Rangkaian Rimbun) */}
+    <circle
+      cx="44"
+      cy="44"
+      r="16"
+      fill="#9333EA"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+    />
+    <circle
+      cx="84"
+      cy="44"
+      r="16"
+      fill="#9333EA"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+    />
+    <circle
+      cx="34"
+      cy="66"
+      r="16"
+      fill="#A855F7"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+    />
+    <circle
+      cx="94"
+      cy="66"
+      r="16"
+      fill="#A855F7"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+    />
+    <circle
+      cx="46"
+      cy="88"
+      r="15"
+      fill="#9333EA"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+    />
+    <circle
+      cx="82"
+      cy="88"
+      r="15"
+      fill="#9333EA"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+    />
     <circle
       cx="64"
-      cy="48"
-      r="12"
-      fill="#A855F7"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-    />
-    <circle
-      cx="50"
-      cy="62"
-      r="12"
-      fill="#A855F7"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-    />
-    <circle
-      cx="78"
-      cy="62"
-      r="12"
-      fill="#A855F7"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
+      cy="96"
+      r="15"
+      fill="#7E22CE"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
     />
     <circle
       cx="64"
-      cy="76"
-      r="12"
-      fill="#A855F7"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
+      cy="38"
+      r="16"
+      fill="#C084FC"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
     />
-    <circle
-      cx="50"
-      cy="90"
-      r="11"
-      fill="#A855F7"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-    />
-    <circle
-      cx="78"
-      cy="90"
-      r="11"
-      fill="#A855F7"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-    />
-    {/* Area Kosong Tengah */}
+
+    {/* Kilap pada Butir Anggur */}
+    <circle cx="38" cy="39" r="3" fill="#F3E8FF" />
+    <circle cx="28" cy="61" r="3" fill="#F3E8FF" />
+    <circle cx="88" cy="39" r="3" fill="#F3E8FF" />
+
+    {/* Area Tengah Diperbesar (r=23) agar Huruf Hijaiyah Jelas */}
     <circle
       cx="64"
-      cy="70"
-      r="8"
+      cy="66"
+      r="23"
       fill="#F3E8FF"
-      stroke="var(--svg-primary)"
-      strokeWidth="3"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 8. Potongan Anggur (Sliced)
+// 8. Potongan Anggur (Sliced - Bursting Grape Cross-Section & Berries)
 export const PotonganAnggurSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4942,35 +5668,87 @@ export const PotonganAnggurSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="36" ry="7" fill="var(--svg-primary)" />
+    {/* Butiran Kecil & Cipratan Anggur yang Terpental */}
     <circle
-      cx="64"
-      cy="72"
-      r="34"
+      cx="24"
+      cy="30"
+      r="10"
+      fill="#A855F7"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
+    />
+    <circle cx="21" cy="27" r="2.5" fill="#F3E8FF" />
+
+    <circle
+      cx="106"
+      cy="96"
+      r="9"
       fill="#9333EA"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
     <circle
-      cx="64"
-      cy="72"
-      r="24"
+      cx="104"
+      cy="28"
+      r="5"
       fill="#C084FC"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="3.5"
     />
     <circle
+      cx="20"
+      cy="94"
+      r="5.5"
+      fill="#A855F7"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+
+    {/* Attached 3D Offset Shadow */}
+    <circle cx="68" cy="68" r="36" fill="var(--svg-primary, #134E4A)" />
+
+    {/* Kulit Luar Anggur Terbelah */}
+    <circle
       cx="64"
-      cy="72"
-      r="8"
-      fill="#F3E8FF"
-      stroke="var(--svg-primary)"
-      strokeWidth="2.5"
+      cy="64"
+      r="36"
+      fill="#7E22CE"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="5"
+    />
+
+    {/* Daging Dalam Anggur yang Juicy */}
+    <circle
+      cx="61"
+      cy="61"
+      r="28"
+      fill="#D8B4FE"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
+    />
+
+    {/* Inti Bening & 2 Biji Anggur */}
+    <circle cx="61" cy="61" r="14" fill="#F3E8FF" />
+    <ellipse
+      cx="56"
+      cy="61"
+      rx="3"
+      ry="5.5"
+      transform="rotate(-15 56 61)"
+      fill="var(--svg-primary, #134E4A)"
+    />
+    <ellipse
+      cx="66"
+      cy="61"
+      rx="3"
+      ry="5.5"
+      transform="rotate(15 66 61)"
+      fill="var(--svg-primary, #134E4A)"
     />
   </svg>
 );
 
-// 9. Buah Kurma / Date (Whole)
+// 9. Buah Kurma / Date (Whole - Airborne Arabian Date)
 export const BuahKurmaSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -4987,36 +5765,78 @@ export const BuahKurmaSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="34" ry="7" fill="var(--svg-primary)" />
+    {/* Attached 3D Offset Shadow */}
+    <rect
+      x="36"
+      y="22"
+      width="64"
+      height="90"
+      rx="32"
+      fill="var(--svg-primary, #134E4A)"
+    />
+
+    {/* Tangkai & Mahkota Emas Kurma (Perianth Cap) */}
     <path
-      d="M64 26 C64 18 72 16 74 22 C70 26 66 26 64 26 Z"
-      fill="#22C55E"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-      strokeLinejoin="round"
+      d="M64 18 V10"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="5"
+      strokeLinecap="round"
     />
     <ellipse
       cx="64"
-      cy="72"
-      rx="26"
-      ry="38"
-      fill="#78350F"
-      stroke="var(--svg-primary)"
+      cy="20"
+      rx="16"
+      ry="6"
+      fill="#F59E0B"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
+    />
+
+    {/* Badan Kurma Lonjong Plump */}
+    <rect
+      x="32"
+      y="18"
+      width="64"
+      height="90"
+      rx="32"
+      fill="#92400E"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
     />
-    <ellipse
-      cx="64"
-      cy="72"
-      rx="14"
-      ry="24"
-      fill="#FEF3C7"
-      stroke="var(--svg-primary)"
+
+    {/* Cel-Shading Cokelat Gelap */}
+    <path
+      d="M78 24 C90 36 92 88 78 102 C90 96 93 80 93 63 C93 44 88 30 78 24 Z"
+      fill="#78350F"
+    />
+
+    {/* Tekstur Kerutan Halus Khas Kurma & Kilap */}
+    <path
+      d="M42 44 C45 34 50 28 56 26"
+      stroke="#FDE68A"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M86 52 V74"
+      stroke="#451A03"
       strokeWidth="3.5"
+      strokeLinecap="round"
+    />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
+    <circle
+      cx="64"
+      cy="64"
+      r="22"
+      fill="#FEF3C7"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 10. Potongan Kurma (Sliced)
+// 10. Potongan Kurma (Sliced - 3D Halved Date with Seed Pit)
 export const PotonganKurmaSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5033,39 +5853,84 @@ export const PotonganKurmaSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="34" ry="7" fill="var(--svg-primary)" />
-    <ellipse
-      cx="64"
-      cy="72"
-      rx="26"
-      ry="38"
-      fill="#451A03"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
+    {/* Cipratan Madu Kurma */}
+    <circle
+      cx="22"
+      cy="40"
+      r="5.5"
+      fill="#D97706"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <ellipse
-      cx="64"
-      cy="72"
-      rx="18"
-      ry="30"
-      fill="#92400E"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
+    <circle
+      cx="106"
+      cy="86"
+      r="6.5"
+      fill="#F59E0B"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    {/* Biji Kurma di Tengah */}
-    <ellipse
-      cx="64"
-      cy="72"
-      rx="5"
-      ry="14"
-      fill="#FDE68A"
-      stroke="var(--svg-primary)"
-      strokeWidth="3"
-    />
+
+    <g transform="rotate(-10 64 64)">
+      {/* Attached 3D Offset Shadow */}
+      <rect
+        x="38"
+        y="22"
+        width="60"
+        height="88"
+        rx="30"
+        fill="var(--svg-primary, #134E4A)"
+      />
+
+      {/* Kulit Belakang Kurma */}
+      <rect
+        x="34"
+        y="18"
+        width="60"
+        height="88"
+        rx="30"
+        fill="#78350F"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="5"
+      />
+
+      {/* Daging Dalam Kurma Karamel Keemasan */}
+      <rect
+        x="40"
+        y="26"
+        width="46"
+        height="72"
+        rx="23"
+        fill="#FDE68A"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="4"
+      />
+
+      {/* Biji Kurma (Date Pit) Lengkap dengan Garis Belahan */}
+      <rect
+        x="55"
+        y="40"
+        width="16"
+        height="44"
+        rx="8"
+        fill="#92400E"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="3.5"
+      />
+      <line
+        x1="63"
+        y1="46"
+        x2="63"
+        y2="78"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </g>
   </svg>
 );
 
-// 11. Buah Pir (Whole)
+// 11. Buah Pir (Whole - Airborne)
 export const BuahPirSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5082,39 +5947,57 @@ export const BuahPirSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="36" ry="7" fill="var(--svg-primary)" />
+    {/* Attached 3D Offset Shadow */}
     <path
-      d="M64 24 C64 14 74 12 78 18 C72 22 66 22 64 24 Z"
-      fill="#22C55E"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-      strokeLinejoin="round"
+      d="M68 28 C52 28 46 42 44 56 C32 72 36 106 68 106 C100 106 104 72 92 56 C90 42 84 28 68 28 Z"
+      fill="var(--svg-primary, #134E4A)"
     />
+
+    {/* Tangkai & Daun Pir */}
     <path
-      d="M64 26 V18"
-      stroke="#78350F"
-      strokeWidth="4"
+      d="M64 26 V12"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="6"
       strokeLinecap="round"
     />
     <path
-      d="M64 32 C50 32 42 46 44 64 C40 84 50 102 64 102 C78 102 88 84 84 64 C86 46 78 32 64 32 Z"
+      d="M64 22 C68 10 84 10 88 18 C80 26 70 24 64 22 Z"
+      fill="#22C55E"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
+
+    {/* Badan Buah Pir */}
+    <path
+      d="M64 24 C48 24 42 38 40 52 C28 68 32 102 64 102 C96 102 100 68 88 52 C86 38 80 24 64 24 Z"
       fill="#84CC16"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
+
+    {/* Highlight Kilap */}
+    <path
+      d="M48 38 C46 46 42 54 38 64"
+      stroke="#ECFCCB"
+      strokeWidth="5"
+      strokeLinecap="round"
+    />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
     <circle
       cx="64"
-      cy="74"
-      r="20"
+      cy="70"
+      r="22"
       fill="#ECFCCB"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 12. Potongan Pir (Sliced)
+// 12. Potongan Pir (Sliced - 3D Halved Pear)
 export const PotonganPirSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5131,26 +6014,79 @@ export const PotonganPirSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="36" ry="7" fill="var(--svg-primary)" />
-    <path
-      d="M64 28 C50 28 42 44 44 64 C40 84 50 102 64 102 C78 102 88 84 84 64 C86 44 78 28 64 28 Z"
-      fill="#65A30D"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
-      strokeLinejoin="round"
+    {/* Cipratan Jus Pir */}
+    <circle
+      cx="22"
+      cy="42"
+      r="5.5"
+      fill="#84CC16"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <path
-      d="M64 36 C54 36 48 48 50 64 C47 80 54 94 64 94 C74 94 81 80 78 64 C80 48 74 36 64 36 Z"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-      strokeLinejoin="round"
+    <circle
+      cx="106"
+      cy="84"
+      r="6.5"
+      fill="#FEF08A"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <ellipse cx="64" cy="68" rx="4" ry="8" fill="var(--svg-primary)" />
+
+    <g transform="rotate(10 64 64)">
+      {/* Attached 3D Offset Shadow */}
+      <path
+        d="M68 28 C52 28 46 42 44 56 C32 72 36 106 68 106 C100 106 104 72 92 56 C90 42 84 28 68 28 Z"
+        fill="var(--svg-primary, #134E4A)"
+      />
+
+      {/* Kulit Belakang Pir */}
+      <path
+        d="M64 24 C48 24 42 38 40 52 C28 68 32 102 64 102 C96 102 100 68 88 52 C86 38 80 24 64 24 Z"
+        fill="#65A30D"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="5"
+        strokeLinejoin="round"
+      />
+
+      {/* Daging Dalam Pir Krem */}
+      <path
+        d="M62 32 C50 32 46 44 44 56 C36 68 38 94 62 94 C86 94 88 68 80 56 C78 44 74 32 62 32 Z"
+        fill="#FEF9C3"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+
+      {/* Garis Empulur & Dua Biji Pir */}
+      <line
+        x1="62"
+        y1="32"
+        x2="62"
+        y2="94"
+        stroke="#FDE047"
+        strokeWidth="3.5"
+      />
+      <ellipse
+        cx="56"
+        cy="70"
+        rx="3"
+        ry="5.5"
+        transform="rotate(-15 56 70)"
+        fill="var(--svg-primary, #134E4A)"
+      />
+      <ellipse
+        cx="68"
+        cy="70"
+        rx="3"
+        ry="5.5"
+        transform="rotate(15 68 70)"
+        fill="var(--svg-primary, #134E4A)"
+      />
+    </g>
   </svg>
 );
 
-// 13. Buah Stroberi (Whole)
+// 13. Buah Stroberi (Whole - Airborne)
 export const BuahStroberiSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5167,41 +6103,55 @@ export const BuahStroberiSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="34" ry="7" fill="var(--svg-primary)" />
-    {/* Mahkota Daun Hijau */}
+    {/* Attached 3D Offset Shadow */}
     <path
-      d="M50 36 L64 46 L78 36 L70 48 L84 54 L64 48 L44 54 L58 48 Z"
-      fill="#22C55E"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-      strokeLinejoin="round"
+      d="M32 42 C22 72 44 108 68 108 C92 108 114 72 104 42 C96 28 40 28 32 42 Z"
+      fill="var(--svg-primary, #134E4A)"
     />
+
+    {/* Badan Stroberi Plump */}
     <path
-      d="M64 46 V34"
-      stroke="#78350F"
-      strokeWidth="4"
-      strokeLinecap="round"
-    />
-    {/* Badan Stroberi Kerucut */}
-    <path
-      d="M42 50 C36 78 50 102 64 102 C78 102 92 78 86 50 Z"
+      d="M28 38 C18 68 40 104 64 104 C88 104 110 68 100 38 C92 24 36 24 28 38 Z"
       fill="#F43F5E"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
+
+    {/* Mahkota Daun Hijau Rimbun */}
+    <path
+      d="M64 16 V26"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M32 32 L50 24 L64 18 L78 24 L96 32 L78 38 L64 44 L50 38 Z"
+      fill="#22C55E"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Bintik Biji Kuning Stroberi di Tepi */}
+    <circle cx="34" cy="56" r="2.5" fill="#FDE047" />
+    <circle cx="36" cy="72" r="2.5" fill="#FDE047" />
+    <circle cx="94" cy="56" r="2.5" fill="#FDE047" />
+    <circle cx="92" cy="72" r="2.5" fill="#FDE047" />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
     <circle
       cx="64"
-      cy="74"
-      r="20"
+      cy="68"
+      r="22"
       fill="#FFE4E6"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 14. Potongan Stroberi (Sliced)
+// 14. Potongan Stroberi (Sliced - 3D Heart Cross-Section)
 export const PotonganStroberiSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5218,31 +6168,71 @@ export const PotonganStroberiSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="34" ry="7" fill="var(--svg-primary)" />
-    <path
-      d="M42 50 C36 78 50 102 64 102 C78 102 92 78 86 50 Z"
-      fill="#E11D48"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
-      strokeLinejoin="round"
+    {/* Cipratan Jus Stroberi */}
+    <circle
+      cx="20"
+      cy="44"
+      r="6"
+      fill="#F43F5E"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <path
-      d="M48 54 C44 76 54 94 64 94 C74 94 84 76 80 54 Z"
-      fill="#FFF1F2"
-      stroke="var(--svg-primary)"
-      strokeWidth="4"
-      strokeLinejoin="round"
+    <circle
+      cx="108"
+      cy="82"
+      r="5.5"
+      fill="#FB7185"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
     />
-    <path
-      d="M64 54 V86 M54 68 H74"
-      stroke="#E11D48"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
+
+    <g transform="rotate(-8 64 64)">
+      {/* Attached 3D Offset Shadow */}
+      <path
+        d="M32 42 C22 72 44 108 68 108 C92 108 114 72 104 42 C96 28 40 28 32 42 Z"
+        fill="var(--svg-primary, #134E4A)"
+      />
+
+      {/* Kulit Luar Merah Tua */}
+      <path
+        d="M28 38 C18 68 40 104 64 104 C88 104 110 68 100 38 C92 24 36 24 28 38 Z"
+        fill="#E11D48"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="5"
+        strokeLinejoin="round"
+      />
+
+      {/* Daging Dalam Pink Muda */}
+      <path
+        d="M36 42 C28 66 44 94 64 94 C84 94 100 66 92 42 C84 32 44 32 36 42 Z"
+        fill="#FFE4E6"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+
+      {/* Serat Inti Hati Stroberi */}
+      <path
+        d="M50 50 C46 64 54 80 64 82 C74 80 82 64 78 50 Z"
+        fill="#FB7185"
+        stroke="#E11D48"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+
+      {/* Daun Atas */}
+      <path
+        d="M40 30 L64 22 L88 30 L64 38 Z"
+        fill="#22C55E"
+        stroke="var(--svg-primary, #134E4A)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+    </g>
   </svg>
 );
 
-// 15. Buah Pisang (Whole)
+// 15. Buah Pisang (Whole - Airborne Plump Cavendish)
 export const BuahPisangSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5259,26 +6249,60 @@ export const BuahPisangSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="38" ry="7" fill="var(--svg-primary)" />
+    {/* Attached 3D Offset Shadow */}
     <path
-      d="M28 88 C40 40 84 32 102 36 C88 56 64 78 40 96 Z"
+      d="M22 92 C28 38 72 16 108 26 C112 62 78 104 28 104 C22 104 20 98 22 92 Z"
+      fill="var(--svg-primary, #134E4A)"
+    />
+
+    {/* Badan Pisang Melengkung Tebal */}
+    <path
+      d="M18 88 C24 34 68 12 104 22 C108 58 74 100 24 100 C18 100 16 94 18 88 Z"
       fill="#FACC15"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="5"
       strokeLinejoin="round"
     />
+
+    {/* Sisi Faset Pisang (Shading Kuning Tua) */}
+    <path
+      d="M22 96 C66 92 96 58 102 26"
+      stroke="#EAB308"
+      strokeWidth="8"
+      strokeLinecap="round"
+    />
+
+    {/* Ujung Tangkai Cokelat Tua */}
     <circle
-      cx="68"
-      cy="68"
-      r="16"
-      fill="#FEF9C3"
-      stroke="var(--svg-primary)"
+      cx="103"
+      cy="23"
+      r="5"
+      fill="#78350F"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="3.5"
+    />
+    <circle
+      cx="20"
+      cy="94"
+      r="4.5"
+      fill="#78350F"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+
+    {/* Area Tengah untuk Huruf/Harakat */}
+    <circle
+      cx="62"
+      cy="62"
+      r="22"
+      fill="#FEF9C3"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
     />
   </svg>
 );
 
-// 16. Potongan Pisang (Sliced)
+// 16. Potongan Pisang (Sliced - Flying 3D Banana Coin Slices)
 export const PotonganPisangSvg: React.FC<SvgProps> = ({
   size = 128,
   className = "",
@@ -5295,28 +6319,76 @@ export const PotonganPisangSvg: React.FC<SvgProps> = ({
     className={className}
     style={style}
   >
-    <ellipse cx="64" cy="114" rx="36" ry="7" fill="var(--svg-primary)" />
-    <rect
-      x="36"
-      y="44"
-      width="56"
-      height="56"
-      rx="28"
+    {/* Potongan Koin Pisang Kecil di Belakang (Efek Terbelah Banyak) */}
+    <circle cx="96" cy="36" r="18" fill="var(--svg-primary, #134E4A)" />
+    <circle
+      cx="92"
+      cy="32"
+      r="18"
       fill="#EAB308"
-      stroke="var(--svg-primary)"
-      strokeWidth="5"
-    />
-    <rect
-      x="44"
-      y="52"
-      width="40"
-      height="40"
-      rx="20"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      stroke="var(--svg-primary, #134E4A)"
       strokeWidth="4"
     />
-    <circle cx="64" cy="72" r="6" fill="var(--svg-primary)" />
+    <circle
+      cx="90"
+      cy="30"
+      r="13"
+      fill="#FEF9C3"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3"
+    />
+
+    {/* Remahan / Partikel Pisang */}
+    <circle
+      cx="22"
+      cy="40"
+      r="5"
+      fill="#FEF08A"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3"
+    />
+    <circle
+      cx="104"
+      cy="92"
+      r="6"
+      fill="#FACC15"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="3.5"
+    />
+
+    {/* Attached 3D Offset Shadow Koin Utama */}
+    <circle cx="62" cy="72" r="36" fill="var(--svg-primary, #134E4A)" />
+
+    {/* Ketebalan Kulit Pisang 3D */}
+    <circle
+      cx="58"
+      cy="68"
+      r="36"
+      fill="#EAB308"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="5"
+    />
+
+    {/* Permukaan Daging Pisang Dalam */}
+    <circle
+      cx="54"
+      cy="64"
+      r="28"
+      fill="#FEF9C3"
+      stroke="var(--svg-primary, #134E4A)"
+      strokeWidth="4"
+    />
+
+    {/* Pola 3-Garis Biji Tengah Khas Irisan Pisang Asli */}
+    <path
+      d="M54 54 V64 M54 64 L45 71 M54 64 L63 71"
+      stroke="#CA8A04"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+    <circle cx="54" cy="59" r="2" fill="var(--svg-primary, #134E4A)" />
+    <circle cx="50" cy="66" r="2" fill="var(--svg-primary, #134E4A)" />
+    <circle cx="58" cy="66" r="2" fill="var(--svg-primary, #134E4A)" />
   </svg>
 );
 
@@ -5344,14 +6416,14 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
     {/* Hard Offset Shadow */}
     <path
       d="M18 114 C26 42 74 14 116 18 C86 38 50 68 38 114 Z"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     />
 
     {/* Outer Cyan Energy Arc */}
     <path
       d="M12 108 C20 36 68 8 110 12 C80 32 44 62 32 108 Z"
       fill="#06B6D4"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -5360,7 +6432,7 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
     <path
       d="M18 102 C28 46 66 20 102 18 C76 34 46 60 32 100 Z"
       fill="#67E8F9"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -5369,7 +6441,7 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
     <path
       d="M24 92 C34 54 62 32 90 26 C68 40 46 62 34 90 Z"
       fill="#FFFFFF"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
@@ -5383,7 +6455,7 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
     />
     <path
       d="M46 96 C58 72 78 54 104 42"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinecap="round"
       strokeDasharray="10 8"
@@ -5393,7 +6465,7 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
     <path
       d="M104 42 L108 52 L118 56 L108 60 L104 70 L100 60 L90 56 L100 52 Z"
       fill="#FACC15"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
@@ -5404,7 +6476,7 @@ export const SabetanPedangSvg: React.FC<SvgProps> = ({
       cy="78"
       r="5"
       fill="#F43F5E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -5430,14 +6502,14 @@ export const CipratanJusSvg: React.FC<SvgProps> = ({
     {/* Hard Offset Shadow - Main Splash */}
     <path
       d="M68 38 C76 18 98 24 90 44 C110 40 118 64 98 70 C112 88 92 108 76 92 C68 112 44 108 48 88 C26 92 20 68 40 62 C24 44 44 24 58 40 Z"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     />
 
     {/* Main Splash Body */}
     <path
       d="M62 32 C70 12 92 18 84 38 C104 34 112 58 92 64 C106 82 86 102 70 86 C62 106 38 102 42 82 C20 86 14 62 34 56 C18 38 38 18 52 34 Z"
       fill="#F43F5E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -5458,37 +6530,37 @@ export const CipratanJusSvg: React.FC<SvgProps> = ({
     <circle cx="68" cy="48" r="3" fill="#FFFFFF" />
 
     {/* Droplet 1 - Cyan (Top Left) */}
-    <circle cx="24" cy="30" r="9" fill="var(--svg-primary)" />
+    <circle cx="24" cy="30" r="9" fill="#134E4A" />
     <circle
       cx="20"
       cy="26"
       r="9"
       fill="#38BDF8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     <circle cx="17" cy="23" r="2.5" fill="#FFFFFF" />
 
     {/* Droplet 2 - Yellow (Bottom Right) */}
-    <circle cx="108" cy="96" r="11" fill="var(--svg-primary)" />
+    <circle cx="108" cy="96" r="11" fill="#134E4A" />
     <circle
       cx="104"
       cy="92"
       r="11"
       fill="#FACC15"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
     <circle cx="100" cy="88" r="3" fill="#FFFFFF" />
 
     {/* Droplet 3 - Lime (Top Right) */}
-    <circle cx="108" cy="26" r="7" fill="var(--svg-primary)" />
+    <circle cx="108" cy="26" r="7" fill="#134E4A" />
     <circle
       cx="105"
       cy="23"
       r="7"
       fill="#4ADE80"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
 
@@ -5498,7 +6570,7 @@ export const CipratanJusSvg: React.FC<SvgProps> = ({
       cy="96"
       r="6"
       fill="#FB923C"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -5522,18 +6594,18 @@ export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
     style={style}
   >
     {/* Ground Shadow */}
-    <ellipse cx="64" cy="116" rx="48" ry="7" fill="var(--svg-primary)" />
+    <ellipse cx="64" cy="116" rx="48" ry="7" fill="#134E4A" />
 
     {/* Wooden Posts Shadow & Base */}
-    <rect x="38" y="72" width="14" height="44" fill="var(--svg-primary)" />
-    <rect x="82" y="72" width="14" height="44" fill="var(--svg-primary)" />
+    <rect x="38" y="72" width="14" height="44" fill="#134E4A" />
+    <rect x="82" y="72" width="14" height="44" fill="#134E4A" />
     <rect
       x="34"
       y="68"
       width="14"
       height="46"
       fill="#78350F"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -5542,19 +6614,12 @@ export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
       width="14"
       height="46"
       fill="#78350F"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
 
     {/* Main Board Hard Offset Shadow */}
-    <rect
-      x="18"
-      y="30"
-      width="98"
-      height="54"
-      rx="10"
-      fill="var(--svg-primary)"
-    />
+    <rect x="18" y="30" width="98" height="54" rx="10" fill="#134E4A" />
 
     {/* Outer Wooden Frame */}
     <rect
@@ -5564,7 +6629,7 @@ export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
       height="54"
       rx="10"
       fill="#B45309"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
 
@@ -5584,7 +6649,7 @@ export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
       height="38"
       rx="6"
       fill="#FEF3C7"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
 
@@ -5605,15 +6670,15 @@ export const PapanKayuSkorSvg: React.FC<SvgProps> = ({
       height="14"
       rx="4"
       fill="#F43F5E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
     />
 
     {/* Industrial Bolts */}
-    <circle cx="27" cy="39" r="3" fill="var(--svg-primary)" />
-    <circle cx="95" cy="39" r="3" fill="var(--svg-primary)" />
-    <circle cx="27" cy="63" r="3" fill="var(--svg-primary)" />
-    <circle cx="95" cy="63" r="3" fill="var(--svg-primary)" />
+    <circle cx="27" cy="39" r="3" fill="#134E4A" />
+    <circle cx="95" cy="39" r="3" fill="#134E4A" />
+    <circle cx="27" cy="63" r="3" fill="#134E4A" />
+    <circle cx="95" cy="63" r="3" fill="#134E4A" />
   </svg>
 );
 
@@ -5635,17 +6700,10 @@ export const PlakatTargetHarakatSvg: React.FC<SvgProps> = ({
     style={style}
   >
     {/* Ground Shadow */}
-    <ellipse cx="64" cy="118" rx="42" ry="6" fill="var(--svg-primary)" />
+    <ellipse cx="64" cy="118" rx="42" ry="6" fill="#134E4A" />
 
     {/* Deep Neo-Brutalist Block Shadow */}
-    <rect
-      x="26"
-      y="22"
-      width="84"
-      height="84"
-      rx="14"
-      fill="var(--svg-primary)"
-    />
+    <rect x="26" y="22" width="84" height="84" rx="14" fill="#134E4A" />
 
     {/* Main Outer Frame */}
     <rect
@@ -5655,7 +6713,7 @@ export const PlakatTargetHarakatSvg: React.FC<SvgProps> = ({
       height="84"
       rx="14"
       fill="#F59E0B"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
 
@@ -5674,25 +6732,25 @@ export const PlakatTargetHarakatSvg: React.FC<SvgProps> = ({
       width="60"
       height="60"
       rx="8"
-      fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      fill="#FEF08A"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
 
     {/* Corner Target Brackets */}
     <path
       d="M38 42 V34 H46 M74 34 H82 V42 M82 70 V78 H74 M46 78 H38 V70"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
 
     {/* Decorative Corner Rivets */}
-    <circle cx="25" cy="21" r="2.5" fill="var(--svg-primary)" />
-    <circle cx="95" cy="21" r="2.5" fill="var(--svg-primary)" />
-    <circle cx="25" cy="91" r="2.5" fill="var(--svg-primary)" />
-    <circle cx="95" cy="91" r="2.5" fill="var(--svg-primary)" />
+    <circle cx="25" cy="21" r="2.5" fill="#134E4A" />
+    <circle cx="95" cy="21" r="2.5" fill="#134E4A" />
+    <circle cx="25" cy="91" r="2.5" fill="#134E4A" />
+    <circle cx="95" cy="91" r="2.5" fill="#134E4A" />
   </svg>
 );
 
@@ -5714,14 +6772,7 @@ export const LantaiDojoSvg: React.FC<SvgProps> = ({
     style={style}
   >
     {/* Solid Offset Base Shadow */}
-    <rect
-      x="16"
-      y="48"
-      width="102"
-      height="66"
-      rx="10"
-      fill="var(--svg-primary)"
-    />
+    <rect x="16" y="48" width="102" height="66" rx="10" fill="#134E4A" />
 
     {/* 3D Front Extrusion / Stage Base */}
     <rect
@@ -5731,7 +6782,7 @@ export const LantaiDojoSvg: React.FC<SvgProps> = ({
       height="66"
       rx="10"
       fill="#78350F"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
 
@@ -5743,7 +6794,7 @@ export const LantaiDojoSvg: React.FC<SvgProps> = ({
       height="50"
       rx="8"
       fill="#D97706"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
 
@@ -5755,53 +6806,18 @@ export const LantaiDojoSvg: React.FC<SvgProps> = ({
       height="34"
       rx="4"
       fill="#F59E0B"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
 
     {/* Plank Horizontal Lines */}
-    <line
-      x1="18"
-      y1="61"
-      x2="104"
-      y2="61"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
-    <line
-      x1="18"
-      y1="73"
-      x2="104"
-      y2="73"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
+    <line x1="18" y1="61" x2="104" y2="61" stroke="#134E4A" strokeWidth="3.5" />
+    <line x1="18" y1="73" x2="104" y2="73" stroke="#134E4A" strokeWidth="3.5" />
 
     {/* Plank Vertical Staggered Joints */}
-    <line
-      x1="48"
-      y1="50"
-      x2="48"
-      y2="61"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
-    <line
-      x1="78"
-      y1="61"
-      x2="78"
-      y2="73"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
-    <line
-      x1="38"
-      y1="73"
-      x2="38"
-      y2="84"
-      stroke="var(--svg-primary)"
-      strokeWidth="3.5"
-    />
+    <line x1="48" y1="50" x2="48" y2="61" stroke="#134E4A" strokeWidth="3.5" />
+    <line x1="78" y1="61" x2="78" y2="73" stroke="#134E4A" strokeWidth="3.5" />
+    <line x1="38" y1="73" x2="38" y2="84" stroke="#134E4A" strokeWidth="3.5" />
 
     {/* Dojo Front Accent Trim */}
     <rect
@@ -5811,7 +6827,7 @@ export const LantaiDojoSvg: React.FC<SvgProps> = ({
       height="8"
       rx="2"
       fill="#EF4444"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="3.5"
     />
   </svg>
@@ -5837,14 +6853,14 @@ export const AwanPutihSvg: React.FC<SvgProps> = ({
     {/* Hard Offset Cloud Shadow */}
     <path
       d="M32 92 C16 92 12 72 28 64 C24 44 48 36 60 50 C70 30 100 36 100 60 C116 62 114 92 96 92 Z"
-      fill="var(--svg-primary)"
+      fill="#134E4A"
     />
 
     {/* Main Cloud Body */}
     <path
       d="M26 86 C10 86 6 66 22 58 C18 38 42 30 54 44 C64 24 94 30 94 54 C110 56 108 86 90 86 Z"
       fill="#FFFFFF"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -5858,7 +6874,7 @@ export const AwanPutihSvg: React.FC<SvgProps> = ({
     {/* Re-stroke Outer Contour for Clean Overlap */}
     <path
       d="M26 86 C10 86 6 66 22 58 C18 38 42 30 54 44 C64 24 94 30 94 54 C110 56 108 86 90 86 Z"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
       strokeLinejoin="round"
     />
@@ -5866,19 +6882,19 @@ export const AwanPutihSvg: React.FC<SvgProps> = ({
     {/* Internal Puff Contour Lines */}
     <path
       d="M54 44 C58 50 58 56 54 60"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinecap="round"
     />
     <path
       d="M22 58 C28 58 34 62 36 66"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinecap="round"
     />
     <path
       d="M94 54 C88 56 84 60 82 66"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinecap="round"
     />
@@ -5903,23 +6919,16 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
     style={style}
   >
     {/* Ground Shadow */}
-    <ellipse cx="64" cy="118" rx="26" ry="6" fill="var(--svg-primary)" />
+    <ellipse cx="64" cy="118" rx="26" ry="6" fill="#134E4A" />
 
     {/* Hard Offset Stalk Shadow */}
-    <rect
-      x="52"
-      y="18"
-      width="32"
-      height="98"
-      rx="8"
-      fill="var(--svg-primary)"
-    />
+    <rect x="52" y="18" width="32" height="98" rx="8" fill="#134E4A" />
 
     {/* Back Leaf (Left) */}
     <path
       d="M46 50 C26 46 14 58 18 70 C30 70 42 62 46 50 Z"
       fill="#16A34A"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
@@ -5932,7 +6941,7 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
       height="98"
       rx="8"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
 
@@ -5949,7 +6958,7 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
       width="32"
       height="98"
       rx="8"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="5"
     />
 
@@ -5961,7 +6970,7 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
       height="9"
       rx="4.5"
       fill="#4ADE80"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
     <rect
@@ -5971,7 +6980,7 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
       height="9"
       rx="4.5"
       fill="#4ADE80"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
     />
 
@@ -5979,14 +6988,14 @@ export const BatangBambuSvg: React.FC<SvgProps> = ({
     <path
       d="M80 44 C98 34 114 42 112 56 C98 60 86 54 80 44 Z"
       fill="#4ADE80"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
     <path
       d="M82 46 C94 24 108 24 110 36 C98 42 88 44 82 46 Z"
       fill="#22C55E"
-      stroke="var(--svg-primary)"
+      stroke="#134E4A"
       strokeWidth="4"
       strokeLinejoin="round"
     />
@@ -6023,7 +7032,7 @@ export const BolaGasingSvg: React.FC<SvgProps> = ({
         </radialGradient>
       </defs>
       {/* Bayangan Bawah */}
-      <ellipse cx="64" cy="114" rx="32" ry="6" fill="var(--svg-primary)" />
+      <ellipse cx="64" cy="114" rx="32" ry="6" fill="#134E4A" />
 
       {/* Bola Gasing Utama dengan Framer Motion / SVG animateTransform untuk menggelinding & berputar */}
       <g>
@@ -6041,19 +7050,19 @@ export const BolaGasingSvg: React.FC<SvgProps> = ({
           cy="64"
           r="42"
           fill={`url(#gasingGrad-${gasingId})`}
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="5"
         />
         {/* Garis Belang Gasing (Efek Roda Bergulir) */}
         <path
           d="M64 22 C78 44 78 84 64 106"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4"
           strokeLinecap="round"
         />
         <path
           d="M22 64 C44 78 84 78 106 64"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="4"
           strokeLinecap="round"
         />
@@ -6063,10 +7072,10 @@ export const BolaGasingSvg: React.FC<SvgProps> = ({
           cy="64"
           r="10"
           fill="#FFFFFF"
-          stroke="var(--svg-primary)"
+          stroke="#134E4A"
           strokeWidth="3.5"
         />
-        <circle cx="64" cy="64" r="4" fill="var(--svg-primary)" />
+        <circle cx="64" cy="64" r="4" fill="#134E4A" />
       </g>
     </svg>
   );

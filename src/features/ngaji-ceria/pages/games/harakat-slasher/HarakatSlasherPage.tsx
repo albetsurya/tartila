@@ -5,6 +5,7 @@ import { GameBoundary } from "../_shared/GameBoundary";
 import { GameShell } from "../_shared/GameShell";
 import { GameLevelSelectSheet } from "../_shared/GameLevelSelectSheet";
 import { HarakatSlasherCoverSvg } from "@/components/ui/Illustrations";
+import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { GameHud } from "../_shared/GameHud";
 import { GameResultModal } from "../_shared/GameResultModal";
 import { ComboBadge } from "../_shared/ComboBadge";
@@ -80,6 +81,8 @@ function Game() {
   );
   const [isWin, setIsWin] = useState<boolean>(false);
   const [isResultOpen, setIsResultOpen] = useState<boolean>(false);
+  // Judul modal kalah berdasarkan penyebab: nyawa habis vs waktu habis.
+  const [loseReason, setLoseReason] = useState<"lives" | "time">("time");
 
   const {
     phase,
@@ -107,6 +110,7 @@ function Game() {
     setTimeLeft(cfg.durationSeconds);
     setIsWin(false);
     setIsResultOpen(false);
+    setLoseReason("time");
     resetRun();
     setPhase("playing");
   };
@@ -152,9 +156,10 @@ function Game() {
       score < currentLevelConfig.targetScore
     ) {
       setIsWin(false);
+      setLoseReason(lives <= 0 ? "lives" : "time");
       setIsResultOpen(true);
     }
-  }, [phase, isResultOpen, score, currentLevelConfig.targetScore]);
+  }, [phase, isResultOpen, score, currentLevelConfig.targetScore, lives]);
 
   const handleResult = (
     kind: "correct" | "wrong" | "miss",
@@ -179,6 +184,8 @@ function Game() {
   const comboMultiplier =
     combo >= 10 ? 2.0 : combo >= 5 ? 1.5 : combo >= 2 ? 1.2 : undefined;
 
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
   return (
     <div className="relative h-[100dvh] w-full select-none overflow-hidden">
       <GameShell
@@ -186,6 +193,7 @@ function Game() {
         phase={phase as GamePhase}
         accent="cyan"
         tutorialGameId="harakat-rush"
+        guideGameId="harakat-slasher"
         floatingTopBar
         onPause={() => setPhase("paused")}
         onResume={() => setPhase("playing")}
@@ -236,6 +244,12 @@ function Game() {
                 }))}
                 unlockedCount={unlockedLevel}
                 onSelectLevel={(idx) => handleStartLevel(idx + 1)}
+                onOpenGuide={() => setIsGuideOpen(true)}
+              />
+              <GameGuideModal
+                isOpen={isGuideOpen}
+                onClose={() => setIsGuideOpen(false)}
+                gameId="harakat-slasher"
               />
             </div>
           ) : (
@@ -316,6 +330,13 @@ function Game() {
           <GameResultModal
             isOpen={isResultOpen}
             isWin={isWin}
+            title={
+              isWin
+                ? undefined
+                : loseReason === "lives"
+                  ? "Nyawa Habis! Jangan Menyerah!"
+                  : "Waktu Habis! Jangan Menyerah!"
+            }
             score={score}
             targetScore={currentLevelConfig.targetScore}
             stars={calculatedStars}

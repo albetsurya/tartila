@@ -18,8 +18,10 @@ import {
   MosqueSvg,
   MoonSvg,
   ShieldSvg,
+  InfoSvg,
 } from "@/components/ui/CustomIcons";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { GameLevelSelectSheet } from "./games/_shared/GameLevelSelectSheet";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -143,6 +145,7 @@ export default function QuizHubPage() {
     Math.floor(10000 + Math.random() * 90000),
   );
   const [isCopied, setIsCopied] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const handleRandomizeSeed = () => {
     setSeed(Math.floor(10000 + Math.random() * 90000));
@@ -229,10 +232,21 @@ export default function QuizHubPage() {
             <SparklesSvg size={54} />
           </div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#FEF08A] bg-[#FEF08A] px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-[#134E4A] sm:text-xs">
-              <SparklesSvg size={13} />
-              Pilih cara belajarmu
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#FEF08A] bg-[#FEF08A] px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-[#134E4A] sm:text-xs">
+                <SparklesSvg size={13} />
+                Pilih cara belajarmu
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsGuideOpen(true)}
+                aria-label="Panduan Pusat Kuis"
+                className="flex items-center gap-1.5 rounded-xl border-2 border-white/80 bg-white/20 px-3 py-1 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] hover:bg-white hover:text-[#134E4A] transition-all cursor-pointer"
+              >
+                <InfoSvg size={14} />
+                <span>Panduan</span>
+              </button>
+            </div>
             <h2 className="mt-3 font-display text-xl font-black leading-tight sm:text-2xl md:text-3xl">
               Asah kemampuanmu!
             </h2>
@@ -533,8 +547,15 @@ export default function QuizHubPage() {
             setSelectedAdventureCategory(null);
             navigate(`/quiz-hub/play?category=${catId}&level=${idx + 1}`);
           }}
+          onOpenGuide={() => setIsGuideOpen(true)}
         />
       )}
+
+      <GameGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        gameId="quiz-hub"
+      />
     </NgajiCeriaLayout>
   );
 }

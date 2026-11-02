@@ -12,6 +12,7 @@ export interface GameHudProps {
   maxLives?: number;
   combo?: number;
   className?: string;
+  onHelpClick?: () => void;
 }
 
 export const GameHud: React.FC<GameHudProps> = ({
@@ -24,6 +25,7 @@ export const GameHud: React.FC<GameHudProps> = ({
   maxLives = 3,
   combo,
   className = "",
+  onHelpClick,
 }) => {
   const isUrgent = timeLeft !== undefined && timeLeft < 10;
 
@@ -41,13 +43,24 @@ export const GameHud: React.FC<GameHudProps> = ({
     <div
       className={`relative z-40 flex w-full items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-3 pointer-events-none ${className}`}
     >
-      {/* Sisi Kiri: Badge Level */}
+      {/* Sisi Kiri: Badge Level & Bantuan */}
       <div className="flex items-center gap-2 pointer-events-auto">
         {level !== undefined && (
           <div className="flex items-center gap-1 rounded-xl border-[2.5px] border-[#134E4A] bg-[#DCFCE7] px-2.5 py-1 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
             <TrophySvg size={14} className="text-[#0D9488]" />
             <span>Lv. {level}</span>
           </div>
+        )}
+
+        {onHelpClick && (
+          <button
+            type="button"
+            onClick={onHelpClick}
+            aria-label="Petunjuk dan Aturan Permainan"
+            className="flex h-7 w-7 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] font-black text-xs text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none hover:bg-[#FDE047]"
+          >
+            ?
+          </button>
         )}
 
         {gameTitle && !level && (
@@ -81,16 +94,14 @@ export const GameHud: React.FC<GameHudProps> = ({
       <div className="flex items-center gap-2 pointer-events-auto">
         {/* Nyawa (Hearts) */}
         {lives !== undefined && (
-          <div className="hidden sm:flex items-center gap-0.5 rounded-xl border-2 border-[#134E4A] bg-white px-2 py-1 shadow-[2px_2px_0px_#134E4A]">
+          <div className="flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-white px-2 py-1 shadow-[2px_2px_0px_#134E4A]">
             {Array.from({ length: maxLives }).map((_, i) => (
               <HeartSvg
                 key={i}
-                size={14}
-                className={
-                  i < lives
-                    ? "text-[#FF6B6B] fill-[#FF6B6B]"
-                    : "text-gray-300 fill-gray-300"
-                }
+                size={16}
+                fill={i < lives ? "#FF6B6B" : "#CBD5E1"}
+                stroke={i < lives ? "#134E4A" : "#94A3B8"}
+                className={i < lives ? "transition-transform scale-100" : "transition-transform scale-90 opacity-60"}
               />
             ))}
           </div>
