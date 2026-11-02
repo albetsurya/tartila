@@ -64,6 +64,13 @@ func enableCORS(next http.Handler) http.Handler {
 func main() {
 	loadEnv()
 
+	log.Printf("[Auth] Supabase URL: %s (JWKS: %s)", hub.GetSupabaseURL(), hub.GetSupabaseJWKSURL())
+	go func() {
+		if _, err := hub.GetJWKS(); err != nil {
+			log.Printf("[Auth] Notice: initial JWKS setup: %v", err)
+		}
+	}()
+
 	roomHub := hub.NewRoomHub()
 	go roomHub.Run()
 
