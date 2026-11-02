@@ -48,6 +48,7 @@ export interface GameEntry {
   path: string;
   isNew?: boolean;
   bgColor?: string;
+  isAvailable?: boolean;
 }
 
 export interface GameMetaInfo {
@@ -59,6 +60,7 @@ export interface GameMetaInfo {
   bestKey: string;
   isNew?: boolean;
   isQuizBased?: boolean;
+  isAvailable?: boolean;
 }
 
 export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
@@ -133,20 +135,19 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/hijaiyah-2048",
     bestKey: "hijaiyah-2048",
     isQuizBased: false,
+    isAvailable: true,
   },
-  // Disabled: inactive game (quiz-ngaji)
-  /*
   "quiz-ngaji": {
     title: "Quiz Ngaji",
     genre: "Kuis · Juz Amma",
     description:
       "Uji hafalan Juz Amma-mu! Mainkan mode Speedrun, Royale, dan Menara Lentera di sini.",
-    cover: <QuranQuizRoyaleCoverSvg size={76} />,
-    path: "/member/ngaji-ceria/games/quiz-ngaji",
+    cover: <GamepadSvg size={64} />,
+    path: "/quiz-hub",
     bestKey: "quran-quiz-royale",
     isQuizBased: true,
+    isAvailable: false,
   },
-  */
   "hijaiyah-pop": {
     title: "Hijaiyah Harvest",
     genre: "Edukasi · Susun Kata",
@@ -156,6 +157,7 @@ export const GAME_METADATA_REGISTRY: Record<string, GameMetaInfo> = {
     path: "/member/ngaji-ceria/games/hijaiyah-pop",
     bestKey: "hijaiyah-pop",
     isQuizBased: false,
+    isAvailable: true,
   },
 };
 
@@ -175,6 +177,7 @@ function resolveGameEntry(item: ActiveGameItem): GameEntry {
       ? `/member/ngaji-ceria/games/${item.game_id}`
       : (meta?.path ?? `/member/ngaji-ceria/games/${item.game_id}`);
   const best = meta?.bestKey ? getBest(meta.bestKey) : 0;
+  const isAvailable = meta ? meta.isAvailable !== false : false;
 
   return {
     id: item.game_id,
@@ -186,6 +189,7 @@ function resolveGameEntry(item: ActiveGameItem): GameEntry {
     path,
     isNew: meta?.isNew,
     bgColor: "bg-white",
+    isAvailable,
   };
 }
 
@@ -199,6 +203,7 @@ export default function NgajiCeriaGamesPage() {
   const gamesToDisplay = useMemo(() => {
     const filtered = activeGames.filter((g) => {
       if (!g.is_active) return false;
+      if (g.game_id === "quiz-ngaji") return false;
       if (g.parent_hub_id && g.display_type !== "standalone") return false;
       return true;
     });
@@ -209,10 +214,14 @@ export default function NgajiCeriaGamesPage() {
     const uniqueEntries: GameEntry[] = [];
 
     for (const item of sorted) {
+      if (item.game_id === "quiz-ngaji") continue;
       const canonical = canonicalGameId(item.game_id);
       if (seen.has(canonical)) continue;
       seen.add(canonical);
-      uniqueEntries.push(resolveGameEntry(item));
+      const entry = resolveGameEntry(item);
+      if (entry.isAvailable !== false) {
+        uniqueEntries.push(entry);
+      }
     }
 
     return uniqueEntries;
@@ -315,7 +324,9 @@ export default function NgajiCeriaGamesPage() {
               animate="show"
               className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5"
             >
-              {gamesToDisplay.map((game, index) => {
+              {gamesToDisplay
+                .filter((game) => game.isAvailable !== false)
+                .map((game, index) => {
                 const locked = tier === "guest" && !isGameOpen(game.id, tier);
                 return (
                   <motion.div
