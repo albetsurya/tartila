@@ -149,6 +149,16 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
   }, []);
 
   const loseLife = useCallback((kind: "wrong" | "miss") => {
+    // Di Mode Practice: Tidak ada penalti pengurangan nyawa
+    if (session.mode === "practice") {
+      setLevel((prev) => ({
+        ...prev,
+        wrongCount: kind === "wrong" ? prev.wrongCount + 1 : prev.wrongCount,
+        missedCount: kind === "miss" ? prev.missedCount + 1 : prev.missedCount,
+      }));
+      return;
+    }
+
     setLevel((prev) => {
       const nextL = Math.max(0, prev.lives - 1);
       if (nextL <= 0) {
@@ -166,7 +176,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         isFailed: nextL <= 0,
       };
     });
-  }, []);
+  }, [session.mode]);
 
   const handleTimeout = useCallback(() => {
     setIsWin(false);
@@ -181,8 +191,8 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
 
   // Hasil tebasan / lolos dari SlasherStage:
   // 1. correct: tambah skor (+25) & combo, mainkan audio
-  // 2. wrong (menebas pengecoh): penalti nyawa -1 & penalti skor (-15)
-  // 3. miss (target jatuh lolos melewati batas bawah): penalti nyawa -1
+  // 2. wrong (menebas pengecoh): penalti nyawa -1 (challenge) & penalti skor (-15 di challenge)
+  // 3. miss (target jatuh lolos melewati batas bawah): penalti nyawa -1 (challenge)
   const onSliceResult = useCallback(
     (kind: SlashResultKind, symbol?: string) => {
       if (kind === "correct") {
@@ -191,14 +201,16 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         if (symbol) playLetterAudio(symbol);
       } else if (kind === "wrong") {
         loseLife("wrong");
-        const next = Math.max(0, scoreRef.current - 15);
-        scoreRef.current = next;
-        setLevel((prev) => ({ ...prev, score: next }));
+        if (session.mode === "challenge") {
+          const next = Math.max(0, scoreRef.current - 15);
+          scoreRef.current = next;
+          setLevel((prev) => ({ ...prev, score: next }));
+        }
       } else if (kind === "miss") {
         loseLife("miss");
       }
     },
-    [bumpScore, loseLife]
+    [bumpScore, loseLife, session.mode]
   );
 
   // Target berganti berkala (12 detik) saat game berlangsung
@@ -210,15 +222,22 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     return () => clearInterval(interval);
   }, [phase, pickNewTarget]);
 
-  // handleStartLevel: inisialisasi level tertentu atau retry (TIDAK memotong tiket)
+  // handleStartLevel: inisialisasi level tertentu atau retry
   const handleStartLevel = useCallback(
-    (lvl: number, totalTargets?: number) => {
+    (
+      lvl: number,
+      totalTargets?: number,
+      gameMode?: "practice" | "challenge"
+    ) => {
+      const activeMode = gameMode ?? session.mode;
       const targetTot =
         totalTargets ??
         (levelConfig?.targetTotal ?? (lvl ? 8 + lvl * 2 : 10));
       setSession((s) => ({
         ...s,
         currentLevel: lvl,
+        mode: activeMode,
+        ticketConsumed: activeMode === "challenge",
         status: "active",
         updatedAt: new Date().toISOString(),
       }));
@@ -228,7 +247,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       setLevel({
         levelId: `slasher-level-${lvl}`,
         score: 0,
-        lives: 3,
+        lives: activeMode === "practice" ? 99 : 3,
         combo: 0,
         maxCombo: 0,
         correctCount: 0,
@@ -236,7 +255,10 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         missedCount: 0,
         targetProgress: 0,
         targetTotal: targetTot,
-        remainingTime: levelConfig?.durationSeconds ?? 60,
+        remainingTime:
+          activeMode === "practice"
+            ? undefined
+            : (levelConfig?.durationSeconds ?? 60),
         isCompleted: false,
         isFailed: false,
         startedAt: Date.now(),
@@ -245,7 +267,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       setCurrentTargetItem(generateSlasherTarget(items, targetLength));
       setPhase("playing");
     },
-    [mode, targetLength, levelConfig?.targetTotal, levelConfig?.durationSeconds]
+    [mode, targetLength, session.mode, levelConfig?.targetTotal, levelConfig?.durationSeconds]
   );
 
   // handleNextLevel: HANYA menaikkan currentLevel & mereset state level (DILARANG navigate atau potong tiket)
@@ -269,7 +291,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         ...prev,
         levelId: `slasher-level-${nextLvl}`,
         score: 0,
-        lives: 3,
+        lives: session.mode === "practice" ? 99 : 3,
         combo: 0,
         maxCombo: 0,
         correctCount: 0,
@@ -277,7 +299,10 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
         missedCount: 0,
         targetProgress: 0,
         targetTotal: targetTot,
-        remainingTime: levelConfig?.durationSeconds ?? 60,
+        remainingTime:
+          session.mode === "practice"
+            ? undefined
+            : (levelConfig?.durationSeconds ?? 60),
         isCompleted: false,
         isFailed: false,
         startedAt: Date.now(),
@@ -286,7 +311,7 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
       setCurrentTargetItem(generateSlasherTarget(items, targetLength));
       setPhase("playing");
     },
-    [mode, targetLength, session.currentLevel, levelConfig?.targetTotal, levelConfig?.durationSeconds]
+    [mode, targetLength, session.currentLevel, session.mode, levelConfig?.targetTotal, levelConfig?.durationSeconds]
   );
 
   const resetRun = useCallback(() => {

@@ -128,9 +128,10 @@ export function useBalloonGame() {
 
   /** Mulai game pada level tertentu (async: muat kata dari Tilawati) */
   const handleStartLevel = useCallback(
-    async (levelIndex: number) => {
+    async (levelIndex: number, mode?: "practice" | "challenge") => {
+      const activeMode = mode ?? "challenge";
       const cfg = LEVELS[levelIndex] ?? LEVELS[0];
-      const initialTime = cfg.durationSeconds;
+      const initialTime = activeMode === "practice" ? undefined : cfg.durationSeconds;
       const targetScore = cfg.targetScore;
       try {
         const words = await getWordsForLevel(levelIndex);
@@ -146,13 +147,15 @@ export function useBalloonGame() {
           session: {
             ...s.session,
             currentLevel: levelIndex + 1,
+            mode: activeMode,
+            ticketConsumed: activeMode === "challenge",
             status: "active",
             updatedAt: new Date().toISOString(),
           },
           level: {
             levelId: `harvest-level-${levelIndex + 1}`,
             score: 0,
-            lives: 3,
+            lives: activeMode === "practice" ? 99 : 3,
             combo: 0,
             maxCombo: 0,
             correctCount: 0,
@@ -168,7 +171,7 @@ export function useBalloonGame() {
           score: 0,
           combo: 0,
           maxCombo: 0,
-          lives: 3,
+          lives: activeMode === "practice" ? 99 : 3,
           levelIndex,
           targetLetters: activeWord,
           target: firstLetter,
@@ -176,7 +179,7 @@ export function useBalloonGame() {
           collectedLetters: [],
           displayLetters: activeWord.map(() => ""),
           isWord,
-          timeLeft: initialTime,
+          timeLeft: initialTime ?? 60,
           targetScore,
           isWin: false,
           loseReason: null,
@@ -200,13 +203,15 @@ export function useBalloonGame() {
           session: {
             ...s.session,
             currentLevel: levelIndex + 1,
+            mode: activeMode,
+            ticketConsumed: activeMode === "challenge",
             status: "active",
             updatedAt: new Date().toISOString(),
           },
           level: {
             levelId: `harvest-level-${levelIndex + 1}`,
             score: 0,
-            lives: 3,
+            lives: activeMode === "practice" ? 99 : 3,
             combo: 0,
             maxCombo: 0,
             correctCount: 0,
@@ -222,7 +227,7 @@ export function useBalloonGame() {
           score: 0,
           combo: 0,
           maxCombo: 0,
-          lives: 3,
+          lives: activeMode === "practice" ? 99 : 3,
           levelIndex,
           targetLetters: activeWord,
           target: activeWord[0] ?? "",
@@ -230,7 +235,7 @@ export function useBalloonGame() {
           collectedLetters: [],
           displayLetters: activeWord.map(() => ""),
           isWord: activeWord.length > 1,
-          timeLeft: initialTime,
+          timeLeft: initialTime ?? 60,
           targetScore,
           isWin: false,
           loseReason: null,
@@ -254,8 +259,9 @@ export function useBalloonGame() {
   const handleNextLevel = useCallback(async () => {
     const nextLevelIndex = state.session.currentLevel; // next 0-indexed level
     if (nextLevelIndex >= LEVELS.length) return;
+    const isPractice = state.session.mode === "practice";
     const cfg = LEVELS[nextLevelIndex] ?? LEVELS[0];
-    const initialTime = cfg.durationSeconds;
+    const initialTime = isPractice ? undefined : cfg.durationSeconds;
     const targetScore = cfg.targetScore;
     try {
       const words = await getWordsForLevel(nextLevelIndex);
@@ -278,7 +284,7 @@ export function useBalloonGame() {
         level: {
           levelId: `harvest-level-${nextLevelIndex + 1}`,
           score: 0,
-          lives: 3,
+          lives: isPractice ? 99 : 3,
           combo: 0,
           maxCombo: 0,
           correctCount: 0,
@@ -294,7 +300,7 @@ export function useBalloonGame() {
         score: 0,
         combo: 0,
         maxCombo: 0,
-        lives: 3,
+        lives: isPractice ? 99 : 3,
         levelIndex: nextLevelIndex,
         targetLetters: activeWord,
         target: firstLetter,
@@ -302,7 +308,7 @@ export function useBalloonGame() {
         collectedLetters: [],
         displayLetters: activeWord.map(() => ""),
         isWord,
-        timeLeft: initialTime,
+        timeLeft: initialTime ?? 60,
         targetScore,
         isWin: false,
         loseReason: null,
@@ -333,7 +339,7 @@ export function useBalloonGame() {
         level: {
           levelId: `harvest-level-${nextLevelIndex + 1}`,
           score: 0,
-          lives: 3,
+          lives: isPractice ? 99 : 3,
           combo: 0,
           maxCombo: 0,
           correctCount: 0,
@@ -349,7 +355,7 @@ export function useBalloonGame() {
         score: 0,
         combo: 0,
         maxCombo: 0,
-        lives: 3,
+        lives: isPractice ? 99 : 3,
         levelIndex: nextLevelIndex,
         targetLetters: activeWord,
         target: activeWord[0] ?? "",
@@ -357,7 +363,7 @@ export function useBalloonGame() {
         collectedLetters: [],
         displayLetters: activeWord.map(() => ""),
         isWord: activeWord.length > 1,
-        timeLeft: initialTime,
+        timeLeft: initialTime ?? 60,
         targetScore,
         isWin: false,
         loseReason: null,
@@ -370,7 +376,7 @@ export function useBalloonGame() {
         forceTarget: true,
       }));
     }
-  }, [state.session.currentLevel, update]);
+  }, [state.session.currentLevel, state.session.mode, update]);
 
   /** Lanjut ke kata berikutnya pada level yang sama */
   const continueToNextWord = useCallback(
@@ -417,7 +423,8 @@ export function useBalloonGame() {
         const cleanBalloonLetter = normalizeArabicText(balloon.letter);
         const correct = cleanBalloonLetter === expected;
         const combo = correct ? s.combo + 1 : 0;
-        const lives = s.lives - (correct ? 0 : 1);
+        const isPractice = s.session.mode === "practice";
+        const lives = isPractice ? s.lives : s.lives - (correct ? 0 : 1);
         playSfx(correct ? "correct" : "wrong");
 
         // Target tarikan buah benar: pusat keranjang (bawah tengah arena).
@@ -505,8 +512,8 @@ export function useBalloonGame() {
           };
         }
 
-        // Salah klik
-        if (lives <= 0) {
+        // Salah klik (hanya di Challenge Mode)
+        if (!isPractice && lives <= 0) {
           playSfx("gameover");
           return {
             ...s,
@@ -553,6 +560,7 @@ export function useBalloonGame() {
       previous = now;
       update((s) => {
         if (s.phase !== "playing") return s;
+        const isPractice = s.session.mode === "practice";
         const height = fieldRef.current?.clientHeight ?? 320;
         const width = fieldRef.current?.clientWidth ?? 320;
 
@@ -572,7 +580,9 @@ export function useBalloonGame() {
                 combo = 0;
                 missedTargets = 0;
               }
-              lives -= 1;
+              if (!isPractice) {
+                lives -= 1;
+              }
               return [];
             }
             combo = 0;
@@ -582,8 +592,8 @@ export function useBalloonGame() {
           return [{ ...balloon, y }];
         });
 
-        const nextTimeLeft = Math.max(0, s.timeLeft - delta);
-        if (nextTimeLeft <= 0) {
+        const nextTimeLeft = isPractice ? s.timeLeft : Math.max(0, s.timeLeft - delta);
+        if (!isPractice && nextTimeLeft <= 0) {
           playSfx("gameover");
           return {
             ...s,
@@ -600,7 +610,7 @@ export function useBalloonGame() {
           };
         }
 
-        if (lives <= 0) {
+        if (!isPractice && lives <= 0) {
           playSfx("gameover");
           return {
             ...s,
@@ -650,7 +660,7 @@ export function useBalloonGame() {
           };
         }
 
-        if (next.lives <= 0) {
+        if (!isPractice && next.lives <= 0) {
           playSfx("gameover");
           next = {
             ...next,

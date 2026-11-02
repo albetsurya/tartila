@@ -45,6 +45,7 @@ function Game() {
   const game = useBalloonGame();
   const navigate = useNavigate();
   const exit = useGameExit("/member/ngaji-ceria/games");
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const [levelIndex, setLevelIndex] = useState(0);
   const levelConfig = LEVELS[levelIndex] ?? LEVELS[0];
@@ -52,6 +53,18 @@ function Game() {
   const [showRules, setShowRules] = useState(false);
   const [showCombo, setShowCombo] = useState(false);
   const lastComboRef = useRef(game.combo);
+
+  const handleSelectLevel = async (
+    idx: number,
+    mode: "practice" | "challenge"
+  ) => {
+    if (mode === "challenge") {
+      const ok = await consumeTicket();
+      if (!ok) return;
+    }
+    setLevelIndex(idx);
+    game.handleStartLevel(idx, mode);
+  };
 
   useEffect(() => {
     if (game.phase === "gameover" && game.isWin) {
@@ -179,8 +192,8 @@ function Game() {
               level={levelConfig.id}
               score={game.score}
               targetScore={game.targetScore}
-              timeLeft={game.timeLeft}
-              lives={game.lives}
+              timeLeft={game.session.mode === "practice" ? undefined : game.timeLeft}
+              lives={game.session.mode === "practice" ? undefined : game.lives}
               maxLives={3}
               combo={game.combo}
               onHelpClick={() => {
@@ -459,7 +472,7 @@ function Game() {
             }
             level={levelIndex + 1}
             hasNextLevel={levelIndex < LEVELS.length - 1}
-            onRetry={() => game.handleStartLevel(levelIndex)}
+            onRetry={() => game.handleStartLevel(levelIndex, game.session.mode)}
             onNextLevel={() => {
               if (levelIndex < LEVELS.length - 1) {
                 setLevelIndex((prev) => prev + 1);
@@ -483,10 +496,7 @@ function Game() {
           description: level.desc,
         }))}
         unlockedCount={getPopupUnlockedCount()}
-        onSelectLevel={(idx) => {
-          setLevelIndex(idx);
-          game.handleStartLevel(idx);
-        }}
+        onSelectLevel={handleSelectLevel}
         onOpenGuide={() => setShowRules(true)}
       />
       <GameGuideModal

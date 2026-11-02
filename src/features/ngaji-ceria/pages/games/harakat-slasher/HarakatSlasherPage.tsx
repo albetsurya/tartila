@@ -14,6 +14,7 @@ import { useSlasherGame } from "./hooks/useSlasherGame";
 import { SLASHER_MODE_LABELS, type SlasherMode } from "./data/harakat-list";
 import type { GamePhase } from "../_shared/types";
 import { useGameStore } from "@/features/ngaji-ceria/hooks/useGameStore";
+import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { soundManager } from "@/features/ngaji-ceria/services/soundManager";
 
 const MODES: SlasherMode[] = ["harakat", "huruf", "kata", "ayat"];
@@ -101,6 +102,7 @@ function Game() {
 
   const unlockedLevel = useGameStore((s) => s.getUnlockedLevel("harakat-rush"));
   const unlockNextLevel = useGameStore((s) => s.unlockNextLevel);
+  const consumeTicket = useEconomyStore((s) => s.consumeTicket);
 
   const game = useSlasherGame();
 
@@ -125,8 +127,8 @@ function Game() {
   const currentLevelConfig =
     SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
 
-  const [timeLeft, setTimeLeft] = useState<number>(
-    currentLevelConfig.durationSeconds,
+  const [timeLeft, setTimeLeft] = useState<number | undefined>(
+    session.mode === "practice" ? undefined : currentLevelConfig.durationSeconds,
   );
 
   useEffect(() => {
@@ -135,17 +137,31 @@ function Game() {
     };
   }, []);
 
-  const handleStartLevel = (lvl: number) => {
+  const handleSelectLevel = async (
+    idx: number,
+    gameMode: "practice" | "challenge"
+  ) => {
+    if (gameMode === "challenge") {
+      const ok = await consumeTicket();
+      if (!ok) return;
+    }
+    const cfg = SLASHER_LEVELS[idx] || SLASHER_LEVELS[0];
+    setTimeLeft(gameMode === "practice" ? undefined : cfg.durationSeconds);
+    game.handleStartLevel(idx + 1, cfg.targetTotal, gameMode);
+  };
+
+  const handleStartLevel = (lvl: number, mode?: "practice" | "challenge") => {
+    const activeMode = mode ?? session.mode;
     const cfg = SLASHER_LEVELS[lvl - 1] || SLASHER_LEVELS[0];
-    setTimeLeft(cfg.durationSeconds);
-    game.handleStartLevel(lvl, cfg.targetTotal);
+    setTimeLeft(activeMode === "practice" ? undefined : cfg.durationSeconds);
+    game.handleStartLevel(lvl, cfg.targetTotal, activeMode);
   };
 
   const handleNextLevel = () => {
     if (selectedLevel < SLASHER_LEVELS.length) {
       const nextLvl = selectedLevel + 1;
       const nextCfg = SLASHER_LEVELS[nextLvl - 1] || SLASHER_LEVELS[0];
-      setTimeLeft(nextCfg.durationSeconds);
+      setTimeLeft(session.mode === "practice" ? undefined : nextCfg.durationSeconds);
       game.handleNextLevel(nextCfg.targetTotal);
     } else {
       navigate("/member/ngaji-ceria/games");
@@ -153,9 +169,10 @@ function Game() {
   };
 
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || session.mode === "practice") return;
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
+        if (prev === undefined) return undefined;
         if (prev <= 1) {
           clearInterval(interval);
           handleTimeout();
@@ -165,7 +182,7 @@ function Game() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [phase, handleTimeout]);
+  }, [phase, session.mode, handleTimeout]);
 
   useEffect(() => {
     if (phase === "gameover" && isWin) {
@@ -255,7 +272,7 @@ function Game() {
                   description: l.description,
                 }))}
                 unlockedCount={unlockedLevel}
-                onSelectLevel={(idx) => handleStartLevel(idx + 1)}
+                onSelectLevel={handleSelectLevel}
                 onOpenGuide={() => setIsGuideOpen(true)}
               />
               <GameGuideModal
@@ -270,10 +287,10 @@ function Game() {
                 <div className="pointer-events-auto w-full">
                   <GameHud
                     level={selectedLevel}
-                    timeLeft={timeLeft}
+                    timeLeft={session.mode === "practice" ? undefined : timeLeft}
                     score={score}
                     targetScore={currentLevelConfig.targetScore}
-                    lives={lives}
+                    lives={session.mode === "practice" ? undefined : lives}
                   />
                 </div>
 

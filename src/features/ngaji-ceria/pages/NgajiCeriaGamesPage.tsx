@@ -237,7 +237,10 @@ export default function NgajiCeriaGamesPage() {
       !path.includes("/select") &&
       !path.includes("/ritme-ngaji") &&
       !path.startsWith("/quiz-hub") &&
-      !path.includes("/quiz-hub");
+      !path.includes("/quiz-hub") &&
+      !path.includes("/harakat-slasher") &&
+      !path.includes("/hijaiyah-harvest") &&
+      !path.includes("/hijaiyah-pop");
 
     if (isDirectGame) {
       const ok = await consumeTicket();
