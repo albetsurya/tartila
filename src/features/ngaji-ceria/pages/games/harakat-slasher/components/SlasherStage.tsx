@@ -200,7 +200,7 @@ interface SlashFx {
 
 const MAX_ITEMS = 14;
 const GRAVITY = 1180; // Gravitasi disesuaikan agar buah melayang nyaman dan stabil di mata
-const BASE_ITEM_RADIUS = 52;
+const BASE_ITEM_RADIUS = 64; // Hitbox toleran dan ramah anak (radius 64px)
 
 // Jarak titik ke segmen untuk deteksi swipe memotong objek
 function distPointToSegment(
@@ -263,12 +263,32 @@ export default function SlasherStage({
   const [slashFx, setSlashFx] = useState<SlashFx[]>([]);
   const fxSeq = useRef(0);
 
+  // FAIR SPAWNER: Menjamin minimal 2 buah target per siklus 5 buah dan anti-overlap
+  const waveState = useRef({
+    batchSize: 5,
+    spawnedInBatch: 0,
+    targetsInBatch: 0,
+    consecutiveDecoys: 0,
+  });
+
+  // COLLISION & GESTURE INTEGRITY: Anti-double-hit & penalti maksimal 1 per gesture
+  const gestureProcessedIds = useRef<Set<number>>(new Set());
+  const gesturePenalized = useRef<boolean>(false);
+
   const [, forceSync] = useState(0);
   const syncItems = () => forceSync((v) => v + 1);
 
   const clearItems = () => {
     itemsRef.current = [];
     domRefs.current.clear();
+    waveState.current = {
+      batchSize: 5,
+      spawnedInBatch: 0,
+      targetsInBatch: 0,
+      consecutiveDecoys: 0,
+    };
+    gestureProcessedIds.current.clear();
+    gesturePenalized.current = false;
     syncItems();
   };
 
@@ -281,7 +301,35 @@ export default function SlasherStage({
     const pool = getSlasherItems(modeRef.current);
     const distractorRatio = levelConfigRef.current?.distractorRatio ?? 0.35;
     const targetLength = Math.max(1, levelConfigRef.current?.targetLength ?? 1);
-    const isDecoy = Math.random() < distractorRatio;
+
+    // SISTEM SPAWN ADIL (Fair Spawner):
+    // Setiap siklus 5 buah WAJIB ada minimal 2 buah target, dan maksimal 2 pengecoh beruntun
+    const ws = waveState.current;
+    const remainingInBatch = ws.batchSize - ws.spawnedInBatch;
+    const neededTargets = 2 - ws.targetsInBatch;
+
+    let isDecoy: boolean;
+    if (remainingInBatch <= neededTargets) {
+      isDecoy = false;
+    } else if (ws.consecutiveDecoys >= 2) {
+      isDecoy = false;
+    } else {
+      isDecoy = Math.random() < distractorRatio;
+    }
+
+    ws.spawnedInBatch++;
+    if (!isDecoy) {
+      ws.targetsInBatch++;
+      ws.consecutiveDecoys = 0;
+    } else {
+      ws.consecutiveDecoys++;
+    }
+
+    if (ws.spawnedInBatch >= ws.batchSize) {
+      ws.spawnedInBatch = 0;
+      ws.targetsInBatch = 0;
+      ws.consecutiveDecoys = 0;
+    }
 
     const currentItem = currentTargetItemRef.current;
     const target = isDecoy
@@ -292,7 +340,6 @@ export default function SlasherStage({
     const role: "correct" | "decoy" = isMatch ? "correct" : "decoy";
 
     // FASE 2: Perhitungan Fisika & Peluncuran Tepat Melewati Tengah Layar (Eye-Level)
-    // Kecepatan jatuh & gravitasi disesuaikan dengan fallSpeed level
     const fallSpeed = levelConfigRef.current?.fallSpeed ?? 10;
     const currentGravity = GRAVITY * (fallSpeed / 10);
 
@@ -302,21 +349,46 @@ export default function SlasherStage({
     const vy = -Math.sqrt(2 * currentGravity * deltaY);
     const tApex = -vy / currentGravity; // Waktu tempuh ke puncak parabola
 
-    // Titik tengah X tujuan (antara 38% - 62% lebar layar)
-    const targetX = w * (0.38 + Math.random() * 0.24);
+    // ANTI-OVERLAP: Berikan jarak horizontal minimal (>= 90px) antar buah yang aktif
+    const minPadding = Math.max(90, w * 0.18);
+    const activeItems = itemsRef.current.filter(
+      (it) => !it.isSliced && it.y > h * 0.35
+    );
 
-    // Titik spawn dari sisi kiri (14% - 34%) atau sisi kanan (66% - 86%)
-    const spawnFromLeft = Math.random() < 0.5;
-    const x = spawnFromLeft
-      ? w * (0.14 + Math.random() * 0.2)
-      : w * (0.66 + Math.random() * 0.2);
+    let x = 0;
+    let spawnFromLeft = Math.random() < 0.5;
 
-    // Kecepatan horizontal terukur agar melintas persis di titik tengah saat puncak
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidateX = spawnFromLeft
+        ? w * (0.12 + Math.random() * 0.22)
+        : w * (0.66 + Math.random() * 0.22);
+      const isOverlapping = activeItems.some(
+        (it) => Math.abs(it.x - candidateX) < minPadding
+      );
+      if (!isOverlapping || attempt === 7) {
+        x = candidateX;
+        break;
+      }
+      spawnFromLeft = !spawnFromLeft;
+    }
+
+    let targetX = w * (0.38 + Math.random() * 0.24);
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidateTargetX = w * (0.36 + Math.random() * 0.28);
+      const isApexOverlapping = activeItems.some(
+        (it) => Math.abs(it.vx * tApex + it.x - candidateTargetX) < 70
+      );
+      if (!isApexOverlapping || attempt === 4) {
+        targetX = candidateTargetX;
+        break;
+      }
+    }
     const vx = (targetX - x) / tApex;
 
-    // FASE 3: Penyesuaian Hitbox Berdasarkan Panjang Teks Arab
+    // FASE 3: Penyesuaian Hitbox Toleran (Lebih Ramah Anak)
     const textLen = target.symbol.length;
-    const hitboxRadius = textLen > 6 ? 68 : textLen > 2 ? 60 : BASE_ITEM_RADIUS;
+    const hitboxRadius =
+      textLen > 6 ? 82 : textLen > 2 ? 74 : BASE_ITEM_RADIUS;
 
     itemsRef.current.push({
       id: idSeq.current++,
@@ -349,8 +421,9 @@ export default function SlasherStage({
     hitX: number,
     hitY: number
   ) => {
-    if (item.isSliced) return;
+    if (item.isSliced || gestureProcessedIds.current.has(item.id)) return;
     item.isSliced = true;
+    gestureProcessedIds.current.add(item.id);
     item.sliceAngle = (slashAngle * 180) / Math.PI;
 
     addSlashFx(hitX, hitY, slashAngle);
@@ -363,7 +436,11 @@ export default function SlasherStage({
     if (isCorrect) {
       onResultRef.current("correct", item.target.symbol, item.target);
     } else {
-      onResultRef.current("wrong", item.target.symbol, item.target);
+      // Penalti maksimal 1 kali per gesture swipe sesuai Bab 6.5
+      if (!gesturePenalized.current) {
+        gesturePenalized.current = true;
+        onResultRef.current("wrong", item.target.symbol, item.target);
+      }
     }
 
     syncItems();
@@ -481,8 +558,21 @@ export default function SlasherStage({
     const handleDown = (e: PointerEvent) => {
       if (isPaused) return;
       slicingRef.current = true;
-      prevPointRef.current = toLocal(e);
+      gestureProcessedIds.current.clear();
+      gesturePenalized.current = false;
+      const p = toLocal(e);
+      prevPointRef.current = p;
       trailRef.current = [];
+
+      // DUKUNGAN TAP INSTAN: Jika anak menekan langsung pada buah (Bab 6.5)
+      for (const item of itemsRef.current) {
+        if (item.isSliced) continue;
+        const dist = Math.hypot(p.x - item.x, p.y - item.y);
+        if (dist < item.hitboxRadius) {
+          sliceItem(item, 0, item.x, item.y);
+          break;
+        }
+      }
     };
 
     const handleMove = (e: PointerEvent) => {
@@ -499,9 +589,9 @@ export default function SlasherStage({
       if (trailRef.current.length > 14) trailRef.current.shift();
 
       for (const item of itemsRef.current) {
-        if (item.isSliced) continue;
+        if (item.isSliced || gestureProcessedIds.current.has(item.id)) continue;
         const d = distPointToSegment(item.x, item.y, prev.x, prev.y, p.x, p.y);
-        // Menggunakan hitboxRadius dinamis sesuai panjang teks
+        // Menggunakan hitboxRadius dinamis toleran ramah anak
         if (d < item.hitboxRadius) {
           sliceItem(item, angle, item.x, item.y);
         }
@@ -511,6 +601,8 @@ export default function SlasherStage({
     const handleUp = () => {
       slicingRef.current = false;
       prevPointRef.current = null;
+      gestureProcessedIds.current.clear();
+      gesturePenalized.current = false;
     };
 
     container.addEventListener("pointerdown", handleDown);

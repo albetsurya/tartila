@@ -673,8 +673,11 @@ export function useBalloonGame() {
         }
 
         if (next.spawnLeft <= 0) {
-          const wantTarget = next.forceTarget || next.spawned % 3 === 0 || Math.random() < 0.35;
           const currentLetter = normalizeArabicText(currentTargetLetter(next) || s.target);
+          const hasTargetOnScreen = next.balloons.some(
+            (b) => !b.popped && normalizeArabicText(b.letter) === currentLetter && b.y < height - 100,
+          );
+          const wantTarget = !hasTargetOnScreen || next.forceTarget || next.spawned % 2 === 0 || Math.random() < 0.45;
           const distractorPool = Array.from(
             new Set(next.targetLetters.map(normalizeArabicText).filter((l) => l !== currentLetter)),
           );
@@ -687,6 +690,18 @@ export function useBalloonGame() {
               ? choices[Math.floor(Math.random() * choices.length)]
               : currentLetter;
           const letter = normalizeArabicText(rawLetter);
+
+          // ANTI-OVERLAP: Pastikan buah baru tidak menumpuk horizontal dengan buah aktif di atas layar
+          const MIN_BALLOON_GAP = 90;
+          const maxX = Math.max(0, width - 95);
+          let candidateX = Math.random() * maxX;
+          const topBalloons = next.balloons.filter((b) => !b.popped && b.y < 140);
+          for (let attempt = 0; attempt < 8; attempt++) {
+            const tooClose = topBalloons.some((b) => Math.abs(b.x - candidateX) < MIN_BALLOON_GAP);
+            if (!tooClose) break;
+            candidateX = Math.random() * maxX;
+          }
+
           next = {
             ...next,
             spawned: next.spawned + 1,
@@ -697,7 +712,7 @@ export function useBalloonGame() {
               {
                 id: `balloon-${next.spawned}`,
                 letter,
-                x: Math.random() * Math.max(0, width - 80),
+                x: candidateX,
                 y: -100,
                 speed: 1.3 + Math.floor(next.spawned / 10) * 0.08,
                 isTarget: letter === currentLetter,

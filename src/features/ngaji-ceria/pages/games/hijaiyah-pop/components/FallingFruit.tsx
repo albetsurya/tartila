@@ -57,7 +57,7 @@ export function FallingFruit({
         if (event.detail === 0) handleTrigger();
       }}
       disabled={disabled || fruit.popped}
-      className="absolute left-0 top-0 h-24 min-w-[5rem] w-fit px-1 touch-none select-none flex items-center justify-center cursor-pointer"
+      className="absolute left-0 top-0 h-28 min-w-[5.5rem] w-fit p-1.5 touch-none select-none flex items-center justify-center cursor-pointer"
       style={{
         transform: isPoppingWrong
           ? `translate3d(${fruit.x}px, ${fruit.y}px, 0) scale(${
