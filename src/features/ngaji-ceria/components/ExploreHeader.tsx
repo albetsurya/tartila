@@ -23,7 +23,7 @@ export function ExploreStatBadge({
 }: ExploreStatBadgeProps) {
   return (
     <div
-      className={`inline-flex items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 sm:px-3.5 py-1.5 min-h-[38px] sm:min-h-[40px] text-xs sm:text-sm font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] select-none shrink-0 ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FFFFFF] px-3 sm:px-3.5 py-1.5 min-h-[38px] sm:min-h-[40px] text-xs sm:text-sm font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] select-none shrink-0 ${className}`}
       title={title}
     >
       {icon}
@@ -130,16 +130,16 @@ export function ExploreHeader({
   };
 
   const defaultBadgeClass =
-    "inline-flex items-center gap-1.5 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-3 sm:px-3.5 py-1.5 min-h-[38px] sm:min-h-[40px] text-xs sm:text-sm font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] select-none shrink-0";
+    "inline-flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FFFFFF] px-3 sm:px-3.5 py-1.5 min-h-[38px] sm:min-h-[40px] text-xs sm:text-sm font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] select-none shrink-0";
 
   return (
     <header
       data-theme-scope={themeScope}
-      className={`sticky top-0 z-50 pt-safe ${className}`}
+      className={`sticky top-0 z-50 w-full pt-safe ${className}`}
     >
       <div
-        className={`relative overflow-hidden border-b-[3px] border-[var(--border-color,#134E4A)] px-3 sm:px-4 py-2.5 sm:py-3 shadow-[0_3px_0px_var(--shadow-color,#134E4A)] backdrop-blur-md ${
-          themeColorClass || "bg-[var(--bg-app)]"
+        className={`relative overflow-hidden border-b-[3px] border-[#134E4A] px-3 sm:px-4 py-2.5 sm:py-3 shadow-[0_3px_0px_#134E4A] backdrop-blur-md ${
+          themeColorClass || "bg-[#F0FDF4]"
         } ${borderColorClass || ""} ${shadowClass || ""}`}
       >
         {/* Elemen ornamen/dekorasi latar belakang */}
@@ -152,7 +152,7 @@ export function ExploreHeader({
               type="button"
               onClick={handleBack}
               aria-label={backAriaLabel}
-              className={`flex h-10 w-10 min-h-[40px] min-w-[40px] sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] active:translate-y-[1px] active:shadow-none hover:opacity-90 transition-all cursor-pointer ${
+              className={`flex h-10 w-10 min-h-[40px] min-w-[40px] sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FFFFFF] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none hover:opacity-90 transition-all cursor-pointer ${
                 backClass || ""
               }`}
             >
@@ -169,7 +169,7 @@ export function ExploreHeader({
               {typeof title === "string" ? (
                 <h1
                   className={`font-display font-black text-sm sm:text-base md:text-lg leading-tight truncate ${
-                    textColorClass || "text-[var(--text-main,#134E4A)]"
+                    textColorClass || "text-[#134E4A]"
                   }`}
                 >
                   {title}
@@ -181,7 +181,7 @@ export function ExploreHeader({
                 (typeof subtitle === "string" ? (
                   <p
                     className={`text-[10px] sm:text-xs font-bold leading-tight truncate opacity-85 mt-0.5 ${
-                      textColorClass || "text-[var(--text-main,#134E4A)]"
+                      textColorClass || "text-[#134E4A]"
                     }`}
                   >
                     {subtitle}

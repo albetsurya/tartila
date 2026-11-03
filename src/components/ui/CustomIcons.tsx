@@ -1261,7 +1261,11 @@ export const SparklesSvg: React.FC<SvgProps> = ({
   );
 };
 
-export const MoonSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+export const MoonSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => (
   <svg
     width={size}
     height={size}
@@ -1273,7 +1277,7 @@ export const MoonSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
     <path
       d="M19.5 14.5C18.2 15.1 16.7 15.5 15 15.5C9.75 15.5 5.5 11.25 5.5 6C5.5 4.8 5.7 3.6 6.2 2.5C3.6 4.1 2 7 2 10.5C2 15.75 6.25 20 11.5 20C15.3 20 18.6 17.7 19.5 14.5Z"
       fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -1283,13 +1287,17 @@ export const MoonSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
       cy="6.5"
       r="2"
       fill="#38BDF8"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2"
     />
   </svg>
 );
 
-export const SunSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
+export const SunSvg: React.FC<SvgProps> = ({
+  size = 24,
+  className = "",
+  stroke,
+}) => (
   <svg
     width={size}
     height={size}
@@ -1303,12 +1311,12 @@ export const SunSvg: React.FC<SvgProps> = ({ size = 24, className = "" }) => (
       cy="12"
       r="5"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2.5"
     />
     <path
       d="M12 2V5M12 19V22M2 12H5M19 12H22M4.9 4.9L7 7M17 17L19.1 19.1M4.9 19.1L7 17M17 7L19.1 4.9"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2.5"
       strokeLinecap="round"
     />
@@ -2826,6 +2834,7 @@ export const MosqueSvg: React.FC<SvgProps> = ({
   size = 24,
   className = "",
   style,
+  stroke,
 }) => (
   <svg
     width={size}
@@ -2839,7 +2848,7 @@ export const MosqueSvg: React.FC<SvgProps> = ({
     <path
       d="M12 3c-3 3-5 5.5-5 8.5h10C17 8.5 15 6 12 3z"
       fill="var(--svg-secondary)"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2.2"
       strokeLinejoin="round"
     />
@@ -2850,13 +2859,13 @@ export const MosqueSvg: React.FC<SvgProps> = ({
       height="9.5"
       rx="1"
       fill="var(--svg-accent)"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2.2"
     />
     <path
       d="M10 21v-4a2 2 0 0 1 4 0v4"
       fill="var(--svg-secondary)"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="2"
     />
     <circle
@@ -2864,7 +2873,7 @@ export const MosqueSvg: React.FC<SvgProps> = ({
       cy="2"
       r="1"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="1"
     />
   </svg>
@@ -2874,6 +2883,7 @@ export const SettingsSvg: React.FC<SvgProps> = ({
   size = 20,
   className = "",
   style,
+  stroke,
 }) => (
   <svg
     width={size}
@@ -2888,14 +2898,14 @@ export const SettingsSvg: React.FC<SvgProps> = ({
   >
     <path
       d="M19 5H29L31 11L36 13L41 10L46 19L41 23V28L46 32L41 41L35 38L30 41L29 47H19L17 41L12 38L7 41L2 32L7 28V23L2 19L7 10L13 13L17 11L19 5Z"
-      fill="var(--svg-primary)"
+      fill={stroke || "var(--svg-primary)"}
       transform="translate(1 1) scale(0.96)"
     />
 
     <path
       d="M19 5H29L31 11L36 13L41 10L46 19L41 23V28L46 32L41 41L35 38L30 41L29 47H19L17 41L12 38L7 41L2 32L7 28V23L2 19L7 10L13 13L17 11L19 5Z"
       fill="#FBBF24"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="3"
       strokeLinejoin="round"
       transform="translate(0 -2) scale(0.96)"
@@ -2906,7 +2916,7 @@ export const SettingsSvg: React.FC<SvgProps> = ({
       cy="22"
       r="12"
       fill="#FDE68A"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="3"
     />
 
@@ -2915,7 +2925,7 @@ export const SettingsSvg: React.FC<SvgProps> = ({
       cy="22"
       r="5"
       fill="#22D3EE"
-      stroke="var(--svg-primary)"
+      stroke={stroke || "var(--svg-primary)"}
       strokeWidth="3"
     />
   </svg>

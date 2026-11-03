@@ -8,6 +8,11 @@ export interface AppBottomSheetProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  titleClassName?: string;
+  titleStyle?: React.CSSProperties;
+  handleStyle?: React.CSSProperties;
 }
 
 /**
@@ -30,6 +35,11 @@ export function AppBottomSheet({
   onClose,
   title,
   children,
+  className = "",
+  style,
+  titleClassName = "",
+  titleStyle,
+  handleStyle,
 }: AppBottomSheetProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -91,14 +101,19 @@ export function AppBottomSheet({
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[88dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[32px] border-[3px] border-[#134E4A] bg-[var(--bg-card,#FFFFFF)] px-5 pb-8 pt-3 shadow-[4px_4px_0px_#134E4A]"
+            style={style}
+            className={`max-h-[88dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[32px] border-[3px] border-[#134E4A] bg-[#FFFFFF] px-5 pb-8 pt-3 shadow-[4px_4px_0px_#134E4A] ${className}`}
           >
             <div
               aria-hidden="true"
-              className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-[var(--border-color,#134E4A)]/25"
+              style={handleStyle}
+              className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-[#134E4A]/25"
             />
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-base font-black text-[var(--text-main,#134E4A)]">
+              <h2
+                style={titleStyle}
+                className={`font-display text-base font-black text-[#134E4A] ${titleClassName}`}
+              >
                 {title}
               </h2>
               <button
