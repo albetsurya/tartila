@@ -271,9 +271,7 @@ export async function listJoinedClassrooms(
   const ustadzNames = new Map<string, string>();
   if (ustadzIds.length > 0) {
     const { data: ustadzRows, error: ustadzError } = await supabase
-      .from('users')
-      .select('id, name, username')
-      .in('id', ustadzIds);
+      .rpc('get_public_profiles', { p_user_ids: ustadzIds });
     if (!ustadzError) {
       for (const row of ustadzRows ?? []) {
         ustadzNames.set(row.id, row.name || row.username || row.id);
@@ -326,9 +324,7 @@ export async function getClassroomDetail(
   const profiles = new Map<string, UserRow>();
   if (userIds.length > 0) {
     const { data: userRows, error: userError } = await supabase
-      .from('users')
-      .select('id, name, username, level')
-      .in('id', userIds);
+      .rpc('get_public_profiles', { p_user_ids: userIds });
     if (!userError) {
       for (const row of userRows ?? []) {
         profiles.set(row.id, row);

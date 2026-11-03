@@ -134,7 +134,9 @@ export const arenaApi = {
   },
 
   async getExamReport(pin: string): Promise<ExamReportResponse> {
-    const res = await fetch(`${SERVER_BASE}/api/rooms/${pin}/report`);
+    const res = await fetch(`${SERVER_BASE}/api/rooms/${pin}/report`, {
+      credentials: "include",
+    });
     if (!res.ok) {
       throw new Error("Gagal mengambil laporan ujian");
     }
