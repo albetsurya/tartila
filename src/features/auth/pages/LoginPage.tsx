@@ -383,6 +383,24 @@ export function LoginPage() {
                 Daftar Sekarang
               </Link>
             </p>
+
+            <p className="mt-4 text-center text-[11px] font-semibold text-[#134E4A]/60 leading-normal">
+              Dengan masuk, kamu menyetujui{" "}
+              <Link
+                to="/terms"
+                className="font-bold text-[#0D9488] underline hover:text-[#0F766E]"
+              >
+                Syarat & Ketentuan
+              </Link>{" "}
+              dan{" "}
+              <Link
+                to="/privacy"
+                className="font-bold text-[#0D9488] underline hover:text-[#0F766E]"
+              >
+                Kebijakan Privasi
+              </Link>
+              .
+            </p>
           </div>
         </motion.div>
       </main>

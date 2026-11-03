@@ -158,7 +158,13 @@ export function FallingFruit({
           />
           {/* HTML Overlay Neo-Brutalism */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[34px] w-fit flex items-center justify-center">
+            <div
+              className={`bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[34px] w-fit flex items-center justify-center ${
+                fruit.showHint && fruit.isTarget
+                  ? "ring-4 ring-[#10B981] shadow-[0_0_12px_#10B981]"
+                  : ""
+              }`}
+            >
               <span
                 dir="rtl"
                 className={`font-arabic font-black whitespace-nowrap text-[#134E4A] leading-normal ${

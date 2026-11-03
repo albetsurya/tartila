@@ -44,6 +44,12 @@ const NgajiCeriaProfilePage = lazy(
 const NgajiCeriaRegisterPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaRegisterPage"),
 );
+const PrivacyPolicyPage = lazy(
+  () => import("./features/legal/pages/PrivacyPolicyPage"),
+);
+const TermsOfServicePage = lazy(
+  () => import("./features/legal/pages/TermsOfServicePage"),
+);
 const MemberClassroomsPage = lazy(() =>
   import("./features/ngaji-ceria/pages/MemberClassroomsPage").then((m) => ({
     default: m.MemberClassroomsPage,
@@ -634,6 +640,8 @@ function AppRoutesContent() {
   return (
     <Routes location={location}>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
       <Route index element={<Navigate to="/member/ngaji-ceria" replace />} />
       <Route
         path="/member/ngaji-ceria/warung-santri"

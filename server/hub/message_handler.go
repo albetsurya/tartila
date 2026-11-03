@@ -169,9 +169,19 @@ func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 		})
 
 	case "submit_answer":
-		// Payload: { "questionId": string, "answer": string, "timeTakenMs": number }
+		// Payload: { "questionId": string, "answer": string }
+		// Waktu dan skor DIHITUNG di server; nilai dari klien tidak dipakai.
 		payloadMap, ok := msg.Payload.(map[string]interface{})
 		if !ok {
+			return
+		}
+
+		// Identitas wajib terikat ke token JWT.
+		if c.UserID == "" {
+			c.SendJSON(models.WSMessage{
+				Type:    "error",
+				Payload: map[string]string{"message": "unauthorized: authentication required"},
+			})
 			return
 		}
 
@@ -187,11 +197,18 @@ func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 		currentQ := room.Questions[room.CurrentQuestionIndex]
 		answerStr, _ := payloadMap["answer"].(string)
 
-		timeTakenRaw, _ := payloadMap["timeTakenMs"].(float64)
-		timeTakenMs := int64(timeTakenRaw)
-		if timeTakenMs <= 0 {
-			timeTakenMs = time.Since(room.QuestionStartTime).Milliseconds()
+		// Tolak jawaban ganda untuk soal yang sama pada ronde ini.
+		for _, ans := range room.Answers {
+			if ans.PlayerID == player.ID && ans.QuestionID == currentQ.ID {
+				c.SendJSON(models.WSMessage{
+					Type:    "error",
+					Payload: map[string]string{"message": "Jawaban untuk soal ini sudah dikirim"},
+				})
+				return
+			}
 		}
+
+		timeTakenMs := time.Since(room.QuestionStartTime).Milliseconds()
 
 		// Anti-Cheat: Validate on server
 		isCorrect := (answerStr == currentQ.CorrectAnswer)
@@ -238,7 +255,14 @@ func (h *RoomHub) HandleClientMessage(c *Client, msg models.WSMessage) {
 		})
 
 	case "reveal_answer":
-		// Host meminta tampilkan hasil ronde soal
+		// Hanya host terverifikasi yang boleh membuka kunci jawaban.
+		if !c.IsHost && room.HostID != c.UserID {
+			c.SendJSON(models.WSMessage{
+				Type:    "error",
+				Payload: map[string]string{"message": "forbidden: hanya host yang dapat menampilkan jawaban"},
+			})
+			return
+		}
 		if room.CurrentQuestionIndex >= len(room.Questions) {
 			return
 		}

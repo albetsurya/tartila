@@ -397,15 +397,16 @@ export const arenaRoomService = {
         correct = ["A", "B", "C", "D"][q.answerIndex] || "A";
       }
 
+      // Kunci jawaban tidak boleh ikut tersimpan di JSONB options (dapat dibaca publik).
       const normalizedOptions = (q.options ?? []).map((opt: any, optIdx: number) => {
         if (typeof opt === "string") {
           return {
             id: ["A", "B", "C", "D"][optIdx] || `opt-${optIdx}`,
             text: opt,
-            isCorrect: optIdx === q.answerIndex,
           };
         }
-        return opt;
+        const { isCorrect: _isCorrect, ...safeOpt } = opt;
+        return safeOpt;
       });
 
       return {
@@ -461,7 +462,7 @@ export const arenaRoomService = {
       try {
         const { data, error } = await supabase
           .from("room_questions")
-          .select("*")
+          .select("id, room_id, question_type, category, question_data, options, order_index, created_at")
           .eq("room_id", roomId)
           .order("order_index", { ascending: true });
 
@@ -475,7 +476,6 @@ export const arenaRoomService = {
             audioUrl: row.question_data?.audioUrl,
             title: row.question_data?.title,
             options: row.options ?? [],
-            correctAnswer: row.correct_answer,
             timeLimitSeconds: row.question_data?.timeLimitSeconds || 20,
             points: row.question_data?.points || 1000,
           }));
