@@ -1,4 +1,5 @@
--- Fix temuan audit keamanan 2026-11-02 (temuan #5-#9).
+-- Fix temuan audit keamanan 2026-11-02 (temuan #5, #7-#9).
+-- Catatan: Temuan #6 (tabel users) berada di database Go backend (Sambung Ngaji).
 -- Semua policy di-DROP IF EXISTS lebih dahulu agar idempoten.
 -- Perubahan skema HANYA lewat file migrasi ini (GUIDELINES Bab 10.2).
 
@@ -27,35 +28,6 @@ CREATE POLICY "quiz_attempts_update_policy" ON public.quiz_attempts
   FOR UPDATE TO authenticated
   USING ((select auth.uid())::text = user_id)
   WITH CHECK ((select auth.uid())::text = user_id);
-
--- ============================================================================
--- #6 users: cabut SELECT anon dan batasi SELECT authenticated ke baris sendiri.
--- Nama tampilan untuk anggota kelas dilayani RPC sempit (bukan seluruh baris).
--- ============================================================================
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "users_select_anon" ON public.users;
-DROP POLICY IF EXISTS "users_select_authenticated" ON public.users;
-DROP POLICY IF EXISTS "users_select_own" ON public.users;
-
-CREATE POLICY "users_select_own" ON public.users
-  FOR SELECT TO authenticated
-  USING (id::text = auth.uid()::text);
-
-CREATE OR REPLACE FUNCTION public.get_public_profiles(p_user_ids text[])
-RETURNS TABLE (id text, name text, username text, level integer)
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = public, pg_temp
-AS $$
-  SELECT u.id::text, u.name, u.username, u.level
-  FROM public.users u
-  WHERE u.id::text = ANY (p_user_ids)
-  LIMIT 100;
-$$;
-
-REVOKE ALL ON FUNCTION public.get_public_profiles(text[]) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.get_public_profiles(text[]) TO authenticated;
 
 -- ============================================================================
 -- #7 room_questions: correct_answer tidak lagi dapat dibaca anon/authenticated.
