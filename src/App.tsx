@@ -179,6 +179,9 @@ const TilawatiAdventurePage = lazy(
 const DoaTreasurePage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/DoaTreasurePage"),
 );
+const DoaCategoryPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/DoaCategoryPage"),
+);
 const DoaDetailPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/DoaDetailPage"),
 );
@@ -760,6 +763,10 @@ function AppRoutesContent() {
       <Route
         path="/member/ngaji-ceria/explore/doa"
         element={<DoaTreasurePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/doa/kategori/:kategori"
+        element={<DoaCategoryPage />}
       />
       <Route
         path="/member/ngaji-ceria/explore/doa/:id"

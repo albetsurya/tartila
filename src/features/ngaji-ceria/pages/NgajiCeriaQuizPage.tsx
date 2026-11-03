@@ -36,6 +36,7 @@ import { loadTimelineEdits } from "../utils/timelineEditsLoader";
 import { getNgajiActivity } from "../hooks/useNgajiCeriaStore";
 import { soundManager } from "../services/soundManager";
 import { awardProgress } from "./games/_shared/progression";
+import { useEventStore } from "../hooks/useEventStore";
 import { addEvent, markHasPlayedSession } from "@/services/eventService";
 import { QuizEngine } from "../components/quiz-models/QuizEngine";
 import { QuizSessionResult } from "../components/QuizSessionResult";
@@ -538,6 +539,7 @@ export default function NgajiCeriaQuizPage() {
         );
       }
     }
+    void useEventStore.getState().updateProgress("PLAY_GAME");
     addEvent({
       type: "quiz_completed",
       missionId: `jilid-${activeJilid}-hal-${activePageNum}`,

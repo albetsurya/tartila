@@ -8,6 +8,7 @@ export interface AudioPlayerController {
   duration: number;
   play: (url: string) => void;
   pause: () => void;
+  stop: () => void;
   toggle: (url: string) => void;
 }
 
@@ -55,6 +56,7 @@ export function useAudioPlayer(): AudioPlayerController {
 
     return () => {
       audio.pause();
+      audio.currentTime = 0;
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("durationchange", handleLoadedMetadata);
@@ -70,6 +72,17 @@ export function useAudioPlayer(): AudioPlayerController {
     if (!audio) return;
     audio.pause();
     setIsPlaying(false);
+  }, []);
+
+  const stop = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    audio.removeAttribute("src");
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setCurrentAudioUrl(null);
   }, []);
 
   const play = useCallback((url: string) => {
@@ -139,5 +152,5 @@ export function useAudioPlayer(): AudioPlayerController {
     }
   }, [currentAudioUrl]);
 
-  return { isPlaying, currentAudioUrl, currentTime, duration, play, pause, toggle };
+  return { isPlaying, currentAudioUrl, currentTime, duration, play, pause, stop, toggle };
 }
