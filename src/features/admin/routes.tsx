@@ -8,6 +8,7 @@ import {
   AdminAudioCheckPage,
   AdminContentPage,
   AdminDashboardPage,
+  AdminEventsPage,
   AdminGameCatalogPage,
   AdminMenuPage,
   AdminPreviewIllustrationsPage,
@@ -17,6 +18,7 @@ import {
   AdminTimelineLocalPage,
   AdminTimelineMenuPage,
   AdminUsersPage,
+  AdminUstadzRequestsPage,
 } from "./lazyPages";
 
 import { isTartilaAdmin } from "@/lib/roles";
@@ -50,6 +52,8 @@ const ADMIN_PAGES: AdminPageDef[] = [
   { index: true, key: "dashboard", element: <AdminDashboardPage /> },
   { path: "analytics", key: "analytics", element: <AdminAnalyticsPage /> },
   { path: "users", key: "users", element: <AdminUsersPage /> },
+  { path: "events", key: "events", element: <AdminEventsPage /> },
+  { path: "ustadz-requests", key: "ustadz-requests", element: <AdminUstadzRequestsPage /> },
   { path: "books", key: "books", element: <AdminContentPage /> },
   { path: "quizzes", key: "quizzes", element: <AdminQuizzesPage /> },
   { path: "settings", key: "settings", element: <AdminSettingsPage /> },

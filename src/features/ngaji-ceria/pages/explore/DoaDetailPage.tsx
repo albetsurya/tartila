@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ThemedHeader } from "../../components/ThemedHeader";
@@ -11,55 +11,75 @@ import {
   Volume2,
 } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
-import { DOA_LIST, DOA_AUDIO_PLACEHOLDER } from "./exploreData";
+import { DOA_LIST } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
-import { getDoaAudioUrl } from "../../services/doaService";
+import { resolveDoaAudio } from "@/features/ngaji-ceria/services/doaAudioResolver";
 import { triggerBibiReaction } from "../../../../utils/bibiEvent";
+
+const DOA_ID_ALIASES: Record<string, string> = {
+  "sebelum-makan": "harian-makan-sebelum",
+  "setelah-makan": "harian-makan-sesudah",
+  "sesudah-makan": "harian-makan-sesudah",
+  "sebelum-tidur": "harian-tidur-sebelum",
+  "bangun-tidur": "harian-tidur-bangun",
+  "keluar-rumah": "harian-rumah-keluar",
+  "masuk-rumah": "harian-rumah-masuk",
+  "masuk-wc": "harian-wc-masuk",
+  "keluar-wc": "harian-wc-keluar",
+  "naik-kendaraan": "harian-safar-naik",
+  "bepergian-safar": "harian-safar-doa",
+  "doa-safar": "harian-safar-doa",
+  "memakai-pakaian": "harian-pakaian-memakai",
+  "saat-hujan": "harian-hujan-turun",
+};
 
 export default function DoaDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { isPlaying, currentAudioUrl, toggle } = useAudioPlayer();
-
-  const index = useMemo(() => {
-    const found = DOA_LIST.findIndex((doa) => doa.id === id);
-    return found === -1 ? 0 : found;
-  }, [id]);
-
-  const doa = DOA_LIST[index];
-  const hasPrev = index > 0;
-  const hasNext = index < DOA_LIST.length - 1;
-
-  const [audioSource, setAudioSource] = useState<string>(
-    doa?.audioUrl || DOA_AUDIO_PLACEHOLDER,
-  );
+  const { isPlaying, currentAudioUrl, toggle, stop } = useAudioPlayer();
 
   useEffect(() => {
-    let isMounted = true;
-    if (doa) {
-      setAudioSource(doa.audioUrl || DOA_AUDIO_PLACEHOLDER);
-      getDoaAudioUrl(doa.id, doa.title).then((url) => {
-        if (isMounted && url) {
-          setAudioSource(url);
-        }
-      });
-    }
     return () => {
-      isMounted = false;
+      stop();
     };
-  }, [doa]);
+  }, [stop]);
 
-  const isDoaPlaying = isPlaying && currentAudioUrl === audioSource;
+  const currentDoa = useMemo(() => {
+    const targetId = (id && DOA_ID_ALIASES[id]) || id;
+    const found = DOA_LIST.find(
+      (item) => item.id === targetId || item.id === id,
+    );
+    return found ?? DOA_LIST[0];
+  }, [id]);
+
+  const categoryList = useMemo(() => {
+    return DOA_LIST.filter((item) => item.category === currentDoa.category);
+  }, [currentDoa.category]);
+
+  const index = useMemo(() => {
+    const found = categoryList.findIndex((item) => item.id === currentDoa.id);
+    return found === -1 ? 0 : found;
+  }, [categoryList, currentDoa.id]);
+
+  const doa = categoryList[index] ?? currentDoa;
+  const hasPrev = index > 0;
+  const hasNext = index < categoryList.length - 1;
+
+  const audioUrl =
+    (doa?.audioUrl && !doa.audioUrl.includes("SoundHelix") ? doa.audioUrl : null) ??
+    (doa ? resolveDoaAudio(doa.id) : null);
+
+  const isDoaPlaying = Boolean(audioUrl && isPlaying && currentAudioUrl === audioUrl);
 
   const goTo = (target: number) => {
     triggerBibiReaction("click");
-    navigate(`/member/ngaji-ceria/explore/doa/${DOA_LIST[target].id}`);
+    navigate(`/member/ngaji-ceria/explore/doa/${categoryList[target].id}`);
   };
 
   const handlePlay = () => {
-    if (!audioSource) return;
+    if (!audioUrl) return;
     triggerBibiReaction(isDoaPlaying ? "click" : "play");
-    toggle(audioSource);
+    toggle(audioUrl);
   };
 
   const handleCopy = async () => {
@@ -77,7 +97,11 @@ export default function DoaDetailPage() {
     "flex items-center justify-center gap-2 rounded-xl border-[3.5px] border-[#451A03] py-3 text-sm font-black shadow-[4px_4px_0px_#451A03] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   const handleBack = () => {
-    navigate("/member/ngaji-ceria/explore/doa");
+    if (doa.category) {
+      navigate(`/member/ngaji-ceria/explore/doa/kategori/${doa.category}`);
+    } else {
+      navigate("/member/ngaji-ceria/explore/doa");
+    }
   };
 
   return (
@@ -168,7 +192,7 @@ export default function DoaDetailPage() {
               {/* Hiasan Bulan Sabit Kecil di Sudut Perkamen */}
               <div className="flex items-center justify-between border-b-[2.5px] border-dashed border-[#D97706] pb-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309]">
-                  ✦ Perkamen Oase Gurun ✦
+                  ✦ Kartu Doa Oase ✦
                 </span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path
@@ -218,26 +242,28 @@ export default function DoaDetailPage() {
 
           {/* Tombol Aksi Audio & Bagikan */}
           <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={handlePlay}
-              className={`${btnBaseStyle} w-full ${
-                isDoaPlaying
-                  ? "bg-[#15803D] text-[#FFFFFF]"
-                  : "bg-[#0284C7] text-[#FFFFFF] hover:bg-[#0369A1]"
-              }`}
-            >
-              {isDoaPlaying ? (
-                <EqualizerIcon
-                  isPlaying={true}
-                  size={18}
-                  barClassName="bg-[#FFFFFF]"
-                />
-              ) : (
-                <Volume2 size={18} />
-              )}
-              {isDoaPlaying ? "Jeda Audio Doa" : "Dengarkan Lantunan Doa"}
-            </button>
+            {audioUrl ? (
+              <button
+                type="button"
+                onClick={handlePlay}
+                className={`${btnBaseStyle} w-full ${
+                  isDoaPlaying
+                    ? "bg-[#15803D] text-[#FFFFFF]"
+                    : "bg-[#0284C7] text-[#FFFFFF] hover:bg-[#0369A1]"
+                }`}
+              >
+                {isDoaPlaying ? (
+                  <EqualizerIcon
+                    isPlaying={true}
+                    size={18}
+                    barClassName="bg-[#FFFFFF]"
+                  />
+                ) : (
+                  <Volume2 size={18} />
+                )}
+                {isDoaPlaying ? "Jeda Audio Doa" : "Dengarkan Lantunan Doa"}
+              </button>
+            ) : null}
 
             <div className="flex gap-3">
               <button
@@ -246,7 +272,7 @@ export default function DoaDetailPage() {
                 className={`${btnBaseStyle} flex-1 bg-[#FEF08A] text-[#451A03] hover:bg-[#FDE047]`}
               >
                 <Copy size={16} />
-                Salin Perkamen
+                Salin Doa
               </button>
               <button
                 type="button"

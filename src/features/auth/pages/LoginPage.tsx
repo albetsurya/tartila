@@ -99,7 +99,7 @@ function GoogleIcon({ size = 20 }: { size?: number }) {
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { user, login, isNewUser } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -128,12 +128,16 @@ export function LoginPage() {
     }
   }, []);
 
-  // Setelah session/user tersedia, tampilkan reaksi sukses lalu arahkan ke beranda
+  // Setelah session/user tersedia, tampilkan reaksi sukses lalu arahkan ke beranda atau onboarding
   useEffect(() => {
     if (!user || error) return;
     triggerBibiReaction("success");
-    navigate("/member/ngaji-ceria", { replace: true });
-  }, [user, error, navigate]);
+    if (isNewUser) {
+      navigate("/onboarding", { replace: true });
+    } else {
+      navigate("/member/ngaji-ceria", { replace: true });
+    }
+  }, [user, error, isNewUser, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -382,6 +386,24 @@ export function LoginPage() {
               >
                 Daftar Sekarang
               </Link>
+            </p>
+
+            <p className="mt-4 text-center text-[11px] font-semibold text-[#134E4A]/60 leading-normal">
+              Dengan masuk, kamu menyetujui{" "}
+              <Link
+                to="/terms"
+                className="font-bold text-[#0D9488] underline hover:text-[#0F766E]"
+              >
+                Syarat & Ketentuan
+              </Link>{" "}
+              dan{" "}
+              <Link
+                to="/privacy"
+                className="font-bold text-[#0D9488] underline hover:text-[#0F766E]"
+              >
+                Kebijakan Privasi
+              </Link>
+              .
             </p>
           </div>
         </motion.div>

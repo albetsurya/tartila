@@ -1,3 +1,6 @@
+// DEPRECATED: Tidak dipakai. Fungsi getDoaAudioUrl tidak match dengan data doa Tartila.
+// Audio doa sekarang di-resolve via doaAudioResolver.ts.
+
 /**
  * Service untuk memuat data doa & audio eksternal dari API publik:
  * - rn0x/Adhkar-json (GitHub raw)

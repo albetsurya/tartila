@@ -6,6 +6,12 @@ import { HIJAIYAH_LETTERS } from "../data/hijaiyah-letters";
 import { getWordsForLevel, getFallbackWords, LEVELS } from "../data";
 import { playSfx } from "../../_shared/audio";
 import { normalizeArabicText } from "@/utils/arabic";
+import {
+  computeAdaptiveDifficulty,
+  type AdaptiveOutput,
+} from "../../_shared/adaptiveDifficulty";
+
+export { computeAdaptiveDifficulty };
 
 export interface BalloonData {
   id: string;
@@ -21,6 +27,7 @@ export interface BalloonData {
   /** Offset menuju pusat keranjang (untuk animasi suck-in buah benar). */
   suckX: number;
   suckY: number;
+  showHint?: boolean;
 }
 
 /** Durasi efek pop (salah) & suck-in (benar) sebelum buah di-unmount. */
@@ -88,6 +95,7 @@ interface BalloonState {
   targetScore: number;
   loseReason: "lives" | "time" | null;
   isWin: boolean;
+  currentLetterWrongCount: number;
 }
 
 const initial = (levelIndex = 0): BalloonState => {
@@ -150,6 +158,7 @@ const initial = (levelIndex = 0): BalloonState => {
     targetScore: 300,
     loseReason: null,
     isWin: false,
+    currentLetterWrongCount: 0,
   };
 };
 
@@ -612,7 +621,11 @@ export function useBalloonGame() {
           const nextLetter = normalizeArabicText(s.targetLetters[collectedLetters.length] || s.target);
           return {
             ...s,
-            balloons: balloons.map((b) => ({ ...b, isTarget: normalizeArabicText(b.letter) === nextLetter })),
+            balloons: balloons.map((b) => ({
+              ...b,
+              isTarget: normalizeArabicText(b.letter) === nextLetter,
+              showHint: false,
+            })),
             score,
             combo,
             maxCombo,
@@ -624,6 +637,7 @@ export function useBalloonGame() {
             targetLeft: 5,
             target: nextLetter,
             targetName: nextLetter,
+            currentLetterWrongCount: 0,
           };
         }
 
@@ -633,6 +647,8 @@ export function useBalloonGame() {
         const nextTroubleLetters = Array.from(
           new Set([...(s.level.troubleLetters ?? []), cleanBalloonLetter])
         );
+        const nextLetterWrongCount = s.currentLetterWrongCount + 1;
+        const hintActive = isPractice && nextLetterWrongCount >= 3;
         const isFailed = !isPractice && lives <= 0;
         const summary = computeBalloonSummary(
           s.level.correctCount,
@@ -670,18 +686,22 @@ export function useBalloonGame() {
             phase: "gameover",
             isWin: false,
             loseReason: "lives",
+            currentLetterWrongCount: nextLetterWrongCount,
           };
         }
 
         return {
           ...s,
-          balloons,
+          balloons: hintActive
+            ? balloons.map((b) => (b.isTarget ? { ...b, showHint: true } : b))
+            : balloons,
           score,
           combo: 0,
           lives,
           level: nextLevelState,
           shakeLeft: 0.25,
           missedTargets: s.missedTargets + 1,
+          currentLetterWrongCount: nextLetterWrongCount,
         };
       }),
     [update],
@@ -849,7 +869,32 @@ export function useBalloonGame() {
           const hasTargetOnScreen = next.balloons.some(
             (b) => !b.popped && !b.isRotten && normalizeArabicText(b.letter) === currentLetter && b.y < height - 100,
           );
-          const wantTarget = !hasTargetOnScreen || next.forceTarget || next.spawned % 2 === 0 || Math.random() < 0.45;
+
+          // ADAPTIVE DIFFICULTY (Bab 8.3): Kecepatan & peluang spawn target dinamis
+          const baseSpeed =
+            1.2 +
+            s.levelIndex * 0.1 +
+            Math.min(0.3, Math.floor(next.spawned / 10) * 0.05);
+          const adaptive = computeAdaptiveDifficulty({
+            correctCount: next.level.correctCount,
+            wrongCount: next.level.wrongCount,
+            baseFallSpeed: baseSpeed,
+            baseDistractorRatio: 0.55,
+            mode: isPractice ? "practice" : "challenge",
+            minAttempts: 3,
+            minFallSpeed: isPractice ? 0.75 : 1.05,
+            maxFallSpeed: 2.2,
+          });
+
+          const targetChance = Math.min(
+            0.85,
+            Math.max(0.25, 0.45 + adaptive.targetSpawnBonus)
+          );
+          const wantTarget =
+            !hasTargetOnScreen ||
+            next.forceTarget ||
+            next.spawned % 2 === 0 ||
+            Math.random() < targetChance;
           const distractorPool = Array.from(
             new Set(next.targetLetters.map(normalizeArabicText).filter((l) => l !== currentLetter)),
           );
@@ -862,12 +907,13 @@ export function useBalloonGame() {
               ? choices[Math.floor(Math.random() * choices.length)]
               : currentLetter;
 
-          // HAZARD BUAH BUSUK (Bab 7.11): Muncul berkala hanya di Challenge Mode (~12% peluang)
+          // HAZARD BUAH BUSUK (Bab 7.11): Muncul berkala hanya di Challenge Mode
+          const rottenChance = adaptive.tier === "easier" ? 0.06 : 0.12;
           const isRotten =
             !isPractice &&
             hasTargetOnScreen &&
             next.spawned >= 3 &&
-            Math.random() < 0.12;
+            Math.random() < rottenChance;
 
           const letter = isRotten ? "X" : normalizeArabicText(rawLetter);
 
@@ -882,6 +928,12 @@ export function useBalloonGame() {
             candidateX = Math.random() * maxX;
           }
 
+          const isTargetFruit = !isRotten && letter === currentLetter;
+          const hintOnFruit =
+            isPractice &&
+            (next.currentLetterWrongCount ?? 0) >= 3 &&
+            isTargetFruit;
+
           next = {
             ...next,
             spawned: next.spawned + 1,
@@ -894,14 +946,15 @@ export function useBalloonGame() {
                 letter,
                 x: candidateX,
                 y: -100,
-                speed: 1.3 + Math.floor(next.spawned / 10) * 0.08,
-                isTarget: !isRotten && letter === currentLetter,
+                speed: adaptive.fallSpeed,
+                isTarget: isTargetFruit,
                 isRotten,
                 popped: false,
                 popAge: 0,
                 color: isRotten ? -1 : next.spawned % 4,
                 suckX: 0,
                 suckY: 0,
+                showHint: hintOnFruit,
               },
             ],
           };
@@ -914,6 +967,21 @@ export function useBalloonGame() {
     return () => cancelAnimationFrame(frame);
   }, [state.phase, update]);
 
+  const adaptiveDifficulty = computeAdaptiveDifficulty({
+    correctCount: state.level.correctCount,
+    wrongCount: state.level.wrongCount,
+    baseFallSpeed: 1.2 + state.levelIndex * 0.1,
+    baseDistractorRatio: 0.55,
+    mode: state.session.mode,
+    minAttempts: 3,
+    minFallSpeed: state.session.mode === "practice" ? 0.75 : 1.05,
+    maxFallSpeed: 2.2,
+  });
+
+  const showHint =
+    state.session.mode === "practice" &&
+    (state.currentLetterWrongCount ?? 0) >= 3;
+
   return {
     ...state,
     session: state.session,
@@ -924,6 +992,8 @@ export function useBalloonGame() {
     lives: state.level.lives,
     targetProgress: state.level.targetProgress,
     targetTotal: state.level.targetTotal,
+    adaptiveDifficulty,
+    showHint,
     ...record,
     fieldRef,
     startGame,

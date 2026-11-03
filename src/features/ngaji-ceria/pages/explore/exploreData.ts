@@ -1,10 +1,18 @@
 import {
-  BookOpen,
-  Heart,
-  Mosque,
+  Sun,
+  Moon,
   Settings,
+  BookOpen,
+  Mosque,
+  Heart,
   type LucideIcon,
 } from "../../../../components/ui/CustomIcons";
+import {
+  DOA_PAGI,
+  DOA_SORE,
+  type DoaEntry,
+} from "../../../doa-dzikir/data/doa";
+import { DOA_HARIAN } from "../../../doa-dzikir/data/doa-harian";
 
 /* ------------------------------ Audio helpers ---------------------------- */
 
@@ -39,148 +47,41 @@ export interface DoaCategory {
   icon: LucideIcon;
 }
 
+const mapDoaEntryToItem = (entry: DoaEntry, category: string): DoaItem => ({
+  id: entry.id,
+  title: entry.judul,
+  category,
+  arabic: entry.arab,
+  latin: entry.latin,
+  translation: entry.arti,
+  audioUrl: entry.audioUrl,
+});
+
+const pagiItems: DoaItem[] = DOA_PAGI.map((entry) =>
+  mapDoaEntryToItem(entry, "Doa Pagi"),
+);
+
+const soreItems: DoaItem[] = DOA_SORE.map((entry) =>
+  mapDoaEntryToItem(entry, "Doa Sore"),
+);
+
+const harianItems: DoaItem[] = DOA_HARIAN.flatMap((kategori) =>
+  kategori.entries.map((entry) => mapDoaEntryToItem(entry, "Doa Harian")),
+);
+
 export const DOA_CATEGORIES: DoaCategory[] = [
-  { key: "harian", title: "Doa Harian", count: "12 DOA", icon: Settings },
+  { key: "pagi", title: "Doa Pagi", count: `${pagiItems.length} DOA`, icon: Sun },
+  { key: "sore", title: "Doa Sore", count: `${soreItems.length} DOA`, icon: Moon },
+  { key: "harian", title: "Doa Harian", count: `${harianItems.length} DOA`, icon: Settings },
   { key: "belajar", title: "Doa Belajar", count: "4 DOA", icon: BookOpen },
   { key: "ibadah", title: "Doa Ibadah", count: "12 DOA", icon: Mosque },
   { key: "keluarga", title: "Doa Keluarga", count: "6 DOA", icon: Heart },
 ];
 
 export const DOA_LIST: DoaItem[] = [
-  // --- Doa Harian ---
-  {
-    id: "sebelum-makan",
-    title: "Doa Sebelum Makan",
-    category: "Doa Harian",
-    arabic: "بِسْمِ اللَّهِ",
-    latin: "Bismillah",
-    translation: "Dengan menyebut nama Allah.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "setelah-makan",
-    title: "Doa Setelah Makan",
-    category: "Doa Harian",
-    arabic:
-      "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ",
-    latin:
-      "Alhamdulillaahilladzii ath'amanaa wa saqaanaa wa ja'alanaa muslimiin",
-    translation:
-      "Segala puji bagi Allah yang telah memberi kami makan dan minum, serta menjadikan kami kaum muslimin.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "sebelum-tidur",
-    title: "Doa Sebelum Tidur",
-    category: "Doa Harian",
-    arabic: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا",
-    latin: "Bismikallahumma amuutu wa ahyaa",
-    translation: "Dengan nama-Mu ya Allah aku mati dan aku hidup.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "bangun-tidur",
-    title: "Doa Bangun Tidur",
-    category: "Doa Harian",
-    arabic:
-      "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
-    latin:
-      "Alhamdulillahi alladzii ahyaanaa ba'da maa amaatanaa wa ilaihin nusyuur",
-    translation:
-      "Segala puji bagi Allah yang menghidupkan kami setelah mematikan kami, dan kepada-Nya kami kembali.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "keluar-rumah",
-    title: "Doa Keluar Rumah",
-    category: "Doa Harian",
-    arabic:
-      "بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
-    latin:
-      "Bismillaahi tawakkaltu 'alallaahi, wa laa haula wa laa quwwata illaa billaah",
-    translation:
-      "Dengan nama Allah, aku bertawakal kepada Allah, tidak ada daya dan kekuatan kecuali dengan pertolongan Allah.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "masuk-rumah",
-    title: "Doa Masuk Rumah",
-    category: "Doa Harian",
-    arabic:
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ الْمَوْلَجِ وَخَيْرَ الْمَخْرَجِ، بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا",
-    latin:
-      "Allahumma inni as'aluka khairal maulaji wa khairal makhraji, bismillaahi walajnaa, wa bismillaahi kharajnaa, wa 'alallaahi rabbinaa tawakkalnaa",
-    translation:
-      "Ya Allah, aku memohon kepada-Mu kebaikan tempat masuk dan kebaikan tempat keluar. Dengan nama Allah kami masuk dan dengan nama Allah kami keluar, dan kepada Allah Tuhan kami, kami bertawakal.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "masuk-wc",
-    title: "Doa Masuk WC",
-    category: "Doa Harian",
-    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ",
-    latin: "Allahumma inni a'uudzu bika minal khubutsi wal khabaa'its",
-    translation:
-      "Ya Allah, aku berlindung kepada-Mu dari setan laki-laki dan setan perempuan.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "keluar-wc",
-    title: "Doa Keluar WC",
-    category: "Doa Harian",
-    arabic:
-      "غُفْرَانَكَ الْحَمْدُ لِلَّهِ الَّذِي أَذْهَبَ عَنِّي الأَذَى وَعَافَانِي",
-    latin:
-      "Ghufraanak, alhamdulillaahil ladzii adzhaba 'annil adzaa wa 'aafaanii",
-    translation:
-      "Aku memohon ampunan-Mu. Segala puji bagi Allah yang telah menghilangkan kotoran dariku dan menyehatkanku.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "naik-kendaraan",
-    title: "Doa Naik Kendaraan",
-    category: "Doa Harian",
-    arabic:
-      "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ",
-    latin:
-      "Subhaanal ladzii sakhkhara lanaa haadzaa wa maa kunnaa lahu muqriniin, wa innaa ilaa rabbinaa lamunqalibuun",
-    translation:
-      "Maha Suci Allah yang telah menundukkan kendaraan ini bagi kami padahal kami sebelumnya tidak mampu menguasainya, dan sesungguhnya kami akan kembali kepada Tuhan kami.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "doa-safar",
-    title: "Doa Safar (Perjalanan)",
-    category: "Doa Harian",
-    arabic:
-      "اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى",
-    latin:
-      "Allahumma innaa nas'aluka fii safarinaa haadzal birra wat taqwaa, wa minal 'amali maa tardhaa",
-    translation:
-      "Ya Allah, kami memohon kepada-Mu dalam perjalanan ini kebaikan dan ketakwaan, serta amal yang Engkau ridhai.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "memakai-pakaian",
-    title: "Doa Memakai Pakaian",
-    category: "Doa Harian",
-    arabic:
-      "الْحَمْدُ لِلَّهِ الَّذِي كَسَانِي هَذَا الثَّوْبَ وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
-    latin:
-      "Alhamdulillaahil ladzii kasaanii haadzats tsauba wa razaqaniihi min ghairi haulin minnii wa laa quwwah",
-    translation:
-      "Segala puji bagi Allah yang telah memakaikanku pakaian ini dan mengaruniakannya kepadaku tanpa daya dan kekuatan dariku.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
-  {
-    id: "saat-hujan",
-    title: "Doa Saat Hujan Turun",
-    category: "Doa Harian",
-    arabic: "اللَّهُمَّ صَيِّبًا نَافِعًا",
-    latin: "Allahumma shayyiban naafi'an",
-    translation: "Ya Allah, turunkanlah hujan yang bermanfaat.",
-    audioUrl: DOA_AUDIO_PLACEHOLDER,
-  },
+  ...pagiItems,
+  ...soreItems,
+  ...harianItems,
 
   // --- Doa Belajar ---
   {

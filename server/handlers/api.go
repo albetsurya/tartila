@@ -55,6 +55,17 @@ func (api *APIHandler) userAuthFromRequest(r *http.Request) (string, string, err
 	return userID, role, nil
 }
 
+// isGuruRole reports whether a JWT role may read exam results for a room it
+// does not host. Only teaching/admin roles qualify.
+func isGuruRole(role string) bool {
+	switch role {
+	case "ustadz", "ustadzah", "tartila_admin", "superadmin":
+		return true
+	default:
+		return false
+	}
+}
+
 // Generate random 6-digit PIN
 func GeneratePIN() string {
 	n, _ := rand.Int(rand.Reader, big.NewInt(900000))
@@ -395,12 +406,23 @@ func (api *APIHandler) RecordViolation(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/rooms/:pin/report (Tahap 8)
 func (api *APIHandler) GetExamReport(w http.ResponseWriter, r *http.Request, pin string) {
+	userID, role, err := api.userAuthFromRequest(r)
+	if err != nil || userID == "" {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	api.Hub.Mu.RLock()
 	room, exists := api.Hub.Rooms[pin]
 	api.Hub.Mu.RUnlock()
 
 	if !exists {
 		http.Error(w, "Room tidak ditemukan", http.StatusNotFound)
+		return
+	}
+
+	if room.HostID != userID && !isGuruRole(role) {
+		http.Error(w, "forbidden: hanya host atau guru yang dapat melihat hasil ujian", http.StatusForbidden)
 		return
 	}
 
@@ -561,7 +583,7 @@ func (api *APIHandler) GetNgajiCeriaGlobalLeaderboard(w http.ResponseWriter, r *
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"success":     true,
+		"success": true,
 		"leaderboard": entries,
 		"timeframe":   "weekly",
 	})

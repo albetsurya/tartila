@@ -11,6 +11,7 @@ import {
   Timer,
   LayerGroup,
   List,
+  GraduationCap,
   type LucideIcon,
 } from "@/components/ui/CustomIcons";
 
@@ -56,9 +57,10 @@ export const ADMIN_NAV: AdminNavSection[] = [
     ],
   },
   {
-    title: "Konten",
+    title: "Konten & Pengguna",
     items: [
       { label: "Pengguna", to: "/admin/users", icon: Users },
+      { label: "Pengajuan Ustadz", to: "/admin/ustadz-requests", icon: GraduationCap },
       { label: "Buku", to: "/admin/books", icon: BookOpen },
       { label: "Kuis", to: "/admin/quizzes", icon: Trophy },
       { label: "Katalog Game", to: "/admin/games", icon: Gamepad },

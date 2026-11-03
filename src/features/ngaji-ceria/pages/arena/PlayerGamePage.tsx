@@ -200,11 +200,10 @@ export default function PlayerGamePage() {
   const handleSelectOption = (optionId: string) => {
     if (hasAnswered || !question || disqualified) return;
 
-    const timeTakenMs = Date.now() - questionStartRef.current;
     setSelectedAnswer(optionId);
     setHasAnswered(true);
 
-    socketRef.current?.submitAnswer(question.id, optionId, timeTakenMs);
+    socketRef.current?.submitAnswer(question.id, optionId);
   };
 
   return (

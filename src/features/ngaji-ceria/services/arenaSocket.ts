@@ -210,8 +210,8 @@ export class ArenaSocket {
     return questions;
   }
 
-  submitAnswer(questionId: string, answer: string, timeTakenMs: number): void {
-    this.send("submit_answer", { questionId, answer, timeTakenMs });
+  submitAnswer(questionId: string, answer: string): void {
+    this.send("submit_answer", { questionId, answer });
   }
 
   revealAnswer(): void {

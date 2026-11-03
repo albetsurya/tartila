@@ -22,6 +22,7 @@ import {
   type TilaGender,
 } from "../hooks/useEconomyStore";
 import { VoucherRedeemModal } from "../components/VoucherRedeemModal";
+import { ApplyUstadzModal } from "../components/ApplyUstadzModal";
 import { AppThemeSettingsModal } from "../components/AppThemeSettingsModal";
 import { ReferralSection } from "../components/ReferralSection";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
@@ -415,6 +416,7 @@ export default function NgajiCeriaProfilePage() {
     useState<AvatarSantriAccessory | null>(null);
 
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [isApplyUstadzModalOpen, setIsApplyUstadzModalOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   const earnedStars = useMemo(
@@ -592,6 +594,18 @@ export default function NgajiCeriaProfilePage() {
       subtitle: "Aktivasi atau perpanjang lisensi VIP",
       action: () => setIsVoucherModalOpen(true),
     },
+    ...(user?.role?.toLowerCase() === "member"
+      ? [
+          {
+            key: "apply-ustadz",
+            icon: GraduationCapSvg,
+            iconBg: "bg-[#D1FAE5]",
+            title: "Daftar Sebagai Ustadz",
+            subtitle: "Ajukan akun pengajar TPQ / Lembaga",
+            action: () => setIsApplyUstadzModalOpen(true),
+          },
+        ]
+      : []),
     {
       key: "password",
       icon: KeyRoundSvg,
@@ -1834,6 +1848,12 @@ export default function NgajiCeriaProfilePage() {
       <VoucherRedeemModal
         isOpen={isVoucherModalOpen}
         onClose={() => setIsVoucherModalOpen(false)}
+      />
+
+      {/* Apply Ustadz Modal */}
+      <ApplyUstadzModal
+        isOpen={isApplyUstadzModalOpen}
+        onClose={() => setIsApplyUstadzModalOpen(false)}
       />
 
       {/* Theme Modal */}

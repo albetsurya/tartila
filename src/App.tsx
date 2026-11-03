@@ -1,13 +1,12 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
-import {
-  BrowserRouter,
+import { BrowserRouter,
   Routes,
   Route,
   Navigate,
   useLocation,
-} from "react-router-dom";
+  useNavigate, } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GameLockGuard } from "./features/ngaji-ceria/components/GameLockGuard";
 import { MemberGameRouteGuard } from "./features/ngaji-ceria/components/MemberGameRouteGuard";
@@ -43,6 +42,18 @@ const NgajiCeriaProfilePage = lazy(
 
 const NgajiCeriaRegisterPage = lazy(
   () => import("./features/ngaji-ceria/pages/NgajiCeriaRegisterPage"),
+);
+const OnboardingPage = lazy(
+  () =>
+    import("./features/auth/pages/OnboardingPage").then(
+      (m) => ({ default: m.OnboardingPage }),
+    ),
+);
+const PrivacyPolicyPage = lazy(
+  () => import("./features/legal/pages/PrivacyPolicyPage"),
+);
+const TermsOfServicePage = lazy(
+  () => import("./features/legal/pages/TermsOfServicePage"),
 );
 const MemberClassroomsPage = lazy(() =>
   import("./features/ngaji-ceria/pages/MemberClassroomsPage").then((m) => ({
@@ -167,6 +178,9 @@ const TilawatiAdventurePage = lazy(
 );
 const DoaTreasurePage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/DoaTreasurePage"),
+);
+const DoaCategoryPage = lazy(
+  () => import("./features/ngaji-ceria/pages/explore/DoaCategoryPage"),
 );
 const DoaDetailPage = lazy(
   () => import("./features/ngaji-ceria/pages/explore/DoaDetailPage"),
@@ -628,12 +642,29 @@ function GlobalTilaCompanion() {
   );
 }
 
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
+
+  return <>{children}</>;
+}
+
 function AppRoutesContent() {
   const location = useLocation();
 
   return (
     <Routes location={location}>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
       <Route index element={<Navigate to="/member/ngaji-ceria" replace />} />
       <Route
         path="/member/ngaji-ceria/warung-santri"
@@ -643,6 +674,14 @@ function AppRoutesContent() {
       <Route
         path="/register/ngaji-ceria"
         element={<NgajiCeriaRegisterPage />}
+      />
+      <Route
+        path="/onboarding"
+        element={
+          <OnboardingGuard>
+            <OnboardingPage />
+          </OnboardingGuard>
+        }
       />
       <Route path="/member/ngaji-ceria" element={<NgajiCeriaHomePage />} />
       <Route path="/member/ngaji-ceria/map" element={<NgajiCeriaMapPage />} />
@@ -724,6 +763,10 @@ function AppRoutesContent() {
       <Route
         path="/member/ngaji-ceria/explore/doa"
         element={<DoaTreasurePage />}
+      />
+      <Route
+        path="/member/ngaji-ceria/explore/doa/kategori/:kategori"
+        element={<DoaCategoryPage />}
       />
       <Route
         path="/member/ngaji-ceria/explore/doa/:id"

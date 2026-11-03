@@ -112,7 +112,9 @@ func main() {
 				return
 			}
 			if sub == "report" && r.Method == http.MethodGet {
-				api.GetExamReport(w, r, pin)
+				api.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+					api.GetExamReport(w, r, pin)
+				})(w, r)
 				return
 			}
 		}

@@ -23,7 +23,7 @@ export default function NgajiCeriaRegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialRef = searchParams.get("ref") || "";
-  const { registerCeria } = useAuth();
+  const { registerCeria, isNewUser, setIsNewUser } = useAuth();
   const setTilaGender = useEconomyStore((s) => s.setTilaGender);
   const equipAccessory = useEconomyStore((s) => s.equipAccessory);
 
@@ -72,12 +72,16 @@ export default function NgajiCeriaRegisterPage() {
         confirmPassword,
         referralCode.trim() || undefined,
       );
+      if (isNewUser) {
+        setIsNewUser(false);
+        navigate("/onboarding", { replace: true });
+        return;
+      }
       try {
         await userApi.updateUserMascot(selectedGender);
       } catch {
         // ignore
       }
-      sessionStorage.setItem("trigger_ngaji_ceria_splash", "true");
       navigate("/member/ngaji-ceria");
     } catch (err) {
       setError(

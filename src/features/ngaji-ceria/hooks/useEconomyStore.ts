@@ -289,7 +289,46 @@ const getInitialMascotGender = (): TilaGender => {
   return "boy";
 };
 
+const getInitialAvatarMode = (): "photo" | "avatar" => {
+  if (typeof window === "undefined") return "avatar";
+  try {
+    const raw = window.localStorage.getItem("tartila_avatar_mode");
+    if (raw === "photo" || raw === "avatar") return raw;
+    const store = window.localStorage.getItem("tartila_economy_store");
+    if (store) {
+      const parsed = JSON.parse(store);
+      if (parsed?.state?.avatarMode === "photo" || parsed?.state?.avatarMode === "avatar") {
+        return parsed.state.avatarMode;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return "avatar";
+};
+
+const getInitialAvatarAccessory = (): string | null => {
+  if (typeof window === "undefined") return "peci";
+  try {
+    if (window.localStorage.getItem("tartila_avatar_accessory_set") === "1") {
+      return window.localStorage.getItem("tartila_avatar_accessory");
+    }
+    const store = window.localStorage.getItem("tartila_economy_store");
+    if (store) {
+      const parsed = JSON.parse(store);
+      if (parsed?.state?.equippedAvatarAccessory !== undefined) {
+        return parsed.state.equippedAvatarAccessory;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return "peci";
+};
+
 const initialMascotGender = getInitialMascotGender();
+const initialAvatarMode = getInitialAvatarMode();
+const initialAvatarAccessory = getInitialAvatarAccessory();
 
 export const useEconomyStore = create<EconomyState>()(
   persist(
@@ -328,11 +367,34 @@ export const useEconomyStore = create<EconomyState>()(
       equippedAccessory: initialMascotGender === 'girl' ? 'hairbow' : 'peci',
       ownedAccessories: ['none', 'peci', 'hairbow'],
       // Avatar profil
-      avatarMode: 'avatar',
-      equippedAvatarAccessory: 'peci',
+      avatarMode: initialAvatarMode,
+      equippedAvatarAccessory: initialAvatarAccessory,
       ownedAvatarAccessories: ['peci'],
-      setAvatarMode: (mode: "photo" | "avatar") => set({ avatarMode: mode }),
-      setEquippedAvatarAccessory: (id: string | null) => set({ equippedAvatarAccessory: id }),
+      setAvatarMode: (mode: "photo" | "avatar") => {
+        set({ avatarMode: mode });
+        if (typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem("tartila_avatar_mode", mode);
+          } catch {
+            // ignore
+          }
+        }
+      },
+      setEquippedAvatarAccessory: (id: string | null) => {
+        set({ equippedAvatarAccessory: id });
+        if (typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem("tartila_avatar_accessory_set", "1");
+            if (id) {
+              window.localStorage.setItem("tartila_avatar_accessory", id);
+            } else {
+              window.localStorage.removeItem("tartila_avatar_accessory");
+            }
+          } catch {
+            // ignore
+          }
+        }
+      },
       setOwnedAvatarAccessories: (ids: string[]) => {
         const withPeci = ids.includes('peci') ? ids : ['peci', ...ids];
         set({ ownedAvatarAccessories: withPeci });
@@ -1046,7 +1108,7 @@ export const useEconomyStore = create<EconomyState>()(
     const normalizedOwned = owned.includes('peci') ? owned : ['peci', ...owned];
 
     if (normalizedOwned.includes(id) || id === 'peci') {
-      set({ equippedAvatarAccessory: id });
+      get().setEquippedAvatarAccessory(id);
       return true;
     }
 
@@ -1059,19 +1121,19 @@ export const useEconomyStore = create<EconomyState>()(
     const nextOwned = Array.from(new Set([...normalizedOwned, id]));
     set({
       ownedAvatarAccessories: nextOwned,
-      equippedAvatarAccessory: id,
     });
+    get().setEquippedAvatarAccessory(id);
     return true;
   },
 
   equipAvatarAccessory: (id: string | null) => {
     if (!id || id === 'none') {
-      set({ equippedAvatarAccessory: null });
+      get().setEquippedAvatarAccessory(null);
       return;
     }
     const owned = get().ownedAvatarAccessories || [];
     if (id === 'peci' || owned.includes(id)) {
-      set({ equippedAvatarAccessory: id });
+      get().setEquippedAvatarAccessory(id);
     }
   },
 
@@ -1464,6 +1526,26 @@ export const useEconomyStore = create<EconomyState>()(
 
         if (!state.ownedAvatarAccessories || !state.ownedAvatarAccessories.includes('peci')) {
           state.ownedAvatarAccessories = Array.from(new Set(['peci', ...(state.ownedAvatarAccessories || [])]));
+        }
+
+        if (state.avatarMode) {
+          try {
+            window.localStorage.setItem("tartila_avatar_mode", state.avatarMode);
+          } catch {
+            // ignore
+          }
+        }
+        if (state.equippedAvatarAccessory !== undefined) {
+          try {
+            window.localStorage.setItem("tartila_avatar_accessory_set", "1");
+            if (state.equippedAvatarAccessory) {
+              window.localStorage.setItem("tartila_avatar_accessory", state.equippedAvatarAccessory);
+            } else {
+              window.localStorage.removeItem("tartila_avatar_accessory");
+            }
+          } catch {
+            // ignore
+          }
         }
 
         if (typeof state.showMascot !== "boolean") return;

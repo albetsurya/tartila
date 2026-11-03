@@ -653,3 +653,200 @@ _(Dokumen ini masih dikembangkan. Lihat Bab 14.4 untuk detail mode latihan vs uj
 ---
 
 _Setiap kontributor wajib mematuhi protokol ini sebelum melakukan Pull Request._
+
+---
+
+## 19. State Management (Zustand vs Context vs Local State)
+
+### 19.1 Aturan Dasar
+
+Aplikasi tidak boleh menyimpan seluruh state di satu tempat. Setiap jenis state memiliki pemilik yang jelas. Kesalahan menempatkan state menyebabkan render berlebihan, data tidak sinkron, dan kerugian pengguna seperti tiket terpotong dua kali.
+
+Tiga tingkat state:
+
+1. State global persisten: Zustand dengan `persist`.
+2. State identitas dan sesi: React Context.
+3. State sementara per komponen: `useState` atau `useReducer`.
+
+Aturan pemilihan:
+
+- Jika data bertahan setelah reload dan dipakai lintas halaman, gunakan Zustand.
+- Jika data adalah identitas pengguna dan jarang berubah, gunakan Context.
+- Jika data hanya hidup selama komponen tampil, gunakan local state.
+
+### 19.2 Kapan Menggunakan Zustand
+
+Zustand dipakai untuk data global yang persisten di `localStorage` dan diakses banyak komponen.
+
+Store yang ada:
+
+- `useEconomyStore` (`src/features/ngaji-ceria/hooks/useEconomyStore.ts`): koin, tiket, nyawa, XP, item, misi harian.
+- `useGameStore`: state permainan lintas halaman.
+- `useNgajiCeriaStore`: progres belajar.
+- `useTilawatiMemoryStore`, `useLabIramaStore`: state khusus game.
+
+Contoh data yang wajib di Zustand:
+
+- Koin, tiket, nyawa, XP.
+- Misi harian dan status klaim.
+- Item yang dimiliki dan item yang dipakai.
+- Pengaturan tema dan preferensi tampilan.
+- Progres yang perlu bertahan setelah reload.
+
+Aturan:
+
+- Gunakan middleware `persist` hanya untuk data yang memang perlu bertahan.
+- Jangan menyimpan data sensitif, token, atau jawaban ujian di Zustand.
+- Selector wajib dipakai agar komponen hanya berlangganan potongan state yang dibutuhkan.
+- Aksi yang mengubah saldo wajib memanggil backend. Zustand bukan sumber kebenaran saldo.
+
+Contoh selector:
+
+```ts
+const tickets = useEconomyStore((s) => s.tickets);
+const consumeTicket = useEconomyStore((s) => s.consumeTicket);
+```
+
+Dilarang:
+
+```ts
+const state = useEconomyStore();
+```
+
+Pola terakhir membuat komponen render ulang pada setiap perubahan state.
+
+### 19.3 Kapan Menggunakan React Context
+
+Context dipakai untuk identitas pengguna dan sesi yang jarang berubah namun harus cepat diakses di seluruh aplikasi.
+
+Context yang ada:
+
+- `AuthContext` (`src/contexts/AuthContext.tsx`): `user`, `role`, status login, aksi login dan logout.
+- `ThemeProvider` (`src/contexts/ThemeProvider.tsx`): tema aktif.
+
+Contoh data yang tepat di Context:
+
+- `user` dan `name`.
+- `role` yang sudah dinormalisasi.
+- `sessionId`.
+- Status autentikasi.
+
+Aturan:
+
+- Dilarang menyimpan data yang berubah cepat di Context. Timer game, posisi buah, skor berjalan, dan animasi akan me-render ulang seluruh pohon komponen.
+- Context tidak menggantikan Zustand untuk data ekonomi.
+- Nilai Context harus stabil. Bungkus `value` dengan `useMemo` bila objek dibuat ulang setiap render.
+- Perubahan role atau user wajib berasal dari backend, bukan dari input client.
+
+### 19.4 Kapan Menggunakan Local State
+
+Local state dipakai untuk state sementara yang hanya dipakai satu komponen atau satu halaman.
+
+Contoh:
+
+- Status buka atau tutup modal.
+- Tab aktif.
+- Game loop: posisi buah, timer level, animasi pop.
+- Input form sebelum dikirim.
+- Pesan error sementara.
+
+Aturan:
+
+- Dilarang menyimpan saldo ekonomi di local state komponen.
+- Dilarang menyalin data Zustand ke local state tanpa alasan. Salinan akan basi.
+- Gunakan `useReducer` bila transisi state saling bergantung dan sulit dibaca dengan `useState`.
+- State game yang perlu dilanjutkan setelah reload harus dipindahkan ke Zustand.
+
+### 19.5 Pola Sinkronisasi (Optimistic Update)
+
+Optimistic update dipakai saat aksi pengguna harus terasa instan, sementara backend tetap menjadi sumber kebenaran.
+
+Alur wajib:
+
+1. Simpan nilai sebelumnya.
+2. Perbarui state UI atau Zustand agar responsif.
+3. Panggil API backend.
+4. Jika API berhasil, sinkronkan dengan nilai dari respons.
+5. Jika API gagal, kembalikan nilai sebelumnya dan tampilkan toast error.
+
+Contoh pembelian item:
+
+```ts
+async function buyItem(itemId: string, price: number): Promise<boolean> {
+  const store = useEconomyStore.getState();
+  const previousCoins = store.coins;
+  const previousInventory = store.inventory ?? [];
+
+  if (previousCoins < price) {
+    showToast("Koin tidak cukup", "error");
+    return false;
+  }
+
+  useEconomyStore.setState({
+    coins: previousCoins - price,
+    inventory: [...previousInventory, itemId],
+  });
+
+  try {
+    const result = await economyApi.buyItem({
+      kind: "accessory",
+      itemId,
+      price,
+    });
+    useEconomyStore.setState({
+      coins: result.coins ?? previousCoins - price,
+    });
+    return true;
+  } catch {
+    useEconomyStore.setState({
+      coins: previousCoins,
+      inventory: previousInventory,
+    });
+    showToast("Pembelian gagal, koin dikembalikan", "error");
+    return false;
+  }
+}
+```
+
+Contoh klaim misi harian:
+
+```ts
+async function claimDaily() {
+  const store = useEconomyStore.getState();
+  const previous = {
+    coins: store.coins,
+    claimed: store.dailyClaimed,
+  };
+
+  useEconomyStore.setState({ dailyClaimed: true, coins: previous.coins + 10 });
+
+  try {
+    const result = await economyApi.claimDaily();
+    useEconomyStore.setState({
+      coins: result.coins ?? previous.coins + 10,
+      dailyClaimed: true,
+    });
+  } catch {
+    useEconomyStore.setState(previous);
+    showToast("Klaim gagal, silakan coba lagi", "error");
+  }
+}
+```
+
+Aturan optimistic update:
+
+- Rollback wajib mengembalikan seluruh field yang diubah, bukan sebagian.
+- Aksi yang memotong tiket wajib mencegah pemanggilan ganda. Gunakan penanda `inFlight` atau nonaktifkan tombol selama request berjalan.
+- Jangan menampilkan sukses sebelum backend merespons, kecuali UI memang dirancang optimistis.
+- Toast error wajib menjelaskan bahwa perubahan dibatalkan.
+- Operasi yang tidak dapat dibatalkan, seperti pembayaran, tidak boleh memakai optimistic update tanpa konfirmasi backend.
+
+### 19.6 Larangan
+
+- Dilarang menyimpan token JWT di `localStorage`. Gunakan HttpOnly Cookie yang di-set backend.
+- Catatan: `src/services/api.ts` saat ini masih membaca dan menulis token dari `localStorage` serta cookie non-HttpOnly (`tartila_token`). Kode lama ini wajib dimigrasikan ke HttpOnly Cookie, dan tidak boleh ditiru untuk fitur baru.
+- Dilarang menyimpan state saldo ekonomi di dalam komponen React lokal. Saldo wajib berada di Zustand dan diverifikasi backend.
+- Dilarang menyalin state Zustand ke Context.
+- Dilarang menaruh timer game di Context.
+- Dilarang memakai `useEconomyStore()` tanpa selector.
+- Dilarang menyimpan jawaban benar atau kunci ujian di state yang dapat dibaca client.

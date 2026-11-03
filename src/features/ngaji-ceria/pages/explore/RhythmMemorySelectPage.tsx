@@ -15,6 +15,7 @@ export default function RhythmMemorySelectPage() {
   const navigate = useNavigate();
 
   const handleSelectJilid = (level: RhythmMemoryLevel) => {
+    if (level.jilid === 6) return;
     triggerBibiReaction("play");
     soundManager.playSfx("pop");
     navigate(`/member/ngaji-ceria/rhythm-memory/${level.jilid}`);
@@ -87,88 +88,101 @@ export default function RhythmMemorySelectPage() {
           {/* Grid 6 Tenda Kemah Jilid Rhythm Memory */}
           <section className="px-4 pt-10 max-w-4xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-              {RHYTHM_MEMORY_LEVELS.map((level, idx) => (
-                <motion.div
-                  key={level.jilid}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  onClick={() => handleSelectJilid(level)}
-                  className="group relative pt-11 cursor-pointer select-none transition-transform hover:-translate-y-1.5"
-                >
-                  {/* Bendera Kecil di Puncak Tenda */}
-                  <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
+              {RHYTHM_MEMORY_LEVELS.map((level, idx) => {
+                const isLocked = level.jilid === 6;
+                return (
+                  <motion.div
+                    key={level.jilid}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => !isLocked && handleSelectJilid(level)}
+                    className={`group relative pt-11 select-none ${
+                      isLocked
+                        ? "opacity-60 cursor-not-allowed"
+                        : "cursor-pointer transition-transform hover:-translate-y-1.5"
+                    }`}
+                  >
+                    {/* Bendera Kecil di Puncak Tenda */}
+                    <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
+                      <div
+                        className="px-2.5 py-0.5 bg-[#15803D] border-[2.5px] border-[#451A03] text-[9px] font-black text-[#FEF08A] uppercase"
+                        style={{
+                          clipPath: "polygon(0 0, 100% 20%, 85% 100%, 0 100%)",
+                        }}
+                      >
+                        {level.bpm} BPM
+                      </div>
+                      <div className="w-1 h-3 bg-[#451A03]" />
+                    </div>
+
+                    {/* Atap Tenda Segitiga (Clip-Path) */}
                     <div
-                      className="px-2.5 py-0.5 bg-[#15803D] border-[2.5px] border-[#451A03] text-[9px] font-black text-[#FEF08A] uppercase"
+                      className="pointer-events-none absolute top-4 left-0 right-0 h-10 bg-[#451A03] z-20"
                       style={{
-                        clipPath: "polygon(0 0, 100% 20%, 85% 100%, 0 100%)",
+                        clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
                       }}
                     >
-                      {level.bpm} BPM
+                      <div
+                        className="w-full h-full bg-[#D97706]"
+                        style={{
+                          clipPath: "polygon(50% 14%, 96% 100%, 4% 100%)",
+                        }}
+                      />
                     </div>
-                    <div className="w-1 h-3 bg-[#451A03]" />
-                  </div>
 
-                  {/* Atap Tenda Segitiga (Clip-Path) */}
-                  <div
-                    className="pointer-events-none absolute top-4 left-0 right-0 h-10 bg-[#451A03] z-20"
-                    style={{
-                      clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
-                    }}
-                  >
-                    <div
-                      className="w-full h-full bg-[#D97706]"
-                      style={{
-                        clipPath: "polygon(50% 14%, 96% 100%, 4% 100%)",
-                      }}
-                    />
-                  </div>
+                    {/* Badan Tenda Kemah */}
+                    <div className="relative z-10 overflow-hidden rounded-b-2xl rounded-t-sm bg-[#FFFBEB] border-[4px] border-[#451A03] p-5 shadow-[6px_6px_0px_#451A03] flex flex-col justify-between h-full">
+                      {/* Tirai Kiri & Kanan Tenda */}
+                      <div
+                        className="pointer-events-none absolute top-0 left-0 w-9 h-14 bg-[#D97706]/25"
+                        style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
+                      />
+                      <div
+                        className="pointer-events-none absolute top-0 right-0 w-9 h-14 bg-[#D97706]/25"
+                        style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%)" }}
+                      />
 
-                  {/* Badan Tenda Kemah */}
-                  <div className="relative z-10 overflow-hidden rounded-b-2xl rounded-t-sm bg-[#FFFBEB] border-[4px] border-[#451A03] p-5 shadow-[6px_6px_0px_#451A03] flex flex-col justify-between h-full">
-                    {/* Tirai Kiri & Kanan Tenda */}
-                    <div
-                      className="pointer-events-none absolute top-0 left-0 w-9 h-14 bg-[#D97706]/25"
-                      style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
-                    />
-                    <div
-                      className="pointer-events-none absolute top-0 right-0 w-9 h-14 bg-[#D97706]/25"
-                      style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%)" }}
-                    />
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-xl border-[2.5px] border-[#451A03] px-3 py-1 text-xs font-black uppercase text-[#FFFFFF] shadow-[2px_2px_0px_#451A03] ${level.badgeBg}`}
+                          >
+                            Kemah Jilid {level.jilid}
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-lg bg-[#FEF08A] border-[2px] border-[#451A03] px-2 py-0.5 text-[10px] font-black text-[#451A03]">
+                            Tempo {level.bpm}
+                          </span>
+                        </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-xl border-[2.5px] border-[#451A03] px-3 py-1 text-xs font-black uppercase text-[#FFFFFF] shadow-[2px_2px_0px_#451A03] ${level.badgeBg}`}
-                        >
-                          Kemah Jilid {level.jilid}
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-[#FEF08A] border-[2px] border-[#451A03] px-2 py-0.5 text-[10px] font-black text-[#451A03]">
-                          Tempo {level.bpm}
-                        </span>
+                        <h3 className="font-display font-black text-base sm:text-lg text-[#451A03] leading-snug mb-1">
+                          {level.subtitle}
+                        </h3>
+                        <p className="text-xs text-[#78350F] font-bold line-clamp-2 mb-4 leading-relaxed">
+                          {level.desc}
+                        </p>
                       </div>
 
-                      <h3 className="font-display font-black text-base sm:text-lg text-[#451A03] leading-snug mb-1">
-                        {level.subtitle}
-                      </h3>
-                      <p className="text-xs text-[#78350F] font-bold line-clamp-2 mb-4 leading-relaxed">
-                        {level.desc}
-                      </p>
-                    </div>
-
-                    {/* Alas Pintu Tenda */}
-                    <div className="flex items-center justify-between pt-3 border-t-[3px] border-dashed border-[#451A03]/30">
-                      <span className="text-[11px] font-black text-[#15803D]">
-                        ⛺ 12 Pos Irama
-                      </span>
-                      <div className="inline-flex items-center gap-1 rounded-xl bg-[#D97706] border-[2.5px] border-[#451A03] px-3 py-1 text-xs font-black text-[#FEF3C7] shadow-[2px_2px_0px_#451A03] group-hover:translate-x-1 transition-transform">
-                        <span>Masuk Tenda</span>
-                        <ChevronRight size={14} />
+                      {/* Alas Pintu Tenda */}
+                      <div className="flex items-center justify-between pt-3 border-t-[3px] border-dashed border-[#451A03]/30">
+                        <span className="text-[11px] font-black text-[#15803D]">
+                          12 Pos Irama
+                        </span>
+                        {isLocked ? (
+                          <div className="inline-flex items-center gap-1 rounded-xl bg-[#9CA3AF] border-[2.5px] border-[#451A03] px-3 py-1 text-xs font-black text-[#FFFFFF] shadow-[2px_2px_0px_#451A03]">
+                            <span>Segera Hadir</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1 rounded-xl bg-[#D97706] border-[2.5px] border-[#451A03] px-3 py-1 text-xs font-black text-[#FEF3C7] shadow-[2px_2px_0px_#451A03] group-hover:translate-x-1 transition-transform">
+                            <span>Masuk Tenda</span>
+                            <ChevronRight size={14} />
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </section>
         </div>
