@@ -4,6 +4,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   admin: "Admin",
   analytics: "Analitik",
   users: "Pengguna",
+  "ustadz-requests": "Pengajuan Ustadz",
   books: "Buku",
   quizzes: "Kuis",
   settings: "Pengaturan",

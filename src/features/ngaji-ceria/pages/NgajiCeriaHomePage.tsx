@@ -110,12 +110,18 @@ const WEEK_DAYS = [
 
 export default function NgajiCeriaHomePage() {
   const navigate = useNavigate();
-  const { user, isAuthLoading } = useAuth();
+  const { user, isAuthLoading, isNewUser } = useAuth();
   const [isLoading, setIsLoading] = useState(() => {
     return sessionStorage.getItem("trigger_ngaji_ceria_splash") === "true";
   });
   const [joinedClassrooms, setJoinedClassrooms] = useState<ClassroomRoom[]>([]);
   const [joinedClassroomsError, setJoinedClassroomsError] = useState("");
+
+  useEffect(() => {
+    if (user && isNewUser) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [user, isNewUser, navigate]);
 
   const { currentStreak, lastPlayedAt } = useNgajiCeriaStreak();
   const streak = useEconomyStore((s) => s.loginStreak);
