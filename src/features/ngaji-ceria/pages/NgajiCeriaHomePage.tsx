@@ -7,6 +7,8 @@ import { DailyMissionsCard } from "../components/DailyMissionsCard";
 import { CeriaGameLoading } from "../components/CeriaGameLoading";
 import { NGAJI_CERIA_ASSETS } from "../data/assets";
 import { useNgajiCeriaProgress } from "../hooks/useNgajiCeriaProgress";
+import { useEventStore } from "../hooks/useEventStore";
+import { EventDetailModal } from "../components/EventDetailModal";
 import { useNgajiProgress, getRank } from "./games/_shared/progression";
 import { useNgajiCeriaStreak } from "../hooks/useNgajiCeriaStreak";
 import {
@@ -98,6 +100,16 @@ const DAILY_REWARDS: DailyRewardItem[] = [
   },
 ];
 
+function formatEventDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 const WEEK_DAYS = [
   { short: "Sen", full: "Senin" },
   { short: "Sel", full: "Selasa" },
@@ -151,12 +163,21 @@ export default function NgajiCeriaHomePage() {
   const [isClaiming, setIsClaiming] = useState(false);
   const autoModalTriggeredRef = useRef(false);
   const [isArenaSheetOpen, setIsArenaSheetOpen] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const activeEvent = useEventStore((state) => state.activeEvent);
+  const fetchActiveEvents = useEventStore((state) => state.fetchActiveEvents);
 
   useEffect(() => {
     if (user) {
       useEconomyStore.getState().initialize();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      void fetchActiveEvents();
+    }
+  }, [user, fetchActiveEvents]);
 
   const now = new Date();
   const effectiveWib = new Date(now.getTime() + 3 * 3600 * 1000);
@@ -333,6 +354,43 @@ export default function NgajiCeriaHomePage() {
             isLoading ? "opacity-0" : "opacity-100"
           } min-h-full rounded-t-3xl bg-[#F0FDF4] text-[#134E4A] transition-opacity duration-200`}
         >
+          {/* BANNER EVENT AKTIF */}
+          {activeEvent && (
+            <section className="relative isolate overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-[#F59E0B] p-4 shadow-[4px_4px_0px_#134E4A]">
+              <div
+                className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/20"
+                aria-hidden="true"
+              />
+              <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                    <GiftSvg size={26} />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="inline-flex rounded-md border-2 border-[#134E4A] bg-[#134E4A] px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-[#FEF08A]">
+                      Event Spesial
+                    </span>
+                    <h2 className="mt-1 font-display text-base font-black leading-tight text-[#134E4A] sm:text-lg">
+                      {activeEvent.name}
+                    </h2>
+                    <p className="mt-0.5 text-[11px] font-bold text-[#134E4A]/80 sm:text-xs">
+                      {formatEventDate(activeEvent.start_date)} -{" "}
+                      {formatEventDate(activeEvent.end_date)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEventModalOpen(true)}
+                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border-[2px] border-[#134E4A] bg-[#0D9488] px-4 py-2 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] active:translate-y-[1px] active:shadow-none"
+                >
+                  Lihat Misi
+                  <ChevronRightSvg size={15} />
+                </button>
+              </div>
+            </section>
+          )}
+
           {/* SECTION 1: Kartu Sambutan (Diperbaiki ke Neo-Brutalism) */}
           <section className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#134E4A] bg-[#FFFFFF] px-3 py-3 shadow-[2px_2px_0px_#134E4A] sm:px-4">
             <div className="flex min-w-0 items-center gap-3">
@@ -1195,6 +1253,10 @@ export default function NgajiCeriaHomePage() {
           </div>
         </AppBottomSheet>
 
+        <EventDetailModal
+          open={isEventModalOpen}
+          onClose={() => setIsEventModalOpen(false)}
+        />
         <OnboardingModal />
         <RankJourneyModal
           isOpen={isRankModalOpen}
