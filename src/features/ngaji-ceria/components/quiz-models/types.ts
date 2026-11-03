@@ -131,7 +131,11 @@ export interface QuizModelBaseProps {
   onNext?: () => void;
   /** When provided, the model delegates playback to the host engine. */
   onPlayAudio?: () => void;
+  /** Hentikan audio milik host (dipakai saat jawaban diperiksa). */
+  onStopAudio?: () => void;
   isAudioPlaying?: boolean;
+  /** Audio sedang dimuat/di-decode, belum berbunyi. */
+  isAudioPending?: boolean;
   /**
    * true (default) = mode latihan: salah bisa diulangi.
    * false = mode ujian/assessment: tombol Ulangi disembunyikan, sheet

@@ -1,154 +1,49 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { answerFeedbackAnimation } from "./feedbackMotion";
 import type { MultipleChoiceAudioQuestion, QuizModelBaseProps } from "./types";
-import { getAudioUrl } from "../../utils/audioUrl";
 import { AnswerFeedbackSheet } from "../AnswerFeedbackSheet";
+import { useAudioPlayer } from "../../hooks/useAudioPlayer";
+import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 
 export interface ModelMultipleChoiceAudioProps extends QuizModelBaseProps {
   question: MultipleChoiceAudioQuestion;
 }
 
-/** Ikon garis-garis Soundwave / Equalizer berwarna putih */
-function SoundwaveBars({ isPlaying }: { isPlaying?: boolean }) {
-  return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="text-white"
-    >
-      <motion.rect
-        x="6"
-        y="16"
-        width="4.5"
-        height="16"
-        rx="2.25"
-        fill="currentColor"
-        animate={isPlaying ? { height: [16, 26, 12, 16], y: [16, 11, 18, 16] } : { height: 16, y: 16 }}
-        transition={isPlaying ? { repeat: Infinity, duration: 0.8, ease: "easeInOut" } : { duration: 0.2 }}
-      />
-      <motion.rect
-        x="14"
-        y="10"
-        width="4.5"
-        height="28"
-        rx="2.25"
-        fill="currentColor"
-        animate={isPlaying ? { height: [28, 14, 34, 28], y: [10, 17, 7, 10] } : { height: 28, y: 10 }}
-        transition={isPlaying ? { repeat: Infinity, duration: 0.7, delay: 0.1, ease: "easeInOut" } : { duration: 0.2 }}
-      />
-      <motion.rect
-        x="22"
-        y="6"
-        width="4.5"
-        height="36"
-        rx="2.25"
-        fill="currentColor"
-        animate={isPlaying ? { height: [36, 18, 38, 36], y: [6, 15, 5, 6] } : { height: 36, y: 6 }}
-        transition={isPlaying ? { repeat: Infinity, duration: 0.6, delay: 0.2, ease: "easeInOut" } : { duration: 0.2 }}
-      />
-      <motion.rect
-        x="30"
-        y="12"
-        width="4.5"
-        height="24"
-        rx="2.25"
-        fill="currentColor"
-        animate={isPlaying ? { height: [24, 32, 14, 24], y: [12, 8, 17, 12] } : { height: 24, y: 12 }}
-        transition={isPlaying ? { repeat: Infinity, duration: 0.75, delay: 0.15, ease: "easeInOut" } : { duration: 0.2 }}
-      />
-      <motion.rect
-        x="38"
-        y="18"
-        width="4.5"
-        height="12"
-        rx="2.25"
-        fill="currentColor"
-        animate={isPlaying ? { height: [12, 22, 10, 12], y: [18, 13, 19, 18] } : { height: 12, y: 18 }}
-        transition={isPlaying ? { repeat: Infinity, duration: 0.85, delay: 0.05, ease: "easeInOut" } : { duration: 0.2 }}
-      />
-    </svg>
-  );
+interface ChoiceAudioViewProps
+  extends Omit<QuizModelBaseProps, "onPlayAudio" | "onStopAudio"> {
+  question: MultipleChoiceAudioQuestion;
+  playing: boolean;
+  pending: boolean;
+  onPlay: () => void;
+  onStop: () => void;
 }
 
-export function ModelMultipleChoiceAudio({
+/**
+ * Tampilan murni (tanpa hook audio). Hanya menerima status pemutaran dari
+ * pemilik audio yang sebenarnya, sehingga animasi equalizer mengikuti satu
+ * sumber kebenaran.
+ */
+function ChoiceAudioView({
   question,
+  playing,
+  pending,
+  onPlay,
+  onStop,
   onAnswerSubmit,
   onNext,
-  onPlayAudio,
-  isAudioPlaying,
   isRetryable,
   correctAnswer,
   explanation,
-}: ModelMultipleChoiceAudioProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
+}: ChoiceAudioViewProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const reducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (onPlayAudio) return;
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-  }, [question.id, question.audioUrl, onPlayAudio]);
-
   const handlePlay = () => {
-    if (onPlayAudio) {
-      onPlayAudio();
-      return;
-    }
-    if (!question.audioUrl) return;
-
-    if (audioRef.current) {
-      const sameUrl =
-        question.audioUrl &&
-        audioRef.current.src ===
-          new URL(question.audioUrl, window.location.href).href;
-      if (!sameUrl) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    }
-    if (!audioRef.current) {
-      const audio = new Audio(getAudioUrl(question.audioUrl) ?? question.audioUrl);
-      audio.crossOrigin = "anonymous";
-      audio.preload = "auto";
-      audio.onloadstart = () => setIsAudioLoading(true);
-      audio.oncanplay = () => setIsAudioLoading(false);
-      audio.onwaiting = () => setIsAudioLoading(true);
-      audio.onplaying = () => setIsAudioLoading(false);
-      audio.onended = () => setIsPlaying(false);
-      audio.onerror = () => {
-        setIsAudioLoading(false);
-        setIsPlaying(false);
-      };
-      audioRef.current = audio;
-    }
-    const audio = audioRef.current;
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-      return;
-    }
-    audio.currentTime = 0;
-    void audio.play();
-    setIsPlaying(true);
+    if (pending) return;
+    onPlay();
   };
-
-  const playing = onPlayAudio ? Boolean(isAudioPlaying) : isPlaying;
 
   const handlePick = (option: string) => {
     if (status !== "idle") return;
@@ -161,8 +56,7 @@ export function ModelMultipleChoiceAudio({
     setStatus(isCorrect ? "correct" : "wrong");
     onAnswerSubmit?.(isCorrect);
 
-    audioRef.current?.pause();
-    setIsPlaying(false);
+    onStop();
   };
 
   const handleRetry = () => {
@@ -179,25 +73,20 @@ export function ModelMultipleChoiceAudio({
           onClick={handlePlay}
           animate={{ scale: playing ? [1, 1.08, 1] : 1 }}
           transition={playing ? { repeat: Infinity, duration: 1, ease: "easeInOut" } : { duration: 0.2 }}
-          className="relative w-32 h-32 rounded-full flex items-center justify-center p-3 bg-[#DCFCE7] border-[3px] border-[#4D7C0F]/40 shadow-[4px_4px_0px_#4D7C0F]/30 active:scale-95 transition-transform cursor-pointer"
+          className={`relative w-32 h-32 rounded-full flex items-center justify-center p-3 bg-[#DCFCE7] border-[3px] border-[#4D7C0F]/40 shadow-[4px_4px_0px_#4D7C0F]/30 active:scale-95 transition-all cursor-pointer ${
+            pending ? "opacity-75 cursor-wait" : ""
+          }`}
           aria-label="Putar Suara"
         >
           {playing && (
             <span className="absolute inset-0 rounded-full bg-[#4D7C0F]/20 animate-ping" />
           )}
           <div className="w-full h-full rounded-full flex items-center justify-center bg-[#4D7C0F] shadow-inner">
-            {isAudioLoading && !playing ? (
-              <span
-                aria-label="Memuat audio"
-                className="block h-8 w-8 animate-spin rounded-full border-[3px] border-white/30 border-t-white"
-              />
-            ) : (
-              <SoundwaveBars isPlaying={playing} />
-            )}
+            <EqualizerIcon isPlaying={playing} size={36} barClassName="bg-white" />
           </div>
         </motion.button>
         <p className="mt-3 text-xs font-black text-[#134E4A] tracking-wide">
-          {isAudioLoading && !playing ? "Memuat Audio…" : "Sentuh untuk Putar Suara"}
+          {pending ? "Menyiapkan Suara…" : "Sentuh untuk Putar Suara"}
         </p>
       </div>
 
@@ -263,6 +152,52 @@ export function ModelMultipleChoiceAudio({
         explanation={explanation}
       />
     </div>
+  );
+}
+
+/** Mode host: seluruh pemutaran dikendalikan parent (NgajiCeriaQuizPage). */
+function HostAudioChoice(props: ModelMultipleChoiceAudioProps & { onPlayAudio: () => void }) {
+  const { onPlayAudio, onStopAudio, isAudioPlaying, isAudioPending, ...rest } = props;
+  return (
+    <ChoiceAudioView
+      {...rest}
+      playing={Boolean(isAudioPlaying)}
+      pending={Boolean(isAudioPending)}
+      onPlay={onPlayAudio}
+      onStop={onStopAudio ?? (() => {})}
+    />
+  );
+}
+
+/** Mode fallback: tidak ada host, pakai pemutar lokal. */
+function LocalAudioChoice({ question, ...rest }: ModelMultipleChoiceAudioProps) {
+  const audioPlayer = useAudioPlayer();
+  return (
+    <ChoiceAudioView
+      {...rest}
+      question={question}
+      playing={audioPlayer.isPlaying}
+      pending={audioPlayer.isPending}
+      onPlay={() => {
+        if (!question.audioUrl) return;
+        if (audioPlayer.isPlaying) {
+          audioPlayer.pause();
+          return;
+        }
+        audioPlayer.play(question.audioUrl);
+      }}
+      onStop={audioPlayer.stop}
+    />
+  );
+}
+
+export function ModelMultipleChoiceAudio(props: ModelMultipleChoiceAudioProps) {
+  // Hook lokal hanya diinstansiasi saat tidak ada host, agar tidak ada dua
+  // elemen audio yang saling berebut.
+  return props.onPlayAudio ? (
+    <HostAudioChoice {...props} onPlayAudio={props.onPlayAudio} />
+  ) : (
+    <LocalAudioChoice {...props} />
   );
 }
 

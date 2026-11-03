@@ -3,6 +3,7 @@ import { getAudioUrl } from "../utils/audioUrl";
 
 export interface AudioPlayerController {
   isPlaying: boolean;
+  isPending: boolean;
   currentAudioUrl: string | null;
   currentTime: number;
   duration: number;
@@ -20,6 +21,7 @@ export interface AudioPlayerController {
 export function useAudioPlayer(): AudioPlayerController {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -40,28 +42,57 @@ export function useAudioPlayer(): AudioPlayerController {
       }
     };
 
-    const handleStop = () => {
+    const handlePlaying = () => {
+      setIsPlaying(true);
+      setIsPending(false);
+    };
+
+    const handlePause = () => {
       setIsPlaying(false);
+      setIsPending(false);
+    };
+
+    const handleWaiting = () => {
+      // Buffering bukan berhenti: animasi tetap hidup, hanya tandai memuat.
+      setIsPending(true);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setIsPending(false);
       setCurrentTime(0);
       setCurrentAudioUrl(null);
     };
 
+    const handleError = () => {
+      setIsPlaying(false);
+      setIsPending(false);
+      setCurrentTime(0);
+      setCurrentAudioUrl(null);
+    };
+
+    audio.addEventListener("playing", handlePlaying);
+    audio.addEventListener("pause", handlePause);
+    audio.addEventListener("waiting", handleWaiting);
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("error", handleError);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("durationchange", handleLoadedMetadata);
-    audio.addEventListener("ended", handleStop);
-    audio.addEventListener("error", handleStop);
 
     audioRef.current = audio;
 
     return () => {
       audio.pause();
       audio.currentTime = 0;
+      audio.removeEventListener("playing", handlePlaying);
+      audio.removeEventListener("pause", handlePause);
+      audio.removeEventListener("waiting", handleWaiting);
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("durationchange", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleStop);
-      audio.removeEventListener("error", handleStop);
       audio.removeAttribute("src");
       audioRef.current = null;
     };
@@ -72,6 +103,7 @@ export function useAudioPlayer(): AudioPlayerController {
     if (!audio) return;
     audio.pause();
     setIsPlaying(false);
+    setIsPending(false);
   }, []);
 
   const stop = useCallback(() => {
@@ -81,6 +113,7 @@ export function useAudioPlayer(): AudioPlayerController {
     audio.currentTime = 0;
     audio.removeAttribute("src");
     setIsPlaying(false);
+    setIsPending(false);
     setCurrentTime(0);
     setCurrentAudioUrl(null);
   }, []);
@@ -101,17 +134,20 @@ export function useAudioPlayer(): AudioPlayerController {
       setCurrentAudioUrl(url);
       setCurrentTime(0);
       setDuration(0);
-    } else {
-      // Selalu mulai dari awal walaupun URL sama (mencegah posisi melewat).
-      audio.currentTime = 0;
-      setCurrentTime(0);
     }
 
+    setIsPending(true);
     const result = audio.play();
-    if (result && typeof result.then === "function") {
-      result.then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-    } else {
-      setIsPlaying(true);
+    if (result && typeof result.catch === "function") {
+      result.catch((e: unknown) => {
+        // AbortError berarti ada pemutaran lebih baru; jangan sentuh state-nya.
+        if (e instanceof Error && e.name === "AbortError") {
+          return;
+        }
+        setIsPlaying(false);
+        setIsPending(false);
+        console.warn("Gagal memutar audio", e);
+      });
     }
   }, []);
 
@@ -152,5 +188,5 @@ export function useAudioPlayer(): AudioPlayerController {
     }
   }, [currentAudioUrl]);
 
-  return { isPlaying, currentAudioUrl, currentTime, duration, play, pause, stop, toggle };
+  return { isPlaying, isPending, currentAudioUrl, currentTime, duration, play, pause, stop, toggle };
 }

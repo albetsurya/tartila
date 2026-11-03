@@ -589,11 +589,23 @@ export default function NgajiCeriaQuizPage() {
   const handlePlayAudio = useCallback(() => {
     if (!question || !access.isOpen || access.isComingSoon) return;
     if (timelineData === null) return; // Wait for timeline data before playing
-    // Stop any currently playing audio (harmless no-op if already stopped)
-    tilawatiAudio.stop();
+    // Toggle: klik saat berbunyi/memuat berarti berhenti, bukan restart.
+    if (tilawatiAudio.isPlaying || tilawatiAudio.isPending) {
+      tilawatiAudio.stop();
+      return;
+    }
     tapFeedback();
     void tilawatiAudio.play();
-  }, [question?.id, isAudioPlaying, access.isOpen, timelineData]);
+  }, [
+    question?.id,
+    access.isOpen,
+    access.isComingSoon,
+    timelineData,
+    tilawatiAudio.isPlaying,
+    tilawatiAudio.isPending,
+    tilawatiAudio.play,
+    tilawatiAudio.stop,
+  ]);
 
   if (!access.isOpen || access.isComingSoon) {
     return (
@@ -835,7 +847,9 @@ export default function NgajiCeriaQuizPage() {
                 onAnswerSubmit={handleAnswerSubmit}
                 onNext={handleNext}
                 onPlayAudio={handlePlayAudio}
+                onStopAudio={tilawatiAudio.stop}
                 isAudioPlaying={isAudioPlaying}
+                isAudioPending={tilawatiAudio.isPending}
                 isRetryable={isPractice}
               />
             )}

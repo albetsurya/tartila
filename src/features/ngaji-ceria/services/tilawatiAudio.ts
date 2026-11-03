@@ -103,10 +103,13 @@ let activeAudio: HTMLAudioElement | null = null;
 let activeSources: AudioBufferSourceNode[] = [];
 let cancelPlayback: (() => void) | null = null;
 let generation = 0;
+/** Kunci sinkron agar klik beruntun tidak memulai dua pemutaran sekaligus. */
+let playInFlight = false;
 let context: AudioContext | null = null;
 const buffers = new Map<string, Promise<AudioBuffer>>();
 export function stopTilawatiAudio() {
   generation++;
+  playInFlight = false;
   activeAudio?.pause();
   activeAudio = null;
   activeSources.forEach((source) => { try { source.stop(); } catch { /* Already ended. */ } });
@@ -131,7 +134,7 @@ export function playTilawatiAudio(url: string | null, onEnded?: () => void): HTM
   return audio;
 }
 
-async function playCandidate(candidate: AudioCandidate, token: number): Promise<boolean> {
+async function playCandidate(candidate: AudioCandidate, token: number, onStart: () => void): Promise<boolean> {
   if (candidate.segments?.length) {
     context ??= new AudioContext();
     const ctx = context;
@@ -166,6 +169,7 @@ async function playCandidate(candidate: AudioCandidate, token: number): Promise<
       });
       const last = activeSources[activeSources.length - 1];
       if (!last) { resolve(false); return; }
+      if (token === generation) onStart();
       last.onended = () => resolve(token === generation);
     });
   }
@@ -175,6 +179,7 @@ async function playCandidate(candidate: AudioCandidate, token: number): Promise<
     activeAudio = audio;
     audio.volume = 0.9;
     cancelPlayback = () => resolve(false);
+    audio.onplaying = () => { if (token === generation) onStart(); };
     audio.onended = () => resolve(token === generation);
     audio.onerror = () => resolve(token === generation);
     void audio.play().catch((error: DOMException) => error.name === "NotAllowedError" ? reject(error) : resolve(token === generation));
@@ -200,7 +205,7 @@ export function usePublishedTilawati(jilid: number, page: number) {
 export function useTilawatiAudio(
   request: TilawatiAudioRequest,
   timelineData?: TimelineEditsIndex,
-): TilawatiAudioResolution & { published: PublishedTimeline | null; isPlaying: boolean; error: string; play: () => void; stop: () => void } {
+): TilawatiAudioResolution & { published: PublishedTimeline | null; isPlaying: boolean; isPending: boolean; error: string; play: () => void; stop: () => void } {
   const published = usePublishedTilawati(request.jilid, request.pageNumber);
   // Stable resolution: only recompute when question ID or page data changes,
   // not on every render (request.question object reference changes each render)
@@ -220,42 +225,62 @@ export function useTilawatiAudio(
     timelineData,
   ]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
   const prevQuestionIdRef = useRef(request.question?.id);
 
-  const stop = useCallback(() => { stopTilawatiAudio(); setIsPlaying(false); }, []);
+  const stop = useCallback(() => {
+    stopTilawatiAudio();
+    setIsPlaying(false);
+    setIsPending(false);
+  }, []);
 
   // Stop audio only when question actually changes (by id), not on every render
   // This prevents audio looping when user interacts with Bank Huruf letters
   useEffect(() => {
     if (prevQuestionIdRef.current !== request.question?.id) {
       setIsPlaying(false);
+      setIsPending(false);
       stopTilawatiAudio();
       prevQuestionIdRef.current = request.question?.id;
     }
     return () => stopTilawatiAudio();
   }, [request.question?.id]);
   const play = useCallback(async () => {
+    // Klik beruntun saat permintaan masih berjalan diabaikan, bukan di-restart.
+    if (playInFlight) return;
     stopTilawatiAudio();
+    setIsPlaying(false);
+    setIsPending(false);
     if (soundManager.muted) return;
+    playInFlight = true;
     const token = generation;
-    setIsPlaying(true); setError("");
+    setIsPending(true);
+    setError("");
+    const handleStart = () => {
+      if (token !== generation) return;
+      setIsPending(false);
+      setIsPlaying(true);
+    };
     let success = false;
     let blocked = false;
-    for (const candidate of resolution.candidates) {
-      try { success = await playCandidate(candidate, token); }
-      catch (error) { success = false; blocked = error instanceof DOMException && error.name === "NotAllowedError"; }
-      if (blocked) break;
-      if (success || token !== generation) break;
+    try {
+      for (const candidate of resolution.candidates) {
+        try { success = await playCandidate(candidate, token, handleStart); }
+        catch (error) { success = false; blocked = error instanceof DOMException && error.name === "NotAllowedError"; }
+        if (blocked) break;
+        if (success || token !== generation) break;
+      }
+    } finally {
+      // Hanya pemilik token terbaru yang boleh melepas kunci.
+      if (token === generation) playInFlight = false;
     }
-    if (token === generation) {
-      activeAudio = null; activeSources = []; cancelPlayback = null;
-      setIsPlaying(false);
-      if (!success) setError(blocked ? "Ketuk Baca untuk memutar audio." : "Audio belum tersedia. Coba lagi saat koneksi pulih.");
-    } else if (token !== generation) {
-      // Playback was cancelled or interrupted
-      setIsPlaying(false);
-    }
+    // Pemutaran yang sudah dibatalkan TIDAK boleh menyentuh state pemutaran baru.
+    if (token !== generation) return;
+    activeAudio = null; activeSources = []; cancelPlayback = null;
+    setIsPlaying(false);
+    setIsPending(false);
+    if (!success) setError(blocked ? "Ketuk Baca untuk memutar audio." : "Audio belum tersedia. Coba lagi saat koneksi pulih.");
   }, [resolution]);
-  return { ...resolution, published, isPlaying, error, play, stop };
+  return { ...resolution, published, isPlaying, isPending, error, play, stop };
 }
