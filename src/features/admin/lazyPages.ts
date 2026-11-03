@@ -45,4 +45,14 @@ export const AdminTimelineCloudPage = lazy(() =>
 export const AdminMenuPage = lazy(() =>
   import("./pages/AdminMenuPage").then((m) => ({ default: m.AdminMenuPage }))
 );
+export const AdminEventsPage = lazy(() =>
+  import("./pages/AdminEventsPage").then((m) => ({
+    default: m.AdminEventsPage,
+  }))
+);
+export const AdminUstadzRequestsPage = lazy(() =>
+  import("./pages/AdminUstadzRequestsPage").then((m) => ({
+    default: m.AdminUstadzRequestsPage,
+  }))
+);
 

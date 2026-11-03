@@ -20,12 +20,17 @@ import { soundManager } from "../../services/soundManager";
    CUSTOM NEO-BRUTALIST SAVANA TRAINING ILLUSTRATIONS & ICONS
    ============================================================================ */
 
-/** 1. Ikon Utama untuk Tartila Rhythm Memory (Kartu + Drum Ketukan Savana) */
+/** 1. Ikon Utama untuk Tartila Rhythm Memory (Kartu + Drum Djembe & Not Irama) */
 const RhythmMemoryIconSvg = () => (
-  <svg viewBox="0 0 56 56" fill="none" className="w-11 h-11 overflow-visible">
+  <svg viewBox="0 0 56 56" fill="none" className="w-12 h-12 overflow-visible">
+    {/* Hard Offset Shadow */}
+    <rect x="9" y="9" width="24" height="32" rx="5" fill="#451A03" />
+    <rect x="21" y="14" width="25" height="33" rx="5" fill="#451A03" />
+
+    {/* Kartu Belakang (Kuning) */}
     <rect
-      x="8"
-      y="8"
+      x="6"
+      y="6"
       width="24"
       height="32"
       rx="5"
@@ -33,116 +38,181 @@ const RhythmMemoryIconSvg = () => (
       stroke="#451A03"
       strokeWidth="3"
     />
+    <circle cx="18" cy="22" r="4" fill="#F59E0B" />
+
+    {/* Kartu Depan (Hijau Savana) */}
     <rect
       x="18"
-      y="12"
-      width="24"
-      height="32"
+      y="11"
+      width="25"
+      height="33"
       rx="5"
       fill="#4ADE80"
       stroke="#451A03"
       strokeWidth="3"
     />
+
+    {/* Lingkaran Drum Ketukan */}
     <circle
-      cx="30"
+      cx="30.5"
       cy="28"
-      r="6"
-      fill="#FFFFFF"
+      r="7.5"
+      fill="#FFFBEB"
       stroke="#451A03"
-      strokeWidth="2.5"
+      strokeWidth="2.8"
     />
-    <path
-      d="M34 28V18L41 20V25L34 23"
+
+    {/* Not Musik Irama */}
+    <circle
+      cx="29"
+      cy="30"
+      r="3"
       fill="#D97706"
       stroke="#451A03"
-      strokeWidth="2.2"
+      strokeWidth="2"
+    />
+    <path
+      d="M32 30V17L42 19.5V24.5L32 22"
+      fill="#F59E0B"
+      stroke="#451A03"
+      strokeWidth="2.5"
       strokeLinejoin="round"
     />
   </svg>
 );
 
-/** 2. Ikon Utama untuk Lab Irama Tilawati (Metronom Kayu & Nada Rost) */
+/** 2. Ikon Utama untuk Lab Irama Tilawati (Metronom Kayu & Gelombang Nada Rost) */
 const LabIramaIconSvg = () => (
-  <svg viewBox="0 0 56 56" fill="none" className="w-11 h-11 overflow-visible">
+  <svg viewBox="0 0 56 56" fill="none" className="w-12 h-12 overflow-visible">
+    {/* Hard Offset Shadow */}
+    <path d="M21 11H39L46 47H14L21 11Z" fill="#451A03" />
+
+    {/* Badan Metronom Kayu */}
     <path
-      d="M19 10H37L44 46H12L19 10Z"
+      d="M18 8H36L43 44H11L18 8Z"
       fill="#D97706"
       stroke="#451A03"
       strokeWidth="3"
       strokeLinejoin="round"
     />
+
+    {/* Panel Skala Dalam */}
     <path
-      d="M23 16H33L37 40H19L23 16Z"
+      d="M22 14H32L36 38H18L22 14Z"
       fill="#FEF3C7"
       stroke="#451A03"
       strokeWidth="2.5"
       strokeLinejoin="round"
     />
+
+    {/* Garis Skala Tempo */}
+    <path
+      d="M24 20H30 M23 26H31 M22 32H32"
+      stroke="#B45309"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+
+    {/* Jarum Bandul Metronom */}
     <line
-      x1="28"
-      y1="40"
-      x2="39"
-      y2="15"
+      x1="27"
+      y1="39"
+      x2="40"
+      y2="13"
       stroke="#451A03"
       strokeWidth="3.5"
       strokeLinecap="round"
     />
     <circle
-      cx="35"
-      cy="23"
-      r="4.5"
+      cx="35.5"
+      cy="22"
+      r="5"
       fill="#FACC15"
       stroke="#451A03"
       strokeWidth="2.5"
     />
+
+    {/* Kaki Dasar Metronom */}
     <rect
-      x="10"
-      y="43"
+      x="9"
+      y="41"
       width="36"
-      height="6"
-      rx="3"
+      height="7"
+      rx="3.5"
       fill="#78350F"
       stroke="#451A03"
-      strokeWidth="2.5"
+      strokeWidth="3"
     />
   </svg>
 );
 
-/** 3. Ikon Utama untuk Arena Kartu Klasik (Sepasang Kartu Kemah) */
+/** 3. Ikon Utama untuk Arena Kartu Klasik (Sepasang Kartu Hijaiyah & Kilau Cepat) */
 const ArenaKartuIconSvg = () => (
-  <svg viewBox="0 0 56 56" fill="none" className="w-11 h-11 overflow-visible">
+  <svg viewBox="0 0 56 56" fill="none" className="w-12 h-12 overflow-visible">
+    {/* Hard Offset Shadow */}
     <rect
-      x="7"
-      y="12"
+      x="9"
+      y="14"
       width="24"
       height="33"
       rx="5"
+      transform="rotate(-8 9 14)"
+      fill="#451A03"
+    />
+    <rect
+      x="25"
+      y="11"
+      width="25"
+      height="34"
+      rx="5"
+      transform="rotate(6 25 11)"
+      fill="#451A03"
+    />
+
+    {/* Kartu Kiri Tertutup */}
+    <rect
+      x="6"
+      y="11"
+      width="24"
+      height="33"
+      rx="5"
+      transform="rotate(-8 6 11)"
       fill="#15803D"
       stroke="#451A03"
       strokeWidth="3"
     />
-    <circle cx="19" cy="28" r="4" fill="#FEF08A" />
+    <circle
+      cx="16"
+      cy="26"
+      r="4.5"
+      fill="#FEF08A"
+      stroke="#451A03"
+      strokeWidth="2"
+    />
+
+    {/* Kartu Kanan Terbuka (Huruf Ba) */}
     <rect
-      x="24"
-      y="9"
+      x="22"
+      y="8"
       width="25"
       height="34"
       rx="5"
+      transform="rotate(6 22 8)"
       fill="#FEF9C3"
       stroke="#451A03"
       strokeWidth="3"
     />
     <path
-      d="M31 25V28C31 30.5 42 30.5 42 28V25"
-      stroke="#78350F"
+      d="M29 24V27C29 30 40 30 40 27V24"
+      stroke="#451A03"
       strokeWidth="3"
       strokeLinecap="round"
     />
-    <circle cx="36.5" cy="34.5" r="2.2" fill="#DC2626" />
+    <circle cx="34.5" cy="33.5" r="2.5" fill="#EF4444" />
   </svg>
 );
 
-/** Ilustrasi Latar Belakang Spesifik tiap Tenda Kemah */
+/** Ilustrasi Dekoratif di Dalam Tenda */
 const ProgramBackdropIllustration = ({ id }: { id: string }) => {
   switch (id) {
     case "rhythm-memory":
@@ -152,12 +222,64 @@ const ProgramBackdropIllustration = ({ id }: { id: string }) => {
           fill="none"
           className="pointer-events-none absolute -right-2 -bottom-2 h-36 w-44 opacity-25 select-none"
         >
-          <rect x="65" y="75" width="10" height="45" rx="5" fill="#15803D" />
-          <rect x="83" y="45" width="10" height="75" rx="5" fill="#16A34A" />
-          <rect x="101" y="60" width="10" height="60" rx="5" fill="#15803D" />
-          <rect x="119" y="30" width="10" height="90" rx="5" fill="#14532D" />
-          <rect x="137" y="52" width="10" height="68" rx="5" fill="#16A34A" />
-          <circle cx="119" cy="18" r="6" fill="#D97706" />
+          <rect
+            x="62"
+            y="72"
+            width="12"
+            height="48"
+            rx="6"
+            fill="#15803D"
+            stroke="#451A03"
+            strokeWidth="2.5"
+          />
+          <rect
+            x="82"
+            y="44"
+            width="12"
+            height="76"
+            rx="6"
+            fill="#16A34A"
+            stroke="#451A03"
+            strokeWidth="2.5"
+          />
+          <rect
+            x="102"
+            y="58"
+            width="12"
+            height="62"
+            rx="6"
+            fill="#15803D"
+            stroke="#451A03"
+            strokeWidth="2.5"
+          />
+          <rect
+            x="122"
+            y="28"
+            width="12"
+            height="92"
+            rx="6"
+            fill="#14532D"
+            stroke="#451A03"
+            strokeWidth="2.5"
+          />
+          <rect
+            x="142"
+            y="50"
+            width="12"
+            height="70"
+            rx="6"
+            fill="#16A34A"
+            stroke="#451A03"
+            strokeWidth="2.5"
+          />
+          <circle
+            cx="128"
+            cy="16"
+            r="6"
+            fill="#FACC15"
+            stroke="#451A03"
+            strokeWidth="2.5"
+          />
         </svg>
       );
 
@@ -168,13 +290,21 @@ const ProgramBackdropIllustration = ({ id }: { id: string }) => {
           fill="none"
           className="pointer-events-none absolute -right-2 -bottom-2 h-36 w-44 opacity-25 select-none"
         >
+          {/* Kurva Tangga Nada Datar - Naik - Turun */}
           <path
             d="M 15 90 L 65 90 C 85 90, 90 40, 115 40 C 140 40, 145 105, 170 105"
             stroke="#78350F"
             strokeWidth="6"
             strokeLinecap="round"
           />
-          <circle cx="40" cy="90" r="8" fill="#D97706" />
+          <circle
+            cx="40"
+            cy="90"
+            r="8"
+            fill="#D97706"
+            stroke="#451A03"
+            strokeWidth="3"
+          />
           <circle
             cx="115"
             cy="40"
@@ -183,7 +313,14 @@ const ProgramBackdropIllustration = ({ id }: { id: string }) => {
             stroke="#451A03"
             strokeWidth="3"
           />
-          <circle cx="165" cy="105" r="8" fill="#D97706" />
+          <circle
+            cx="165"
+            cy="105"
+            r="8"
+            fill="#D97706"
+            stroke="#451A03"
+            strokeWidth="3"
+          />
         </svg>
       );
 
@@ -195,21 +332,23 @@ const ProgramBackdropIllustration = ({ id }: { id: string }) => {
           className="pointer-events-none absolute -right-2 -bottom-2 h-36 w-44 opacity-25 select-none"
         >
           <rect
-            x="60"
-            y="25"
+            x="56"
+            y="30"
             width="46"
             height="62"
             rx="8"
+            transform="rotate(-8 56 30)"
             fill="#F59E0B"
             stroke="#451A03"
             strokeWidth="4"
           />
           <rect
-            x="116"
-            y="25"
+            x="112"
+            y="24"
             width="46"
             height="62"
             rx="8"
+            transform="rotate(6 112 24)"
             fill="#FEF08A"
             stroke="#451A03"
             strokeWidth="4"
@@ -229,7 +368,10 @@ interface TrainingProgram {
   description: string;
   badge: string;
   badgeBg: string;
-  roofBg: string;
+  roofPrimary: string;
+  roofSecondary: string;
+  curtainColor: string;
+  flagColor: string;
   skills: string[];
   to: string;
   themeBg: string;
@@ -250,7 +392,10 @@ const TRAINING_PROGRAMS: TrainingProgram[] = [
       "Gabungan asah otak visual dan ketukan irama Tilawati di tenda savana! Balik kartu, dengarkan lantunan qari, dan ketuk panah sesuai ketukan nada.",
     badge: "Kemah Unggulan",
     badgeBg: "bg-[#15803D]",
-    roofBg: "bg-[#15803D]",
+    roofPrimary: "#15803D",
+    roofSecondary: "#22C55E",
+    curtainColor: "#166534",
+    flagColor: "#EF4444",
     skills: ["Memori Visual", "Ketukan Irama", "Audio Qari"],
     to: "/member/ngaji-ceria/rhythm-memory",
     themeBg: "bg-[#DCFCE7]",
@@ -269,7 +414,10 @@ const TRAINING_PROGRAMS: TrainingProgram[] = [
       "Latih kepekaan telingamu membedakan 3 tingkatan nada Rost Tilawati (Datar, Naik, Turun) dan jaga konsistensi panjang-pendek bacaan bersama metronom kayu.",
     badge: "Audio & Nada",
     badgeBg: "bg-[#D97706]",
-    roofBg: "bg-[#D97706]",
+    roofPrimary: "#D97706",
+    roofSecondary: "#FBBF24",
+    curtainColor: "#B45309",
+    flagColor: "#16A34A",
     skills: ["Nada Datar-Naik-Turun", "Metronom Mad", "Fokus Telinga"],
     to: "/member/ngaji-ceria/lab-irama",
     themeBg: "bg-[#FFFBEB]",
@@ -287,7 +435,10 @@ const TRAINING_PROGRAMS: TrainingProgram[] = [
       "Uji ketangkasan memori mencocokkan huruf hijaiyah tunggal, kata berharakat, hingga potongan ayat suci di perkemahan savana sebelum waktu habis.",
     badge: "Memori Cepat",
     badgeBg: "bg-[#78350F]",
-    roofBg: "bg-[#B45309]",
+    roofPrimary: "#92400E",
+    roofSecondary: "#F59E0B",
+    curtainColor: "#78350F",
+    flagColor: "#38BDF8",
     skills: ["Kecepatan Mata", "Jilid 1 - 6", "Tantangan Waktu"],
     to: "/member/ngaji-ceria/arena-kartu",
     themeBg: "bg-[#FEF9C3]",
@@ -315,8 +466,21 @@ export default function TilawatiTrainingPage() {
       themeScope="tilawati"
       onBack={() => navigate("/member/ngaji-ceria/map")}
     >
+      {/* Header Eksplorasi Savana */}
+      <ExploreHeader
+        title="Perkemahan Savana"
+        subtitle="Tenda Kemah Irama, Ketukan, & Memori Tilawati"
+        onBack={() => navigate("/member/ngaji-ceria/map")}
+        themeScope="tilawati"
+        themeColorClass="bg-[#D97706]"
+        borderColorClass="border-[#451A03]"
+        shadowClass="shadow-[0_4px_0px_#451A03]"
+        textColorClass="text-[#FEF3C7]"
+        backClass="bg-[#FEF08A] text-[#451A03] border-[#451A03] shadow-[3px_3px_0px_#451A03] hover:bg-[#FDE047]"
+      />
+
       {/* Latar Padang Rumput Savana (#FEF3C7) */}
-      <div className="relative min-h-[100dvh] w-full bg-[#FEF3C7] overflow-x-hidden pb-48 select-none">
+      <div className="relative min-h-[100dvh] w-full bg-[#FEF3C7] overflow-x-clip pb-48 select-none">
         {/* Bintik Hangat Matahari Savana */}
         <div
           className="pointer-events-none absolute inset-0 opacity-35"
@@ -327,66 +491,159 @@ export default function TilawatiTrainingPage() {
         />
 
         <div className="relative z-20">
-          {/* Header Eksplorasi Savana */}
-          <ExploreHeader
-            title="Perkemahan Savana"
-            subtitle="Tenda Kemah Irama, Ketukan, & Memori Tilawati"
-            onBack={() => navigate("/member/ngaji-ceria/map")}
-            themeScope="tilawati"
-            themeColorClass="bg-[#D97706]"
-            borderColorClass="border-[#451A03]"
-            shadowClass="shadow-[0_4px_0px_#451A03]"
-            textColorClass="text-[#FEF3C7]"
-            backClass="bg-[#FEF08A] text-[#451A03] border-[#451A03] shadow-[3px_3px_0px_#451A03] hover:bg-[#FDE047]"
-          />
 
           {/* ============================================================
               1. HERO BANNER: POS API UNGGUN UTAMA PADANG SAVANA
              ============================================================ */}
           <section className="px-4 pt-6 max-w-4xl mx-auto">
             <div className="relative overflow-hidden rounded-3xl bg-[#78350F] border-[4px] border-[#451A03] p-5 sm:p-7 shadow-[6px_6px_0px_#451A03] text-[#FEF3C7]">
-              {/* Ilustrasi Kanan: Api Unggun Savana Menyala */}
-              <div className="pointer-events-none absolute right-4 top-4 bottom-4 hidden sm:flex w-[30%] items-center justify-center">
+              {/* Siluet Bulan & Bintang Malam Perkemahan di Sudut */}
+              <div className="pointer-events-none absolute -right-8 -top-8 w-44 h-44 rounded-full bg-[#92400E] border-[3px] border-[#451A03] opacity-50" />
+
+              {/* Ilustrasi Kanan: Api Unggun Savana & Tenda Kecil */}
+              <div className="pointer-events-none absolute right-4 top-3 bottom-3 hidden sm:flex w-[32%] items-center justify-center">
                 <motion.svg
-                  viewBox="0 0 120 120"
+                  viewBox="0 0 140 130"
                   fill="none"
-                  className="h-full max-h-[120px] w-auto overflow-visible"
-                  animate={{ scale: [1, 1.04, 1], y: [0, -3, 0] }}
+                  className="h-full max-h-[130px] w-auto overflow-visible"
+                  animate={{ scale: [1, 1.03, 1], y: [0, -2, 0] }}
                   transition={{
                     duration: 2.4,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                 >
-                  {/* Lingkaran Batu Api Unggun */}
-                  <ellipse cx="60" cy="98" rx="42" ry="10" fill="#451A03" />
-                  {/* Kayu Bakar Menyilang */}
-                  <path
-                    d="M24 96L96 78M24 78L96 96"
-                    stroke="#D97706"
-                    strokeWidth="10"
-                    strokeLinecap="round"
+                  {/* Bintang & Percikan Api Unggun */}
+                  <circle
+                    cx="32"
+                    cy="28"
+                    r="4"
+                    fill="#FEF08A"
+                    stroke="#451A03"
+                    strokeWidth="2"
                   />
-                  {/* Lidah Api Unggun Luar */}
+                  <circle
+                    cx="108"
+                    cy="24"
+                    r="5"
+                    fill="#FACC15"
+                    stroke="#451A03"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx="96"
+                    cy="48"
+                    r="3.5"
+                    fill="#FB923C"
+                    stroke="#451A03"
+                    strokeWidth="2"
+                  />
+
+                  {/* Alas Tanah & Susunan Batu Api Unggun */}
+                  <ellipse cx="70" cy="108" rx="52" ry="12" fill="#451A03" />
+                  <ellipse
+                    cx="70"
+                    cy="105"
+                    rx="48"
+                    ry="10"
+                    fill="#92400E"
+                    stroke="#451A03"
+                    strokeWidth="3"
+                  />
+
+                  {/* Kayu Bakar Menyilang Neo-Brutalism */}
+                  <rect
+                    x="24"
+                    y="90"
+                    width="92"
+                    height="14"
+                    rx="7"
+                    transform="rotate(-12 70 97)"
+                    fill="#B45309"
+                    stroke="#451A03"
+                    strokeWidth="3.5"
+                  />
+                  <rect
+                    x="24"
+                    y="90"
+                    width="92"
+                    height="14"
+                    rx="7"
+                    transform="rotate(12 70 97)"
+                    fill="#D97706"
+                    stroke="#451A03"
+                    strokeWidth="3.5"
+                  />
+
+                  {/* Batu-Batu Melingkari Api */}
+                  <ellipse
+                    cx="34"
+                    cy="106"
+                    rx="11"
+                    ry="7"
+                    fill="#A8A29E"
+                    stroke="#451A03"
+                    strokeWidth="3"
+                  />
+                  <ellipse
+                    cx="56"
+                    cy="111"
+                    rx="12"
+                    ry="7.5"
+                    fill="#78716C"
+                    stroke="#451A03"
+                    strokeWidth="3"
+                  />
+                  <ellipse
+                    cx="84"
+                    cy="111"
+                    rx="12"
+                    ry="7.5"
+                    fill="#A8A29E"
+                    stroke="#451A03"
+                    strokeWidth="3"
+                  />
+                  <ellipse
+                    cx="106"
+                    cy="106"
+                    rx="11"
+                    ry="7"
+                    fill="#78716C"
+                    stroke="#451A03"
+                    strokeWidth="3"
+                  />
+
+                  {/* Lidah Api Unggun Luar (Merah-Oranye) */}
                   <path
-                    d="M60 14C60 14 28 42 28 68C28 85 42 94 60 94C78 94 92 85 92 68C92 52 80 38 72 28C72 42 64 46 64 46C64 28 60 14 60 14Z"
+                    d="M70 14 C70 14 36 44 36 72 C36 90 51 100 70 100 C89 100 104 90 104 72 C104 54 90 40 82 28 C82 42 74 48 74 48 C74 30 70 14 70 14 Z"
                     fill="#EF4444"
+                    stroke="#451A03"
+                    strokeWidth="4"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Lidah Api Tengah (Oranye Hangat) */}
+                  <path
+                    d="M70 32 C70 32 45 52 45 74 C45 87 56 95 70 95 C84 95 95 87 95 74 C95 58 78 44 70 32 Z"
+                    fill="#F97316"
                     stroke="#451A03"
                     strokeWidth="3.5"
                     strokeLinejoin="round"
                   />
-                  {/* Lidah Api Unggun Dalam */}
+
+                  {/* Inti Api Unggun (Kuning Terang) */}
                   <path
-                    d="M60 44C60 44 42 58 42 74C42 84 50 90 60 90C70 90 78 84 78 74C78 60 60 44 60 44Z"
+                    d="M70 50 C70 50 54 64 54 78 C54 87 61 93 70 93 C79 93 86 87 86 78 C86 64 70 50 70 50 Z"
                     fill="#FACC15"
                     stroke="#451A03"
                     strokeWidth="3"
+                    strokeLinejoin="round"
                   />
                 </motion.svg>
               </div>
 
               {/* Konten Teks Hero */}
-              <div className="relative z-10 sm:max-w-[68%]">
+              <div className="relative z-10 sm:max-w-[66%]">
                 <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#FEF08A] border-[3px] border-[#451A03] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#451A03] mb-2.5 shadow-[3px_3px_0px_#451A03]">
                   <Sparkles size={12} /> Api Unggun & Kemah Savana
                 </span>
@@ -416,11 +673,12 @@ export default function TilawatiTrainingPage() {
           </section>
 
           {/* ============================================================
-              2. DAFTAR 3 TENDA KEMAH SAVANA (SEGITIGA CLIP-PATH)
+              2. DAFTAR 3 TENDA KEMAH SAVANA (ANATOMI TENDA UTUH & MENYATU)
              ============================================================ */}
           <section className="px-4 pt-8 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-10 px-2">
-              <div className="inline-block bg-[#15803D] border-[3px] border-[#451A03] px-4 py-1.5 rounded-xl shadow-[3px_3px_0px_#451A03]">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-8 px-1">
+              <div className="inline-flex items-center gap-2 bg-[#15803D] border-[3px] border-[#451A03] px-4 py-1.5 rounded-xl shadow-[3px_3px_0px_#451A03]">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#FEF08A] border border-[#451A03]" />
                 <h2 className="font-display font-black text-sm sm:text-base uppercase tracking-wider text-[#FEF08A]">
                   Pilih Tenda Kemah ({TRAINING_PROGRAMS.length})
                 </h2>
@@ -430,67 +688,185 @@ export default function TilawatiTrainingPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-8 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-7 pt-2">
               {TRAINING_PROGRAMS.map((item) => (
-                <div key={item.id} className="relative flex flex-col pt-16">
-                  {/* Bendera Kompas di Puncak Tenda Kemah */}
-                  <div className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
-                    <div
-                      className="h-5 w-9 bg-[#EF4444] border-[2.5px] border-[#451A03] shadow-[2px_2px_0px_#451A03]"
-                      style={{
-                        clipPath: "polygon(0 0, 100% 50%, 0 100%)",
-                      }}
-                    />
-                    <div className="h-4 w-1 bg-[#451A03]" />
+                <motion.div
+                  key={item.id}
+                  whileHover={{ y: -5 }}
+                  whileTap={{ scale: 0.98, y: 2 }}
+                  onClick={() => handleNavigate(item.to)}
+                  className="group relative flex flex-col items-center cursor-pointer"
+                >
+                  {/* ===================================================== */}
+                  {/* A. BENDERA PUNCAK & ATAP KANVAS TENDA SAVANA (SVG)    */}
+                  {/* ===================================================== */}
+                  <div className="relative z-20 w-full -mb-2 pointer-events-none">
+                    <svg
+                      viewBox="0 0 320 132"
+                      className="w-full h-auto overflow-visible drop-shadow-[4px_4px_0px_#451A03]"
+                      fill="none"
+                    >
+                      {/* Tiang Kayu Puncak Tenda */}
+                      <rect
+                        x="156"
+                        y="4"
+                        width="8"
+                        height="28"
+                        rx="4"
+                        fill="#78350F"
+                        stroke="#451A03"
+                        strokeWidth="3.5"
+                      />
+
+                      {/* Bendera Segitiga Berkibar di Puncak */}
+                      <path
+                        d="M162 6 L208 16 L162 26 Z"
+                        fill={item.flagColor}
+                        stroke="#451A03"
+                        strokeWidth="3.5"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="160"
+                        cy="6"
+                        r="4"
+                        fill="#FACC15"
+                        stroke="#451A03"
+                        strokeWidth="2.5"
+                      />
+
+                      {/* Tali Pancang Tenda Kiri & Kanan (Guy Ropes) */}
+                      <line
+                        x1="156"
+                        y1="28"
+                        x2="8"
+                        y2="112"
+                        stroke="#451A03"
+                        strokeWidth="3"
+                        strokeDasharray="6 5"
+                      />
+                      <line
+                        x1="164"
+                        y1="28"
+                        x2="312"
+                        y2="112"
+                        stroke="#451A03"
+                        strokeWidth="3"
+                        strokeDasharray="6 5"
+                      />
+
+                      {/* Kubah Segitiga Atap Tenda Utama */}
+                      <path
+                        d="M160 24 L308 110 H12 L160 24 Z"
+                        fill={item.roofPrimary}
+                        stroke="#451A03"
+                        strokeWidth="4.5"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* Panel Kanvas Belang Tengah (Safari Tent Stripes) */}
+                      <path
+                        d="M160 24 L224 110 H96 L160 24 Z"
+                        fill={item.roofSecondary}
+                        stroke="#451A03"
+                        strokeWidth="4"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* Garis Jahitan Tengah Atap Tenda */}
+                      <line
+                        x1="160"
+                        y1="24"
+                        x2="160"
+                        y2="110"
+                        stroke="#451A03"
+                        strokeWidth="3.5"
+                      />
+
+                      {/* Kilap Cahaya Matahari di Atap */}
+                      <path
+                        d="M142 46 L86 80"
+                        stroke="#FFFFFF"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        opacity="0.7"
+                      />
+
+                      {/* Renda Bibir Kanopi Tenda (Scalloped Valance Awning) */}
+                      <path
+                        d="M12 108 H308 V118 C308 125 296 128 284 128 C272 128 260 125 260 118 C260 125 248 128 235 128 C222 128 210 125 210 118 C210 125 198 128 185 128 C172 128 160 125 160 118 C160 125 148 128 135 128 C122 128 110 125 110 118 C110 125 98 128 85 128 C72 128 60 125 60 118 C60 125 48 128 36 128 C24 128 12 125 12 118 Z"
+                        fill="#FEF08A"
+                        stroke="#451A03"
+                        strokeWidth="4"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </div>
 
-                  {/* ATAP TENDA KEMAH SEGITIGA SAVANA (CLIP-PATH) */}
-                  <div
-                    className="pointer-events-none absolute top-4 left-0 right-0 h-20 bg-[#451A03] z-20"
-                    style={{
-                      clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
-                    }}
-                  >
+                  {/* ===================================================== */}
+                  {/* B. MEDALI IKON DI TENGAH AMBANG PINTU TENDA           */}
+                  {/* ===================================================== */}
+                  <div className="relative z-30 -mt-9 mb-1 flex justify-center">
                     <div
-                      className={`w-full h-full ${item.roofBg}`}
-                      style={{
-                        clipPath: "polygon(50% 10%, 96% 100%, 4% 100%)",
-                      }}
-                    />
-                  </div>
-
-                  {/* IKON GAME DI TENGAH PINTU TENDA */}
-                  <div className="relative z-30 -mt-6 mb-2 flex justify-center">
-                    <div
-                      className={`w-16 h-16 rounded-2xl border-[4px] border-[#451A03] flex items-center justify-center shadow-[4px_4px_0px_#451A03] ${item.accentBg}`}
+                      className={`w-16 h-16 rounded-2xl border-[4px] border-[#451A03] flex items-center justify-center shadow-[4px_4px_0px_#451A03] group-hover:scale-105 transition-transform ${item.accentBg}`}
                     >
                       {item.renderIcon()}
                     </div>
                   </div>
 
-                  {/* BADAN TENDA KEMAH SAVANA */}
+                  {/* ===================================================== */}
+                  {/* C. BADAN RUANG DALAM TENDA & TIRAI PINTU TERBUKA      */}
+                  {/* ===================================================== */}
                   <StickerCard
                     accent="none"
-                    hoverable
-                    whileHover={{ y: -4 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleNavigate(item.to)}
-                    className={`group relative flex-1 flex flex-col justify-between w-full overflow-hidden rounded-b-2xl rounded-t-sm border-[4px] border-[#451A03] shadow-[6px_6px_0px_#451A03] p-5 pt-7 text-center cursor-pointer ${item.themeBg}`}
+                    className={`relative z-10 flex-1 flex flex-col justify-between w-full overflow-hidden rounded-b-[26px] rounded-t-lg border-[4px] border-[#451A03] shadow-[6px_6px_0px_#451A03] px-5 pt-8 pb-5 text-center ${item.themeBg}`}
                   >
                     <ProgramBackdropIllustration id={item.id} />
 
-                    {/* Lipatan Kain Tirai Pintu Tenda di Kiri & Kanan */}
-                    <div
-                      className="pointer-events-none absolute left-0 top-0 w-10 h-24 bg-[#78350F]/20"
-                      style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
-                    />
-                    <div
-                      className="pointer-events-none absolute right-0 top-0 w-10 h-24 bg-[#78350F]/20"
-                      style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%)" }}
-                    />
+                    {/* Tirai Kain Pintu Tenda Kiri & Kanan (Dengan Outline & Tali Pengikat) */}
+                    <svg
+                      viewBox="0 0 300 130"
+                      preserveAspectRatio="none"
+                      className="pointer-events-none absolute top-0 inset-x-0 w-full h-28 z-0"
+                      fill="none"
+                    >
+                      {/* Tirai Kiri */}
+                      <path
+                        d="M0 0 H64 C52 44 34 78 0 115 Z"
+                        fill={item.curtainColor}
+                        fillOpacity="0.28"
+                        stroke="#451A03"
+                        strokeWidth="3"
+                        strokeLinejoin="round"
+                      />
+                      {/* Simpul Tali Pengikat Tirai Kiri */}
+                      <path
+                        d="M0 54 Q18 58 28 52"
+                        stroke="#D97706"
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                      />
+
+                      {/* Tirai Kanan */}
+                      <path
+                        d="M300 0 H236 C248 44 266 78 300 115 Z"
+                        fill={item.curtainColor}
+                        fillOpacity="0.28"
+                        stroke="#451A03"
+                        strokeWidth="3"
+                        strokeLinejoin="round"
+                      />
+                      {/* Simpul Tali Pengikat Tirai Kanan */}
+                      <path
+                        d="M300 54 Q282 58 272 52"
+                        stroke="#D97706"
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
 
                     <div className="relative z-10 flex flex-col items-center">
-                      {/* Baris Badge */}
+                      {/* Baris Lencana Kategori Tenda */}
                       <div className="flex flex-wrap items-center justify-center gap-1.5 mb-2">
                         <span
                           className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black text-[#FFFFFF] uppercase tracking-wider border-[2.5px] border-[#451A03] shadow-[2px_2px_0px_#451A03] ${item.badgeBg}`}
@@ -539,38 +915,137 @@ export default function TilawatiTrainingPage() {
                       </div>
                     </div>
                   </StickerCard>
-                </div>
+
+                  {/* ===================================================== */}
+                  {/* D. ALAS KAYU & PATOK TENDA DI TANAH SAVANA            */}
+                  {/* ===================================================== */}
+                  <div className="pointer-events-none relative z-0 -mt-1.5 w-[88%] flex items-center justify-between px-2">
+                    <div className="w-4 h-3.5 rounded-b-md bg-[#78350F] border-[3px] border-[#451A03] shadow-[2px_2px_0px_#451A03]" />
+                    <div className="h-3 flex-1 mx-2 rounded-b-xl bg-[#92400E] border-x-[3px] border-b-[3px] border-[#451A03] shadow-[2px_2px_0px_#451A03]" />
+                    <div className="w-4 h-3.5 rounded-b-md bg-[#78350F] border-[3px] border-[#451A03] shadow-[2px_2px_0px_#451A03]" />
+                  </div>
+                </motion.div>
               ))}
             </div>
           </section>
         </div>
 
         {/* ============================================================
-            3. HIASAN PAGAR KAYU PERKEMAHAN & RUMPUT SAVANA DI BAWAH
+            3. PANORAMA PAGAR KAYU PERKEMAHAN & RUMPUT SAVANA DI BAWAH
            ============================================================ */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 overflow-hidden pt-8">
-          <div className="relative flex w-full items-end justify-around px-2">
-            <div className="absolute bottom-4 left-0 right-0 h-3 bg-[#D97706] border-y-[3px] border-[#451A03] z-0" />
-            {Array.from({ length: 16 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="relative z-10 h-14 w-6 shrink-0 bg-[#78350F] border-[3px] border-[#451A03]"
-                style={{
-                  clipPath:
-                    "polygon(50% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%)",
-                }}
-              />
-            ))}
-          </div>
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 sm:h-36 z-10 overflow-hidden">
+          <svg
+            viewBox="0 0 1000 140"
+            preserveAspectRatio="xMidYMin slice"
+            className="w-full h-full"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Palang Kayu Horizontal Pagar Kemah */}
+            <rect
+              x="-20"
+              y="42"
+              width="1040"
+              height="12"
+              fill="#D97706"
+              stroke="#451A03"
+              strokeWidth="4"
+            />
+            <rect
+              x="-20"
+              y="68"
+              width="1040"
+              height="12"
+              fill="#B45309"
+              stroke="#451A03"
+              strokeWidth="4"
+            />
 
-          <div className="relative -mt-3 h-10 w-full bg-[#15803D] border-t-[4px] border-[#451A03] flex items-start justify-around">
-            {Array.from({ length: 12 }).map((_, gIdx) => (
-              <div
-                key={gIdx}
-                className="-mt-3 h-4 w-8 bg-[#16A34A] border-t-[3px] border-x-[3px] border-[#451A03] rounded-t-full"
-              />
+            {/* Barisan Patok Pagar Kayu Runcing (Dengan Outline Utuh) */}
+            {[
+              35, 105, 175, 245, 315, 385, 455, 525, 595, 665, 735, 805, 875,
+              945,
+            ].map((xPos) => (
+              <g key={xPos}>
+                <path
+                  d={`M${xPos},18 L${xPos + 13},4 L${xPos + 26},18 V105 H${xPos} Z`}
+                  fill="#78350F"
+                  stroke="#451A03"
+                  strokeWidth="4"
+                  strokeLinejoin="round"
+                />
+                {/* Serat Highlight Kayu */}
+                <line
+                  x1={xPos + 8}
+                  y1="22"
+                  x2={xPos + 8}
+                  y2="82"
+                  stroke="#92400E"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </g>
             ))}
-          </div>
+
+            {/* Bukit Rumput Savana Belakang */}
+            <path
+              d="M-20,92 Q180,68 380,90 T780,82 Q910,74 1020,90 L1020,140 L-20,140 Z"
+              fill="#15803D"
+              stroke="#451A03"
+              strokeWidth="4.5"
+            />
+
+            {/* Semak Rumput Savana Mencuat */}
+            <path
+              d="M140,94 L132,74 L146,84 L152,68 L158,84 L170,74 L162,94 Z"
+              fill="#22C55E"
+              stroke="#451A03"
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M500,90 L492,70 L506,80 L512,64 L518,80 L530,70 L522,90 Z"
+              fill="#4ADE80"
+              stroke="#451A03"
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M840,92 L832,72 L846,82 L852,66 L858,82 L870,72 L862,92 Z"
+              fill="#22C55E"
+              stroke="#451A03"
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
+
+            {/* Hamparan Rumput Savana Depan & Tanah Perkemahan */}
+            <path
+              d="M-20,108 Q250,92 500,106 T1020,104 L1020,140 L-20,140 Z"
+              fill="#16A34A"
+              stroke="#451A03"
+              strokeWidth="4.5"
+            />
+
+            {/* Batu-Batu Kecil Savana */}
+            <ellipse
+              cx="260"
+              cy="122"
+              rx="18"
+              ry="8"
+              fill="#F59E0B"
+              stroke="#451A03"
+              strokeWidth="3.5"
+            />
+            <ellipse
+              cx="720"
+              cy="120"
+              rx="22"
+              ry="9"
+              fill="#D97706"
+              stroke="#451A03"
+              strokeWidth="3.5"
+            />
+          </svg>
         </div>
       </div>
     </NgajiCeriaLayout>

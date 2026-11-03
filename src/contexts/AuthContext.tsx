@@ -38,7 +38,7 @@ interface AuthContextValue {
   loading: boolean;
   isAuthLoading: boolean; // Flag loading autentikasi awal untuk mencegah flicker ke guest
   isRoleVerified: boolean; // Flag verifikasi role otoritatif dari server
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (credential?: string) => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, isUstadz?: boolean) => Promise<void>;
   login: (identifier: string, password: string) => Promise<void>; // email atau username
@@ -49,6 +49,8 @@ interface AuthContextValue {
     confirmPassword: string,
     referralCode?: string
   ) => Promise<void>;
+  isNewUser: boolean;
+  setIsNewUser: (value: boolean) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   groupId: string | null;
@@ -104,6 +106,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isRoleVerified, setIsRoleVerified] = useState(false);
+  const [isNewUser, setIsNewUser] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return (
+        params.get("new_user") === "1" ||
+        params.get("new_user") === "true" ||
+        params.get("is_new_user") === "1" ||
+        params.get("is_new_user") === "true" ||
+        params.get("oauth_new") === "1"
+      );
+    } catch {
+      return false;
+    }
+  });
   const initInFlightRef = useRef<Promise<void> | null>(null);
 
   // Initialize: cek session profil langsung ke Backend Go via credentials: include
@@ -131,6 +148,16 @@ function AuthProvider({ children }: { children: ReactNode }) {
             profileRes.profile ||
             profileRes.data?.user ||
             profileRes.data;
+
+          const isNew = Boolean(
+            profileRes.is_new_user ||
+            profileRes.is_new ||
+            goUser?.is_new_user ||
+            goUser?.is_new
+          );
+          if (isNew) {
+            setIsNewUser(true);
+          }
 
           console.log("[AuthContext] Profile 200 OK:", {
             status: res.status,
@@ -237,8 +264,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
     void initAuth();
   }, [initAuth]);
 
-  // Fungsi redirect ke endpoint Goth Google OAuth di backend
-  const loginWithGoogle = async () => {
+  // Fungsi login dengan Google (baik via credential popup maupun redirect OAuth)
+  const loginWithGoogle = async (credential?: string) => {
+    if (credential) {
+      try {
+        const data: any = await authApi.loginWithGoogle(credential);
+        if (data?.is_new_user || data?.user?.is_new_user) {
+          setIsNewUser(true);
+        }
+        await refreshUser();
+      } catch (err) {
+        console.error("Google login error:", err);
+        throw err;
+      }
+      return;
+    }
     const apiBase = getApiBaseUrl();
     window.location.href = `${apiBase}/api/auth/google`;
   };
@@ -265,6 +305,16 @@ function AuthProvider({ children }: { children: ReactNode }) {
           profileRes.profile ||
           profileRes.data?.user ||
           profileRes.data;
+
+        const isNew = Boolean(
+          profileRes.is_new_user ||
+          profileRes.is_new ||
+          goUser?.is_new_user ||
+          goUser?.is_new
+        );
+        if (isNew) {
+          setIsNewUser(true);
+        }
 
         const rawRole = goUser?.role || profileRes.role;
         const safeRole = toTartilaRole(rawRole);
@@ -331,9 +381,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Fungsi login via email / username
+  // Setelah user login ulang, hapus tanda pengguna baru (bukan saat daftar).
   const login = async (identifier: string, password: string) => {
     try {
+      if (user) setIsNewUser(false);
       const legacyUser = await authApi.login(identifier, password);
       // Bersihkan cache user sebelumnya sebelum state baru dipasang.
       clearAuthCache();
@@ -445,6 +496,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         confirmPassword,
         referralCode
       );
+      setIsNewUser(true);
       await refreshUser();
     } catch (err) {
       console.error("Ceria register error:", err);
@@ -457,6 +509,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     isAuthLoading,
     isRoleVerified,
+    isNewUser,
+    setIsNewUser,
     loginWithGoogle,
     loginWithEmail,
     register,

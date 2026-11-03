@@ -9,6 +9,7 @@ import { awardProgress, getProgress, recordLeaderboard } from "./progression";
 import { soundManager } from "../../../services/soundManager";
 import { canonicalGameId } from "../../../data/gameAccess";
 import { addEvent } from "@/services/eventService";
+import { useEventStore } from "../../../hooks/useEventStore";
 import { submitScore } from "@/features/ngaji-ceria/services/ngajiCeriaApi";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -133,6 +134,9 @@ export function GameOverModal({
       soundManager.playSfx(
         ARCADE_GAME_IDS.has(gameId) ? "game-over-arcade" : "game-over",
       );
+    }
+    if (user) {
+      void useEventStore.getState().updateProgress("PLAY_GAME");
     }
     addEvent({
       type: "game_completed",

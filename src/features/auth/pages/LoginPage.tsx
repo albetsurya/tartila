@@ -99,7 +99,7 @@ function GoogleIcon({ size = 20 }: { size?: number }) {
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { user, login, isNewUser } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -128,12 +128,16 @@ export function LoginPage() {
     }
   }, []);
 
-  // Setelah session/user tersedia, tampilkan reaksi sukses lalu arahkan ke beranda
+  // Setelah session/user tersedia, tampilkan reaksi sukses lalu arahkan ke beranda atau onboarding
   useEffect(() => {
     if (!user || error) return;
     triggerBibiReaction("success");
-    navigate("/member/ngaji-ceria", { replace: true });
-  }, [user, error, navigate]);
+    if (isNewUser) {
+      navigate("/onboarding", { replace: true });
+    } else {
+      navigate("/member/ngaji-ceria", { replace: true });
+    }
+  }, [user, error, isNewUser, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
