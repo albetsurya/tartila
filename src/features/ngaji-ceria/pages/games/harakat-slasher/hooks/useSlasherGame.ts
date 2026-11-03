@@ -8,6 +8,7 @@ import type {
 import {
   HARAKAT_LIST,
   HARAKAT_DEFINITIONS,
+  SLASHER_LEVELS,
   getSlasherItems,
   extractHarakat,
   matchesSlasherTarget,
@@ -19,8 +20,12 @@ import {
 import { playLetterAudio } from "../../_shared/gameAudio";
 import { playSfx } from "../../_shared/audio";
 import { getBest, setBest } from "../../_shared/storage";
+import {
+  computeAdaptiveDifficulty,
+  type AdaptiveOutput,
+} from "../../_shared/adaptiveDifficulty";
 
-export { matchesSlasherTarget };
+export { matchesSlasherTarget, computeAdaptiveDifficulty };
 
 export type SlasherPhase = "idle" | "playing" | "paused" | "gameover";
 
@@ -592,6 +597,41 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     setPhase("idle");
   }, [mode, targetLength]);
 
+  // ADAPTIVE DIFFICULTY (Bab 8.3): Menyesuaikan fallSpeed & distractorRatio secara real-time
+  const currentLevelCfg =
+    levelConfig ?? SLASHER_LEVELS[session.currentLevel - 1] ?? SLASHER_LEVELS[0];
+  const baseFallSpeed = currentLevelCfg?.fallSpeed ?? 10;
+  const baseDistractorRatio = currentLevelCfg?.distractorRatio ?? 0.35;
+
+  const adaptiveDifficulty = useMemo(() => {
+    return computeAdaptiveDifficulty({
+      correctCount: level.correctCount,
+      wrongCount: level.wrongCount,
+      baseFallSpeed,
+      baseDistractorRatio,
+      mode: session.mode,
+      minAttempts: 3,
+      minFallSpeed: session.mode === "practice" ? 5 : 7,
+      maxFallSpeed: 25,
+    });
+  }, [
+    level.correctCount,
+    level.wrongCount,
+    baseFallSpeed,
+    baseDistractorRatio,
+    session.mode,
+  ]);
+
+  // HINT OTOMATIS: Muncul jika anak salah >= 3 kali pada harakat target di Practice Mode
+  const currentHarakatKey =
+    currentTargetItem.harakatName ??
+    extractHarakat(currentTargetItem.symbol) ??
+    "fathah";
+  const wrongOnCurrentTarget =
+    level.accuracyByHarakat?.[currentHarakatKey]?.wrong ?? 0;
+  const showHint =
+    session.mode === "practice" && wrongOnCurrentTarget >= 3;
+
   return {
     phase,
     setPhase,
@@ -609,6 +649,8 @@ export function useSlasherGame(levelConfig?: SlasherLevelOptions) {
     currentTarget: currentTargetItem.id,
     currentTargetItem,
     best,
+    adaptiveDifficulty,
+    showHint,
     onSliceResult,
     handleStartLevel,
     handleNextLevel,

@@ -32,6 +32,7 @@ export interface SlasherStageProps {
     distractorRatio?: number;
     targetLength?: number;
   };
+  showHint?: boolean;
   onResult: (
     kind: SlashResultKind,
     symbol?: string,
@@ -171,6 +172,7 @@ export default function SlasherStage({
   mode = "harakat",
   gameMode = "challenge",
   levelConfig,
+  showHint = false,
   onResult,
 }: SlasherStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -814,7 +816,13 @@ export default function SlasherStage({
                   />
                   {/* OVERLAY TEKS (Neo-Brutalism HTML Overlay Responsif) */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                    <div className="bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[36px] w-fit flex items-center justify-center max-w-[130px]">
+                    <div
+                      className={`bg-[#FFFBEB] border-[3px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] rounded-full px-3 py-1 min-h-[36px] w-fit flex items-center justify-center max-w-[130px] ${
+                        showHint && item.role === "correct"
+                          ? "ring-4 ring-[#10B981] shadow-[0_0_12px_#10B981]"
+                          : ""
+                      }`}
+                    >
                       <span
                         dir="rtl"
                         className={`font-arabic font-black whitespace-nowrap text-[#134E4A] leading-normal ${

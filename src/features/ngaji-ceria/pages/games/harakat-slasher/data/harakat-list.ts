@@ -246,3 +246,79 @@ export function getSlasherItems(mode: SlasherMode): readonly SlasherTargetItem[]
 export type HarakatId = string;
 export type PowerUpType = "magnet" | "slowmo" | "shield";
 export const POWER_UP_LABELS = { magnet: "Magnet", slowmo: "Gerak lambat", shield: "Perisai" };
+
+export interface SlasherLevelConfig {
+  level: number;
+  title: string;
+  targetScore: number;
+  targetTotal: number;
+  durationSeconds: number;
+  description: string;
+  spawnRate: number; // jeda muncul buah dalam ms
+  fallSpeed: number; // kecepatan jatuh (base)
+  distractorRatio: number; // persentase buah pengecoh (0.0 - 1.0)
+  targetLength: number; // jumlah karakter target
+}
+
+export const SLASHER_LEVELS: SlasherLevelConfig[] = [
+  {
+    level: 1,
+    title: "Level 1: Pemula",
+    targetScore: 100,
+    targetTotal: 10,
+    durationSeconds: 60,
+    description: "Tebas 10 buah berharakat target dalam 60 detik.",
+    spawnRate: 1200,
+    fallSpeed: 8,
+    distractorRatio: 0.2,
+    targetLength: 1,
+  },
+  {
+    level: 2,
+    title: "Level 2: Terampil",
+    targetScore: 200,
+    targetTotal: 12,
+    durationSeconds: 60,
+    description: "Tebas 12 buah berharakat target dalam 60 detik.",
+    spawnRate: 1000,
+    fallSpeed: 10,
+    distractorRatio: 0.35,
+    targetLength: 2,
+  },
+  {
+    level: 3,
+    title: "Level 3: Mahir",
+    targetScore: 350,
+    targetTotal: 15,
+    durationSeconds: 60,
+    description: "Tebas 15 buah berharakat target dalam 60 detik.",
+    spawnRate: 800,
+    fallSpeed: 12,
+    distractorRatio: 0.5,
+    targetLength: 3,
+  },
+  {
+    level: 4,
+    title: "Level 4: Pendekar",
+    targetScore: 500,
+    targetTotal: 18,
+    durationSeconds: 60,
+    description: "Tebas 18 buah berharakat target dalam 60 detik.",
+    spawnRate: 600,
+    fallSpeed: 15,
+    distractorRatio: 0.65,
+    targetLength: 4,
+  },
+  {
+    level: 5,
+    title: "Level 5: Master",
+    targetScore: 750,
+    targetTotal: 20,
+    durationSeconds: 60,
+    description: "Tebas 20 buah berharakat target dalam 60 detik.",
+    spawnRate: 450,
+    fallSpeed: 18,
+    distractorRatio: 0.75,
+    targetLength: 5,
+  },
+];

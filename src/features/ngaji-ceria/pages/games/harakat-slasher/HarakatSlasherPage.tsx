@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GameBoundary } from "../_shared/GameBoundary";
@@ -17,6 +17,8 @@ import SlasherStage from "./components/SlasherStage";
 import { useSlasherGame } from "./hooks/useSlasherGame";
 import {
   SLASHER_MODE_LABELS,
+  SLASHER_LEVELS,
+  type SlasherLevelConfig,
   extractHarakat,
   type SlasherMode,
   type SlasherTargetItem,
@@ -25,6 +27,8 @@ import type { GamePhase } from "../_shared/types";
 import { useGameStore } from "@/features/ngaji-ceria/hooks/useGameStore";
 import { useEconomyStore } from "@/features/ngaji-ceria/hooks/useEconomyStore";
 import { soundManager } from "@/features/ngaji-ceria/services/soundManager";
+
+export { SLASHER_LEVELS, type SlasherLevelConfig };
 
 const HARAKAT_TITLES: Record<string, string> = {
   fathah: "Fathah",
@@ -37,82 +41,6 @@ const HARAKAT_TITLES: Record<string, string> = {
 };
 
 const MODES: SlasherMode[] = ["harakat", "huruf", "kata", "ayat"];
-
-export interface SlasherLevelConfig {
-  level: number;
-  title: string;
-  targetScore: number;
-  targetTotal: number;
-  durationSeconds: number;
-  description: string;
-  spawnRate: number; // jeda muncul buah dalam ms
-  fallSpeed: number; // kecepatan jatuh
-  distractorRatio: number; // persentase buah pengecoh (0.0 - 1.0)
-  targetLength: number; // jumlah karakter target
-}
-
-export const SLASHER_LEVELS: SlasherLevelConfig[] = [
-  {
-    level: 1,
-    title: "Level 1: Pemula",
-    targetScore: 100,
-    targetTotal: 10,
-    durationSeconds: 60,
-    description: "Tebas 10 buah berharakat target dalam 60 detik.",
-    spawnRate: 1200,
-    fallSpeed: 8,
-    distractorRatio: 0.2,
-    targetLength: 1,
-  },
-  {
-    level: 2,
-    title: "Level 2: Terampil",
-    targetScore: 200,
-    targetTotal: 12,
-    durationSeconds: 60,
-    description: "Tebas 12 buah berharakat target dalam 60 detik.",
-    spawnRate: 1000,
-    fallSpeed: 10,
-    distractorRatio: 0.35,
-    targetLength: 2,
-  },
-  {
-    level: 3,
-    title: "Level 3: Mahir",
-    targetScore: 350,
-    targetTotal: 15,
-    durationSeconds: 60,
-    description: "Tebas 15 buah berharakat target dalam 60 detik.",
-    spawnRate: 800,
-    fallSpeed: 12,
-    distractorRatio: 0.5,
-    targetLength: 3,
-  },
-  {
-    level: 4,
-    title: "Level 4: Pendekar",
-    targetScore: 500,
-    targetTotal: 18,
-    durationSeconds: 60,
-    description: "Tebas 18 buah berharakat target dalam 60 detik.",
-    spawnRate: 600,
-    fallSpeed: 15,
-    distractorRatio: 0.65,
-    targetLength: 4,
-  },
-  {
-    level: 5,
-    title: "Level 5: Master",
-    targetScore: 750,
-    targetTotal: 20,
-    durationSeconds: 60,
-    description: "Tebas 20 buah berharakat target dalam 60 detik.",
-    spawnRate: 450,
-    fallSpeed: 18,
-    distractorRatio: 0.75,
-    targetLength: 5,
-  },
-];
 
 function Game() {
   const [celebrate, setCelebrate] = useState(false);
@@ -164,6 +92,16 @@ function Game() {
   const selectedLevel = session.currentLevel;
   const currentLevelConfig =
     SLASHER_LEVELS[selectedLevel - 1] || SLASHER_LEVELS[0];
+
+  // ADAPTIVE DIFFICULTY (Bab 8.3): Terapkan kecepatan jatuh & rasio pengecoh dinamis
+  const activeLevelConfig = useMemo(
+    () => ({
+      ...currentLevelConfig,
+      fallSpeed: game.adaptiveDifficulty.fallSpeed,
+      distractorRatio: game.adaptiveDifficulty.distractorRatio,
+    }),
+    [currentLevelConfig, game.adaptiveDifficulty]
+  );
 
   const [timeLeft, setTimeLeft] = useState<number | undefined>(
     session.mode === "practice" ? undefined : currentLevelConfig.durationSeconds,
@@ -451,7 +389,8 @@ function Game() {
                   currentTargetItem={currentTargetItem}
                   mode={mode}
                   gameMode={session.mode}
-                  levelConfig={currentLevelConfig}
+                  levelConfig={activeLevelConfig}
+                  showHint={game.showHint}
                   onResult={handleResult}
                 />
               </div>
