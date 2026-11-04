@@ -33,7 +33,6 @@ function ChoiceAudioView({
   onAnswerSubmit,
   onNext,
   isRetryable,
-  correctAnswer,
   explanation,
 }: ChoiceAudioViewProps) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -148,7 +147,8 @@ function ChoiceAudioView({
         onRetry={handleRetry}
         onReset={handleRetry}
         isRetryable={isRetryable}
-        correctAnswer={correctAnswer}
+        // Opsi model ini berbahasa Arab, jadi kunci yang ditampilkan juga Arab.
+        correctAnswer={question.correctAnswer}
         explanation={explanation}
       />
     </div>
