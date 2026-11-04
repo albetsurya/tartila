@@ -44,6 +44,28 @@ const QUIZ_THEMES = [
   },
 ];
 
+function QuizListSkeleton() {
+  return (
+    <div
+      className="ustadz-loader space-y-6"
+      aria-busy="true"
+      aria-label="Memuat bank kuis"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="h-9 w-52 rounded-xl bg-[#E2E8F0]" />
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-40 rounded-2xl border-3 border-[#134E4A]/15 bg-white"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function UstadzQuizListPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -51,14 +73,19 @@ export function UstadzQuizListPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let alive = true;
     const load = async () => {
       setLoading(true);
       const all = await listQuizzes(user?.id);
+      if (!alive) return;
       const userQuiz = all.filter((q) => q.createdBy === user?.id);
       setQuizzes(userQuiz);
       setLoading(false);
     };
     void load();
+    return () => {
+      alive = false;
+    };
   }, [user?.id]);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -86,19 +113,11 @@ export function UstadzQuizListPage() {
   };
 
   if (loading) {
-    return (
-      <div className="py-16 text-center">
-        <div className="mx-auto h-9 w-9 animate-spin rounded-full border-3 border-[#0D9488] border-t-transparent" />
-        <p className="mt-3 text-sm font-extrabold text-[#134E4A]">
-          Memuat bank kuis…
-        </p>
-      </div>
-    );
+    return <QuizListSkeleton />;
   }
 
   return (
     <div className="space-y-6">
-      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg sm:text-xl font-black text-[#134E4A]">
@@ -116,13 +135,10 @@ export function UstadzQuizListPage() {
         </div>
       )}
 
-      {/* Playful Empty State */}
       {quizzes.length === 0 ? (
         <div className="rounded-3xl border-3 border-[#134E4A] bg-white p-6 sm:p-10 text-center max-w-xl mx-auto shadow-[5px_5px_0px_#134E4A]">
-          {/* Custom Neo-Brutalist Trophy Illustration */}
           <div className="relative mx-auto mb-4 h-36 w-56 flex items-center justify-center">
             <svg viewBox="0 0 240 160" className="w-full h-full" fill="none">
-              {/* Shadow */}
               <ellipse
                 cx="120"
                 cy="148"
@@ -131,7 +147,6 @@ export function UstadzQuizListPage() {
                 fill="#134E4A"
                 opacity="0.15"
               />
-              {/* Trophy base */}
               <rect
                 x="90"
                 y="125"
@@ -152,28 +167,24 @@ export function UstadzQuizListPage() {
                 stroke="#134E4A"
                 strokeWidth="3"
               />
-              {/* Trophy cup */}
               <path
                 d="M70 45h100c0 35-22 65-50 65s-50-30-50-65z"
                 fill="#FEF08A"
                 stroke="#134E4A"
                 strokeWidth="3.5"
               />
-              {/* Handles */}
               <path
                 d="M70 55H50c0 22 15 35 25 35M170 55h20c0 22-15 35-25 35"
                 stroke="#134E4A"
                 strokeWidth="3.5"
                 strokeLinecap="round"
               />
-              {/* Star on trophy */}
               <path
                 d="M120 62l3 7 7 2-7 2-3 7-3-7-7-2 7-2z"
                 fill="#F472B6"
                 stroke="#134E4A"
                 strokeWidth="2"
               />
-              {/* Confetti & Sparkles */}
               <circle
                 cx="45"
                 cy="35"
@@ -231,7 +242,6 @@ export function UstadzQuizListPage() {
           </div>
         </div>
       ) : (
-        /* Quiz Grid */
         <div className="grid gap-5 sm:grid-cols-2">
           {quizzes.map((quiz, idx) => {
             const theme = QUIZ_THEMES[idx % QUIZ_THEMES.length];
@@ -262,7 +272,6 @@ export function UstadzQuizListPage() {
                     </button>
                   </div>
 
-                  {/* Badges Bar */}
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <span className="rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] px-2.5 py-1 text-xs font-black text-[#713F12] shadow-[1.5px_1.5px_0px_#134E4A]">
                       {MATERI_LABELS[quiz.materi]}
@@ -281,7 +290,6 @@ export function UstadzQuizListPage() {
                   </div>
                 </div>
 
-                {/* Footer Bar */}
                 <div className="mt-5 pt-3.5 border-t-2 border-dashed border-[#134E4A]/20 flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-[#64748B]">
                     ID: {quiz.id.slice(0, 8)}…

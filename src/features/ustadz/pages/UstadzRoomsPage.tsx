@@ -11,6 +11,7 @@ import {
   Sprout,
   Star,
   Palette,
+  ArrowRight,
 } from "@/components/ui/CustomIcons";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -144,7 +145,7 @@ export function UstadzRoomsPage() {
             onClick={() => navigate("/ustadz/kelas/baru")}
             className="w-full sm:w-auto font-black shadow-[3px_3px_0px_#134E4A]"
           >
-            + Buat Kelas Baru
+            Buat Kelas Baru
           </StickerButton>
         )}
       </div>
@@ -297,7 +298,8 @@ export function UstadzRoomsPage() {
                     Klik untuk kelola
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-xl border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#0F766E] shadow-[2px_2px_0px_#134E4A] group-hover:bg-[#0D9488] group-hover:text-white transition-all">
-                    Buka Kelas →
+                    <span>Buka Kelas</span>
+                    <ArrowRight size={12} />
                   </span>
                 </div>
               </div>
