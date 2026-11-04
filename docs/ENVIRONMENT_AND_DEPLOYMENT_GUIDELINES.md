@@ -17,11 +17,11 @@ Dokumen ini menjadi acuan tunggal (single source of truth) untuk konfigurasi env
 
 Arsitektur terdiri dari tiga komponen yang selalu berpasangan: frontend statis di Cloudflare Pages, backend Go di Render, dan database Supabase.
 
-| Environment | Frontend (Cloudflare Pages) | Backend (Render / Go) | Database (Supabase) |
-| --- | --- | --- | --- |
-| Lokal | `http://localhost:5173` (Vite dev server) | `http://127.0.0.1:8080` (native) atau `http://127.0.0.1:29001` (Docker Compose) | `http://127.0.0.1:54321` (Supabase CLI lokal) |
-| Staging | `https://staging.tartila.pages.dev` (preview branch) | Render service staging | Supabase project staging |
-| Production | `https://tartila.pages.dev` | `https://pengajian-backend.onrender.com` | Supabase Cloud project `esmeeghztkcwxqyqbvza` |
+| Environment | Frontend (Cloudflare Pages)                          | Backend (Render / Go)                                                           | Database (Supabase)                           |
+| ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
+| Lokal       | `http://localhost:5173` (Vite dev server)            | `http://127.0.0.1:8080` (native) atau `http://127.0.0.1:29001` (Docker Compose) | `http://127.0.0.1:54321` (Supabase CLI lokal) |
+| Staging     | `https://staging.tartila.pages.dev` (preview branch) | Render service staging                                                          | Supabase project staging                      |
+| Production  | `https://tartila.pages.dev`                          | `https://ngaji-tartila.onrender.com`                                            | Supabase Cloud project `ukqzxxzdsesdqbamxxfb` |
 
 Aturan penting:
 
@@ -35,21 +35,21 @@ Aturan penting:
 
 ### 2.1 Variabel Wajib
 
-| Variabel | Dipakai Oleh | Wajib | Keterangan |
-| --- | --- | --- | --- |
-| `VITE_API_BASE_URL` | Frontend | Ya | Base URL REST API. Kosongkan (`""`) agar seluruh request memakai URL relatif `/api/...`. |
-| `VITE_API_PROXY_TARGET` | Frontend (dev) | Tidak | Target proxy Vite. Kosongkan agar port 8080/29001 dideteksi otomatis. |
-| `VITE_SUPABASE_URL` | Frontend | Ya | URL Supabase (lokal: `http://127.0.0.1:54321`). |
-| `VITE_SUPABASE_ANON_KEY` | Frontend | Ya | Anon key Supabase. Aman diekspos ke browser. |
-| `VITE_GOOGLE_CLIENT_ID` | Frontend | Opsional | Client ID OAuth. Kosongkan bila tombol Google tidak dipakai. |
-| `APP_ENV` | Backend | Ya | `development` atau `production`. Menentukan atribut cookie (`SameSite=None; Secure` hanya di production). |
-| `FRONTEND_URL` | Backend | Ya | Origin frontend untuk redirect setelah OAuth dan untuk daftar origin CORS. |
-| `GOOGLE_CLIENT_ID` | Backend | Opsional | Client ID Google. Backend juga menerima fallback `VITE_GOOGLE_CLIENT_ID`. |
-| `GOOGLE_CLIENT_SECRET` | Backend | Opsional | Rahasia OAuth. Tidak boleh ada di repo maupun di frontend. |
-| `GOOGLE_CALLBACK_URL` | Backend | Opsional | URL callback OAuth absolut. Harus sama persis dengan yang didaftarkan di Google Cloud Console. |
-| `ALLOWED_ORIGINS` | Backend | Ya (production) | Daftar origin dipisah koma, misal `https://tartila.pages.dev,http://localhost:5173`. |
-| `JWT_SECRET` | Backend | Ya (production) | Kunci tanda tangan JWT. Jangan gunakan nilai default. |
-| `PORT` | Backend | Tidak | Default `8080`. Render mengisi otomatis. |
+| Variabel                 | Dipakai Oleh   | Wajib           | Keterangan                                                                                                |
+| ------------------------ | -------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`      | Frontend       | Ya              | Base URL REST API. Kosongkan (`""`) agar seluruh request memakai URL relatif `/api/...`.                  |
+| `VITE_API_PROXY_TARGET`  | Frontend (dev) | Tidak           | Target proxy Vite. Kosongkan agar port 8080/29001 dideteksi otomatis.                                     |
+| `VITE_SUPABASE_URL`      | Frontend       | Ya              | URL Supabase (lokal: `http://127.0.0.1:54321`).                                                           |
+| `VITE_SUPABASE_ANON_KEY` | Frontend       | Ya              | Anon key Supabase. Aman diekspos ke browser.                                                              |
+| `VITE_GOOGLE_CLIENT_ID`  | Frontend       | Opsional        | Client ID OAuth. Kosongkan bila tombol Google tidak dipakai.                                              |
+| `APP_ENV`                | Backend        | Ya              | `development` atau `production`. Menentukan atribut cookie (`SameSite=None; Secure` hanya di production). |
+| `FRONTEND_URL`           | Backend        | Ya              | Origin frontend untuk redirect setelah OAuth dan untuk daftar origin CORS.                                |
+| `GOOGLE_CLIENT_ID`       | Backend        | Opsional        | Client ID Google. Backend juga menerima fallback `VITE_GOOGLE_CLIENT_ID`.                                 |
+| `GOOGLE_CLIENT_SECRET`   | Backend        | Opsional        | Rahasia OAuth. Tidak boleh ada di repo maupun di frontend.                                                |
+| `GOOGLE_CALLBACK_URL`    | Backend        | Opsional        | URL callback OAuth absolut. Harus sama persis dengan yang didaftarkan di Google Cloud Console.            |
+| `ALLOWED_ORIGINS`        | Backend        | Ya (production) | Daftar origin dipisah koma, misal `https://tartila.pages.dev,http://localhost:5173`.                      |
+| `JWT_SECRET`             | Backend        | Ya (production) | Kunci tanda tangan JWT. Jangan gunakan nilai default.                                                     |
+| `PORT`                   | Backend        | Tidak           | Default `8080`. Render mengisi otomatis.                                                                  |
 
 ### 2.2 Perbedaan `.env.development` dan `.env.production`
 
@@ -110,7 +110,7 @@ http://localhost:8080/api/auth/google/callback
 
 1. Pengguna membuka `https://tartila.pages.dev/login` dan menekan tombol Google.
 2. Browser menuju `https://tartila.pages.dev/api/auth/google`.
-3. Cloudflare Pages Function meneruskan request ke `https://pengajian-backend.onrender.com/api/auth/google`.
+3. Cloudflare Pages Function meneruskan request ke `https://ngaji-tartila.onrender.com/api/auth/google`.
 4. Backend melakukan redirect ke Google dengan callback `https://tartila.pages.dev/api/auth/google/callback`.
 5. Google mengembalikan pengguna ke origin `tartila.pages.dev`. Proxy meneruskan ke backend.
 6. Backend menerbitkan cookie pada respons yang tampak berasal dari `tartila.pages.dev`, lalu redirect ke `FRONTEND_URL`.
@@ -124,7 +124,7 @@ http://localhost:8080/api/auth/google/callback
 File `functions/_middleware.ts` adalah Cloudflare Pages Function yang meneruskan seluruh request `/api/*` ke backend Render.
 
 ```ts
-const BACKEND_ORIGIN = "https://pengajian-backend.onrender.com";
+const BACKEND_ORIGIN = "https://ngaji-tartila.onrender.com";
 
 export const onRequest = async (context) => {
   const url = new URL(context.request.url);
@@ -139,7 +139,7 @@ export const onRequest = async (context) => {
 
 ### 4.2 Mengapa File Ini Ada
 
-Browser modern memblokir cookie lintas situs (third-party cookie). Tanpa proxy, respons login berasal dari `pengajian-backend.onrender.com` sehingga cookie tersimpan pada domain backend. Request berikutnya dari `tartila.pages.dev` ke backend membawa cookie pihak ketiga yang ditolak browser. Akibatnya endpoint profil mengembalikan `401 Unauthorized` tepat setelah login berhasil, dan antarmuka kembali menampilkan nama default.
+Browser modern memblokir cookie lintas situs (third-party cookie). Tanpa proxy, respons login berasal dari `ngaji-tartila.onrender.com` sehingga cookie tersimpan pada domain backend. Request berikutnya dari `tartila.pages.dev` ke backend membawa cookie pihak ketiga yang ditolak browser. Akibatnya endpoint profil mengembalikan `401 Unauthorized` tepat setelah login berhasil, dan antarmuka kembali menampilkan nama default.
 
 Dengan proxy, seluruh request dan respons terlihat berasal dari `tartila.pages.dev`. Cookie menjadi same-origin dan selalu dikirim.
 

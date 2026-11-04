@@ -2,7 +2,7 @@
 // Cookie tetap same-origin (tartila.pages.dev) sehingga browser tidak
 // memblokirnya sebagai third-party cookie.
 
-const BACKEND_ORIGIN = "https://pengajian-backend.onrender.com";
+const BACKEND_ORIGIN = "https://ngaji-tartila.onrender.com";
 
 export const onRequest = async (context: {
   request: Request;
