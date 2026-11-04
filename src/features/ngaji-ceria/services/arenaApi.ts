@@ -1,7 +1,31 @@
 import type { UniversalQuestion } from "../data/quiz/types";
 
-const SERVER_BASE =
-  import.meta.env.VITE_ARENA_SERVER_URL || "";
+// REST memakai URL relatif agar cookie tetap same-origin lewat proxy Cloudflare.
+const SERVER_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
+// WebSocket butuh host absolut karena tidak melewati proxy same-origin.
+const WS_BASE =
+  import.meta.env.VITE_WS_URL ||
+  (typeof window !== "undefined"
+    ? `ws://${window.location.hostname}:8080`
+    : "ws://localhost:8080");
+
+/**
+ * Mengambil tiket WebSocket sekali pakai. Request memakai URL relatif agar
+ * cookie HttpOnly ikut terkirim lewat proxy same-origin.
+ */
+export async function fetchWsTicket(): Promise<string> {
+  try {
+    const res = await fetch(`${SERVER_BASE}/api/v1/ws-ticket`, {
+      credentials: "include",
+    });
+    if (!res.ok) return "";
+    const json = await res.json();
+    return json?.ticket || json?.data?.ticket || "";
+  } catch {
+    return "";
+  }
+}
 
 export interface CreateRoomParams {
   hostId: string;
@@ -71,20 +95,15 @@ export const arenaApi = {
     return SERVER_BASE;
   },
 
-  getWsUrl(pin: string, playerId?: string, isHost?: boolean): string {
-    const isHttps = SERVER_BASE
-      ? SERVER_BASE.startsWith("https")
-      : typeof window !== "undefined" && window.location.protocol === "https:";
-    const wsProto = isHttps ? "wss" : "ws";
-    const host = SERVER_BASE
-      ? SERVER_BASE.replace(/^https?:\/\//, "")
-      : typeof window !== "undefined"
-      ? window.location.host
-      : "localhost:5173";
+  getWsUrl(pin: string, playerId?: string, isHost?: boolean, ticket?: string): string {
+    const base = WS_BASE.replace(/^http/, "ws").replace(/\/+$/, "");
     const query = new URLSearchParams();
     if (playerId) query.set("playerId", playerId);
     if (isHost) query.set("isHost", "true");
-    return `${wsProto}://${host}/api/ws/room/${pin}?${query.toString()}`;
+    // WebSocket tidak bisa mengirim header Authorization, jadi autentikasi
+    // memakai tiket sekali pakai dari /api/v1/ws-ticket.
+    if (ticket) query.set("ticket", ticket);
+    return `${base}/api/ws/room/${pin}?${query.toString()}`;
   },
 
   async createRoom(params: CreateRoomParams): Promise<{ success: boolean; pin: string; examToken: string; room: any }> {

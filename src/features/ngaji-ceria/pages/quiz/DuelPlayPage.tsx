@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { QuizEngine } from "../../components/quiz-models/QuizEngine";
 import { getQuizHubQuestions } from "../../data/quizHubData";
 import { duelService } from "@/services/duelService";
+import { fetchWsTicket } from "../../services/arenaApi";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -14,8 +15,8 @@ import LeaderboardModal, { type LeaderboardEntry } from "@/features/ngaji-ceria/
 
 const QUESTION_TIME = 20;
 const ARENA_WS_BASE =
-  import.meta.env.VITE_ARENA_SERVER_URL?.replace(/^http/, "ws") ||
-  `ws://${window.location.hostname}:8080`;
+  import.meta.env.VITE_WS_URL?.replace(/^http/, "ws") ||
+  "wss://ngaji-tartila.onrender.com";
 
 function ScoreCard({
   label,
@@ -99,13 +100,18 @@ export default function DuelPlayPage() {
     if (!sessionId) return;
     const playerId = user?.id || "guest";
     const nickname = user?.name || user?.username || "Pemain";
-    const url = `${ARENA_WS_BASE}/api/ws/duel/${sessionId}?playerId=${encodeURIComponent(playerId)}&nickname=${encodeURIComponent(nickname)}`;
 
     let socket: WebSocket | null = null;
     let closedByUs = false;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const connect = () => {
+    const connect = async () => {
+      // Tiket hanya berlaku sekali, jadi diambil ulang pada setiap percobaan.
+      const ticket = await fetchWsTicket();
+      if (closedByUs) return;
+      const query = new URLSearchParams({ playerId, nickname });
+      if (ticket) query.set("ticket", ticket);
+      const url = `${ARENA_WS_BASE}/api/ws/duel/${sessionId}?${query.toString()}`;
       try {
         socket = new WebSocket(url);
         wsRef.current = socket;
@@ -147,7 +153,7 @@ export default function DuelPlayPage() {
       };
     };
 
-    connect();
+    void connect();
 
     return () => {
       closedByUs = true;

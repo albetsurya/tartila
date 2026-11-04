@@ -1,417 +1,362 @@
-import { useRef, useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  AlertCircle,
   Calendar,
+  Search,
+  Plus,
+  Pencil,
+  Trash2,
   Check,
   Loader2,
-  Plus,
-  Trash2,
+  X,
+  Trophy,
 } from "@/components/ui/CustomIcons";
 import {
+  fetchAdminEvents,
   createEvent,
-  getEventErrorMessage,
+  updateEvent,
+  deleteEvent,
+  getEventStatus,
   type AdminEvent,
   type CreateEventPayload,
+  type EventStatus,
 } from "../services/eventService";
+import { AdminEventFormModal } from "../components/AdminEventFormModal";
+import {
+  BADGE_INFO,
+  BADGE_NEUTRAL,
+  BADGE_SUCCESS,
+  BTN_DANGER_SM,
+  BTN_PRIMARY,
+  BTN_PRIMARY_SM,
+  BTN_SECONDARY_SM,
+  CARD,
+  CHIP_ACTIVE,
+  CHIP_IDLE,
+  ICON_BOX,
+  INPUT_ICON,
+  PAGE_SUBTITLE,
+  PAGE_TITLE,
+  TOAST,
+} from "../styles";
 
-interface MissionDraft {
-  key: number;
-  title: string;
-  target: string;
-  coins: string;
-  tickets: string;
-}
+type FilterTab = "all" | EventStatus;
 
-const INPUT_CLASS =
-  "mt-1.5 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 transition-colors focus:border-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/15 disabled:bg-zinc-50";
-const LABEL_CLASS = "block text-xs font-medium text-zinc-600";
-
-function emptyMission(key: number): MissionDraft {
-  return { key, title: "", target: "", coins: "", tickets: "" };
+function formatDateRange(startDateStr: string, endDateStr: string): string {
+  try {
+    const s = new Date(startDateStr);
+    const e = new Date(endDateStr);
+    const fmt = new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "short",
+    });
+    const yearFmt = new Intl.DateTimeFormat("id-ID", { year: "numeric" });
+    return `${fmt.format(s)} - ${fmt.format(e)} ${yearFmt.format(e)}`;
+  } catch {
+    return `${startDateStr} - ${endDateStr}`;
+  }
 }
 
 export function AdminEventsPage() {
-  const missionKey = useRef(2);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [missions, setMissions] = useState<MissionDraft[]>([emptyMission(1)]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [createdEvent, setCreatedEvent] = useState<AdminEvent | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const addMission = () => {
-    const key = missionKey.current++;
-    setMissions((prev) => [...prev, emptyMission(key)]);
-  };
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    window.setTimeout(() => setToastMessage(null), 3000);
+  }, []);
 
-  const removeMission = (key: number) => {
-    setMissions((prev) => prev.filter((mission) => mission.key !== key));
-  };
-
-  const updateMission = (
-    key: number,
-    field: keyof Omit<MissionDraft, "key">,
-    value: string,
-  ) => {
-    setMissions((prev) =>
-      prev.map((mission) =>
-        mission.key === key ? { ...mission, [field]: value } : mission,
-      ),
-    );
-  };
-
-  const resetForm = () => {
-    missionKey.current = 2;
-    setName("");
-    setDescription("");
-    setStartDate("");
-    setEndDate("");
-    setMissions([emptyMission(1)]);
-    setError(null);
-    setCreatedEvent(null);
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (submitting) return;
-
-    setError(null);
-    setCreatedEvent(null);
-
-    if (!name.trim()) {
-      setError("Nama event wajib diisi.");
-      return;
-    }
-    if (!startDate || !endDate) {
-      setError("Tanggal mulai dan tanggal selesai wajib diisi.");
-      return;
-    }
-    if (new Date(endDate).getTime() < new Date(startDate).getTime()) {
-      setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
-      return;
-    }
-    if (missions.length === 0) {
-      setError("Tambahkan minimal satu misi untuk event ini.");
-      return;
-    }
-
-    const normalizedMissions = [];
-    for (let index = 0; index < missions.length; index += 1) {
-      const mission = missions[index];
-      const target = Number(mission.target);
-      const coins = Number(mission.coins || 0);
-      const tickets = Number(mission.tickets || 0);
-
-      if (!mission.title.trim()) {
-        setError(`Judul misi ${index + 1} wajib diisi.`);
-        return;
-      }
-      if (!Number.isInteger(target) || target <= 0) {
-        setError(`Target misi ${index + 1} harus bilangan bulat lebih dari 0.`);
-        return;
-      }
-      if (
-        !Number.isInteger(coins) ||
-        coins < 0 ||
-        !Number.isInteger(tickets) ||
-        tickets < 0
-      ) {
-        setError(`Hadiah misi ${index + 1} tidak boleh negatif.`);
-        return;
-      }
-
-      normalizedMissions.push({
-        title: mission.title.trim(),
-        target_amount: target,
-        reward_coins: coins,
-        reward_tickets: tickets,
-      });
-    }
-
-    const payload: CreateEventPayload = {
-      name: name.trim(),
-      description: description.trim(),
-      start_date: new Date(startDate).toISOString(),
-      end_date: new Date(endDate).toISOString(),
-      missions: normalizedMissions,
-    };
-
-    setSubmitting(true);
+  const loadEvents = useCallback(async () => {
+    setLoading(true);
     try {
-      const created = await createEvent(payload);
-      setCreatedEvent(created);
-    } catch (err) {
-      setError(getEventErrorMessage(err));
+      const data = await fetchAdminEvents();
+      setEvents(data);
+    } catch {
+      showToast("Gagal memuat event.");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    void loadEvents();
+  }, [loadEvents]);
+
+  const filteredEvents = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return events.filter((evt) => {
+      const status = getEventStatus(evt.start_date, evt.end_date, evt.is_active);
+      if (activeTab !== "all" && status !== activeTab) {
+        return false;
+      }
+      if (q) {
+        const matchName = evt.name.toLowerCase().includes(q);
+        const matchDesc = evt.description?.toLowerCase().includes(q);
+        if (!matchName && !matchDesc) return false;
+      }
+      return true;
+    });
+  }, [events, activeTab, searchQuery]);
+
+  const handleOpenCreateModal = () => {
+    setEditingEvent(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (event: AdminEvent) => {
+    setEditingEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = async (payload: CreateEventPayload, editId?: string) => {
+    if (editId) {
+      await updateEvent(editId, payload);
+      showToast("Event berhasil diperbarui.");
+    } else {
+      await createEvent(payload);
+      showToast("Event baru berhasil dibuat.");
+    }
+    await loadEvents();
+  };
+
+  const handleDeleteEvent = async (id: string, name: string) => {
+    const ok = window.confirm(
+      `Apakah Anda yakin ingin menghapus event "${name}"? Tindakan ini tidak dapat dibatalkan.`,
+    );
+    if (!ok) return;
+
+    setDeletingId(id);
+    try {
+      await deleteEvent(id);
+      showToast(`Event "${name}" telah dihapus.`);
+      await loadEvents();
+    } catch {
+      showToast("Gagal menghapus event.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   return (
-    <div className="-m-4 min-h-[calc(100dvh-4rem)] bg-[#fafafa] p-4 md:-m-8 md:p-8">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <header className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-[#059669]">
-            <Calendar size={20} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-              Event Management
-            </h1>
-            <p className="mt-0.5 text-sm text-zinc-500">
-              Buat event dan misi berhadiah koin, tiket, serta hati untuk santri.
-            </p>
-          </div>
-        </header>
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className={TOAST}>
+          <Check size={16} />
+          {toastMessage}
+        </div>
+      )}
 
-        {createdEvent && (
-          <div
-            role="status"
-            className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4"
-          >
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#059669] text-white">
-              <Check size={14} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-emerald-900">
-                Event berhasil dibuat
-              </p>
-              <p className="mt-0.5 text-sm text-emerald-800">
-                {createdEvent.name} dengan {createdEvent.missions.length} misi.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="shrink-0 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
-            >
-              Buat Event Lain
-            </button>
-          </div>
-        )}
+      {/* Header Halaman */}
+      <div className={`flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center ${CARD}`}>
+        <div>
+          <h1 className={PAGE_TITLE}>Manajemen Event</h1>
+          <p className={PAGE_SUBTITLE}>
+            Kelola agenda berkala, periode aktif, dan rangkaian misi berhadiah untuk santri.
+          </p>
+        </div>
 
-        {error && (
-          <div
-            role="alert"
-            className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4"
-          >
-            <AlertCircle size={18} className="mt-0.5 shrink-0 text-red-600" />
-            <p className="text-sm font-medium text-red-800">{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-zinc-900">
-              Informasi Event
-            </h2>
-            <p className="mt-0.5 text-xs text-zinc-500">
-              Nama dan periode event yang akan tampil di aplikasi.
-            </p>
-
-            <div className="mt-4 space-y-4">
-              <div>
-                <label htmlFor="event-name" className={LABEL_CLASS}>
-                  Nama Event
-                </label>
-                <input
-                  id="event-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Pekan Tilawati Ramadan"
-                  required
-                  disabled={submitting}
-                  className={INPUT_CLASS}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="event-description" className={LABEL_CLASS}>
-                  Deskripsi
-                </label>
-                <textarea
-                  id="event-description"
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Penjelasan singkat event (opsional)"
-                  disabled={submitting}
-                  className={`${INPUT_CLASS} resize-none`}
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="event-start" className={LABEL_CLASS}>
-                    Tanggal Mulai
-                  </label>
-                  <input
-                    id="event-start"
-                    type="datetime-local"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                    disabled={submitting}
-                    className={INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="event-end" className={LABEL_CLASS}>
-                    Tanggal Selesai
-                  </label>
-                  <input
-                    id="event-end"
-                    type="datetime-local"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                    disabled={submitting}
-                    className={INPUT_CLASS}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-zinc-900">
-                  Misi Event
-                </h2>
-                <p className="mt-0.5 text-xs text-zinc-500">
-                  {missions.length} misi akan ditambahkan ke event ini.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={addMission}
-                disabled={submitting}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-60"
-              >
-                <Plus size={14} />
-                Tambah Misi
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {missions.map((mission, index) => (
-                <div
-                  key={mission.key}
-                  className="rounded-lg border border-zinc-200 bg-[#fafafa] p-4"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                      Misi {index + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeMission(mission.key)}
-                      disabled={submitting || missions.length === 1}
-                      aria-label={`Hapus misi ${index + 1}`}
-                      title={
-                        missions.length === 1
-                          ? "Minimal satu misi"
-                          : "Hapus misi"
-                      }
-                      className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <label className={LABEL_CLASS}>Judul Misi</label>
-                      <input
-                        type="text"
-                        value={mission.title}
-                        onChange={(e) =>
-                          updateMission(mission.key, "title", e.target.value)
-                        }
-                        placeholder="Contoh: Mainkan 5 game hari ini"
-                        required
-                        disabled={submitting}
-                        className={INPUT_CLASS}
-                      />
-                    </div>
-                    <div>
-                      <label className={LABEL_CLASS}>Target</label>
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={mission.target}
-                        onChange={(e) =>
-                          updateMission(mission.key, "target", e.target.value)
-                        }
-                        placeholder="5"
-                        required
-                        disabled={submitting}
-                        className={INPUT_CLASS}
-                      />
-                    </div>
-                    <div>
-                      <label className={LABEL_CLASS}>Hadiah Koin</label>
-                      <input
-                        type="number"
-                        min={0}
-                        step={1}
-                        value={mission.coins}
-                        onChange={(e) =>
-                          updateMission(mission.key, "coins", e.target.value)
-                        }
-                        placeholder="0"
-                        disabled={submitting}
-                        className={INPUT_CLASS}
-                      />
-                    </div>
-                    <div>
-                      <label className={LABEL_CLASS}>Hadiah Tiket</label>
-                      <input
-                        type="number"
-                        min={0}
-                        step={1}
-                        value={mission.tickets}
-                        onChange={(e) =>
-                          updateMission(mission.key, "tickets", e.target.value)
-                        }
-                        placeholder="0"
-                        disabled={submitting}
-                        className={INPUT_CLASS}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={resetForm}
-              disabled={submitting}
-              className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-60"
-            >
-              Reset
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#059669] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#047857] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitting && <Loader2 size={15} className="animate-spin" />}
-              {submitting ? "Menyimpan..." : "Simpan Event"}
-            </button>
-          </div>
-        </form>
+        <button
+          type="button"
+          onClick={handleOpenCreateModal}
+          className={`${BTN_PRIMARY} shrink-0`}
+        >
+          <Plus size={18} />
+          + Buat Event
+        </button>
       </div>
+
+      {/* Search & Filter Bar */}
+      <div className={`flex flex-col justify-between gap-4 p-4 md:flex-row md:items-center ${CARD}`}>
+        {/* Kolom Pencarian */}
+        <div className="relative flex-1">
+          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#134E4A]/60">
+            <Search size={16} />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari nama event..."
+            className={INPUT_ICON}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-3 flex items-center text-[#134E4A]/60 hover:text-[#FF6B6B]"
+              aria-label="Bersihkan pencarian"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Tab Filter */}
+        <div className="flex items-center gap-2 overflow-x-auto p-1">
+          {[
+            { id: "all", label: "Semua" },
+            { id: "active", label: "Aktif" },
+            { id: "upcoming", label: "Akan Datang" },
+            { id: "completed", label: "Selesai" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as FilterTab)}
+              className={activeTab === tab.id ? CHIP_ACTIVE : CHIP_IDLE}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Daftar Event (Card List) */}
+      {loading ? (
+        <div className={`p-12 text-center ${CARD}`}>
+          <Loader2 size={24} className="mx-auto animate-spin text-[#0D9488]" />
+          <p className="mt-2 text-xs font-black text-[#134E4A]/70">Memuat daftar event...</p>
+        </div>
+      ) : filteredEvents.length === 0 ? (
+        /* Empty State */
+        <div className={`space-y-3 p-12 text-center ${CARD}`}>
+          <div className={`mx-auto h-16 w-16 bg-[#99F6E4] text-[#134E4A] ${ICON_BOX}`}>
+            <Calendar size={32} />
+          </div>
+          <h3 className="font-display text-base font-black text-[#134E4A]">Belum ada event.</h3>
+          <p className="mx-auto max-w-sm text-xs font-bold text-[#134E4A]/70">
+            Yuk, buat event pertama Anda!
+          </p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className={BTN_PRIMARY_SM}
+            >
+              <Plus size={14} />
+              + Buat Event Sekarang
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {filteredEvents.map((evt) => {
+            const status = getEventStatus(evt.start_date, evt.end_date, evt.is_active);
+            const dateRangeLabel = formatDateRange(evt.start_date, evt.end_date);
+
+            return (
+              <div
+                key={evt.id}
+                className="flex flex-col justify-between gap-4 rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]"
+              >
+                <div className="space-y-3">
+                  {/* Top Status & Date Range */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={
+                        status === "active"
+                          ? BADGE_SUCCESS
+                          : status === "upcoming"
+                            ? BADGE_INFO
+                            : BADGE_NEUTRAL
+                      }
+                    >
+                      {status === "active"
+                        ? "Aktif"
+                        : status === "upcoming"
+                          ? "Akan Datang"
+                          : "Selesai"}
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#134E4A]/70">
+                      <Calendar size={13} />
+                      {dateRangeLabel}
+                    </span>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div>
+                    <h2 className="line-clamp-1 font-display text-base font-black text-[#134E4A]">
+                      {evt.name}
+                    </h2>
+                    {evt.description && (
+                      <p className="mt-1 line-clamp-2 text-xs font-bold text-[#134E4A]/70">
+                        {evt.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Missions Preview */}
+                  <div className="border-t border-[#134E4A]/20 pt-3">
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1 text-[11px] font-black text-[#134E4A]">
+                        <Trophy size={13} className="text-[#F59E0B]" />
+                        {evt.missions?.length || 0} Misi Tersedia
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      {evt.missions?.slice(0, 2).map((m) => (
+                        <div
+                          key={m.id}
+                          className="flex items-center justify-between rounded-lg border-[2px] border-[#134E4A]/20 bg-[#F0FDF4] px-2.5 py-1 text-[11px] font-bold text-[#134E4A]"
+                        >
+                          <span className="truncate pr-2">{m.title}</span>
+                          <span className="shrink-0 text-[10px] font-black text-[#0D9488]">
+                            +{m.reward_coins} Koin
+                          </span>
+                        </div>
+                      ))}
+                      {(evt.missions?.length || 0) > 2 && (
+                        <p className="text-right text-[10px] font-bold text-[#134E4A]/60">
+                          +{evt.missions.length - 2} misi lainnya
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Actions (Edit & Hapus) */}
+                <div className="flex items-center justify-end gap-2 border-t border-[#134E4A]/20 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(evt)}
+                    className={BTN_SECONDARY_SM}
+                  >
+                    <Pencil size={13} />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingId === evt.id}
+                    onClick={() => handleDeleteEvent(evt.id, evt.name)}
+                    className={BTN_DANGER_SM}
+                  >
+                    <Trash2 size={13} />
+                    {deletingId === evt.id ? "Menghapus..." : "Hapus"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Form Modal */}
+      <AdminEventFormModal
+        isOpen={isModalOpen}
+        eventToEdit={editingEvent}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveEvent}
+      />
     </div>
   );
 }

@@ -9,6 +9,14 @@ export interface AdminSidebarProps {
   onToggleCollapsed: () => void;
 }
 
+/** Item menu: aktif = Teal + border + hard shadow kecil. */
+const NAV_ITEM_BASE =
+  "flex w-full items-center rounded-xl border-[2px] px-2.5 py-2 text-sm font-bold transition-all";
+const NAV_ITEM_ACTIVE =
+  "bg-[#0D9488] text-white border-[#134E4A] shadow-[2px_2px_0px_#134E4A]";
+const NAV_ITEM_IDLE =
+  "border-transparent text-[#134E4A] hover:bg-[#F0FDF4] hover:border-[#134E4A]";
+
 export function AdminSidebar({
   collapsed,
   onToggleCollapsed,
@@ -24,17 +32,16 @@ export function AdminSidebar({
 
   return (
     <aside
-      className={`admin-metro fixed inset-y-0 left-0 z-30 hidden flex-col border-r-[3px] border-[var(--admin-border)] md:flex ${
+      className={`fixed inset-y-0 left-0 z-30 hidden flex-col border-r-[3px] border-[#134E4A] bg-white font-sans md:flex ${
         collapsed ? "w-[76px]" : "w-64"
       }`}
-      style={{ backgroundColor: "var(--admin-surface)" }}
     >
-      <div className="flex h-16 shrink-0 items-center gap-2 border-b-[3px] border-[var(--admin-border)] px-3">
-        <span className="admin-accent-soft flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+      <div className="flex h-16 shrink-0 items-center gap-2 border-b-[3px] border-[#134E4A] px-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-[2px] border-[#134E4A] bg-[#F59E0B] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
           <Shield size={16} />
         </span>
         {!collapsed ? (
-          <span className="truncate text-sm font-black uppercase tracking-tight">
+          <span className="truncate font-display text-sm font-black uppercase tracking-tight text-[#134E4A]">
             Admin Tartila
           </span>
         ) : null}
@@ -44,11 +51,11 @@ export function AdminSidebar({
         {sections.map((section) => (
           <div key={section.title} className="mb-4 last:mb-0">
             {!collapsed ? (
-              <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-widest admin-muted">
+              <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-widest text-[#134E4A]/60">
                 {section.title}
               </p>
             ) : null}
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -58,13 +65,15 @@ export function AdminSidebar({
                       end={item.end}
                       aria-label={item.label}
                       title={collapsed ? item.label : undefined}
-                      className={`admin-nav-item flex items-center rounded-xl px-2.5 py-2 text-sm ${
-                        collapsed ? "justify-center" : "gap-3"
-                      }`}
+                      className={({ isActive }) =>
+                        `${NAV_ITEM_BASE} ${isActive ? NAV_ITEM_ACTIVE : NAV_ITEM_IDLE} ${
+                          collapsed ? "justify-center" : "gap-3"
+                        }`
+                      }
                     >
                       <Icon size={18} />
                       {!collapsed ? (
-                        <span className="truncate font-bold">{item.label}</span>
+                        <span className="truncate">{item.label}</span>
                       ) : null}
                     </NavLink>
                   </li>
@@ -75,14 +84,16 @@ export function AdminSidebar({
         ))}
       </nav>
 
-      <div className="shrink-0 border-t-[3px] border-[var(--admin-border)] p-2">
+      <div className="shrink-0 space-y-1.5 border-t-[3px] border-[#134E4A] p-2">
         <NavLink
           to="/member/ngaji-ceria"
           aria-label="Masuk Mode Member"
           title={collapsed ? "Masuk Mode Member" : undefined}
-          className={`admin-nav-item mb-1 flex w-full items-center rounded-xl px-2.5 py-2 text-sm font-black ${
-            collapsed ? "justify-center" : "gap-3"
-          }`}
+          className={({ isActive }) =>
+            `${NAV_ITEM_BASE} font-black ${isActive ? NAV_ITEM_ACTIVE : NAV_ITEM_IDLE} ${
+              collapsed ? "justify-center" : "gap-3"
+            }`
+          }
         >
           <Sparkles size={18} />
           {!collapsed ? <span>Mode Member</span> : null}
@@ -92,7 +103,7 @@ export function AdminSidebar({
           onClick={handleLogout}
           aria-label="Keluar"
           title={collapsed ? "Keluar" : undefined}
-          className={`admin-nav-item flex w-full items-center rounded-xl px-2.5 py-2 text-sm font-bold ${
+          className={`${NAV_ITEM_BASE} ${NAV_ITEM_IDLE} hover:bg-[#FF6B6B] hover:text-white ${
             collapsed ? "justify-center" : "gap-3"
           }`}
         >
@@ -104,7 +115,7 @@ export function AdminSidebar({
           onClick={onToggleCollapsed}
           aria-label={collapsed ? "Perluas sidebar" : "Perkecil sidebar"}
           title={collapsed ? "Perluas" : "Perkecil"}
-          className={`admin-nav-item hidden w-full items-center rounded-xl px-2.5 py-2 text-sm font-bold md:flex ${
+          className={`${NAV_ITEM_BASE} ${NAV_ITEM_IDLE} hidden md:flex ${
             collapsed ? "justify-center" : "gap-3"
           }`}
         >

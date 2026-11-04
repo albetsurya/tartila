@@ -39,6 +39,7 @@ import { awardProgress } from "./games/_shared/progression";
 import { useEventStore } from "../hooks/useEventStore";
 import { addEvent, markHasPlayedSession } from "@/services/eventService";
 import { QuizEngine } from "../components/quiz-models/QuizEngine";
+import { shuffleQuestionsNoConsecutiveTypes } from "../components/quiz-models/shuffleQuestionsNoConsecutiveTypes";
 import { QuizSessionResult } from "../components/QuizSessionResult";
 import type {
   AudioMatchingOption,
@@ -222,11 +223,15 @@ function toQuestionData(
     4,
   );
 
+  // Samakan normalisasi spasi dengan buildArabicMcqOptions agar kunci jawaban
+  // Arab benar-benar identik dengan salah satu opsi (bukan varian spasinya).
+  const normalizedArabic = question.arabic.replace(/\s+/g, " ").trim();
+
   return {
     id: String(question.id),
     type: "fill-in-the-blank",
     arabicTemplate: question.arabic,
-    arabicText: question.arabic,
+    arabicText: normalizedArabic,
     options: buildMcqOptions(correctReading, siblingReadings),
     arabicOptions: buildArabicMcqOptions(question.arabic, siblingArabics),
     availableLetters,
@@ -365,11 +370,26 @@ export default function NgajiCeriaQuizPage() {
         ),
     );
   }, [questions]);
+  // Acak urutan soal sekali per halaman (bukan per jawaban), dengan pemetaan
+  // QuestionData agar tipe soal yang sama tidak tampil berurutan.
+  const orderedQuestions = useMemo(() => {
+    if (filteredQuestions.length === 0) return filteredQuestions;
+    const pairs = filteredQuestions.map((item) => ({
+      question: item,
+      data: toQuestionData(item, questions, null),
+    }));
+    const shuffled = shuffleQuestionsNoConsecutiveTypes(
+      pairs.map((pair) => pair.data),
+    );
+    return shuffled
+      .map((data) => pairs.find((pair) => pair.data === data)?.question)
+      .filter((item): item is QuizQuestion => Boolean(item));
+  }, [filteredQuestions, questions]);
   const activeQuestions = useMemo(() => {
     const startIdx =
       selectedLevel === 1 ? 0 : QUIZ_LEVELS[selectedLevel - 2].questionCount;
-    return filteredQuestions.slice(startIdx, currentLevelConfig.questionCount);
-  }, [filteredQuestions, selectedLevel, currentLevelConfig.questionCount]);
+    return orderedQuestions.slice(startIdx, currentLevelConfig.questionCount);
+  }, [orderedQuestions, selectedLevel, currentLevelConfig.questionCount]);
 
   const totalQuestions = activeQuestions.length;
   const question = activeQuestions[currentIdx] || activeQuestions[0];

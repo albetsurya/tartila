@@ -8,10 +8,9 @@ export function AdminRouteGuard() {
 
   if (loading || !isRoleVerified) {
     return (
-      <div className="admin-shell flex min-h-dvh items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center bg-[#F0FDF4]">
         <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent"
-          style={{ color: "var(--admin-accent)" }}
+          className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#0D9488] border-t-transparent"
           role="status"
           aria-label="Memuat"
         />

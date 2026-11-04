@@ -33,6 +33,46 @@ import {
   type GameCatalogOverride,
 } from "../services/gameCatalogAdminService";
 import { AppModal } from "@/components/ui/AppModal";
+import {
+  BADGE_NEUTRAL,
+  BADGE_SUCCESS,
+  BADGE_WARNING,
+  BTN_BASE,
+  BTN_DANGER,
+  BTN_DANGER_COLOR,
+  BTN_ICON_XS,
+  BTN_PRIMARY,
+  BTN_PRIMARY_SM,
+  BTN_SECONDARY,
+  BTN_SECONDARY_COLOR,
+  BTN_SECONDARY_SM,
+  BTN_SM,
+  CARD,
+  CHIP_ACTIVE,
+  CHIP_IDLE,
+  ICON_BOX,
+  INPUT,
+  INPUT_ICON,
+  INPUT_NUM,
+  INPUT_SM,
+  LABEL,
+  PAGE_SUBTITLE,
+  PAGE_TITLE,
+  SELECT_SM,
+  TABLE_WRAP,
+  TH,
+  TOAST,
+  TR,
+} from "../styles";
+
+/** Pil badge yang bisa diklik (akses / validasi). */
+const BADGE_BTN = "cursor-pointer transition-all hover:brightness-95";
+/** Tombol ikon kecil tanpa shadow berat, dipakai di kartu & baris tabel. */
+const MINI_ICON_BTN = `${BTN_BASE} ${BTN_ICON_XS} ${BTN_SECONDARY_COLOR}`;
+const MINI_ICON_DANGER = `${BTN_BASE} ${BTN_ICON_XS} ${BTN_DANGER_COLOR}`;
+/** Toggle switch: border tebal, Teal saat aktif. */
+const SWITCH_BASE =
+  "relative inline-flex shrink-0 cursor-pointer rounded-full border-[2.5px] border-[#134E4A] transition-colors duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-[#0D9488]/30";
 
 const JILID_OPTIONS: JilidNumber[] = [1, 2, 3, 4, 5];
 
@@ -213,38 +253,36 @@ export function AdminGameCatalogPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-20 right-6 z-50 flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-[#059669] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-950/20 animate-in fade-in slide-in-from-top-4"
+          className={TOAST}
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20">
-            <Check size={14} />
-          </span>
+          <Check size={14} />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Header Halaman */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className={`flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between ${CARD}`}>
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight">Katalog Game</h1>
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <h1 className={PAGE_TITLE}>Katalog Game</h1>
+            <span className={BADGE_SUCCESS}>
               <Shield size={12} />
               Superadmin Only
             </span>
             {stats.overriddenCount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+              <span className={BADGE_WARNING}>
                 <Sparkles size={12} />
                 {stats.overriddenCount} Kustomisasi Aktif
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm admin-muted">
+          <p className={PAGE_SUBTITLE}>
             Kelola hak akses santri (tamu publik vs member), pemetaan kurikulum
             Tilawati, dan validasi narasi edukasi.
           </p>
@@ -258,7 +296,7 @@ export function AdminGameCatalogPage() {
               showToast("Sinkronisasi status game dari server...");
             }}
             disabled={loading}
-            className="admin-surface admin-border inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--admin-accent-soft)]"
+            className={BTN_SECONDARY_SM}
             title="Muat ulang konfigurasi dari backend Go"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
@@ -269,7 +307,7 @@ export function AdminGameCatalogPage() {
             <button
               type="button"
               onClick={() => setConfirmResetAll(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400"
+              className={`${BTN_BASE} ${BTN_SM} ${BTN_DANGER_COLOR}`}
             >
               <RefreshCw size={14} />
               Reset Semua Kustomisasi
@@ -280,7 +318,7 @@ export function AdminGameCatalogPage() {
             href="/member/ngaji-ceria/games"
             target="_blank"
             rel="noopener noreferrer"
-            className="admin-surface admin-border inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--admin-accent-soft)]"
+            className={BTN_SECONDARY_SM}
           >
             <Eye size={14} />
             Buka Portal Santri
@@ -291,81 +329,81 @@ export function AdminGameCatalogPage() {
       {/* Baris Statistik Ringkas */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {/* Total Game */}
-        <div className="admin-surface admin-border rounded-xl border p-4 shadow-sm">
+        <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-4 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium admin-muted">Total Game</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]">
+            <span className="text-xs font-black uppercase tracking-wide text-[#134E4A]/70">Total Game</span>
+            <span className={`h-8 w-8 bg-[#F0FDF4] text-[#134E4A] ${ICON_BOX}`}>
               <Gamepad size={16} />
             </span>
           </div>
-          <p className="mt-2 text-2xl font-bold tabular-nums">{stats.total}</p>
-          <p className="mt-0.5 text-xs admin-muted">Tersedia di katalog</p>
+          <p className="mt-2 font-display text-3xl font-black tabular-nums text-[#134E4A]">{stats.total}</p>
+          <p className="mt-0.5 text-xs font-bold text-[#134E4A]/60">Tersedia di katalog</p>
         </div>
 
         {/* Game Aktif (Live di Santri) */}
-        <div className="admin-surface admin-border rounded-xl border p-4 shadow-sm">
+        <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-4 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium admin-muted">Game Aktif</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <span className="text-xs font-black uppercase tracking-wide text-[#134E4A]/70">Game Aktif</span>
+            <span className={`h-8 w-8 bg-[#99F6E4] text-[#134E4A] ${ICON_BOX}`}>
               <Check size={16} />
             </span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-emerald-600 tabular-nums dark:text-emerald-400">
+          <p className="mt-2 font-display text-3xl font-black tabular-nums text-[#134E4A]">
             {stats.activeCount}
           </p>
-          <p className="mt-0.5 text-xs admin-muted">Bisa dimainkan santri</p>
+          <p className="mt-0.5 text-xs font-bold text-[#134E4A]/60">Bisa dimainkan santri</p>
         </div>
 
         {/* Game Non-aktif (Pemeliharaan) */}
-        <div className="admin-surface admin-border rounded-xl border p-4 shadow-sm">
+        <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-4 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium admin-muted">Pemeliharaan</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <span className="text-xs font-black uppercase tracking-wide text-[#134E4A]/70">Pemeliharaan</span>
+            <span className={`h-8 w-8 bg-[#F59E0B] text-[#134E4A] ${ICON_BOX}`}>
               <Lock size={16} />
             </span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-amber-600 tabular-nums dark:text-amber-400">
+          <p className="mt-2 font-display text-3xl font-black tabular-nums text-[#134E4A]">
             {stats.inactiveCount}
           </p>
-          <p className="mt-0.5 text-xs admin-muted">Status non-aktif santri</p>
+          <p className="mt-0.5 text-xs font-bold text-[#134E4A]/60">Status non-aktif santri</p>
         </div>
 
         {/* Akses Tamu Publik */}
-        <div className="admin-surface admin-border rounded-xl border p-4 shadow-sm">
+        <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-4 shadow-[4px_4px_0px_#134E4A]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium admin-muted">Akses Tamu</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
+            <span className="text-xs font-black uppercase tracking-wide text-[#134E4A]/70">Akses Tamu</span>
+            <span className={`h-8 w-8 bg-[#0D9488] text-white ${ICON_BOX}`}>
               <Users size={16} />
             </span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-teal-600 tabular-nums dark:text-teal-400">
+          <p className="mt-2 font-display text-3xl font-black tabular-nums text-[#134E4A]">
             {stats.guestOpen}
           </p>
-          <p className="mt-0.5 text-xs admin-muted">Terbuka tanpa login</p>
+          <p className="mt-0.5 text-xs font-bold text-[#134E4A]/60">Terbuka tanpa login</p>
         </div>
       </div>
 
       {/* Control Bar: Pencarian, Filter & Mode Tampilan */}
-      <section className="admin-surface admin-border space-y-3 rounded-xl border p-4 shadow-sm">
+      <section className={`space-y-3 p-4 ${CARD}`}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           {/* Kolom Pencarian */}
           <div className="relative flex-1">
             <Search
               size={16}
-              className="admin-muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#134E4A]/60"
             />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari judul, gameId, materi pokok, atau instruksi..."
-              className="admin-surface admin-border w-full rounded-lg border py-2 pl-9 pr-8 text-sm transition-colors focus:border-emerald-500 focus:outline-none"
+              className={INPUT_ICON}
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery("")}
-                className="admin-muted absolute right-2.5 top-1/2 -translate-y-1/2 hover:text-red-500"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#134E4A]/60 hover:text-[#FF6B6B]"
                 aria-label="Hapus kata kunci pencarian"
               >
                 <X size={14} />
@@ -374,15 +412,11 @@ export function AdminGameCatalogPage() {
           </div>
 
           {/* Mode Tampilan (Grid / Table) */}
-          <div className="flex items-center gap-1 rounded-lg border border-[var(--admin-border)] p-1">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                viewMode === "grid"
-                  ? "bg-[var(--admin-accent)] text-white shadow-xs"
-                  : "admin-muted hover:text-[var(--admin-text)]"
-              }`}
+              className={viewMode === "grid" ? CHIP_ACTIVE : CHIP_IDLE}
             >
               <LayoutGrid size={14} />
               Kartu
@@ -390,11 +424,7 @@ export function AdminGameCatalogPage() {
             <button
               type="button"
               onClick={() => setViewMode("table")}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                viewMode === "table"
-                  ? "bg-[var(--admin-accent)] text-white shadow-xs"
-                  : "admin-muted hover:text-[var(--admin-text)]"
-              }`}
+              className={viewMode === "table" ? CHIP_ACTIVE : CHIP_IDLE}
             >
               <List size={14} />
               Tabel
@@ -414,7 +444,7 @@ export function AdminGameCatalogPage() {
                 )
               }
               aria-label="Filter status aktif game"
-              className="admin-surface admin-border w-full appearance-none rounded-lg border py-1.5 pl-3 pr-8 text-xs transition-colors focus:border-emerald-500 focus:outline-none font-medium"
+              className={SELECT_SM}
             >
               <option value="all">Semua Status Game</option>
               <option value="active">Game Aktif ({stats.activeCount})</option>
@@ -422,7 +452,7 @@ export function AdminGameCatalogPage() {
             </select>
             <ChevronDown
               size={13}
-              className="admin-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#134E4A]"
             />
           </div>
 
@@ -434,7 +464,7 @@ export function AdminGameCatalogPage() {
                 setMateriFilter(e.target.value as MateriPokok | "all")
               }
               aria-label="Filter materi pokok"
-              className="admin-surface admin-border w-full appearance-none rounded-lg border py-1.5 pl-3 pr-8 text-xs transition-colors focus:border-emerald-500 focus:outline-none"
+              className={SELECT_SM}
             >
               <option value="all">Semua Materi ({ALL_MATERI_POKOK.length})</option>
               {ALL_MATERI_POKOK.map((m) => (
@@ -445,7 +475,7 @@ export function AdminGameCatalogPage() {
             </select>
             <ChevronDown
               size={13}
-              className="admin-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#134E4A]"
             />
           </div>
 
@@ -461,7 +491,7 @@ export function AdminGameCatalogPage() {
                 )
               }
               aria-label="Filter jilid Tilawati"
-              className="admin-surface admin-border w-full appearance-none rounded-lg border py-1.5 pl-3 pr-8 text-xs transition-colors focus:border-emerald-500 focus:outline-none"
+              className={SELECT_SM}
             >
               <option value="all">Semua Jilid (1–5)</option>
               {JILID_OPTIONS.map((j) => (
@@ -472,7 +502,7 @@ export function AdminGameCatalogPage() {
             </select>
             <ChevronDown
               size={13}
-              className="admin-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#134E4A]"
             />
           </div>
 
@@ -484,7 +514,7 @@ export function AdminGameCatalogPage() {
                 setAccessFilter(e.target.value as GameAccessLevel | "all")
               }
               aria-label="Filter hak akses game"
-              className="admin-surface admin-border w-full appearance-none rounded-lg border py-1.5 pl-3 pr-8 text-xs transition-colors focus:border-emerald-500 focus:outline-none"
+              className={SELECT_SM}
             >
               <option value="all">Semua Akses</option>
               <option value="guest-open">Akses Tamu (Publik)</option>
@@ -492,7 +522,7 @@ export function AdminGameCatalogPage() {
             </select>
             <ChevronDown
               size={13}
-              className="admin-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#134E4A]"
             />
           </div>
 
@@ -506,7 +536,7 @@ export function AdminGameCatalogPage() {
                 )
               }
               aria-label="Filter status validasi kurikulum"
-              className="admin-surface admin-border w-full appearance-none rounded-lg border py-1.5 pl-3 pr-8 text-xs transition-colors focus:border-emerald-500 focus:outline-none"
+              className={SELECT_SM}
             >
               <option value="all">Semua Validasi</option>
               <option value="needs-validation">Perlu Validasi (Draf)</option>
@@ -514,16 +544,16 @@ export function AdminGameCatalogPage() {
             </select>
             <ChevronDown
               size={13}
-              className="admin-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#134E4A]"
             />
           </div>
         </div>
 
         {/* Info Hasil & Reset Filter */}
         <div className="flex items-center justify-between pt-1 text-xs">
-          <span className="admin-muted">
+          <span className="font-bold text-[#134E4A]/70">
             Menampilkan{" "}
-            <strong className="text-[var(--admin-text)] font-semibold">
+            <strong className="font-black text-[#134E4A]">
               {filteredGames.length}
             </strong>{" "}
             dari {games.length} game
@@ -533,7 +563,7 @@ export function AdminGameCatalogPage() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="inline-flex items-center gap-1 font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+              className="inline-flex items-center gap-1 font-black text-[#0D9488] underline-offset-2 hover:underline"
             >
               <X size={12} />
               Reset Semua Filter
@@ -544,18 +574,18 @@ export function AdminGameCatalogPage() {
 
       {/* Konten Utama: Daftar Game */}
       {filteredGames.length === 0 ? (
-        <div className="admin-surface admin-border rounded-xl border py-16 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]">
+        <div className={`py-16 text-center ${CARD}`}>
+          <div className={`mx-auto h-12 w-12 bg-[#99F6E4] text-[#134E4A] ${ICON_BOX}`}>
             <Gamepad size={24} />
           </div>
-          <h3 className="mt-3 text-base font-semibold">Tidak ada game ditemukan</h3>
-          <p className="mt-1 text-sm admin-muted">
+          <h3 className="mt-3 font-display text-base font-black text-[#134E4A]">Tidak ada game ditemukan</h3>
+          <p className="mt-1 text-sm font-bold text-[#134E4A]/70">
             Coba sesuaikan kata kunci atau bersihkan pilihan filter di atas.
           </p>
           <button
             type="button"
             onClick={handleResetFilters}
-            className="admin-accent-bg mt-4 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold"
+            className={`${BTN_PRIMARY_SM} mt-4`}
           >
             Bersihkan Filter
           </button>
@@ -581,21 +611,21 @@ export function AdminGameCatalogPage() {
         </div>
       ) : (
         /* Tabel Tampilan List CMS Game Dinamis */
-        <div className="admin-surface admin-border overflow-hidden rounded-xl border shadow-sm">
+        <div className={TABLE_WRAP}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[840px] text-left text-sm">
+            <table className="w-full min-w-[840px] border-collapse text-left text-sm">
               <thead>
-                <tr className="admin-border border-b text-xs uppercase tracking-wider admin-muted bg-[var(--admin-accent-soft)]/30">
-                  <th className="px-5 py-3 font-semibold">Game</th>
-                  <th className="px-4 py-3 font-semibold">Status (Tampil)</th>
-                  <th className="px-4 py-3 font-semibold">Tipe Tampilan</th>
-                  <th className="px-4 py-3 font-semibold">Pilih Hub</th>
-                  <th className="px-4 py-3 font-semibold text-center">Urutan</th>
-                  <th className="px-4 py-3 font-semibold">Akses</th>
-                  <th className="px-4 py-3 text-right font-semibold">Aksi</th>
+                <tr>
+                  <th className={`px-5 py-3 ${TH}`}>Game</th>
+                  <th className={`px-4 py-3 ${TH}`}>Status (Tampil)</th>
+                  <th className={`px-4 py-3 ${TH}`}>Tipe Tampilan</th>
+                  <th className={`px-4 py-3 ${TH}`}>Pilih Hub</th>
+                  <th className={`px-4 py-3 text-center ${TH}`}>Urutan</th>
+                  <th className={`px-4 py-3 ${TH}`}>Akses</th>
+                  <th className={`px-4 py-3 text-right ${TH}`}>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--admin-border)]">
+              <tbody>
                 {filteredGames.map((game) => (
                   <GameTableRow
                     key={game.gameId}
@@ -639,10 +669,10 @@ export function AdminGameCatalogPage() {
         onClose={() => setConfirmResetAll(false)}
         title="Reset Seluruh Kustomisasi Game?"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
+        <div className={`h-12 w-12 bg-[#FF6B6B] text-white ${ICON_BOX}`}>
           <RefreshCw size={24} />
         </div>
-        <p className="mt-2 text-sm admin-muted">
+        <p className="mt-2 text-sm font-bold text-[#134E4A]/70">
           Tindakan ini akan mengembalikan semua hak akses tamu, status
           validasi, dan deskripsi tujuan pembelajaran {stats.overriddenCount}{" "}
           game yang telah diubah ke konfigurasi bawaan sistem.
@@ -651,14 +681,14 @@ export function AdminGameCatalogPage() {
           <button
             type="button"
             onClick={() => setConfirmResetAll(false)}
-            className="admin-surface admin-border rounded-lg border px-4 py-2 text-sm font-medium hover:bg-[var(--admin-accent-soft)]"
+            className={BTN_SECONDARY}
           >
             Batal
           </button>
           <button
             type="button"
             onClick={handleConfirmResetAll}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            className={BTN_DANGER}
           >
             Ya, Reset Semua
           </button>
@@ -698,36 +728,36 @@ function GameCardItem({
   const isGuestOpen = game.access === "guest-open";
 
   return (
-    <article className="admin-surface admin-border group flex flex-col justify-between rounded-xl border p-4 shadow-sm transition-all duration-150 hover:border-emerald-500/40 hover:shadow-md">
+    <article className={`group flex flex-col justify-between p-4 ${CARD}`}>
       {/* Header Kartu */}
       <div>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h3 className="truncate text-base font-bold text-[var(--admin-text)]">
+              <h3 className="truncate font-display text-base font-black text-[#134E4A]">
                 {game.title}
               </h3>
               {game.isOverridden && (
                 <span
                   title="Game ini memiliki perubahan yang disimpan superadmin"
-                  className="shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
+                  className="shrink-0 rounded-md border-[2px] border-[#134E4A] bg-[#F59E0B] px-1.5 py-0.5 text-[10px] font-black text-[#134E4A]"
                 >
                   Disesuaikan
                 </span>
               )}
             </div>
-            <p className="mt-0.5 font-mono text-[11px] admin-muted">
+            <p className="mt-0.5 font-mono text-[11px] font-bold text-[#134E4A]/60">
               id: {game.gameId}
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1.5">
             {game.isOverridden && (
               <button
                 type="button"
                 onClick={onReset}
                 title="Kembalikan ke default"
-                className="admin-muted rounded-md p-1.5 hover:bg-red-500/10 hover:text-red-500"
+                className={MINI_ICON_DANGER}
               >
                 <RefreshCw size={13} />
               </button>
@@ -736,7 +766,7 @@ function GameCardItem({
               type="button"
               onClick={onEdit}
               title="Edit metadata lengkap"
-              className="admin-muted rounded-md p-1.5 hover:bg-[var(--admin-accent-soft)] hover:text-[var(--admin-accent)]"
+              className={MINI_ICON_BTN}
             >
               <Pencil size={14} />
             </button>
@@ -744,18 +774,18 @@ function GameCardItem({
         </div>
 
         {/* Switch Status Aktif (Go Backend DB Integration) */}
-        <div className="mt-3 flex items-center justify-between rounded-lg border border-[var(--admin-border)] bg-zinc-50/80 p-2.5 dark:bg-zinc-800/40">
+        <div className="mt-3 flex items-center justify-between rounded-xl border-[2px] border-[#134E4A]/20 bg-[#F0FDF4] p-2.5">
           <div className="flex items-center gap-2">
             <span
               className={`h-2.5 w-2.5 rounded-full ${
-                game.isActive ? "bg-emerald-500 animate-pulse" : "bg-red-500"
+                game.isActive ? "animate-pulse bg-[#0D9488]" : "bg-[#FF6B6B]"
               }`}
             />
             <div>
-              <span className="text-xs font-bold text-[var(--admin-text)]">
+              <span className="text-xs font-black text-[#134E4A]">
                 {game.isActive ? "Status: Aktif" : "Status: Non-aktif"}
               </span>
-              <p className="text-[10px] admin-muted">
+              <p className="text-[10px] font-bold text-[#134E4A]/60">
                 {game.isActive ? "Bisa dimainkan santri" : "Dalam pemeliharaan"}
               </p>
             </div>
@@ -771,13 +801,13 @@ function GameCardItem({
                 ? "Klik untuk menonaktifkan game (mode pemeliharaan)"
                 : "Klik untuk mengaktifkan game"
             }
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              game.isActive ? "bg-emerald-600" : "bg-zinc-300 dark:bg-zinc-600"
-            } ${isToggling ? "opacity-50 cursor-wait" : ""}`}
+            className={`${SWITCH_BASE} h-7 w-12 ${
+              game.isActive ? "bg-[#0D9488]" : "bg-white"
+            } ${isToggling ? "cursor-wait opacity-50" : ""}`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                game.isActive ? "translate-x-5" : "translate-x-0"
+              className={`pointer-events-none mt-px ml-px inline-block h-5 w-5 transform rounded-full border-2 border-[#134E4A] transition duration-200 ease-in-out ${
+                game.isActive ? "translate-x-5 bg-white" : "translate-x-0 bg-[#F59E0B]"
               }`}
             />
           </button>
@@ -789,11 +819,7 @@ function GameCardItem({
             type="button"
             onClick={onToggleAccess}
             title="Klik untuk ubah hak akses cepat"
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
-              isGuestOpen
-                ? "bg-teal-500/15 text-teal-700 hover:bg-teal-500/25 dark:text-teal-300"
-                : "bg-indigo-500/15 text-indigo-700 hover:bg-indigo-500/25 dark:text-indigo-300"
-            }`}
+            className={`${isGuestOpen ? BADGE_SUCCESS : BADGE_NEUTRAL} ${BADGE_BTN}`}
           >
             {isGuestOpen ? <Users size={12} /> : <Lock size={12} />}
             {isGuestOpen ? "Tamu Publik" : "Khusus Member"}
@@ -803,15 +829,11 @@ function GameCardItem({
             type="button"
             onClick={onToggleValidation}
             title="Klik untuk ubah status validasi kurikulum"
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
-              game.needsContentValidation
-                ? "bg-amber-500/15 text-amber-700 hover:bg-amber-500/25 dark:text-amber-300"
-                : "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-300"
-            }`}
+            className={`${game.needsContentValidation ? BADGE_WARNING : BADGE_SUCCESS} ${BADGE_BTN}`}
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                game.needsContentValidation ? "bg-amber-500" : "bg-emerald-500"
+                game.needsContentValidation ? "bg-[#134E4A]" : "bg-[#0D9488]"
               }`}
             />
             {game.needsContentValidation ? "Perlu Validasi" : "Tervalidasi"}
@@ -819,20 +841,20 @@ function GameCardItem({
         </div>
 
         {/* Tujuan Pembelajaran */}
-        <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-[var(--admin-text)]/90">
+        <p className="mt-3 line-clamp-2 text-xs font-bold leading-relaxed text-[#134E4A]/90">
           {game.learningObjective}
         </p>
 
         {/* Tag Kurikulum: Materi & Jilid */}
-        <div className="mt-3.5 space-y-1.5 border-t border-[var(--admin-border)] pt-2.5">
+        <div className="mt-3.5 space-y-1.5 border-t border-[#134E4A]/20 pt-2.5">
           <div className="flex flex-wrap items-center gap-1">
-            <span className="text-[10px] font-medium uppercase admin-muted mr-1">
+            <span className="mr-1 text-[10px] font-black uppercase text-[#134E4A]/60">
               Materi:
             </span>
             {game.materiPokok.map((m) => (
               <span
                 key={m}
-                className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                className="rounded-md border border-[#134E4A]/30 bg-white px-1.5 py-0.5 text-[10px] font-bold text-[#134E4A]"
               >
                 {MATERI_LABELS[m] || m}
               </span>
@@ -840,20 +862,20 @@ function GameCardItem({
           </div>
 
           <div className="flex flex-wrap items-center gap-1">
-            <span className="text-[10px] font-medium uppercase admin-muted mr-1">
+            <span className="mr-1 text-[10px] font-black uppercase text-[#134E4A]/60">
               Jilid:
             </span>
             {game.jilidRelevan.length > 0 ? (
               game.jilidRelevan.map((j) => (
                 <span
                   key={j}
-                  className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400"
+                  className="rounded-md border border-[#134E4A]/30 bg-[#99F6E4] px-1.5 py-0.5 text-[10px] font-black text-[#134E4A]"
                 >
                   Jilid {j}
                 </span>
               ))
             ) : (
-              <span className="text-[10px] admin-muted italic">
+              <span className="text-[10px] font-bold italic text-[#134E4A]/60">
                 Semua jenjang
               </span>
             )}
@@ -862,12 +884,12 @@ function GameCardItem({
       </div>
 
       {/* Footer Kartu & Tombol Aksi */}
-      <div className="mt-4 flex items-center justify-between border-t border-[var(--admin-border)] pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-[#134E4A]/20 pt-3">
         <a
           href={`/member/ngaji-ceria/games/${game.gameId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700 hover:underline dark:text-emerald-400"
+          className="inline-flex items-center gap-1 text-xs font-black text-[#0D9488] underline-offset-2 transition-colors hover:text-[#0F766E] hover:underline"
         >
           <Gamepad size={13} />
           Mainkan Game
@@ -876,7 +898,7 @@ function GameCardItem({
         <button
           type="button"
           onClick={onEdit}
-          className="admin-surface admin-border rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--admin-accent-soft)]"
+          className={BTN_SECONDARY_SM}
         >
           Edit Detail
         </button>
@@ -902,25 +924,25 @@ function GameTableRow({
   const isGuestOpen = game.access === "guest-open";
 
   return (
-    <tr className="transition-colors hover:bg-[var(--admin-accent-soft)]/50">
+    <tr className={TR}>
       {/* Kolom Game */}
       <td className="px-5 py-3.5">
         <div className="flex items-center gap-2">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-[var(--admin-text)]">
+              <span className="font-black text-[#134E4A]">
                 {game.title}
               </span>
               {game.isOverridden && (
-                <span className="rounded bg-amber-500/15 px-1 py-0.2 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                <span className="rounded-md border border-[#134E4A] bg-[#F59E0B] px-1 text-[9px] font-black text-[#134E4A]">
                   Custom
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="font-mono text-xs admin-muted">{game.gameId}</span>
-              <span className="text-[10px] admin-muted">•</span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+              <span className="font-mono text-xs font-bold text-[#134E4A]/60">{game.gameId}</span>
+              <span className="text-[10px] text-[#134E4A]/40">•</span>
+              <span className="text-[10px] font-black text-[#0D9488]">
                 {game.materiPokok.map((m) => MATERI_LABELS[m] || m).join(", ")}
               </span>
             </div>
@@ -938,21 +960,19 @@ function GameTableRow({
             disabled={isToggling}
             onClick={onToggleActive}
             title={game.isActive ? "Klik untuk sembunyikan game" : "Klik untuk tampilkan game"}
-            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              game.isActive ? "bg-emerald-600" : "bg-zinc-300 dark:bg-zinc-600"
-            } ${isToggling ? "opacity-50 cursor-wait" : ""}`}
+            className={`${SWITCH_BASE} h-6 w-10 ${
+              game.isActive ? "bg-[#0D9488]" : "bg-white"
+            } ${isToggling ? "cursor-wait opacity-50" : ""}`}
           >
             <span
-              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                game.isActive ? "translate-x-4" : "translate-x-0"
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full border-2 border-[#134E4A] transition duration-200 ease-in-out ${
+                game.isActive ? "translate-x-4 bg-white" : "translate-x-0 bg-[#F59E0B]"
               }`}
             />
           </button>
           <span
-            className={`text-xs font-semibold ${
-              game.isActive
-                ? "text-emerald-700 dark:text-emerald-400"
-                : "text-zinc-500"
+            className={`text-xs font-black ${
+              game.isActive ? "text-[#0D9488]" : "text-[#134E4A]/50"
             }`}
           >
             {game.isActive ? "Tampil" : "Sembunyi"}
@@ -966,7 +986,7 @@ function GameTableRow({
           value={game.displayType || "standalone"}
           onChange={(e) => onDisplayTypeChange(e.target.value as "standalone" | "hub")}
           aria-label={`Tipe tampilan ${game.title}`}
-          className="admin-surface admin-border rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors focus:border-emerald-500 focus:outline-none"
+          className={INPUT_SM}
         >
           <option value="standalone">Standalone</option>
           <option value="hub">Hub</option>
@@ -980,10 +1000,8 @@ function GameTableRow({
           value={game.parentHubId || ""}
           onChange={(e) => onParentHubChange(e.target.value)}
           aria-label={`Pilih hub untuk ${game.title}`}
-          className={`admin-surface admin-border rounded-lg border px-2 py-1 text-xs font-medium transition-colors focus:border-emerald-500 focus:outline-none ${
-            game.displayType !== "hub"
-              ? "opacity-30 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800"
-              : "text-[var(--admin-text)]"
+          className={`${INPUT_SM} ${
+            game.displayType !== "hub" ? "cursor-not-allowed bg-[#F0FDF4] opacity-40" : ""
           }`}
         >
           <option value="">-- Tanpa Hub --</option>
@@ -1004,7 +1022,7 @@ function GameTableRow({
           value={game.sortOrder ?? 0}
           onChange={(e) => onSortOrderChange(Number(e.target.value))}
           aria-label={`Urutan tampil ${game.title}`}
-          className="admin-surface admin-border w-14 rounded-lg border py-1 text-center text-xs font-bold transition-colors focus:border-emerald-500 focus:outline-none"
+          className={INPUT_NUM}
         />
       </td>
 
@@ -1014,11 +1032,7 @@ function GameTableRow({
           type="button"
           onClick={onToggleAccess}
           title="Klik untuk ubah cepat"
-          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-            isGuestOpen
-              ? "bg-teal-500/15 text-teal-700 hover:bg-teal-500/25 dark:text-teal-300"
-              : "bg-indigo-500/15 text-indigo-700 hover:bg-indigo-500/25 dark:text-indigo-300"
-          }`}
+          className={`${isGuestOpen ? BADGE_SUCCESS : BADGE_NEUTRAL} ${BADGE_BTN}`}
         >
           {isGuestOpen ? <Users size={11} /> : <Lock size={11} />}
           {isGuestOpen ? "Tamu" : "Member"}
@@ -1031,15 +1045,11 @@ function GameTableRow({
           type="button"
           onClick={onToggleValidation}
           title="Klik untuk ubah status validasi"
-          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-            game.needsContentValidation
-              ? "bg-amber-500/15 text-amber-700 hover:bg-amber-500/25 dark:text-amber-300"
-              : "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-300"
-          }`}
+          className={`${game.needsContentValidation ? BADGE_WARNING : BADGE_SUCCESS} ${BADGE_BTN}`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              game.needsContentValidation ? "bg-amber-500" : "bg-emerald-500"
+              game.needsContentValidation ? "bg-[#134E4A]" : "bg-[#0D9488]"
             }`}
           />
           {game.needsContentValidation ? "Draf" : "Valid"}
@@ -1048,13 +1058,13 @@ function GameTableRow({
 
       {/* Kolom Aksi */}
       <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-2">
           <a
             href={`/member/ngaji-ceria/games/${game.gameId}`}
             target="_blank"
             rel="noopener noreferrer"
             title="Mainkan game"
-            className="admin-muted rounded-md p-1.5 hover:bg-[var(--admin-accent-soft)] hover:text-[var(--admin-accent)]"
+            className={MINI_ICON_BTN}
           >
             <Gamepad size={14} />
           </a>
@@ -1062,7 +1072,7 @@ function GameTableRow({
             type="button"
             onClick={onEdit}
             title="Edit metadata"
-            className="admin-muted rounded-md p-1.5 hover:bg-[var(--admin-accent-soft)] hover:text-[var(--admin-accent)]"
+            className={MINI_ICON_BTN}
           >
             <Pencil size={14} />
           </button>
@@ -1071,7 +1081,7 @@ function GameTableRow({
               type="button"
               onClick={onReset}
               title="Kembalikan ke default"
-              className="admin-muted rounded-md p-1.5 hover:bg-red-500/10 hover:text-red-500"
+              className={MINI_ICON_DANGER}
             >
               <RefreshCw size={14} />
             </button>
@@ -1158,16 +1168,16 @@ function EditGameModal({
 
   return (
     <AppModal isOpen={true} onClose={onClose} title="Edit Metadata Game">
-      <p className="font-mono text-xs admin-muted">id: {game.gameId}</p>
+      <p className="font-mono text-xs font-bold text-[#134E4A]/60">id: {game.gameId}</p>
 
       <form
         id="edit-game-form"
         onSubmit={handleSubmit}
-        className="admin-scroll mt-4 space-y-5 text-sm"
+        className="admin-scroll mt-4 space-y-5 text-sm font-bold text-[#134E4A]"
       >
         {/* Judul Game */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Judul Game
           </label>
           <input
@@ -1175,21 +1185,21 @@ function EditGameModal({
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+            className={INPUT}
           />
         </div>
 
         {/* Tingkat Akses (Radio Cards) */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Hak Akses Santri
           </label>
           <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <label
-              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border-[2.5px] border-[#134E4A] p-3 transition-all ${
                 access === "guest-open"
-                  ? "border-teal-500 bg-teal-500/10 font-semibold"
-                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+                  ? "bg-[#99F6E4] shadow-[2px_2px_0px_#134E4A]"
+                  : "bg-white hover:bg-[#F0FDF4]"
               }`}
             >
               <input
@@ -1198,23 +1208,23 @@ function EditGameModal({
                 value="guest-open"
                 checked={access === "guest-open"}
                 onChange={() => setAccess("guest-open")}
-                className="mt-0.5 text-teal-600 focus:ring-teal-500"
+                className="mt-0.5 accent-[#0D9488] focus:ring-[#0D9488]"
               />
               <div>
-                <span className="block text-xs font-bold text-teal-700 dark:text-teal-300">
+                <span className="block text-xs font-black text-[#134E4A]">
                   Terbuka untuk Tamu (Guest Open)
                 </span>
-                <span className="mt-0.5 block text-[11px] admin-muted">
+                <span className="mt-0.5 block text-[11px] font-bold text-[#134E4A]/70">
                   Dapat dimainkan santri tanpa perlu login akun.
                 </span>
               </div>
             </label>
 
             <label
-              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border-[2.5px] border-[#134E4A] p-3 transition-all ${
                 access === "member-only"
-                  ? "border-indigo-500 bg-indigo-500/10 font-semibold"
-                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+                  ? "bg-[#99F6E4] shadow-[2px_2px_0px_#134E4A]"
+                  : "bg-white hover:bg-[#F0FDF4]"
               }`}
             >
               <input
@@ -1223,13 +1233,13 @@ function EditGameModal({
                 value="member-only"
                 checked={access === "member-only"}
                 onChange={() => setAccess("member-only")}
-                className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                className="mt-0.5 accent-[#0D9488] focus:ring-[#0D9488]"
               />
               <div>
-                <span className="block text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                <span className="block text-xs font-black text-[#134E4A]">
                   Khusus Member (Wajib Login)
                 </span>
-                <span className="mt-0.5 block text-[11px] admin-muted">
+                <span className="mt-0.5 block text-[11px] font-bold text-[#134E4A]/70">
                   Santri harus masuk akun terlebih dahulu.
                 </span>
               </div>
@@ -1239,15 +1249,15 @@ function EditGameModal({
 
         {/* Status Validasi Konten */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Status Validasi Kurikulum
           </label>
           <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <label
-              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border-[2.5px] border-[#134E4A] p-3 transition-all ${
                 !needsContentValidation
-                  ? "border-emerald-500 bg-emerald-500/10 font-semibold"
-                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+                  ? "bg-[#99F6E4] shadow-[2px_2px_0px_#134E4A]"
+                  : "bg-white hover:bg-[#F0FDF4]"
               }`}
             >
               <input
@@ -1255,23 +1265,23 @@ function EditGameModal({
                 name="validation"
                 checked={!needsContentValidation}
                 onChange={() => setNeedsContentValidation(false)}
-                className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                className="mt-0.5 accent-[#0D9488] focus:ring-[#0D9488]"
               />
               <div>
-                <span className="block text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                <span className="block text-xs font-black text-[#134E4A]">
                   Tervalidasi Resmi
                 </span>
-                <span className="mt-0.5 block text-[11px] admin-muted">
+                <span className="mt-0.5 block text-[11px] font-bold text-[#134E4A]/70">
                   Konten dan materi sudah diverifikasi tim ustadz/kurikulum.
                 </span>
               </div>
             </label>
 
             <label
-              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border-[2.5px] border-[#134E4A] p-3 transition-all ${
                 needsContentValidation
-                  ? "border-amber-500 bg-amber-500/10 font-semibold"
-                  : "admin-border admin-surface hover:bg-[var(--admin-accent-soft)]"
+                  ? "bg-[#F59E0B]/40 shadow-[2px_2px_0px_#134E4A]"
+                  : "bg-white hover:bg-[#F0FDF4]"
               }`}
             >
               <input
@@ -1279,13 +1289,13 @@ function EditGameModal({
                 name="validation"
                 checked={needsContentValidation}
                 onChange={() => setNeedsContentValidation(true)}
-                className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                className="mt-0.5 accent-[#0D9488] focus:ring-[#0D9488]"
               />
               <div>
-                <span className="block text-xs font-bold text-amber-700 dark:text-amber-300">
+                <span className="block text-xs font-black text-[#134E4A]">
                   Perlu Validasi (Draf)
                 </span>
-                <span className="mt-0.5 block text-[11px] admin-muted">
+                <span className="mt-0.5 block text-[11px] font-bold text-[#134E4A]/70">
                   Perlu peninjauan ulang keselarasan tajwid/makhraj.
                 </span>
               </div>
@@ -1295,7 +1305,7 @@ function EditGameModal({
 
         {/* Materi Pokok Tags Checkbox */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Materi Pokok Terkait
           </label>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1306,11 +1316,7 @@ function EditGameModal({
                   key={m}
                   type="button"
                   onClick={() => handleToggleMateri(m)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    checked
-                      ? "bg-[var(--admin-accent)] text-white shadow-xs"
-                      : "admin-surface admin-border border admin-muted hover:border-[var(--admin-accent)]"
-                  }`}
+                  className={checked ? CHIP_ACTIVE : CHIP_IDLE}
                 >
                   {MATERI_LABELS[m]}
                 </button>
@@ -1321,7 +1327,7 @@ function EditGameModal({
 
         {/* Jilid Relevan */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Jilid Tilawati Relevan
           </label>
           <div className="mt-2 flex items-center gap-2">
@@ -1332,11 +1338,7 @@ function EditGameModal({
                   key={j}
                   type="button"
                   onClick={() => handleToggleJilid(j)}
-                  className={`flex h-8 w-16 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
-                    checked
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "admin-surface admin-border border admin-muted hover:border-emerald-500"
-                  }`}
+                  className={`${checked ? CHIP_ACTIVE : CHIP_IDLE} w-16`}
                 >
                   Jilid {j}
                 </button>
@@ -1347,7 +1349,7 @@ function EditGameModal({
 
         {/* Tujuan Pembelajaran */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Tujuan Pembelajaran
           </label>
           <textarea
@@ -1355,13 +1357,13 @@ function EditGameModal({
             required
             value={learningObjective}
             onChange={(e) => setLearningObjective(e.target.value)}
-            className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+            className={INPUT}
           />
         </div>
 
         {/* Cara Bermain */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+          <label className={LABEL}>
             Instruksi / Cara Main
           </label>
           <textarea
@@ -1369,20 +1371,20 @@ function EditGameModal({
             required
             value={caraMain}
             onChange={(e) => setCaraMain(e.target.value)}
-            className="admin-surface admin-border mt-1.5 w-full rounded-lg border px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+            className={INPUT}
           />
         </div>
 
         {/* Tips Ustadz */}
         <div>
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-semibold uppercase tracking-wider admin-muted">
+            <label className={LABEL}>
               Tips Ustadz ({tipsUstadz.length})
             </label>
             <button
               type="button"
               onClick={handleAddTip}
-              className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+              className={BTN_PRIMARY_SM}
             >
               <Plus size={13} />
               Tambah Tips
@@ -1396,12 +1398,12 @@ function EditGameModal({
                   value={tip}
                   onChange={(e) => handleUpdateTip(idx, e.target.value)}
                   placeholder={`Tips #${idx + 1}`}
-                  className="admin-surface admin-border flex-1 rounded-lg border px-3 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
+                  className={`${INPUT_SM} flex-1`}
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveTip(idx)}
-                  className="admin-muted p-1 hover:text-red-500"
+                  className={MINI_ICON_DANGER}
                   title="Hapus tip"
                 >
                   <Trash2 size={14} />
@@ -1418,27 +1420,27 @@ function EditGameModal({
           <button
             type="button"
             onClick={onResetDefault}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline dark:text-red-400"
+            className={`${BTN_BASE} ${BTN_SM} ${BTN_DANGER_COLOR}`}
           >
             <RefreshCw size={13} />
             Kembalikan ke Default
           </button>
         ) : (
-          <span className="text-xs admin-muted">Konfigurasi bawaan</span>
+          <span className="text-xs font-bold text-[#134E4A]/70">Konfigurasi bawaan</span>
         )}
 
         <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="admin-surface admin-border rounded-lg border px-4 py-2 text-xs font-semibold hover:bg-[var(--admin-accent-soft)]"
+            className={BTN_SECONDARY}
           >
             Batal
           </button>
           <button
             type="submit"
             form="edit-game-form"
-            className="admin-accent-bg rounded-lg px-4 py-2 text-xs font-semibold hover:opacity-90 shadow-sm"
+            className={BTN_PRIMARY}
           >
             Simpan Perubahan
           </button>
