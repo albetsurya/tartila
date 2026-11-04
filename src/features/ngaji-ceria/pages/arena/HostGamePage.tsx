@@ -48,11 +48,6 @@ export default function HostGamePage() {
 
   const socketRef = useRef<ArenaSocket | null>(null);
 
-  // Ambil roomId dari sessionStorage atau resolve dari PIN
-  const [targetRoomId, setTargetRoomId] = useState<string | null>(() => {
-    return sessionStorage.getItem("arena_room_id") || null;
-  });
-
   // Fetch soal dari room_questions
   useEffect(() => {
     if (!pin) return;
@@ -60,23 +55,15 @@ export default function HostGamePage() {
     let cancelled = false;
     const load = async () => {
       try {
-        let rId = targetRoomId;
-        if (!rId) {
-          const room = await arenaRoomService.getRoom(pin);
-          if (room) {
-            rId = room.id;
-            setTargetRoomId(room.id);
-            sessionStorage.setItem("arena_room_id", room.id);
-          }
-        }
-
-        if (!rId) {
+        const room = await arenaRoomService.getRoom(pin);
+        if (!room) {
           setErrorMsg("Room dengan PIN ini tidak ditemukan. Silakan buat room ulang.");
           setLoadingQuestions(false);
           return;
         }
+        sessionStorage.setItem("arena_room_id", room.id);
 
-        const data = await arenaRoomService.getRoomQuestions(rId);
+        const data = await arenaRoomService.getRoomQuestions(pin);
         if (cancelled) return;
         if (!data || data.length === 0) {
           setErrorMsg("Gagal memuat soal, silakan buat room ulang.");
@@ -98,7 +85,7 @@ export default function HostGamePage() {
     return () => {
       cancelled = true;
     };
-  }, [pin, targetRoomId]);
+  }, [pin]);
 
   const currentQuestion = questions[questionIndex] || null;
 
