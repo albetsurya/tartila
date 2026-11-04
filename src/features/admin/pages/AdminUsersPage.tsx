@@ -387,7 +387,7 @@ export function AdminUsersPage() {
             className={BTN_PRIMARY}
           >
             <Plus size={16} />
-            + Tambah Pengguna
+            Tambah Pengguna
           </button>
         </div>
       </div>

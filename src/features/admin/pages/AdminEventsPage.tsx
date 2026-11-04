@@ -169,7 +169,7 @@ export function AdminEventsPage() {
           className={`${BTN_PRIMARY} shrink-0`}
         >
           <Plus size={18} />
-          + Buat Event
+          Buat Event
         </button>
       </div>
 
@@ -242,7 +242,7 @@ export function AdminEventsPage() {
               className={BTN_PRIMARY_SM}
             >
               <Plus size={14} />
-              + Buat Event Sekarang
+              Buat Event Sekarang
             </button>
           </div>
         </div>

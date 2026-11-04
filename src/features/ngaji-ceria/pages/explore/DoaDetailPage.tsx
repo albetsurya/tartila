@@ -192,7 +192,7 @@ export default function DoaDetailPage() {
               {/* Hiasan Bulan Sabit Kecil di Sudut Perkamen */}
               <div className="flex items-center justify-between border-b-[2.5px] border-dashed border-[#D97706] pb-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309]">
-                  ✦ Kartu Doa Oase ✦
+                  Kartu Doa Oase
                 </span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path

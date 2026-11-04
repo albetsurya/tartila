@@ -20,6 +20,7 @@ import { PatternArrowButton } from "../../components/lab-irama/PatternArrowButto
 import { StickerButton } from "@/components/ui";
 import {
   CheckSvg,
+  XSvg,
   ChevronRight,
   ArrowRightSvg,
 } from "@/components/ui/CustomIcons";
@@ -393,7 +394,7 @@ export default function KartuPracticePage() {
                 >
                   <div className="flex items-center justify-between pb-2 border-b-[3px] border-dashed border-[#D97706]">
                     <span className="text-[11px] font-black text-[#FEF08A] uppercase tracking-wider">
-                      ✦ Papan Uji Irama Savana
+                      Papan Uji Irama Savana
                     </span>
                     <button
                       type="button"
@@ -515,8 +516,18 @@ export default function KartuPracticePage() {
                           isCorrect ? "bg-[#DCFCE7]" : "bg-[#FFE4E6]"
                         }`}
                       >
-                        <span className="text-xl font-black text-[#451A03]">
-                          {isCorrect ? "✅ Benar!" : "❌ Salah!"}
+                        <span className="inline-flex items-center gap-1.5 text-xl font-black text-[#451A03]">
+                          {isCorrect ? (
+                            <>
+                              <CheckSvg size={20} strokeWidth={3} />
+                              <span>Benar!</span>
+                            </>
+                          ) : (
+                            <>
+                              <XSvg size={20} strokeWidth={3} />
+                              <span>Salah!</span>
+                            </>
+                          )}
                         </span>
                         <span className="text-[11px] font-bold text-[#78350F]">
                           {isCorrect

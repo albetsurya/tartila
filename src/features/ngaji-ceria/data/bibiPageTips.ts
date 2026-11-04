@@ -18,7 +18,7 @@ export const TITO_PAGE_TIPS: Record<string, TitoTip[]> = {
   "1:1": [
     {
       mood: "happy",
-      text: "Halaman pertama nih! Kita kenalan sama Alif dan Ba dulu ya ✨",
+      text: "Halaman pertama nih! Kita kenalan sama Alif dan Ba dulu ya",
     },
     {
       mood: "thinking",

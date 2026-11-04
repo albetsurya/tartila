@@ -304,7 +304,7 @@ function QuizHubSimulation() {
         }}
       >
         <div className="h-6 w-6 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] shadow-[2px_2px_0px_#134E4A] flex items-center justify-center text-[10px] font-black text-[#134E4A]">
-          ✓
+          <CheckSvg size={12} strokeWidth={3} />
         </div>
       </motion.div>
 

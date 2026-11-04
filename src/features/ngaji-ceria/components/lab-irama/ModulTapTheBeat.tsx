@@ -6,6 +6,10 @@ import {
   RotateCcwSvg,
   DrumSvg,
   SparklesSvg,
+  ArrowRightSvg,
+  ArrowUpRightSvg,
+  ArrowDownRightSvg,
+  type SvgProps,
 } from '../../../../components/ui/CustomIcons';
 
 type Tone = 'datar' | 'naik' | 'turun';
@@ -25,10 +29,10 @@ const PATTERNS: PatternDef[] = [
   { type: '4-datar-naik-naik-turun', label: '4 Nada', beats: ['datar', 'naik', 'naik', 'turun'] },
 ];
 
-const TONE_META: Record<Tone, { label: string; color: string; arrow: string }> = {
-  datar: { label: 'Datar', color: '#0D9488', arrow: '→' },
-  naik: { label: 'Naik', color: '#F59E0B', arrow: '↗' },
-  turun: { label: 'Turun', color: '#FF6B6B', arrow: '↘' },
+const TONE_META: Record<Tone, { label: string; color: string; arrow: React.FC<SvgProps> }> = {
+  datar: { label: 'Datar', color: '#0D9488', arrow: ArrowRightSvg },
+  naik: { label: 'Naik', color: '#F59E0B', arrow: ArrowUpRightSvg },
+  turun: { label: 'Turun', color: '#FF6B6B', arrow: ArrowDownRightSvg },
 };
 
 const STEP_INTERVAL = 650;
@@ -227,10 +231,10 @@ export const ModulTapTheBeat: React.FC = () => {
                 style={lit ? { backgroundColor: meta.color } : { backgroundColor: '#FFFFFF' }}
               >
                 <span
-                  className="text-xl font-black leading-none"
+                  className="text-xl font-black leading-none flex items-center justify-center"
                   style={{ color: lit ? '#FFFFFF' : meta.color }}
                 >
-                  {meta.arrow}
+                  <meta.arrow size={20} strokeWidth={3} stroke="currentColor" />
                 </span>
                 <span
                   className="text-[8px] font-black uppercase"

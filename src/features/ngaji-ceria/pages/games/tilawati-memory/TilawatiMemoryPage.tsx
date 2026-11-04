@@ -426,11 +426,11 @@ export default function TilawatiMemoryPage() {
 
                         {/* Sudut atas */}
                         <div className="w-full flex justify-between items-center z-10 px-0.5">
-                          <span className="text-[#FDE047] text-[10px]">✦</span>
+                          <StarSvg size={10} fill="#FDE047" stroke="#FDE047" />
                           <span className="text-[9px] font-black text-[#FEF08A]/85 tracking-widest uppercase">
                             J{currentJilid} • L{currentLevel}
                           </span>
-                          <span className="text-[#FDE047] text-[10px]">✦</span>
+                          <StarSvg size={10} fill="#FDE047" stroke="#FDE047" />
                         </div>
 
                         {/* Motif Bintang Tengah Berotasi */}
@@ -447,7 +447,7 @@ export default function TilawatiMemoryPage() {
                           <span className="text-[8px] font-bold text-[#FEF08A]/60">
                             #{String(index + 1).padStart(2, '0')}
                           </span>
-                          <span className="text-[#FDE047] text-[10px]">✦</span>
+                          <StarSvg size={10} fill="#FDE047" stroke="#FDE047" />
                         </div>
                       </div>
 

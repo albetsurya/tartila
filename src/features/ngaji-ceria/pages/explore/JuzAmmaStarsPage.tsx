@@ -2,7 +2,7 @@ import { useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
-import { Volume2, UfoSvg } from "../../../../components/ui/CustomIcons";
+import { Volume2, UfoSvg, StarSvg } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { JUZ_AMMA_SURAHS } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
@@ -758,8 +758,9 @@ export default function JuzAmmaStarsPage() {
                 Berlayar dengan Perahu Kertas &amp; Temukan Kerang Surah!
               </h2>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="inline-block rounded-lg border-[2.5px] border-[#134E4A] bg-[#FACC15] px-2.5 py-1 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#0F172A]">
-                  ★ 37 Pulau Surah
+                <span className="inline-flex items-center gap-1 rounded-lg border-[2.5px] border-[#134E4A] bg-[#FACC15] px-2.5 py-1 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#0F172A]">
+                  <StarSvg size={10} fill="#134E4A" stroke="#134E4A" />
+                  <span>37 Pulau Surah</span>
                 </span>
                 <span className="inline-block rounded-lg border-[2.5px] border-[#134E4A] bg-[#38BDF8] px-2.5 py-1 text-[10px] font-black text-[#134E4A] shadow-[2px_2px_0px_#0F172A]">
                   ⚓ Perahu &amp; Kerang Mutiara
@@ -814,7 +815,7 @@ export default function JuzAmmaStarsPage() {
                       i % 2 ? "left-2.5" : "right-2.5"
                     } z-20 flex h-6 w-6 items-center justify-center rounded-full border-[2px] border-[#134E4A] bg-[#FACC15] text-[10px] font-black text-[#134E4A] shadow-[1.5px_1.5px_0px_#0F172A]`}
                   >
-                    ★
+                    <StarSvg size={12} fill="#134E4A" stroke="#134E4A" />
                   </span>
 
                   {/* Gelembung Air Kecil Dekoratif */}
@@ -859,8 +860,9 @@ export default function JuzAmmaStarsPage() {
                     >
                       {surah.name}
                     </span>
-                    <span className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-[#FEF08A]">
-                      ★ {surah.ayah} Ayat Mutiara
+                    <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#FEF08A]">
+                      <StarSvg size={10} fill="#FEF08A" stroke="#FEF08A" />
+                      <span>{surah.ayah} Ayat Mutiara</span>
                     </span>
 
                     {/* Tombol Audio */}

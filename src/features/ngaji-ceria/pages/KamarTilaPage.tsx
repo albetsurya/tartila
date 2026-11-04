@@ -751,7 +751,7 @@ function RoomDecor({
         <div className="w-full h-full rounded-lg bg-[#ECFDF5] border-2 border-[#134E4A] flex flex-col items-center justify-center p-1 relative overflow-hidden">
           {/* Bintang emas di atas Ka'bah */}
           <div className="flex items-center gap-0.5 mb-1">
-            <span className="text-[9px] text-[#D97706] font-black">★</span>
+            <Star size={9} stroke="#D97706" />
             <div className="w-1.5 h-1.5 rounded-full border border-[#134E4A] bg-[#FBBF24]" />
           </div>
           {/* Kubus Ka'bah */}
