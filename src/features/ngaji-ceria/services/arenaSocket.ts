@@ -1,4 +1,4 @@
-import { arenaApi } from "./arenaApi";
+import { arenaApi, fetchWsTicket } from "./arenaApi";
 import type { ClientQuestionPayload } from "../data/quiz/types";
 import {
   formatQuestionsForWebSocket,
@@ -33,6 +33,7 @@ export class ArenaSocket {
   private reconnectAttempts: number = 0;
   private readonly maxReconnectDelayMs: number = 5000;
   private visibilityListenerAttached: boolean = false;
+  private opening: boolean = false;
 
   constructor(pin: string, playerId?: string, isHost: boolean = false, callbacks: ArenaSocketCallbacks = {}) {
     this.pin = pin;
@@ -43,11 +44,29 @@ export class ArenaSocket {
   }
 
   connect(): void {
+    void this.open();
+  }
+
+  private async open(): Promise<void> {
+    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+    if (this.opening) return;
+    this.opening = true;
+
+    let ticket = "";
+    try {
+      ticket = await fetchWsTicket();
+    } finally {
+      this.opening = false;
+    }
+
+    if (!this.shouldReconnect) return;
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
       return;
     }
 
-    const url = arenaApi.getWsUrl(this.pin, this.playerId, this.isHost);
+    const url = arenaApi.getWsUrl(this.pin, this.playerId, this.isHost, ticket);
     try {
       this.ws = new WebSocket(url);
     } catch {
