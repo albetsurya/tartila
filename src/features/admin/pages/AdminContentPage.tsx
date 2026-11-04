@@ -18,6 +18,21 @@ import {
   type MaterialStatus,
 } from "../services/materialService";
 import { Spinner } from "../components/Spinner";
+import {
+  BADGE_NEUTRAL,
+  BADGE_SUCCESS,
+  BTN_BASE,
+  BTN_DANGER_COLOR,
+  BTN_PRIMARY,
+  BTN_PRIMARY_SM,
+  BTN_SECONDARY,
+  BTN_SECONDARY_SM,
+  BTN_SM,
+  CARD,
+  PAGE_SUBTITLE,
+  PAGE_TITLE,
+  SELECT,
+} from "../styles";
 
 // Fallback data: used when the API is unavailable or returns no rows
 // (the backend has no `materials`/`books` master table yet).
@@ -85,16 +100,12 @@ const TIMELINE_EDITOR_PATH = "/admin/timeline-local";
 function StatusBadge({ status }: { status: MaterialStatus }) {
   const isPublished = status === "published";
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium"
-      style={{
-        color: "#ffffff",
-        backgroundColor: isPublished
-          ? "var(--admin-accent)"
-          : "color-mix(in srgb, #71717a 88%, transparent)",
-      }}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+    <span className={isPublished ? BADGE_SUCCESS : BADGE_NEUTRAL}>
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${
+          isPublished ? "bg-[#0D9488]" : "bg-[#134E4A]/40"
+        }`}
+      />
       {isPublished ? "Published" : "Draft"}
     </span>
   );
@@ -106,19 +117,15 @@ function MaterialCover({ material }: { material: AdminMaterial }) {
       <img
         src={material.coverUrl}
         alt={`Cover ${material.title}`}
-        className="h-40 w-full object-cover"
+        className="h-40 w-full border-b-[3px] border-[#134E4A] object-cover"
       />
     );
   }
   return (
     <div
-      className="flex h-40 w-full items-center justify-center"
-      style={{
-        background:
-          "linear-gradient(135deg, color-mix(in srgb, var(--admin-accent) 92%, #000), color-mix(in srgb, var(--admin-accent) 68%, #000))",
-      }}
+      className="flex h-40 w-full items-center justify-center border-b-[3px] border-[#134E4A] bg-[#0D9488]"
     >
-      <span className="text-3xl font-bold tracking-wide text-white">
+      <span className="font-display text-3xl font-black tracking-wide text-white">
         Jilid {material.jilid}
       </span>
     </div>
@@ -128,11 +135,11 @@ function MaterialCover({ material }: { material: AdminMaterial }) {
 function AddMaterialModal({ onClose }: { onClose: () => void }) {
   return (
     <AppModal isOpen={true} onClose={onClose} title="Tambah Materi">
-      <p className="mb-4 text-xs admin-muted">
+      <p className="mb-4 text-xs font-bold text-[#134E4A]/70">
         Formulir materi baru akan tersedia di sini.
       </p>
 
-      <p className="rounded-lg border border-dashed px-4 py-6 text-center text-xs admin-muted admin-border">
+      <p className="rounded-xl border-[2px] border-dashed border-[#134E4A] bg-[#F0FDF4] px-4 py-6 text-center text-xs font-bold text-[#134E4A]/70">
         {/* TODO: Wire to API once a `materials`/`books` master table exists. */}
         Belum ada tabel master materi di backend. Formulir ini masih berupa
         mockup UI.
@@ -142,7 +149,7 @@ function AddMaterialModal({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="admin-nav-item rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150"
+          className={BTN_SECONDARY}
         >
           Batal
         </button>
@@ -150,7 +157,7 @@ function AddMaterialModal({ onClose }: { onClose: () => void }) {
           type="button"
           disabled
           title="Belum tersedia"
-          className="admin-accent-bg inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium opacity-60"
+          className={BTN_PRIMARY}
         >
           Simpan
         </button>
@@ -162,12 +169,11 @@ function AddMaterialModal({ onClose }: { onClose: () => void }) {
 function MaterialSkeletonCard() {
   const bar = (className: string) => (
     <div
-      className={`animate-pulse rounded ${className}`}
-      style={{ backgroundColor: "var(--admin-skeleton)" }}
+      className={`animate-pulse rounded bg-[#D1FAE5] ${className}`}
     />
   );
   return (
-    <div className="admin-surface admin-border overflow-hidden rounded-lg border">
+    <div className={`overflow-hidden ${CARD}`}>
       {bar("h-40 w-full")}
       <div className="space-y-3 p-4">
         {bar("h-4 w-32")}
@@ -245,18 +251,18 @@ export function AdminContentPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+      <header className={`flex flex-wrap items-start justify-between gap-4 p-5 ${CARD}`}>
         <div>
-          <h1 className="text-xl font-semibold">Materi Tilawati</h1>
-          <p className="mt-1 text-sm admin-muted">
+          <h1 className={PAGE_TITLE}>Materi Tilawati</h1>
+          <p className={PAGE_SUBTITLE}>
             Kelola jilid, halaman, dan aset audio pembelajaran.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsAddOpen(true)}
-          className="admin-accent-bg inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 hover:opacity-90"
+          className={BTN_PRIMARY}
         >
           <Plus size={16} />
           Tambah Materi
@@ -275,8 +281,7 @@ export function AdminContentPage() {
                   : Number(event.target.value),
               )
             }
-            className="admin-surface admin-border w-full appearance-none rounded-lg border py-2 pl-3 pr-9 text-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2"
-            style={{ color: "var(--admin-text)" }}
+            className={SELECT}
           >
             {JILID_FILTERS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -286,17 +291,17 @@ export function AdminContentPage() {
           </select>
           <ChevronDown
             size={14}
-            className="admin-muted pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
           />
         </div>
-        <p className="text-xs admin-muted">
+        <p className="text-xs font-bold text-[#134E4A]/70">
           Menampilkan {filteredMaterials.length} dari {materials.length} jilid
         </p>
       </div>
 
       {usingFallback ? (
         <div
-          className="flex items-start gap-2 rounded-lg border border-dashed px-4 py-2 text-xs admin-muted admin-border"
+          className="flex items-start gap-2 rounded-xl border-[2px] border-dashed border-[#134E4A] bg-[#F59E0B]/20 px-4 py-2 text-xs font-bold text-[#134E4A]"
           role="status"
         >
           <Info size={14} className="mt-0.5 shrink-0" />
@@ -313,7 +318,7 @@ export function AdminContentPage() {
           ))}
         </div>
       ) : filteredMaterials.length === 0 ? (
-        <div className="admin-surface admin-border rounded-lg border px-6 py-16 text-center text-sm admin-muted">
+        <div className={`px-6 py-16 text-center text-sm font-bold text-[#134E4A]/70 ${CARD}`}>
           Tidak ada materi untuk filter ini.
         </div>
       ) : (
@@ -321,7 +326,7 @@ export function AdminContentPage() {
           {filteredMaterials.map((material) => (
             <article
               key={material.id}
-              className={`admin-surface admin-border flex min-w-0 flex-col overflow-hidden rounded-lg border transition-all duration-150 hover:-translate-y-1 hover:shadow-md ${
+              className={`flex min-w-0 flex-col overflow-hidden transition-transform duration-150 hover:-translate-y-0.5 ${CARD} ${
                 deletingId === material.id
                   ? "pointer-events-none opacity-40"
                   : ""
@@ -336,13 +341,13 @@ export function AdminContentPage() {
 
               <div className="flex flex-1 flex-col gap-3 p-4">
                 <div>
-                  <h3 className="font-semibold">{material.title}</h3>
-                  <p className="mt-1 text-xs admin-muted">
+                  <h3 className="font-display text-base font-black text-[#134E4A]">{material.title}</h3>
+                  <p className="mt-1 text-xs font-bold text-[#134E4A]/70">
                     Jilid {material.jilid} · Tilawati
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs admin-muted">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-[#134E4A]/70">
                   <span className="inline-flex items-center gap-1.5">
                     <ScrollText size={13} />
                     {material.pageCount} Halaman
@@ -358,7 +363,7 @@ export function AdminContentPage() {
                     type="button"
                     onClick={() => handleEditDetail(material)}
                     disabled={Boolean(deletingId)}
-                    className="admin-nav-item inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-70 admin-border"
+                    className={BTN_SECONDARY_SM}
                   >
                     <Pencil size={14} />
                     Edit Detail
@@ -367,7 +372,7 @@ export function AdminContentPage() {
                     type="button"
                     onClick={() => handleManagePages(material.jilid)}
                     disabled={Boolean(deletingId)}
-                    className="admin-accent-bg inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                    className={`${BTN_PRIMARY_SM} flex-1`}
                   >
                     <BookOpen size={14} />
                     Kelola Halaman
@@ -378,8 +383,7 @@ export function AdminContentPage() {
                     disabled={Boolean(deletingId)}
                     aria-label={`Hapus ${material.title}`}
                     title="Hapus"
-                    className="inline-flex items-center justify-center rounded-lg border px-3 py-2 transition-colors duration-150 hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-70 admin-border"
-                    style={{ color: "var(--admin-danger)" }}
+                    className={`${BTN_BASE} ${BTN_SM} ${BTN_DANGER_COLOR}`}
                   >
                     {deletingId === material.id ? (
                       <Spinner size={14} />

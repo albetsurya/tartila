@@ -12,6 +12,8 @@ import {
   LayerGroup,
   List,
   GraduationCap,
+  Calendar,
+  Home,
   type LucideIcon,
 } from "@/components/ui/CustomIcons";
 
@@ -80,13 +82,12 @@ export const ADMIN_NAV: AdminNavSection[] = [
   },
 ];
 
-// Navigasi bawah (mobile), maksimal 5 item. Menu sekunder tersaji di halaman Menu Lengkap (/admin/menu).
+// Navigasi bawah (mobile) 4 menu utama: Beranda, Event, Pengguna, Sistem.
 export const ADMIN_BOTTOM_NAV: AdminNavItem[] = [
-  { label: "Dasbor", to: "/admin", icon: LayoutGrid, end: true },
-  { label: "Audio", to: "/admin/audio-check", icon: Volume2 },
-  { label: "Timeline", to: "/admin/timeline", icon: Timer },
-  { label: "Game", to: "/admin/games", icon: Gamepad },
-  { label: "Lengkap", to: "/admin/menu", icon: List },
+  { label: "Beranda", to: "/admin", icon: Home, end: true },
+  { label: "Event", to: "/admin/events", icon: Calendar },
+  { label: "Pengguna", to: "/admin/users", icon: Users },
+  { label: "Sistem", to: "/admin/settings", icon: Settings },
 ];
 
 export function useAdminNav(): AdminNavSection[] {

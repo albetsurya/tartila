@@ -27,13 +27,13 @@ export class AdminErrorBoundary extends Component<
 
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-        <p className="text-sm font-medium admin-muted">
+        <p className="font-sans text-sm font-bold text-[#134E4A]">
           Gagal memuat halaman admin.
         </p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="admin-accent-bg rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 hover:opacity-90"
+          className="inline-flex items-center justify-center rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] px-4 py-2 text-sm font-bold text-white shadow-[3px_3px_0px_#134E4A] transition-all hover:bg-[#0F766E] active:translate-y-[2px] active:shadow-none"
         >
           Muat Ulang
         </button>

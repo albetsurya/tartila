@@ -1,36 +1,74 @@
-import { NavLink } from "react-router-dom";
-import { ADMIN_BOTTOM_NAV } from "../hooks/useAdminNav";
+import { Link, useLocation } from "react-router-dom";
+import { Home, Calendar, Users, Settings } from "@/components/ui/CustomIcons";
+
+interface NavItem {
+  label: string;
+  to: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  checkActive: (path: string) => boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    label: "Beranda",
+    to: "/admin",
+    icon: Home,
+    checkActive: (path) => path === "/admin" || path === "/admin/",
+  },
+  {
+    label: "Event",
+    to: "/admin/events",
+    icon: Calendar,
+    checkActive: (path) => path.startsWith("/admin/events"),
+  },
+  {
+    label: "Pengguna",
+    to: "/admin/users",
+    icon: Users,
+    checkActive: (path) =>
+      path.startsWith("/admin/users") || path.startsWith("/admin/ustadz-requests"),
+  },
+  {
+    label: "Sistem",
+    to: "/admin/settings",
+    icon: Settings,
+    checkActive: (path) =>
+      path.startsWith("/admin/settings") || path.startsWith("/admin/menu"),
+  },
+];
 
 export function AdminBottomNav() {
+  const location = useLocation();
+
   return (
     <nav
       aria-label="Navigasi admin mobile"
-      className="fixed bottom-0 left-0 right-0 z-40 flex h-20 items-stretch border-t-[3px] border-[var(--admin-border)] bg-[var(--admin-surface)] px-2 pb-1 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-4 items-stretch gap-1 border-t-[3px] border-[#134E4A] bg-white px-2 pb-safe font-sans md:hidden"
     >
-      {ADMIN_BOTTOM_NAV.map((item) => {
+      {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
+        const isActive = item.checkActive(location.pathname);
+
         return (
-          <NavLink
+          <Link
             key={item.to}
             to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              `m-1 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition-colors ${
-                isActive
-                  ? "bg-[var(--admin-accent)] text-white shadow-[3px_3px_0_var(--admin-border)]"
-                  : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
-              }`
-            }
+            className={`my-1 flex flex-col items-center justify-center gap-1 rounded-xl border-[2px] font-bold transition-all ${
+              isActive
+                ? "border-[#134E4A] bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
+                : "border-transparent text-[#134E4A]/70 hover:bg-[#F0FDF4] hover:text-[#134E4A]"
+            }`}
           >
-            {({ isActive }) => (
-              <>
-                <span className="flex h-6 w-6 items-center justify-center">
-                  <Icon size={20} />
-                </span>
-                <span className="max-w-full truncate">{item.label}</span>
-              </>
-            )}
-          </NavLink>
+            <span className="flex h-5 w-5 items-center justify-center">
+              <Icon
+                size={20}
+                className={isActive ? "text-white" : "text-[#134E4A]/70"}
+              />
+            </span>
+            <span className="text-[11px] leading-tight tracking-tight">
+              {item.label}
+            </span>
+          </Link>
         );
       })}
     </nav>

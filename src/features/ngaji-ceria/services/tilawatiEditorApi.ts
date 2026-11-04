@@ -78,7 +78,9 @@ export async function getPublishedTimeline(jilid: number, page: number): Promise
       // Fallback lokal jika API server/cloud tidak aktif
       const edits = getCachedTimelineEdits() ?? (await loadTimelineEdits().catch(() => null));
       const localPub = edits?.[key]?.published ?? null;
-      if (localPub && (!localPub.questions || localPub.questions.length === 0) && localPub.timeline) {
+      if (localPub?.timeline) {
+        // Turunkan ulang dari timeline agar aturan terbaru (mis. teks footer
+        // menjadi materi) ikut berlaku pada cache JSON hasil publish lama.
         localPub.questions = timelineQuestions(localPub.timeline);
       }
       published.set(key, { value: localPub, at: Date.now() });

@@ -145,7 +145,7 @@ export function mergeTimelineClips(project: PageTimeline, ids: string[], mergedI
 /** A final quiz row contains all text associated with its rendered audio clip. */
 export function timelineQuestions(project: PageTimeline): QuizQuestion[] {
   const rows: QuizQuestion[] = [];
-  const makeRow = (texts: TimelineText[], url: string): QuizQuestion => {
+  const makeRow = (texts: TimelineText[], url: string, kind: ClipKind): QuizQuestion => {
     const { clipId: _clipId, ...first } = texts[0];
     const parts = texts.flatMap((text) => text.transliterationParts);
     const distractors = [...new Set(texts.flatMap((text) => text.options).filter((option) => !parts.includes(option)))];
@@ -156,12 +156,15 @@ export function timelineQuestions(project: PageTimeline): QuizQuestion[] {
       options: [...parts, ...distractors],
       audioUrl: url,
       audioMappingComplete: true,
+      // Teks dari klip footer adalah bacaan penutup halaman, bukan soal
+      // interaktif: tampilkan sebagai materi saja.
+      isListenOnly: Boolean(first.isListenOnly || kind === "footer"),
     };
   };
   for (const clip of project.clips) {
     const texts = project.texts.filter((text) => text.clipId === clip.id);
-    if (texts.length) rows.push(makeRow(texts, clip.outputUrl || ""));
+    if (texts.length) rows.push(makeRow(texts, clip.outputUrl || "", clip.kind));
   }
-  for (const text of project.texts.filter((text) => !text.clipId)) rows.push(makeRow([text], ""));
+  for (const text of project.texts.filter((text) => !text.clipId)) rows.push(makeRow([text], "", "isi"));
   return rows;
 }

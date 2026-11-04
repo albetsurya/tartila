@@ -13,6 +13,25 @@ import {
   type MockQuiz,
   type QuizStatus,
 } from "../services/quizService";
+import {
+  BADGE_NEUTRAL,
+  BADGE_SUCCESS,
+  BADGE_WARNING,
+  BTN_BASE,
+  BTN_DANGER_COLOR,
+  BTN_ICON,
+  BTN_PRIMARY,
+  BTN_SECONDARY_COLOR,
+  CARD,
+  INPUT_ICON,
+  PAGE_SUBTITLE,
+  PAGE_TITLE,
+  SELECT,
+  TABLE_WRAP,
+  TD,
+  TH,
+  TR,
+} from "../styles";
 import { Spinner } from "../components/Spinner";
 
 const SKELETON_ROWS = 5;
@@ -27,32 +46,18 @@ const JILID_FILTERS: Array<{ value: number | "all"; label: string }> = [
 
 function JilidBadge({ jilid }: { jilid: number }) {
   return (
-    <span
-      className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium"
-      style={{
-        color: "var(--admin-text-muted)",
-        backgroundColor: "color-mix(in srgb, #71717a 16%, transparent)",
-      }}
-    >
-      Jilid {jilid}
-    </span>
+    <span className={BADGE_NEUTRAL}>Jilid {jilid}</span>
   );
 }
 
 function StatusBadge({ status }: { status: QuizStatus }) {
   const isActive = status === "active";
-  const color = isActive ? "var(--admin-accent)" : "var(--admin-text-muted)";
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium"
-      style={{
-        color,
-        backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
-      }}
-    >
+    <span className={isActive ? BADGE_SUCCESS : BADGE_WARNING}>
       <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: color }}
+        className={`h-1.5 w-1.5 rounded-full ${
+          isActive ? "bg-[#0D9488]" : "bg-[#134E4A]"
+        }`}
       />
       {isActive ? "Aktif" : "Draft"}
     </span>
@@ -62,12 +67,11 @@ function StatusBadge({ status }: { status: QuizStatus }) {
 function QuizSkeletonRow() {
   const bar = (className: string) => (
     <div
-      className={`animate-pulse rounded ${className}`}
-      style={{ backgroundColor: "var(--admin-skeleton)" }}
+      className={`animate-pulse rounded bg-[#D1FAE5] ${className}`}
     />
   );
   return (
-    <tr className="admin-border border-b last:border-0">
+    <tr className="border-b border-[#134E4A]/20 last:border-b-0">
       <td className="px-6 py-3">
         {bar("h-4 w-40")}
       </td>
@@ -150,29 +154,29 @@ export function AdminQuizzesPage() {
   }, [quizzes, query, jilidFilter]);
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+      <header className={`flex flex-wrap items-start justify-between gap-4 p-5 ${CARD}`}>
         <div>
-          <h1 className="text-xl font-semibold">Manajemen Kuis</h1>
-          <p className="mt-1 text-sm admin-muted">
+          <h1 className={PAGE_TITLE}>Manajemen Kuis</h1>
+          <p className={PAGE_SUBTITLE}>
             Kelola bank soal, pengaturan waktu, dan hadiah bintang.
           </p>
         </div>
         <button
           type="button"
           onClick={handleCreate}
-          className="admin-accent-bg inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 hover:opacity-90"
+          className={BTN_PRIMARY}
         >
           <Plus size={16} />
           Buat Kuis Baru
         </button>
       </header>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+      <div className={`flex flex-col gap-3 p-4 md:flex-row md:items-center ${CARD}`}>
         <div className="relative flex-1">
           <Search
             size={16}
-            className="admin-muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#134E4A]/60"
           />
           <input
             type="search"
@@ -180,8 +184,7 @@ export function AdminQuizzesPage() {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Cari judul kuis..."
             aria-label="Cari kuis"
-            className="admin-surface admin-border w-full rounded-lg border py-2 pl-9 pr-3 text-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2"
-            style={{ color: "var(--admin-text)" }}
+            className={INPUT_ICON}
           />
         </div>
         <div className="relative sm:w-44">
@@ -195,8 +198,7 @@ export function AdminQuizzesPage() {
                   : Number(event.target.value),
               )
             }
-            className="admin-surface admin-border w-full appearance-none rounded-lg border py-2 pl-3 pr-9 text-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2"
-            style={{ color: "var(--admin-text)" }}
+            className={SELECT}
           >
             {JILID_FILTERS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -206,22 +208,22 @@ export function AdminQuizzesPage() {
           </select>
           <ChevronDown
             size={14}
-            className="admin-muted pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
           />
         </div>
       </div>
 
-      <section className="admin-surface admin-border rounded-lg border">
+      <section className={TABLE_WRAP}>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="w-full min-w-[820px] border-collapse text-left text-sm">
             <thead>
-              <tr className="admin-border border-b text-left text-xs admin-muted">
-                <th className="px-6 py-3 font-medium">Judul Kuis</th>
-                <th className="px-6 py-3 font-medium">Jilid</th>
-                <th className="px-6 py-3 font-medium">Jumlah Soal</th>
-                <th className="px-6 py-3 font-medium">Waktu &amp; Hadiah</th>
-                <th className="px-6 py-3 font-medium">Status</th>
-                <th className="px-6 py-3 text-right font-medium">Aksi</th>
+              <tr>
+                <th className={`px-6 py-3 ${TH}`}>Judul Kuis</th>
+                <th className={`px-6 py-3 ${TH}`}>Jilid</th>
+                <th className={`px-6 py-3 ${TH}`}>Jumlah Soal</th>
+                <th className={`px-6 py-3 ${TH}`}>Waktu &amp; Hadiah</th>
+                <th className={`px-6 py-3 ${TH}`}>Status</th>
+                <th className={`px-6 py-3 text-right ${TH}`}>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -233,7 +235,7 @@ export function AdminQuizzesPage() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-10 text-center text-sm admin-muted"
+                    className="px-6 py-10 text-center text-sm font-bold text-[#134E4A]/70"
                   >
                     {quizzes.length === 0
                       ? "Belum ada kuis."
@@ -244,35 +246,31 @@ export function AdminQuizzesPage() {
                 filteredQuizzes.map((quiz) => (
                   <tr
                     key={quiz.id}
-                    className={`admin-border border-b last:border-0 transition-opacity duration-150 hover:bg-[var(--admin-accent-soft)] ${
+                    className={`${TR} ${
                       deletingId === quiz.id
                         ? "pointer-events-none opacity-40"
                         : ""
                     }`}
                   >
                     <td className="px-6 py-3">
-                      <p className="font-medium">{quiz.title}</p>
+                      <p className="font-black text-[#134E4A]">{quiz.title}</p>
                     </td>
                     <td className="px-6 py-3">
                       <JilidBadge jilid={quiz.jilid} />
                     </td>
-                    <td className="px-6 py-3 tabular-nums">
+                    <td className={`px-6 py-3 tabular-nums ${TD}`}>
                       {quiz.questionsCount} Soal
                     </td>
-                    <td className="whitespace-nowrap px-6 py-3 text-xs admin-muted">
+                    <td className="whitespace-nowrap px-6 py-3 text-xs font-bold text-[#134E4A]/70">
                       <span className="tabular-nums">
                         {quiz.timeLimit} Mnt
                       </span>
                       <span className="mx-1.5">•</span>
                       <span
-                        className="inline-flex items-center gap-1 align-middle"
-                        style={{ color: "var(--admin-text)" }}
+                        className="inline-flex items-center gap-1 align-middle text-[#134E4A]"
                       >
-                        <Star
-                          size={12}
-                          style={{ color: "var(--admin-accent)" }}
-                        />
-                        <span className="tabular-nums font-medium">
+                        <Star size={12} className="text-[#F59E0B]" />
+                        <span className="font-black tabular-nums">
                           {quiz.rewardStars}
                         </span>
                       </span>
@@ -287,17 +285,17 @@ export function AdminQuizzesPage() {
                           role="status"
                           aria-label="Menghapus"
                         >
-                          <Spinner size={15} className="admin-muted" />
+                          <Spinner size={15} className="text-[#134E4A]" />
                         </div>
                       ) : (
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => handleEdit(quiz)}
                             disabled={Boolean(deletingId)}
                             aria-label={`Ubah ${quiz.title}`}
                             title="Ubah"
-                            className="admin-nav-item rounded-md p-2 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-70"
+                            className={`${BTN_BASE} ${BTN_ICON} ${BTN_SECONDARY_COLOR}`}
                           >
                             <Pencil size={15} />
                           </button>
@@ -307,8 +305,7 @@ export function AdminQuizzesPage() {
                             disabled={Boolean(deletingId)}
                             aria-label={`Hapus ${quiz.title}`}
                             title="Hapus"
-                            className="rounded-md p-2 transition-colors duration-150 hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-70"
-                            style={{ color: "var(--admin-danger)" }}
+                            className={`${BTN_BASE} ${BTN_ICON} ${BTN_DANGER_COLOR}`}
                           >
                             <Trash2 size={15} />
                           </button>
@@ -321,7 +318,7 @@ export function AdminQuizzesPage() {
             </tbody>
           </table>
         </div>
-        <footer className="admin-border border-t px-6 py-3 text-xs admin-muted">
+        <footer className="border-t-[3px] border-[#134E4A] bg-[#F0FDF4] px-6 py-3 text-xs font-black text-[#134E4A]/70">
           {isLoading
             ? "Memuat data..."
             : `Menampilkan ${filteredQuizzes.length} dari ${quizzes.length} kuis`}

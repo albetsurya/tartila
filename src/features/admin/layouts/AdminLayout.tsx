@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import "../admin.css";
 import { AdminSidebar } from "./AdminSidebar";
@@ -39,19 +39,23 @@ export function AdminLayout() {
   if (isFullscreen) {
     return (
       <AdminErrorBoundary key={location.pathname}>
-        <Outlet />
+        <Suspense fallback={<div className="p-4 text-center font-sans font-bold text-[#134E4A]">Memuat halaman...</div>}>
+          <Outlet />
+        </Suspense>
       </AdminErrorBoundary>
     );
   }
 
   return (
-    <div className="admin-shell min-h-dvh">
+    <div className="admin-shell flex min-h-screen flex-col bg-[#F0FDF4] font-sans font-bold text-[#134E4A]">
       <AdminSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
-      <div className={collapsed ? "md:pl-[76px]" : "md:pl-64"}>
+      <div className={`flex-1 flex flex-col ${collapsed ? "md:pl-[76px]" : "md:pl-64"}`}>
         <AdminHeader />
-        <main className="mx-auto max-w-[1600px] p-4 pb-24 md:p-8 md:pb-10">
+        <main className="flex-1 mx-auto w-full max-w-[1600px] p-4 pb-20 md:p-8 md:pb-10">
           <AdminErrorBoundary key={location.pathname}>
-            <Outlet />
+            <Suspense fallback={<div className="p-4 text-center font-sans font-bold text-[#134E4A]">Memuat halaman...</div>}>
+              <Outlet />
+            </Suspense>
           </AdminErrorBoundary>
         </main>
       </div>
@@ -59,3 +63,5 @@ export function AdminLayout() {
     </div>
   );
 }
+
+export const AdminLayoutWrapper = AdminLayout;
