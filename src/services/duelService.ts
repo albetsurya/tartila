@@ -80,7 +80,7 @@ export const duelService = {
       gameType,
     }),
 
-  /** Terima tantangan → roomId untuk redirect. */
+  /** Terima tantangan, return roomId untuk redirect. */
   acceptChallenge: (challengeId: string) =>
     callREST<ChallengeResult>(
       "PATCH",
@@ -117,7 +117,7 @@ export const duelService = {
       duelCode: duelCode || generateDuelCode(),
     }),
 
-  /** Gabung sesi duel lewat kode. Backend ubah status waiting → playing. */
+  /** Gabung sesi duel lewat kode. Backend ubah status waiting ke playing. */
   joinDuelSession: (duelCode: string) =>
     callREST<JoinDuelSessionResult>("POST", "/api/v1/duel/join", {
       duelCode,

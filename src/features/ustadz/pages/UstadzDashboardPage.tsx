@@ -8,6 +8,7 @@ import {
   Check,
   BookOpen,
   Plus,
+  ArrowRight,
 } from "@/components/ui/CustomIcons";
 import { StickerCard } from "@/components/ui/StickerCard";
 import { StickerButton } from "@/components/ui/StickerButton";
@@ -496,9 +497,10 @@ export function UstadzDashboardPage() {
               <button
                 type="button"
                 onClick={() => navigate("/ustadz/kelas")}
-                className="text-xs font-bold text-[#0D9488] hover:underline"
+                className="text-xs font-bold text-[#0D9488] hover:underline inline-flex items-center gap-1"
               >
-                Lihat Semua ({activeRooms.length}) →
+                <span>Lihat Semua ({activeRooms.length})</span>
+                <ArrowRight size={12} />
               </button>
             </div>
 

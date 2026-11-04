@@ -392,7 +392,8 @@ export default function RhythmMemorySelectPage() {
                             Kemah Jilid {level.jilid}
                           </span>
                           <span className="inline-flex items-center gap-1 rounded-lg bg-[#FEF08A] border-[2.5px] border-[#451A03] px-2.5 py-0.5 text-[10px] font-black text-[#451A03] shadow-[1.5px_1.5px_0px_#451A03]">
-                            🥁 {level.bpm} BPM
+                            <DrumSvg size={12} stroke="#451A03" />
+                            <span>{level.bpm} BPM</span>
                           </span>
                         </div>
 

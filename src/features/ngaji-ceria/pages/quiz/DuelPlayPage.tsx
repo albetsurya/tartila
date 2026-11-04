@@ -8,40 +8,125 @@ import { fetchWsTicket } from "../../services/arenaApi";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { ClockSvg, WhatsAppSvg, CrownSvg } from "@/components/ui/CustomIcons";
+import {
+  ClockSvg,
+  WhatsAppSvg,
+  ZapSvg,
+  FireSvg,
+} from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBotSimulator } from "../../hooks/useBotSimulator";
-import LeaderboardModal, { type LeaderboardEntry } from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
+import LeaderboardModal, {
+  type LeaderboardEntry,
+} from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
 
 const QUESTION_TIME = 20;
 const ARENA_WS_BASE =
   import.meta.env.VITE_WS_URL?.replace(/^http/, "ws") ||
   "wss://ngaji-tartila.onrender.com";
 
-function ScoreCard({
-  label,
-  score,
-  bg,
-  textColor = "text-[#134E4A]",
-}: {
-  label: string;
-  score: number;
-  bg: string;
-  textColor?: string;
-}) {
+/** Ilustrasi Latar Action Burst & Elemen Neo-Brutalism */
+function ActionArenaBackground() {
   return (
-    <div
-      className={`flex min-w-[84px] flex-col items-center rounded-xl border-[3px] border-[#134E4A] ${bg} px-3 py-1.5 shadow-[4px_4px_0px_#134E4A]`}
-    >
-      <span
-        className={`font-display text-[10px] font-black uppercase tracking-wide ${textColor} opacity-80`}
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
+      {/* Halftone Dots */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: "radial-gradient(#0D9488 2px, transparent 2px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+      {/* Diagonal Action Speed Lines */}
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(-45deg, #134E4A 0px, #134E4A 2px, transparent 2px, transparent 18px)",
+        }}
+      />
+      {/* Ornamen Petir & Bintang Sudut */}
+      <svg
+        viewBox="0 0 120 120"
+        fill="none"
+        className="absolute -top-4 -left-4 w-28 h-28 opacity-25"
       >
-        {label}
-      </span>
-      <span className={`font-display text-2xl font-black leading-none ${textColor}`}>
-        {score}
-      </span>
+        <path
+          d="M68 10 L30 62 H60 L48 110 L94 52 H62 L68 10 Z"
+          fill="#FACC15"
+          stroke="#134E4A"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <svg
+        viewBox="0 0 120 120"
+        fill="none"
+        className="absolute -bottom-6 -right-4 w-32 h-32 opacity-20"
+      >
+        <path
+          d="M60 12 L73 42 L106 46 L80 68 L88 100 L60 82 L32 100 L40 68 L14 46 L47 42 Z"
+          fill="#FF6B6B"
+          stroke="#134E4A"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>
+  );
+}
+
+/** Ilustrasi Medali / Piala Hasil Akhir Duel */
+function DuelResultBadgeSvg({ result }: { result: "win" | "lose" | "draw" }) {
+  const mainFill =
+    result === "win" ? "#FACC15" : result === "lose" ? "#FF6B6B" : "#38BDF8";
+  return (
+    <svg
+      viewBox="0 0 140 110"
+      fill="none"
+      className="mx-auto w-28 h-22 overflow-visible"
+    >
+      {/* Efek Ledakan Komik Belakang */}
+      <path
+        d="M70 4 L84 22 L108 12 L102 36 L128 44 L108 62 L122 84 L96 84 L90 106 L70 90 L50 106 L44 84 L18 84 L32 62 L12 44 L38 36 L32 12 L56 22 Z"
+        fill="#FEF08A"
+        stroke="#134E4A"
+        strokeWidth="3.5"
+        strokeLinejoin="round"
+      />
+      {/* Lingkaran Inti */}
+      <circle
+        cx="70"
+        cy="56"
+        r="28"
+        fill={mainFill}
+        stroke="#134E4A"
+        strokeWidth="4"
+      />
+      {result === "win" ? (
+        <path
+          d="M54 64 L58 44 L70 54 L82 44 L86 64 H54 Z"
+          fill="#FFFBEB"
+          stroke="#134E4A"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+      ) : result === "lose" ? (
+        <path
+          d="M60 46 L80 66 M80 46 L60 66"
+          stroke="#FFFBEB"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+      ) : (
+        <path
+          d="M56 50 H84 M56 62 H84"
+          stroke="#FFFBEB"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
   );
 }
 
@@ -64,23 +149,26 @@ export default function DuelPlayPage() {
   const [answered, setAnswered] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [resultReady, setResultReady] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
+  const [, setGameStarted] = useState(false);
   const [isHost, setIsHost] = useState(true);
-  const [gamePhase, setGamePhase] = useState<"COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT">("COUNTDOWN");
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [gamePhase, setGamePhase] = useState<
+    "COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT"
+  >("COUNTDOWN");
+  const [leaderboard] = useState<LeaderboardEntry[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
-  const [timeTakenMs, setTimeTakenMs] = useState<number>(0);
+  const [questionStartTime, setQuestionStartTime] = useState<number>(
+    Date.now(),
+  );
+  const [, setTimeTakenMs] = useState<number>(0);
 
   // Bot simulator — superadmin QA
-  const { bots, addBot, reset: resetBots, scheduleAnswers, resolveAnswers } = useBotSimulator();
+  useBotSimulator();
 
   const hostScoreRef = useRef(0);
   const guestScoreRef = useRef(0);
   const myScoreRef = useRef(0);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Ambil status sesi duel untuk tentukan peran (host vs opponent)
   useEffect(() => {
     if (!sessionId) return;
     duelService
@@ -95,7 +183,11 @@ export default function DuelPlayPage() {
       });
   }, [sessionId, user]);
 
-  // Koneksi WebSocket ke duel room
+  useEffect(() => {
+    setGamePhase("QUESTION_ACTIVE");
+    setQuestionStartTime(Date.now());
+  }, []);
+
   useEffect(() => {
     if (!sessionId) return;
     const playerId = user?.id || "guest";
@@ -106,7 +198,6 @@ export default function DuelPlayPage() {
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
     const connect = async () => {
-      // Tiket hanya berlaku sekali, jadi diambil ulang pada setiap percobaan.
       const ticket = await fetchWsTicket();
       if (closedByUs) return;
       const query = new URLSearchParams({ playerId, nickname });
@@ -120,7 +211,6 @@ export default function DuelPlayPage() {
       }
 
       socket.onopen = () => {
-        // Host memberi sinyal start ke lawan
         if (isHost) {
           socket?.send(JSON.stringify({ type: "duel_start", payload: {} }));
         }
@@ -165,7 +255,6 @@ export default function DuelPlayPage() {
     };
   }, [sessionId, user?.id, user?.name, user?.username, isFinished, isHost]);
 
-  // Kirim skor real-time ke lawan setelah menjawab
   const pushScoreToOpponent = (newScore: number) => {
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -200,9 +289,8 @@ export default function DuelPlayPage() {
     setGamePhase("QUESTION_ACTIVE");
   };
 
-  // Timer per soal & auto-timeout (Kahoot-style)
   useEffect(() => {
-    if (gamePhase !== "QUESTION_ACTIVE" || isFinished ||answered) return;
+    if (gamePhase !== "QUESTION_ACTIVE" || isFinished || answered) return;
     if (timeLeft <= 0) {
       setGamePhase("REVEAL_ANSWER");
       return;
@@ -221,7 +309,10 @@ export default function DuelPlayPage() {
 
     if (isCorrect) {
       const sisa = timeLimit * 1000 - takenMs;
-      const awarded = Math.max(0, Math.round((sisa / (timeLimit * 1000)) * 1000));
+      const awarded = Math.max(
+        0,
+        Math.round((sisa / (timeLimit * 1000)) * 1000),
+      );
       if (isHost) {
         hostScoreRef.current += awarded;
         setHostScore(hostScoreRef.current);
@@ -242,19 +333,33 @@ export default function DuelPlayPage() {
 
   const currentQuestion = questions[currentQuestionIndex] ?? questions[0];
   const myScore = isHost ? hostScore : guestScore;
+  const totalScore = myScore + opponentScore;
+  const myPowerPercent =
+    totalScore === 0
+      ? 50
+      : Math.min(88, Math.max(12, Math.round((myScore / totalScore) * 100)));
+
   const result: "win" | "lose" | "draw" =
     myScore > opponentScore ? "win" : myScore < opponentScore ? "lose" : "draw";
   const resultTitle =
-    result === "win" ? "KAMU MENANG!" : result === "lose" ? "KAMU KALAH" : "SERI";
+    result === "win"
+      ? "KAMU MENANG!"
+      : result === "lose"
+        ? "KAMU KALAH"
+        : "DUEL SERI!";
   const resultColor =
     result === "win"
       ? "text-[#0D9488]"
       : result === "lose"
-        ? "text-[#FF6B6B]"
+        ? "text-[#EF4444]"
         : "text-[#134E4A]";
 
   const resultMessage =
-    result === "win" ? "Aku menang" : result === "lose" ? "Aku kalah" : "Kita seri";
+    result === "win"
+      ? "Aku menang"
+      : result === "lose"
+        ? "Aku kalah"
+        : "Kita seri";
 
   const handleShareWhatsApp = () => {
     triggerBibiReaction("click");
@@ -275,33 +380,101 @@ export default function DuelPlayPage() {
     );
   }, [isFinished, result]);
 
+  const isLowTime = timeLeft <= 5;
+
   return (
-    <div className="min-h-dvh overflow-hidden bg-[#F0FDF4] font-sans text-[#134E4A]">
-      <header className="sticky top-0 z-30 border-b-[3px] border-[#134E4A] bg-white shadow-[0_2px_0_#134E4A]">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-2 px-3 py-2">
-          <ScoreCard label="Kamu" score={myScore} bg="bg-[#FEF08A]" />
-          <div className="flex h-14 w-14 flex-col items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-white shadow-[3px_3px_0px_#134E4A]">
-            <ClockSvg size={18} />
-            <span className="font-display text-lg font-black leading-none">
-              {timeLeft}
-            </span>
+    <div className="relative min-h-dvh overflow-x-hidden bg-[#F0FDF4] font-sans text-[#134E4A]">
+      <ActionArenaBackground />
+
+      {/* =================================================================== */}
+      {/* COMPACT BATTLE HUD HEADER (SKOR + TIMER TERPADU + TUG-OF-WAR BAR)    */}
+      {/* =================================================================== */}
+      <header className="sticky top-0 z-30 border-b-[3px] border-[#134E4A] bg-[#FEF3C7] shadow-[0_3px_0_#134E4A]">
+        <div className="mx-auto max-w-md px-3 pt-2 pb-2 space-y-1.5">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            {/* Skor Kamu */}
+            <div className="flex items-center justify-between rounded-xl border-[2.5px] border-[#134E4A] bg-[#FEF08A] px-2.5 py-1.5 shadow-[2.5px_2.5px_0px_#134E4A]">
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-[#134E4A]/70 leading-none">
+                  <ZapSvg size={10} />
+                  <span>Kamu</span>
+                </span>
+                <span className="font-display text-lg sm:text-xl font-black leading-tight text-[#134E4A]">
+                  {myScore}
+                </span>
+              </div>
+              <span className="rounded-md border-[1.5px] border-[#134E4A] bg-white px-1.5 py-0.5 text-[9px] font-black text-[#0D9488]">
+                P1
+              </span>
+            </div>
+
+            {/* Badge VS + Timer Terpadu */}
+            <div className="flex flex-col items-center">
+              <div
+                className={`flex items-center gap-1 rounded-xl border-[3px] border-[#134E4A] px-2.5 py-1 shadow-[2.5px_2.5px_0px_#134E4A] transition-colors ${
+                  isLowTime
+                    ? "bg-[#FEE2E2] text-[#DC2626] animate-pulse"
+                    : "bg-white text-[#134E4A]"
+                }`}
+              >
+                <ClockSvg size={14} />
+                <span className="font-display text-base font-black leading-none tabular-nums">
+                  {timeLeft}s
+                </span>
+              </div>
+            </div>
+
+            {/* Skor Lawan */}
+            <div className="flex items-center justify-between rounded-xl border-[2.5px] border-[#134E4A] bg-[#FF6B6B] px-2.5 py-1.5 text-white shadow-[2.5px_2.5px_0px_#134E4A]">
+              <span className="rounded-md border-[1.5px] border-[#134E4A] bg-white/95 px-1.5 py-0.5 text-[9px] font-black text-[#EF4444]">
+                P2
+              </span>
+              <div className="min-w-0 text-right">
+                <span className="inline-flex items-center justify-end gap-1 text-[9px] font-black uppercase tracking-wider text-white/85 leading-none">
+                  <span>Lawan</span>
+                  <FireSvg size={10} />
+                </span>
+                <span className="font-display text-lg sm:text-xl font-black leading-tight text-white">
+                  {opponentScore}
+                </span>
+              </div>
+            </div>
           </div>
-          <ScoreCard
-            label="Lawan"
-            score={opponentScore}
-            bg="bg-[#FF6B6B]"
-            textColor="text-white"
-          />
+
+          {/* Live Tug-of-War Power Bar + Indikator Soal & Timer Progress */}
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 rounded-lg border-2 border-[#134E4A] bg-[#0D9488] px-2 py-0.5 font-display text-[10px] font-black uppercase text-white shadow-[1.5px_1.5px_0px_#134E4A]">
+              Soal {currentQuestionIndex + 1}/{questions.length}
+            </span>
+
+            {/* Bar Tarik Tambang Skor (Tug of War) */}
+            <div className="relative flex-1 h-3 rounded-full border-2 border-[#134E4A] bg-[#FF6B6B] overflow-hidden shadow-[1.5px_1.5px_0px_#134E4A]">
+              <div
+                className="h-full bg-[#FACC15] border-r-2 border-[#134E4A] transition-all duration-500"
+                style={{ width: `${myPowerPercent}%` }}
+              />
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[8px] font-black uppercase tracking-widest text-[#134E4A]">
+                VS POWER
+              </span>
+            </div>
+          </div>
+
+          {/* Bar Waktu Tipis Terintegrasi */}
+          <div className="h-1.5 w-full rounded-full border border-[#134E4A] bg-white overflow-hidden">
+            <div
+              className={`h-full transition-all duration-300 ${
+                isLowTime ? "bg-[#EF4444]" : "bg-[#0D9488]"
+              }`}
+              style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
+            />
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-md overflow-hidden px-4 py-4">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="rounded-full border-2 border-[#134E4A] bg-[#CCFBF1] px-3 py-1 font-display text-xs font-black uppercase text-[#134E4A]">
-            Soal {currentQuestionIndex + 1}/{questions.length}
-          </span>
-        </div>
-
+      {/* =================================================================== */}
+      {/* AREA KUIS UTAMA (RINGKAS TANPA ELEMEN DUPLIKAT)                      */}
+      {/* =================================================================== */}
+      <main className="relative z-10 mx-auto w-full max-w-md px-3.5 py-3">
         <QuizEngine
           key={`${currentQuestionIndex}-${currentQuestion.id}`}
           question={currentQuestion}
@@ -311,93 +484,87 @@ export default function DuelPlayPage() {
         />
       </main>
 
-      {/* Timer visual per soal */}
-      <div className="flex items-center gap-2 px-4 pb-2">
-        <div className="text-center">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block">
-            Timer
-          </span>
-          <span className={`font-display text-lg font-black leading-none ${timeLeft <= 5 ? "text-[#EF4444]" : "text-[#134E4A]"}`}>
-            {timeLeft}
-          </span>
-        </div>
-        <div className="w-24 h-2 bg-[#E5E7EB] border-[2px] border-[#134E4A] rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#0D9488] transition-all duration-300"
-            style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
-          />
-        </div>
-      </div>
-
+      {/* =================================================================== */}
+      {/* MODAL HASIL AKHIR DUEL                                               */}
+      {/* =================================================================== */}
       <AnimatePresence>
         {isFinished && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]/95 p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]/90 p-4 backdrop-blur-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              initial={{ scale: 0.8, y: 20 }}
+              initial={{ scale: 0.85, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 22 }}
-              className="w-full max-w-sm rounded-3xl border-[3px] border-[#134E4A] bg-white p-6 text-center shadow-[4px_4px_0px_#134E4A]"
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              className="relative w-full max-w-sm overflow-hidden rounded-3xl border-[4px] border-[#134E4A] bg-[#FFFBEB] p-5 text-center shadow-[6px_6px_0px_#042F2E]"
             >
-              <h2 className={`font-display text-3xl font-black ${resultColor}`}>
+              <DuelResultBadgeSvg result={result} />
+
+              <h2
+                className={`mt-2 font-display text-2xl sm:text-3xl font-black ${resultColor}`}
+              >
                 {resultTitle}
               </h2>
+              <p className="text-xs font-bold text-[#134E4A]/70">
+                Pertarungan selesai! Berikut perolehan skor akhir:
+              </p>
 
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] p-3 shadow-[4px_4px_0px_#134E4A]">
-                  <p className="font-display text-xs font-black uppercase text-[#134E4A]/70">
-                    Kamu
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
+                <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] p-3 shadow-[3px_3px_0px_#134E4A]">
+                  <p className="inline-flex items-center gap-1 font-display text-[10px] font-black uppercase text-[#134E4A]/70">
+                    <ZapSvg size={11} />
+                    <span>Skor Kamu</span>
                   </p>
-                  <p className="font-display text-3xl font-black text-[#134E4A]">
+                  <p className="font-display text-2xl sm:text-3xl font-black text-[#134E4A]">
                     {myScore}
                   </p>
                 </div>
-                <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FF6B6B] p-3 shadow-[4px_4px_0px_#134E4A]">
-                  <p className="font-display text-xs font-black uppercase text-white/80">
-                    Lawan
+                <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FF6B6B] p-3 shadow-[3px_3px_0px_#134E4A]">
+                  <p className="inline-flex items-center gap-1 font-display text-[10px] font-black uppercase text-white/85">
+                    <FireSvg size={11} />
+                    <span>Skor Lawan</span>
                   </p>
-                  <p className="font-display text-3xl font-black text-white">
+                  <p className="font-display text-2xl sm:text-3xl font-black text-white">
                     {opponentScore}
                   </p>
                 </div>
               </div>
 
-              {resultReady && (
+              <div className="mt-4 space-y-2">
+                {resultReady && (
+                  <StickerButton
+                    variant="secondary"
+                    size="lg"
+                    fullWidth
+                    className="border-[#134E4A] bg-[#25D366] text-white shadow-[3px_3px_0px_#134E4A]"
+                    onClick={handleShareWhatsApp}
+                  >
+                    <WhatsAppSvg size={18} />
+                    Bagikan Hasil ke WhatsApp
+                  </StickerButton>
+                )}
+
                 <StickerButton
                   variant="secondary"
                   size="lg"
                   fullWidth
-                  className="mt-6 border-[#134E4A] bg-[#25D366] text-white shadow-[4px_4px_0px_#134E4A]"
-                  onClick={handleShareWhatsApp}
+                  onClick={() => {
+                    triggerBibiReaction("click");
+                    soundManager.playSfx("tap");
+                    navigate("/member/ngaji-ceria/games");
+                  }}
                 >
-                  <WhatsAppSvg size={20} />
-                  Bagikan ke WhatsApp
+                  Kembali ke Menu Game
                 </StickerButton>
-              )}
-
-              <StickerButton
-                variant="secondary"
-                size="lg"
-                fullWidth
-                className="mt-3"
-                onClick={() => {
-                  triggerBibiReaction("click");
-                  soundManager.playSfx("tap");
-                  navigate("/member/ngaji-ceria/games");
-                }}
-              >
-                Kembali ke Game
-              </StickerButton>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Leaderboard Modal (fase LEADERBOARD) */}
       <LeaderboardModal
         entries={leaderboard}
         open={showLeaderboard}

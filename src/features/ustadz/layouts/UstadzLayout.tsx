@@ -1,6 +1,6 @@
 import { useCallback, Suspense } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Sparkles, ChevronLeft } from "@/components/ui/CustomIcons";
 import "../ustadz.css";
@@ -21,7 +21,7 @@ const PAGE_TITLES: {
     match: (p) => p.startsWith("/ustadz/learning"),
     title: "Kurikulum & Bank Kuis",
     subtitle: "Pusat materi dan evaluasi santri",
-  }, // <-- TAMBAHKAN BARIS INI
+  },
   {
     match: (p) => p.startsWith("/ustadz/kuis/baru"),
     title: "Buat Kuis Baru",
@@ -69,6 +69,26 @@ const PAGE_TITLES: {
   },
 ];
 
+function PageLoadingFallback() {
+  return (
+    <div
+      className="ustadz-loader space-y-6"
+      aria-busy="true"
+      aria-label="Memuat halaman"
+    >
+      <div className="h-9 w-52 rounded-xl bg-[#E2E8F0]" />
+      <div className="grid gap-5 sm:grid-cols-2">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-40 rounded-2xl border-3 border-[#134E4A]/15 bg-white"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function UstadzLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -85,7 +105,6 @@ export function UstadzLayout() {
     location.pathname.includes("/kurikulum") ||
     location.pathname.includes("/kuis");
 
-  // Cek apakah sedang di sub-halaman (bukan dashboard utama)
   const isSubPage =
     location.pathname !== "/ustadz" && location.pathname !== "/ustadz/";
 
@@ -94,16 +113,14 @@ export function UstadzLayout() {
     navigate("/login", { replace: true });
   }, [logout, navigate]);
 
+  const contentKey = isLearningPage ? "learning-page" : location.pathname;
+
   return (
     <div className="ustadz-shell min-h-dvh bg-[#FDFBF7]">
-      {/* Desktop Sidebar */}
       <UstadzSidebar />
 
-      {/* Main Column */}
       <div className="md:pl-64">
-        {/* Neo-Brutalist Header */}
         <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b-2 sm:border-b-3 border-[#134E4A] bg-white px-4 md:px-8 shadow-[0_2px_0px_#134E4A]">
-          {/* KIRI: Tombol Back & Judul Halaman */}
           <div className="flex min-w-0 items-center gap-3 pr-4">
             {isSubPage && (
               <button
@@ -127,7 +144,6 @@ export function UstadzLayout() {
             </div>
           </div>
 
-          {/* KANAN: Aksi & Profil */}
           <div className="flex shrink-0 items-center gap-2.5">
             <span className="hidden text-xs font-black text-[#134E4A] md:inline">
               {user?.name || user?.username || "Ustadz"}
@@ -152,31 +168,20 @@ export function UstadzLayout() {
           </div>
         </header>
 
-        {/* Content Area */}
         <main className="mx-auto max-w-7xl px-4 pt-6 pb-28 md:px-8 md:pb-12">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={isLearningPage ? "learning-page" : location.pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Suspense
-                fallback={
-                  <div className="p-4 text-center font-bold text-[#134E4A]">
-                    Memuat Halaman...
-                  </div>
-                }
-              >
-                <Outlet />
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            key={contentKey}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
+          >
+            <Suspense fallback={<PageLoadingFallback />}>
+              <Outlet />
+            </Suspense>
+          </motion.div>
         </main>
       </div>
 
-      {/* Mobile Navigation */}
       <BottomNav />
     </div>
   );

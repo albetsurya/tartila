@@ -25,6 +25,7 @@ import {
   Search,
   Gamepad,
   Check,
+  ArrowRight,
 } from "@/components/ui/CustomIcons";
 import { useActiveGames } from "@/features/ngaji-ceria/hooks/useActiveGames";
 
@@ -452,8 +453,9 @@ export function UstadzKurikulumPage() {
                     )}
                   </div>
 
-                  <span className="shrink-0 text-[11px] font-black text-[#0D9488] group-hover:translate-x-0.5 transition-transform">
-                    Detail →
+                  <span className="shrink-0 text-[11px] font-black text-[#0D9488] group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
+                    <span>Detail</span>
+                    <ArrowRight size={12} />
                   </span>
                 </div>
               </motion.div>

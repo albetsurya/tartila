@@ -1,5 +1,5 @@
 /**
- * Pemetaan nama surah Arab → nama berkas audio Tilawati.
+ * Pemetaan nama surah Arab ke nama berkas audio Tilawati.
  *
  * Audio Jilawati Jilid 6 disusun per ayat dengan pola
  * `hal{N}-{SurahLatin}-ayat{K}.ogg`. Nama surah pada judul halaman memakai
@@ -7,7 +7,7 @@
  * diperlukan tabel ini.
  */
 
-/** Nama surah Arab (biasanya tanpa harakat) → nama berkas audio. */
+/** Nama surah Arab (biasanya tanpa harakat) ke nama berkas audio. */
 export const SURAH_ARABIC_TO_LATIN: Record<string, string> = {
   "الناس": "AnNas",
   "الفلق": "AlFalaq",

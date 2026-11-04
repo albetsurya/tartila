@@ -56,22 +56,31 @@ export default function JoinRoomPage() {
     setErrorMsg("");
 
     try {
-      const { room, player } = await arenaRoomService.joinRoom(
-        cleanPin,
-        nickname.trim(),
-        user?.id,
-      );
-      // Simpan session peserta di sessionStorage
-      sessionStorage.setItem("arena_player_id", player.id);
-      sessionStorage.setItem("arena_player_name", player.nickname);
+      const room = await arenaRoomService.getRoom(cleanPin);
+      if (!room) {
+        setErrorMsg(`Room dengan PIN "${cleanPin}" tidak ditemukan.`);
+        return;
+      }
+      if (room.status !== "waiting") {
+        setErrorMsg("Room ini sudah memulai permainan atau sudah selesai.");
+        return;
+      }
+
+      const joined = await arenaRoomService.joinRoom({
+        roomId: room.id,
+        userId: user?.id || "",
+        nickname: nickname.trim(),
+      });
+      if (!joined.ok) {
+        setErrorMsg(joined.message);
+        return;
+      }
+
+      sessionStorage.setItem("arena_player_id", joined.data.playerId);
+      sessionStorage.setItem("arena_player_name", joined.data.nickname);
       sessionStorage.setItem("arena_room_pin", cleanPin);
 
-      // Arahkan ke Lobby jika status room masih 'waiting'
-      if (room.status === "waiting") {
-        navigate(`/arena/lobby/${cleanPin}`);
-      } else {
-        navigate(`/arena/play/${cleanPin}`);
-      }
+      navigate(`/arena/lobby/${cleanPin}`);
     } catch (err: any) {
       setErrorMsg(
         err.message || "PIN tidak ditemukan atau kuis sudah dimulai.",

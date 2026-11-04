@@ -22,7 +22,15 @@ import { triggerBibiReaction } from "@/utils/bibiEvent";
 import { soundManager } from "../../services/soundManager";
 import { patternTypeToArrows } from "../../utils/rhythmMemoryPattern";
 import { AnswerFeedbackSheet } from "../../components/AnswerFeedbackSheet";
-import { StarSvg } from "@/components/ui/CustomIcons";
+import {
+  StarSvg,
+  CheckSvg,
+  XSvg,
+  RefreshCwSvg,
+  ArrowRightSvg,
+  ArrowUpRightSvg,
+  ArrowDownRightSvg,
+} from "@/components/ui/CustomIcons";
 
 // Kamus: kode panah ditampilkan di bank panah dan kotak jawaban.
 const ARROW_LABEL: Record<ArrowType, string> = {
@@ -31,10 +39,10 @@ const ARROW_LABEL: Record<ArrowType, string> = {
   turun: "Turun",
 };
 
-const ARROW_SYMBOL: Record<ArrowType, string> = {
-  datar: "→",
-  naik: "↗",
-  turun: "↘",
+const renderArrowIcon = (arrow: ArrowType) => {
+  if (arrow === "datar") return <ArrowRightSvg size={18} strokeWidth={3} stroke="currentColor" />;
+  if (arrow === "naik") return <ArrowUpRightSvg size={18} strokeWidth={3} stroke="currentColor" />;
+  return <ArrowDownRightSvg size={18} strokeWidth={3} stroke="currentColor" />;
 };
 
 const ARROW_COLOR_CLASS: Record<ArrowType, string> = {
@@ -291,7 +299,7 @@ export default function RhythmMemoryPage() {
                 {isLoadingLevels
                   ? "Menyiapkan kompas irama savana..."
                   : (checkError ??
-                    "🧭 Dengarkan suara qari di tenda, lalu susun panah kayunya!")}
+                    "Dengarkan suara qari di tenda, lalu susun panah kayunya!")}
               </span>
             </div>
           </section>
@@ -359,7 +367,7 @@ export default function RhythmMemoryPage() {
                       className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border-[3px] border-[#451A03] font-black text-sm shadow-[3px_3px_0px_#451A03] ${ARROW_COLOR_CLASS[arrow]}`}
                     >
                       <span className="text-lg leading-none">
-                        {ARROW_SYMBOL[arrow]}
+                        {renderArrowIcon(arrow)}
                       </span>
                       <span className="text-[11px] font-black">
                         {ARROW_LABEL[arrow]}
@@ -376,7 +384,7 @@ export default function RhythmMemoryPage() {
             <div className="rounded-2xl bg-[#FDE68A] border-[4px] border-[#451A03] p-4 shadow-[5px_5px_0px_#451A03]">
               <div className="text-center mb-3">
                 <span className="text-[11px] font-black text-[#451A03] uppercase tracking-widest">
-                  ✦ Bank Panah Kompas ✦
+                  Bank Panah Kompas
                 </span>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3">
@@ -422,7 +430,7 @@ export default function RhythmMemoryPage() {
                 }
                 className="inline-flex items-center gap-1.5 rounded-xl border-[3.5px] border-[#451A03] bg-[#15803D] px-5 py-2.5 font-black text-[#FFFFFF] shadow-[4px_4px_0px_#451A03] active:translate-y-[2px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 transition-all cursor-pointer"
               >
-                <span className="text-lg">✓</span>
+                <CheckSvg size={18} strokeWidth={3} />
                 <span className="text-sm font-black">Periksa Jawaban</span>
               </button>
 
@@ -432,7 +440,7 @@ export default function RhythmMemoryPage() {
                   onClick={handleResetAll}
                   className="inline-flex items-center gap-1.5 rounded-xl border-[3.5px] border-[#451A03] bg-[#D97706] px-5 py-2.5 font-black text-[#FEF3C7] shadow-[4px_4px_0px_#451A03] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                 >
-                  <span className="text-lg">↺</span>
+                  <RefreshCwSvg size={18} strokeWidth={2.5} />
                   <span className="text-sm font-black">Coba Lagi</span>
                 </button>
               )}
@@ -474,16 +482,16 @@ export default function RhythmMemoryPage() {
             {isCorrect ? (
               <div className="px-4 pb-6 max-w-xl mx-auto">
                 <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-[4px] border-[#451A03] bg-[#DCFCE7] px-5 py-4 text-center shadow-[5px_5px_0px_#451A03]">
-                  <span className="text-4xl">✅</span>
+                  <CheckSvg size={40} strokeWidth={3} />
                   <span className="text-[13px] font-black text-[#14532D]">
-                    Benar! Irama {correctPattern.join(" → ")} berhasil ditebak!
+                    Benar! Irama {correctPattern.join(" - ")} berhasil ditebak!
                   </span>
                 </div>
               </div>
             ) : isWrong ? (
               <div className="px-4 pb-6 max-w-xl mx-auto">
                 <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-[4px] border-[#451A03] bg-[#FFE4E6] px-5 py-4 text-center shadow-[5px_5px_0px_#451A03]">
-                  <span className="text-4xl">❌</span>
+                  <XSvg size={40} strokeWidth={3} />
                   <span className="text-[13px] font-black text-[#991B1B]">
                     Kurang tepat. Ulangi dari awal (Coba Lagi).
                   </span>

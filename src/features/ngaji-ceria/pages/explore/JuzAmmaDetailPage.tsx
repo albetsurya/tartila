@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ThemedHeader } from "../../components/ThemedHeader";
-import { Volume2, ChevronLeftSvg } from "../../../../components/ui/CustomIcons";
+import { Volume2, ChevronLeftSvg, StarSvg } from "../../../../components/ui/CustomIcons";
 import { EqualizerIcon } from "@/components/ui/EqualizerIcon";
 import { JUZ_AMMA_SURAHS, everyAyahAudio } from "./exploreData";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
@@ -162,7 +162,7 @@ export default function JuzAmmaDetailPage() {
                 clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)",
               }}
             >
-              ★ Kapal Juz 30 ★
+              Kapal Juz 30
             </div>
           </div>
 
@@ -242,7 +242,7 @@ export default function JuzAmmaDetailPage() {
                       >
                         {/* Simbol Kompas / Bintang Harta Karun di Jalur Peta */}
                         <div className="pointer-events-none absolute left-0 top-5 w-7 h-7 rounded-full bg-[#FACC15] border-[3px] border-[#451A03] flex items-center justify-center text-[10px] font-black text-[#451A03] shadow-[2px_2px_0px_#451A03] z-10">
-                          ★
+                          <StarSvg size={12} fill="#451A03" stroke="#451A03" />
                         </div>
 
                         <motion.article

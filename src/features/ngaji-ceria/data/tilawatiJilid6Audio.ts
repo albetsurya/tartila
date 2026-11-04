@@ -11,7 +11,7 @@
  * - Jangan mengubah isi file inti `tilawatiQuizJilid6.ts`.
  */
 
-/** Pemetaan audio per halaman → daftar berkas per indeks soal. */
+/** Pemetaan audio per halaman ke daftar berkas per indeks soal. */
 export const JILID_6_AUDIO_FILES: Record<number, (string | null)[]> = {
   1: [
     null, null, "AnNas-ayat1", "AnNas-ayat2", "AnNas-ayat2", "AnNas-ayat3", "AnNas-ayat4",
@@ -119,7 +119,7 @@ export const JILID_6_AUDIO_FILES: Record<number, (string | null)[]> = {
   ],
 };
 
-/** Angka Arab (٠-٩) → angka Latin. */
+/** Angka Arab (٠-٩) ke angka Latin. */
 const ARABIC_DIGITS: Record<string, string> = {
   "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
   "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",

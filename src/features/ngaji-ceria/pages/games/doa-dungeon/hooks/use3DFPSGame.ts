@@ -59,7 +59,7 @@ export function use3DFPSGame() {
   const [isJumping, setIsJumping] = useState(false);
   const [jumpProgress, setJumpProgress] = useState(0);
 
-  // ✅ REFS UNTUK INPUT & ANIMASI
+  // REFS UNTUK INPUT & ANIMASI
   const inputRef = useRef<FPSControls>({
     moveForward: false,
     moveBackward: false,
@@ -73,7 +73,7 @@ export function use3DFPSGame() {
 
   const jumpRef = useRef<number>(0);
 
-  // ✅ UPDATE INPUT STATE
+  // UPDATE INPUT STATE
   const updateInput = useCallback(
     (partial: Partial<FPSControls>) => {
       inputRef.current = { ...inputRef.current, ...partial };
@@ -81,7 +81,7 @@ export function use3DFPSGame() {
     []
   );
 
-  // ✅ KEYBOARD/MOUSE HANDLER
+  // KEYBOARD/MOUSE HANDLER
   const setupInputListeners = useCallback(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (phase !== "playing") return;
@@ -172,7 +172,7 @@ export function use3DFPSGame() {
     };
   }, [phase]);
 
-  // ✅ JUMP MECHANIC
+  // JUMP MECHANIC
   const handleJump = useCallback(() => {
     if (isJumping) return;
     setIsJumping(true);
@@ -197,7 +197,7 @@ export function use3DFPSGame() {
     }
   }, [isJumping]);
 
-  // ✅ GAME LOOP UPDATE
+  // GAME LOOP UPDATE
   useEffect(() => {
     if (phase !== "playing") return;
 
@@ -269,7 +269,7 @@ export function use3DFPSGame() {
     return () => clearInterval(interval);
   }, [phase, isJumping, position, rotation, camera]);
 
-  // ✅ SHOOT MECHANIC
+  // SHOOT MECHANIC
   const handleShoot = useCallback(() => {
     if (phase !== "playing") return;
     // Logika shoot: hit target, kurangi health musuh, dll
@@ -287,14 +287,14 @@ export function use3DFPSGame() {
     return () => clearInterval(shootInterval);
   }, [inputRef.current.shoot, handleShoot]);
 
-  // ✅ GAME OVER CHECK
+  // GAME OVER CHECK
   useEffect(() => {
     if (health <= 0) {
       setPhase("gameover");
     }
   }, [health]);
 
-  // ✅ RESET GAME
+  // RESET GAME
   const resetGame = useCallback(() => {
     setPhase("idle");
     setHealth(INITIAL_HEALTH);

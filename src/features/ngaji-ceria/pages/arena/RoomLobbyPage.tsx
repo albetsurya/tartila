@@ -1,11 +1,10 @@
-import { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
-  SparklesSvg,
   CheckSvg,
   CopySvg,
   RocketSvg,
@@ -14,11 +13,25 @@ import {
   AlertTriangleSvg,
   PlusSvg,
   TrashSvg,
+  ZapSvg,
 } from "@/components/ui/CustomIcons";
-import { arenaRoomService, type ArenaRoom, type ArenaRoomPlayer } from "@/services/arenaRoomService";
+import {
+  arenaRoomService,
+  type ArenaRoom,
+  type ArenaRoomPlayer,
+} from "@/services/arenaRoomService";
 import { useAuth } from "@/contexts/AuthContext";
-import { loadMultiplayerProfile, MultiplayerSetupSheet, MultiplayerAvatar, saveMultiplayerProfile, type MultiplayerProfile } from "../../components/multiplayer/MultiplayerSetupSheet";
-import { useBotSimulator, clearBotSimulatorState } from "../../hooks/useBotSimulator";
+import {
+  loadMultiplayerProfile,
+  MultiplayerSetupSheet,
+  MultiplayerAvatar,
+  saveMultiplayerProfile,
+  type MultiplayerProfile,
+} from "../../components/multiplayer/MultiplayerSetupSheet";
+import {
+  useBotSimulator,
+  clearBotSimulatorState,
+} from "../../hooks/useBotSimulator";
 import { normalizeJoinCode } from "@/lib/joinCode";
 import { isTartilaAdmin } from "@/lib/roles";
 import { soundManager } from "../../services/soundManager";
@@ -27,6 +40,81 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const COUNTDOWN_STEPS = ["3", "2", "1", "MULAI!"];
 
+/** Ilustrasi Vektor Turnamen Arena Kompak untuk Header Lobi */
+const LobbyArenaBannerSvg = () => (
+  <svg
+    viewBox="0 0 150 105"
+    fill="none"
+    className="w-24 h-20 sm:w-28 sm:h-22 shrink-0 overflow-visible"
+  >
+    {/* Efek Burst Komik */}
+    <path
+      d="M75 6 L88 22 L110 14 L104 34 L126 44 L106 58 L116 78 L92 76 L82 96 L68 80 L48 94 L46 74 L22 76 L34 56 L16 42 L38 34 L34 14 L56 24 Z"
+      fill="#FEF08A"
+      stroke="#134E4A"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    {/* Podium Juara */}
+    <rect
+      x="28"
+      y="56"
+      width="26"
+      height="34"
+      rx="4"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="3"
+    />
+    <rect
+      x="80"
+      y="62"
+      width="26"
+      height="28"
+      rx="4"
+      fill="#FB923C"
+      stroke="#134E4A"
+      strokeWidth="3"
+    />
+    <rect
+      x="52"
+      y="40"
+      width="30"
+      height="50"
+      rx="5"
+      fill="#FACC15"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+    <text
+      x="67"
+      y="70"
+      textAnchor="middle"
+      fontSize="18"
+      fontWeight="900"
+      fill="#134E4A"
+    >
+      1
+    </text>
+    {/* Piala Emas */}
+    <path
+      d="M57 24 H77 L72 40 H62 L57 24 Z"
+      fill="#FFFBEB"
+      stroke="#134E4A"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="67"
+      cy="18"
+      r="5.5"
+      fill="#EF4444"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+    />
+  </svg>
+);
+
 export default function RoomLobbyPage() {
   const { pin: rawPin } = useParams<{ pin: string }>();
   const navigate = useNavigate();
@@ -34,10 +122,7 @@ export default function RoomLobbyPage() {
 
   const pin = normalizeJoinCode(rawPin || "");
 
-  // Room ID tersimpan di sessionStorage atau di-resolve dari PIN
-  const [roomId, setRoomId] = useState<string | null>(() => {
-    return typeof window !== "undefined" ? window.sessionStorage.getItem("arena_room_id") : null;
-  });
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   const [room, setRoom] = useState<ArenaRoom | null>(null);
   const [players, setPlayers] = useState<ArenaRoomPlayer[]>([]);
@@ -46,46 +131,49 @@ export default function RoomLobbyPage() {
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(() => {
-    return typeof window !== "undefined" ? window.sessionStorage.getItem("arena_player_id") : null;
+    return typeof window !== "undefined"
+      ? window.sessionStorage.getItem("arena_player_id")
+      : null;
   });
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
-  const [profile, setProfile] = useState<MultiplayerProfile | null>(() => loadMultiplayerProfile());
+  const [profile, setProfile] = useState<MultiplayerProfile | null>(() =>
+    loadMultiplayerProfile(),
+  );
   const [showProfileSheet, setShowProfileSheet] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  // Simulator bot — QA superadmin: ditambahkan ke lobi, otomatis ready.
   const { bots, addBot, removeBot, reset: resetBots } = useBotSimulator();
 
-  // Guard untuk optimistic UI ready state
   const pendingReadyRef = useRef<boolean | null>(null);
   const myPlayerIdRef = useRef<string | null>(myPlayerId);
   useEffect(() => {
     myPlayerIdRef.current = myPlayerId;
   }, [myPlayerId]);
 
-  // Bersihkan bot simulator saat meninggalkan lobi (unmount)
   useEffect(() => {
     return () => {
       resetBots();
       clearBotSimulatorState();
     };
-  }, []);
+  }, [resetBots]);
 
-  // Cek apakah user adalah host
   const isHost = useMemo(() => {
     if (room?.host_id && user?.id && user.id === room.host_id) return true;
-    if (typeof window !== "undefined" && window.sessionStorage.getItem(`arena_is_host_${pin}`) === "true") return true;
+    if (
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(`arena_is_host_${pin}`) === "true"
+    )
+      return true;
     return false;
   }, [pin, room?.host_id, user?.id]);
 
-  // Tentukan pemain lokal (host pakai kartu host, guest pakai session join)
   useEffect(() => {
     if (!room || myPlayerId) return;
-    let pid: string | null = null;
-    // room_players tidak punya kolom is_host; host dipasangkan lewat user_id
-    pid =
-      (typeof window !== "undefined" ? window.sessionStorage.getItem("arena_player_id") : null) ||
+    const pid =
+      (typeof window !== "undefined"
+        ? window.sessionStorage.getItem("arena_player_id")
+        : null) ||
       players.find((p) => p.user_id === user?.id)?.id ||
       (isHost ? players[0]?.id : null) ||
       null;
@@ -115,114 +203,105 @@ export default function RoomLobbyPage() {
       map.set(bot.id, player);
     }
     return Array.from(map.values());
-  }, [players, bots, pin]);
+  }, [players, bots, room?.id, pin]);
 
-  // Bot otomatis siap; user siap juga.
   const myReady = useMemo(() => {
     return Boolean(displayPlayers.find((p) => p.id === myPlayerId)?.is_ready);
   }, [displayPlayers, myPlayerId]);
 
-  const allReady = displayPlayers.length > 0 && displayPlayers.every((p) => p.is_ready);
+  const readyCount = useMemo(
+    () => displayPlayers.filter((p) => p.is_ready).length,
+    [displayPlayers],
+  );
 
-  // Host tidak perlu siap untuk memulai; hanya pemain/bot lain harus siap semua.
   const nonHostPlayers = displayPlayers.filter((p) => p.id !== myPlayerId);
-  const canStartGame = displayPlayers.length > 0 && (nonHostPlayers.length === 0 || nonHostPlayers.every((p) => p.is_ready));
+  const canStartGame =
+    displayPlayers.length > 0 &&
+    (nonHostPlayers.length === 0 || nonHostPlayers.every((p) => p.is_ready));
 
-  // 1. Resolve roomId dari PIN jika belum ada di sessionStorage
   useEffect(() => {
-    if (roomId || !pin) return;
-    let isMounted = true;
+    if (!pin) return;
+    let alive = true;
+    setLoading(true);
 
     arenaRoomService
       .getRoom(pin)
-      .then((foundRoom) => {
-        if (!isMounted) return;
-        if (foundRoom) {
-          setRoom(foundRoom);
-          setRoomId(foundRoom.id);
-          sessionStorage.setItem("arena_room_id", foundRoom.id);
-        } else {
+      .then((found) => {
+        if (!alive) return;
+        if (!found) {
           setErrorMsg(`Room dengan PIN "${pin}" tidak ditemukan.`);
           setLoading(false);
+          return;
+        }
+        setRoom(found);
+        setRoomId(found.id);
+        try {
+          sessionStorage.setItem("arena_room_id", found.id);
+        } catch {
+          /* sessionStorage tidak tersedia */
         }
       })
-      .catch((err: any) => {
-        if (!isMounted) return;
-        setErrorMsg(err.message || "Gagal memuat lobi room.");
+      .catch((err: unknown) => {
+        if (!alive) return;
+        setErrorMsg(err instanceof Error ? err.message : "Gagal memuat lobi room.");
         setLoading(false);
       });
 
     return () => {
-      isMounted = false;
+      alive = false;
     };
-  }, [pin, roomId]);
+  }, [pin]);
 
-  // 2. Fungsi fetch room dan players dengan useCallback
-  const fetchRoomData = useCallback(async (targetRoomId: string) => {
-    try {
-      const [foundRoom, initialPlayers] = await Promise.all([
-        arenaRoomService.getRoom(targetRoomId),
-        arenaRoomService.getRoomPlayers(targetRoomId),
-      ]);
-      if (foundRoom) {
-        setRoom(foundRoom);
-      }
-      if (initialPlayers) {
-        setPlayers(initialPlayers);
-      }
-    } catch (err: any) {
-      console.warn("[RoomLobby] fetchRoomData error:", err);
-    }
-  }, []);
-
-  // 3. Effect fetch data room/players & Supabase Realtime subscription
-  // Dependency array HANYA [roomId]
   useEffect(() => {
-    if (!roomId) return;
+    if (!pin || showCountdown) return;
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    let isMounted = true;
-
-    // Fetch data awal room & players
-    fetchRoomData(roomId).finally(() => {
-      if (isMounted) setLoading(false);
-    });
-
-    // Langganan Supabase Realtime untuk update lobi
-    const unsubscribe = arenaRoomService.subscribeToLobby(roomId, {
-      onPlayersChange: (updatedPlayers) => {
-        if (!isMounted) return;
+    const poll = async () => {
+      if (!alive) return;
+      try {
+        const [found, list] = await Promise.all([
+          arenaRoomService.getRoom(pin),
+          arenaRoomService.getRoomPlayers(pin),
+        ]);
+        if (!alive) return;
+        if (found) {
+          setRoom(found);
+          setRoomId(found.id);
+          if (found.status === "playing") {
+            setShowCountdown(true);
+          }
+        }
         setPlayers(() => {
-          // Guard: Jangan timpa status siap jika user sedang dalam proses loading/pending
           if (pendingReadyRef.current !== null && myPlayerIdRef.current) {
-            return updatedPlayers.map((p) =>
+            return list.map((p) =>
               p.id === myPlayerIdRef.current
                 ? { ...p, is_ready: pendingReadyRef.current! }
-                : p
+                : p,
             );
           }
-          return updatedPlayers;
+          return list;
         });
-      },
-      onGameStart: () => {
-        if (isMounted) {
-          setShowCountdown(true);
-        }
-      },
-    });
-
-    // Pastikan channel Supabase di-unsubscribe dengan benar
-    return () => {
-      isMounted = false;
-      if (unsubscribe) {
-        unsubscribe();
+        setLoading(false);
+      } catch {
+        /* polling error diabaikan; coba lagi */
       }
+      if (!alive) return;
+      timer = setTimeout(poll, 1500);
     };
-  }, [roomId]);
 
-  // Redirect jika room sudah berstatus playing saat pertama masuk
+    void poll();
+    return () => {
+      alive = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [pin, showCountdown]);
+
   useEffect(() => {
     if (room?.status === "playing") {
-      navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`, { replace: true });
+      navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`, {
+        replace: true,
+      });
     }
   }, [room?.status, isHost, pin, navigate]);
 
@@ -232,16 +311,24 @@ export default function RoomLobbyPage() {
     soundManager.playSfx("tap");
     setIsStarting(true);
     try {
-      // Simpan state awal untuk fallback di HostGamePage
+      const started = await arenaRoomService.startGame(room.id, pin);
+      if (!started) {
+        alert("Gagal memulai permainan. Status room tidak berubah.");
+        setIsStarting(false);
+        return;
+      }
+
       const startState = {
         questionIndex: 0,
         totalQuestions: (room.questions?.length ?? 0) || 1,
         question: room.questions?.[0],
       };
-      sessionStorage.setItem("tartila_arena_start_state", JSON.stringify(startState));
+      sessionStorage.setItem(
+        "tartila_arena_start_state",
+        JSON.stringify(startState),
+      );
       sessionStorage.setItem("arena_room_id", room.id);
 
-      await arenaRoomService.startGame(room.id, pin);
       setShowCountdown(true);
     } catch (err: any) {
       alert(err.message || "Gagal memulai permainan.");
@@ -255,19 +342,18 @@ export default function RoomLobbyPage() {
     soundManager.playSfx("tap");
     const next = !myReady;
 
-    // Optimistic UI: langsung ubah state lokal
     pendingReadyRef.current = next;
     setPlayers((prev) =>
-      prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: next } : p))
+      prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: next } : p)),
     );
 
     try {
-      await arenaRoomService.setPlayerReady(roomId, myPlayerId, next);
-    } catch (err: any) {
-      // Revert optimistic update jika gagal
-      setPlayers((prev) =>
-        prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: !next } : p))
-      );
+      const res = await arenaRoomService.setPlayerReady(roomId, myPlayerId, next);
+      if (!res.ok) {
+        setPlayers((prev) =>
+          prev.map((p) => (p.id === myPlayerId ? { ...p, is_ready: !next } : p)),
+        );
+      }
     } finally {
       pendingReadyRef.current = null;
     }
@@ -299,13 +385,24 @@ export default function RoomLobbyPage() {
 
   if (loading) {
     return (
-      <NgajiCeriaLayout title={`Lobi Room - ${pin}`} showBack={true} onBack={handleBack}>
-        <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
-          <TilaMascot size={90} mood="thinking" animation="bounce" direction="front" />
-          <h2 className="font-display text-xl font-black text-[#134E4A]">
-            Menghubungkan ke Lobi Tartila Arena...
+      <NgajiCeriaLayout
+        title={`Lobi Room - ${pin}`}
+        showBack={true}
+        onBack={handleBack}
+      >
+        <div className="max-w-md mx-auto px-4 py-14 text-center space-y-3">
+          <TilaMascot
+            size={84}
+            mood="thinking"
+            animation="bounce"
+            direction="front"
+          />
+          <h2 className="font-display text-lg font-black text-[#134E4A]">
+            Menghubungkan ke Lobi Arena...
           </h2>
-          <p className="text-xs font-bold text-[#134E4A]/60">Menyiapkan koneksi real-time</p>
+          <p className="text-xs font-bold text-[#134E4A]/60">
+            Menyiapkan koneksi real-time
+          </p>
         </div>
       </NgajiCeriaLayout>
     );
@@ -313,18 +410,26 @@ export default function RoomLobbyPage() {
 
   if (errorMsg) {
     return (
-      <NgajiCeriaLayout title="Room Tidak Ditemukan" showBack={true} onBack={handleBack}>
+      <NgajiCeriaLayout
+        title="Room Tidak Ditemukan"
+        showBack={true}
+        onBack={handleBack}
+      >
         <div className="max-w-md mx-auto px-4 py-12 text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-2xl border-[3px] border-[#134E4A] bg-[#FEE2E2] flex items-center justify-center text-[#DC2626] shadow-[3px_3px_0px_#134E4A]">
-            <AlertTriangleSvg size={32} />
+          <div className="w-14 h-14 mx-auto rounded-2xl border-[3px] border-[#134E4A] bg-[#FEE2E2] flex items-center justify-center text-[#DC2626] shadow-[3px_3px_0px_#134E4A]">
+            <AlertTriangleSvg size={28} />
           </div>
-          <h2 className="font-display text-2xl font-black text-[#134E4A]">Oops! Terjadi Masalah</h2>
-          <p className="text-sm font-bold text-[#134E4A]/70">{errorMsg}</p>
-          <div className="pt-2">
+          <h2 className="font-display text-xl font-black text-[#134E4A]">
+            Oops! Terjadi Masalah
+          </h2>
+          <p className="text-xs sm:text-sm font-bold text-[#134E4A]/70">
+            {errorMsg}
+          </p>
+          <div className="pt-1">
             <button
               type="button"
               onClick={() => navigate("/arena/join")}
-              className="px-6 py-3 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all"
+              className="px-5 py-2.5 rounded-xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs sm:text-sm shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
             >
               Kembali ke Menu Arena
             </button>
@@ -334,11 +439,15 @@ export default function RoomLobbyPage() {
     );
   }
 
-  const isCasualRoom = room?.room_type === "casual" || room?.room_type === "latihan";
+  const isCasualRoom =
+    room?.room_type === "casual" || room?.room_type === "latihan";
 
   return (
-    <NgajiCeriaLayout title={`Lobi Room - PIN ${pin}`} showBack={true} onBack={handleBack}>
-      {/* Confirm Dialog untuk keluar room */}
+    <NgajiCeriaLayout
+      title={`Lobi Mabar · PIN ${pin}`}
+      showBack={true}
+      onBack={handleBack}
+    >
       <ConfirmDialog
         isOpen={showExitConfirm}
         title="Keluar dari Lobi?"
@@ -357,215 +466,303 @@ export default function RoomLobbyPage() {
         onCancel={() => setShowExitConfirm(false)}
       />
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        {/* Banner Utama: PIN Raksasa Neo-Brutalism */}
-        <div className="rounded-3xl border-[4px] border-[#134E4A] bg-[#FEF3C7] p-6 md:p-8 text-center shadow-[6px_6px_0px_#134E4A] space-y-4">
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-[#134E4A] text-white text-xs font-black shadow-[2px_2px_0px_#134E4A] ${
-                isCasualRoom ? "bg-[#0D9488]" : "bg-[#EA580C]"
-              }`}
-            >
-              {isCasualRoom ? <GamepadSvg size={14} /> : <CrownSvg size={14} />}
-              {isCasualRoom ? "ROOM MAIN KASUAL" : "ROOM UJIAN RESMI"}
-            </span>
+      <div className="relative min-h-[calc(100dvh-3.5rem)] bg-[#F0FDF4]">
+        {/* Latar Action Halftone & Diagonal Speed-Lines */}
+        <div
+          className="pointer-events-none fixed inset-0 opacity-20 z-0"
+          style={{
+            backgroundImage: "radial-gradient(#0D9488 2px, transparent 2px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div
+          className="pointer-events-none fixed inset-0 opacity-[0.05] z-0"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(-45deg, #134E4A 0px, #134E4A 2px, transparent 2px, transparent 18px)",
+          }}
+        />
 
-            {isHost && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A]">
-                <CrownSvg size={14} /> Anda adalah Host
-              </span>
-            )}
-          </div>
+        <div className="relative z-10 max-w-4xl mx-auto px-3 sm:px-4 pt-3 pb-28 space-y-3">
+          {/* =============================================================== */}
+          {/* 1. COMPACT TICKET HEADER: PIN + ILUSTRASI + TOMBOL SALIN        */}
+          {/* =============================================================== */}
+          <section className="relative overflow-hidden rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FEF3C7] p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A]">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-left w-full sm:w-auto">
+                <LobbyArenaBannerSvg />
 
-          <div>
-            <h2 className="text-xs md:text-sm font-black uppercase tracking-widest text-[#134E4A]/70">
-              Bagikan Kode PIN Ini ke Teman-Temanmu:
-            </h2>
-            <div className="inline-block mt-3 px-8 md:px-12 py-3 md:py-4 rounded-2xl border-[4px] border-[#134E4A] bg-white shadow-[6px_6px_0px_#134E4A]">
-              <span className="font-display text-5xl md:text-7xl font-black text-[#134E4A] tracking-[0.2em] select-all">
-                {pin}
-              </span>
-            </div>
-          </div>
-
-          <div className="pt-1 flex items-center justify-center gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-[2px] border-[#134E4A] bg-white text-[#134E4A] text-xs md:text-sm font-black shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all hover:bg-gray-50 cursor-pointer"
-            >
-              {copied ? (
-                <>
-                  <CheckSvg size={16} /> Link Undangan Disalin!
-                </>
-              ) : (
-                <>
-                  <CopySvg size={16} /> Salin Link Undangan
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Daftar Avatar Teman yang Sudah Join (Supabase Realtime) */}
-        <div className="rounded-3xl border-[3px] border-[#134E4A] bg-white p-6 shadow-[5px_5px_0px_#134E4A] space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#10B981]" />
-              </span>
-              <h3 className="font-display text-lg md:text-xl font-black text-[#134E4A]">
-                {bots.length > 0 ? `Teman & Bot Siap (${displayPlayers.length})` : `Teman yang Bergabung (${players.length})`}
-              </h3>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowProfileSheet(true)}
-                className="inline-flex items-center gap-1 text-[11px] font-black text-[#0D9488] hover:underline cursor-pointer bg-[#CCFBF1] px-2.5 py-1 rounded-lg border border-[#0D9488]"
-              >
-                Ganti Karakter
-              </button>
-              <span className="text-xs font-bold text-[#134E4A]/60 hidden sm:inline">
-                Sinkronisasi Real-Time
-              </span>
-            </div>
-          </div>
-
-          {isTartilaAdmin(user?.role) && (
-            <div className="flex items-center justify-between gap-2 border-b border-[#134E4A]/20 pb-3">
-              <span className="text-[10px] font-black uppercase tracking-wide text-[#134E4A]/50">
-                Simulator QA
-              </span>
-              <button
-                type="button"
-                onClick={() => addBot()}
-                className="inline-flex items-center gap-1.5 rounded-xl border-[3px] border-[#0D9488] bg-[#CCFBF1] px-3 py-1.5 text-[10px] font-black text-[#0D9488] shadow-[3px_3px_0px_#0D9488] active:translate-y-[2px] active:shadow-[2px_2px_0px_#0D9488] transition-all cursor-pointer hover:bg-[#B2F5EA]"
-              >
-                <PlusSvg size={14} /> + Tambah Bot
-              </button>
-            </div>
-          )}
-          {displayPlayers.length === 0 ? (
-            <div className="py-10 text-center flex flex-col items-center justify-center bg-[#F0FDF4] rounded-2xl border-2 border-dashed border-[#134E4A]/30">
-              <TilaMascot size={80} mood="thinking" animation="bounce" direction="front" />
-              <p className="mt-3 text-sm font-black text-[#134E4A]">
-                Belum ada pemain yang bergabung
-              </p>
-              <p className="text-xs font-bold text-[#134E4A]/60 mt-1">
-                Ayo beri tahu temanmu untuk memasukkan PIN di atas!
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 rounded-2xl border-2 border-[#134E4A]/20 bg-[#F0FDF4]">
-              {displayPlayers.map((p, idx) => (
-                <div
-                  key={p.id || idx}
-                  className="relative p-3 rounded-xl border-2 border-[#134E4A] bg-white font-black text-sm text-[#134E4A] shadow-[2px_2px_0px_#134E4A] flex items-center gap-2.5 transition-all"
-                >
-                  {/* Tombol Hapus Bot: QA Superadmin */}
-                  {isTartilaAdmin(user?.role) && (p.is_bot || p.id.startsWith("bot-")) && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeBot(p.id);
-                      }}
-                      aria-label={`Hapus bot ${p.nickname}`}
-                      title="Hapus Bot"
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-md border-2 border-[#134E4A] bg-[#FF6B6B] text-white flex items-center justify-center shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-[1px_1px_0px_#134E4A] transition-all cursor-pointer hover:bg-[#EF4444] z-10"
-                    >
-                      <TrashSvg size={12} />
-                    </button>
-                  )}
-
-                  <div className="w-8 h-8 rounded-full border border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A] overflow-hidden">
-                    {p.id === myPlayerId && profile ? (
-                      <MultiplayerAvatar avatarId={profile.avatarId} size={26} />
-                    ) : p.avatarId ? (
-                      <MultiplayerAvatar avatarId={p.avatarId} size={26} />
-                    ) : p.is_host || idx === 0 ? (
-                      <CrownSvg size={16} />
-                    ) : (
-                      <AvatarSantriSvg
-                        gender="girl"
-                        accessory="hairbow"
-                        mood="happy"
-                        size={28}
-                      />
-                    )}
-                  </div>
-                  <div className="overflow-hidden flex-1 min-w-0 pr-1">
-                    <p className="truncate text-xs font-black text-[#134E4A]">{p.nickname}</p>
-                    <span className="block text-[10px] font-bold text-[#134E4A]/50">
-                      {p.is_host ? "Host Room" : p.is_bot ? "Bot QA" : "Pemain"}
-                    </span>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span
-                      className={`mt-1 inline-block px-2 py-0.5 rounded-md border-2 border-[#134E4A] text-[10px] font-black ${
-                        p.is_ready
-                          ? "bg-[#10B981] text-white"
-                          : "bg-[#E5E7EB] text-[#6B7280]"
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 border-[#134E4A] text-white text-[9.5px] font-black uppercase shadow-[1.5px_1.5px_0px_#134E4A] ${
+                        isCasualRoom ? "bg-[#0D9488]" : "bg-[#EA580C]"
                       }`}
                     >
-                      {p.is_ready ? "SIAP" : "MENUNGGU"}
+                      {isCasualRoom ? (
+                        <GamepadSvg size={11} />
+                      ) : (
+                        <CrownSvg size={11} />
+                      )}
+                      {isCasualRoom ? "Arena Mabar" : "Ujian Resmi"}
                     </span>
+
+                    {isHost && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] text-[9.5px] font-black uppercase shadow-[1.5px_1.5px_0px_#134E4A]">
+                        <CrownSvg size={11} /> Host
+                      </span>
+                    )}
                   </div>
+
+                  <h2 className="font-display text-sm sm:text-base font-black text-[#134E4A] truncate">
+                    {room?.title || "Lobi Turnamen Kuis Aktif"}
+                  </h2>
+                  <p className="text-[11px] font-bold text-[#134E4A]/70 leading-snug">
+                    Ajak temanmu masuk menggunakan PIN di samping!
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
 
-        {/* Tombol Siap / Batal Siap untuk semua pemain */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={handleToggleReady}
-            disabled={pendingReadyRef.current !== null || !myPlayerId}
-            className={`w-full py-4 rounded-2xl border-[3px] border-[#134E4A] font-black text-lg shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${
-              myReady ? "bg-[#10B981] text-white" : "bg-[#FEF08A] text-[#134E4A]"
-            }`}
-          >
-            <CheckSvg size={22} />
-            <span>{myReady ? "Batal Siap" : "Siap"}</span>
-          </button>
-        </div>
+              {/* Kotak PIN & Salin Link */}
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t-2 sm:border-t-0 border-dashed border-[#134E4A]/20 pt-2.5 sm:pt-0">
+                <div className="px-3.5 py-1.5 rounded-xl border-[2.5px] border-[#134E4A] bg-white shadow-[2.5px_2.5px_0px_#134E4A]">
+                  <span className="block text-[8px] font-black uppercase tracking-widest text-[#0D9488] leading-none">
+                    PIN ROOM
+                  </span>
+                  <span className="font-display text-xl sm:text-2xl font-black text-[#134E4A] tracking-[0.15em] select-all leading-tight">
+                    {pin}
+                  </span>
+                </div>
 
-        {/* Action Panel: Tombol Mulai Game (HANYA MUNCUL UNTUK HOST) */}
-        <div className="pt-3">
-          {isHost ? (
-            <button
-              type="button"
-              disabled={isStarting || !canStartGame}
-              onClick={handleStartGame}
-              className="w-full py-4 md:py-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-lg md:text-xl shadow-[5px_5px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <RocketSvg size={24} />
-              <span>
-                {isStarting
-                  ? "Memulai Permainan..."
-                  : canStartGame
-                    ? "Mulai Game Sekarang!"
-                    : "Menunggu Pemain Lain..."}
-              </span>
-            </button>
-          ) : (
-            <div className="p-5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF9C3] shadow-[4px_4px_0px_#134E4A] flex items-center justify-center gap-3 text-center">
-              <SparklesSvg size={22} />
-              <div>
-                <p className="font-display font-black text-base text-[#134E4A]">
-                  {allReady
-                    ? "Semua pemain siap! Menunggu Host memulai..."
-                    : "Menunggu Host Memulai Permainan..."}
-                </p>
-                <p className="text-xs font-bold text-[#134E4A]/70 mt-0.5">
-                  Layar akan otomatis berpindah begitu host menekan tombol mulai!
-                </p>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className={`shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border-[2.5px] border-[#134E4A] text-xs font-black shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
+                    copied
+                      ? "bg-[#10B981] text-white"
+                      : "bg-[#FEF08A] hover:bg-[#FDE047] text-[#134E4A]"
+                  }`}
+                >
+                  {copied ? <CheckSvg size={14} /> : <CopySvg size={14} />}
+                  <span>{copied ? "Tersalin!" : "Salin Undangan"}</span>
+                </button>
               </div>
             </div>
-          )}
+          </section>
+
+          {/* =============================================================== */}
+          {/* 2. GRID PEMAIN COMPACT & KONTROL KARAKTER                       */}
+          {/* =============================================================== */}
+          <section className="rounded-2xl border-[3.5px] border-[#134E4A] bg-white p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A] space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b-[2px] border-dashed border-[#134E4A]/20">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10B981] border border-[#134E4A]" />
+                </span>
+                <h3 className="font-display text-sm sm:text-base font-black text-[#134E4A]">
+                  Skuad Pemain ({displayPlayers.length})
+                </h3>
+                <span className="inline-flex items-center gap-1 rounded-lg border-2 border-[#134E4A] bg-[#ECFDF5] px-2 py-0.5 text-[10px] font-black text-[#065F46]">
+                  <ZapSvg size={11} />
+                  <span>{readyCount}/{displayPlayers.length} Siap</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {isTartilaAdmin(user?.role) && (
+                  <button
+                    type="button"
+                    onClick={() => addBot()}
+                    className="inline-flex items-center gap-1 rounded-xl border-[2px] border-[#134E4A] bg-[#FEF08A] hover:bg-[#FDE047] px-2.5 py-1 text-[10.5px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  >
+                    <PlusSvg size={12} />
+                    <span>Bot QA</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowProfileSheet(true)}
+                  className="inline-flex items-center gap-1 rounded-xl border-[2px] border-[#134E4A] bg-[#CCFBF1] hover:bg-[#99F6E4] px-2.5 py-1 text-[10.5px] font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                >
+                  <span>Ganti Karakter</span>
+                </button>
+              </div>
+            </div>
+
+            {displayPlayers.length === 0 ? (
+              <div className="py-6 px-4 text-center flex flex-col items-center justify-center bg-[#F0FDF4] rounded-xl border-2 border-dashed border-[#134E4A]/30">
+                <TilaMascot
+                  size={60}
+                  mood="thinking"
+                  animation="bounce"
+                  direction="front"
+                />
+                <p className="mt-2 text-xs sm:text-sm font-black text-[#134E4A]">
+                  Menunggu pemain bergabung ke arena...
+                </p>
+                <p className="text-[11px] font-bold text-[#134E4A]/60">
+                  Bagikan PIN {pin} kepada teman-temanmu!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[280px] overflow-y-auto p-0.5">
+                {displayPlayers.map((p, idx) => {
+                  const isMe = p.id === myPlayerId;
+                  const isBotPlayer = Boolean(
+                    p.is_bot || p.id.startsWith("bot-"),
+                  );
+                  const isRoomHost =
+                    p.is_host || (room?.host_id && p.user_id === room.host_id);
+
+                  return (
+                    <div
+                      key={p.id || idx}
+                      className={`relative rounded-xl border-[2.5px] border-[#134E4A] p-2 transition-all flex flex-col justify-between gap-1.5 ${
+                        p.is_ready
+                          ? "bg-[#ECFDF5] shadow-[2.5px_2.5px_0px_#065F46]"
+                          : "bg-white shadow-[2.5px_2.5px_0px_#134E4A]"
+                      } ${isMe ? "ring-2 ring-[#F59E0B]" : ""}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-lg border-2 border-[#134E4A] bg-[#FEF08A] flex items-center justify-center shrink-0 text-[#134E4A] overflow-hidden">
+                          {isMe && profile ? (
+                            <MultiplayerAvatar
+                              avatarId={profile.avatarId}
+                              size={26}
+                            />
+                          ) : p.avatarId ? (
+                            <MultiplayerAvatar
+                              avatarId={p.avatarId}
+                              size={26}
+                            />
+                          ) : isRoomHost ? (
+                            <CrownSvg size={15} />
+                          ) : (
+                            <AvatarSantriSvg
+                              gender="girl"
+                              accessory="hairbow"
+                              mood="happy"
+                              size={26}
+                            />
+                          )}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-black text-[#134E4A] leading-tight">
+                            {p.nickname}
+                          </p>
+                          <span className="block truncate text-[9.5px] font-bold text-[#134E4A]/60">
+                            {isRoomHost
+                              ? "Host"
+                              : isBotPlayer
+                                ? "Bot QA"
+                                : "Pemain"}
+                          </span>
+                        </div>
+
+                        {isTartilaAdmin(user?.role) && isBotPlayer && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeBot(p.id);
+                            }}
+                            aria-label={`Hapus bot ${p.nickname}`}
+                            className="shrink-0 w-6 h-6 rounded-md border-2 border-[#134E4A] bg-[#FEE2E2] hover:bg-[#EF4444] text-[#DC2626] hover:text-white flex items-center justify-center cursor-pointer"
+                          >
+                            <TrashSvg size={10} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-[#134E4A]/10">
+                        {isMe ? (
+                          <span className="px-1.5 py-0.5 rounded bg-[#FEF08A] border border-[#134E4A] text-[8.5px] font-black text-[#134E4A] uppercase">
+                            Kamu
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold text-[#134E4A]/45">
+                            #{idx + 1}
+                          </span>
+                        )}
+
+                        <span
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border-[1.5px] border-[#134E4A] text-[8.5px] font-black uppercase ${
+                            p.is_ready
+                              ? "bg-[#10B981] text-white"
+                              : "bg-[#F3F4F6] text-[#6B7280]"
+                          }`}
+                        >
+                          {p.is_ready ? (
+                            <>
+                              <CheckSvg size={10} strokeWidth={3} />
+                              <span>SIAP</span>
+                            </>
+                          ) : (
+                            "MENUNGGU"
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* ================================================================= */}
+        {/* 3. ACTION DOCK UNIVERSAL (TAMPIL DI MOBILE MAUPUN DESKTOP)         */}
+        {/* ================================================================= */}
+        <div className="fixed bottom-0 inset-x-0 z-40 p-2.5 bg-gradient-to-t from-[#F0FDF4] via-[#F0FDF4]/95 to-transparent">
+          <div className="max-w-4xl mx-auto rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFBEB] p-2.5 shadow-[0_-3px_0px_#134E4A,4px_4px_0px_#134E4A] flex items-center justify-between gap-2.5">
+            <div className="hidden sm:flex items-center gap-2.5 pl-1">
+              <div className="px-2.5 py-1 rounded-xl border-2 border-[#134E4A] bg-[#ECFDF5] font-display font-black text-xs text-[#065F46]">
+                {readyCount}/{displayPlayers.length} Siap
+              </div>
+              <span className="text-xs font-bold text-[#134E4A]/80">
+                {isHost
+                  ? canStartGame
+                    ? "Semua pemain siap! Mulai sekarang."
+                    : "Menunggu pemain lain menekan tombol Siap..."
+                  : myReady
+                    ? "Kamu sudah siap! Menunggu Host memulai..."
+                    : "Tekan tombol Siap agar permainan bisa dimulai."}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handleToggleReady}
+                disabled={pendingReadyRef.current !== null || !myPlayerId}
+                className={`flex-1 sm:flex-initial sm:px-5 py-2.5 rounded-xl border-[2.5px] border-[#134E4A] font-display font-black text-xs uppercase shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-60 flex items-center justify-center gap-1.5 cursor-pointer ${
+                  myReady
+                    ? "bg-[#10B981] text-white"
+                    : "bg-[#FEF08A] hover:bg-[#FDE047] text-[#134E4A]"
+                }`}
+              >
+                <CheckSvg size={15} />
+                <span>{myReady ? "Siap! (Batal)" : "Klik Siap!"}</span>
+              </button>
+
+              {isHost && (
+                <button
+                  type="button"
+                  disabled={isStarting || !canStartGame}
+                  onClick={handleStartGame}
+                  className="flex-1 sm:flex-initial sm:px-6 py-2.5 rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-xs uppercase shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <RocketSvg size={15} />
+                  <span>
+                    {isStarting ? "Memulai..." : "Mulai Pertandingan!"}
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -574,10 +771,12 @@ export default function RoomLobbyPage() {
         defaultName={user?.name || user?.username || ""}
         onClose={() => {
           setShowProfileSheet(false);
-          // Jika belum ada profile saat ditutup lewat tombol X, buat default agar tidak stuck
           if (!profile) {
             const fallback: MultiplayerProfile = {
-              displayName: (user?.name || user?.username || "Santri").slice(0, 12),
+              displayName: (user?.name || user?.username || "Santri").slice(
+                0,
+                12,
+              ),
               avatarId: "boy-peci",
             };
             saveMultiplayerProfile(fallback);
@@ -594,23 +793,27 @@ export default function RoomLobbyPage() {
       <AnimatePresence>
         {showCountdown && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]/95 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
               key={countIndex}
-              initial={{ scale: 0.3, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 18 }}
-              className={`font-display font-black leading-none ${
-                countIndex === COUNTDOWN_STEPS.length - 1
-                  ? "text-[4rem] text-[#FEF08A]"
-                  : "text-[9rem] text-[#0D9488]"
-              }`}
+              initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="px-10 py-8 rounded-3xl border-[5px] border-[#134E4A] bg-[#FEF3C7] shadow-[8px_8px_0px_#042F2E] text-center"
             >
-              {COUNTDOWN_STEPS[countIndex]}
+              <span
+                className={`font-display font-black leading-none block ${
+                  countIndex === COUNTDOWN_STEPS.length - 1
+                    ? "text-5xl sm:text-7xl text-[#EA580C]"
+                    : "text-7xl sm:text-9xl text-[#0D9488]"
+                }`}
+              >
+                {COUNTDOWN_STEPS[countIndex]}
+              </span>
             </motion.div>
           </motion.div>
         )}

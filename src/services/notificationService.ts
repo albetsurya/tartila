@@ -27,7 +27,7 @@ const DEFAULT_NOTIFICATIONS: Notification[] = [
   {
     id: "notif_daily_reminder",
     type: "info",
-    title: "Jaga Streak Mengajimu! 🔥",
+    title: "Jaga Streak Mengajimu!",
     message: "Lanjut mengaji hari ini untuk melipatgandakan koin dan bonus hadiah.",
     targetRole: "member",
     read: false,
