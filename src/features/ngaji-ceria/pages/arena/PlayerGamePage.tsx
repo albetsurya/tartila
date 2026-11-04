@@ -99,27 +99,6 @@ export default function PlayerGamePage() {
   const socketRef = useRef<ArenaSocket | null>(null);
   const hostDisconnectedRef = useRef(false);
 
-  // Fallback: Jika soal belum termuat dari WebSocket, ambil langsung dari room storage
-  useEffect(() => {
-    if (question || !pin) return;
-    let alive = true;
-    arenaRoomService
-      .getRoomQuestions(pin)
-      .then((qs) => {
-        if (!alive || !qs || qs.length === 0) return;
-        const firstQ = qs[0];
-        setQuestion(firstQ);
-        setTotalQuestions(qs.length);
-        setTimeLimit(firstQ.timeLimitSeconds || 20);
-        setTimeLeft(firstQ.timeLimitSeconds || 20);
-        setGamePhase("QUESTION_ACTIVE");
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [pin, question]);
-
   // Anti-Cheat: Record Tab Switch
   const handleTabSwitch = useCallback(() => {
     if (disqualified || hostDisconnectedRef.current) return;

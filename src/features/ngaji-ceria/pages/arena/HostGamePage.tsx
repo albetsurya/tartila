@@ -160,36 +160,20 @@ export default function HostGamePage() {
           setRoomType(rType);
         }
 
-        const theme =
-          room.theme ||
-          (typeof window !== "undefined"
-            ? sessionStorage.getItem(`arena_theme_${pin}`)
-            : null) ||
-          "bahasa-arab";
-
-        let data = await arenaRoomService.getRoomQuestions(pin);
+        const roomId = room.id;
+        const questions = await arenaRoomService.getRoomQuestions(pin);
         if (cancelled) return;
-        if (!data || data.length === 0) {
-          const hubQuestions = getQuizHubQuestions(
-            (theme as any) || "bahasa-arab",
-            "mcq",
-            undefined,
-            10,
-          );
-          if (hubQuestions && hubQuestions.length > 0) {
-            data = hubQuestions;
-            void arenaRoomService.saveRoomQuestions(room.id, hubQuestions);
-          }
-        }
-
-        if (!data || data.length === 0) {
+        if (!questions || questions.length === 0) {
           setErrorMsg("Gagal memuat soal, silakan buat room ulang.");
-        } else {
-          setQuestions(data);
-          setQuestionIndex(0);
-          setTotalQuestions(data.length);
-          setTimeLeft(data[0].timeLimitSeconds || 20);
+          setLoadingQuestions(false);
+          return;
         }
+        setQuestions(questions);
+        setQuestionIndex(0);
+        setTotalQuestions(questions.length);
+        setTimeLeft(questions[0].timeLimitSeconds || 20);
+        if (cancelled) return;
+          setErrorMsg("Gagal memuat soal, silakan buat room ulang.");
       } catch (err: any) {
         if (cancelled) return;
         setErrorMsg(err.message || "Terjadi kesalahan saat memuat soal.");

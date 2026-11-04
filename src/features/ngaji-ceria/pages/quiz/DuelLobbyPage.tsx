@@ -12,7 +12,10 @@ import {
   KeyRoundSvg,
   SparklesSvg,
 } from "@/components/ui/CustomIcons";
-import { QUIZ_HUB_CATEGORIES } from "../../data/quizHubData";
+import { QUIZ_HUB_CATEGORIES, getQuizHubQuestions } from "../../data/quizHubData";
+import type { QuestionData } from "../../components/quiz-models/types";
+import { fetchWsTicket } from "../../services/arenaApi";
+const ARENA_WS_BASE = import.meta.env.VITE_WS_URL?.replace(/^http/, "ws") || "wss://ngaji-tartila.onrender.com";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
 import { duelService, generateDuelCode } from "@/services/duelService";
 import { soundManager } from "../../services/soundManager";
@@ -154,6 +157,8 @@ export default function DuelLobbyPage() {
   });
 
   const [hostReady, setHostReady] = useState(false);
+  const [gameQuestions, setGameQuestions] = useState<QuestionData[] | null>(null);
+  const gameQuestionsRef = useRef<QuestionData[] | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<string>("bahasa-arab");
   const [opponentReady, setOpponentReady] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
@@ -199,6 +204,15 @@ export default function DuelLobbyPage() {
         }
         setActiveSessionId(res.sessionId);
         if (res.duelCode) setDuelCode(res.duelCode);
+        // Host generate full question set for the duel.
+        const hostQs = getQuizHubQuestions(
+          selectedTheme as any,
+          "mcq",
+          undefined,
+          5,
+        ) as QuestionData[];
+        setGameQuestions(hostQs);
+        gameQuestionsRef.current = hostQs;
         navigate(`/arena/duel/lobby/${res.sessionId}`, { replace: true });
       } catch (err) {
         const msg =
@@ -234,14 +248,7 @@ export default function DuelLobbyPage() {
       try {
         const sess = await duelService.getDuelSession(targetSession);
         if (sess) {
-          if (sess.opponentId || sess.status === "playing") {
-            setOpponentReady(true);
-            setOpponentName("Teman Santri");
-          }
-          if (sess.duelCode) setDuelCode(sess.duelCode);
-          if (sess.status === "playing") {
-            setShowCountdown(true);
-          }
+          
         }
       } catch {
         /* polling error sementara diabaikan */
@@ -266,6 +273,11 @@ export default function DuelLobbyPage() {
       soundManager.playSfx("tap");
       setActiveSessionId(res.sessionId);
       if (cleanCode) setDuelCode(cleanCode);
+      if (Array.isArray(res.questions)) {
+        const joinedQs = res.questions as QuestionData[];
+        setGameQuestions(joinedQs);
+        gameQuestionsRef.current = joinedQs;
+      }
       setOpponentReady(true);
       setOpponentName("Host Sesi");
       navigate(`/arena/duel/lobby/${res.sessionId}`);
@@ -324,6 +336,26 @@ export default function DuelLobbyPage() {
     triggerBibiReaction("click");
     soundManager.playSfx("tap");
     setHostReady(true);
+  };
+
+  const sendDuelStart = async (sessionId: string, questions: QuestionData[]) => {
+    try {
+      const ticket = await fetchWsTicket();
+      if (!sessionId) return;
+      const url = `${ARENA_WS_BASE}/api/ws/duel/${sessionId}`;
+      const ws = new WebSocket(url);
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        setTimeout(() => sendDuelStart(sessionId, questions), 100);
+        return;
+      }
+      ws.send(
+        JSON.stringify({ type: "game_start", payload: { questions } }),
+      );
+      ws.close();
+    } catch {
+      // Socket/connection failure not fatal for starting the lobby flow; the
+      // next server handshake still carries the official question snapshot.
+    }
   };
 
   const handleCopyCode = async () => {
@@ -616,31 +648,44 @@ export default function DuelLobbyPage() {
 
             {/* Tombol Aksi Langsung di Dalam Panggung */}
             <div className="pt-1">
-              <button
-                type="button"
-                disabled={hostReady || ticketError}
-                onClick={handleReady}
-                className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${
-                  hostReady
-                    ? "bg-[#10B981] text-white"
-                    : "bg-[#0D9488] hover:bg-[#0F766E] text-white"
-                }`}
-              >
-                <RocketSvg size={18} />
-                <span>
-                  {hostReady
-                    ? opponentReady
-                      ? "Meluncur ke Arena..."
-                      : "Kamu Siap! Menunggu Lawan..."
-                    : "Siap Tempur Sekarang!"}
-                </span>
-              </button>
+              {hostReady && opponentReady && gameQuestions && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerBibiReaction("click");
+                    soundManager.playSfx("tap");
+                    if (gameQuestionsRef.current) {
+                      void sendDuelStart(activeSessionId ?? "", gameQuestionsRef.current);
+                    }
+                  }}
+                  className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    "bg-[#0D9488] text-white"
+                  }`}
+                >
+                  <RocketSvg size={18} />
+                  <span>MULAI PERTARUNGAN!</span>
+                </button>
+              )}
 
-              <p className="mt-2 text-center text-[11px] font-bold text-[#134E4A]/65">
-                {hostReady
-                  ? "Begitu lawan bergabung, hitung mundur otomatis dimulai."
-                  : "Tekan tombol di atas jika kamu sudah siap berduel."}
-              </p>
+              {!hostReady && (
+                <button
+                  type="button"
+                  disabled={!!ticketError}
+                  onClick={handleReady}
+                  className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${
+                    "bg-[#0D9488] text-white"
+                  }`}
+                >
+                  <RocketSvg size={18} />
+                  <span>Siap Tempur Sekarang!</span>
+                </button>
+              )}
+
+              {hostReady && (
+                <p className="mt-2 text-center text-[11px] font-bold text-[#134E4A]/65">
+                  Lawan siap? Klik MULAI PERTARUNGAN saat lawan sudah siap.
+                </p>
+              )}
             </div>
           </section>
         </main>

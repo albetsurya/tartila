@@ -79,8 +79,9 @@ import {
   CameraSvg,
   BookOpenSvg,
   GamepadSvg,
+  LogOut,
 } from "@/components/ui/CustomIcons";
-import { AnimatedProgressBar } from "@/components/ui";
+import { AnimatedProgressBar, StickerButton } from "@/components/ui";
 import RankBadgeSvg from "@/components/ui/RankBadgeSvg";
 
 // Custom Icon Kamera bergaya Neo-Brutalism (Dapat dipindahkan ke CustomIcons.tsx)
@@ -232,7 +233,11 @@ export default function NgajiCeriaProfilePage() {
       const snoozeUntil = Number(
         localStorage.getItem(FEEDBACK_PROMPT_SNOOZE_KEY),
       );
-      if (snoozeUntil && !Number.isNaN(snoozeUntil) && Date.now() < snoozeUntil) {
+      if (
+        snoozeUntil &&
+        !Number.isNaN(snoozeUntil) &&
+        Date.now() < snoozeUntil
+      ) {
         return;
       }
 
@@ -399,7 +404,9 @@ export default function NgajiCeriaProfilePage() {
   const hearts = useEconomyStore((s) => s.hearts);
   const tickets = useEconomyStore((s) => s.tickets);
   const storeIsVip = useEconomyStore((s) => s.isVip);
-  const isVip = Boolean(user?.is_vip || user?.role === "superadmin" || storeIsVip);
+  const isVip = Boolean(
+    user?.is_vip || user?.role === "superadmin" || storeIsVip,
+  );
   const isUnlimited = isUnlimitedUser(user, isVip, user?.group_id);
 
   const isSuperAdmin = isAdminRole(user?.role);
@@ -454,7 +461,8 @@ export default function NgajiCeriaProfilePage() {
     nameOverride ||
     user?.name ||
     (user
-      ? user.username || (user.email ? user.email.split("@")[0] : "Santri Tartila")
+      ? user.username ||
+        (user.email ? user.email.split("@")[0] : "Santri Tartila")
       : "Tamu Tartila");
   const email =
     user?.email ||
@@ -1272,23 +1280,26 @@ export default function NgajiCeriaProfilePage() {
           {/* 6. Logout & Akun */}
           <section className="space-y-3 pt-2">
             {user ? (
-              <button
-                type="button"
-                onClick={() => openModal("logout")}
+              <StickerButton
+                variant="coral-outline"
+                size="lg"
+                fullWidth
                 disabled={loggingOut}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#134E4A] bg-[#FF6B6B] hover:bg-[#fa5252] py-3.5 font-black text-sm text-white shadow-[3px_3px_0px_#134E4A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-60"
+                loading={loggingOut}
+                onClick={() => openModal("logout")}
+                icon={<LogOutSvg size={18} stroke="currentColor" />}
               >
-                <LogOutSvg size={18} />
-                <span>Keluar Akun</span>
-              </button>
+                Keluar Akun
+              </StickerButton>
             ) : (
-              <button
-                type="button"
+              <StickerButton
+                variant="primary"
+                size="lg"
+                fullWidth
                 onClick={() => navigate("/login")}
-                className="w-full rounded-2xl bg-[#0D9488] py-3.5 font-black text-sm text-white border-[3px] border-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all"
               >
                 Masuk / Daftar
-              </button>
+              </StickerButton>
             )}
 
             <div className="flex justify-center">
@@ -1793,21 +1804,23 @@ export default function NgajiCeriaProfilePage() {
               harianmu tetap tersimpan aman.
             </p>
             <div className="flex gap-2 pt-2">
-              <button
-                type="button"
+              <StickerButton
+                variant="secondary"
+                className="flex-1"
                 onClick={() => setActiveModal(null)}
-                className={`flex-1 ${btnCancelStyle}`}
               >
                 Batal
-              </button>
-              <button
-                type="button"
+              </StickerButton>
+
+              <StickerButton
+                variant="coral-outline"
+                className="flex-1"
                 onClick={handleLogout}
-                disabled={loggingOut}
-                className={`flex-1 ${btnDangerStyle}`}
+                loading={loggingOut}
+                icon={<LogOut size={16} stroke="currentColor" />}
               >
-                {loggingOut ? "Keluar..." : "Ya, Keluar"}
-              </button>
+                Ya, Keluar
+              </StickerButton>
             </div>
           </div>
         </AppModal>

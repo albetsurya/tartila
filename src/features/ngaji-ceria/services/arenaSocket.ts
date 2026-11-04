@@ -35,6 +35,8 @@ export class ArenaSocket {
   private heartbeatTimer?: number;
   private reconnectAttempts: number = 0;
   private readonly maxReconnectDelayMs: number = 5000;
+  private lastTicket: string = "";
+  private lastTicketAt = 0;
   private visibilityListenerAttached: boolean = false;
   private opening: boolean = false;
 
@@ -57,12 +59,17 @@ export class ArenaSocket {
     if (this.opening) return;
     this.opening = true;
 
-    let ticket = "";
-    try {
-      ticket = await fetchWsTicket();
-    } finally {
-      this.opening = false;
+    let ticket = this.lastTicket;
+    const now = Date.now();
+    if (!ticket || Date.now() - this.lastTicketAt >= 60000) {
+      try {
+        ticket = await fetchWsTicket();
+      } finally {
+        this.opening = false;
+      }
     }
+    this.lastTicket = ticket;
+    this.lastTicketAt = Date.now();
 
     if (!this.shouldReconnect) return;
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
@@ -130,6 +137,7 @@ export class ArenaSocket {
     // Exponential backoff: 1s, 1.5s, 2.25s, max 5s
     const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), this.maxReconnectDelayMs);
     this.reconnectAttempts++;
+    if (this.reconnectAttempts > 4) return;
     this.reconnectTimer = window.setTimeout(() => {
       this.connect();
     }, delay);

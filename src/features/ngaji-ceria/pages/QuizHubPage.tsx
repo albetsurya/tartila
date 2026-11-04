@@ -16,6 +16,7 @@ import {
   ShieldSvg,
   InfoSvg,
   GamepadSvg,
+  ArrowRightSvg,
 } from "@/components/ui/CustomIcons";
 import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { GameLevelSelectSheet } from "./games/_shared/GameLevelSelectSheet";
@@ -30,99 +31,359 @@ import {
   getCategoryUnlockedLevel,
 } from "../data/quizHubData";
 
+/* ============================================================================
+   CUSTOM NEO-BRUTALIST ILLUSTRATIONS & CATEGORY ICONS (NO EMOJIS)
+   ============================================================================ */
+
 const DropletSvg: React.FC<{ size?: number; className?: string }> = ({
-  size = 28,
+  size = 26,
   className = "",
 }) => (
   <svg
     width={size}
     height={size}
-    viewBox="0 0 24 24"
+    viewBox="0 0 28 28"
     fill="none"
     className={className}
     aria-hidden="true"
   >
+    <path d="M15 4.5L20.8 10.3a8.2 8.2 0 11-11.6 0L15 4.5z" fill="#134E4A" />
     <path
-      d="M12 2.7l5.66 5.66a8 8 0 11-11.31 0L12 2.7z"
+      d="M13.5 3L19.3 8.8a8.2 8.2 0 11-11.6 0L13.5 3z"
       fill="#38BDF8"
-      stroke="#0F172A"
-      strokeWidth="2.2"
+      stroke="#134E4A"
+      strokeWidth="2.4"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
-      d="M8.5 14.5a3.5 3.5 0 005 0"
+      d="M10 15.5a3.5 3.5 0 005 0"
       stroke="#FFFFFF"
-      strokeWidth="2"
+      strokeWidth="2.2"
       strokeLinecap="round"
     />
   </svg>
 );
 
 const PillarSvg: React.FC<{ size?: number; className?: string }> = ({
-  size = 28,
+  size = 26,
   className = "",
 }) => (
   <svg
     width={size}
     height={size}
-    viewBox="0 0 24 24"
+    viewBox="0 0 28 28"
     fill="none"
     className={className}
     aria-hidden="true"
   >
-    <path
-      d="M4 21h16M4 3h16M6 3v18M18 3v18M10 7v10M14 7v10"
-      stroke="#0F172A"
+    <rect x="6" y="5" width="18" height="20" rx="2" fill="#134E4A" />
+    <rect
+      x="6"
+      y="6"
+      width="15"
+      height="16"
+      fill="#FEF3C7"
+      stroke="#134E4A"
       strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
     />
-    <path
-      d="M4 3h16v3.5H4V3zM4 17.5h16V21H4v-3.5z"
+    <line x1="10.5" y1="7" x2="10.5" y2="21" stroke="#134E4A" strokeWidth="2" />
+    <line x1="16.5" y1="7" x2="16.5" y2="21" stroke="#134E4A" strokeWidth="2" />
+    <rect
+      x="4"
+      y="3.5"
+      width="19"
+      height="4"
+      rx="1.5"
       fill="#F472B6"
-      stroke="#0F172A"
-      strokeWidth="1.5"
+      stroke="#134E4A"
+      strokeWidth="2.2"
+    />
+    <rect
+      x="4"
+      y="20.5"
+      width="19"
+      height="4"
+      rx="1.5"
+      fill="#F472B6"
+      stroke="#134E4A"
+      strokeWidth="2.2"
     />
   </svg>
 );
 
 const KaabahSvg: React.FC<{ size?: number; className?: string }> = ({
-  size = 28,
+  size = 26,
   className = "",
 }) => (
   <svg
     width={size}
     height={size}
-    viewBox="0 0 24 24"
+    viewBox="0 0 28 28"
     fill="none"
     className={className}
     aria-hidden="true"
   >
+    <rect x="6" y="6" width="18" height="18" rx="2.5" fill="#134E4A" />
     <rect
-      x="4"
+      x="4.5"
       y="4.5"
-      width="16"
-      height="15.5"
-      rx="2"
+      width="18"
+      height="18"
+      rx="2.5"
       fill="#1E293B"
-      stroke="#0F172A"
-      strokeWidth="2.2"
+      stroke="#134E4A"
+      strokeWidth="2.4"
     />
     <path
-      d="M4 10h16"
-      stroke="#FBBF24"
-      strokeWidth="2.5"
+      d="M4.5 10.5H22.5"
+      stroke="#FACC15"
+      strokeWidth="3"
       strokeLinecap="round"
     />
     <rect
-      x="13"
-      y="13"
-      width="4"
-      height="7"
+      x="14"
+      y="14"
+      width="4.5"
+      height="8.5"
+      rx="1"
       fill="#F59E0B"
-      stroke="#0F172A"
-      strokeWidth="1.5"
+      stroke="#134E4A"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+/** Ilustrasi Vektor Hero Pusat Kuis (Piala, Kartu Kuis, & Bintang) */
+const QuizHubHeroSvg = () => (
+  <svg
+    viewBox="0 0 150 105"
+    fill="none"
+    className="hidden sm:block w-32 h-24 shrink-0 overflow-visible"
+    aria-hidden="true"
+  >
+    {/* Kartu Soal di Kiri */}
+    <g transform="rotate(-12 36 48)">
+      <rect x="14" y="22" width="40" height="52" rx="7" fill="#042F2E" />
+      <rect
+        x="10"
+        y="18"
+        width="40"
+        height="52"
+        rx="7"
+        fill="#38BDF8"
+        stroke="#134E4A"
+        strokeWidth="3"
+      />
+      <rect
+        x="17"
+        y="27"
+        width="26"
+        height="14"
+        rx="3"
+        fill="#FFFBEB"
+        stroke="#134E4A"
+        strokeWidth="2"
+      />
+      <line
+        x1="18"
+        y1="49"
+        x2="42"
+        y2="49"
+        stroke="#134E4A"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <line
+        x1="18"
+        y1="57"
+        x2="34"
+        y2="57"
+        stroke="#134E4A"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </g>
+
+    {/* Kartu Susun Kata di Kanan */}
+    <g transform="rotate(12 114 48)">
+      <rect x="96" y="22" width="40" height="52" rx="7" fill="#042F2E" />
+      <rect
+        x="92"
+        y="18"
+        width="40"
+        height="52"
+        rx="7"
+        fill="#FB7185"
+        stroke="#134E4A"
+        strokeWidth="3"
+      />
+      <circle
+        cx="112"
+        cy="44"
+        r="11"
+        fill="#FEF08A"
+        stroke="#134E4A"
+        strokeWidth="2.5"
+      />
+      <path
+        d="M108 44L111 47L117 41"
+        stroke="#134E4A"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </g>
+
+    {/* Piala Emas Utama di Tengah */}
+    <path
+      d="M52 24H98L92 62C90 74 82 78 75 78C68 78 60 74 58 62L52 24Z"
+      fill="#FACC15"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+      strokeLinejoin="round"
+    />
+    <rect
+      x="69"
+      y="76"
+      width="12"
+      height="12"
+      fill="#EAB308"
+      stroke="#134E4A"
+      strokeWidth="3"
+    />
+    <rect
+      x="55"
+      y="86"
+      width="40"
+      height="11"
+      rx="4"
+      fill="#FEF08A"
+      stroke="#134E4A"
+      strokeWidth="3"
+    />
+    {/* Bintang di Tengah Piala */}
+    <path
+      d="M75 34L78.5 41.5L86.5 42.5L80.5 48L82 56L75 52L68 56L69.5 48L63.5 42.5L71.5 41.5L75 34Z"
+      fill="#FFFFFF"
+      stroke="#134E4A"
+      strokeWidth="2.2"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+/** Ilustrasi Sudut untuk Kartu Arena & Duel */
+const ArenaBattleArtSvg = () => (
+  <svg
+    viewBox="0 0 120 90"
+    fill="none"
+    className="pointer-events-none absolute -right-2 -bottom-2 w-28 h-20 opacity-25 group-hover:opacity-40 transition-opacity"
+    aria-hidden="true"
+  >
+    <circle
+      cx="78"
+      cy="52"
+      r="28"
+      fill="#F59E0B"
+      stroke="#134E4A"
+      strokeWidth="3.5"
+    />
+    <path
+      d="M82 32L68 52H78L72 72L90 48H79L82 32Z"
+      fill="#FEF08A"
+      stroke="#134E4A"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+/** Ilustrasi Sudut untuk Mode Latihan Soal (MCQ) */
+const McqModeArtSvg = () => (
+  <svg
+    viewBox="0 0 110 80"
+    fill="none"
+    className="pointer-events-none absolute -right-1 -bottom-1 w-24 h-18 opacity-25 group-hover:opacity-40 transition-opacity"
+    aria-hidden="true"
+  >
+    <rect
+      x="38"
+      y="16"
+      width="58"
+      height="56"
+      rx="8"
+      transform="rotate(-6 38 16)"
+      fill="#38BDF8"
+      stroke="#134E4A"
+      strokeWidth="3"
+    />
+    <circle
+      cx="56"
+      cy="34"
+      r="5"
+      fill="#FEF08A"
+      stroke="#134E4A"
+      strokeWidth="2"
+    />
+    <line
+      x1="66"
+      y1="34"
+      x2="84"
+      y2="32"
+      stroke="#134E4A"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <circle
+      cx="58"
+      cy="50"
+      r="5"
+      fill="#4ADE80"
+      stroke="#134E4A"
+      strokeWidth="2"
+    />
+    <line
+      x1="68"
+      y1="50"
+      x2="86"
+      y2="48"
+      stroke="#134E4A"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+/** Ilustrasi Sudut untuk Mode Susun Kata (Scramble) */
+const ScrambleModeArtSvg = () => (
+  <svg
+    viewBox="0 0 110 80"
+    fill="none"
+    className="pointer-events-none absolute -right-1 -bottom-1 w-24 h-18 opacity-25 group-hover:opacity-40 transition-opacity"
+    aria-hidden="true"
+  >
+    <rect
+      x="34"
+      y="34"
+      width="32"
+      height="32"
+      rx="6"
+      transform="rotate(-10 34 34)"
+      fill="#FACC15"
+      stroke="#134E4A"
+      strokeWidth="3"
+    />
+    <rect
+      x="64"
+      y="22"
+      width="32"
+      height="32"
+      rx="6"
+      transform="rotate(8 64 22)"
+      fill="#FB923C"
+      stroke="#134E4A"
+      strokeWidth="3"
     />
   </svg>
 );
@@ -154,7 +415,10 @@ export default function QuizHubPage() {
       });
       if (res.ok && res.data?.pin) {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem(`arena_is_host_${res.data.pin}`, "true");
+          window.sessionStorage.setItem(
+            `arena_is_host_${res.data.pin}`,
+            "true",
+          );
           window.sessionStorage.setItem("arena_player_name", hostName);
         }
         navigate(`/arena/lobby/${res.data.pin}`);
@@ -172,35 +436,35 @@ export default function QuizHubPage() {
   const getCategoryIcon = (catId: QuizHubCategory) => {
     switch (catId) {
       case "tilawati":
-        return <TilawatiLearningSvg size={26} />;
+        return <TilawatiLearningSvg size={24} />;
       case "juz-amma":
-        return <QuranSvg size={26} />;
+        return <QuranSvg size={24} />;
       case "kisah-doa":
-        return <HandsPrayingSvg size={26} />;
+        return <HandsPrayingSvg size={24} />;
       case "doa-harian":
-        return <HandsPrayingSvg size={26} />;
+        return <HandsPrayingSvg size={24} />;
       case "sejarah-nabi":
-        return <PillarSvg size={26} />;
+        return <PillarSvg size={24} />;
       case "bahasa-arab":
-        return <PencilSvg size={26} />;
+        return <PencilSvg size={24} />;
       case "misi-5-waktu":
-        return <MosqueSvg size={26} />;
+        return <MosqueSvg size={24} />;
       case "peta-iman":
-        return <MoonSvg size={26} />;
+        return <MoonSvg size={24} />;
       case "air-kehidupan":
-        return <DropletSvg size={26} />;
+        return <DropletSvg size={24} />;
       case "tameng-ramadan":
-        return <ShieldSvg size={26} />;
+        return <ShieldSvg size={24} />;
       case "misi-berbagi":
-        return <HandsPrayingSvg size={26} />;
+        return <HandsPrayingSvg size={24} />;
       case "panduan-ksatria":
-        return <QuranSvg size={26} />;
+        return <QuranSvg size={24} />;
       case "lorong-waktu":
-        return <PillarSvg size={26} />;
+        return <PillarSvg size={24} />;
       case "puncak-arafah":
-        return <KaabahSvg size={26} />;
+        return <KaabahSvg size={24} />;
       default:
-        return <SparklesSvg size={26} />;
+        return <SparklesSvg size={24} />;
     }
   };
 
@@ -214,226 +478,271 @@ export default function QuizHubPage() {
       showBack={true}
       onBack={() => navigate("/member/ngaji-ceria/games")}
     >
-      <div className="flex w-full flex-col gap-6 pb-12 pt-2 sm:gap-7">
-        {/* 1. HERO SECTION */}
-        <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[#134E4A] px-4 py-5 text-white shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] sm:rounded-[28px] sm:px-6 sm:py-6">
-          <div className="pointer-events-none absolute -right-8 -top-9 h-32 w-32 rounded-full border-[8px] border-white/10 sm:h-40 sm:w-40" />
-          <div className="pointer-events-none absolute bottom-2 right-3 rotate-12 text-[#FEF08A]/30 sm:bottom-4 sm:right-6">
-            <SparklesSvg size={54} />
+      <div className="flex w-full flex-col gap-4 sm:gap-5 pb-14 pt-1 select-none">
+        {/* =============================================================== */}
+        {/* 1. COMPACT HERO BANNER DENGAN ILUSTRASI PIALA KUIS              */}
+        {/* =============================================================== */}
+        <section className="relative overflow-hidden rounded-2xl border-[3.5px] border-[#134E4A] bg-[#134E4A] px-4 py-4 text-white shadow-[5px_5px_0px_#042F2E] sm:rounded-3xl sm:px-6 sm:py-4.5">
+          <div className="pointer-events-none absolute -right-6 -top-10 h-32 w-32 rounded-full border-[6px] border-white/10" />
+
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between sm:justify-start gap-2 flex-wrap mb-2">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#134E4A] bg-[#FEF08A] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-[#134E4A] shadow-[2px_2px_0px_#042F2E]">
+                  <SparklesSvg size={12} />
+                  <span>Arena & Latihan Kuis</span>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setIsGuideOpen(true)}
+                  aria-label="Panduan Pusat Kuis"
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#134E4A] bg-[#CCFBF1] hover:bg-[#FEF08A] px-2.5 py-0.5 text-[11px] font-black text-[#134E4A] shadow-[2px_2px_0px_#042F2E] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                >
+                  <InfoSvg size={13} />
+                  <span>Panduan</span>
+                </button>
+              </div>
+
+              <h1 className="font-display text-lg font-black leading-tight sm:text-2xl text-[#FEF3C7]">
+                Asah Kemampuan & Tantang Temanmu!
+              </h1>
+              <p className="mt-1 max-w-xl text-xs font-bold leading-snug text-white/85">
+                Mainkan kuis multiplayer real-time, latihan cepat, atau
+                selesaikan 14 misi topik petualangan.
+              </p>
+            </div>
+
+            <QuizHubHeroSvg />
           </div>
-          <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#FEF08A] bg-[#FEF08A] px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-[#134E4A] sm:text-xs">
-                <SparklesSvg size={13} />
-                Pilih cara belajarmu
+        </section>
+
+        {/* =============================================================== */}
+        {/* 2. BENTO COMMAND GRID: MULTIPLAYER ARENA & MODE SOLO CEPAT      */}
+        {/* =============================================================== */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          {/* KOLOM KIRI (6 KOLOM): MULTIPLAYER ARENA & DUEL */}
+          <section className="lg:col-span-6 flex flex-col justify-between rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FFFBEB] p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A] gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-[#B45309]">
+                <GamepadSvg size={14} /> Mode Multiplayer Live
               </span>
+              <span className="rounded-md border border-[#134E4A] bg-[#FEF08A] px-2 py-0.5 text-[10px] font-black text-[#134E4A]">
+                Real-Time Battle
+              </span>
+            </div>
+
+            {/* Tombol Utama Buat Room Mabar */}
+            <button
+              type="button"
+              disabled={isCreatingRoom}
+              onClick={handleCreateArena}
+              className="group relative flex w-full items-center justify-between overflow-hidden rounded-xl border-[3px] border-[#134E4A] bg-[#FEF3C7] hover:bg-[#FDE68A] p-3.5 text-left shadow-[3.5px_3.5px_0px_#134E4A] transition-all active:translate-y-[2px] active:shadow-none cursor-pointer"
+            >
+              <ArenaBattleArtSvg />
+
+              <div className="relative z-10 flex items-center gap-3 min-w-0">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-[2.5px] border-[#134E4A] bg-[#FACC15] text-[#134E4A] shadow-[2px_2px_0px_#134E4A] group-hover:scale-105 transition-transform">
+                  <GamepadSvg size={26} />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-display text-base font-black text-[#134E4A] leading-tight">
+                    Arena Mabar & Turnamen
+                  </h2>
+                  <p className="mt-0.5 truncate text-xs font-bold text-[#92400E]">
+                    {isCreatingRoom
+                      ? "Menyiapkan room lobi..."
+                      : "Buat PIN instan & undang teman sekelas"}
+                  </p>
+                </div>
+              </div>
+
+              <span className="relative z-10 shrink-0 inline-flex items-center gap-1.5 rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] group-hover:bg-[#0F766E] px-3 py-2 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A]">
+                <SparklesSvg size={14} />
+                <span className="hidden sm:inline">Buat Room</span>
+              </span>
+            </button>
+
+            {/* Sub-aksi: Duel 1v1 & Gabung PIN */}
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
-                onClick={() => setIsGuideOpen(true)}
-                aria-label="Panduan Pusat Kuis"
-                className="flex items-center gap-1.5 rounded-xl border-2 border-white/80 bg-white/20 px-3 py-1 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] hover:bg-white hover:text-[#134E4A] transition-all cursor-pointer"
+                onClick={() => navigate("/arena/duel/lobby/new")}
+                className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#FFE4E6] hover:bg-[#FECDD3] px-3 py-2.5 text-xs font-black text-[#9F1239] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
-                <InfoSvg size={14} />
-                <span>Panduan</span>
+                <SwordsSvg size={15} />
+                <span>Duel 1v1 Cepat</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/arena/join")}
+                className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#DCFCE7] hover:bg-[#BBF7D0] px-3 py-2.5 text-xs font-black text-[#14532D] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              >
+                <GamepadSvg size={15} />
+                <span>Masuk Kode PIN</span>
               </button>
             </div>
-            <h2 className="mt-3 font-display text-xl font-black leading-tight sm:text-2xl md:text-3xl">
-              Asah kemampuanmu!
-            </h2>
-            <p className="mt-1.5 max-w-xl text-xs font-medium leading-relaxed text-white/85 sm:text-sm">
-              Latihan soal, susun kata, atau jelajahi berbagai topik seru di
-              Pusat Kuis Tartila.
-            </p>
-          </div>
-        </section>
+          </section>
 
-        {/* 2. ACTION: ARENA & DUEL */}
-        <section className="space-y-2.5">
-          {/* Main Action: Big Yellow Arena & Duel Button */}
-          <button
-            type="button"
-            disabled={isCreatingRoom}
-            onClick={handleCreateArena}
-            className="group relative flex w-full items-center justify-between overflow-hidden rounded-[22px] border-[3px] border-[#134E4A] bg-[#FEF3C7] p-4 text-left shadow-[4px_4px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none sm:p-5 cursor-pointer"
-          >
-            <div className="relative z-10 flex items-center gap-3.5">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FDE68A] text-[#D97706] shadow-[2px_2px_0px_#134E4A] sm:h-14 sm:w-14">
-                <GamepadSvg size={26} />
-              </div>
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-1 rounded-md bg-[#FDE68A] px-2 py-0.5 text-[10px] font-black uppercase text-[#92400E]">
-                  Multiplayer
-                </div>
-                <h3 className="font-display text-base font-black text-[#134E4A] leading-tight sm:text-lg">
-                  Arena & Duel
-                </h3>
-                <p className="mt-0.5 truncate text-xs font-semibold text-[#B45309]">
-                  {isCreatingRoom
-                    ? "Menyiapkan room..."
-                    : "Klik untuk langsung buat room dan masuk ke lobi"}
-                </p>
-              </div>
-            </div>
-            <div className="relative z-10 flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] px-3.5 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A]">
-                <SparklesSvg size={14} />
-                <span>Mulai Mabar</span>
+          {/* KOLOM KANAN (6 KOLOM): PILIH MODE KUIS SOLO (KOMPAK & ILUSTRATIF) */}
+          <section className="lg:col-span-6 flex flex-col justify-between rounded-2xl border-[3.5px] border-[#134E4A] bg-white p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A] gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-[#0D9488]">
+                <GraduationCapSvg size={14} /> Mode Latihan Mandiri
               </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A] sm:hidden">
-                <SparklesSvg size={16} />
+              <span className="rounded-md border border-[#134E4A] bg-[#ECFDF5] px-2 py-0.5 text-[10px] font-black text-[#065F46]">
+                2 Mode Solo
               </span>
             </div>
-            <span
-              className="pointer-events-none absolute -bottom-3 -right-3 opacity-10"
-              aria-hidden="true"
-            >
-              <GamepadSvg size={90} />
-            </span>
-          </button>
 
-          {/* Sub-actions: Duel 1v1 & Gabung PIN */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <button
-              type="button"
-              onClick={() => navigate("/arena/duel/lobby/new")}
-              className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#FFE4E6] hover:bg-[#FECDD3] px-3 py-2.5 text-xs font-black text-[#9F1239] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
-            >
-              <SwordsSvg size={15} />
-              <span>Duel 1v1</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/arena/join")}
-              className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#DCFCE7] hover:bg-[#BBF7D0] px-3 py-2.5 text-xs font-black text-[#14532D] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
-            >
-              <GamepadSvg size={15} />
-              <span>Gabung PIN</span>
-            </button>
-          </div>
-        </section>
-
-        {/* 3. PILIH MODE KUIS (SOLO) */}
-        <section className="space-y-3">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-wide text-[#0D9488]">
-                Mulai dari sini
-              </p>
-              <h2 className="mt-0.5 font-display text-lg font-black text-[var(--text-main,#134E4A)] sm:text-xl">
-                Pilih Mode Kuis
-              </h2>
-            </div>
-            <span className="shrink-0 text-[11px] font-bold text-[var(--text-main,#134E4A)]/60 sm:text-xs">
-              2 mode tersedia
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <motion.button
-              type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98, y: 1 }}
-              onClick={() => navigate("/quiz-hub/play?mode=mcq")}
-              className="group flex min-h-[188px] min-w-0 flex-col items-start justify-between rounded-[20px] border-[3px] border-[#134E4A] bg-[#BAE6FD] p-3 text-left text-[#134E4A] shadow-[3px_3px_0px_#134E4A] transition-all hover:shadow-[4px_4px_0px_#134E4A] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:min-h-[208px] sm:rounded-[24px] sm:p-4 sm:shadow-[4px_4px_0px_#134E4A]"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] sm:h-12 sm:w-12 sm:rounded-2xl">
-                <GraduationCapSvg size={27} />
-              </div>
-              <div className="mt-4 w-full">
-                <h3 className="font-display text-sm font-black leading-tight text-[#075985] sm:text-lg">
-                  Latihan Soal
-                </h3>
-                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#164E63]">
-                  Pilihan ganda, visual, dan rumpang.
-                </p>
-              </div>
-              <span className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white px-2 py-2 text-center text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all group-hover:bg-[#F0F9FF] sm:text-sm">
-                Mulai Latihan
-              </span>
-            </motion.button>
-
-            <motion.button
-              type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98, y: 1 }}
-              onClick={() => navigate("/quiz-hub/play?mode=scramble")}
-              className="group flex min-h-[188px] min-w-0 flex-col items-start justify-between rounded-[20px] border-[3px] border-[#134E4A] bg-[#FEF08A] p-3 text-left text-[#134E4A] shadow-[3px_3px_0px_#134E4A] transition-all hover:shadow-[4px_4px_0px_#134E4A] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:min-h-[208px] sm:rounded-[24px] sm:p-4 sm:shadow-[4px_4px_0px_#134E4A]"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] sm:h-12 sm:w-12 sm:rounded-2xl">
-                <CardsSvg size={27} />
-              </div>
-              <div className="mt-4 w-full">
-                <h3 className="font-display text-sm font-black leading-tight text-[#854D0E] sm:text-lg">
-                  Susun Kata
-                </h3>
-                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#713F12]">
-                  Susun potongan kata menjadi jawaban.
-                </p>
-              </div>
-              <span className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white px-2 py-2 text-center text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all group-hover:bg-[#FFFBEB] sm:text-sm">
-                Mulai Susun
-              </span>
-            </motion.button>
-          </div>
-        </section>
-
-        {/* 4. KATEGORI TOPIK */}
-        <section className="space-y-3">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-wide text-[#0D9488]">
-                Temukan tantangan
-              </p>
-              <h2 className="mt-0.5 font-display text-lg font-black text-[var(--text-main,#134E4A)] sm:text-xl">
-                Kategori Topik Soal
-              </h2>
-            </div>
-            <span className="shrink-0 rounded-lg border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] px-2.5 py-1 text-[11px] font-black text-[var(--text-main,#134E4A)] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)] sm:text-xs">
-              {QUIZ_HUB_CATEGORIES.length} topik
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3.5 lg:grid-cols-4">
-            {QUIZ_HUB_CATEGORIES.map((category) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 flex-1">
+              {/* Kartu 1: Latihan Soal (MCQ) */}
               <motion.button
-                key={category.id}
                 type="button"
                 whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98, y: 1 }}
-                onClick={() => setSelectedAdventureCategory(category)}
-                aria-label={`Pilih kategori ${category.title}`}
-                className="group flex min-h-[148px] min-w-0 flex-col items-start gap-3 rounded-[18px] border-[2.5px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3 text-left text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#FFFBEB] hover:shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:min-h-[160px] sm:rounded-[20px] sm:p-3.5"
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/quiz-hub/play?mode=mcq")}
+                className="group relative overflow-hidden flex flex-col justify-between rounded-xl border-[3px] border-[#134E4A] bg-[#BAE6FD] hover:bg-[#7DD3FC] p-3.5 text-left text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:shadow-none transition-all cursor-pointer min-h-[126px]"
               >
-                <span className="flex w-full items-start justify-between gap-2">
-                  <span
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] sm:h-12 sm:w-12 sm:rounded-2xl"
-                    style={{ backgroundColor: category.bgBadge }}
-                  >
-                    {getCategoryIcon(category.id)}
-                  </span>
-                  <span
-                    className="max-w-[calc(100%-3.5rem)] truncate rounded-full border border-[#134E4A] px-2 py-1 text-[9px] font-black leading-tight sm:text-[10px]"
-                    style={{
-                      backgroundColor: category.bgBadge,
-                      color: category.borderColor,
-                    }}
-                  >
-                    {category.tag}
-                  </span>
-                </span>
+                <McqModeArtSvg />
 
-                <span className="line-clamp-2 min-h-10 w-full text-sm font-black leading-snug text-[var(--text-main,#134E4A)] sm:text-[15px]">
-                  {category.title}
-                </span>
+                <div className="relative z-10 flex items-start gap-2.5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] group-hover:scale-105 transition-transform">
+                    <GraduationCapSvg size={22} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-sm sm:text-base font-black leading-tight text-[#075985]">
+                      Latihan Soal
+                    </h3>
+                    <p className="mt-0.5 text-[11px] font-bold leading-snug text-[#164E63] line-clamp-2">
+                      Pilihan ganda, visual, & tebak rumpang.
+                    </p>
+                  </div>
+                </div>
 
-                <span className="mt-auto inline-flex w-full items-center justify-between gap-2 border-t border-dashed border-[var(--border-color,#134E4A)]/25 pt-2 text-[10px] font-black text-[#0D9488] sm:text-[11px]">
-                  <span>Pilih topik</span>
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[1px_1px_0px_#134E4A] transition-transform group-hover:translate-x-0.5">
-                    <SparklesSvg size={13} />
-                  </span>
+                <span className="relative z-10 mt-3 inline-flex w-full items-center justify-between rounded-lg border-2 border-[#134E4A] bg-white px-2.5 py-1.5 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] group-hover:bg-[#F0F9FF]">
+                  <span>Mulai Latihan</span>
+                  <ArrowRightSvg size={13} />
                 </span>
               </motion.button>
-            ))}
+
+              {/* Kartu 2: Susun Kata (Scramble) */}
+              <motion.button
+                type="button"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/quiz-hub/play?mode=scramble")}
+                className="group relative overflow-hidden flex flex-col justify-between rounded-xl border-[3px] border-[#134E4A] bg-[#FEF08A] hover:bg-[#FDE047] p-3.5 text-left text-[#134E4A] shadow-[3px_3px_0px_#134E4A] active:shadow-none transition-all cursor-pointer min-h-[126px]"
+              >
+                <ScrambleModeArtSvg />
+
+                <div className="relative z-10 flex items-start gap-2.5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white shadow-[2px_2px_0px_#134E4A] group-hover:scale-105 transition-transform">
+                    <CardsSvg size={22} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-sm sm:text-base font-black leading-tight text-[#854D0E]">
+                      Susun Kata
+                    </h3>
+                    <p className="mt-0.5 text-[11px] font-bold leading-snug text-[#713F12] line-clamp-2">
+                      Rangkai potongan kata menjadi jawaban tepat.
+                    </p>
+                  </div>
+                </div>
+
+                <span className="relative z-10 mt-3 inline-flex w-full items-center justify-between rounded-lg border-2 border-[#134E4A] bg-white px-2.5 py-1.5 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] group-hover:bg-[#FFFBEB]">
+                  <span>Mulai Susun</span>
+                  <ArrowRightSvg size={13} />
+                </span>
+              </motion.button>
+            </div>
+          </section>
+        </div>
+
+        {/* =============================================================== */}
+        {/* 3. KATEGORI TOPIK SOAL (KOMPAK DENGAN INDIKATOR LEVEL)          */}
+        {/* =============================================================== */}
+        <section className="space-y-3 pt-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+                <SparklesSvg size={16} />
+              </div>
+              <div>
+                <h2 className="font-display text-base font-black text-[var(--text-main,#134E4A)] sm:text-lg leading-none">
+                  Eksplorasi Topik Kuis
+                </h2>
+                <p className="text-[11px] font-bold text-[var(--text-main,#134E4A)]/65 mt-0.5">
+                  Pilih topik untuk membuka tahapan level petualangan
+                </p>
+              </div>
+            </div>
+
+            <span className="shrink-0 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[#CCFBF1] px-3 py-1 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
+              {QUIZ_HUB_CATEGORIES.length} Topik
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+            {QUIZ_HUB_CATEGORIES.map((category) => {
+              const catUnlockedLvl = getCategoryUnlockedLevel(category.id);
+
+              return (
+                <motion.button
+                  key={category.id}
+                  type="button"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98, y: 1 }}
+                  onClick={() => setSelectedAdventureCategory(category)}
+                  aria-label={`Pilih kategori ${category.title}`}
+                  className="group relative overflow-hidden flex flex-col justify-between gap-2.5 rounded-2xl border-[2.5px] border-[var(--border-color,#134E4A)] bg-[var(--bg-card,#FFFFFF)] p-3 text-left text-[var(--text-main,#134E4A)] shadow-[3px_3px_0px_var(--shadow-color,#134E4A)] transition-all hover:bg-[#FFFBEB] hover:shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] cursor-pointer"
+                >
+                  {/* Aksen Sudut Dekoratif Sesuai Warna Kategori */}
+                  <span
+                    className="pointer-events-none absolute -right-4 -top-4 h-12 w-12 rounded-full border-2 border-[#134E4A]/20 opacity-45 transition-transform group-hover:scale-125"
+                    style={{ backgroundColor: category.bgBadge }}
+                  />
+
+                  {/* Baris Atas: Ikon + Tag */}
+                  <div className="relative z-10 flex w-full items-start justify-between gap-2">
+                    <span
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] shadow-[2px_2px_0px_#134E4A] group-hover:scale-105 transition-transform"
+                      style={{ backgroundColor: category.bgBadge }}
+                    >
+                      {getCategoryIcon(category.id)}
+                    </span>
+                    <span
+                      className="max-w-[calc(100%-3rem)] truncate rounded-lg border-[1.5px] border-[#134E4A] px-2 py-0.5 text-[9px] font-black uppercase leading-tight shadow-[1px_1px_0px_#134E4A]"
+                      style={{
+                        backgroundColor: category.bgBadge,
+                        color: "#134E4A",
+                      }}
+                    >
+                      {category.tag}
+                    </span>
+                  </div>
+
+                  {/* Judul Kategori */}
+                  <div className="relative z-10">
+                    <h3 className="line-clamp-1 font-display text-xs sm:text-sm font-black leading-snug text-[var(--text-main,#134E4A)]">
+                      {category.title}
+                    </h3>
+                  </div>
+
+                  {/* Baris Bawah: Status Level Terbuka & Tombol Panah */}
+                  <div className="relative z-10 flex w-full items-center justify-between gap-1.5 border-t-2 border-dashed border-[var(--border-color,#134E4A)]/15 pt-2 text-[10px] font-black">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-[#F0FDF4] border border-[#134E4A] px-1.5 py-0.5 text-[9px] text-[#065F46]">
+                      Lv. {catUnlockedLvl} Terbuka
+                    </span>
+
+                    <span className="inline-flex items-center gap-1 text-[#0D9488] group-hover:translate-x-0.5 transition-transform">
+                      <span>Main</span>
+                      <ArrowRightSvg size={11} />
+                    </span>
+                  </div>
+                </motion.button>
+              );
+            })}
           </div>
         </section>
       </div>

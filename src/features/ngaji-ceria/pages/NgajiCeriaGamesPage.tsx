@@ -37,6 +37,7 @@ import { triggerTilaReaction } from "../../../utils/tilaEvent";
 import { GameCard } from "./games/_shared/GameCard";
 import { useActiveGames, ActiveGameItem } from "../hooks/useActiveGames";
 import { useEconomyStore } from "../hooks/useEconomyStore";
+import { StickerButton } from "@/components/ui";
 
 export interface GameEntry {
   id: string;
@@ -255,35 +256,39 @@ export default function NgajiCeriaGamesPage() {
     <NgajiCeriaLayout title="Mini Games" showBack>
       <div className="mx-auto min-h-full w-full bg-[#F0FDF4] pb-32 text-[#134E4A]">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[#134E4A] mb-6 -mx-2 sm:-mx-4 md:-mx-6 -mt-2">
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-6 pb-6 md:px-8 md:pt-7 md:pb-7 text-white rounded-b-3xl shadow-lg border-b-[3px] border-[#134E4A] mb-4 -mx-2 sm:-mx-4 md:-mx-6 -mt-2">
           {/* Ilustrasi Arcade di Sebelah Kanan */}
-          <div className="absolute right-4 bottom-2 md:right-10 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
+          <div className="absolute right-2 bottom-0 md:right-8 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
             <HeroArcadeSvg
-              size={150}
-              className="drop-shadow-[4px_4px_0px_#042F2E]"
+              size={120}
+              className="drop-shadow-[4px_4px_0px_#042F2E] md:scale-125 md:origin-bottom-right"
             />
           </div>
 
-          <div className="relative z-20 max-w-[72%] md:max-w-[78%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF08A]/20 px-3 py-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-[#FEF08A]">
-              <GamepadSvg size={14} /> Koleksi Permainan
+          <div className="relative z-20 max-w-[70%] md:max-w-[75%]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF08A]/20 px-2.5 py-0.5 text-[10px] md:text-[11px] font-black uppercase tracking-widest text-[#FEF08A]">
+              <GamepadSvg size={12} /> Koleksi Permainan
             </span>
-            <h2 className="mt-3 font-display text-[26px] md:text-3xl lg:text-4xl font-black leading-tight">
+
+            <h2 className="mt-2 font-display text-2xl md:text-3xl font-black leading-tight">
               Jelajahi <br />
               <span className="text-[#FEF08A]">Permainan Seru!</span>
             </h2>
-            <p className="mt-2 text-[12px] md:text-sm font-medium text-white/80 leading-relaxed">
+
+            <p className="mt-1.5 text-[11px] md:text-xs font-medium text-white/80 leading-relaxed line-clamp-2">
               Pilih permainan untuk melatih kemampuan dan belajar sambil
               bermain.
             </p>
-            <button
-              type="button"
+
+            <StickerButton
+              variant="secondary"
+              size="sm"
               onClick={() => navigate("/member/ngaji-ceria/leaderboard")}
-              className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-[2px] border-[#134E4A] bg-white px-4 py-2 text-sm font-black text-[#134E4A] shadow-[2px_2px_0px_#FEF08A] transition-all hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+              icon={<TrophySvg size={16} className="shrink-0 text-[#B45309]" />}
+              className="mt-3 shadow-[2px_2px_0px_#FEF08A] hover:shadow-[3px_3px_0px_#FEF08A] active:shadow-none"
             >
-              <TrophySvg size={18} className="shrink-0 text-[#B45309]" />
               Papan Skor
-            </button>
+            </StickerButton>
           </div>
         </section>
 
@@ -330,28 +335,28 @@ export default function NgajiCeriaGamesPage() {
               {gamesToDisplay
                 .filter((game) => game.isAvailable !== false)
                 .map((game, index) => {
-                const locked = tier === "guest" && !isGameOpen(game.id, tier);
-                return (
-                  <motion.div
-                    key={game.id}
-                    variants={staggerItemVariants}
-                    className="h-full min-w-0"
-                  >
-                    <GameCard
-                      title={game.title}
-                      genre={game.genre}
-                      description={game.description}
-                      cover={game.cover}
-                      best={game.best}
-                      badge={game.isNew ? "BARU" : undefined}
-                      bgColor="bg-white"
-                      locked={locked}
-                      index={index}
-                      onClick={() => openGame(game.path, locked)}
-                    />
-                  </motion.div>
-                );
-              })}
+                  const locked = tier === "guest" && !isGameOpen(game.id, tier);
+                  return (
+                    <motion.div
+                      key={game.id}
+                      variants={staggerItemVariants}
+                      className="h-full min-w-0"
+                    >
+                      <GameCard
+                        title={game.title}
+                        genre={game.genre}
+                        description={game.description}
+                        cover={game.cover}
+                        best={game.best}
+                        badge={game.isNew ? "BARU" : undefined}
+                        bgColor="bg-white"
+                        locked={locked}
+                        index={index}
+                        onClick={() => openGame(game.path, locked)}
+                      />
+                    </motion.div>
+                  );
+                })}
 
               <motion.div
                 variants={staggerItemVariants}

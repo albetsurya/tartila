@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { QuizEngine } from "../../components/quiz-models/QuizEngine";
-import { getQuizHubQuestions } from "../../data/quizHubData";
 import { duelService } from "@/services/duelService";
 import { fetchWsTicket } from "../../services/arenaApi";
 import { soundManager } from "../../services/soundManager";
@@ -16,6 +15,7 @@ import {
   FireSvg,
   ChevronLeftSvg,
 } from "@/components/ui/CustomIcons";
+import type { QuestionData } from "../../components/quiz-models/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBotSimulator } from "../../hooks/useBotSimulator";
 import LeaderboardModal, {
@@ -139,10 +139,7 @@ export default function DuelPlayPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const questions = useMemo(
-    () => getQuizHubQuestions(themeParam as any, "mcq", undefined, 5),
-    [themeParam],
-  );
+  const [questions, setQuestions] = useState<QuestionData[]>([]);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hostScore, setHostScore] = useState(0);
@@ -230,7 +227,20 @@ export default function DuelPlayPage() {
           if (msg.type === "opponent_score_update") {
             const score = Number(msg.payload?.score ?? 0);
             setOpponentScore(score);
-          } else if (msg.type === "duel_started") {
+          } else if (msg.type === "duel_start" || msg.type === "game_start") {
+            const payload = msg.payload || {};
+            if (Array.isArray(payload.questions)) {
+              setQuestions(payload.questions as QuestionData[]);
+              setCurrentQuestionIndex(0);
+              setTimeLeft(QUESTION_TIME);
+              setTimeLimit(QUESTION_TIME);
+              setQuestionStartTime(Date.now());
+              setAnswered(false);
+              setResultReady(false);
+              setGamePhase("QUESTION_ACTIVE");
+              setShowLeaderboard(false);
+            }
+          } else if (msg.type === "duel_started" || msg.type === "game_started") {
             setGameStarted(true);
           } else if (msg.type === "match.finished" || msg.type === "game_finished") {
             const payload = msg.payload;

@@ -12,6 +12,7 @@ export interface ArenaRoom {
   room_code: string;
   room_type: RoomType;
   title?: string;
+  theme?: string;
   status: RoomStatus;
   current_question_index?: number;
   kkm?: number;
@@ -301,5 +302,78 @@ export const arenaRoomService = {
         message: err instanceof Error ? err.message : "Gagal mengubah status siap.",
       };
     }
+  },
+
+  /**
+   * Update Tema Room di Lobi
+   */
+  async updateRoomTheme(pinOrId: string, theme: string): Promise<boolean> {
+    const key = pinOrId.trim();
+    if (!key) return false;
+
+    const localRooms = getLocalRooms();
+    if (localRooms[key]) {
+      localRooms[key].theme = theme;
+      if (localRooms[key].pin) localRooms[localRooms[key].pin].theme = theme;
+      if (localRooms[key].id) localRooms[localRooms[key].id].theme = theme;
+      saveLocalRooms(localRooms);
+    }
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(`arena_theme_${key}`, theme);
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from("rooms")
+          .update({ title: theme })
+          .or(`pin.eq.${key},id.eq.${key}`);
+      } catch (err) {
+        console.warn("Update room theme Supabase warning:", err);
+      }
+    }
+    return true;
+  },
+
+  /**
+   * Reset Status Room ke Waiting & Skor Pemain ke 0 (Loop Permainan)
+   */
+  async resetRoomToLobby(pinOrId: string): Promise<boolean> {
+    const key = pinOrId.trim();
+    if (!key) return false;
+
+    const localRooms = getLocalRooms();
+    if (localRooms[key]) {
+      localRooms[key].status = "waiting";
+      localRooms[key].current_question_index = 0;
+      saveLocalRooms(localRooms);
+    }
+
+    const localPlayers = getLocalPlayers();
+    localPlayers.forEach((p) => {
+      if (p.room_id === key || p.room_id === localRooms[key]?.id) {
+        p.score = 0;
+        p.is_ready = false;
+      }
+    });
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LOCAL_PLAYERS_KEY, JSON.stringify(localPlayers));
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from("rooms")
+          .update({ status: "waiting", current_question_index: 0 })
+          .or(`pin.eq.${key},id.eq.${key}`);
+        await supabase
+          .from("room_players")
+          .update({ score: 0, is_ready: false })
+          .eq("room_id", localRooms[key]?.id || key);
+      } catch (err) {
+        console.warn("Reset room Supabase warning:", err);
+      }
+    }
+    return true;
   },
 };

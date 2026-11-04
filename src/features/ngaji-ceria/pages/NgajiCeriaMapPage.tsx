@@ -167,24 +167,26 @@ export default function NgajiCeriaMapPage() {
     <NgajiCeriaLayout title="Jelajah">
       <div className="min-h-full bg-[var(--bg-app,#F0FDF4)] text-[var(--text-main,#134E4A)] pb-32 transition-colors duration-200">
         {/* Hero Banner */}
-        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-8 pb-14 md:px-8 md:pt-10 md:pb-16 text-white rounded-b-[40px] shadow-lg border-b-[3px] border-[#134E4A]">
-          {/* Ilustrasi Kompas & Teropong Penjelajah di Sebelah Kanan */}
-          <div className="absolute right-4 bottom-2 md:right-10 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
+        <section className="relative overflow-hidden bg-[#134E4A] px-5 pt-6 pb-6 md:px-8 md:pt-7 md:pb-7 text-white rounded-b-3xl shadow-lg border-b-[3px] border-[#134E4A] mb-4 -mx-2 sm:-mx-4 md:-mx-6 -mt-2">
+          {/* Ilustrasi Kompas & Teropong Penjelajah di Sebelah Kanan (Diperkecil) */}
+          <div className="absolute right-2 bottom-0 md:right-8 md:bottom-0 pointer-events-none select-none z-10 opacity-95">
             <HeroExplorerSvg
-              size={150}
-              className="drop-shadow-[4px_4px_0px_#042F2E]"
+              size={120}
+              className="drop-shadow-[4px_4px_0px_#042F2E] md:scale-125 md:origin-bottom-right"
             />
           </div>
 
-          <div className="relative z-20 max-w-[72%] md:max-w-[78%]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-3 py-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-[#FF6B6B]">
-              <SparklesSvg size={14} /> Misi Hari Ini
+          <div className="relative z-20 max-w-[70%] md:max-w-[75%]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF6B6B]/20 px-2.5 py-0.5 text-[10px] md:text-[11px] font-black uppercase tracking-widest text-[#FF6B6B]">
+              <SparklesSvg size={12} /> Misi Hari Ini
             </span>
-            <h2 className="mt-3 font-display text-[26px] md:text-3xl lg:text-4xl font-black leading-tight">
+
+            <h2 className="mt-2 font-display text-2xl md:text-3xl font-black leading-tight">
               Siap taklukkan <br />
               <span className="text-[#FF6B6B]">tantangan baru?</span>
             </h2>
-            <p className="mt-2 text-[12px] md:text-sm font-medium text-white/80 leading-relaxed">
+
+            <p className="mt-1.5 text-[11px] md:text-xs font-medium text-white/80 leading-relaxed line-clamp-2">
               Pilih markas belajarmu dan kumpulkan bintang sebanyak mungkin!
             </p>
           </div>

@@ -42,15 +42,13 @@ export function PwaInstallBanner() {
 
   return (
     <div
-      className={`fixed z-100 md:hidden transition-all duration-300 ${
+      className={`fixed z-[100] md:hidden transition-all duration-300 ${
         hasNav
           ? "bottom-[95px] left-1/2 -translate-x-1/2 w-[85%] max-w-[320px]"
           : "bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[320px]"
       }`}
     >
-      {/* Hapus min-w-[240px] agar lebar menyesuaikan parent (85%) */}
-      <div className="relative flex w-full items-center gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white p-3 shadow-[4px_4px_0px_#134E4A]">
-        {/* Close button */}
+      <div className="relative flex w-full items-center gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-3 shadow-[4px_4px_0px_#134E4A]">
         <button
           type="button"
           aria-label="Tutup banner pemasangan"
@@ -60,7 +58,6 @@ export function PwaInstallBanner() {
           ×
         </button>
 
-        {/* Icon */}
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-[3px] border-[#134E4A] bg-[#F0FDF4]">
           <img
             src="/icon.svg"
@@ -69,17 +66,15 @@ export function PwaInstallBanner() {
           />
         </div>
 
-        {/* Text */}
         <div className="min-w-0 flex-1">
           <p className="whitespace-nowrap text-sm font-black leading-snug text-[#134E4A]">
             Pasang Tartila
           </p>
-          <p className="mt-0.5 whitespace-nowrap text-xs leading-snug text-[#134E4A]/70">
+          <p className="mt-0.5 whitespace-nowrap text-xs font-bold leading-snug text-[#134E4A] opacity-70">
             Akses cepat &amp; ringan
           </p>
         </div>
 
-        {/* Install button */}
         <StickerButton variant="primary" size="sm" onClick={handleInstall}>
           <span className="flex items-center gap-1">
             <DownloadSvg size={12} />
