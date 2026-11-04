@@ -9,6 +9,31 @@ import {
   Search,
 } from "@/components/ui/CustomIcons";
 import { ustadzApi, type UstadzRequestItem } from "@/services/ustadzApi";
+import {
+  ALERT_DANGER,
+  BADGE_DANGER,
+  BADGE_SUCCESS,
+  BADGE_WARNING,
+  BTN_BASE,
+  BTN_DANGER,
+  BTN_DANGER_COLOR,
+  BTN_ICON_SECONDARY,
+  BTN_PRIMARY_SM,
+  BTN_SECONDARY,
+  BTN_SM,
+  CHIP_ACTIVE,
+  CHIP_IDLE,
+  ICON_BOX,
+  INPUT,
+  INPUT_ICON,
+  LABEL,
+  MODAL_PANEL,
+  TABLE_WRAP,
+  TD,
+  TH,
+  TOAST,
+  TR,
+} from "../styles";
 
 type StatusFilter = "PENDING" | "APPROVED" | "REJECTED" | "ALL";
 
@@ -109,17 +134,15 @@ export function AdminUstadzRequestsPage() {
   }, [requests, searchQuery]);
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-20 right-6 z-50 flex items-center gap-2.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#BBF7D0] px-4 py-3 text-sm font-black text-[#134E4A] shadow-[4px_4px_0px_#134E4A]"
+          className={TOAST}
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-white">
-            <CheckSvg size={14} className="text-[#134E4A]" />
-          </span>
+          <CheckSvg size={14} />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -128,11 +151,11 @@ export function AdminUstadzRequestsPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border-[2px] border-[#134E4A] bg-[#D1FAE5] shadow-[2px_2px_0px_#134E4A]">
+            <div className={`h-10 w-10 bg-[#99F6E4] ${ICON_BOX}`}>
               <GraduationCapSvg size={22} className="text-[#134E4A]" />
             </div>
             <div>
-              <h1 className="text-2xl font-black uppercase tracking-tight text-[#134E4A]">
+              <h1 className="font-display text-2xl font-black uppercase tracking-tight text-[#134E4A]">
                 Pengajuan Ustadz
               </h1>
               <p className="text-xs font-bold text-[#134E4A]/70">
@@ -146,7 +169,7 @@ export function AdminUstadzRequestsPage() {
           type="button"
           onClick={fetchRequests}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border-[2px] border-[#134E4A] bg-white px-3.5 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-gray-50 active:translate-y-[1px] active:shadow-none disabled:opacity-50"
+          className={BTN_SECONDARY}
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           <span>Segarkan</span>
@@ -171,11 +194,7 @@ export function AdminUstadzRequestsPage() {
                 key={filter.key}
                 type="button"
                 onClick={() => setStatusFilter(filter.key)}
-                className={`rounded-xl border-[2px] border-[#134E4A] px-3 py-1.5 text-xs font-black transition-all ${
-                  isActive
-                    ? "bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
-                    : "bg-white text-[#134E4A]/70 hover:bg-gray-50"
-                }`}
+                className={isActive ? CHIP_ACTIVE : CHIP_IDLE}
               >
                 {filter.label}
               </button>
@@ -187,28 +206,28 @@ export function AdminUstadzRequestsPage() {
         <div className="relative w-full sm:w-64">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#134E4A]/50"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#134E4A]/60"
           />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari nama atau alasan..."
-            className="w-full rounded-xl border-[2px] border-[#134E4A] bg-white py-1.5 pl-9 pr-3 text-xs font-bold text-[#134E4A] placeholder:text-[#134E4A]/40 shadow-[2px_2px_0px_#134E4A] focus:outline-none"
+            className={INPUT_ICON}
           />
         </div>
       </div>
 
       {/* Error alert */}
       {error && (
-        <div className="flex items-start gap-2.5 rounded-2xl border-[3px] border-[#991B1B] bg-[#FEF2F2] p-4 text-xs font-bold text-[#991B1B] shadow-[3px_3px_0px_#991B1B]">
+        <div className={ALERT_DANGER}>
           <AlertTriangleSvg size={18} className="shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Requests Table / Content */}
-      <div className="overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
+      <div className={TABLE_WRAP}>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Loader2Svg size={32} className="animate-spin text-[#134E4A]" />
@@ -218,10 +237,10 @@ export function AdminUstadzRequestsPage() {
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-[2px] border-[#134E4A] bg-[#F0FDF4] shadow-[2px_2px_0px_#134E4A]">
+            <div className={`mx-auto h-14 w-14 bg-[#F0FDF4] ${ICON_BOX}`}>
               <GraduationCapSvg size={28} className="text-[#134E4A]/60" />
             </div>
-            <h3 className="mt-3 text-sm font-black text-[#134E4A]">
+            <h3 className="mt-3 font-display text-sm font-black text-[#134E4A]">
               Tidak Ada Pengajuan
             </h3>
             <p className="mt-1 text-xs font-medium text-[#134E4A]/60">
@@ -232,17 +251,17 @@ export function AdminUstadzRequestsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-left text-xs">
-              <thead className="border-b-[3px] border-[#134E4A] bg-[#F0FDF4]">
+            <table className="w-full min-w-[700px] border-collapse text-left text-xs">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-black text-[#134E4A]">Nama Pemohon</th>
-                  <th className="px-4 py-3 font-black text-[#134E4A]">Tanggal Pengajuan</th>
-                  <th className="px-4 py-3 font-black text-[#134E4A]">Alasan / Nama Lembaga</th>
-                  <th className="px-4 py-3 font-black text-[#134E4A]">Status</th>
-                  <th className="px-4 py-3 text-right font-black text-[#134E4A]">Aksi</th>
+                  <th className={`px-4 py-3 ${TH}`}>Nama Pemohon</th>
+                  <th className={`px-4 py-3 ${TH}`}>Tanggal Pengajuan</th>
+                  <th className={`px-4 py-3 ${TH}`}>Alasan / Nama Lembaga</th>
+                  <th className={`px-4 py-3 ${TH}`}>Status</th>
+                  <th className={`px-4 py-3 text-right ${TH}`}>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y-2 divide-[#134E4A]/10">
+              <tbody>
                 {filteredRequests.map((item) => {
                   const isActionLoading = actionLoadingId === item.request_id;
                   const dateFormatted = item.created_at
@@ -256,10 +275,7 @@ export function AdminUstadzRequestsPage() {
                     : "-";
 
                   return (
-                    <tr
-                      key={item.request_id}
-                      className="transition-colors hover:bg-gray-50/80"
-                    >
+                    <tr key={item.request_id} className={TR}>
                       {/* Nama Pemohon */}
                       <td className="px-4 py-3.5">
                         <div className="font-black text-[#134E4A]">
@@ -271,13 +287,13 @@ export function AdminUstadzRequestsPage() {
                       </td>
 
                       {/* Tanggal */}
-                      <td className="px-4 py-3.5 font-bold text-[#134E4A]/80">
+                      <td className={`px-4 py-3.5 ${TD}`}>
                         {dateFormatted}
                       </td>
 
                       {/* Alasan */}
                       <td className="px-4 py-3.5">
-                        <div className="max-w-xs font-medium text-[#134E4A] leading-relaxed">
+                        <div className="max-w-xs font-bold leading-relaxed text-[#134E4A]">
                           {item.reason || "-"}
                         </div>
                       </td>
@@ -285,15 +301,15 @@ export function AdminUstadzRequestsPage() {
                       {/* Status */}
                       <td className="px-4 py-3.5">
                         {item.status === "PENDING" ? (
-                          <span className="inline-flex items-center rounded-lg border-2 border-[#134E4A] bg-[#FEF08A] px-2.5 py-1 text-[11px] font-black text-[#854D0E] shadow-[1px_1px_0px_#134E4A]">
+                          <span className={BADGE_WARNING}>
                             Menunggu
                           </span>
                         ) : item.status === "APPROVED" ? (
-                          <span className="inline-flex items-center rounded-lg border-2 border-[#134E4A] bg-[#BBF7D0] px-2.5 py-1 text-[11px] font-black text-[#166534] shadow-[1px_1px_0px_#134E4A]">
+                          <span className={BADGE_SUCCESS}>
                             Disetujui
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-lg border-2 border-[#134E4A] bg-[#FECDD3] px-2.5 py-1 text-[11px] font-black text-[#991B1B] shadow-[1px_1px_0px_#134E4A]">
+                          <span className={BADGE_DANGER}>
                             Ditolak
                           </span>
                         )}
@@ -307,7 +323,7 @@ export function AdminUstadzRequestsPage() {
                               type="button"
                               onClick={() => handleApprove(item)}
                               disabled={isActionLoading}
-                              className="inline-flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#BBF7D0] px-3 py-1.5 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#86EFAC] active:translate-y-[1px] active:shadow-none disabled:opacity-50"
+                              className={BTN_PRIMARY_SM}
                             >
                               {isActionLoading ? (
                                 <Loader2Svg size={14} className="animate-spin" />
@@ -321,14 +337,14 @@ export function AdminUstadzRequestsPage() {
                               type="button"
                               onClick={() => handleOpenRejectModal(item)}
                               disabled={isActionLoading}
-                              className="inline-flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FFF0F0] px-3 py-1.5 text-xs font-black text-[#991B1B] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#FFE0E0] active:translate-y-[1px] active:shadow-none disabled:opacity-50"
+                              className={`${BTN_BASE} ${BTN_SM} ${BTN_DANGER_COLOR}`}
                             >
                               <XSvg size={14} />
                               <span>Tolak</span>
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-bold text-[#134E4A]/50">
+                          <span className="text-[11px] font-black text-[#134E4A]/50">
                             {item.reviewed_at
                               ? `Ditinjau ${new Date(item.reviewed_at).toLocaleDateString("id-ID")}`
                               : "Selesai"}
@@ -352,10 +368,10 @@ export function AdminUstadzRequestsPage() {
             onClick={() => !rejectSubmitting && setRejectModalItem(null)}
           />
 
-          <div className="relative z-10 w-full max-w-sm rounded-[24px] border-[3px] border-[#134E4A] bg-white p-5 shadow-[6px_6px_0px_#134E4A]">
+          <div className={`${MODAL_PANEL} z-10 max-w-sm p-5`}>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="text-base font-black text-[#134E4A]">
+                <h3 className="font-display text-base font-black text-[#134E4A]">
                   Tolak Pengajuan Ustadz
                 </h3>
                 <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
@@ -366,7 +382,7 @@ export function AdminUstadzRequestsPage() {
                 type="button"
                 onClick={() => setRejectModalItem(null)}
                 disabled={rejectSubmitting}
-                className="rounded-xl border-2 border-[#134E4A] bg-[#FFF0F0] p-1 text-[#134E4A] shadow-[1px_1px_0px_#134E4A] disabled:opacity-50"
+                className={BTN_ICON_SECONDARY}
               >
                 <XSvg size={16} />
               </button>
@@ -376,7 +392,7 @@ export function AdminUstadzRequestsPage() {
               <div>
                 <label
                   htmlFor="reject-reason"
-                  className="block text-xs font-black uppercase text-[#134E4A]"
+                  className={LABEL}
                 >
                   Alasan Penolakan
                 </label>
@@ -388,7 +404,7 @@ export function AdminUstadzRequestsPage() {
                   placeholder="Masukkan alasan penolakan..."
                   required
                   disabled={rejectSubmitting}
-                  className="mt-1.5 w-full resize-none rounded-xl border-[2px] border-[#134E4A] bg-[#FEF2F2] p-2.5 text-xs font-bold text-[#134E4A] shadow-[2px_2px_0px_#134E4A] focus:bg-white focus:outline-none disabled:opacity-60"
+                  className={`${INPUT} resize-none`}
                 />
               </div>
 
@@ -397,14 +413,14 @@ export function AdminUstadzRequestsPage() {
                   type="button"
                   onClick={() => setRejectModalItem(null)}
                   disabled={rejectSubmitting}
-                  className="flex-1 rounded-xl border-[2px] border-[#134E4A] bg-white py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] hover:bg-gray-50 active:translate-y-[1px] active:shadow-none disabled:opacity-50"
+                  className={`${BTN_SECONDARY} flex-1`}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={rejectSubmitting || !rejectReason.trim()}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border-[2px] border-[#134E4A] bg-[#FECDD3] py-2 text-xs font-black text-[#991B1B] shadow-[2px_2px_0px_#134E4A] hover:bg-[#FCA5A5] active:translate-y-[1px] active:shadow-none disabled:opacity-50"
+                  className={`${BTN_DANGER} flex-1`}
                 >
                   {rejectSubmitting ? (
                     <Loader2Svg size={14} className="animate-spin" />

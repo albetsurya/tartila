@@ -1,5 +1,5 @@
 export { adminRouteElements, adminRoutes } from "./routes";
-export { AdminLayout } from "./layouts/AdminLayout";
+export { AdminLayout, AdminLayoutWrapper } from "./layouts/AdminLayout";
 export { AdminSidebar } from "./layouts/AdminSidebar";
 export { AdminRouteGuard } from "./components/AdminRouteGuard";
 export { AdminErrorBoundary } from "./components/AdminErrorBoundary";
