@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { QuizEngine } from "../../components/quiz-models/QuizEngine";
 import { getQuizHubQuestions } from "../../data/quizHubData";
@@ -8,11 +8,13 @@ import { fetchWsTicket } from "../../services/arenaApi";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { StickerButton } from "@/components/ui/StickerButton";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   ClockSvg,
   WhatsAppSvg,
   ZapSvg,
   FireSvg,
+  ChevronLeftSvg,
 } from "@/components/ui/CustomIcons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBotSimulator } from "../../hooks/useBotSimulator";
@@ -132,18 +134,23 @@ function DuelResultBadgeSvg({ result }: { result: "win" | "lose" | "draw" }) {
 
 export default function DuelPlayPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const [searchParams] = useSearchParams();
+  const themeParam = searchParams.get("theme") || "bahasa-arab";
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const questions = useMemo(
-    () => getQuizHubQuestions("bahasa-arab", "mcq", undefined, 5),
-    [],
+    () => getQuizHubQuestions(themeParam as any, "mcq", undefined, 5),
+    [themeParam],
   );
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hostScore, setHostScore] = useState(0);
   const [guestScore, setGuestScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
+  const [serverWinnerId, setServerWinnerId] = useState<string | null>(null);
+  const [isServerDraw, setIsServerDraw] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const [timeLimit, setTimeLimit] = useState(QUESTION_TIME);
   const [answered, setAnswered] = useState(false);
@@ -225,6 +232,15 @@ export default function DuelPlayPage() {
             setOpponentScore(score);
           } else if (msg.type === "duel_started") {
             setGameStarted(true);
+          } else if (msg.type === "match.finished" || msg.type === "game_finished") {
+            const payload = msg.payload;
+            if (payload?.winnerId) {
+              setServerWinnerId(payload.winnerId);
+            } else if (payload?.isDraw || payload?.outcome === "draw") {
+              setIsServerDraw(true);
+            }
+            setIsFinished(true);
+            setResultReady(true);
           }
         } catch {
           // abaikan pesan non-JSON
@@ -267,10 +283,22 @@ export default function DuelPlayPage() {
     const finalMyScore = myScoreRef.current;
     try {
       await duelService.submitDuelScore(sessionId ?? "", finalMyScore);
+      const sess = await duelService.getDuelSession(sessionId ?? "");
+      if (sess) {
+        if (sess.winnerId) {
+          setServerWinnerId(sess.winnerId);
+        } else if (sess.status === "finished") {
+          setIsServerDraw(true);
+        }
+      }
     } catch {
       // Tetap tampilkan hasil lokal
     } finally {
       setResultReady(true);
+    }
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "duel_finish", payload: {} }));
     }
   };
 
@@ -339,8 +367,19 @@ export default function DuelPlayPage() {
       ? 50
       : Math.min(88, Math.max(12, Math.round((myScore / totalScore) * 100)));
 
-  const result: "win" | "lose" | "draw" =
-    myScore > opponentScore ? "win" : myScore < opponentScore ? "lose" : "draw";
+  const result: "win" | "lose" | "draw" = useMemo(() => {
+    if (serverWinnerId) {
+      return serverWinnerId === user?.id ? "win" : "lose";
+    }
+    if (isServerDraw) {
+      return "draw";
+    }
+    return myScore > opponentScore
+      ? "win"
+      : myScore < opponentScore
+        ? "lose"
+        : "draw";
+  }, [serverWinnerId, isServerDraw, user?.id, myScore, opponentScore]);
   const resultTitle =
     result === "win"
       ? "KAMU MENANG!"
@@ -391,6 +430,20 @@ export default function DuelPlayPage() {
       {/* =================================================================== */}
       <header className="sticky top-0 z-30 border-b-[3px] border-[#134E4A] bg-[#FEF3C7] shadow-[0_3px_0_#134E4A]">
         <div className="mx-auto max-w-md px-3 pt-2 pb-2 space-y-1.5">
+          <div className="flex items-center justify-between pb-0.5">
+            <button
+              type="button"
+              onClick={() => setShowExitConfirm(true)}
+              className="inline-flex items-center gap-1 text-[11px] font-black text-[#134E4A] hover:underline cursor-pointer"
+            >
+              <ChevronLeftSvg size={14} />
+              <span>Keluar</span>
+            </button>
+            <span className="text-[10px] font-black uppercase text-[#134E4A]/70">
+              Duel 1v1
+            </span>
+          </div>
+
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             {/* Skor Kamu */}
             <div className="flex items-center justify-between rounded-xl border-[2.5px] border-[#134E4A] bg-[#FEF08A] px-2.5 py-1.5 shadow-[2.5px_2.5px_0px_#134E4A]">
@@ -534,6 +587,20 @@ export default function DuelPlayPage() {
               </div>
 
               <div className="mt-4 space-y-2">
+                <StickerButton
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  className="border-[#134E4A] bg-[#FEF08A] hover:bg-[#FDE047] text-[#134E4A] shadow-[3px_3px_0px_#134E4A]"
+                  onClick={() => {
+                    triggerBibiReaction("click");
+                    soundManager.playSfx("tap");
+                    navigate(`/arena/duel/lobby/${sessionId}`);
+                  }}
+                >
+                  Tanding Ulang (Kembali ke Lobi)
+                </StickerButton>
+
                 {resultReady && (
                   <StickerButton
                     variant="secondary"
@@ -571,6 +638,22 @@ export default function DuelPlayPage() {
         onClose={() => setShowLeaderboard(false)}
         autoAdvance
         advanceAfterMs={5000}
+      />
+
+      <ConfirmDialog
+        isOpen={showExitConfirm}
+        title="Keluar dari Duel?"
+        description="Yakin ingin keluar dari sesi ini? Kamu tidak akan mengikuti pertandingan ini lagi."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          if (wsRef.current) {
+            wsRef.current.close();
+            wsRef.current = null;
+          }
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowExitConfirm(false)}
       />
     </div>
   );

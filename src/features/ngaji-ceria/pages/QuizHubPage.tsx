@@ -10,21 +10,18 @@ import {
   HandsPrayingSvg,
   PencilSvg,
   SwordsSvg,
-  WhatsAppSvg,
-  CopySvg,
-  CheckSvg,
-  RefreshCwSvg,
   SparklesSvg,
   MosqueSvg,
   MoonSvg,
   ShieldSvg,
   InfoSvg,
+  GamepadSvg,
 } from "@/components/ui/CustomIcons";
-import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { GameGuideModal } from "@/components/ui/GameGuideModal";
 import { GameLevelSelectSheet } from "./games/_shared/GameLevelSelectSheet";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { arenaRoomService } from "@/services/arenaRoomService";
 import {
   QUIZ_HUB_CATEGORIES,
   QuizHubCategory,
@@ -138,46 +135,38 @@ export default function QuizHubPage() {
   const [selectedAdventureCategory, setSelectedAdventureCategory] =
     useState<QuizCategoryInfo | null>(null);
 
-  const [isChallengeSheetOpen, setIsChallengeSheetOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] =
-    useState<QuizHubCategory>("bahasa-arab");
-  const [seed, setSeed] = useState(() =>
-    Math.floor(10000 + Math.random() * 90000),
-  );
-  const [isCopied, setIsCopied] = useState(false);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
-  const handleRandomizeSeed = () => {
-    setSeed(Math.floor(10000 + Math.random() * 90000));
-    setIsCopied(false);
-  };
-
-  const challengerId = user?.username || user?.name || user?.id || "santri";
-  const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/quiz-hub/versus?seed=${seed}&category=${selectedCategory}&challenger=${encodeURIComponent(challengerId)}`
-      : `https://tartila.com/quiz-hub/versus?seed=${seed}&category=${selectedCategory}&challenger=${encodeURIComponent(challengerId)}`;
-
-  const handleCopyLink = async () => {
+  const handleCreateArena = async () => {
+    if (isCreatingRoom) return;
+    setIsCreatingRoom(true);
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2500);
-    } catch {
-      setIsCopied(true);
+      const hostId = user?.id || `host-${Date.now()}`;
+      const hostName = user?.name || user?.username || "Host";
+      const res = await arenaRoomService.createRoom({
+        hostId,
+        hostName,
+        roomType: "casual",
+        title: "Mabar Santri",
+        kkm: 75,
+        questions: [],
+      });
+      if (res.ok && res.data?.pin) {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(`arena_is_host_${res.data.pin}`, "true");
+          window.sessionStorage.setItem("arena_player_name", hostName);
+        }
+        navigate(`/arena/lobby/${res.data.pin}`);
+      } else {
+        alert("Gagal membuat room arena. Silakan coba lagi.");
+      }
+    } catch (err) {
+      console.error("Gagal membuat arena:", err);
+      alert("Terjadi kesalahan koneksi saat membuat room.");
+    } finally {
+      setIsCreatingRoom(false);
     }
-  };
-
-  const handleShareWhatsApp = () => {
-    const categoryInfo = QUIZ_HUB_CATEGORIES.find(
-      (c) => c.id === selectedCategory,
-    );
-    const catName = categoryInfo ? categoryInfo.title : "Kuis";
-    const message = `Bismillah! Aku menantangmu di Pusat Kuis Tartila (Kategori: ${catName}). Ayo buktikan kemampuanmu!\n\nMainkan soal yang sama di tautan berikut:\n${shareUrl}`;
-    window.open(
-      `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`,
-      "_blank",
-    );
   };
 
   const getCategoryIcon = (catId: QuizHubCategory) => {
@@ -226,6 +215,7 @@ export default function QuizHubPage() {
       onBack={() => navigate("/member/ngaji-ceria/games")}
     >
       <div className="flex w-full flex-col gap-6 pb-12 pt-2 sm:gap-7">
+        {/* 1. HERO SECTION */}
         <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[var(--border-color,#134E4A)] bg-[#134E4A] px-4 py-5 text-white shadow-[4px_4px_0px_var(--shadow-color,#134E4A)] sm:rounded-[28px] sm:px-6 sm:py-6">
           <div className="pointer-events-none absolute -right-8 -top-9 h-32 w-32 rounded-full border-[8px] border-white/10 sm:h-40 sm:w-40" />
           <div className="pointer-events-none absolute bottom-2 right-3 rotate-12 text-[#FEF08A]/30 sm:bottom-4 sm:right-6">
@@ -257,6 +247,72 @@ export default function QuizHubPage() {
           </div>
         </section>
 
+        {/* 2. ACTION: ARENA & DUEL */}
+        <section className="space-y-2.5">
+          {/* Main Action: Big Yellow Arena & Duel Button */}
+          <button
+            type="button"
+            disabled={isCreatingRoom}
+            onClick={handleCreateArena}
+            className="group relative flex w-full items-center justify-between overflow-hidden rounded-[22px] border-[3px] border-[#134E4A] bg-[#FEF3C7] p-4 text-left shadow-[4px_4px_0px_#134E4A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none sm:p-5 cursor-pointer"
+          >
+            <div className="relative z-10 flex items-center gap-3.5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#FDE68A] text-[#D97706] shadow-[2px_2px_0px_#134E4A] sm:h-14 sm:w-14">
+                <GamepadSvg size={26} />
+              </div>
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-1 rounded-md bg-[#FDE68A] px-2 py-0.5 text-[10px] font-black uppercase text-[#92400E]">
+                  Multiplayer
+                </div>
+                <h3 className="font-display text-base font-black text-[#134E4A] leading-tight sm:text-lg">
+                  Arena & Duel
+                </h3>
+                <p className="mt-0.5 truncate text-xs font-semibold text-[#B45309]">
+                  {isCreatingRoom
+                    ? "Menyiapkan room..."
+                    : "Klik untuk langsung buat room dan masuk ke lobi"}
+                </p>
+              </div>
+            </div>
+            <div className="relative z-10 flex items-center gap-2">
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border-2 border-[#134E4A] bg-[#0D9488] px-3.5 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A]">
+                <SparklesSvg size={14} />
+                <span>Mulai Mabar</span>
+              </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A] sm:hidden">
+                <SparklesSvg size={16} />
+              </span>
+            </div>
+            <span
+              className="pointer-events-none absolute -bottom-3 -right-3 opacity-10"
+              aria-hidden="true"
+            >
+              <GamepadSvg size={90} />
+            </span>
+          </button>
+
+          {/* Sub-actions: Duel 1v1 & Gabung PIN */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate("/arena/duel/lobby/new")}
+              className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#FFE4E6] hover:bg-[#FECDD3] px-3 py-2.5 text-xs font-black text-[#9F1239] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+            >
+              <SwordsSvg size={15} />
+              <span>Duel 1v1</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/arena/join")}
+              className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#DCFCE7] hover:bg-[#BBF7D0] px-3 py-2.5 text-xs font-black text-[#14532D] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+            >
+              <GamepadSvg size={15} />
+              <span>Gabung PIN</span>
+            </button>
+          </div>
+        </section>
+
+        {/* 3. PILIH MODE KUIS (SOLO) */}
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -321,6 +377,7 @@ export default function QuizHubPage() {
           </div>
         </section>
 
+        {/* 4. KATEGORI TOPIK */}
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -379,153 +436,7 @@ export default function QuizHubPage() {
             ))}
           </div>
         </section>
-
-        <section>
-          <motion.button
-            type="button"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.99, y: 1 }}
-            onClick={() => setIsChallengeSheetOpen(true)}
-            className="flex min-h-[76px] w-full items-center gap-3 rounded-[22px] border-[3px] border-[#134E4A] bg-[#E9D5FF] px-4 py-4 text-left text-[#134E4A] shadow-[4px_4px_0px_#134E4A] transition-all hover:bg-[#DDD6FE] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:px-5"
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#6B21A8] shadow-[2px_2px_0px_#134E4A]">
-              <SwordsSvg size={27} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-display text-base font-black leading-tight sm:text-lg">
-                Tantang Teman
-              </span>
-              <span className="mt-1 block text-xs font-semibold leading-relaxed text-[#581C87] sm:text-sm">
-                Mainkan soal yang sama dalam Versus Mode.
-              </span>
-            </span>
-            <span className="shrink-0 rounded-lg border-2 border-[#134E4A] bg-white px-2.5 py-1.5 text-[11px] font-black shadow-[2px_2px_0px_#134E4A] sm:text-xs">
-              Versus
-            </span>
-          </motion.button>
-        </section>
       </div>
-
-      <AppBottomSheet
-        isOpen={isChallengeSheetOpen}
-        onClose={() => setIsChallengeSheetOpen(false)}
-        title="Tantang Teman"
-      >
-        <div className="space-y-4 pb-2 text-[var(--text-main,#134E4A)]">
-          <div className="flex items-center gap-3 border-b-2 border-[var(--border-color,#134E4A)]/15 pb-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-[#E9D5FF] text-[#6B21A8] shadow-[2px_2px_0px_#134E4A]">
-              <SwordsSvg size={21} />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-black">
-                Buat tantangan baru
-              </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-main,#134E4A)]/65">
-                Temanmu akan mendapatkan soal yang sama melalui seed.
-              </span>
-            </span>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-xs font-black uppercase tracking-wide text-[var(--text-main,#134E4A)]">
-              1. Pilih kategori soal
-            </label>
-            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-              {QUIZ_HUB_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  aria-pressed={selectedCategory === cat.id}
-                  className={`flex min-h-12 min-w-0 items-center gap-2 rounded-xl border-2 px-2.5 py-2 text-left text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1 ${
-                    selectedCategory === cat.id
-                      ? "border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
-                      : "border-[var(--border-color,#134E4A)]/25 bg-[var(--bg-card,#FFFFFF)] text-[var(--text-main,#134E4A)] hover:bg-[var(--bg-app,#F0FDF4)]"
-                  }`}
-                >
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#134E4A]/30"
-                    style={{ backgroundColor: cat.bgBadge }}
-                  >
-                    {getCategoryIcon(cat.id)}
-                  </span>
-                  <span className="min-w-0 truncate">{cat.title}</span>
-                  {selectedCategory === cat.id && (
-                    <CheckSvg size={14} className="ml-auto shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <label className="block text-xs font-black uppercase tracking-wide text-[var(--text-main,#134E4A)]">
-                2. Seed soal
-              </label>
-              <button
-                type="button"
-                onClick={handleRandomizeSeed}
-                className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[#0369A1]/30 bg-[#E0F2FE] px-2.5 py-1.5 text-xs font-black text-[#075985] transition-colors hover:bg-[#BAE6FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
-              >
-                <RefreshCwSvg size={14} />
-                <span>Acak ulang</span>
-              </button>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[var(--border-color,#134E4A)] bg-[var(--bg-app,#F0FDF4)] px-3 py-3 shadow-[2px_2px_0px_var(--shadow-color,#134E4A)]">
-              <span className="font-mono text-base font-black tabular-nums text-[var(--text-main,#134E4A)]">
-                #{seed}
-              </span>
-              <span className="text-right text-[11px] font-bold leading-tight text-[var(--text-main,#134E4A)]/60">
-                5 soal tersinkronisasi
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-xs font-black uppercase tracking-wide text-[var(--text-main,#134E4A)]">
-              3. Tautan tantangan
-            </label>
-            <div className="max-h-24 overflow-y-auto break-all rounded-xl border-2 border-dashed border-[var(--border-color,#134E4A)]/35 bg-[var(--bg-app,#F0FDF4)] px-3 py-2.5 text-xs font-medium leading-relaxed text-[var(--text-main,#134E4A)]/75 select-all">
-              {shareUrl}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2.5 pt-1">
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-white px-2.5 py-2.5 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#F0FDF4] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:text-sm"
-            >
-              {isCopied ? <CheckSvg size={17} /> : <CopySvg size={17} />}
-              <span>{isCopied ? "Tersalin!" : "Salin tautan"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShareWhatsApp}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#25D366] px-2.5 py-2.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#1EBE5D] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:text-sm"
-            >
-              <WhatsAppSvg size={18} />
-              <span>WhatsApp</span>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsChallengeSheetOpen(false);
-              navigate(
-                `/quiz-hub/versus?seed=${seed}&category=${selectedCategory}&challenger=${encodeURIComponent(challengerId)}`,
-              );
-            }}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#134E4A] bg-[#BAE6FD] px-3 py-2.5 text-xs font-black text-[#075985] shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#E0F2FE] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2 sm:text-sm"
-          >
-            <SparklesSvg size={16} />
-            <span>Coba mainkan sendiri dulu</span>
-          </button>
-        </div>
-      </AppBottomSheet>
 
       {selectedAdventureCategory && (
         <GameLevelSelectSheet

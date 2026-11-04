@@ -10,7 +10,9 @@ import {
   ZapSvg,
   TargetSvg,
   KeyRoundSvg,
+  SparklesSvg,
 } from "@/components/ui/CustomIcons";
+import { QUIZ_HUB_CATEGORIES } from "../../data/quizHubData";
 import { AvatarSantriSvg } from "@/components/ui/Illustrations";
 import { duelService, generateDuelCode } from "@/services/duelService";
 import { soundManager } from "../../services/soundManager";
@@ -152,6 +154,7 @@ export default function DuelLobbyPage() {
   });
 
   const [hostReady, setHostReady] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<string>("bahasa-arab");
   const [opponentReady, setOpponentReady] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -225,15 +228,20 @@ export default function DuelLobbyPage() {
   useEffect(() => {
     const targetSession =
       activeSessionId || (routeSessionId !== "new" ? routeSessionId : null);
-    if (!targetSession || opponentReady) return;
+    if (!targetSession || showCountdown) return;
 
     const interval = setInterval(async () => {
       try {
         const sess = await duelService.getDuelSession(targetSession);
-        if (sess && (sess.opponentId || sess.status === "playing")) {
-          setOpponentReady(true);
-          setOpponentName("Teman Santri");
+        if (sess) {
+          if (sess.opponentId || sess.status === "playing") {
+            setOpponentReady(true);
+            setOpponentName("Teman Santri");
+          }
           if (sess.duelCode) setDuelCode(sess.duelCode);
+          if (sess.status === "playing") {
+            setShowCountdown(true);
+          }
         }
       } catch {
         /* polling error sementara diabaikan */
@@ -243,7 +251,7 @@ export default function DuelLobbyPage() {
     return () => {
       clearInterval(interval);
     };
-  }, [activeSessionId, routeSessionId, opponentReady]);
+  }, [activeSessionId, routeSessionId, showCountdown]);
 
   const handleJoinWithCode = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -256,12 +264,11 @@ export default function DuelLobbyPage() {
     try {
       const res = await duelService.joinDuelSession(cleanCode);
       soundManager.playSfx("tap");
-      const ok = await consumeTicket();
-      if (!ok) {
-        setTicketError(true);
-        return;
-      }
-      navigate(`${PLAY_ROUTE}/${res.sessionId}`);
+      setActiveSessionId(res.sessionId);
+      if (cleanCode) setDuelCode(cleanCode);
+      setOpponentReady(true);
+      setOpponentName("Host Sesi");
+      navigate(`/arena/duel/lobby/${res.sessionId}`);
     } catch (err: unknown) {
       const msg =
         err instanceof Error
@@ -297,7 +304,7 @@ export default function DuelLobbyPage() {
           setTicketError(true);
           return;
         }
-        navigate(`${PLAY_ROUTE}/${targetSession}`);
+        navigate(`${PLAY_ROUTE}/${targetSession}?theme=${selectedTheme}`);
       });
       return;
     }
@@ -495,6 +502,48 @@ export default function DuelLobbyPage() {
                 )}
               </div>
             )}
+          </section>
+
+          {/* =============================================================== */}
+          {/* TEMA DUEL 1V1                                                   */}
+          {/* =============================================================== */}
+          <section className="rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FEF08A] p-3 shadow-[4px_4px_0px_#134E4A] space-y-2">
+            <div className="flex items-center justify-between pb-1.5 border-b-[2px] border-dashed border-[#134E4A]/20">
+              <div className="flex items-center gap-1.5">
+                <SparklesSvg size={14} />
+                <span className="font-display text-xs font-black uppercase text-[#134E4A]">
+                  Pilih Tema Duel
+                </span>
+              </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-2 border-[#134E4A] bg-white text-[11px] font-black text-[#0D9488]">
+                {QUIZ_HUB_CATEGORIES.find((c) => c.id === selectedTheme)?.title || "Bahasa Arab"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1.5 max-h-36 overflow-y-auto p-0.5">
+              {QUIZ_HUB_CATEGORIES.map((cat) => {
+                const isSelected = selectedTheme === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedTheme(cat.id)}
+                    className={`flex flex-col items-center justify-center rounded-xl border-2 p-1.5 text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-[#134E4A] bg-[#134E4A] text-[#FEF08A] shadow-[2px_2px_0px_#042F2E]"
+                        : "border-[#134E4A]/30 bg-white hover:bg-[#FEF3C7] text-[#134E4A]"
+                    }`}
+                  >
+                    <span className="text-[10.5px] font-black line-clamp-1">
+                      {cat.title}
+                    </span>
+                    <span className="text-[8.5px] opacity-80 line-clamp-1">
+                      {cat.tag}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </section>
 
           {/* =============================================================== */}

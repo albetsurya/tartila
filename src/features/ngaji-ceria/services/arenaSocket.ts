@@ -12,10 +12,13 @@ export interface ArenaSocketCallbacks {
   onPlayerAnswered?: (data: { playerId: string; answeredCount: number; totalPlayers: number }) => void;
   onAnswerAcknowledged?: (data: { isCorrect: boolean; scoreAwarded: number; totalScore: number }) => void;
   onQuestionResult?: (data: { questionId: string; correctAnswer: string; explanation?: string; leaderboard: any[] }) => void;
+  onShowLeaderboard?: (data: { leaderboard: any[] }) => void;
   onNextQuestion?: (data: { question: ClientQuestionPayload; questionIndex: number; totalQuestions: number; timeLimit: number }) => void;
-  onGameFinished?: (data: { leaderboard: any[]; kkm: number }) => void;
+  onGameFinished?: (data: { leaderboard: any[]; kkm?: number; winnerId?: string; outcome?: string; isDraw?: boolean }) => void;
   onViolationWarning?: (data: { violations: number; maxViolations: number; autoSubmitted: boolean; message: string }) => void;
   onPlayerViolation?: (data: { playerId: string; nickname: string; violations: number; autoSubmitted: boolean }) => void;
+  onHostDisconnected?: (data: { message?: string }) => void;
+  onRoomReset?: (data: { status: string }) => void;
   onReconnect?: () => void;
   onError?: (err: string) => void;
   onClose?: () => void;
@@ -184,28 +187,45 @@ export class ArenaSocket {
         // Server heartbeat response
         break;
       case "room_state":
+      case "room.snapshot":
         this.callbacks.onRoomState?.(msg.payload);
         break;
       case "player_joined":
+      case "room.participant_joined":
         this.callbacks.onPlayerJoined?.(msg.payload);
         break;
       case "game_started":
+      case "question.started":
         this.callbacks.onGameStarted?.(msg.payload);
         break;
       case "player_answered":
+      case "answer.progress_updated":
         this.callbacks.onPlayerAnswered?.(msg.payload);
         break;
       case "answer_acknowledged":
+      case "answer.acknowledged":
         this.callbacks.onAnswerAcknowledged?.(msg.payload);
         break;
       case "question_result":
+      case "answer.revealed":
         this.callbacks.onQuestionResult?.(msg.payload);
+        break;
+      case "show_leaderboard":
+        this.callbacks.onShowLeaderboard?.(msg.payload);
         break;
       case "next_question":
         this.callbacks.onNextQuestion?.(msg.payload);
         break;
       case "game_finished":
+      case "match.finished":
         this.callbacks.onGameFinished?.(msg.payload);
+        break;
+      case "host_disconnected":
+        this.callbacks.onHostDisconnected?.(msg.payload);
+        break;
+      case "room_reset":
+      case "room.reset_to_lobby":
+        this.callbacks.onRoomReset?.(msg.payload);
         break;
       case "violation_warning":
         this.callbacks.onViolationWarning?.(msg.payload);
@@ -219,7 +239,7 @@ export class ArenaSocket {
     }
   }
 
-  startGame(questions?: WebSocketQuestionPayload[]): void {
+  startGame(questions?: WebSocketQuestionPayload[] | any[]): void {
     this.send("start_game", questions ? { questions } : {});
   }
 
@@ -237,8 +257,20 @@ export class ArenaSocket {
     this.send("reveal_answer", {});
   }
 
+  showLeaderboard(): void {
+    this.send("show_leaderboard", {});
+  }
+
   nextQuestion(): void {
     this.send("next_question", {});
+  }
+
+  sendHostLeft(): void {
+    this.send("host_left", {});
+  }
+
+  resetRoom(): void {
+    this.send("reset_room", {});
   }
 
   recordViolation(): void {

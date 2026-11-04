@@ -14,7 +14,12 @@ import {
   PlusSvg,
   TrashSvg,
   ZapSvg,
+  SparklesSvg,
 } from "@/components/ui/CustomIcons";
+import {
+  QUIZ_HUB_CATEGORIES,
+  getQuizHubQuestions,
+} from "../../data/quizHubData";
 import {
   arenaRoomService,
   type ArenaRoom,
@@ -125,6 +130,13 @@ export default function RoomLobbyPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
 
   const [room, setRoom] = useState<ArenaRoom | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<string>(() => {
+    return (
+      (typeof window !== "undefined"
+        ? window.sessionStorage.getItem(`arena_theme_${pin}`)
+        : null) || "bahasa-arab"
+    );
+  });
   const [players, setPlayers] = useState<ArenaRoomPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -235,6 +247,9 @@ export default function RoomLobbyPage() {
         }
         setRoom(found);
         setRoomId(found.id);
+        if (found.theme) {
+          setSelectedTheme(found.theme);
+        }
         try {
           sessionStorage.setItem("arena_room_id", found.id);
         } catch {
@@ -268,6 +283,9 @@ export default function RoomLobbyPage() {
         if (found) {
           setRoom(found);
           setRoomId(found.id);
+          if (found.theme) {
+            setSelectedTheme(found.theme);
+          }
           if (found.status === "playing") {
             setShowCountdown(true);
           }
@@ -297,6 +315,21 @@ export default function RoomLobbyPage() {
     };
   }, [pin, showCountdown]);
 
+  const currentThemeInfo = useMemo(() => {
+    return QUIZ_HUB_CATEGORIES.find((c) => c.id === selectedTheme);
+  }, [selectedTheme]);
+
+  const handleThemeChange = async (newTheme: string) => {
+    if (!isHost || !pin) return;
+    setSelectedTheme(newTheme);
+    try {
+      sessionStorage.setItem(`arena_theme_${pin}`, newTheme);
+    } catch {
+      /* ignore */
+    }
+    await arenaRoomService.updateRoomTheme(pin, newTheme);
+  };
+
   useEffect(() => {
     if (room?.status === "playing") {
       navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`, {
@@ -311,6 +344,19 @@ export default function RoomLobbyPage() {
     soundManager.playSfx("tap");
     setIsStarting(true);
     try {
+      const hubQuestions = getQuizHubQuestions(
+        (selectedTheme as any) || "bahasa-arab",
+        "mcq",
+        undefined,
+        10,
+      );
+      await arenaRoomService.saveRoomQuestions(room.id, hubQuestions);
+      try {
+        sessionStorage.setItem(`arena_theme_${pin}`, selectedTheme);
+      } catch {
+        /* ignore */
+      }
+
       const started = await arenaRoomService.startGame(room.id, pin);
       if (!started) {
         alert("Gagal memulai permainan. Status room tidak berubah.");
@@ -320,8 +366,8 @@ export default function RoomLobbyPage() {
 
       const startState = {
         questionIndex: 0,
-        totalQuestions: (room.questions?.length ?? 0) || 1,
-        question: room.questions?.[0],
+        totalQuestions: hubQuestions.length || 10,
+        question: hubQuestions[0],
       };
       sessionStorage.setItem(
         "tartila_arena_start_state",
@@ -370,10 +416,12 @@ export default function RoomLobbyPage() {
     return () => clearTimeout(timer);
   }, [showCountdown, countIndex, navigate, isHost, pin]);
 
+  const activePin = room?.pin || pin;
+
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/arena/join?pin=${pin}`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url);
+    const url = `${window.location.origin}/arena/join?pin=${activePin}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).catch(() => {});
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -530,7 +578,7 @@ export default function RoomLobbyPage() {
                     PIN ROOM
                   </span>
                   <span className="font-display text-xl sm:text-2xl font-black text-[#134E4A] tracking-[0.15em] select-all leading-tight">
-                    {pin}
+                    {activePin}
                   </span>
                 </div>
 
@@ -551,7 +599,70 @@ export default function RoomLobbyPage() {
           </section>
 
           {/* =============================================================== */}
-          {/* 2. GRID PEMAIN COMPACT & KONTROL KARAKTER                       */}
+          {/* 2. TEMA PERMAINAN (HOST DAPAT MENGGANTI, PEMAIN DAPAT MELIHAT)  */}
+          {/* =============================================================== */}
+          <section className="rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FEF08A] p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b-[2px] border-dashed border-[#134E4A]/20">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
+                  <SparklesSvg size={15} />
+                </span>
+                <div>
+                  <h3 className="font-display text-sm sm:text-base font-black text-[#134E4A]">
+                    Tema Permainan
+                  </h3>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#134E4A]/70">
+                    {isHost
+                      ? "Pilih topik soal kuis untuk sesi mabar ini"
+                      : "Tema kuis yang dipilih oleh Host"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] text-xs font-black shadow-[2px_2px_0px_#134E4A]">
+                  <span>{currentThemeInfo?.title || "Bahasa Arab"}</span>
+                </span>
+              </div>
+            </div>
+
+            {isHost ? (
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1.5 max-h-48 overflow-y-auto p-0.5">
+                {QUIZ_HUB_CATEGORIES.map((cat) => {
+                  const isSelected = selectedTheme === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleThemeChange(cat.id)}
+                      className={`flex flex-col items-center justify-center rounded-xl border-2 p-2 text-center transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-[#134E4A] bg-[#134E4A] text-[#FEF08A] shadow-[2px_2px_0px_#042F2E]"
+                          : "border-[#134E4A]/30 bg-white hover:bg-[#FEF3C7] text-[#134E4A]"
+                      }`}
+                    >
+                      <span className="text-[11px] font-black line-clamp-1">
+                        {cat.title}
+                      </span>
+                      <span className="text-[9px] opacity-80 line-clamp-1">
+                        {cat.tag}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-2.5 flex items-center gap-2 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-white/70 px-3 py-2 text-xs font-bold text-[#134E4A]">
+                <span>Host memilih tema: </span>
+                <span className="font-black text-[#0D9488]">
+                  {currentThemeInfo?.title || "Bahasa Arab"} ({currentThemeInfo?.tag || "Kuis"})
+                </span>
+              </div>
+            )}
+          </section>
+
+          {/* =============================================================== */}
+          {/* 3. GRID PEMAIN COMPACT & KONTROL KARAKTER                       */}
           {/* =============================================================== */}
           <section className="rounded-2xl border-[3.5px] border-[#134E4A] bg-white p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A] space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b-[2px] border-dashed border-[#134E4A]/20">
@@ -603,7 +714,7 @@ export default function RoomLobbyPage() {
                   Menunggu pemain bergabung ke arena...
                 </p>
                 <p className="text-[11px] font-bold text-[#134E4A]/60">
-                  Bagikan PIN {pin} kepada teman-temanmu!
+                  Bagikan PIN {activePin} kepada teman-temanmu!
                 </p>
               </div>
             ) : (

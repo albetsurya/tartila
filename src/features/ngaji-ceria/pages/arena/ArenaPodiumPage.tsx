@@ -1,15 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TrophySvg, SparklesSvg, CrownSvg, ChartBarSvg, WhatsAppSvg } from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
+import { arenaRoomService } from "@/services/arenaRoomService";
 
 export default function ArenaPodiumPage() {
   const { pin } = useParams<{ pin: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const state = (location.state as any) || {};
   const leaderboard: Array<{
@@ -47,8 +50,36 @@ export default function ArenaPodiumPage() {
     }
   }, [myRank]);
 
+  const handleBackToLobby = async () => {
+    if (!pin) {
+      navigate("/quiz-hub");
+      return;
+    }
+    try {
+      await arenaRoomService.resetRoomToLobby(pin);
+    } catch (err) {
+      console.warn("Gagal mereset status room:", err);
+    }
+    navigate(`/arena/lobby/${pin}`);
+  };
+
   return (
-    <NgajiCeriaLayout title="Podium Tartila Arena">
+    <NgajiCeriaLayout
+      title="Podium Tartila Arena"
+      showBack={true}
+      onBack={() => setShowExitConfirm(true)}
+    >
+      <ConfirmDialog
+        isOpen={showExitConfirm}
+        title="Keluar dari Podium?"
+        description="Yakin ingin keluar dari sesi ini? Kamu akan kembali ke menu permainan."
+        isDestructive={true}
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          navigate("/member/ngaji-ceria/games");
+        }}
+        onCancel={() => setShowExitConfirm(false)}
+      />
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Header Perayaan */}
         <div className="text-center space-y-2">
@@ -202,17 +233,28 @@ export default function ArenaPodiumPage() {
           {pin && (
             <button
               type="button"
-              onClick={() => navigate(`/arena/report/${pin}`)}
-              className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center inline-flex items-center justify-center gap-1.5"
+              onClick={handleBackToLobby}
+              className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] hover:bg-[#FDE047] text-[#134E4A] font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center inline-flex items-center justify-center gap-2 cursor-pointer"
             >
-              <ChartBarSvg size={18} /> Lihat Laporan Kompetensi & Rapor
+              <SparklesSvg size={18} />
+              <span>Kembali ke Lobi (Ganti Tema)</span>
+            </button>
+          )}
+
+          {pin && (
+            <button
+              type="button"
+              onClick={() => navigate(`/arena/report/${pin}`)}
+              className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center inline-flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <ChartBarSvg size={18} /> Lihat Laporan & Rapor
             </button>
           )}
 
           <button
             type="button"
             onClick={() => navigate("/member/ngaji-ceria")}
-            className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center"
+            className="flex-1 py-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] text-white font-black text-base shadow-[4px_4px_0px_#134E4A] active:scale-95 transition-all text-center cursor-pointer"
           >
             Kembali ke Beranda
           </button>
