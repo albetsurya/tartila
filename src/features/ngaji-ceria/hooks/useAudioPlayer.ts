@@ -162,7 +162,7 @@ export function useAudioPlayer(): AudioPlayerController {
         pause();
         return;
       }
-      // URL berbeda → play() wajib mereset posisi & memuat ulang src.
+      // URL berbeda: play() wajib mereset posisi & memuat ulang src.
       play(url);
     },
     [isPlaying, pause, play],

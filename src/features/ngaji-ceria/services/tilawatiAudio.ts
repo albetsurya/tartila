@@ -31,7 +31,7 @@ export interface TilawatiAudioResolution {
 }
 export const normalizeArabic = (text: string) => text.normalize("NFKD").replace(/[\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g, "").replace(/[^\u0621-\u064a]/g, "");
 
-/** Pasangan teks→klip dipakai dahulu; satu sumber dapat dipotong menjadi banyak klip. */
+/** Pasangan teks ke klip dipakai dahulu; satu sumber dapat dipotong menjadi banyak klip. */
 /**
  * Resolves a Tilawati audio clip URL for a quiz request.
  *

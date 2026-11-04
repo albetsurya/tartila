@@ -4,8 +4,8 @@ export type AnswerFeedbackState = "correct" | "wrong" | "none";
 
 /**
  * Animasi umpan balik jawaban untuk anak:
- * - `correct` → `pop` (membesar lalu kembali) sebagai apresiasi.
- * - `wrong` → `shake` halus agar tidak terasa menghukum.
+ * - `correct` -> `pop` (membesar lalu kembali) sebagai apresiasi.
+ * - `wrong` -> `shake` halus agar tidak terasa menghukum.
  * Mengembalikan `undefined` saat idle atau saat pengguna memilih
  * mengurangi gerakan (reduced motion).
  */

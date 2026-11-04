@@ -10,7 +10,7 @@ export function getAudioUrl(url: string | null | undefined): string | null {
 
 /**
  * Sanitizes Tilawati audio URL for playback.
- * Converts legacy `/src/assets/audio/tilawati/...` → `/audio/tilawati/...`.
+ * Converts legacy `/src/assets/audio/tilawati/...` ke `/audio/tilawati/...`.
  */
 export function sanitizeAudioUrl(url: string | null | undefined): string | null {
   if (!url) return null;
