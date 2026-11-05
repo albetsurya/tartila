@@ -18,6 +18,7 @@ import {
 } from "../utils/activityDate";
 import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
 import { ngajiCeriaApi } from "../services/ngajiCeriaApi";
+import { arenaRoomService } from "@/services/arenaRoomService";
 import {
   GiftSvg,
   TilawatiLearningSvg,
@@ -163,7 +164,44 @@ export default function NgajiCeriaHomePage() {
   const [isClaiming, setIsClaiming] = useState(false);
   const autoModalTriggeredRef = useRef(false);
   const [isArenaSheetOpen, setIsArenaSheetOpen] = useState(false);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+
+  const handleCreateArena = async () => {
+    if (isCreatingRoom) return;
+    setIsCreatingRoom(true);
+    try {
+      const hostId = user?.id || `host-${Date.now()}`;
+      const hostName = user?.name || user?.username || "Host";
+      const res = await arenaRoomService.createRoom({
+        hostId,
+        hostName,
+        roomType: "casual",
+        title: "Mabar Santri",
+        kkm: 75,
+        questions: [],
+      });
+      if (res.ok && res.data?.pin) {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(
+            `arena_is_host_${res.data.pin}`,
+            "true",
+          );
+          window.sessionStorage.setItem("arena_player_name", hostName);
+        }
+        setIsArenaSheetOpen(false);
+        navigate(`/arena/lobby/${res.data.pin}`);
+      } else {
+        setIsArenaSheetOpen(false);
+        navigate("/arena/host/create");
+      }
+    } catch {
+      setIsArenaSheetOpen(false);
+      navigate("/arena/host/create");
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
   const activeEvent = useEventStore((state) => state.activeEvent);
   const fetchActiveEvents = useEventStore((state) => state.fetchActiveEvents);
 
@@ -1215,13 +1253,11 @@ export default function NgajiCeriaHomePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsArenaSheetOpen(false);
-                    navigate("/arena/host/create");
-                  }}
-                  className="shrink-0 rounded-lg border-2 border-[#134E4A] bg-[#0D9488] px-4 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] active:translate-y-[1px] active:shadow-none"
+                  disabled={isCreatingRoom}
+                  onClick={handleCreateArena}
+                  className="shrink-0 rounded-lg border-2 border-[#134E4A] bg-[#0D9488] px-4 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] active:translate-y-[1px] active:shadow-none disabled:opacity-50"
                 >
-                  Buat
+                  {isCreatingRoom ? "..." : "Buat"}
                 </button>
               </div>
 

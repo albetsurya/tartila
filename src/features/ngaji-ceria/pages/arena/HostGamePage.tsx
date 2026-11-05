@@ -138,6 +138,12 @@ export default function HostGamePage() {
   const [revealCountdown, setRevealCountdown] = useState<number | null>(null);
 
   const socketRef = useRef<ArenaSocket | null>(null);
+  // Effect socket sengaja tidak bergantung pada state yang berubah selama
+  // permainan (soal, papan skor). Tanpa ref, setiap perubahan skor akan
+  // membuat koneksi dibongkar-pasang dan start_game terkirim ulang sehingga
+  // soal santri kembali ke nomor 1.
+  const questionsRef = useRef<any[]>([]);
+  const leaderboardRef = useRef<any[]>([]);
 
   // Fetch soal dari room_questions
   useEffect(() => {
@@ -161,19 +167,49 @@ export default function HostGamePage() {
         }
 
         const roomId = room.id;
-        const questions = await arenaRoomService.getRoomQuestions(pin);
+        let loadedQuestions = await arenaRoomService.getRoomQuestions(pin);
         if (cancelled) return;
-        if (!questions || questions.length === 0) {
+        if (!loadedQuestions || loadedQuestions.length === 0) {
+          const storedTheme =
+            sessionStorage.getItem(`arena_theme_${pin}`) || "bahasa-arab";
+          const fallbackHub = getQuizHubQuestions(
+            storedTheme as any,
+            "mcq",
+            undefined,
+            10,
+          );
+          if (fallbackHub && fallbackHub.length > 0) {
+            loadedQuestions = fallbackHub.map((q, idx) => ({
+              id: q.id || `q-${idx + 1}`,
+              type: "multiple_choice",
+              category: "arena",
+              prompt: q.prompt,
+              arabicPrompt:
+                (q as any).arabicPrompt || q.arabicText || q.arabicTemplate,
+              audioUrl: q.audioUrl,
+              title: `Soal ${idx + 1}`,
+              options: (q.options || []).map((opt: any, oIdx: number) => ({
+                id: String.fromCharCode(65 + oIdx),
+                text: typeof opt === "string" ? opt : opt.text || "",
+              })),
+              correctAnswer: Array.isArray(q.correctAnswer)
+                ? q.correctAnswer[0]
+                : q.correctAnswer || "A",
+              explanation: q.explanation || "",
+              timeLimitSeconds: (q as any).timeLimitSeconds || 20,
+              points: 1000,
+            }));
+          }
+        }
+        if (!loadedQuestions || loadedQuestions.length === 0) {
           setErrorMsg("Gagal memuat soal, silakan buat room ulang.");
           setLoadingQuestions(false);
           return;
         }
-        setQuestions(questions);
+        setQuestions(loadedQuestions);
         setQuestionIndex(0);
-        setTotalQuestions(questions.length);
-        setTimeLeft(questions[0].timeLimitSeconds || 20);
-        if (cancelled) return;
-          setErrorMsg("Gagal memuat soal, silakan buat room ulang.");
+        setTotalQuestions(loadedQuestions.length);
+        setTimeLeft(loadedQuestions[0].timeLimitSeconds || 20);
       } catch (err: any) {
         if (cancelled) return;
         setErrorMsg(err.message || "Terjadi kesalahan saat memuat soal.");
@@ -192,6 +228,8 @@ export default function HostGamePage() {
   const maxTime = currentQuestion?.timeLimitSeconds || 20;
   const timePercent = Math.max(0, Math.min(100, (timeLeft / maxTime) * 100));
   const isExamMode = roomType === "exam" || roomType === "ujian_resmi";
+
+  questionsRef.current = questions;
 
   const combinedLeaderboard = useMemo(() => {
     const list = [...leaderboard];
@@ -224,6 +262,8 @@ export default function HostGamePage() {
     list.sort((a, b) => (b.score || 0) - (a.score || 0));
     return list.map((entry, idx) => ({ ...entry, rank: idx + 1 }));
   }, [leaderboard, hostScore, hostName, isExamMode]);
+
+  leaderboardRef.current = combinedLeaderboard;
 
   const handleHostSelectOption = useCallback(
     (optId: string) => {
@@ -386,17 +426,17 @@ export default function HostGamePage() {
 
     const socket = new ArenaSocket(pin, "host", true, {
       onReconnect: () => {
-        if (questions.length > 0) {
-          socket.startGame(formatQuestionsForWs(questions));
+        if (questionsRef.current.length > 0) {
+          socket.startGame(formatQuestionsForWs(questionsRef.current));
         }
       },
       onRoomState: (state) => {
         if (state.status === "finished") {
           navigate(`/arena/podium/${pin}`, {
             state: {
-              leaderboard: combinedLeaderboard,
+              leaderboard: leaderboardRef.current,
               kkm: 75,
-              myScore: hostScore,
+              myScore: hostScoreRef.current,
               myName: `${hostName} (Host)`,
             },
           });
@@ -413,7 +453,7 @@ export default function HostGamePage() {
       },
       onGameStarted: (data) => {
         setQuestionIndex(data.questionIndex ?? 0);
-        setTotalQuestions(data.totalQuestions ?? questions.length);
+        setTotalQuestions(data.totalQuestions ?? questionsRef.current.length);
         setTimeLeft(data.timeLimit || 20);
         setRevealed(false);
         setAnsweredCount(0);
@@ -447,9 +487,9 @@ export default function HostGamePage() {
       onGameFinished: (data) => {
         navigate(`/arena/podium/${pin}`, {
           state: {
-            leaderboard: combinedLeaderboard,
+            leaderboard: leaderboardRef.current,
             kkm: data.kkm || 75,
-            myScore: hostScore,
+            myScore: hostScoreRef.current,
             myName: `${hostName} (Host)`,
             winnerId: data.winnerId,
             outcome: data.outcome,
@@ -463,6 +503,9 @@ export default function HostGamePage() {
           { nickname: data.nickname, violations: data.violations },
         ]);
       },
+      onError: (err) => {
+        setErrorMsg(err || "Koneksi terputus ke server arena.");
+      },
     });
 
     socket.connect();
@@ -470,8 +513,9 @@ export default function HostGamePage() {
     setSocketConnected(true);
 
     const initTimer = setTimeout(() => {
-      if (questions.length > 0) {
-        socket.startGame(formatQuestionsForWs(questions));
+      if (questionsRef.current.length > 0) {
+        socket.sendPhaseChanged("COUNTDOWN", 3);
+        socket.startGame(formatQuestionsForWs(questionsRef.current));
       }
     }, 400);
 
@@ -480,16 +524,7 @@ export default function HostGamePage() {
       socket.disconnect();
       clearBotSimulatorState();
     };
-  }, [
-    pin,
-    loadingQuestions,
-    errorMsg,
-    questions,
-    combinedLeaderboard,
-    hostScore,
-    hostName,
-    navigate,
-  ]);
+  }, [pin, loadingQuestions, errorMsg, hostName, navigate]);
 
   return (
     <NgajiCeriaLayout

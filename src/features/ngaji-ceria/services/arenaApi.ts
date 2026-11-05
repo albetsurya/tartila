@@ -1,23 +1,42 @@
 import type { UniversalQuestion } from "../data/quiz/types";
+import { getToken } from "@/services/api";
 
 // REST memakai URL relatif agar cookie tetap same-origin lewat proxy Cloudflare.
 const SERVER_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
-// WebSocket butuh host absolut karena tidak melewati proxy same-origin.
-const WS_BASE =
-  import.meta.env.VITE_WS_URL ||
-  (typeof window !== "undefined"
-    ? `ws://${window.location.hostname}:8080`
-    : "ws://localhost:8080");
+/**
+ * Basis URL WebSocket.
+ *
+ * Default-nya same-origin: `/api/*` sudah diproksikan ke backend Go (Vite dev
+ * server memakai `ws: true`, produksi memakai reverse proxy yang sama). Ini
+ * menghindari hardcode `ws://host:8080` yang gagal di produksi karena mixed
+ * content (halaman https tidak boleh membuka ws://) maupun karena port 8080
+ * tidak terekspos ke publik. `VITE_WS_URL` tetap dihormati bila diisi.
+ */
+function resolveWsBase(): string {
+  const configured = String(import.meta.env.VITE_WS_URL || "").trim();
+  if (configured) return configured;
+  if (typeof window === "undefined") return "ws://localhost:8080";
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}`;
+}
+
+const WS_BASE = resolveWsBase();
 
 /**
  * Mengambil tiket WebSocket sekali pakai. Request memakai URL relatif agar
- * cookie HttpOnly ikut terkirim lewat proxy same-origin.
+ * cookie HttpOnly ikut terkirim lewat proxy same-origin; token Bearer juga
+ * dikirim karena sesi aplikasi bisa disimpan di localStorage, bukan cookie.
+ *
+ * Tiket bersifat sekali pakai (server menghapusnya saat dipakai), jadi fungsi
+ * ini harus dipanggil untuk setiap percobaan koneksi.
  */
 export async function fetchWsTicket(): Promise<string> {
   try {
+    const token = getToken();
     const res = await fetch(`${SERVER_BASE}/api/v1/ws-ticket`, {
       credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (!res.ok) return "";
     const json = await res.json();

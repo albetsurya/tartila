@@ -16,6 +16,7 @@ import {
   ChevronLeftSvg,
 } from "@/components/ui/CustomIcons";
 import type { QuestionData } from "../../components/quiz-models/types";
+import { getQuizHubQuestions } from "../../data/quizHubData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBotSimulator } from "../../hooks/useBotSimulator";
 import LeaderboardModal, {
@@ -158,6 +159,7 @@ export default function DuelPlayPage() {
   const [gamePhase, setGamePhase] = useState<
     "COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT"
   >("COUNTDOWN");
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [leaderboard] = useState<LeaderboardEntry[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(
@@ -181,16 +183,44 @@ export default function DuelPlayPage() {
         if (sess && user) {
           setIsHost(sess.hostId === user.id);
         }
+        if (sess && Array.isArray(sess.questions) && sess.questions.length > 0) {
+          setQuestions(sess.questions as QuestionData[]);
+        } else {
+          const fallback = getQuizHubQuestions(
+            (themeParam as any) || "bahasa-arab",
+            "mcq",
+            undefined,
+            5,
+          ) as QuestionData[];
+          setQuestions(fallback);
+        }
       })
       .catch(() => {
-        // fallback: anggap host
+        const fallback = getQuizHubQuestions(
+          (themeParam as any) || "bahasa-arab",
+          "mcq",
+          undefined,
+          5,
+        ) as QuestionData[];
+        setQuestions(fallback);
       });
-  }, [sessionId, user]);
+  }, [sessionId, user, themeParam]);
 
   useEffect(() => {
-    setGamePhase("QUESTION_ACTIVE");
-    setQuestionStartTime(Date.now());
-  }, []);
+    if (countdown === null) return;
+    if (countdown <= 0) {
+      setCountdown(null);
+      if (gamePhase === "COUNTDOWN") {
+        setGamePhase("QUESTION_ACTIVE");
+      }
+      return;
+    }
+    soundManager.playSfx("pop");
+    const t = setTimeout(() => {
+      setCountdown((c) => (c !== null ? c - 1 : null));
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [countdown, gamePhase]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -242,6 +272,18 @@ export default function DuelPlayPage() {
             }
           } else if (msg.type === "duel_started" || msg.type === "game_started") {
             setGameStarted(true);
+          } else if (
+            msg.type === "match.phase_changed" ||
+            msg.type === "phase_changed"
+          ) {
+            const phase = msg.payload?.phase;
+            if (phase === "COUNTDOWN") {
+              setGamePhase("COUNTDOWN");
+              setCountdown(msg.payload?.countdownSeconds || 3);
+            } else if (phase === "QUESTION_ACTIVE") {
+              setCountdown(null);
+              setGamePhase("QUESTION_ACTIVE");
+            }
           } else if (msg.type === "match.finished" || msg.type === "game_finished") {
             const payload = msg.payload;
             if (payload?.winnerId) {
@@ -431,6 +473,25 @@ export default function DuelPlayPage() {
 
   const isLowTime = timeLeft <= 5;
 
+  if (questions.length === 0) {
+    return (
+      <div className="relative min-h-dvh flex flex-col items-center justify-center bg-[#F0FDF4] p-4 text-[#134E4A] font-sans">
+        <ActionArenaBackground />
+        <div className="relative z-10 w-full max-w-sm rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FEF08A] p-6 text-center shadow-[6px_6px_0px_#134E4A]">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] shadow-[3px_3px_0px_#134E4A] animate-bounce">
+            <ZapSvg size={32} className="text-white" />
+          </div>
+          <h2 className="font-display text-xl font-black uppercase text-[#134E4A]">
+            Menyiapkan Soal Ujian...
+          </h2>
+          <p className="mt-2 text-xs font-bold text-[#134E4A]/80">
+            Sinkronisasi arena duel dengan server. Mohon tunggu sejenak!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-dvh overflow-x-hidden bg-[#F0FDF4] font-sans text-[#134E4A]">
       <ActionArenaBackground />
@@ -539,13 +600,40 @@ export default function DuelPlayPage() {
       {/* =================================================================== */}
       <main className="relative z-10 mx-auto w-full max-w-md px-3.5 py-3">
         <QuizEngine
-          key={`${currentQuestionIndex}-${currentQuestion.id}`}
+          key={`${currentQuestionIndex}-${currentQuestion?.id || currentQuestionIndex}`}
           question={currentQuestion}
           questionIndex={currentQuestionIndex}
           onAnswerSubmit={handleAnswer}
           onNext={handleNext}
         />
       </main>
+
+      {/* Overlay Hitung Mundur Sinkron */}
+      <AnimatePresence>
+        {(countdown !== null || gamePhase === "COUNTDOWN") && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]/95 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              key={countdown ?? 0}
+              initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="px-10 py-8 rounded-3xl border-[5px] border-[#134E4A] bg-[#FEF3C7] shadow-[8px_8px_0px_#042F2E] text-center"
+            >
+              <span className="block font-display text-6xl sm:text-7xl font-black text-[#134E4A]">
+                {countdown && countdown > 0 ? countdown : "MULAI!"}
+              </span>
+              <p className="mt-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#134E4A]/70">
+                Bersiap Menjawab!
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* =================================================================== */}
       {/* MODAL HASIL AKHIR DUEL                                               */}

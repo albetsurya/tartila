@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { soundManager } from "../../services/soundManager";
 import {
   Volume2,
   AlertCircle,
@@ -90,6 +92,9 @@ export default function PlayerGamePage() {
   const [gamePhase, setGamePhase] = useState<
     "COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT"
   >("QUESTION_ACTIVE");
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [socketError, setSocketError] = useState<string | null>(null);
+  const [questionTimedOut, setQuestionTimedOut] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
   const [timeLimit, setTimeLimit] = useState(20);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -144,6 +149,8 @@ export default function PlayerGamePage() {
           return;
         }
         if (state.currentQuestion) {
+          setSocketError(null);
+          setQuestionTimedOut(false);
           setQuestion((prev) => {
             if (!prev || prev.id !== state.currentQuestion.id) {
               setSelectedAnswer(null);
@@ -203,6 +210,8 @@ export default function PlayerGamePage() {
         setShowLeaderboard(true);
       },
       onGameStarted: (data) => {
+        setSocketError(null);
+        setQuestionTimedOut(false);
         setQuestion(data.question);
         setQuestionIndex(data.questionIndex ?? 0);
         setTotalQuestions(data.totalQuestions ?? 1);
@@ -219,6 +228,8 @@ export default function PlayerGamePage() {
         setShowLeaderboard(false);
       },
       onNextQuestion: (data) => {
+        setSocketError(null);
+        setQuestionTimedOut(false);
         setQuestion(data.question);
         setQuestionIndex(data.questionIndex);
         setTotalQuestions(data.totalQuestions);
@@ -264,6 +275,20 @@ export default function PlayerGamePage() {
           setDisqualified(true);
         }
       },
+      onPhaseChanged: (data) => {
+        if (data.phase === "COUNTDOWN") {
+          setGamePhase("COUNTDOWN");
+          setCountdown(data.countdownSeconds || 3);
+        } else if (data.phase === "QUESTION_ACTIVE") {
+          setCountdown(null);
+          setGamePhase("QUESTION_ACTIVE");
+        }
+      },
+      onError: (err) => {
+        setSocketError(
+          err || "Koneksi terputus. Server arena tidak dapat dijangkau.",
+        );
+      },
     });
 
     socket.connect();
@@ -281,6 +306,39 @@ export default function PlayerGamePage() {
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [pin, playerId, nickname, navigate, handleTabSwitch]);
+
+  // Watchdog: jangan biarkan layar "Menyiapkan soal..." berputar selamanya
+  // bila socket tersambung tetapi server tidak pernah mengirim soal.
+  useEffect(() => {
+    if (
+      question ||
+      socketError ||
+      hostDisconnected ||
+      disqualified ||
+      gamePhase !== "QUESTION_ACTIVE"
+    ) {
+      return;
+    }
+    const timer = setTimeout(() => setQuestionTimedOut(true), 12000);
+    return () => clearTimeout(timer);
+  }, [question, socketError, hostDisconnected, disqualified, gamePhase]);
+
+  // Countdown sebelum soal aktif
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown <= 0) {
+      setCountdown(null);
+      if (gamePhase === "COUNTDOWN") {
+        setGamePhase("QUESTION_ACTIVE");
+      }
+      return;
+    }
+    soundManager.playSfx("pop");
+    const t = setTimeout(() => {
+      setCountdown((c) => (c !== null ? c - 1 : null));
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [countdown, gamePhase]);
 
   // Timer per soal & auto-transition to REVEAL_ANSWER
   useEffect(() => {
@@ -832,6 +890,58 @@ export default function PlayerGamePage() {
         }}
         onCancel={() => setShowBackModal(false)}
       />
+
+      {/* Overlay Hitung Mundur Sinkron */}
+      <AnimatePresence>
+        {(countdown !== null || gamePhase === "COUNTDOWN") && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#134E4A]/95 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              key={countdown ?? 0}
+              initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="px-10 py-8 rounded-3xl border-[5px] border-[#134E4A] bg-[#FEF3C7] shadow-[8px_8px_0px_#042F2E] text-center"
+            >
+              <span className="block font-display text-6xl sm:text-7xl font-black text-[#134E4A]">
+                {countdown && countdown > 0 ? countdown : "MULAI!"}
+              </span>
+              <p className="mt-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#134E4A]/70">
+                Bersiap Menjawab!
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Socket Error / Disconnect */}
+      {(socketError || questionTimedOut) && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#134E4A]/80 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FEF08A] p-6 text-center shadow-[6px_6px_0px_#134E4A] space-y-4">
+            <h3 className="font-display text-lg font-black text-[#134E4A]">
+              Koneksi Terputus
+            </h3>
+            <p className="text-xs font-bold text-[#134E4A]/80">
+              {socketError ||
+                "Server arena tidak mengirim soal. Permainan mungkin belum dimulai oleh Host atau koneksi real-time gagal."}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                socketRef.current?.disconnect();
+                navigate("/quiz-hub");
+              }}
+              className="w-full py-2.5 rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] text-white font-black text-xs shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+            >
+              Kembali ke Menu Game
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

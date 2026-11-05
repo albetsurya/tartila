@@ -9,6 +9,7 @@ export interface ArenaSocketCallbacks {
   onRoomState?: (state: any) => void;
   onPlayerJoined?: (data: { player: any; totalPlayers: number }) => void;
   onGameStarted?: (data: { question: ClientQuestionPayload; questionIndex: number; totalQuestions: number; timeLimit: number }) => void;
+  onPhaseChanged?: (data: { phase: string; countdownSeconds?: number; startsAt?: string | number }) => void;
   onPlayerAnswered?: (data: { playerId: string; answeredCount: number; totalPlayers: number }) => void;
   onAnswerAcknowledged?: (data: { isCorrect: boolean; scoreAwarded: number; totalScore: number }) => void;
   onQuestionResult?: (data: { questionId: string; correctAnswer: string; explanation?: string; leaderboard: any[] }) => void;
@@ -35,8 +36,6 @@ export class ArenaSocket {
   private heartbeatTimer?: number;
   private reconnectAttempts: number = 0;
   private readonly maxReconnectDelayMs: number = 5000;
-  private lastTicket: string = "";
-  private lastTicketAt = 0;
   private visibilityListenerAttached: boolean = false;
   private opening: boolean = false;
 
@@ -59,20 +58,30 @@ export class ArenaSocket {
     if (this.opening) return;
     this.opening = true;
 
-    let ticket = this.lastTicket;
-    const now = Date.now();
-    if (!ticket || Date.now() - this.lastTicketAt >= 60000) {
-      try {
-        ticket = await fetchWsTicket();
-      } finally {
-        this.opening = false;
-      }
+    // Tiket WebSocket bersifat sekali pakai (server menghapusnya setelah
+    // dipakai). Menyimpannya untuk reconnect membuat percobaan berikutnya
+    // selalu ditolak 401, jadi selalu minta tiket baru tiap percobaan.
+    let ticket = "";
+    try {
+      ticket = await fetchWsTicket();
+    } catch {
+      ticket = "";
+    } finally {
+      this.opening = false;
     }
-    this.lastTicket = ticket;
-    this.lastTicketAt = Date.now();
 
     if (!this.shouldReconnect) return;
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
+    if (!ticket) {
+      // Tanpa tiket, upgrade pasti ditolak server. Berhenti mencoba supaya
+      // tidak spam koneksi, dan beri pesan yang bisa ditindaklanjuti.
+      this.shouldReconnect = false;
+      this.callbacks.onError?.(
+        "Gagal mengambil tiket sesi arena. Pastikan kamu masih login dan backend Go berjalan.",
+      );
       return;
     }
 
@@ -125,7 +134,7 @@ export class ArenaSocket {
     };
 
     this.ws.onerror = () => {
-      this.callbacks.onError?.("Koneksi arena terganggu");
+      this.callbacks.onError?.("Koneksi terputus. Server arena tidak dapat dijangkau.");
     };
   }
 
@@ -134,10 +143,14 @@ export class ArenaSocket {
     if (this.reconnectTimer) {
       window.clearTimeout(this.reconnectTimer);
     }
+    if (this.reconnectAttempts >= 5) {
+      this.shouldReconnect = false;
+      this.callbacks.onError?.("Koneksi terputus. Server arena tidak dapat dijangkau.");
+      return;
+    }
     // Exponential backoff: 1s, 1.5s, 2.25s, max 5s
     const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), this.maxReconnectDelayMs);
     this.reconnectAttempts++;
-    if (this.reconnectAttempts > 4) return;
     this.reconnectTimer = window.setTimeout(() => {
       this.connect();
     }, delay);
@@ -197,6 +210,10 @@ export class ArenaSocket {
       case "room_state":
       case "room.snapshot":
         this.callbacks.onRoomState?.(msg.payload);
+        break;
+      case "match.phase_changed":
+      case "phase_changed":
+        this.callbacks.onPhaseChanged?.(msg.payload);
         break;
       case "player_joined":
       case "room.participant_joined":
@@ -275,6 +292,10 @@ export class ArenaSocket {
 
   sendHostLeft(): void {
     this.send("host_left", {});
+  }
+
+  sendPhaseChanged(phase: string, countdownSeconds?: number): void {
+    this.send("match.phase_changed", { phase, countdownSeconds });
   }
 
   resetRoom(): void {

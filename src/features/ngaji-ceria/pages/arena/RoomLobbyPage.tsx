@@ -227,8 +227,23 @@ export default function RoomLobbyPage() {
   );
 
   const nonHostPlayers = displayPlayers.filter((p) => p.id !== myPlayerId);
+  const hasThemeQuestions = useMemo(() => {
+    try {
+      const qs = getQuizHubQuestions(
+        (selectedTheme as any) || "bahasa-arab",
+        "mcq",
+        undefined,
+        1,
+      );
+      return Array.isArray(qs) && qs.length > 0;
+    } catch {
+      return false;
+    }
+  }, [selectedTheme]);
+
   const canStartGame =
     displayPlayers.length > 0 &&
+    hasThemeQuestions &&
     (nonHostPlayers.length === 0 || nonHostPlayers.every((p) => p.is_ready));
 
   useEffect(() => {
@@ -271,15 +286,36 @@ export default function RoomLobbyPage() {
     if (!pin || showCountdown) return;
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let inFlight = false;
+    let failures = 0;
+    const POLL_INTERVAL_MS = 2000;
+    const MAX_FAILURES = 5;
+
+    const schedule = (delay: number) => {
+      if (!alive) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        void poll();
+      }, delay);
+    };
 
     const poll = async () => {
-      if (!alive) return;
+      // Satu request dalam satu waktu: tanpa guard ini, poll yang lambat bisa
+      // menumpuk dan membanjiri get_room_by_pin / get_room_players_by_pin.
+      if (!alive || inFlight) return;
+      if (typeof document !== "undefined" && document.hidden) {
+        schedule(4000);
+        return;
+      }
+
+      inFlight = true;
       try {
         const [found, list] = await Promise.all([
           arenaRoomService.getRoom(pin),
           arenaRoomService.getRoomPlayers(pin),
         ]);
         if (!alive) return;
+        failures = 0;
         if (found) {
           setRoom(found);
           setRoomId(found.id);
@@ -287,7 +323,11 @@ export default function RoomLobbyPage() {
             setSelectedTheme(found.theme);
           }
           if (found.status === "playing") {
+            // Permainan sudah dimulai: hentikan polling sekarang, jangan
+            // menunggu cleanup, supaya tidak ada request sisa.
             setShowCountdown(true);
+            alive = false;
+            return;
           }
         }
         setPlayers(() => {
@@ -301,11 +341,24 @@ export default function RoomLobbyPage() {
           return list;
         });
         setLoading(false);
-      } catch {
-        /* polling error diabaikan; coba lagi */
+      } catch (err) {
+        if (!alive) return;
+        failures += 1;
+        if (failures >= MAX_FAILURES) {
+          alive = false;
+          setLoading(false);
+          setErrorMsg(
+            err instanceof Error
+              ? `Koneksi ke lobi terputus: ${err.message}`
+              : "Koneksi ke lobi terputus.",
+          );
+          return;
+        }
+      } finally {
+        inFlight = false;
       }
-      if (!alive) return;
-      timer = setTimeout(poll, 1500);
+
+      schedule(POLL_INTERVAL_MS);
     };
 
     void poll();
@@ -350,7 +403,22 @@ export default function RoomLobbyPage() {
         undefined,
         10,
       );
-      await arenaRoomService.saveRoomQuestions(room.id, hubQuestions);
+      if (!hubQuestions || hubQuestions.length === 0) {
+        alert("Tema yang dipilih tidak memiliki soal kuis. Silakan pilih tema lain.");
+        setIsStarting(false);
+        return;
+      }
+      const saved = await arenaRoomService.saveRoomQuestions(
+        room.id,
+        hubQuestions,
+      );
+      if (!saved.ok) {
+        // Tanpa soal tersimpan, santri akan berhenti di layar
+        // "Menyiapkan soal..." sehingga kegagalan ini harus terlihat.
+        alert(saved.message || "Gagal menyimpan soal ke room.");
+        setIsStarting(false);
+        return;
+      }
       try {
         sessionStorage.setItem(`arena_theme_${pin}`, selectedTheme);
       } catch {
@@ -358,8 +426,8 @@ export default function RoomLobbyPage() {
       }
 
       const started = await arenaRoomService.startGame(room.id, pin);
-      if (!started) {
-        alert("Gagal memulai permainan. Status room tidak berubah.");
+      if (!started.ok) {
+        alert(started.message || "Gagal memulai permainan.");
         setIsStarting(false);
         return;
       }
@@ -419,9 +487,10 @@ export default function RoomLobbyPage() {
   const activePin = room?.pin || pin;
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/arena/join?pin=${activePin}`;
+    const target = room?.pin ?? pin;
+    if (!target) return;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).catch(() => {});
+      navigator.clipboard.writeText(target).catch(() => {});
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -592,7 +661,7 @@ export default function RoomLobbyPage() {
                   }`}
                 >
                   {copied ? <CheckSvg size={14} /> : <CopySvg size={14} />}
-                  <span>{copied ? "Tersalin!" : "Salin Undangan"}</span>
+                  <span>{copied ? "PIN Tersalin!" : "Salin PIN"}</span>
                 </button>
               </div>
             </div>

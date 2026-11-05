@@ -908,6 +908,10 @@ export default defineConfig(async ({ mode }): Promise<UserConfig> => {
         "/api": {
           target: activeProxyTarget,
           changeOrigin: true,
+          // WebSocket arena memakai URL same-origin (default tanpa
+          // VITE_WS_URL) supaya otomatis wss:// di https. Tanpa ws:true,
+          // upgrade /api/ws/room/:pin tidak diteruskan ke backend Go.
+          ws: true,
           configure: (proxy: any) => {
             proxy.on(
               "error",

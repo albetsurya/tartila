@@ -42,6 +42,63 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const LOCAL_ROOMS_KEY = "tartila_arena_mock_rooms";
 const LOCAL_PLAYERS_KEY = "tartila_arena_mock_players";
 
+/**
+ * Samakan bentuk soal frontend dengan `ArenaQuestionInput` backend Go:
+ * `correctAnswer` string, `options` array of `{id,text,arabic?}`, dan
+ * `question_type` yang dikenal backend (text|audio|fill_blank|image|multiple_choice).
+ */
+function normalizeArenaQuestion(question: any, index: number) {
+  const rawAnswer =
+    question?.correctAnswer ??
+    question?.correct_answer ??
+    question?.correctAnswerId ??
+    "";
+  const correctAnswer = Array.isArray(rawAnswer)
+    ? String(rawAnswer[0] ?? "")
+    : String(rawAnswer ?? "");
+
+  const rawOptions = Array.isArray(question?.options) ? question.options : [];
+  const options = rawOptions.map((opt: any, optIndex: number) => {
+    const fallbackId = String.fromCharCode(65 + optIndex);
+    if (typeof opt === "string") return { id: fallbackId, text: opt };
+    const id = opt?.id ? String(opt.id) : fallbackId;
+    const text = String(opt?.text ?? opt?.label ?? "");
+    const arabic = opt?.arabic ? String(opt.arabic) : "";
+    return arabic ? { id, text, arabic } : { id, text };
+  });
+
+  const rawType = String(question?.type ?? "").toLowerCase();
+  const knownTypes = ["text", "audio", "fill_blank", "image", "multiple_choice"];
+  const type = knownTypes.includes(rawType)
+    ? rawType
+    : options.length > 0
+      ? "multiple_choice"
+      : "text";
+
+  const rawCategory = String(question?.category ?? "").toLowerCase();
+  const category = ["tilawati", "tajwid", "nabi"].includes(rawCategory)
+    ? rawCategory
+    : "tilawati";
+
+  return {
+    type,
+    category,
+    title: String(question?.title ?? `Soal ${index + 1}`),
+    prompt: String(question?.prompt ?? question?.question ?? ""),
+    arabicPrompt: String(
+      question?.arabicPrompt ??
+        question?.arabicText ??
+        question?.arabicTemplate ??
+        "",
+    ),
+    audioUrl: String(question?.audioUrl ?? ""),
+    options,
+    correctAnswer,
+    timeLimitSeconds: Number(question?.timeLimitSeconds) || 20,
+    points: Number(question?.points) || 1000,
+  };
+}
+
 const getLocalRooms = (): Record<string, ArenaRoom> => {
   if (typeof window === "undefined") return {};
   try {
@@ -217,19 +274,48 @@ export const arenaRoomService = {
   },
 
   /**
-   * Mulai Game (Hanya dipanggil oleh Host)
+   * Mulai Game (Hanya dipanggil oleh Host).
+   *
+   * Endpoint backend hanya menerima roomId UUID; teks lain langsung ditolak
+   * 400 sehingga divalidasi di sini agar pesannya jelas. Pesan asli dari
+   * backend diteruskan supaya penyebab penolakan (bukan host / room sudah
+   * berjalan / room tidak ditemukan) terlihat oleh pengguna.
    */
-  async startGame(roomId: string, _code?: string): Promise<boolean> {
+  async startGame(
+    roomId: string,
+    code?: string,
+  ): Promise<{ ok: true } | { ok: false; message: string }> {
+    const id = (roomId || "").trim();
+    if (!UUID_RE.test(id)) {
+      return {
+        ok: false,
+        message:
+          "ID room tidak valid (bukan UUID). Muat ulang halaman lobi lalu coba mulai lagi.",
+      };
+    }
+
     try {
-      await callREST("POST", `/api/v1/arena/room/${encodeURIComponent(roomId)}/start`, {});
-      return true;
-    } catch {
-      return false;
+      await callREST(
+        "POST",
+        `/api/v1/arena/room/${encodeURIComponent(id)}/start`,
+        code ? { pin: code } : {},
+      );
+      return { ok: true };
+    } catch (err) {
+      return {
+        ok: false,
+        message: err instanceof Error ? err.message : "Gagal memulai permainan.",
+      };
     }
   },
 
   /**
    * Simpan pertanyaan kuis ke tabel room_questions (dipanggil setelah room dibuat).
+   *
+   * Payload dinormalisasi ke bentuk `ArenaQuestionInput` backend Go
+   * (`correctAnswer` wajib string). Soal kuis hub bisa memiliki
+   * `correctAnswer` berupa array (fill-in-the-blank) dan `options` berupa
+   * string; bentuk itu membuat BodyParser backend gagal dan membalas 400.
    */
   async saveRoomQuestions(
     roomId: string,
@@ -237,11 +323,20 @@ export const arenaRoomService = {
   ): Promise<{ ok: true } | { ok: false; message: string }> {
     if (!questions || questions.length === 0) return { ok: true };
 
+    const id = (roomId || "").trim();
+    if (!UUID_RE.test(id)) {
+      return {
+        ok: false,
+        message:
+          "ID room tidak valid (bukan UUID). Muat ulang halaman lobi lalu coba lagi.",
+      };
+    }
+
     try {
       await callREST(
         "POST",
-        `/api/v1/arena/room/${encodeURIComponent(roomId)}/questions`,
-        { questions },
+        `/api/v1/arena/room/${encodeURIComponent(id)}/questions`,
+        { questions: questions.map(normalizeArenaQuestion) },
       );
       return { ok: true };
     } catch (err) {
