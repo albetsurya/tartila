@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { QuizEngine } from "../../components/quiz-models/QuizEngine";
 import { duelService } from "@/services/duelService";
@@ -135,6 +135,7 @@ function DuelResultBadgeSvg({ result }: { result: "win" | "lose" | "draw" }) {
 
 export default function DuelPlayPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const { state: locationState } = useLocation();
   const [searchParams] = useSearchParams();
   const themeParam = searchParams.get("theme") || "bahasa-arab";
   const navigate = useNavigate();
@@ -155,7 +156,9 @@ export default function DuelPlayPage() {
   const [isFinished, setIsFinished] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [, setGameStarted] = useState(false);
-  const [isHost, setIsHost] = useState(true);
+  const [isHost, setIsHost] = useState<boolean>(
+    Boolean(locationState?.isHost),
+  );
   const [gamePhase, setGamePhase] = useState<
     "COUNTDOWN" | "QUESTION_ACTIVE" | "REVEAL_ANSWER" | "LEADERBOARD" | "RESULT"
   >("COUNTDOWN");
@@ -173,7 +176,9 @@ export default function DuelPlayPage() {
   const hostScoreRef = useRef(0);
   const guestScoreRef = useRef(0);
   const myScoreRef = useRef(0);
+  const serverScoresRef = useRef<Map<string, number>>(new Map());
   const wsRef = useRef<WebSocket | null>(null);
+  const playerId = user?.id || "guest";
 
   useEffect(() => {
     if (!sessionId) return;
@@ -181,9 +186,11 @@ export default function DuelPlayPage() {
       .getDuelSession(sessionId)
       .then((sess) => {
         if (sess && user) {
-          setIsHost(sess.hostId === user.id);
+          setIsHost(Boolean(locationState?.isHost) || sess.hostId === user.id);
         }
-        if (sess && Array.isArray(sess.questions) && sess.questions.length > 0) {
+        if (locationState?.questions && locationState.questions.length > 0) {
+          setQuestions(locationState.questions as QuestionData[]);
+        } else if (sess && Array.isArray(sess.questions) && sess.questions.length > 0) {
           setQuestions(sess.questions as QuestionData[]);
         } else {
           const fallback = getQuizHubQuestions(
@@ -204,7 +211,7 @@ export default function DuelPlayPage() {
         ) as QuestionData[];
         setQuestions(fallback);
       });
-  }, [sessionId, user, themeParam]);
+  }, [sessionId, user, themeParam, locationState?.questions]);
 
   useEffect(() => {
     if (countdown === null) return;
@@ -245,9 +252,11 @@ export default function DuelPlayPage() {
       }
 
       socket.onopen = () => {
-        if (isHost) {
-          socket?.send(JSON.stringify({ type: "duel_start", payload: {} }));
-        }
+        // Host menekan tombol Mulai di lobby sudah mengirim duel_start ke
+        // server (state.isHost = true), sehingga di sini cukup sinkron data.
+        // Klien yang tiba kemudian (guest) juga mengirim duel_start; server
+        // mengabaikan dedup (room sudah playing) sehingga tidak merusak alur.
+        // Hanya sinkron datanya; duplikat duel_start host akan diabaikan.
         setGameStarted(true);
       };
 
@@ -257,8 +266,23 @@ export default function DuelPlayPage() {
           if (msg.type === "opponent_score_update") {
             const score = Number(msg.payload?.score ?? 0);
             setOpponentScore(score);
-          } else if (msg.type === "duel_start" || msg.type === "game_start") {
+          } else if (msg.type === "answer_acknowledged") {
+            // Server authoritative total score: dipakai pemain saat ini.
+            const total = Number(msg.payload?.totalScore ?? NaN);
+            if (!Number.isNaN(total)) {
+              if (isHost) {
+                hostScoreRef.current = total;
+                setHostScore(total);
+              } else {
+                guestScoreRef.current = total;
+                setGuestScore(total);
+              }
+            }
+          } else if (msg.type === "duel_started" || msg.type === "game_started") {
             const payload = msg.payload || {};
+            // Daftar soal dari server (server-strip correctAnswer) menggantikan
+            // daftar route state, sehingga isu duplikasi & kebocoran kunci jawaban
+            // tidak terjadi.
             if (Array.isArray(payload.questions)) {
               setQuestions(payload.questions as QuestionData[]);
               setCurrentQuestionIndex(0);
@@ -269,8 +293,8 @@ export default function DuelPlayPage() {
               setResultReady(false);
               setGamePhase("QUESTION_ACTIVE");
               setShowLeaderboard(false);
+              serverScoresRef.current = new Map<string, number>();
             }
-          } else if (msg.type === "duel_started" || msg.type === "game_started") {
             setGameStarted(true);
           } else if (
             msg.type === "match.phase_changed" ||
@@ -293,6 +317,19 @@ export default function DuelPlayPage() {
             }
             setIsFinished(true);
             setResultReady(true);
+            // Skor akhir HANYA dari server (winnerId & leaderboard).
+            if (Array.isArray(payload?.leaderboard)) {
+              const map = new Map<string, number>();
+              for (const entry of payload.leaderboard as {
+                playerId: string;
+                score: number;
+              }[]) {
+                if (entry.playerId !== undefined && typeof entry.score === "number") {
+                  map.set(entry.playerId, entry.score);
+                }
+              }
+              serverScoresRef.current = map;
+            }
           }
         } catch {
           // abaikan pesan non-JSON
@@ -322,13 +359,6 @@ export default function DuelPlayPage() {
       }
     };
   }, [sessionId, user?.id, user?.name, user?.username, isFinished, isHost]);
-
-  const pushScoreToOpponent = (newScore: number) => {
-    const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "submit_score", score: newScore }));
-    }
-  };
 
   const finishDuel = async () => {
     setIsFinished(true);
@@ -379,7 +409,7 @@ export default function DuelPlayPage() {
     return () => clearTimeout(timer);
   }, [gamePhase, timeLeft, isFinished, answered]);
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = (isCorrect: boolean, answer?: string) => {
     if (answered || isFinished) return;
     const elapsedMs = Date.now() - questionStartTime;
     const takenMs = Math.min(elapsedMs, timeLimit * 1000);
@@ -387,23 +417,15 @@ export default function DuelPlayPage() {
     setAnswered(true);
     setGamePhase("REVEAL_ANSWER");
 
-    if (isCorrect) {
-      const sisa = timeLimit * 1000 - takenMs;
-      const awarded = Math.max(
-        0,
-        Math.round((sisa / (timeLimit * 1000)) * 1000),
-      );
-      if (isHost) {
-        hostScoreRef.current += awarded;
-        setHostScore(hostScoreRef.current);
-        myScoreRef.current = hostScoreRef.current;
-      } else {
-        guestScoreRef.current += awarded;
-        setGuestScore(guestScoreRef.current);
-        myScoreRef.current = guestScoreRef.current;
-      }
-      pushScoreToOpponent(myScoreRef.current);
-    }
+    // Hanya sinkronkan jawaban ke server; skor akhir HANYA diambil dari
+    // answer_acknowledged / match.finished yang dikirim server (local
+    // kalkulasi skor di browser ini dihapus).
+    wsRef.current?.send(
+      JSON.stringify({
+        type: "submit_answer",
+        payload: { questionId: currentQuestion?.id, answer: answer ?? "" },
+      }),
+    );
   };
 
   const handleNext = () => {
@@ -412,12 +434,24 @@ export default function DuelPlayPage() {
   };
 
   const currentQuestion = questions[currentQuestionIndex] ?? questions[0];
-  const myScore = isHost ? hostScore : guestScore;
-  const totalScore = myScore + opponentScore;
+  // Skor akhir HANYA diambil dari pesan match.finished (serverScoresRef);
+  // selama bermain: hostScore/guestScore dicerminkan dari server.
+  const isFinishedWithScores = isFinished && serverScoresRef.current.size > 0;
+  const finalMyScore = isFinishedWithScores
+    ? serverScoresRef.current.get(playerId) ?? 0
+    : 0;
+  const finalOpponentScore = isFinishedWithScores
+    ? serverScoresRef.current.get(
+        Array.from(serverScoresRef.current.keys()).find(
+          (id) => id !== playerId,
+        ) ?? "guest",
+      ) ?? 0
+    : 0;
+
   const myPowerPercent =
-    totalScore === 0
+    finalMyScore === 0
       ? 50
-      : Math.min(88, Math.max(12, Math.round((myScore / totalScore) * 100)));
+      : Math.min(88, Math.max(12, Math.round((finalMyScore / Math.max(finalOpponentScore, 1)) * 100)));
 
   const result: "win" | "lose" | "draw" = useMemo(() => {
     if (serverWinnerId) {
@@ -426,12 +460,12 @@ export default function DuelPlayPage() {
     if (isServerDraw) {
       return "draw";
     }
-    return myScore > opponentScore
+    return finalMyScore > finalOpponentScore
       ? "win"
-      : myScore < opponentScore
+      : finalMyScore < finalOpponentScore
         ? "lose"
         : "draw";
-  }, [serverWinnerId, isServerDraw, user?.id, myScore, opponentScore]);
+  }, [serverWinnerId, isServerDraw, user?.id, finalMyScore, finalOpponentScore]);
   const resultTitle =
     result === "win"
       ? "KAMU MENANG!"
@@ -455,7 +489,7 @@ export default function DuelPlayPage() {
   const handleShareWhatsApp = () => {
     triggerBibiReaction("click");
     soundManager.playSfx("tap");
-    const text = `Aku baru saja selesai Duel Kuis Tartila! Skor akhirku: ${myScore}, Skor Lawan: ${opponentScore}. ${resultMessage}! Ayo tantang aku di Tartila!`;
+    const text = `Aku baru saja selesai Duel Kuis Tartila! Skor akhirku: ${finalMyScore}, Skor Lawan: ${finalOpponentScore}. ${resultMessage}! Ayo tantang aku di Tartila!`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -524,7 +558,7 @@ export default function DuelPlayPage() {
                   <span>Kamu</span>
                 </span>
                 <span className="font-display text-lg sm:text-xl font-black leading-tight text-[#134E4A]">
-                  {myScore}
+                  {isHost ? hostScore : guestScore}
                 </span>
               </div>
               <span className="rounded-md border-[1.5px] border-[#134E4A] bg-white px-1.5 py-0.5 text-[9px] font-black text-[#0D9488]">
@@ -670,7 +704,7 @@ export default function DuelPlayPage() {
                     <span>Skor Kamu</span>
                   </p>
                   <p className="font-display text-2xl sm:text-3xl font-black text-[#134E4A]">
-                    {myScore}
+                    {finalMyScore}
                   </p>
                 </div>
                 <div className="rounded-2xl border-[3px] border-[#134E4A] bg-[#FF6B6B] p-3 shadow-[3px_3px_0px_#134E4A]">
@@ -679,7 +713,7 @@ export default function DuelPlayPage() {
                     <span>Skor Lawan</span>
                   </p>
                   <p className="font-display text-2xl sm:text-3xl font-black text-white">
-                    {opponentScore}
+                    {finalOpponentScore}
                   </p>
                 </div>
               </div>

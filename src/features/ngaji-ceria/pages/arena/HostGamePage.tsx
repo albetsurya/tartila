@@ -261,14 +261,16 @@ export default function HostGamePage() {
     setShowLeaderboard(true);
     socketRef.current?.showLeaderboard();
   }, []);
-
   const handleNext = useCallback(() => {
     setRevealCountdown(null);
     setShowLeaderboard(false);
     setHostAnswer(null);
     setServerQuestion(null);
-    if (questionIndex + 1 >= totalQuestions) {
-      socketRef.current?.nextQuestion();
+    // index tujuan = soal yang sedang ditampilkan (yang dipilih host
+    // untuk maju), sesuai guard server "expected == current && revealed".
+    const nextIdx = questionIndex + 1;
+    if (nextIdx >= totalQuestions) {
+      socketRef.current?.nextQuestion(questionIndex);
       navigate(`/arena/podium/${pin}`, {
         state: {
           leaderboard: combinedLeaderboard,
@@ -279,11 +281,11 @@ export default function HostGamePage() {
       });
       return;
     }
-    const nextIdx = questionIndex + 1;
+    const targetQuestion = questions[nextIdx];
     setQuestionIndex(nextIdx);
     setRevealed(false);
-    setTimeLeft(questions[nextIdx]?.timeLimitSeconds || 20);
-    socketRef.current?.nextQuestion();
+    setTimeLeft(targetQuestion?.timeLimitSeconds || 20);
+    socketRef.current?.nextQuestion(questionIndex);
   }, [
     questionIndex,
     totalQuestions,

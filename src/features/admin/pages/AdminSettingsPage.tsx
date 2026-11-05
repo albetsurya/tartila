@@ -81,7 +81,7 @@ export function AdminSettingsPage() {
   const adminRole = user?.role === "superadmin" ? "Superadmin" : "Tartila Admin";
 
   return (
-    <div className="max-w-3xl space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+    <div className="max-w-3xl space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={TOAST}>
@@ -104,20 +104,20 @@ export function AdminSettingsPage() {
 
         <div className="flex flex-col justify-between gap-4 pt-1 sm:flex-row sm:items-center">
           <div className="flex items-center gap-4">
-            <div className={`h-14 w-14 bg-[#99F6E4] font-display text-xl font-black text-[#134E4A] ${ICON_BOX}`}>
+            <div className={`h-14 w-14 bg-[#9BE58B] font-display text-xl font-black text-[#1A1A1A] ${ICON_BOX}`}>
               {adminName.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <h3 className="font-display text-base font-black leading-tight text-[#134E4A] sm:text-lg">
+                <h3 className="font-display text-base font-black leading-tight text-[#1A1A1A] sm:text-lg">
                   {adminName}
                 </h3>
-                <span className="inline-flex items-center rounded-lg border-2 border-[#134E4A] bg-[#F59E0B] px-2.5 py-0.5 text-[11px] font-black text-[#134E4A] shadow-[1px_1px_0px_#134E4A]">
+                <span className="inline-flex items-center rounded-lg border-2 border-[#1A1A1A] bg-[#FF9F1C] px-2.5 py-0.5 text-[11px] font-black text-[#1A1A1A] shadow-[1px_1px_0px_#1A1A1A]">
                   {adminRole}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">{adminEmail}</p>
-              <p className="mt-1 text-[11px] font-bold text-[#134E4A]/60">
+              <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">{adminEmail}</p>
+              <p className="mt-1 text-[11px] font-bold text-[#1A1A1A]/60">
                 Akses level penuh ke modul manajemen konten &amp; event
               </p>
             </div>
@@ -129,16 +129,16 @@ export function AdminSettingsPage() {
       <div className={`space-y-4 p-5 sm:p-6 ${CARD}`}>
         <h2 className={SECTION_TITLE}>Tampilan Antarmuka</h2>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] p-4 shadow-[2px_2px_0px_#134E4A]">
+        <div className="flex items-center justify-between gap-4 rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFF4DC] p-4 shadow-[2px_2px_0px_#1A1A1A]">
           <div className="flex items-center gap-3">
-            <div className={`h-10 w-10 bg-white text-[#134E4A] ${ICON_BOX}`}>
-              {isDarkMode ? <Moon size={20} /> : <Sun size={20} className="text-[#F59E0B]" />}
+            <div className={`h-10 w-10 bg-[#FFFBF2] text-[#1A1A1A] ${ICON_BOX}`}>
+              {isDarkMode ? <Moon size={20} /> : <Sun size={20} className="text-[#FF9F1C]" />}
             </div>
             <div>
-              <h3 className="text-sm font-black text-[#134E4A]">
+              <h3 className="text-sm font-black text-[#1A1A1A]">
                 {isDarkMode ? "Mode Gelap (Dark Mode)" : "Mode Terang (Light Mode)"}
               </h3>
-              <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
+              <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
                 Berlaku untuk area aplikasi lain. Panel admin selalu tampil terang.
               </p>
             </div>
@@ -150,13 +150,13 @@ export function AdminSettingsPage() {
             onClick={handleToggleTheme}
             aria-pressed={isDarkMode}
             aria-label="Ganti tema aplikasi"
-            className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-[#0D9488]/30 ${
-              isDarkMode ? "bg-[#0D9488]" : "bg-white"
+            className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-[2.5px] border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-[#FFD60A]/30 ${
+              isDarkMode ? "bg-[#FFD60A]" : "bg-[#FFFBF2]"
             }`}
           >
             <span
-              className={`pointer-events-none ml-0.5 inline-block h-5 w-5 transform rounded-full border-2 border-[#134E4A] transition duration-200 ease-in-out ${
-                isDarkMode ? "translate-x-6 bg-white" : "translate-x-0 bg-[#F59E0B]"
+              className={`pointer-events-none ml-0.5 inline-block h-5 w-5 transform rounded-full border-2 border-[#1A1A1A] transition duration-200 ease-in-out ${
+                isDarkMode ? "translate-x-6 bg-[#FFFBF2]" : "translate-x-0 bg-[#FF9F1C]"
               }`}
             />
           </button>
@@ -170,38 +170,38 @@ export function AdminSettingsPage() {
         <div className="space-y-3">
           <Link
             to="/admin/audio-check"
-            className="flex items-center justify-between rounded-xl border-[2px] border-[#134E4A] bg-white p-3.5 shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#F0FDF4] active:translate-y-[2px] active:shadow-none"
+            className="flex items-center justify-between rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFFBF2] p-3.5 shadow-[2px_2px_0px_#1A1A1A] transition-all hover:bg-[#FFF4DC] active:translate-y-[2px] active:shadow-none"
           >
             <div className="flex items-center gap-3">
-              <Volume2 size={18} className="text-[#0D9488]" />
+              <Volume2 size={18} className="text-[#2F6FED]" />
               <div>
-                <span className="block text-xs font-black text-[#134E4A]">
+                <span className="block text-xs font-black text-[#1A1A1A]">
                   Cek &amp; Verifikasi Audio Tilawati
                 </span>
-                <span className="text-[11px] font-bold text-[#134E4A]/70">
+                <span className="text-[11px] font-bold text-[#1A1A1A]/70">
                   Verifikasi fisik aset audio tilawati jilid 1 sampai 6
                 </span>
               </div>
             </div>
-            <ChevronRight size={16} className="text-[#134E4A]" />
+            <ChevronRight size={16} className="text-[#1A1A1A]" />
           </Link>
 
           <Link
             to="/privacy-policy"
-            className="flex items-center justify-between rounded-xl border-[2px] border-[#134E4A] bg-white p-3.5 shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#F0FDF4] active:translate-y-[2px] active:shadow-none"
+            className="flex items-center justify-between rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFFBF2] p-3.5 shadow-[2px_2px_0px_#1A1A1A] transition-all hover:bg-[#FFF4DC] active:translate-y-[2px] active:shadow-none"
           >
             <div className="flex items-center gap-3">
-              <FileText size={18} className="text-[#134E4A]" />
+              <FileText size={18} className="text-[#1A1A1A]" />
               <div>
-                <span className="block text-xs font-black text-[#134E4A]">
+                <span className="block text-xs font-black text-[#1A1A1A]">
                   Kebijakan Privasi &amp; Ketentuan Layanan
                 </span>
-                <span className="text-[11px] font-bold text-[#134E4A]/70">
+                <span className="text-[11px] font-bold text-[#1A1A1A]/70">
                   Pedoman perlindungan data pengguna dan hak cipta
                 </span>
               </div>
             </div>
-            <ChevronRight size={16} className="text-[#134E4A]" />
+            <ChevronRight size={16} className="text-[#1A1A1A]" />
           </Link>
         </div>
       </div>

@@ -39,7 +39,7 @@ export function AdminLayout() {
   if (isFullscreen) {
     return (
       <AdminErrorBoundary key={location.pathname}>
-        <Suspense fallback={<div className="p-4 text-center font-sans font-bold text-[#134E4A]">Memuat halaman...</div>}>
+        <Suspense fallback={<div className="p-4 text-center font-sans font-bold text-[#1A1A1A]">Memuat halaman...</div>}>
           <Outlet />
         </Suspense>
       </AdminErrorBoundary>
@@ -47,13 +47,13 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="admin-shell flex min-h-screen flex-col bg-[#F0FDF4] font-sans font-bold text-[#134E4A]">
+    <div className="admin-shell admin-dots flex min-h-screen flex-col font-sans font-bold text-[#1A1A1A]">
       <AdminSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
       <div className={`flex-1 flex flex-col ${collapsed ? "md:pl-[76px]" : "md:pl-64"}`}>
         <AdminHeader />
-        <main className="flex-1 mx-auto w-full max-w-[1600px] p-4 pb-20 md:p-8 md:pb-10">
+        <main className="flex-1 mx-auto w-full max-w-[1600px] p-4 pb-40 md:p-8 md:pb-10">
           <AdminErrorBoundary key={location.pathname}>
-            <Suspense fallback={<div className="p-4 text-center font-sans font-bold text-[#134E4A]">Memuat halaman...</div>}>
+            <Suspense fallback={<div className="p-4 text-center font-sans font-bold text-[#1A1A1A]">Memuat halaman...</div>}>
               <Outlet />
             </Suspense>
           </AdminErrorBoundary>

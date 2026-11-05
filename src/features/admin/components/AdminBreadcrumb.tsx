@@ -24,14 +24,14 @@ export function AdminBreadcrumb() {
     >
       <Link
         to="/admin"
-        className="truncate font-bold text-[#134E4A]/60 transition-colors hover:text-[#0D9488]"
+        className="truncate font-bold text-[#1A1A1A]/60 transition-colors hover:text-[#2F6FED]"
       >
         Admin
       </Link>
-      <span className="text-[#134E4A]/40" aria-hidden="true">
+      <span className="text-[#1A1A1A]/40" aria-hidden="true">
         /
       </span>
-      <span className="truncate font-display font-black text-[#134E4A]">{label}</span>
+      <span className="truncate font-display font-black text-[#1A1A1A]">{label}</span>
     </nav>
   );
 }

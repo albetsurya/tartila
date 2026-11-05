@@ -39,6 +39,7 @@ export class ArenaSocket {
   private reconnectAttempts: number = 0;
   private readonly maxReconnectDelayMs: number = 5000;
   private visibilityListenerAttached: boolean = false;
+  private openedOnce: boolean = false;
   private opening: boolean = false;
   private nickname?: string;
   private avatarId?: string;
@@ -113,15 +114,20 @@ export class ArenaSocket {
       return;
     }
 
-    this.ws.onopen = () => {
+     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
       if (this.reconnectTimer) {
         window.clearTimeout(this.reconnectTimer);
         this.reconnectTimer = undefined;
       }
       this.startHeartbeat();
-      this.callbacks.onOpen?.();
-      this.callbacks.onReconnect?.();
+      // onOpen hanya untuk koneksi pertama; onReconnect untuk reconnect.
+      if (this.openedOnce) {
+        this.callbacks.onReconnect?.();
+      } else {
+        this.openedOnce = true;
+        this.callbacks.onOpen?.();
+      }
     };
 
     this.ws.onmessage = (event) => {
@@ -306,8 +312,8 @@ export class ArenaSocket {
     this.send("show_leaderboard", {});
   }
 
-  nextQuestion(): void {
-    this.send("next_question", {});
+  nextQuestion(currentIndex: number): void {
+    this.send("next_question", { expectedQuestionIndex: currentIndex });
   }
 
   sendHostLeft(): void {

@@ -101,7 +101,7 @@ export function ModelAudioMatching({
       question.options.find((o) => o.id === selectedId)?.audioUrl === question.correctAnswer;
 
     setStatus(isCorrect ? "correct" : "wrong");
-    onAnswerSubmit?.(isCorrect);
+    onAnswerSubmit?.(isCorrect, selectedId);
 
     audioRef.current?.pause();
     setPlayingId(null);

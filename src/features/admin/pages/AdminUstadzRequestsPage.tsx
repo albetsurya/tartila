@@ -134,7 +134,7 @@ export function AdminUstadzRequestsPage() {
   }, [requests, searchQuery]);
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -151,14 +151,14 @@ export function AdminUstadzRequestsPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className={`h-10 w-10 bg-[#99F6E4] ${ICON_BOX}`}>
-              <GraduationCapSvg size={22} className="text-[#134E4A]" />
+            <div className={`h-10 w-10 bg-[#9BE58B] ${ICON_BOX}`}>
+              <GraduationCapSvg size={22} className="text-[#1A1A1A]" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-black uppercase tracking-tight text-[#134E4A]">
+              <h1 className="font-display text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
                 Pengajuan Ustadz
               </h1>
-              <p className="text-xs font-bold text-[#134E4A]/70">
+              <p className="text-xs font-bold text-[#1A1A1A]/70">
                 Verifikasi permohonan santri dan jamaah yang mengajukan role Ustadz
               </p>
             </div>
@@ -206,7 +206,7 @@ export function AdminUstadzRequestsPage() {
         <div className="relative w-full sm:w-64">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#134E4A]/60"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/60"
           />
           <input
             type="search"
@@ -230,20 +230,20 @@ export function AdminUstadzRequestsPage() {
       <div className={TABLE_WRAP}>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Loader2Svg size={32} className="animate-spin text-[#134E4A]" />
-            <p className="mt-3 text-xs font-black text-[#134E4A]/70">
+            <Loader2Svg size={32} className="animate-spin text-[#1A1A1A]" />
+            <p className="mt-3 text-xs font-black text-[#1A1A1A]/70">
               Memuat daftar permohonan...
             </p>
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="py-16 text-center">
-            <div className={`mx-auto h-14 w-14 bg-[#F0FDF4] ${ICON_BOX}`}>
-              <GraduationCapSvg size={28} className="text-[#134E4A]/60" />
+            <div className={`mx-auto h-14 w-14 bg-[#FFF4DC] ${ICON_BOX}`}>
+              <GraduationCapSvg size={28} className="text-[#1A1A1A]/60" />
             </div>
-            <h3 className="mt-3 font-display text-sm font-black text-[#134E4A]">
+            <h3 className="mt-3 font-display text-sm font-black text-[#1A1A1A]">
               Tidak Ada Pengajuan
             </h3>
-            <p className="mt-1 text-xs font-medium text-[#134E4A]/60">
+            <p className="mt-1 text-xs font-medium text-[#1A1A1A]/60">
               {statusFilter === "PENDING"
                 ? "Saat ini tidak ada pengajuan Ustadz yang menunggu verifikasi."
                 : "Tidak ditemukan data pengajuan dengan kriteria pencarian ini."}
@@ -278,10 +278,10 @@ export function AdminUstadzRequestsPage() {
                     <tr key={item.request_id} className={TR}>
                       {/* Nama Pemohon */}
                       <td className="px-4 py-3.5">
-                        <div className="font-black text-[#134E4A]">
+                        <div className="font-black text-[#1A1A1A]">
                           {item.nama || item.name || "Tanpa Nama"}
                         </div>
-                        <div className="font-mono text-[10px] text-[#134E4A]/60">
+                        <div className="font-mono text-[10px] text-[#1A1A1A]/60">
                           ID: {item.user_id}
                         </div>
                       </td>
@@ -293,7 +293,7 @@ export function AdminUstadzRequestsPage() {
 
                       {/* Alasan */}
                       <td className="px-4 py-3.5">
-                        <div className="max-w-xs font-bold leading-relaxed text-[#134E4A]">
+                        <div className="max-w-xs font-bold leading-relaxed text-[#1A1A1A]">
                           {item.reason || "-"}
                         </div>
                       </td>
@@ -344,7 +344,7 @@ export function AdminUstadzRequestsPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-black text-[#134E4A]/50">
+                          <span className="text-[11px] font-black text-[#1A1A1A]/50">
                             {item.reviewed_at
                               ? `Ditinjau ${new Date(item.reviewed_at).toLocaleDateString("id-ID")}`
                               : "Selesai"}
@@ -364,17 +364,17 @@ export function AdminUstadzRequestsPage() {
       {rejectModalItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-[#134E4A]/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-[#1A1A1A]/60 backdrop-blur-sm"
             onClick={() => !rejectSubmitting && setRejectModalItem(null)}
           />
 
           <div className={`${MODAL_PANEL} z-10 max-w-sm p-5`}>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-display text-base font-black text-[#134E4A]">
+                <h3 className="font-display text-base font-black text-[#1A1A1A]">
                   Tolak Pengajuan Ustadz
                 </h3>
-                <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
+                <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
                   Pemohon: {rejectModalItem.nama || rejectModalItem.name}
                 </p>
               </div>

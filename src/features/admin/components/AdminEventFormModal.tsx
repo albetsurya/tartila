@@ -190,14 +190,14 @@ export function AdminEventFormModal({
 
   return (
     <div className={MODAL_OVERLAY}>
-      <div className={`${MODAL_PANEL} my-8 max-w-2xl font-sans font-bold text-[#134E4A]`}>
+      <div className={`${MODAL_PANEL} my-8 max-w-2xl font-sans font-bold text-[#1A1A1A]`}>
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b-[3px] border-[#134E4A] bg-[#F0FDF4] px-5 py-4">
+        <div className="flex items-center justify-between border-b-[3px] border-[#1A1A1A] bg-[#FFF4DC] px-5 py-4">
           <div>
             <h2 className={`${TITLE} text-base sm:text-lg`}>
               {eventToEdit ? "Edit Event" : "Buat Event Baru"}
             </h2>
-            <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
+            <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
               Isi parameter event dan rancang misi tantangan santri
             </p>
           </div>
@@ -214,7 +214,7 @@ export function AdminEventFormModal({
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6">
           {errorMessage && (
-            <div className="rounded-xl border-[2.5px] border-[#134E4A] bg-[#FF6B6B]/15 p-3 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+            <div className="rounded-xl border-[2.5px] border-[#1A1A1A] bg-[#FF6B6B]/15 p-3 text-xs font-black text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]">
               {errorMessage}
             </div>
           )}
@@ -281,7 +281,7 @@ export function AdminEventFormModal({
             </div>
           </div>
 
-          <hr className="border-t-[3px] border-[#134E4A]/20" />
+          <hr className="border-t-[3px] border-[#1A1A1A]/20" />
 
           {/* Section 2: Daftar Misi Dinamis */}
           <div className="space-y-4">
@@ -290,7 +290,7 @@ export function AdminEventFormModal({
                 <h3 className={SECTION_TITLE}>
                   Daftar Misi Dinamis
                 </h3>
-                <p className="text-[11px] font-bold text-[#134E4A]/60">
+                <p className="text-[11px] font-bold text-[#1A1A1A]/60">
                   Santri menyelesaikan target untuk memperoleh hadiah
                 </p>
               </div>
@@ -308,17 +308,17 @@ export function AdminEventFormModal({
               {missions.map((mission, idx) => (
                 <div
                   key={mission.id}
-                  className="relative space-y-3 rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] p-4 shadow-[2px_2px_0px_#134E4A]"
+                  className="relative space-y-3 rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFF4DC] p-4 shadow-[2px_2px_0px_#1A1A1A]"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-display text-xs font-black uppercase text-[#134E4A]">
+                    <span className="font-display text-xs font-black uppercase text-[#1A1A1A]">
                       Misi #{idx + 1}
                     </span>
                     {missions.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveMission(mission.id)}
-                        className="rounded-lg p-1 text-[#134E4A]/60 transition-colors hover:text-[#FF6B6B]"
+                        className="rounded-lg p-1 text-[#1A1A1A]/60 transition-colors hover:text-[#FF6B6B]"
                         title="Hapus misi"
                         aria-label={`Hapus misi ${idx + 1}`}
                       >
@@ -388,7 +388,7 @@ export function AdminEventFormModal({
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#134E4A]/70">
+                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#1A1A1A]/70">
                           Koin
                         </span>
                         <input
@@ -402,7 +402,7 @@ export function AdminEventFormModal({
                         />
                       </div>
                       <div>
-                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#134E4A]/70">
+                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#1A1A1A]/70">
                           Tiket
                         </span>
                         <input
@@ -416,7 +416,7 @@ export function AdminEventFormModal({
                         />
                       </div>
                       <div>
-                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#134E4A]/70">
+                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#1A1A1A]/70">
                           Hati
                         </span>
                         <input
@@ -437,7 +437,7 @@ export function AdminEventFormModal({
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 border-t-[3px] border-[#134E4A]/20 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t-[3px] border-[#1A1A1A]/20 pt-4">
             <button
               type="button"
               onClick={onClose}

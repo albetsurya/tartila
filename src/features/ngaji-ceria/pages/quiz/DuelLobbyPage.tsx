@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
@@ -126,6 +127,7 @@ function PlayerSlot({
 
 export default function DuelLobbyPage() {
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
+  const { state: locationState } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -156,8 +158,9 @@ export default function DuelLobbyPage() {
     }
   });
 
+  const lobbySocketRef = useRef<WebSocket | null>(null);
+  const duelStartSentRef = useRef(false);
   const gameQuestionsRef = useRef<QuestionData[] | null>(null);
-  const [selectedTheme, setSelectedTheme] = useState<string>("bahasa-arab");
   const [myReady, setMyReady] = useState(false);
   const [opponentReady, setOpponentReady] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
@@ -170,6 +173,8 @@ export default function DuelLobbyPage() {
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+
+  const [selectedTheme, setSelectedTheme] = useState<string>("bahasa-arab");
 
   const consumeTicket = useEconomyStore((s) => s.consumeTicket);
   const [ticketError, setTicketError] = useState(false);
@@ -193,7 +198,7 @@ export default function DuelLobbyPage() {
     const tryCreate = async (attempt: number): Promise<void> => {
       try {
         const res = await duelService.createDuelSession(
-          "bahasa-arab",
+          selectedTheme,
           "kuis",
           duelCodeRef.current,
         );
@@ -277,13 +282,23 @@ export default function DuelLobbyPage() {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        // Sampaikan status siap saat ini agar lawan yang bergabung belakangan sinkron.
+        // Socket lobby: host mengirim duel_start beserta soal setelah
+        // koneksi benar-benar terbuka (jangan buat WebSocket manual di tombol).
         ws?.send(
           JSON.stringify({
             type: "duel_ready",
             payload: { playerName: nickname, isReady: myReadyRef.current },
           }),
         );
+        if (!duelStartSentRef.current) {
+          const qs = gameQuestionsRef.current;
+          if (qs && qs.length > 0 && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(
+              JSON.stringify({ type: "duel_start", payload: { questions: qs } }),
+            );
+            duelStartSentRef.current = true;
+          }
+        }
       };
 
       ws.onmessage = (ev) => {
@@ -299,14 +314,16 @@ export default function DuelLobbyPage() {
             if (payload.playerName) {
               setOpponentName(String(payload.playerName));
             }
-          } else if (msg.type === "duel_start" || msg.type === "game_start") {
-            if (Array.isArray(payload.questions) && payload.questions.length > 0) {
-              const qs = payload.questions as QuestionData[];
-              gameQuestionsRef.current = qs;
+          } else if (msg.type === "duel_started" || msg.type === "game_started") {
+            // Hanya server yang berhak memicu start. Sinkronkan daftar soal
+            // (dari payload) bila daftar lokal masih kosong.
+            if (
+              Array.isArray(payload.questions) &&
+              payload.questions.length > 0 &&
+              gameQuestionsRef.current?.length === 0
+            ) {
+              gameQuestionsRef.current = payload.questions as QuestionData[];
             }
-            setShowCountdown(true);
-            closedByUs = true;
-            ws?.close();
           }
         } catch {
           /* pesan non-JSON diabaikan */
@@ -386,7 +403,15 @@ export default function DuelLobbyPage() {
           setTicketError(true);
           return;
         }
-        navigate(`${PLAY_ROUTE}/${targetSession}?theme=${selectedTheme}`);
+        navigate(
+          `${PLAY_ROUTE}/${targetSession}?theme=${selectedTheme}`,
+          {
+            state: {
+              questions: gameQuestionsRef.current,
+              isHost: !joinedWithCode,
+            },
+          },
+        );
       });
       return;
     }
@@ -413,26 +438,6 @@ export default function DuelLobbyPage() {
         payload: { playerName: nickname, isReady: next },
       }),
     );
-  };
-
-  const sendDuelStart = async (sessionId: string, questions: QuestionData[]) => {
-    try {
-      const ticket = await fetchWsTicket();
-      if (!sessionId) return;
-      const url = `${ARENA_WS_BASE}/api/ws/duel/${sessionId}`;
-      const ws = new WebSocket(url);
-      if (!ws || ws.readyState !== WebSocket.OPEN) {
-        setTimeout(() => sendDuelStart(sessionId, questions), 100);
-        return;
-      }
-      ws.send(
-        JSON.stringify({ type: "game_start", payload: { questions } }),
-      );
-      ws.close();
-    } catch {
-      // Socket/connection failure not fatal for starting the lobby flow; the
-      // next server handshake still carries the official question snapshot.
-    }
   };
 
   const handleCopyCode = async () => {
@@ -780,12 +785,7 @@ export default function DuelLobbyPage() {
                   onClick={() => {
                     triggerBibiReaction("click");
                     soundManager.playSfx("tap");
-                    if (gameQuestionsRef.current) {
-                      void sendDuelStart(
-                        activeSessionId ?? "",
-                        gameQuestionsRef.current,
-                      );
-                    }
+                    if (joinedWithCode) return; // Host (pembuat sesi) yang mulai
                     setShowCountdown(true);
                   }}
                   className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${

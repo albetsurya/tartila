@@ -64,7 +64,7 @@ export function ModelMultipleChoiceText({
     if (selected === null || status !== "idle") return;
     const isCorrect = selected === question.correctAnswer;
     setStatus(isCorrect ? "correct" : "wrong");
-    onAnswerSubmit?.(isCorrect);
+    onAnswerSubmit?.(isCorrect, selected);
   };
 
   const handleRetry = () => {

@@ -67,7 +67,7 @@ export function ModelFillInTheBlank({
     const answer = question.correctAnswer.join("\u0001");
     const isCorrect = attempt === answer;
     setStatus(isCorrect ? "correct" : "wrong");
-    onAnswerSubmit?.(isCorrect);
+    onAnswerSubmit?.(isCorrect, attempt);
 
     audioRef.current?.pause();
   };

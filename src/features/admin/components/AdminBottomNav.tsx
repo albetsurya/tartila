@@ -1,5 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Calendar, Users, Settings } from "@/components/ui/CustomIcons";
+import {
+  Home,
+  Calendar,
+  Users,
+  Settings,
+  LayoutGrid,
+} from "@/components/ui/CustomIcons";
 
 interface NavItem {
   label: string;
@@ -37,40 +43,58 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+/**
+ * Navigasi bawah mobile: bilah pil melayang + tombol bulat kuning di kanan
+ * (pintasan ke "Menu Lengkap", rute yang sudah ada), sesuai gambar referensi.
+ */
 export function AdminBottomNav() {
   const location = useLocation();
+  const isMenuActive = location.pathname.startsWith("/admin/menu");
 
   return (
-    <nav
-      aria-label="Navigasi admin mobile"
-      className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-4 items-stretch gap-1 border-t-[3px] border-[#134E4A] bg-white px-2 pb-safe font-sans md:hidden"
-    >
-      {NAV_ITEMS.map((item) => {
-        const Icon = item.icon;
-        const isActive = item.checkActive(location.pathname);
+    <>
+      <Link
+        to="/admin/menu"
+        aria-label="Menu lengkap"
+        className={`fixed bottom-[88px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A] transition-all active:translate-y-[2px] active:shadow-none md:hidden ${
+          isMenuActive ? "bg-[#FF6B6B]" : "bg-[#FFD60A]"
+        }`}
+      >
+        <LayoutGrid size={24} className="text-[#1A1A1A]" />
+      </Link>
 
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={`my-1 flex flex-col items-center justify-center gap-1 rounded-xl border-[2px] font-bold transition-all ${
-              isActive
-                ? "border-[#134E4A] bg-[#0D9488] text-white shadow-[2px_2px_0px_#134E4A]"
-                : "border-transparent text-[#134E4A]/70 hover:bg-[#F0FDF4] hover:text-[#134E4A]"
-            }`}
-          >
-            <span className="flex h-5 w-5 items-center justify-center">
-              <Icon
-                size={20}
-                className={isActive ? "text-white" : "text-[#134E4A]/70"}
-              />
-            </span>
-            <span className="text-[11px] leading-tight tracking-tight">
-              {item.label}
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
+      <nav
+        aria-label="Navigasi admin mobile"
+        className="pb-safe fixed inset-x-3 bottom-3 z-40 grid h-16 grid-cols-4 items-stretch gap-1 rounded-full border-[3px] border-[#1A1A1A] bg-[#FFFBF2] px-1.5 font-sans shadow-[4px_4px_0px_#1A1A1A] md:hidden"
+      >
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.checkActive(location.pathname);
+
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              aria-current={isActive ? "page" : undefined}
+              className={`my-1 flex flex-col items-center justify-center gap-0.5 rounded-full border-[2px] font-bold transition-all ${
+                isActive
+                  ? "border-[#1A1A1A] bg-[#FFD60A] text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]"
+                  : "border-transparent text-[#1A1A1A]/70 hover:bg-[#FFF4DC] hover:text-[#1A1A1A]"
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center">
+                <Icon
+                  size={20}
+                  className={isActive ? "text-[#1A1A1A]" : "text-[#1A1A1A]/70"}
+                />
+              </span>
+              <span className="text-[11px] leading-tight tracking-tight">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }

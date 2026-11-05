@@ -145,7 +145,7 @@ export function UserFormModal({
       onClose={isSubmitting ? () => {} : onClose}
       title={isEdit ? "Edit Pengguna" : "Tambah Pengguna"}
     >
-      <p className="mb-4 text-xs font-bold text-[#134E4A]/70">
+      <p className="mb-4 text-xs font-bold text-[#1A1A1A]/70">
         {isEdit
           ? "Perbarui data pengguna Tartila."
           : "Tambahkan pengguna baru ke platform Tartila."}
@@ -205,7 +205,7 @@ export function UserFormModal({
               </select>
               <ChevronDown
                 size={14}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]"
               />
             </div>
           </Field>
@@ -227,7 +227,7 @@ export function UserFormModal({
               </select>
               <ChevronDown
                 size={14}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]"
               />
             </div>
           </Field>
@@ -236,7 +236,7 @@ export function UserFormModal({
         {submitError ? (
           <div
             role="alert"
-            className="rounded-xl border-[2.5px] border-[#134E4A] bg-[#FF6B6B]/15 px-3 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+            className="rounded-xl border-[2.5px] border-[#1A1A1A] bg-[#FF6B6B]/15 px-3 py-2 text-xs font-black text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]"
           >
             {submitError}
           </div>

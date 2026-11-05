@@ -145,7 +145,7 @@ export function AdminEventsPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={TOAST}>
@@ -177,7 +177,7 @@ export function AdminEventsPage() {
       <div className={`flex flex-col justify-between gap-4 p-4 md:flex-row md:items-center ${CARD}`}>
         {/* Kolom Pencarian */}
         <div className="relative flex-1">
-          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#134E4A]/60">
+          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#1A1A1A]/60">
             <Search size={16} />
           </div>
           <input
@@ -191,7 +191,7 @@ export function AdminEventsPage() {
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-3 flex items-center text-[#134E4A]/60 hover:text-[#FF6B6B]"
+              className="absolute inset-y-0 right-3 flex items-center text-[#1A1A1A]/60 hover:text-[#FF6B6B]"
               aria-label="Bersihkan pencarian"
             >
               <X size={14} />
@@ -222,17 +222,17 @@ export function AdminEventsPage() {
       {/* Daftar Event (Card List) */}
       {loading ? (
         <div className={`p-12 text-center ${CARD}`}>
-          <Loader2 size={24} className="mx-auto animate-spin text-[#0D9488]" />
-          <p className="mt-2 text-xs font-black text-[#134E4A]/70">Memuat daftar event...</p>
+          <Loader2 size={24} className="mx-auto animate-spin text-[#2F6FED]" />
+          <p className="mt-2 text-xs font-black text-[#1A1A1A]/70">Memuat daftar event...</p>
         </div>
       ) : filteredEvents.length === 0 ? (
         /* Empty State */
         <div className={`space-y-3 p-12 text-center ${CARD}`}>
-          <div className={`mx-auto h-16 w-16 bg-[#99F6E4] text-[#134E4A] ${ICON_BOX}`}>
+          <div className={`mx-auto h-16 w-16 bg-[#9BE58B] text-[#1A1A1A] ${ICON_BOX}`}>
             <Calendar size={32} />
           </div>
-          <h3 className="font-display text-base font-black text-[#134E4A]">Belum ada event.</h3>
-          <p className="mx-auto max-w-sm text-xs font-bold text-[#134E4A]/70">
+          <h3 className="font-display text-base font-black text-[#1A1A1A]">Belum ada event.</h3>
+          <p className="mx-auto max-w-sm text-xs font-bold text-[#1A1A1A]/70">
             Yuk, buat event pertama Anda!
           </p>
           <div className="pt-2">
@@ -255,7 +255,7 @@ export function AdminEventsPage() {
             return (
               <div
                 key={evt.id}
-                className="flex flex-col justify-between gap-4 rounded-2xl border-[3px] border-[#134E4A] bg-white p-5 shadow-[4px_4px_0px_#134E4A]"
+                className="flex flex-col justify-between gap-4 rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] p-5 shadow-[4px_4px_0px_#1A1A1A]"
               >
                 <div className="space-y-3">
                   {/* Top Status & Date Range */}
@@ -276,7 +276,7 @@ export function AdminEventsPage() {
                           : "Selesai"}
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#134E4A]/70">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1A1A]/70">
                       <Calendar size={13} />
                       {dateRangeLabel}
                     </span>
@@ -284,21 +284,21 @@ export function AdminEventsPage() {
 
                   {/* Title & Description */}
                   <div>
-                    <h2 className="line-clamp-1 font-display text-base font-black text-[#134E4A]">
+                    <h2 className="line-clamp-1 font-display text-base font-black text-[#1A1A1A]">
                       {evt.name}
                     </h2>
                     {evt.description && (
-                      <p className="mt-1 line-clamp-2 text-xs font-bold text-[#134E4A]/70">
+                      <p className="mt-1 line-clamp-2 text-xs font-bold text-[#1A1A1A]/70">
                         {evt.description}
                       </p>
                     )}
                   </div>
 
                   {/* Missions Preview */}
-                  <div className="border-t border-[#134E4A]/20 pt-3">
+                  <div className="border-t border-[#1A1A1A]/20 pt-3">
                     <div className="mb-1.5 flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-[11px] font-black text-[#134E4A]">
-                        <Trophy size={13} className="text-[#F59E0B]" />
+                      <span className="flex items-center gap-1 text-[11px] font-black text-[#1A1A1A]">
+                        <Trophy size={13} className="text-[#FF9F1C]" />
                         {evt.missions?.length || 0} Misi Tersedia
                       </span>
                     </div>
@@ -307,16 +307,16 @@ export function AdminEventsPage() {
                       {evt.missions?.slice(0, 2).map((m) => (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between rounded-lg border-[2px] border-[#134E4A]/20 bg-[#F0FDF4] px-2.5 py-1 text-[11px] font-bold text-[#134E4A]"
+                          className="flex items-center justify-between rounded-lg border-[2px] border-[#1A1A1A]/20 bg-[#FFF4DC] px-2.5 py-1 text-[11px] font-bold text-[#1A1A1A]"
                         >
                           <span className="truncate pr-2">{m.title}</span>
-                          <span className="shrink-0 text-[10px] font-black text-[#0D9488]">
+                          <span className="shrink-0 text-[10px] font-black text-[#2F6FED]">
                             +{m.reward_coins} Koin
                           </span>
                         </div>
                       ))}
                       {(evt.missions?.length || 0) > 2 && (
-                        <p className="text-right text-[10px] font-bold text-[#134E4A]/60">
+                        <p className="text-right text-[10px] font-bold text-[#1A1A1A]/60">
                           +{evt.missions.length - 2} misi lainnya
                         </p>
                       )}
@@ -325,7 +325,7 @@ export function AdminEventsPage() {
                 </div>
 
                 {/* Bottom Actions (Edit & Hapus) */}
-                <div className="flex items-center justify-end gap-2 border-t border-[#134E4A]/20 pt-3">
+                <div className="flex items-center justify-end gap-2 border-t border-[#1A1A1A]/20 pt-3">
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(evt)}

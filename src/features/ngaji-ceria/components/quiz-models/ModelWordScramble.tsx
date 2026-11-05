@@ -85,7 +85,7 @@ export function ModelWordScramble({
     // Bandingkan kalimat utuh
     const isCorrect = placedSentence === correctSentence;
     setStatus(isCorrect ? "correct" : "wrong");
-    onAnswerSubmit?.(isCorrect);
+    onAnswerSubmit?.(isCorrect, placedSentence);
   };
 
   const handleRetry = () => {

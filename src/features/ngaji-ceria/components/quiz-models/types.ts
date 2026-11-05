@@ -127,7 +127,7 @@ export interface QuestionData {
 }
 
 export interface QuizModelBaseProps {
-  onAnswerSubmit?: (isCorrect: boolean) => void;
+  onAnswerSubmit?: (isCorrect: boolean, answer?: string) => void;
   onNext?: () => void;
   /** When provided, the model delegates playback to the host engine. */
   onPlayAudio?: () => void;

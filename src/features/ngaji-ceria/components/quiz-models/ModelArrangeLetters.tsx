@@ -191,7 +191,7 @@ export function ModelArrangeLetters({
     const isCorrect = placedText === correctText;
 
     setStatus(isCorrect ? "correct" : "wrong");
-    onAnswerSubmit?.(isCorrect);
+    onAnswerSubmit?.(isCorrect, placedText);
 
     audioRef.current?.pause();
     setIsPlaying(false);

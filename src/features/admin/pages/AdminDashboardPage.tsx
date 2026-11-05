@@ -25,6 +25,7 @@ import {
   BADGE_DANGER,
   BADGE_NEUTRAL,
   BADGE_SUCCESS,
+  AVATAR,
   BTN_SECONDARY,
   CARD,
   ICON_BOX,
@@ -130,28 +131,28 @@ export function AdminDashboardPage() {
         title: "Total Santri",
         value: totalSantri,
         hint: "Santri terdaftar aktif",
-        icon: <Users size={22} className="text-[#134E4A]" />,
-        accentBg: "bg-[#99F6E4]",
+        icon: <Users size={22} className="text-[#1A1A1A]" />,
+        accentBg: "bg-[#9BE58B]",
       },
       {
         title: "Total Ustadz",
         value: totalUstadz,
         hint: "Pengajar terverifikasi",
-        icon: <GraduationCap size={22} className="text-[#134E4A]" />,
-        accentBg: "bg-[#F0FDF4]",
+        icon: <GraduationCap size={22} className="text-[#1A1A1A]" />,
+        accentBg: "bg-[#FFF4DC]",
       },
       {
         title: "Event Aktif",
         value: activeEventsCount,
         hint: "Sedang berlangsung",
-        icon: <Calendar size={22} className="text-[#134E4A]" />,
-        accentBg: "bg-[#F59E0B]",
+        icon: <Calendar size={22} className="text-[#1A1A1A]" />,
+        accentBg: "bg-[#FF9F1C]",
       },
       {
         title: "Permintaan Tertunda",
         value: pendingRequestsCount,
         hint: "Menunggu persetujuan",
-        icon: <ClockSvg size={22} className="text-[#134E4A]" />,
+        icon: <ClockSvg size={22} className="text-[#1A1A1A]" />,
         accentBg: "bg-[#FF6B6B]",
       },
     ],
@@ -175,7 +176,7 @@ export function AdminDashboardPage() {
   }, [events, searchQuery]);
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={TOAST}>
@@ -185,8 +186,12 @@ export function AdminDashboardPage() {
       )}
 
       {/* Header Halaman */}
-      <div className={`flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center ${CARD}`}>
-        <div>
+      <div className={`relative flex flex-col justify-between gap-4 overflow-hidden p-5 sm:flex-row sm:items-center ${CARD}`}>
+        {/* Dekorasi geometris (murni visual) */}
+        <span aria-hidden="true" className="pointer-events-none absolute -right-3 -top-3 h-12 w-12 rotate-12 border-[3px] border-[#1A1A1A] bg-[#9BE58B]" />
+        <span aria-hidden="true" className="pointer-events-none absolute right-12 top-9 h-0 w-0 border-x-[14px] border-b-[24px] border-x-transparent border-b-[#8FB8FF] sm:right-20" />
+        <span aria-hidden="true" className="pointer-events-none absolute bottom-2 right-3 h-3 w-3 rounded-full bg-[#FF6B6B]" />
+        <div className="relative">
           <h1 className={PAGE_TITLE}>Beranda Admin Tartila</h1>
           <p className={PAGE_SUBTITLE}>
             Ringkasan metrik pengguna, agenda aktif, dan pemantauan aktivitas real-time.
@@ -205,26 +210,26 @@ export function AdminDashboardPage() {
       </div>
 
       {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {statCards.map((card) => (
           <div
             key={card.title}
-            className="flex flex-col justify-between rounded-2xl border-[3px] border-[#134E4A] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#134E4A]"
+            className="flex flex-col justify-between rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] p-3 shadow-[4px_4px_0px_#1A1A1A] sm:p-5"
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-[#134E4A]/70">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10px] font-black uppercase leading-tight tracking-wider text-[#1A1A1A]/70 sm:text-xs">
                 {card.title}
               </span>
-              <div className={`h-10 w-10 ${ICON_BOX} ${card.accentBg}`}>
+              <div className={`h-9 w-9 sm:h-10 sm:w-10 ${ICON_BOX} ${card.accentBg}`}>
                 {card.icon}
               </div>
             </div>
 
-            <div className="mt-4">
-              <span className="font-display text-3xl font-black tabular-nums text-[#134E4A]">
+            <div className="mt-3 sm:mt-4">
+              <span className="inline-flex min-w-[3rem] items-center justify-center rounded-lg border-[2.5px] border-[#1A1A1A] bg-[#FFFBF2] px-2 py-0.5 font-display text-2xl font-black tabular-nums text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] sm:text-3xl">
                 {card.value}
               </span>
-              <p className="mt-0.5 text-[11px] font-bold text-[#134E4A]/60">
+              <p className="mt-2 text-[11px] font-bold leading-snug text-[#1A1A1A]/60">
                 {card.hint}
               </p>
             </div>
@@ -233,19 +238,19 @@ export function AdminDashboardPage() {
       </div>
 
       {/* List Aktivitas Terbaru (daftar berbaris, setara tabel) */}
-      <div className="overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
-        <div className="flex flex-col justify-between gap-3 border-b-[3px] border-[#134E4A] bg-[#F0FDF4] p-4 sm:flex-row sm:items-center sm:p-5">
+      <div className="overflow-hidden rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] shadow-[4px_4px_0px_#1A1A1A]">
+        <div className="flex flex-col justify-between gap-3 border-b-[3px] border-[#1A1A1A] bg-[#FFF4DC] p-4 sm:flex-row sm:items-center sm:p-5">
           <div>
-            <h2 className="font-display text-sm font-black uppercase text-[#134E4A] sm:text-base">
+            <h2 className="font-display text-sm font-black uppercase text-[#1A1A1A] sm:text-base">
               Aktivitas Terbaru
             </h2>
-            <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
+            <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
               Log aktivitas game, kuis, dan aksi belajar santri terkini
             </p>
           </div>
 
           <div className="relative w-full sm:w-64">
-            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#134E4A]/60">
+            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#1A1A1A]/60">
               <Search size={14} />
             </div>
             <input
@@ -260,7 +265,7 @@ export function AdminDashboardPage() {
                 type="button"
                 onClick={() => setSearchQuery("")}
                 aria-label="Bersihkan pencarian"
-                className="absolute inset-y-0 right-2.5 flex items-center text-[#134E4A]/60 hover:text-[#FF6B6B]"
+                className="absolute inset-y-0 right-2.5 flex items-center text-[#1A1A1A]/60 hover:text-[#FF6B6B]"
               >
                 <X size={12} />
               </button>
@@ -270,13 +275,13 @@ export function AdminDashboardPage() {
 
         {filteredEvents.length === 0 ? (
           <div className="px-4 py-12 text-center">
-            <div className={`mx-auto mb-2 h-12 w-12 bg-[#F0FDF4] text-[#134E4A] ${ICON_BOX}`}>
+            <div className={`mx-auto mb-2 h-12 w-12 bg-[#FFF4DC] text-[#1A1A1A] ${ICON_BOX}`}>
               <BookOpen size={24} />
             </div>
-            <p className="text-sm font-black text-[#134E4A]">
+            <p className="text-sm font-black text-[#1A1A1A]">
               Belum ada aktivitas tercatat
             </p>
-            <p className="mt-1 text-xs font-bold text-[#134E4A]/60">
+            <p className="mt-1 text-xs font-bold text-[#1A1A1A]/60">
               Aktivitas belajar santri akan muncul otomatis di sini.
             </p>
           </div>
@@ -300,24 +305,24 @@ export function AdminDashboardPage() {
                   className={`flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center ${LIST_ROW}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`h-9 w-9 bg-[#99F6E4] text-xs font-black text-[#134E4A] ${ICON_BOX}`}>
+                    <div className={`${AVATAR} h-10 w-10 bg-[#9BE58B] text-xs`}>
                       {(evt.username || "S").charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-black text-[#134E4A]">
+                        <span className="text-xs font-black text-[#1A1A1A]">
                           {evt.username || "Santri"}
                         </span>
                         <span className={BADGE_NEUTRAL}>{label}</span>
                       </div>
-                      <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
+                      <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
                         {evt.missionName || "Menyelesaikan sesi belajar"}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between gap-3 text-right sm:justify-end">
-                    <span className="text-[11px] font-bold text-[#134E4A]/60">
+                    <span className="text-[11px] font-bold text-[#1A1A1A]/60">
                       {formattedDate}, {formattedTime}
                     </span>
                     <span

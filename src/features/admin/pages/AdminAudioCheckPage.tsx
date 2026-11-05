@@ -3,7 +3,7 @@ import { CARD, PAGE_SUBTITLE, PAGE_TITLE } from "../styles";
 
 export function AdminAudioCheckPage() {
   return (
-    <div className="space-y-4 pb-12 font-sans font-bold text-[#134E4A]">
+    <div className="space-y-4 pb-12 font-sans font-bold text-[#1A1A1A]">
       <div className={`p-5 ${CARD}`}>
         <h1 className={`${PAGE_TITLE} uppercase tracking-tight`}>
           Cek Audio Manual
