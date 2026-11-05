@@ -147,7 +147,7 @@ export default function ArenaPodiumPage() {
         isDestructive={true}
         onConfirm={() => {
           setShowExitConfirm(false);
-          navigate("/member/ngaji-ceria/games");
+          navigate("/quiz-hub");
         }}
         onCancel={() => setShowExitConfirm(false)}
       />

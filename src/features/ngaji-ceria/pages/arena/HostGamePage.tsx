@@ -348,7 +348,13 @@ export default function HostGamePage() {
       // Bentuk harus sama persis dengan `ArenaQuestionInput` backend Go
       // (lihat normalizeArenaQuestion di arenaRoomService) supaya server
       // tidak menolak batch dan jauh ke soal dummy "soal contoh".
-      const KNOWN_TYPES = ["text", "audio", "fill_blank", "image", "multiple_choice"];
+      const KNOWN_TYPES = [
+        "text",
+        "audio",
+        "fill_blank",
+        "image",
+        "multiple_choice",
+      ];
       const KNOWN_CATEGORIES = ["tilawati", "tajwid", "nabi"];
       return qs.map((q, idx) => {
         const rawType = String(q.type ?? "").toLowerCase();
@@ -508,7 +514,7 @@ export default function HostGamePage() {
           sessionStorage.removeItem("arena_room_id");
           sessionStorage.removeItem(`arena_is_host_${pin}`);
           clearBotSimulatorState();
-          navigate("/member/ngaji-ceria/games");
+          navigate("/quiz-hub");
         }}
         onCancel={() => setShowExitConfirm(false)}
       />
@@ -662,7 +668,10 @@ export default function HostGamePage() {
                           className="p-3.5 rounded-2xl border-[2.5px] border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] text-left text-xs sm:text-sm font-bold shadow-[3px_3px_0px_#134E4A] flex items-start gap-2.5"
                         >
                           <div className="w-7 h-7 rounded-lg bg-[#FEF08A] border-2 border-[#134E4A] flex items-center justify-center shrink-0">
-                            <LightbulbSvg size={15} className="text-[#134E4A]" />
+                            <LightbulbSvg
+                              size={15}
+                              className="text-[#134E4A]"
+                            />
                           </div>
                           <div className="leading-snug">
                             <span className="font-black uppercase text-[10px] tracking-wider block text-[#0F766E]">

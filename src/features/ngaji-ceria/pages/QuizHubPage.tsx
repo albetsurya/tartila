@@ -47,7 +47,10 @@ const DropletSvg: React.FC<{ size?: number; className?: string }> = ({
     className={className}
     aria-hidden="true"
   >
-    <path d="M15 4.5L20.8 10.3a8.2 8.2 0 11-11.6 0L15 4.5z" fill="#134E4A" />
+    <path
+      d="M15 4.5L20.8 10.3a8.2 8.2 0 11-11.6 0L15 4.5z"
+      fill="#134E4A"
+    />
     <path
       d="M13.5 3L19.3 8.8a8.2 8.2 0 11-11.6 0L13.5 3z"
       fill="#38BDF8"

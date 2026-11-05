@@ -154,6 +154,12 @@ export default function RoomLobbyPage() {
   );
   const [showProfileSheet, setShowProfileSheet] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  // P0 Late Join: user yang membuka lobi saat room sedang berjalan tidak
+  // boleh langsung masuk gameplay (guideline §2.5 / §12.3) — tolak.
+  const [showLateJoinModal, setShowLateJoinModal] = useState(false);
+  // Tersimpan false bila poll pertama sudah melihat status "playing":
+  // tandanya pengguna ini bergabung telat, bukan peserta dari awal.
+  const joinedEarlyRef = useRef(false);
 
   // Nama yang dipilih di sheet profil adalah nama yang ikut handshake
   // WebSocket, jadi samakan juga dengan yang tersimpan di sessionStorage.
@@ -303,6 +309,10 @@ export default function RoomLobbyPage() {
     const MAX_FAILURES = 5;
 
     const schedule = (delay: number) => {
+      // Hentikan timeout terjadwal SEBELUM mengubah `alive` supaya poll yang
+      // sudah lewat jalur hang tidak menyeberangnya lagi.
+      if (timer) clearTimeout(timer);
+      timer = null;
       if (!alive) return;
       // Jaring pengaman terakhir: begitu rute berpindah ke layar game/podium,
       // jangan pernah menjadwalkan poll baru lagi.
@@ -313,10 +323,17 @@ export default function RoomLobbyPage() {
         alive = false;
         return;
       }
-      if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         void poll();
       }, delay);
+    };
+
+    const stopPolling = () => {
+      // P1 ClearTimeout race: batalkan timeout terjadwal terlebih dahulu,
+      // baru tandai tidak hidup.
+      if (timer) clearTimeout(timer);
+      timer = null;
+      alive = false;
     };
 
     const poll = async () => {
@@ -343,12 +360,19 @@ export default function RoomLobbyPage() {
             setSelectedTheme(found.theme);
           }
           if (found.status === "playing") {
-            // Permainan sudah dimulai: hentikan polling sekarang, jangan
-            // menunggu cleanup, supaya tidak ada request sisa.
-            setShowCountdown(true);
-            alive = false;
+            // P0 Auto-Start: JANGAN panggil setShowCountdown di sini. Host
+            // yang memulai lewat tombol; pengguna dalam lobi masuk Game lewat
+            // efek status "playing" di bawah, late joiner ditolak.
+            if (isHost || joinedEarlyRef.current) {
+              stopPolling();
+            } else {
+              stopPolling();
+              setShowLateJoinModal(true);
+            }
             return;
           }
+          // Bergabung sebelum permainan dimulai: peserta sah.
+          joinedEarlyRef.current = true;
         }
         setPlayers(() => {
           if (pendingReadyRef.current !== null && myPlayerIdRef.current) {
@@ -365,7 +389,7 @@ export default function RoomLobbyPage() {
         if (!alive) return;
         failures += 1;
         if (failures >= MAX_FAILURES) {
-          alive = false;
+          stopPolling();
           setLoading(false);
           setErrorMsg(
             err instanceof Error
@@ -383,10 +407,9 @@ export default function RoomLobbyPage() {
 
     void poll();
     return () => {
-      alive = false;
-      if (timer) clearTimeout(timer);
+      stopPolling();
     };
-  }, [pin, showCountdown]);
+  }, [pin, showCountdown, isHost]);
 
   const currentThemeInfo = useMemo(() => {
     return QUIZ_HUB_CATEGORIES.find((c) => c.id === selectedTheme);
@@ -404,12 +427,17 @@ export default function RoomLobbyPage() {
   };
 
   useEffect(() => {
-    if (room?.status === "playing") {
+    if (!room || room?.status !== "playing") return;
+    // P0 Late Join: hanya melihat status menuju "playing" untuk peserta yang
+    // sudah jauh sebelumnya; tersinggung dilakar (modal) & kembali ke quiz hub.
+    if (isHost || joinedEarlyRef.current) {
       navigate(isHost ? `/arena/host/game/${pin}` : `/arena/play/${pin}`, {
         replace: true,
       });
+    } else {
+      setShowLateJoinModal(true);
     }
-  }, [room?.status, isHost, pin, navigate]);
+  }, [room, isHost, pin, navigate]);
 
   const handleStartGame = async () => {
     if (!room || !isHost || isStarting || !canStartGame) return;
@@ -611,10 +639,40 @@ export default function RoomLobbyPage() {
           sessionStorage.removeItem("arena_player_name");
           resetBots();
           clearBotSimulatorState();
-          navigate("/member/ngaji-ceria/games");
+          navigate("/quiz-hub");
         }}
         onCancel={() => setShowExitConfirm(false)}
       />
+
+      {/* P0 Late Join: modal penolakan ketika room sedang berjalan */}
+      {showLateJoinModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-3xl border-[4px] border-[#134E4A] bg-white p-6 text-center shadow-[8px_8px_0px_#134E4A] space-y-4 animate-in zoom-in-95">
+            <div className="w-14 h-14 mx-auto rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] flex items-center justify-center text-[#134E4A] shadow-[3px_3px_0px_#134E4A]">
+              <AlertTriangleSvg size={28} />
+            </div>
+            <h3 className="font-display text-xl font-black text-[#134E4A]">
+              Room Sudah Berjalan
+            </h3>
+            <p className="text-sm font-bold text-[#134E4A]/80 leading-relaxed">
+              Permainan sudah dimulai Host, kamu tidak bisa bergabung di tengah
+              sesi.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLateJoinModal(false);
+                sessionStorage.removeItem("arena_player_id");
+                sessionStorage.removeItem(`arena_is_host_${pin}`);
+                navigate("/quiz-hub");
+              }}
+              className="w-full py-3 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+            >
+              Kembali ke Quiz Hub
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="relative min-h-[calc(100dvh-3.5rem)] bg-[#F0FDF4]">
         {/* Latar Action Halftone & Diagonal Speed-Lines */}

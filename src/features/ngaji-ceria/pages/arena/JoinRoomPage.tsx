@@ -94,7 +94,7 @@ export default function JoinRoomPage() {
     <NgajiCeriaLayout
       title="Masuk Tartila Arena"
       showBack={true}
-      onBack={() => navigate("/member/ngaji-ceria/games")}
+      onBack={() => navigate("/quiz-hub")}
     >
       <div className="max-w-md mx-auto px-4 py-8 space-y-6">
         {/* Maskot Tito Menyapa Santri */}
