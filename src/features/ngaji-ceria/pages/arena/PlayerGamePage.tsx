@@ -1,9 +1,8 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { soundManager } from "../../services/soundManager";
 import {
-  Volume2,
   AlertCircle,
   CheckSvg,
   XSvg,
@@ -14,17 +13,35 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ArenaSocket } from "../../services/arenaSocket";
 import { arenaRoomService } from "@/services/arenaRoomService";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
-import { getAudioUrl } from "../../utils/audioUrl";
 import LeaderboardModal, {
   type LeaderboardEntry,
 } from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
+import { ArenaQuestionStage } from "../../components/multiplayer/ArenaQuestionStage";
+import {
+  MultiplayerAvatar,
+  loadMultiplayerProfile,
+} from "../../components/multiplayer/MultiplayerSetupSheet";
 
-const OPTION_BADGE_STYLES = [
-  { letter: "A", badgeBg: "bg-[#FEE2E2]" },
-  { letter: "B", badgeBg: "bg-[#DBEAFE]" },
-  { letter: "C", badgeBg: "bg-[#FEF3C7]" },
-  { letter: "D", badgeBg: "bg-[#D1FAE5]" },
-];
+/**
+ * Soal HANYA dari broadcast Host. Soal "dummy" server (mis. "Pilih jawaban
+ * benar untuk soal contoh N" dengan opsi kosong) ditolak: prompt wajib ada
+ * dan minimal satu opsi berisi teks/Arab. Bila invalid, Player tetap di
+ * layar loading sampai `room_state` mengirim soal yang benar.
+ */
+function pickValidQuestion(input: any): ClientQuestionPayload | null {
+  if (!input) return null;
+  const prompt = String(input.prompt || input.questionText || input.title || "");
+  if (!prompt.trim()) return null;
+  const options = Array.isArray(input.options) ? input.options : [];
+  const hasRealOption = options.some((opt: any) =>
+    typeof opt === "string"
+      ? opt.trim().length > 0
+      : String(opt?.text ?? "").trim().length > 0 ||
+        String(opt?.arabic ?? "").trim().length > 0,
+  );
+  if (!hasRealOption) return null;
+  return input as ClientQuestionPayload;
+}
 
 export default function PlayerGamePage() {
   const { pin } = useParams<{ pin: string }>();
@@ -38,40 +55,21 @@ export default function PlayerGamePage() {
     }
     return pid;
   });
+  const profile = useMemo(() => loadMultiplayerProfile(), []);
   const [nickname] = useState(
-    () => sessionStorage.getItem("arena_player_name") || "Santri",
+    () =>
+      sessionStorage.getItem("arena_player_name") ||
+      profile?.displayName ||
+      "Santri",
   );
+  const avatarId = profile?.avatarId || "boy-peci";
 
-  const [question, setQuestion] = useState<ClientQuestionPayload | null>(() => {
-    try {
-      const raw = sessionStorage.getItem("tartila_arena_start_state");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.question) return parsed.question;
-      }
-    } catch {}
-    return null;
-  });
-  const [questionIndex, setQuestionIndex] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem("tartila_arena_start_state");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.questionIndex !== undefined) return parsed.questionIndex;
-      }
-    } catch {}
-    return 0;
-  });
-  const [totalQuestions, setTotalQuestions] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem("tartila_arena_start_state");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.totalQuestions) return parsed.totalQuestions;
-      }
-    } catch {}
-    return 0;
-  });
+  // Soal HANYA berasal dari server (broadcast Host). Tidak ada soal contoh dan
+  // tidak ada soal yang dibuat sendiri di sisi santri, supaya teks soal serta
+  // pilihan A-D selalu sama dengan layar Host.
+  const [question, setQuestion] = useState<ClientQuestionPayload | null>(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -84,8 +82,6 @@ export default function PlayerGamePage() {
   const totalScoreRef = useRef(0);
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [explanation, setExplanation] = useState("");
-  const [violations, setViolations] = useState(0);
-  const [warningModal, setWarningModal] = useState<string | null>(null);
   const [disqualified, setDisqualified] = useState(false);
   const [showBackModal, setShowBackModal] = useState(false);
   const [hostDisconnected, setHostDisconnected] = useState(false);
@@ -103,12 +99,6 @@ export default function PlayerGamePage() {
 
   const socketRef = useRef<ArenaSocket | null>(null);
   const hostDisconnectedRef = useRef(false);
-
-  // Anti-Cheat: Record Tab Switch
-  const handleTabSwitch = useCallback(() => {
-    if (disqualified || hostDisconnectedRef.current) return;
-    socketRef.current?.recordViolation();
-  }, [disqualified]);
 
   useEffect(() => {
     if (!pin) return;
@@ -130,9 +120,6 @@ export default function PlayerGamePage() {
           setTotalScore(state.myScore);
           totalScoreRef.current = state.myScore;
         }
-        if (state.violations !== undefined) {
-          setViolations(state.violations);
-        }
         if (state.disqualified) {
           setDisqualified(true);
         }
@@ -149,6 +136,8 @@ export default function PlayerGamePage() {
           return;
         }
         if (state.currentQuestion) {
+          const incoming = pickValidQuestion(state.currentQuestion);
+          if (!incoming) return;
           setSocketError(null);
           setQuestionTimedOut(false);
           setQuestion((prev) => {
@@ -176,7 +165,6 @@ export default function PlayerGamePage() {
         setGamePhase("REVEAL_ANSWER");
         setIsLocked(true);
         setHasAnswered(true);
-        setWarningModal(null);
         setCorrectAnswer(data.correctAnswer);
         setExplanation(data.explanation || "");
         setTimeLeft(0);
@@ -210,9 +198,16 @@ export default function PlayerGamePage() {
         setShowLeaderboard(true);
       },
       onGameStarted: (data) => {
+        const incoming = pickValidQuestion(
+          data.question ||
+            (Array.isArray((data as any).questions)
+              ? (data as any).questions[data.questionIndex ?? 0]
+              : null),
+        );
+        if (!incoming) return;
         setSocketError(null);
         setQuestionTimedOut(false);
-        setQuestion(data.question);
+        setQuestion(incoming);
         setQuestionIndex(data.questionIndex ?? 0);
         setTotalQuestions(data.totalQuestions ?? 1);
         setTimeLimit(data.timeLimit || 20);
@@ -228,9 +223,16 @@ export default function PlayerGamePage() {
         setShowLeaderboard(false);
       },
       onNextQuestion: (data) => {
+        const incoming = pickValidQuestion(
+          data.question ||
+            (Array.isArray((data as any).questions)
+              ? (data as any).questions[data.questionIndex ?? 0]
+              : null),
+        );
+        if (!incoming) return;
         setSocketError(null);
         setQuestionTimedOut(false);
-        setQuestion(data.question);
+        setQuestion(incoming);
         setQuestionIndex(data.questionIndex);
         setTotalQuestions(data.totalQuestions);
         setTimeLimit(data.timeLimit || 20);
@@ -264,17 +266,6 @@ export default function PlayerGamePage() {
         setHostDisconnected(true);
         socketRef.current?.disconnect();
       },
-      onViolationWarning: (data) => {
-        setViolations(data.violations);
-        setWarningModal(
-          data.autoSubmitted
-            ? "Kamu telah melanggar 3x berpindah tab. Sesi ujian kamu dihentikan otomatis!"
-            : `Peringatan (${data.violations}/3): Jangan tinggalkan layar ujian!`,
-        );
-        if (data.autoSubmitted) {
-          setDisqualified(true);
-        }
-      },
       onPhaseChanged: (data) => {
         if (data.phase === "COUNTDOWN") {
           setGamePhase("COUNTDOWN");
@@ -289,23 +280,15 @@ export default function PlayerGamePage() {
           err || "Koneksi terputus. Server arena tidak dapat dijangkau.",
         );
       },
-    });
+    }, { nickname, avatarId });
 
     socket.connect();
     socketRef.current = socket;
 
-    const onVisibilityChange = () => {
-      if (document.hidden) {
-        handleTabSwitch();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
     return () => {
       socket.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [pin, playerId, nickname, navigate, handleTabSwitch]);
+  }, [pin, playerId, nickname, navigate]);
 
   // Watchdog: jangan biarkan layar "Menyiapkan soal..." berputar selamanya
   // bila socket tersambung tetapi server tidak pernah mengirim soal.
@@ -319,7 +302,9 @@ export default function PlayerGamePage() {
     ) {
       return;
     }
-    const timer = setTimeout(() => setQuestionTimedOut(true), 12000);
+    // 5 detik: cukup untuk handshake + broadcast Host, tapi tidak membuat
+    // santri menatap layar kosong terlalu lama.
+    const timer = setTimeout(() => setQuestionTimedOut(true), 5000);
     return () => clearTimeout(timer);
   }, [question, socketError, hostDisconnected, disqualified, gamePhase]);
 
@@ -436,6 +421,13 @@ export default function PlayerGamePage() {
       );
     },
   );
+  const canAnswer =
+    !isLocked &&
+    !disqualified &&
+    timeLeft > 0 &&
+    gamePhase === "QUESTION_ACTIVE" &&
+    Boolean(question);
+
   const correctAnswerText = correctOptionObj
     ? typeof correctOptionObj === "string"
       ? correctOptionObj
@@ -458,13 +450,16 @@ export default function PlayerGamePage() {
           >
             <ChevronLeftSvg size={18} />
           </button>
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block leading-tight">
-              Santri
-            </span>
-            <span className="font-black text-sm text-[#134E4A] leading-none">
-              {nickname}
-            </span>
+          <div className="flex items-center gap-2">
+            <MultiplayerAvatar avatarId={avatarId} size={30} />
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block leading-tight">
+                Santri
+              </span>
+              <span className="font-black text-sm text-[#134E4A] leading-none">
+                {nickname}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -514,167 +509,24 @@ export default function PlayerGamePage() {
 
       {/* Konten Utama Layar Santri */}
       <main className="flex-1 w-full max-w-lg mx-auto p-3.5 sm:p-4 flex flex-col justify-between gap-3.5 overflow-y-auto">
-        {/* Banner Kartu Soal */}
+        {/* Panggung soal bersama Host & Player: satu komponen, satu tampilan */}
         {question ? (
-          <div className="rounded-2xl border-[3px] border-[#134E4A] bg-white p-4 shadow-[4px_4px_0px_#134E4A] text-center space-y-2 shrink-0">
-            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60">
-              <span className="px-2 py-0.5 rounded bg-[#FEF08A] border border-[#134E4A] text-[#134E4A]">
-                Soal {questionIndex + 1}
-              </span>
-              <span className="px-2 py-0.5 rounded bg-[#CCFBF1] border border-[#134E4A] text-[#134E4A]">
-                {question.category || "Tilawati"}
-              </span>
-            </div>
-
-            <h2 className="text-base sm:text-lg font-black text-[#134E4A] leading-snug">
-              {question.prompt}
-            </h2>
-
-            {question.arabicPrompt && (
-              <p
-                dir="rtl"
-                className="font-arabic text-2xl sm:text-3xl font-black text-[#0D9488] leading-relaxed pt-1"
-              >
-                {question.arabicPrompt}
-              </p>
-            )}
-
-            {question.audioUrl && (
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const audio = new Audio(
-                      getAudioUrl(question.audioUrl) ?? question.audioUrl,
-                    );
-                    audio.play().catch(() => {});
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] hover:bg-[#FDE047] text-[#134E4A] font-black text-xs shadow-[2px_2px_0px_#134E4A] inline-flex items-center gap-1.5 active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
-                >
-                  <Volume2 size={15} />
-                  <span>Putar Audio</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <ArenaQuestionStage
+            question={question}
+            questionIndex={questionIndex}
+            totalQuestions={totalQuestions}
+            selectedOptionId={selectedAnswer}
+            revealed={gamePhase === "REVEAL_ANSWER" || gamePhase === "LEADERBOARD"}
+            correctAnswer={activeCorrectAnswer}
+            disabled={!canAnswer}
+            onSelect={handleSelectOption}
+          />
         ) : (
           <div className="py-12 text-center space-y-3">
             <div className="w-10 h-10 border-4 border-[#0D9488] border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="font-display text-sm font-black text-[#134E4A]">
-              Menyiapkan soal ujian...
+              Menyiapkan soal...
             </p>
-          </div>
-        )}
-
-        {/* Daftar Opsi Jawaban (Neo-Brutalism & Sinkron Multi-Device) */}
-        {question?.options && question.options.length > 0 && (
-          <div className="grid grid-cols-1 gap-2.5 w-full shrink-0">
-            {question.options.map((opt: any, idx: number) => {
-              const letter =
-                OPTION_BADGE_STYLES[idx % OPTION_BADGE_STYLES.length]?.letter ||
-                String.fromCharCode(65 + idx);
-              const badgeStyle =
-                OPTION_BADGE_STYLES[idx % OPTION_BADGE_STYLES.length];
-              const optId = opt.id || letter;
-              const optText = typeof opt === "string" ? opt : opt.text;
-              const optArabic = typeof opt === "object" ? opt.arabic : null;
-
-              const isSelected = selectedAnswer === optId;
-              const isCorrectOption =
-                gamePhase === "REVEAL_ANSWER" &&
-                (optId === activeCorrectAnswer ||
-                  optText === activeCorrectAnswer ||
-                  opt.isCorrect ||
-                  (typeof activeCorrectAnswer === "string" &&
-                    optId.toLowerCase() ===
-                      activeCorrectAnswer.toLowerCase()));
-              const isUserWrongChoice =
-                gamePhase === "REVEAL_ANSWER" && isSelected && !isCorrectOption;
-
-              const isTimeUp = timeLeft <= 0;
-              const isAnswerLocked = isLocked || isTimeUp;
-              const canClick =
-                !isAnswerLocked &&
-                Boolean(question) &&
-                !disqualified &&
-                gamePhase !== "REVEAL_ANSWER" &&
-                gamePhase !== "LEADERBOARD";
-
-              let cardStyle =
-                "bg-white border-[#134E4A] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A]";
-              if (gamePhase === "REVEAL_ANSWER") {
-                if (isCorrectOption) {
-                  cardStyle =
-                    "bg-[#D1FAE5] border-[#10B981] border-[3.5px] ring-4 ring-[#10B981] text-[#134E4A] shadow-[4px_4px_0px_#10B981] scale-[1.01]";
-                } else if (isUserWrongChoice) {
-                  cardStyle =
-                    "bg-[#FEE2E2] border-[#EF4444] border-[3.5px] ring-4 ring-[#EF4444] text-[#134E4A] shadow-[4px_4px_0px_#EF4444]";
-                } else {
-                  cardStyle =
-                    "bg-gray-50 border-[#134E4A]/30 text-[#134E4A]/50 opacity-40 shadow-none";
-                }
-              } else if (isSelected) {
-                cardStyle =
-                  "bg-[#CCFBF1] border-[#0D9488] border-[3.5px] ring-4 ring-[#0D9488] text-[#134E4A] shadow-[4px_4px_0px_#0D9488] scale-[1.01]";
-              } else if (isAnswerLocked) {
-                cardStyle =
-                  "bg-white/80 border-[#134E4A]/50 text-[#134E4A]/60 opacity-60 shadow-none";
-              } else {
-                cardStyle =
-                  "bg-white hover:bg-[#F0FDF4] border-[#134E4A] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A]";
-              }
-
-              return (
-                <button
-                  key={optId || idx}
-                  type="button"
-                  disabled={!canClick}
-                  onClick={() => handleSelectOption(optId)}
-                  className={`w-full p-3.5 sm:p-4 rounded-2xl border-[3px] flex items-center justify-between gap-3 text-left transition-all ${cardStyle} ${
-                    canClick
-                      ? "cursor-pointer active:translate-y-[2px] active:shadow-none"
-                      : "cursor-default"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span
-                      className={`w-9 h-9 rounded-xl border-[2.5px] border-[#134E4A] ${badgeStyle?.badgeBg || "bg-[#FEF3C7]"} text-[#134E4A] font-display text-base font-black flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]`}
-                    >
-                      {letter}
-                    </span>
-
-                    <span className="font-black text-sm sm:text-base leading-snug break-words">
-                      {optText}
-                    </span>
-                  </div>
-
-                  {optArabic && (
-                    <span
-                      dir="rtl"
-                      className="font-arabic text-xl sm:text-2xl text-[#0D9488] leading-relaxed shrink-0 pl-2"
-                    >
-                      {optArabic}
-                    </span>
-                  )}
-
-                  {/* Lencana Reveal Jawaban */}
-                  {gamePhase === "REVEAL_ANSWER" && (
-                    <div className="shrink-0 flex items-center">
-                      {isCorrectOption && (
-                        <span className="px-2.5 py-1 rounded-lg border-2 border-[#134E4A] bg-[#10B981] text-white text-[11px] font-black inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#134E4A]">
-                          <CheckSvg size={14} /> Benar
-                        </span>
-                      )}
-                      {isUserWrongChoice && (
-                        <span className="px-2.5 py-1 rounded-lg border-2 border-[#134E4A] bg-[#EF4444] text-white text-[11px] font-black inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#134E4A]">
-                          <XSvg size={14} /> Pilihanmu
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
           </div>
         )}
 
@@ -836,43 +688,6 @@ export default function PlayerGamePage() {
             >
               Kembali ke Menu
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Peringatan Anti-Cheat Pelanggaran Tab */}
-      {warningModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl border-[4px] border-[#134E4A] bg-white p-6 text-center shadow-[8px_8px_0px_#134E4A] space-y-4">
-            <div className="w-16 h-16 rounded-full bg-rose-100 border-[3px] border-[#134E4A] flex items-center justify-center mx-auto text-rose-600">
-              <AlertCircle size={32} />
-            </div>
-            <h3 className="font-display text-xl font-black text-[#134E4A]">
-              Peringatan Anti-Cheat!
-            </h3>
-            <p className="text-sm font-bold text-[#134E4A]/80 leading-relaxed">
-              {warningModal}
-            </p>
-            <div className="p-2 rounded-xl bg-amber-100 border border-[#134E4A] text-xs font-black text-amber-900">
-              Pelanggaran: {violations} dari batas 3x
-            </div>
-            {!disqualified ? (
-              <button
-                type="button"
-                onClick={() => setWarningModal(null)}
-                className="w-full py-3 rounded-2xl border-2 border-[#134E4A] bg-[#0D9488] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all cursor-pointer"
-              >
-                Kembali ke Ujian
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => navigate("/member/ngaji-ceria")}
-                className="w-full py-3 rounded-2xl border-2 border-[#134E4A] bg-[#EF4444] text-white font-black text-sm shadow-[3px_3px_0px_#134E4A] active:scale-95 transition-all cursor-pointer"
-              >
-                Keluar Arena
-              </button>
-            )}
           </div>
         </div>
       )}

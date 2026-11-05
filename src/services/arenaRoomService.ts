@@ -419,10 +419,13 @@ export const arenaRoomService = {
 
     if (isSupabaseConfigured) {
       try {
+        // Filter dipisah: `id` bertipe UUID dan `pin` teks. Memakai
+        // `or=(pin.eq.X,id.eq.Y)` membuat PostgREST gagal parse Y sebagai UUID
+        // ketika dikalikan dengan penambahan UUID (400 Bad Request).
         await supabase
           .from("rooms")
           .update({ title: theme })
-          .or(`pin.eq.${key},id.eq.${key}`);
+          .eq(UUID_RE.test(key) ? "id" : "pin", key);
       } catch (err) {
         console.warn("Update room theme Supabase warning:", err);
       }
@@ -457,10 +460,11 @@ export const arenaRoomService = {
 
     if (isSupabaseConfigured) {
       try {
+        // Alasan `.eq` terpisah sama seperti updateRoomTheme di atas.
         await supabase
           .from("rooms")
           .update({ status: "waiting", current_question_index: 0 })
-          .or(`pin.eq.${key},id.eq.${key}`);
+          .eq(UUID_RE.test(key) ? "id" : "pin", key);
         await supabase
           .from("room_players")
           .update({ score: 0, is_ready: false })

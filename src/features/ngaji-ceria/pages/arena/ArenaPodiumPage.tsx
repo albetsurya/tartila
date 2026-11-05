@@ -1,12 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { TrophySvg, SparklesSvg, CrownSvg, ChartBarSvg, WhatsAppSvg } from "@/components/ui/CustomIcons";
+import {
+  TrophySvg,
+  SparklesSvg,
+  CrownSvg,
+  ChartBarSvg,
+  WhatsAppSvg,
+} from "@/components/ui/CustomIcons";
 import { TilaMascot } from "@/components/ui/TilaMascot";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { arenaRoomService } from "@/services/arenaRoomService";
+import {
+  MultiplayerAvatar,
+  loadMultiplayerProfile,
+} from "../../components/multiplayer/MultiplayerSetupSheet";
+
+interface PodiumEntry {
+  playerId?: string;
+  id?: string;
+  rank: number;
+  nickname: string;
+  score: number;
+  passed?: boolean;
+  violations?: number;
+  avatarId?: string;
+}
+
+/** Nama yang tidak membawa informasi (kosong atau default server lama). */
+function isPlaceholderName(name?: string): boolean {
+  const value = (name || "").trim();
+  if (!value) return true;
+  const lowered = value.toLowerCase();
+  return lowered === "pemain" || lowered === "player" || lowered === "santri";
+}
 
 export default function ArenaPodiumPage() {
   const { pin } = useParams<{ pin: string }>();
@@ -14,20 +43,62 @@ export default function ArenaPodiumPage() {
   const location = useLocation();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  const profile = useMemo(() => loadMultiplayerProfile(), []);
+  const myPlayerId = useMemo(() => {
+    try {
+      return sessionStorage.getItem("arena_player_id");
+    } catch {
+      return null;
+    }
+  }, []);
+
   const state = (location.state as any) || {};
-  const leaderboard: Array<{
-    rank: number;
-    nickname: string;
-    score: number;
-    passed?: boolean;
-    violations?: number;
-  }> = state.leaderboard || [
-    { rank: 1, nickname: "Ahmad Fauzi", score: 9800, passed: true },
-    { rank: 2, nickname: "Siti Nurhaliza", score: 9200, passed: true },
-    { rank: 3, nickname: "Rizky Pratama", score: 8500, passed: true },
-    { rank: 4, nickname: "Aisyah Zahra", score: 7200, passed: false },
-    { rank: 5, nickname: "Bilal", score: 6800, passed: false },
-  ];
+  const myNameFromProfile =
+    state.myName ||
+    profile?.displayName ||
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("arena_player_name")
+      : null) ||
+    "Santri";
+  const myAvatarId = profile?.avatarId || "boy-peci";
+
+  // Nama & avatar diambil dari leaderboard server (sudah membawa nickname dan
+  // avatarId hasil pilihan di lobi). Tidak ada lagi daftar nama contoh dan
+  // tidak ada label "Pemain" untuk santri yang sudah punya profil.
+  const leaderboard: PodiumEntry[] = useMemo(() => {
+    const raw: PodiumEntry[] = Array.isArray(state.leaderboard)
+      ? state.leaderboard
+      : [];
+
+    if (raw.length === 0) {
+      return [
+        {
+          rank: 1,
+          nickname: myNameFromProfile,
+          score: state.myScore ?? 0,
+          passed: true,
+          avatarId: myAvatarId,
+        },
+      ];
+    }
+
+    return raw.map((entry, idx) => {
+      const mine =
+        Boolean(myPlayerId && entry.playerId === myPlayerId) ||
+        (state.myName ? entry.nickname === state.myName : false);
+      const nickname = isPlaceholderName(entry.nickname)
+        ? mine
+          ? myNameFromProfile
+          : `Santri ${entry.rank || idx + 1}`
+        : entry.nickname;
+      return {
+        ...entry,
+        nickname,
+        rank: entry.rank || idx + 1,
+        avatarId: entry.avatarId || (mine ? myAvatarId : undefined),
+      };
+    });
+  }, [state.leaderboard, state.myName, state.myScore, myPlayerId, myNameFromProfile, myAvatarId]);
 
   const kkm = state.kkm || 75;
 
@@ -40,7 +111,7 @@ export default function ArenaPodiumPage() {
     state.myRank ??
     (state.myName
       ? (leaderboard.find((p) => p.nickname === state.myName)?.rank ?? 1)
-      : 1);
+      : (leaderboard.find((p) => p.nickname === myNameFromProfile)?.rank ?? 1));
 
   useEffect(() => {
     if (myRank === 1) {
@@ -90,7 +161,8 @@ export default function ArenaPodiumPage() {
             Podium Juara Tartila Arena
           </h1>
           <p className="text-sm font-bold text-[#134E4A]/70">
-            Selamat kepada seluruh santri yang telah berjuang dan menunjukkan adab terbaik!
+            Selamat kepada seluruh santri yang telah berjuang dan menunjukkan
+            adab terbaik!
           </p>
         </div>
 
@@ -99,7 +171,11 @@ export default function ArenaPodiumPage() {
           {/* JUARA 2 (Perak) */}
           {secondPlace && (
             <div className="flex-1 flex flex-col items-center">
-              <span className="text-xs font-black text-[#134E4A] mb-1 truncate max-w-[100px] text-center">
+              <MultiplayerAvatar
+                avatarId={secondPlace.avatarId || "boy-peci"}
+                size={44}
+              />
+              <span className="text-xs font-black text-[#134E4A] mt-1 mb-0.5 truncate max-w-[100px] text-center">
                 {secondPlace.nickname}
               </span>
               <span className="text-xs font-black text-[#0D9488] mb-2">
@@ -120,9 +196,20 @@ export default function ArenaPodiumPage() {
           {firstPlace && (
             <div className="flex-1 flex flex-col items-center -mt-6">
               <div className="mb-1">
-                <TilaMascot size={64} mood="excited" animation="bounce" direction="front" />
+                <TilaMascot
+                  size={64}
+                  mood="excited"
+                  animation="bounce"
+                  direction="front"
+                />
               </div>
-              <span className="text-sm font-black text-[#134E4A] mb-1 truncate max-w-[120px] text-center inline-flex items-center justify-center gap-1">
+              <div className="mb-1">
+                <MultiplayerAvatar
+                  avatarId={firstPlace.avatarId || myAvatarId}
+                  size={52}
+                />
+              </div>
+              <span className="text-sm font-black text-[#134E4A] mb-0.5 truncate max-w-[120px] text-center inline-flex items-center justify-center gap-1">
                 <CrownSvg size={16} /> {firstPlace.nickname}
               </span>
               <span className="text-sm font-black text-[#D97706] mb-2">
@@ -142,7 +229,11 @@ export default function ArenaPodiumPage() {
           {/* JUARA 3 (Perunggu) */}
           {thirdPlace && (
             <div className="flex-1 flex flex-col items-center">
-              <span className="text-xs font-black text-[#134E4A] mb-1 truncate max-w-[100px] text-center">
+              <MultiplayerAvatar
+                avatarId={thirdPlace.avatarId || "girl-hairbow"}
+                size={44}
+              />
+              <span className="text-xs font-black text-[#134E4A] mt-1 mb-0.5 truncate max-w-[100px] text-center">
                 {thirdPlace.nickname}
               </span>
               <span className="text-xs font-black text-[#0D9488] mb-2">
@@ -168,7 +259,10 @@ export default function ArenaPodiumPage() {
               triggerBibiReaction("click");
               soundManager.playSfx("tap");
               const text = `Aku baru saja menyelesaikan Tartila Arena! Aku mendapat peringkat ${myRank} dengan skor ${myScore}. Ayo ikut keseruannya di Tartila!`;
-              window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(text)}`,
+                "_blank",
+              );
             }}
             className="inline-flex items-center justify-center gap-2 w-full sm:w-auto py-4 px-6 rounded-2xl border-[3px] border-[#134E4A] bg-[#25D366] text-white font-black text-base shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-[2px_2px_0px_#134E4A] transition-all"
           >
@@ -199,13 +293,22 @@ export default function ArenaPodiumPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#134E4A]/10">
-                {leaderboard.map((player) => (
-                  <tr key={player.nickname} className="hover:bg-[#F0FDF4] transition-colors">
+                {leaderboard.map((player, idx) => (
+                  <tr
+                    key={`${player.playerId || player.id || player.nickname}-${idx}`}
+                    className="hover:bg-[#F0FDF4] transition-colors"
+                  >
                     <td className="py-3 px-3 font-display font-black">
                       #{player.rank}
                     </td>
                     <td className="py-3 px-3 font-black">
-                      {player.nickname}
+                      <div className="flex items-center gap-2">
+                        <MultiplayerAvatar
+                          avatarId={player.avatarId || "boy-peci"}
+                          size={28}
+                        />
+                        <span className="truncate">{player.nickname}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-3 text-right font-display font-black text-[#0D9488]">
                       {player.score} pts

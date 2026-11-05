@@ -155,6 +155,17 @@ export default function RoomLobbyPage() {
   const [showProfileSheet, setShowProfileSheet] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  // Nama yang dipilih di sheet profil adalah nama yang ikut handshake
+  // WebSocket, jadi samakan juga dengan yang tersimpan di sessionStorage.
+  useEffect(() => {
+    if (!profile?.displayName) return;
+    try {
+      sessionStorage.setItem("arena_player_name", profile.displayName);
+    } catch {
+      /* sessionStorage tidak tersedia */
+    }
+  }, [profile]);
+
   const { bots, addBot, removeBot, reset: resetBots } = useBotSimulator();
 
   const pendingReadyRef = useRef<boolean | null>(null);
@@ -293,6 +304,15 @@ export default function RoomLobbyPage() {
 
     const schedule = (delay: number) => {
       if (!alive) return;
+      // Jaring pengaman terakhir: begitu rute berpindah ke layar game/podium,
+      // jangan pernah menjadwalkan poll baru lagi.
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.includes(`/arena/lobby/${pin}`)
+      ) {
+        alive = false;
+        return;
+      }
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         void poll();
@@ -423,6 +443,19 @@ export default function RoomLobbyPage() {
         sessionStorage.setItem(`arena_theme_${pin}`, selectedTheme);
       } catch {
         /* ignore */
+      }
+
+      // Salinan soal untuk tab Host sendiri (sessionStorage). RPC
+      // room_questions tidak mengembalikan kunci jawaban, jadi tab Host butuh
+      // salinan ini agar pembahasan menampilkan kunci yang benar. Tab santri
+      // tidak memiliki salinan ini dan hanya menerima soal dari server.
+      try {
+        sessionStorage.setItem(
+          `arena_questions_${pin}`,
+          JSON.stringify(hubQuestions),
+        );
+      } catch {
+        /* sessionStorage penuh / privat: pembahasan memakai data server */
       }
 
       const started = await arenaRoomService.startGame(room.id, pin);
@@ -933,11 +966,15 @@ export default function RoomLobbyPage() {
                   type="button"
                   disabled={isStarting || !canStartGame}
                   onClick={handleStartGame}
-                  className="flex-1 sm:flex-initial sm:px-6 py-2.5 rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-xs uppercase shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 sm:flex-initial sm:px-6 py-2.5 rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-xs uppercase shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all disabled:bg-gray-300 disabled:text-[#134E4A]/50 disabled:shadow-none flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <RocketSvg size={15} />
                   <span>
-                    {isStarting ? "Memulai..." : "Mulai Pertandingan!"}
+                    {isStarting
+                      ? "Memulai..."
+                      : canStartGame
+                        ? "Mulai Pertandingan!"
+                        : "Menunggu Semua Siap..."}
                   </span>
                 </button>
               )}

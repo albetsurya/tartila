@@ -156,12 +156,12 @@ export default function DuelLobbyPage() {
     }
   });
 
-  const [hostReady, setHostReady] = useState(false);
-  const [gameQuestions, setGameQuestions] = useState<QuestionData[] | null>(null);
   const gameQuestionsRef = useRef<QuestionData[] | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<string>("bahasa-arab");
+  const [myReady, setMyReady] = useState(false);
   const [opponentReady, setOpponentReady] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const [copied, setCopied] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const [countIndex, setCountIndex] = useState(0);
@@ -180,6 +180,11 @@ export default function DuelLobbyPage() {
   useEffect(() => {
     duelCodeRef.current = duelCode;
   }, [duelCode]);
+
+  const myReadyRef = useRef(false);
+  useEffect(() => {
+    myReadyRef.current = myReady;
+  }, [myReady]);
 
   useEffect(() => {
     if (activeSessionId) return;
@@ -211,7 +216,6 @@ export default function DuelLobbyPage() {
           undefined,
           5,
         ) as QuestionData[];
-        setGameQuestions(hostQs);
         gameQuestionsRef.current = hostQs;
         navigate(`/arena/duel/lobby/${res.sessionId}`, { replace: true });
       } catch (err) {
@@ -239,26 +243,98 @@ export default function DuelLobbyPage() {
     };
   }, [activeSessionId, navigate]);
 
+  // Countdown HANYA dipicu aksi eksplisit: Host menekan "Mulai Game"
+  // (pesan WS duel_start/game_start di listener di bawah) — bukan logika auto-start.
+
+  // Sinkronisasi status siap lewat WebSocket duel (P1 = Host, P2 = Player).
   useEffect(() => {
     const targetSession =
       activeSessionId || (routeSessionId !== "new" ? routeSessionId : null);
     if (!targetSession || showCountdown) return;
 
-    const interval = setInterval(async () => {
+    let closedByUs = false;
+    let ws: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = async () => {
+      if (closedByUs) return;
+      const playerId = user?.id || nickname || "guest";
+      let ticket = "";
       try {
-        const sess = await duelService.getDuelSession(targetSession);
-        if (sess) {
-          
-        }
+        ticket = await fetchWsTicket();
       } catch {
-        /* polling error sementara diabaikan */
+        /* tiket opsional untuk handshake */
       }
-    }, 1500);
+      const query = new URLSearchParams({ playerId, nickname });
+      if (ticket) query.set("ticket", ticket);
+      try {
+        ws = new WebSocket(
+          `${ARENA_WS_BASE}/api/ws/duel/${targetSession}?${query.toString()}`,
+        );
+      } catch {
+        return;
+      }
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        // Sampaikan status siap saat ini agar lawan yang bergabung belakangan sinkron.
+        ws?.send(
+          JSON.stringify({
+            type: "duel_ready",
+            payload: { playerName: nickname, isReady: myReadyRef.current },
+          }),
+        );
+      };
+
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          const payload = msg.payload || {};
+          if (
+            msg.type === "duel_ready" ||
+            msg.type === "opponent_ready" ||
+            msg.type === "ready_changed"
+          ) {
+            setOpponentReady(Boolean(payload.isReady));
+            if (payload.playerName) {
+              setOpponentName(String(payload.playerName));
+            }
+          } else if (msg.type === "duel_start" || msg.type === "game_start") {
+            if (Array.isArray(payload.questions) && payload.questions.length > 0) {
+              const qs = payload.questions as QuestionData[];
+              gameQuestionsRef.current = qs;
+            }
+            setShowCountdown(true);
+            closedByUs = true;
+            ws?.close();
+          }
+        } catch {
+          /* pesan non-JSON diabaikan */
+        }
+      };
+
+      ws.onclose = () => {
+        if (wsRef.current === ws) wsRef.current = null;
+        if (!closedByUs) {
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
+      ws.onerror = () => {
+        ws?.close();
+      };
+    };
+
+    void connect();
 
     return () => {
-      clearInterval(interval);
+      closedByUs = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (wsRef.current === ws) {
+        wsRef.current?.close();
+        wsRef.current = null;
+      }
     };
-  }, [activeSessionId, routeSessionId, showCountdown]);
+  }, [activeSessionId, routeSessionId, showCountdown, user?.id, nickname]);
 
   const handleJoinWithCode = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -275,11 +351,9 @@ export default function DuelLobbyPage() {
       if (cleanCode) setDuelCode(cleanCode);
       if (Array.isArray(res.questions)) {
         const joinedQs = res.questions as QuestionData[];
-        setGameQuestions(joinedQs);
         gameQuestionsRef.current = joinedQs;
       }
-      setOpponentReady(true);
-      setOpponentName("Host Sesi");
+      setOpponentName(res.hostName || "Host");
       navigate(`/arena/duel/lobby/${res.sessionId}`);
     } catch (err: unknown) {
       const msg =
@@ -291,10 +365,6 @@ export default function DuelLobbyPage() {
       setJoinLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (hostReady && opponentReady) setShowCountdown(true);
-  }, [hostReady, opponentReady]);
 
   useEffect(() => {
     if (joinedWithCode) return;
@@ -335,7 +405,14 @@ export default function DuelLobbyPage() {
   const handleReady = () => {
     triggerBibiReaction("click");
     soundManager.playSfx("tap");
-    setHostReady(true);
+    const next = !myReady;
+    setMyReady(next);
+    wsRef.current?.send(
+      JSON.stringify({
+        type: "duel_ready",
+        payload: { playerName: nickname, isReady: next },
+      }),
+    );
   };
 
   const sendDuelStart = async (sessionId: string, questions: QuestionData[]) => {
@@ -371,7 +448,8 @@ export default function DuelLobbyPage() {
   };
 
   const isGo = countIndex === COUNTDOWN_STEPS.length - 1;
-  const readyTotal = (hostReady ? 1 : 0) + (opponentReady ? 1 : 0);
+  const readyTotal = (myReady ? 1 : 0) + (opponentReady ? 1 : 0);
+  const canStart = myReady && opponentReady;
 
   return (
     <div className="relative min-h-dvh bg-[#F0FDF4] text-[#134E4A] font-sans overflow-x-hidden">
@@ -599,21 +677,38 @@ export default function DuelLobbyPage() {
               </span>
             </div>
 
-            {/* Grid P1 VS P2 */}
+            {/* Grid P1 VS P2 (P1 selalu Host, P2 selalu pemain yang masuk kode) */}
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <PlayerSlot
-                name={profile?.displayName ?? nickname ?? "Kamu"}
-                roleLabel="P1 · Kamu"
-                ready={hostReady}
+                name={
+                  joinedWithCode
+                    ? opponentName ?? "Menunggu Host..."
+                    : profile?.displayName ?? nickname ?? "Kamu"
+                }
+                roleLabel={joinedWithCode ? "P1 · Host" : "P1 · Kamu"}
+                ready={joinedWithCode ? opponentReady : myReady}
                 accentBg="bg-[#FEF08A]"
                 avatar={
-                  profile ? (
+                  joinedWithCode ? (
+                    opponentReady ? (
+                      <AvatarSantriSvg
+                        gender="boy"
+                        accessory="peci"
+                        mood="happy"
+                        size={64}
+                      />
+                    ) : (
+                      <span className="font-display text-3xl font-black text-[#134E4A]/35 animate-pulse">
+                        ?
+                      </span>
+                    )
+                  ) : profile ? (
                     <MultiplayerAvatar avatarId={profile.avatarId} size={64} />
                   ) : (
                     <AvatarSantriSvg
                       gender="boy"
                       accessory="peci"
-                      mood={hostReady ? "happy" : "idle"}
+                      mood={myReady ? "happy" : "idle"}
                       size={64}
                     />
                   )
@@ -625,12 +720,27 @@ export default function DuelLobbyPage() {
               </div>
 
               <PlayerSlot
-                name={opponentName ?? "Menunggu..."}
-                roleLabel="P2 · Lawan"
-                ready={opponentReady}
-                accentBg="bg-[#FECDD3]"
+                name={
+                  joinedWithCode
+                    ? profile?.displayName ?? nickname ?? "Kamu"
+                    : opponentName ?? "Menunggu..."
+                }
+                roleLabel={joinedWithCode ? "P2 · Kamu" : "P2 · Lawan"}
+                ready={joinedWithCode ? myReady : opponentReady}
+                accentBg={joinedWithCode ? "bg-[#FEF08A]" : "bg-[#FECDD3]"}
                 avatar={
-                  opponentReady ? (
+                  joinedWithCode ? (
+                    profile ? (
+                      <MultiplayerAvatar avatarId={profile.avatarId} size={64} />
+                    ) : (
+                      <AvatarSantriSvg
+                        gender="girl"
+                        accessory="hairbow"
+                        mood="happy"
+                        size={64}
+                      />
+                    )
+                  ) : opponentReady ? (
                     <AvatarSantriSvg
                       gender="girl"
                       accessory="hairbow"
@@ -646,44 +756,59 @@ export default function DuelLobbyPage() {
               />
             </div>
 
-            {/* Tombol Aksi Langsung di Dalam Panggung */}
-            <div className="pt-1">
-              {hostReady && opponentReady && gameQuestions && (
+            {/* Tombol Aksi: Siap (semua) + Mulai Game (khusus Host) */}
+            <div className="pt-1 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleReady}
+                className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  myReady
+                    ? "bg-gray-200 text-[#134E4A]/70"
+                    : "bg-[#FDE047] hover:bg-[#FACC15] text-[#134E4A]"
+                }`}
+              >
+                <CheckSvg size={16} />
+                <span>
+                  {myReady ? "Terkunci (Siap)" : "Siap Tempur!"}
+                </span>
+              </button>
+
+              {!joinedWithCode && (
                 <button
                   type="button"
+                  disabled={!canStart || Boolean(ticketError)}
                   onClick={() => {
                     triggerBibiReaction("click");
                     soundManager.playSfx("tap");
                     if (gameQuestionsRef.current) {
-                      void sendDuelStart(activeSessionId ?? "", gameQuestionsRef.current);
+                      void sendDuelStart(
+                        activeSessionId ?? "",
+                        gameQuestionsRef.current,
+                      );
                     }
+                    setShowCountdown(true);
                   }}
-                  className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    "bg-[#0D9488] text-white"
+                  className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${
+                    canStart
+                      ? "bg-[#0D9488] hover:bg-[#0F766E] text-white shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none cursor-pointer"
+                      : "bg-gray-200 text-[#134E4A]/50 shadow-none disabled:cursor-not-allowed"
                   }`}
                 >
                   <RocketSvg size={18} />
-                  <span>MULAI PERTARUNGAN!</span>
+                  <span>
+                    {canStart ? "MULAI PERTARUNGAN!" : "Menunggu Semua Siap..."}
+                  </span>
                 </button>
               )}
 
-              {!hostReady && (
-                <button
-                  type="button"
-                  disabled={!!ticketError}
-                  onClick={handleReady}
-                  className={`w-full py-3 px-4 rounded-xl border-[3px] border-[#134E4A] font-display font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${
-                    "bg-[#0D9488] text-white"
-                  }`}
-                >
-                  <RocketSvg size={18} />
-                  <span>Siap Tempur Sekarang!</span>
-                </button>
+              {myReady && joinedWithCode && (
+                <p className="mt-1 text-center text-[11px] font-bold text-[#134E4A]/65">
+                  Menunggu Host menekan tombol Mulai Game...
+                </p>
               )}
-
-              {hostReady && (
-                <p className="mt-2 text-center text-[11px] font-bold text-[#134E4A]/65">
-                  Lawan siap? Klik MULAI PERTARUNGAN saat lawan sudah siap.
+              {myReady && !joinedWithCode && !canStart && (
+                <p className="mt-1 text-center text-[11px] font-bold text-[#134E4A]/65">
+                  Menunggu lawan menandai siap, lalu tekan Mulai Game.
                 </p>
               )}
             </div>

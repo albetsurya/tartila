@@ -20,6 +20,8 @@ export interface ArenaSocketCallbacks {
   onPlayerViolation?: (data: { playerId: string; nickname: string; violations: number; autoSubmitted: boolean }) => void;
   onHostDisconnected?: (data: { message?: string }) => void;
   onRoomReset?: (data: { status: string }) => void;
+  /** Dipanggil setiap socket benar-benar terbuka (termasuk percobaan pertama). */
+  onOpen?: () => void;
   onReconnect?: () => void;
   onError?: (err: string) => void;
   onClose?: () => void;
@@ -38,12 +40,22 @@ export class ArenaSocket {
   private readonly maxReconnectDelayMs: number = 5000;
   private visibilityListenerAttached: boolean = false;
   private opening: boolean = false;
+  private nickname?: string;
+  private avatarId?: string;
 
-  constructor(pin: string, playerId?: string, isHost: boolean = false, callbacks: ArenaSocketCallbacks = {}) {
+  constructor(
+    pin: string,
+    playerId?: string,
+    isHost: boolean = false,
+    callbacks: ArenaSocketCallbacks = {},
+    identity: { nickname?: string; avatarId?: string } = {},
+  ) {
     this.pin = pin;
     this.playerId = playerId;
     this.isHost = isHost;
     this.callbacks = callbacks;
+    this.nickname = identity.nickname;
+    this.avatarId = identity.avatarId;
     this.setupResumeListeners();
   }
 
@@ -85,7 +97,14 @@ export class ArenaSocket {
       return;
     }
 
-    const url = arenaApi.getWsUrl(this.pin, this.playerId, this.isHost, ticket);
+    const url = arenaApi.getWsUrl(
+      this.pin,
+      this.playerId,
+      this.isHost,
+      ticket,
+      this.nickname,
+      this.avatarId,
+    );
     try {
       this.ws = new WebSocket(url);
     } catch {
@@ -101,6 +120,7 @@ export class ArenaSocket {
         this.reconnectTimer = undefined;
       }
       this.startHeartbeat();
+      this.callbacks.onOpen?.();
       this.callbacks.onReconnect?.();
     };
 

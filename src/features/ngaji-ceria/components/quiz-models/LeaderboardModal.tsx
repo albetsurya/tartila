@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { CrownSvg } from "@/components/ui/CustomIcons";
 
 export interface LeaderboardEntry {
@@ -152,9 +153,11 @@ export default function LeaderboardModal({
                     : LEADERBOARD_COLORS.others;
 
                 return (
-                  <div
-                    key={entry.id || entry.playerId || idx}
-                    className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 border-[2.5px] ${colors} font-black text-sm text-[#134E4A] shadow-[2.5px_2.5px_0px_#134E4A] transition-all`}
+                  <motion.div
+                    layout
+                    key={entry.id || entry.playerId || entry.nickname}
+                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                    className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 border-[2.5px] ${colors} font-black text-sm text-[#134E4A] shadow-[2.5px_2.5px_0px_#134E4A] transition-colors`}
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-white border-2 border-[#134E4A] font-black text-sm shadow-[1.5px_1.5px_0px_#134E4A] shrink-0">
                       {isTop3 ? (
@@ -178,7 +181,7 @@ export default function LeaderboardModal({
                     <span className="font-display text-base font-black text-[#0D9488] shrink-0">
                       {entry.score} pts
                     </span>
-                  </div>
+                  </motion.div>
                 );
               })
             )}

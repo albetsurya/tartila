@@ -114,11 +114,23 @@ export const arenaApi = {
     return SERVER_BASE;
   },
 
-  getWsUrl(pin: string, playerId?: string, isHost?: boolean, ticket?: string): string {
+  getWsUrl(
+    pin: string,
+    playerId?: string,
+    isHost?: boolean,
+    ticket?: string,
+    nickname?: string,
+    avatarId?: string,
+  ): string {
     const base = WS_BASE.replace(/^http/, "ws").replace(/\/+$/, "");
     const query = new URLSearchParams();
     if (playerId) query.set("playerId", playerId);
     if (isHost) query.set("isHost", "true");
+    // Nama & avatar harus ikut saat handshake. Server arena memakai query ini
+    // untuk membuat entri pemain; tanpa keduanya pemain tercatat "Pemain"
+    // sehingga podium dan leaderboard menampilkan nama default.
+    if (nickname) query.set("nickname", nickname);
+    if (avatarId) query.set("avatarId", avatarId);
     // WebSocket tidak bisa mengirim header Authorization, jadi autentikasi
     // memakai tiket sekali pakai dari /api/v1/ws-ticket.
     if (ticket) query.set("ticket", ticket);
