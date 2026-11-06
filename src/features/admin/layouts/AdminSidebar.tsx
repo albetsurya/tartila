@@ -13,9 +13,9 @@ export interface AdminSidebarProps {
 const NAV_ITEM_BASE =
   "flex w-full items-center rounded-xl border-[2px] px-2.5 py-2 text-sm font-bold transition-all";
 const NAV_ITEM_ACTIVE =
-  "bg-[#FFD60A] text-[#1A1A1A] border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]";
+  "bg-[#0D9488] text-white border-[#134E4A] shadow-[2px_2px_0px_#134E4A]";
 const NAV_ITEM_IDLE =
-  "border-transparent text-[#1A1A1A] hover:bg-[#FFF4DC] hover:border-[#1A1A1A]";
+  "border-transparent text-[#134E4A] hover:bg-[#F0FDF4] hover:border-[#134E4A]";
 
 export function AdminSidebar({
   collapsed,
@@ -32,16 +32,16 @@ export function AdminSidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 hidden flex-col border-r-[3px] border-[#1A1A1A] bg-[#FFFBF2] font-sans md:flex ${
+      className={`fixed inset-y-0 left-0 z-30 hidden flex-col border-r-[3px] border-[#134E4A] bg-white font-sans md:flex ${
         collapsed ? "w-[76px]" : "w-64"
       }`}
     >
-      <div className="flex h-16 shrink-0 items-center gap-2 border-b-[3px] border-[#1A1A1A] px-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-[2px] border-[#1A1A1A] bg-[#FF9F1C] text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]">
+      <div className="flex h-16 shrink-0 items-center gap-2 border-b-[3px] border-[#134E4A] px-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-[2px] border-[#134E4A] bg-[#F59E0B] text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
           <Shield size={16} />
         </span>
         {!collapsed ? (
-          <span className="truncate font-display text-sm font-black uppercase tracking-tight text-[#1A1A1A]">
+          <span className="truncate font-display text-sm font-black uppercase tracking-tight text-[#134E4A]">
             Admin Tartila
           </span>
         ) : null}
@@ -51,7 +51,7 @@ export function AdminSidebar({
         {sections.map((section) => (
           <div key={section.title} className="mb-4 last:mb-0">
             {!collapsed ? (
-              <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]/60">
+              <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-widest text-[#134E4A]/60">
                 {section.title}
               </p>
             ) : null}
@@ -84,7 +84,7 @@ export function AdminSidebar({
         ))}
       </nav>
 
-      <div className="shrink-0 space-y-1.5 border-t-[3px] border-[#1A1A1A] p-2">
+      <div className="shrink-0 space-y-1.5 border-t-[3px] border-[#134E4A] p-2">
         <NavLink
           to="/member/ngaji-ceria"
           aria-label="Masuk Mode Member"
@@ -103,7 +103,7 @@ export function AdminSidebar({
           onClick={handleLogout}
           aria-label="Keluar"
           title={collapsed ? "Keluar" : undefined}
-          className={`${NAV_ITEM_BASE} ${NAV_ITEM_IDLE} hover:bg-[#FF6B6B] hover:text-[#1A1A1A] ${
+          className={`${NAV_ITEM_BASE} ${NAV_ITEM_IDLE} hover:bg-[#FF6B6B] hover:text-white ${
             collapsed ? "justify-center" : "gap-3"
           }`}
         >

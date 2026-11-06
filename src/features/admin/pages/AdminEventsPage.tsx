@@ -20,7 +20,8 @@ import {
   type CreateEventPayload,
   type EventStatus,
 } from "../services/eventService";
-import { AdminEventFormModal } from "../components/AdminEventFormModal";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { AdminEventForm } from "../components/AdminEventFormModal";
 import {
   BADGE_INFO,
   BADGE_NEUTRAL,
@@ -34,8 +35,6 @@ import {
   CHIP_IDLE,
   ICON_BOX,
   INPUT_ICON,
-  PAGE_SUBTITLE,
-  PAGE_TITLE,
   TOAST,
 } from "../styles";
 
@@ -62,11 +61,12 @@ export function AdminEventsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -78,7 +78,11 @@ export function AdminEventsPage() {
     try {
       const data = await fetchAdminEvents();
       setEvents(data);
-    } catch {
+      setErrorMsg("");
+    } catch (err) {
+      console.error("[AdminEvents] Gagal memuat data:", err);
+      setEvents([]);
+      setErrorMsg("Gagal memuat data event.");
       showToast("Gagal memuat event.");
     } finally {
       setLoading(false);
@@ -88,6 +92,30 @@ export function AdminEventsPage() {
   useEffect(() => {
     void loadEvents();
   }, [loadEvents]);
+
+  // Listener untuk trigger FAB Bottom Nav (Mobile Speed Dial)
+  useEffect(() => {
+    const handleTriggerCreate = (e?: Event) => {
+      const customEvent = e as CustomEvent<string> | undefined;
+      if (customEvent?.type === "open-admin-create" && customEvent.detail !== "event") {
+        return;
+      }
+      setEditingEvent(null);
+      setIsCreateSheetOpen(true);
+    };
+
+    if (typeof window !== "undefined" && sessionStorage.getItem("tartila:admin:open-create") === "event") {
+      sessionStorage.removeItem("tartila:admin:open-create");
+      handleTriggerCreate();
+    }
+
+    window.addEventListener("open-admin-create", handleTriggerCreate);
+    window.addEventListener("tartila:admin:create-event", handleTriggerCreate);
+    return () => {
+      window.removeEventListener("open-admin-create", handleTriggerCreate);
+      window.removeEventListener("tartila:admin:create-event", handleTriggerCreate);
+    };
+  }, []);
 
   const filteredEvents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -107,12 +135,12 @@ export function AdminEventsPage() {
 
   const handleOpenCreateModal = () => {
     setEditingEvent(null);
-    setIsModalOpen(true);
+    setIsCreateSheetOpen(true);
   };
 
   const handleOpenEditModal = (event: AdminEvent) => {
     setEditingEvent(event);
-    setIsModalOpen(true);
+    setIsCreateSheetOpen(true);
   };
 
   const handleSaveEvent = async (payload: CreateEventPayload, editId?: string) => {
@@ -145,7 +173,7 @@ export function AdminEventsPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={TOAST}>
@@ -154,85 +182,74 @@ export function AdminEventsPage() {
         </div>
       )}
 
-      {/* Header Halaman */}
-      <div className={`flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center ${CARD}`}>
-        <div>
-          <h1 className={PAGE_TITLE}>Manajemen Event</h1>
-          <p className={PAGE_SUBTITLE}>
-            Kelola agenda berkala, periode aktif, dan rangkaian misi berhadiah untuk santri.
-          </p>
+      {errorMsg && (
+        <div className="p-4 mb-4 border-2 border-red-500 bg-red-100 text-red-700 font-bold rounded-xl">
+          Gagal memuat data: {errorMsg}. Pastikan Backend Go menyala dan Anda memiliki akses Admin.
         </div>
+      )}
 
-        <button
-          type="button"
-          onClick={handleOpenCreateModal}
-          className={`${BTN_PRIMARY} shrink-0`}
-        >
-          <Plus size={18} />
-          Buat Event
-        </button>
-      </div>
-
-      {/* Search & Filter Bar */}
-      <div className={`flex flex-col justify-between gap-4 p-4 md:flex-row md:items-center ${CARD}`}>
-        {/* Kolom Pencarian */}
-        <div className="relative flex-1">
-          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#1A1A1A]/60">
-            <Search size={16} />
+      {/* Search & Filter Bar Sticky Wrapper */}
+      <div className="sticky top-16 z-10 -mx-4 bg-[#fafafa] px-4 py-2 sm:mx-0 sm:px-0">
+        <div className={`flex flex-col justify-between gap-3 p-3 md:flex-row md:items-center md:p-4 ${CARD}`}>
+          {/* Kolom Pencarian */}
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#134E4A]/60">
+              <Search size={16} />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama event..."
+              className={INPUT_ICON}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-3 flex items-center text-[#134E4A]/60 hover:text-[#FF6B6B]"
+                aria-label="Bersihkan pencarian"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama event..."
-            className={INPUT_ICON}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-3 flex items-center text-[#1A1A1A]/60 hover:text-[#FF6B6B]"
-              aria-label="Bersihkan pencarian"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
 
-        {/* Tab Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto p-1">
-          {[
-            { id: "all", label: "Semua" },
-            { id: "active", label: "Aktif" },
-            { id: "upcoming", label: "Akan Datang" },
-            { id: "completed", label: "Selesai" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as FilterTab)}
-              className={activeTab === tab.id ? CHIP_ACTIVE : CHIP_IDLE}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {/* Tab Filter */}
+          <div className="flex items-center gap-2 overflow-x-auto p-1">
+            {[
+              { id: "all", label: "Semua" },
+              { id: "active", label: "Aktif" },
+              { id: "upcoming", label: "Akan Datang" },
+              { id: "completed", label: "Selesai" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as FilterTab)}
+                className={activeTab === tab.id ? CHIP_ACTIVE : CHIP_IDLE}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Daftar Event (Card List) */}
       {loading ? (
         <div className={`p-12 text-center ${CARD}`}>
-          <Loader2 size={24} className="mx-auto animate-spin text-[#2F6FED]" />
-          <p className="mt-2 text-xs font-black text-[#1A1A1A]/70">Memuat daftar event...</p>
+          <Loader2 size={24} className="mx-auto animate-spin text-[#0D9488]" />
+          <p className="mt-2 text-xs font-black text-[#134E4A]/70">Memuat daftar event...</p>
         </div>
       ) : filteredEvents.length === 0 ? (
         /* Empty State */
         <div className={`space-y-3 p-12 text-center ${CARD}`}>
-          <div className={`mx-auto h-16 w-16 bg-[#9BE58B] text-[#1A1A1A] ${ICON_BOX}`}>
+          <div className={`mx-auto h-16 w-16 bg-[#99F6E4] text-[#134E4A] ${ICON_BOX}`}>
             <Calendar size={32} />
           </div>
-          <h3 className="font-display text-base font-black text-[#1A1A1A]">Belum ada event.</h3>
-          <p className="mx-auto max-w-sm text-xs font-bold text-[#1A1A1A]/70">
+          <h3 className="font-display text-base font-black text-[#134E4A]">Belum ada event.</h3>
+          <p className="mx-auto max-w-sm text-xs font-bold text-[#134E4A]/70">
             Yuk, buat event pertama Anda!
           </p>
           <div className="pt-2">
@@ -247,7 +264,7 @@ export function AdminEventsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
           {filteredEvents.map((evt) => {
             const status = getEventStatus(evt.start_date, evt.end_date, evt.is_active);
             const dateRangeLabel = formatDateRange(evt.start_date, evt.end_date);
@@ -255,9 +272,9 @@ export function AdminEventsPage() {
             return (
               <div
                 key={evt.id}
-                className="flex flex-col justify-between gap-4 rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] p-5 shadow-[4px_4px_0px_#1A1A1A]"
+                className="flex flex-col justify-between gap-3 rounded-2xl border-[3px] border-[#134E4A] bg-white p-3.5 sm:p-4 shadow-[4px_4px_0px_#134E4A]"
               >
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {/* Top Status & Date Range */}
                   <div className="flex items-center justify-between gap-2">
                     <span
@@ -276,29 +293,29 @@ export function AdminEventsPage() {
                           : "Selesai"}
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1A1A]/70">
-                      <Calendar size={13} />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#134E4A]/70 sm:text-xs">
+                      <Calendar size={12} />
                       {dateRangeLabel}
                     </span>
                   </div>
 
                   {/* Title & Description */}
                   <div>
-                    <h2 className="line-clamp-1 font-display text-base font-black text-[#1A1A1A]">
+                    <h2 className="line-clamp-1 font-display text-sm sm:text-base font-black text-[#134E4A]">
                       {evt.name}
                     </h2>
                     {evt.description && (
-                      <p className="mt-1 line-clamp-2 text-xs font-bold text-[#1A1A1A]/70">
+                      <p className="mt-0.5 line-clamp-2 text-xs font-bold text-[#134E4A]/70">
                         {evt.description}
                       </p>
                     )}
                   </div>
 
                   {/* Missions Preview */}
-                  <div className="border-t border-[#1A1A1A]/20 pt-3">
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-[11px] font-black text-[#1A1A1A]">
-                        <Trophy size={13} className="text-[#FF9F1C]" />
+                  <div className="border-t border-[#134E4A]/20 pt-2">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-black text-[#134E4A]">
+                        <Trophy size={12} className="text-[#F59E0B]" />
                         {evt.missions?.length || 0} Misi Tersedia
                       </span>
                     </div>
@@ -307,16 +324,16 @@ export function AdminEventsPage() {
                       {evt.missions?.slice(0, 2).map((m) => (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between rounded-lg border-[2px] border-[#1A1A1A]/20 bg-[#FFF4DC] px-2.5 py-1 text-[11px] font-bold text-[#1A1A1A]"
+                          className="flex items-center justify-between rounded-lg border-[1.5px] border-[#134E4A]/20 bg-[#F0FDF4] px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-[#134E4A]"
                         >
                           <span className="truncate pr-2">{m.title}</span>
-                          <span className="shrink-0 text-[10px] font-black text-[#2F6FED]">
+                          <span className="shrink-0 text-[10px] font-black text-[#0D9488]">
                             +{m.reward_coins} Koin
                           </span>
                         </div>
                       ))}
                       {(evt.missions?.length || 0) > 2 && (
-                        <p className="text-right text-[10px] font-bold text-[#1A1A1A]/60">
+                        <p className="text-right text-[10px] font-bold text-[#134E4A]/60">
                           +{evt.missions.length - 2} misi lainnya
                         </p>
                       )}
@@ -325,7 +342,7 @@ export function AdminEventsPage() {
                 </div>
 
                 {/* Bottom Actions (Edit & Hapus) */}
-                <div className="flex items-center justify-end gap-2 border-t border-[#1A1A1A]/20 pt-3">
+                <div className="flex items-center justify-end gap-2 border-t border-[#134E4A]/20 pt-2">
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(evt)}
@@ -350,13 +367,24 @@ export function AdminEventsPage() {
         </div>
       )}
 
-      {/* Form Modal */}
-      <AdminEventFormModal
-        isOpen={isModalOpen}
-        eventToEdit={editingEvent}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveEvent}
-      />
+      {/* Form Bottom Sheet (Buat / Edit Event) */}
+      <AppBottomSheet
+        isOpen={isCreateSheetOpen}
+        onClose={() => {
+          setIsCreateSheetOpen(false);
+          setEditingEvent(null);
+        }}
+        title={editingEvent ? "Edit Event" : "Buat Event"}
+      >
+        <AdminEventForm
+          eventToEdit={editingEvent}
+          onClose={() => {
+            setIsCreateSheetOpen(false);
+            setEditingEvent(null);
+          }}
+          onSave={handleSaveEvent}
+        />
+      </AppBottomSheet>
     </div>
   );
 }

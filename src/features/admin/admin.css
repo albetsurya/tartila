@@ -1,27 +1,27 @@
-/* Admin feature layer — Neo-Brutalism Tartila (kuning · tinta · krem).
-   Palet: Ink #1A1A1A (border/teks), Yellow #FFD60A (aksi & latar), Cream #FFFBF2
-   (kartu), Orange #FF9F1C, Coral #FF6B6B, Green #9BE58B, Blue #2F6FED.
+/* Admin feature layer — Neo-Brutalism Lite Tartila.
+   Palet: Deep Teal #134E4A (border/teks), Teal #0D9488 (aksi), Coral #FF6B6B,
+   Amber #F59E0B, Mint #F0FDF4 (latar), Surface #FFFFFF.
 
-   Sebagian besar styling memakai class Tailwind HEX langsung (lihat styles.ts).
-   File ini hanya menyisakan variabel & helper kecil untuk area yang masih
-   memakai `admin-*` (mis. modal AppModal yang dirender lewat portal di luar
-   .admin-shell).
+   Sebagian besar styling kini memakai class Tailwind HEX langsung
+   (lihat styles.ts). File ini hanya menyisakan variabel & helper kecil untuk
+   area yang masih memakai `admin-*` (mis. modal AppModal yang dirender lewat
+   portal di luar .admin-shell).
 
    Panel admin sengaja TERANG saja: warna HEX di Tailwind tidak mengikuti
    class `.dark`, jadi variabel di bawah juga tidak punya varian gelap. */
 
 :root {
-  --admin-bg: #ffd60a;
-  --admin-surface: #fffbf2;
-  --admin-border: #1a1a1a;
-  --admin-accent: #ffd60a;
-  --admin-accent-soft: #fff1a8;
-  --admin-text: #1a1a1a;
-  --admin-text-muted: #5c5c5c;
+  --admin-bg: #f0fdf4;
+  --admin-surface: #ffffff;
+  --admin-border: #134e4a;
+  --admin-accent: #0d9488;
+  --admin-accent-soft: #ccfbf1;
+  --admin-text: #134e4a;
+  --admin-text-muted: #4b7a76;
   --admin-danger: #ff6b6b;
-  --admin-danger-soft: #ffe3e3;
-  --admin-skeleton: #f3e7c4;
-  --admin-teal-soft: #fff1a8;
+  --admin-danger-soft: #fff0f0;
+  --admin-skeleton: #d1fae5;
+  --admin-teal-soft: #ccfbf1;
 }
 
 .admin-shell {
@@ -35,13 +35,6 @@
   line-height: 1.5;
 }
 
-/* Latar kuning dengan pola titik (gaya referensi). */
-.admin-dots {
-  background-color: #ffd60a;
-  background-image: radial-gradient(rgba(26, 26, 26, 0.28) 1.4px, transparent 1.6px);
-  background-size: 14px 14px;
-}
-
 .admin-muted {
   color: var(--admin-text-muted);
   font-weight: 700;
@@ -49,7 +42,7 @@
 
 .admin-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #1a1a1a transparent;
+  scrollbar-color: #134e4a transparent;
 }
 
 .admin-scroll::-webkit-scrollbar {
@@ -57,13 +50,6 @@
 }
 
 .admin-scroll::-webkit-scrollbar-thumb {
-  background-color: #1a1a1a;
+  background-color: #134e4a;
   border-radius: 9999px;
-}
-
-/* Hormati preferensi gerak berkurang. */
-@media (prefers-reduced-motion: reduce) {
-  .admin-shell * {
-    transition-duration: 0.01ms !important;
-  }
 }

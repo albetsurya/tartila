@@ -1,6 +1,9 @@
 import { lazy } from "react";
 
 export const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
+export const AdminActivityLogPage = lazy(() =>
+  import("./pages/AdminActivityLogPage").then((m) => ({ default: m.AdminActivityLogPage }))
+);
 export const AdminAnalyticsPage = lazy(() =>
   import("./pages/AdminAnalyticsPage").then((m) => ({ default: m.AdminAnalyticsPage }))
 );

@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AdminRouteGuard } from "./components/AdminRouteGuard";
 import { AdminLayout } from "./layouts/AdminLayout";
 import {
+  AdminActivityLogPage,
   AdminAnalyticsPage,
   AdminAudioCheckPage,
   AdminContentPage,
@@ -50,6 +51,7 @@ interface AdminPageDef {
 
 const ADMIN_PAGES: AdminPageDef[] = [
   { index: true, key: "dashboard", element: <AdminDashboardPage /> },
+  { path: "activities", key: "activities", element: <AdminActivityLogPage /> },
   { path: "analytics", key: "analytics", element: <AdminAnalyticsPage /> },
   { path: "users", key: "users", element: <AdminUsersPage /> },
   { path: "events", key: "events", element: <AdminEventsPage /> },

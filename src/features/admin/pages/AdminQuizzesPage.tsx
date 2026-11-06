@@ -56,7 +56,7 @@ function StatusBadge({ status }: { status: QuizStatus }) {
     <span className={isActive ? BADGE_SUCCESS : BADGE_WARNING}>
       <span
         className={`h-1.5 w-1.5 rounded-full ${
-          isActive ? "bg-[#FFD60A]" : "bg-[#1A1A1A]"
+          isActive ? "bg-[#0D9488]" : "bg-[#134E4A]"
         }`}
       />
       {isActive ? "Aktif" : "Draft"}
@@ -67,11 +67,11 @@ function StatusBadge({ status }: { status: QuizStatus }) {
 function QuizSkeletonRow() {
   const bar = (className: string) => (
     <div
-      className={`animate-pulse rounded bg-[#D8F3C9] ${className}`}
+      className={`animate-pulse rounded bg-[#D1FAE5] ${className}`}
     />
   );
   return (
-    <tr className="border-b border-[#1A1A1A]/20 last:border-b-0">
+    <tr className="border-b border-[#134E4A]/20 last:border-b-0">
       <td className="px-6 py-3">
         {bar("h-4 w-40")}
       </td>
@@ -154,7 +154,7 @@ export function AdminQuizzesPage() {
   }, [quizzes, query, jilidFilter]);
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       <header className={`flex flex-wrap items-start justify-between gap-4 p-5 ${CARD}`}>
         <div>
           <h1 className={PAGE_TITLE}>Manajemen Kuis</h1>
@@ -176,7 +176,7 @@ export function AdminQuizzesPage() {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/60"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#134E4A]/60"
           />
           <input
             type="search"
@@ -208,7 +208,7 @@ export function AdminQuizzesPage() {
           </select>
           <ChevronDown
             size={14}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
           />
         </div>
       </div>
@@ -235,7 +235,7 @@ export function AdminQuizzesPage() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-10 text-center text-sm font-bold text-[#1A1A1A]/70"
+                    className="px-6 py-10 text-center text-sm font-bold text-[#134E4A]/70"
                   >
                     {quizzes.length === 0
                       ? "Belum ada kuis."
@@ -253,7 +253,7 @@ export function AdminQuizzesPage() {
                     }`}
                   >
                     <td className="px-6 py-3">
-                      <p className="font-black text-[#1A1A1A]">{quiz.title}</p>
+                      <p className="font-black text-[#134E4A]">{quiz.title}</p>
                     </td>
                     <td className="px-6 py-3">
                       <JilidBadge jilid={quiz.jilid} />
@@ -261,15 +261,15 @@ export function AdminQuizzesPage() {
                     <td className={`px-6 py-3 tabular-nums ${TD}`}>
                       {quiz.questionsCount} Soal
                     </td>
-                    <td className="whitespace-nowrap px-6 py-3 text-xs font-bold text-[#1A1A1A]/70">
+                    <td className="whitespace-nowrap px-6 py-3 text-xs font-bold text-[#134E4A]/70">
                       <span className="tabular-nums">
                         {quiz.timeLimit} Mnt
                       </span>
                       <span className="mx-1.5">•</span>
                       <span
-                        className="inline-flex items-center gap-1 align-middle text-[#1A1A1A]"
+                        className="inline-flex items-center gap-1 align-middle text-[#134E4A]"
                       >
-                        <Star size={12} className="text-[#FF9F1C]" />
+                        <Star size={12} className="text-[#F59E0B]" />
                         <span className="font-black tabular-nums">
                           {quiz.rewardStars}
                         </span>
@@ -285,7 +285,7 @@ export function AdminQuizzesPage() {
                           role="status"
                           aria-label="Menghapus"
                         >
-                          <Spinner size={15} className="text-[#1A1A1A]" />
+                          <Spinner size={15} className="text-[#134E4A]" />
                         </div>
                       ) : (
                         <div className="flex items-center justify-end gap-2">
@@ -318,7 +318,7 @@ export function AdminQuizzesPage() {
             </tbody>
           </table>
         </div>
-        <footer className="border-t-[3px] border-[#1A1A1A] bg-[#FFF4DC] px-6 py-3 text-xs font-black text-[#1A1A1A]/70">
+        <footer className="border-t-[3px] border-[#134E4A] bg-[#F0FDF4] px-6 py-3 text-xs font-black text-[#134E4A]/70">
           {isLoading
             ? "Memuat data..."
             : `Menampilkan ${filteredQuizzes.length} dari ${quizzes.length} kuis`}

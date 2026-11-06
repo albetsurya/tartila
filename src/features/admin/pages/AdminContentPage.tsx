@@ -103,7 +103,7 @@ function StatusBadge({ status }: { status: MaterialStatus }) {
     <span className={isPublished ? BADGE_SUCCESS : BADGE_NEUTRAL}>
       <span
         className={`h-1.5 w-1.5 rounded-full ${
-          isPublished ? "bg-[#FFD60A]" : "bg-[#1A1A1A]/40"
+          isPublished ? "bg-[#0D9488]" : "bg-[#134E4A]/40"
         }`}
       />
       {isPublished ? "Published" : "Draft"}
@@ -117,15 +117,15 @@ function MaterialCover({ material }: { material: AdminMaterial }) {
       <img
         src={material.coverUrl}
         alt={`Cover ${material.title}`}
-        className="h-40 w-full border-b-[3px] border-[#1A1A1A] object-cover"
+        className="h-40 w-full border-b-[3px] border-[#134E4A] object-cover"
       />
     );
   }
   return (
     <div
-      className="flex h-40 w-full items-center justify-center border-b-[3px] border-[#1A1A1A] bg-[#FFD60A]"
+      className="flex h-40 w-full items-center justify-center border-b-[3px] border-[#134E4A] bg-[#0D9488]"
     >
-      <span className="font-display text-3xl font-black tracking-wide text-[#1A1A1A]">
+      <span className="font-display text-3xl font-black tracking-wide text-white">
         Jilid {material.jilid}
       </span>
     </div>
@@ -135,11 +135,11 @@ function MaterialCover({ material }: { material: AdminMaterial }) {
 function AddMaterialModal({ onClose }: { onClose: () => void }) {
   return (
     <AppModal isOpen={true} onClose={onClose} title="Tambah Materi">
-      <p className="mb-4 text-xs font-bold text-[#1A1A1A]/70">
+      <p className="mb-4 text-xs font-bold text-[#134E4A]/70">
         Formulir materi baru akan tersedia di sini.
       </p>
 
-      <p className="rounded-xl border-[2px] border-dashed border-[#1A1A1A] bg-[#FFF4DC] px-4 py-6 text-center text-xs font-bold text-[#1A1A1A]/70">
+      <p className="rounded-xl border-[2px] border-dashed border-[#134E4A] bg-[#F0FDF4] px-4 py-6 text-center text-xs font-bold text-[#134E4A]/70">
         {/* TODO: Wire to API once a `materials`/`books` master table exists. */}
         Belum ada tabel master materi di backend. Formulir ini masih berupa
         mockup UI.
@@ -169,7 +169,7 @@ function AddMaterialModal({ onClose }: { onClose: () => void }) {
 function MaterialSkeletonCard() {
   const bar = (className: string) => (
     <div
-      className={`animate-pulse rounded bg-[#D8F3C9] ${className}`}
+      className={`animate-pulse rounded bg-[#D1FAE5] ${className}`}
     />
   );
   return (
@@ -251,7 +251,7 @@ export function AdminContentPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       <header className={`flex flex-wrap items-start justify-between gap-4 p-5 ${CARD}`}>
         <div>
           <h1 className={PAGE_TITLE}>Materi Tilawati</h1>
@@ -291,17 +291,17 @@ export function AdminContentPage() {
           </select>
           <ChevronDown
             size={14}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
           />
         </div>
-        <p className="text-xs font-bold text-[#1A1A1A]/70">
+        <p className="text-xs font-bold text-[#134E4A]/70">
           Menampilkan {filteredMaterials.length} dari {materials.length} jilid
         </p>
       </div>
 
       {usingFallback ? (
         <div
-          className="flex items-start gap-2 rounded-xl border-[2px] border-dashed border-[#1A1A1A] bg-[#FF9F1C]/20 px-4 py-2 text-xs font-bold text-[#1A1A1A]"
+          className="flex items-start gap-2 rounded-xl border-[2px] border-dashed border-[#134E4A] bg-[#F59E0B]/20 px-4 py-2 text-xs font-bold text-[#134E4A]"
           role="status"
         >
           <Info size={14} className="mt-0.5 shrink-0" />
@@ -318,7 +318,7 @@ export function AdminContentPage() {
           ))}
         </div>
       ) : filteredMaterials.length === 0 ? (
-        <div className={`px-6 py-16 text-center text-sm font-bold text-[#1A1A1A]/70 ${CARD}`}>
+        <div className={`px-6 py-16 text-center text-sm font-bold text-[#134E4A]/70 ${CARD}`}>
           Tidak ada materi untuk filter ini.
         </div>
       ) : (
@@ -341,13 +341,13 @@ export function AdminContentPage() {
 
               <div className="flex flex-1 flex-col gap-3 p-4">
                 <div>
-                  <h3 className="font-display text-base font-black text-[#1A1A1A]">{material.title}</h3>
-                  <p className="mt-1 text-xs font-bold text-[#1A1A1A]/70">
+                  <h3 className="font-display text-base font-black text-[#134E4A]">{material.title}</h3>
+                  <p className="mt-1 text-xs font-bold text-[#134E4A]/70">
                     Jilid {material.jilid} · Tilawati
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-[#1A1A1A]/70">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-[#134E4A]/70">
                   <span className="inline-flex items-center gap-1.5">
                     <ScrollText size={13} />
                     {material.pageCount} Halaman

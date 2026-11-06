@@ -400,41 +400,12 @@ export const arenaRoomService = {
   },
 
   /**
-   * Update Tema Room di Lobi
-   */
-  async updateRoomTheme(pinOrId: string, theme: string): Promise<boolean> {
-    const key = pinOrId.trim();
-    if (!key) return false;
-
-    const localRooms = getLocalRooms();
-    if (localRooms[key]) {
-      localRooms[key].theme = theme;
-      if (localRooms[key].pin) localRooms[localRooms[key].pin].theme = theme;
-      if (localRooms[key].id) localRooms[localRooms[key].id].theme = theme;
-      saveLocalRooms(localRooms);
-    }
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(`arena_theme_${key}`, theme);
-    }
-
-    if (isSupabaseConfigured) {
-      try {
-        // Filter dipisah: `id` bertipe UUID dan `pin` teks. Memakai
-        // `or=(pin.eq.X,id.eq.Y)` membuat PostgREST gagal parse Y sebagai UUID
-        // ketika dikalikan dengan penambahan UUID (400 Bad Request).
-        await supabase
-          .from("rooms")
-          .update({ title: theme })
-          .eq(UUID_RE.test(key) ? "id" : "pin", key);
-      } catch (err) {
-        console.warn("Update room theme Supabase warning:", err);
-      }
-    }
-    return true;
-  },
-
-  /**
    * Reset Status Room ke Waiting & Skor Pemain ke 0 (Loop Permainan)
+   *
+   * Database TIDAK disentuh dari frontend (RLS rooms/room_players dicabut).
+   * Reset asli ditangani backend Go via WS "reset_room" (kasus di
+   * handlers.go) yang mengembalikan status DB via service_role. Fungsi ini
+   * hanya membasmi lintasan tambahan dev/offline.
    */
   async resetRoomToLobby(pinOrId: string): Promise<boolean> {
     const key = pinOrId.trim();
@@ -458,21 +429,6 @@ export const arenaRoomService = {
       window.localStorage.setItem(LOCAL_PLAYERS_KEY, JSON.stringify(localPlayers));
     }
 
-    if (isSupabaseConfigured) {
-      try {
-        // Alasan `.eq` terpisah sama seperti updateRoomTheme di atas.
-        await supabase
-          .from("rooms")
-          .update({ status: "waiting", current_question_index: 0 })
-          .eq(UUID_RE.test(key) ? "id" : "pin", key);
-        await supabase
-          .from("room_players")
-          .update({ score: 0, is_ready: false })
-          .eq("room_id", localRooms[key]?.id || key);
-      } catch (err) {
-        console.warn("Reset room Supabase warning:", err);
-      }
-    }
     return true;
   },
 };

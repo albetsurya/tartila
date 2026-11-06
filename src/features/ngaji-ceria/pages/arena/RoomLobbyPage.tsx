@@ -302,20 +302,22 @@ export default function RoomLobbyPage() {
   useEffect(() => {
     if (!pin || showCountdown) return;
     let alive = true;
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let intervalId: number | null = null;
     let inFlight = false;
     let failures = 0;
     const POLL_INTERVAL_MS = 2000;
     const MAX_FAILURES = 5;
 
     const schedule = (delay: number) => {
-      // Hentikan timeout terjadwal SEBELUM mengubah `alive` supaya poll yang
-      // sudah lewat jalur hang tidak menyeberangnya lagi.
-      if (timer) clearTimeout(timer);
-      timer = null;
+      // Hentikan polling terjadwal SEBELUM mengubah `alive` supaya poll yang
+      // sudah lewat jalur hang tidak menyeberanginya lagi.
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
       if (!alive) return;
-      // Jaring pengaman terakhir: begitu rute berpindah ke layar game/podium,
-      // jangan pernah menjadwalkan poll baru lagi.
+      // Jaring pengaman terakhir: sekali rute berpindah ke layar game/podium,
+      // jangan ever menjadwalkan poll baru lagi.
       if (
         typeof window !== "undefined" &&
         !window.location.pathname.includes(`/arena/lobby/${pin}`)
@@ -323,16 +325,18 @@ export default function RoomLobbyPage() {
         alive = false;
         return;
       }
-      timer = setTimeout(() => {
+      intervalId = window.setInterval(() => {
         void poll();
       }, delay);
     };
 
     const stopPolling = () => {
-      // P1 ClearTimeout race: batalkan timeout terjadwal terlebih dahulu,
+      // P1 ClearInterval race: batalkan interval terjadwal terlebih dahulu,
       // baru tandai tidak hidup.
-      if (timer) clearTimeout(timer);
-      timer = null;
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
       alive = false;
     };
 
@@ -360,8 +364,7 @@ export default function RoomLobbyPage() {
             setSelectedTheme(found.theme);
           }
           if (found.status === "playing") {
-            // P0 Auto-Start: JANGAN panggil setShowCountdown di sini. Host
-            // yang memulai lewat tombol; pengguna dalam lobi masuk Game lewat
+            // P0 Auto-Start: polling mati total; Host masuk Game lewat
             // efek status "playing" di bawah, late joiner ditolak.
             if (isHost || joinedEarlyRef.current) {
               stopPolling();
@@ -423,7 +426,13 @@ export default function RoomLobbyPage() {
     } catch {
       /* ignore */
     }
-    await arenaRoomService.updateRoomTheme(pin, newTheme);
+    // Update tema tetap via backend REST (bukan WS). Lintasan dev/offline ini
+    // tidak berhubungan dengan klaim tetap mencerminkan `sambung-ngaji`.
+    const res = await (arenaRoomService as any).updateRoomTheme(pin, newTheme);
+    if (!res.ok) {
+      alert(res.message || "Gagal memperbarui tema room.");
+      return;
+    }
   };
 
   useEffect(() => {

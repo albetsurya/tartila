@@ -173,8 +173,10 @@ export async function fetchAdminEvents(): Promise<AdminEvent[]> {
       writeStoredEvents(result);
       return result;
     }
-  } catch {
-    // API not mounted or backend unavailable; fallback to localStorage
+  } catch (error) {
+    // No silent fallback: a seeded localStorage table would hide a dead backend.
+    console.error("[AdminEvents] Gagal memuat data:", error);
+    throw error;
   }
   return readStoredEvents();
 }

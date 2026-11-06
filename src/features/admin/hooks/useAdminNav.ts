@@ -34,6 +34,7 @@ export const ADMIN_NAV: AdminNavSection[] = [
     title: "Overview",
     items: [
       { label: "Dasbor", to: "/admin", icon: LayoutGrid, end: true },
+      { label: "Aktivitas", to: "/admin/activities", icon: List },
       { label: "Analitik", to: "/admin/analytics", icon: ChartLine },
     ],
   },

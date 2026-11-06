@@ -21,7 +21,8 @@ import {
   type AdminUserStatus,
 } from "../services/userService";
 import { ustadzApi, type UstadzRequestItem } from "@/services/ustadzApi";
-import { UserFormModal, type UserFormValues } from "../components/UserFormModal";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { UserForm, type UserFormValues } from "../components/UserFormModal";
 import {
   BADGE_DANGER,
   BADGE_SUCCESS,
@@ -29,7 +30,6 @@ import {
   BTN_BASE,
   BTN_DANGER_COLOR,
   BTN_ICON_SECONDARY,
-  BTN_PRIMARY,
   BTN_PRIMARY_SM,
   BTN_SECONDARY_SM,
   BTN_SM,
@@ -39,8 +39,6 @@ import {
   ICON_BOX,
   INPUT_ICON,
   LIST_ROW,
-  PAGE_SUBTITLE,
-  PAGE_TITLE,
   TOAST,
 } from "../styles";
 
@@ -164,10 +162,11 @@ export function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Action states
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -178,21 +177,27 @@ export function AdminUsersPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Fetch Users
-      const usersData = await fetchUsers().catch(() => []);
-      if (Array.isArray(usersData) && usersData.length > 0) {
-        setUsers(usersData);
-      } else {
-        setUsers([...DEFAULT_USTADZ_SEED, ...DEFAULT_SANTRI_SEED]);
-      }
+      // 1. Fetch Users. No seed fallback on failure: fake rows hide a dead backend.
+      const usersData = await fetchUsers();
+      setUsers(
+        usersData.length > 0
+          ? usersData
+          : [...DEFAULT_USTADZ_SEED, ...DEFAULT_SANTRI_SEED],
+      );
+      setErrorMsg("");
+    } catch (err) {
+      console.error("[AdminUsers] Gagal memuat data user:", err);
+      setUsers([]);
+      setErrorMsg(getAdminErrorMessage(err, "Gagal memuat data user."));
+    }
 
-      // 2. Fetch Member Requests
-      const reqsData = await ustadzApi.getUstadzRequests("ALL").catch(() => []);
-      if (Array.isArray(reqsData) && reqsData.length > 0) {
-        setRequests(reqsData);
-      } else {
-        setRequests(DEFAULT_REQUESTS_SEED);
-      }
+    // 2. Fetch Member Requests
+    try {
+      const reqsData = await ustadzApi.getUstadzRequests("ALL");
+      setRequests(reqsData.length > 0 ? reqsData : DEFAULT_REQUESTS_SEED);
+    } catch (err) {
+      console.error("[AdminUsers] Gagal memuat permintaan:", err);
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -201,6 +206,30 @@ export function AdminUsersPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  // Listener untuk trigger FAB Bottom Nav (Mobile Speed Dial)
+  useEffect(() => {
+    const handleTriggerCreate = (e?: Event) => {
+      const customEvent = e as CustomEvent<string> | undefined;
+      if (customEvent?.type === "open-admin-create" && customEvent.detail !== "user") {
+        return;
+      }
+      setEditingUser(null);
+      setIsCreateSheetOpen(true);
+    };
+
+    if (typeof window !== "undefined" && sessionStorage.getItem("tartila:admin:open-create") === "user") {
+      sessionStorage.removeItem("tartila:admin:open-create");
+      handleTriggerCreate();
+    }
+
+    window.addEventListener("open-admin-create", handleTriggerCreate);
+    window.addEventListener("tartila:admin:create-user", handleTriggerCreate);
+    return () => {
+      window.removeEventListener("open-admin-create", handleTriggerCreate);
+      window.removeEventListener("tartila:admin:create-user", handleTriggerCreate);
+    };
+  }, []);
 
   // Tab Filtering
   const santriList = useMemo(() => {
@@ -342,7 +371,7 @@ export function AdminUsersPage() {
         setUsers((prev) => [newUser, ...prev]);
         showToast("Pengguna baru berhasil ditambahkan.");
       }
-      setIsFormOpen(false);
+      setIsCreateSheetOpen(false);
       setEditingUser(null);
     } catch (err) {
       showToast(getAdminErrorMessage(err));
@@ -350,7 +379,7 @@ export function AdminUsersPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={TOAST}>
@@ -359,128 +388,115 @@ export function AdminUsersPage() {
         </div>
       )}
 
-      {/* Header Halaman */}
-      <div className={`flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center ${CARD}`}>
-        <div>
-          <h1 className={PAGE_TITLE}>Manajemen Pengguna</h1>
-          <p className={PAGE_SUBTITLE}>
-            Kelola data akun santri, ustadz/pengajar, serta persetujuan berkas permohonan.
-          </p>
+      {errorMsg && (
+        <div className="p-4 mb-4 border-2 border-red-500 bg-red-100 text-red-700 font-bold rounded-xl">
+          Gagal memuat data: {errorMsg}. Pastikan Backend Go menyala dan Anda memiliki akses Admin.
         </div>
+      )}
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void loadData()}
-            className={BTN_ICON_SECONDARY}
-            title="Muat Ulang Data"
-            aria-label="Muat Ulang Data"
-          >
-            <RefreshCw size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingUser(null);
-              setIsFormOpen(true);
-            }}
-            className={BTN_PRIMARY}
-          >
-            <Plus size={16} />
-            Tambah Pengguna
-          </button>
-        </div>
-      </div>
-
-      {/* Tab + Pencarian */}
-      <div className={`flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center ${CARD}`}>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("santri")}
-            className={activeTab === "santri" ? CHIP_ACTIVE : CHIP_IDLE}
-          >
-            <Users size={14} />
-            Santri
-            <span className="rounded-md border-[2px] border-[#1A1A1A] bg-[#FFFBF2] px-1.5 text-[10px] font-black text-[#1A1A1A]">
-              {santriList.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("ustadz")}
-            className={activeTab === "ustadz" ? CHIP_ACTIVE : CHIP_IDLE}
-          >
-            <GraduationCap size={14} />
-            Ustadz
-            <span className="rounded-md border-[2px] border-[#1A1A1A] bg-[#FFFBF2] px-1.5 text-[10px] font-black text-[#1A1A1A]">
-              {ustadzList.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("permintaan")}
-            className={activeTab === "permintaan" ? CHIP_ACTIVE : CHIP_IDLE}
-          >
-            <ClockSvg size={14} />
-            Permintaan
-            <span
-              className={`rounded-md border-[2px] border-[#1A1A1A] px-1.5 text-[10px] font-black text-[#1A1A1A] ${
-                pendingRequestsCount > 0 ? "bg-[#FF9F1C]" : "bg-[#FFFBF2]"
-              }`}
-            >
-              {pendingRequestsCount > 0 ? pendingRequestsCount : requests.length}
-            </span>
-          </button>
-        </div>
-
-        {/* Kolom Pencarian */}
-        <div className="relative w-full sm:w-72">
-          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#1A1A1A]/60">
-            <Search size={15} />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              activeTab === "permintaan"
-                ? "Cari nama pemohon..."
-                : "Cari nama, email, username..."
-            }
-            className={INPUT_ICON}
-          />
-          {searchQuery && (
+      {/* Tab + Pencarian Sticky Wrapper */}
+      <div className="sticky top-16 z-10 -mx-4 bg-[#fafafa] px-4 py-2 sm:mx-0 sm:px-0">
+        <div className={`flex flex-col justify-between gap-3 p-3 sm:flex-row sm:items-center sm:p-4 ${CARD}`}>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <button
               type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-3 flex items-center text-[#1A1A1A]/60 hover:text-[#FF6B6B]"
-              aria-label="Bersihkan pencarian"
+              onClick={() => setActiveTab("santri")}
+              className={activeTab === "santri" ? CHIP_ACTIVE : CHIP_IDLE}
             >
-              <X size={13} />
+              <Users size={14} />
+              Santri
+              <span className="rounded-md border-[2px] border-[#134E4A] bg-white px-1.5 text-[10px] font-black text-[#134E4A]">
+                {santriList.length}
+              </span>
             </button>
-          )}
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("ustadz")}
+              className={activeTab === "ustadz" ? CHIP_ACTIVE : CHIP_IDLE}
+            >
+              <GraduationCap size={14} />
+              Ustadz
+              <span className="rounded-md border-[2px] border-[#134E4A] bg-white px-1.5 text-[10px] font-black text-[#134E4A]">
+                {ustadzList.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("permintaan")}
+              className={activeTab === "permintaan" ? CHIP_ACTIVE : CHIP_IDLE}
+            >
+              <ClockSvg size={14} />
+              Permintaan
+              <span
+                className={`rounded-md border-[2px] border-[#134E4A] px-1.5 text-[10px] font-black text-[#134E4A] ${
+                  pendingRequestsCount > 0 ? "bg-[#F59E0B]" : "bg-white"
+                }`}
+              >
+                {pendingRequestsCount > 0 ? pendingRequestsCount : requests.length}
+              </span>
+            </button>
+          </div>
+
+          {/* Kolom Pencarian & Tombol Refresh */}
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div className="relative flex-1 sm:w-72">
+              <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#134E4A]/60">
+                <Search size={15} />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  activeTab === "permintaan"
+                    ? "Cari nama pemohon..."
+                    : "Cari nama, email, username..."
+                }
+                className={INPUT_ICON}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-3 flex items-center text-[#134E4A]/60 hover:text-[#FF6B6B]"
+                  aria-label="Bersihkan pencarian"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void loadData()}
+              className={`${BTN_ICON_SECONDARY} shrink-0`}
+              title="Muat Ulang Data"
+              aria-label="Muat Ulang Data"
+            >
+              <RefreshCw size={15} />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Konten Tab Aktif */}
       {loading ? (
         <div className={`p-12 text-center ${CARD}`}>
-          <Loader2 size={24} className="mx-auto animate-spin text-[#2F6FED]" />
-          <p className="mt-2 text-xs font-black text-[#1A1A1A]/70">Memuat data pengguna...</p>
+          <Loader2 size={24} className="mx-auto animate-spin text-[#0D9488]" />
+          <p className="mt-2 text-xs font-black text-[#134E4A]/70">Memuat data pengguna...</p>
         </div>
       ) : activeTab === "santri" ? (
         /* TAB 1: SANTRI */
-        <div className="overflow-hidden rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] shadow-[4px_4px_0px_#1A1A1A]">
-          <div className="flex items-center justify-between border-b-[3px] border-[#1A1A1A] bg-[#FFF4DC] p-4">
-            <h2 className="font-display text-sm font-black uppercase text-[#1A1A1A]">Daftar Santri Aktif &amp; Terdaftar</h2>
-            <span className="text-xs font-black text-[#1A1A1A]/70">{filteredSantri.length} Santri</span>
+        <div className="overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
+          <div className="flex items-center justify-between border-b-[3px] border-[#134E4A] bg-[#F0FDF4] p-3.5 sm:p-4">
+            <h2 className="font-display text-sm font-black uppercase text-[#134E4A]">Daftar Santri Aktif &amp; Terdaftar</h2>
+            <span className="text-xs font-black text-[#134E4A]/70">{filteredSantri.length} Santri</span>
           </div>
 
           {filteredSantri.length === 0 ? (
-            <div className="p-8 text-center text-xs font-bold text-[#1A1A1A]/70">
+            <div className="p-8 text-center text-xs font-bold text-[#134E4A]/70">
               Tidak ada data santri yang cocok dengan kriteria pencarian.
             </div>
           ) : (
@@ -488,33 +504,36 @@ export function AdminUsersPage() {
               {filteredSantri.map((user) => (
                 <div
                   key={user.id}
-                  className={`flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center ${LIST_ROW}`}
+                  className={`flex items-center justify-between gap-2.5 p-3 sm:p-4 ${LIST_ROW}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 bg-[#9BE58B] text-sm font-black text-[#1A1A1A] ${ICON_BOX}`}>
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className={`h-9 w-9 shrink-0 bg-[#99F6E4] text-xs font-black text-[#134E4A] ${ICON_BOX}`}>
                       {(user.name || "S").charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <h3 className="text-sm font-black leading-tight text-[#1A1A1A]">
-                        {user.name}
-                      </h3>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-[#1A1A1A]/70">{user.email}</span>
-                        <span className="text-[#1A1A1A]/30">&bull;</span>
-                        <span className="text-xs font-bold text-[#1A1A1A]/50">@{user.username}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="truncate text-xs font-black leading-tight text-[#134E4A] sm:text-sm">
+                          {user.name}
+                        </h3>
+                        <span className="truncate text-[11px] font-bold text-[#134E4A]/50">
+                          @{user.username}
+                        </span>
                       </div>
+                      <p className="hidden text-xs font-bold text-[#134E4A]/70 sm:block">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 border-t border-[#1A1A1A]/20 pt-2 sm:justify-end sm:border-t-0 sm:pt-0">
-                    <span className={user.status === "active" ? BADGE_SUCCESS : BADGE_DANGER}>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className={`hidden sm:inline-flex ${user.status === "active" ? BADGE_SUCCESS : BADGE_DANGER}`}>
                       {user.status === "active" ? "Aktif" : "Ditangguhkan"}
                     </span>
 
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(user)}
-                      className={BTN_SECONDARY_SM}
+                      className={`${BTN_SECONDARY_SM} px-2.5 py-1 text-xs`}
                     >
                       {user.status === "active" ? "Tangguhkan" : "Aktifkan"}
                     </button>
@@ -526,14 +545,14 @@ export function AdminUsersPage() {
         </div>
       ) : activeTab === "ustadz" ? (
         /* TAB 2: USTADZ */
-        <div className="overflow-hidden rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] shadow-[4px_4px_0px_#1A1A1A]">
-          <div className="flex items-center justify-between border-b-[3px] border-[#1A1A1A] bg-[#FFF4DC] p-4">
-            <h2 className="font-display text-sm font-black uppercase text-[#1A1A1A]">Daftar Ustadz &amp; Pengajar</h2>
-            <span className="text-xs font-black text-[#1A1A1A]/70">{filteredUstadz.length} Pengajar</span>
+        <div className="overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
+          <div className="flex items-center justify-between border-b-[3px] border-[#134E4A] bg-[#F0FDF4] p-3.5 sm:p-4">
+            <h2 className="font-display text-sm font-black uppercase text-[#134E4A]">Daftar Ustadz &amp; Pengajar</h2>
+            <span className="text-xs font-black text-[#134E4A]/70">{filteredUstadz.length} Pengajar</span>
           </div>
 
           {filteredUstadz.length === 0 ? (
-            <div className="p-8 text-center text-xs font-bold text-[#1A1A1A]/70">
+            <div className="p-8 text-center text-xs font-bold text-[#134E4A]/70">
               Tidak ada data ustadz yang cocok dengan kriteria pencarian.
             </div>
           ) : (
@@ -541,33 +560,36 @@ export function AdminUsersPage() {
               {filteredUstadz.map((user) => (
                 <div
                   key={user.id}
-                  className={`flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center ${LIST_ROW}`}
+                  className={`flex items-center justify-between gap-2.5 p-3 sm:p-4 ${LIST_ROW}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 bg-[#FF9F1C] text-[#1A1A1A] ${ICON_BOX}`}>
-                      <GraduationCap size={18} />
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className={`h-9 w-9 shrink-0 bg-[#F59E0B] text-[#134E4A] ${ICON_BOX}`}>
+                      <GraduationCap size={16} />
                     </div>
-                    <div>
-                      <h3 className="text-sm font-black leading-tight text-[#1A1A1A]">
-                        {user.name}
-                      </h3>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-[#1A1A1A]/70">{user.email}</span>
-                        <span className="text-[#1A1A1A]/30">&bull;</span>
-                        <span className="text-xs font-bold text-[#1A1A1A]/50">@{user.username}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="truncate text-xs font-black leading-tight text-[#134E4A] sm:text-sm">
+                          {user.name}
+                        </h3>
+                        <span className="truncate text-[11px] font-bold text-[#134E4A]/50">
+                          @{user.username}
+                        </span>
                       </div>
+                      <p className="hidden text-xs font-bold text-[#134E4A]/70 sm:block">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 border-t border-[#1A1A1A]/20 pt-2 sm:justify-end sm:border-t-0 sm:pt-0">
-                    <span className={user.status === "active" ? BADGE_SUCCESS : BADGE_DANGER}>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className={`hidden sm:inline-flex ${user.status === "active" ? BADGE_SUCCESS : BADGE_DANGER}`}>
                       {user.status === "active" ? "Aktif" : "Ditangguhkan"}
                     </span>
 
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(user)}
-                      className={BTN_SECONDARY_SM}
+                      className={`${BTN_SECONDARY_SM} px-2.5 py-1 text-xs`}
                     >
                       {user.status === "active" ? "Tangguhkan" : "Aktifkan"}
                     </button>
@@ -579,13 +601,13 @@ export function AdminUsersPage() {
         </div>
       ) : (
         /* TAB 3: PERMINTAAN (member_requests) */
-        <div className="overflow-hidden rounded-2xl border-[3px] border-[#1A1A1A] bg-[#FFFBF2] shadow-[4px_4px_0px_#1A1A1A]">
-          <div className="flex items-center justify-between gap-3 border-b-[3px] border-[#1A1A1A] bg-[#FFF4DC] p-4">
+        <div className="overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
+          <div className="flex items-center justify-between gap-3 border-b-[3px] border-[#134E4A] bg-[#F0FDF4] p-4">
             <div>
-              <h2 className="font-display text-sm font-black uppercase text-[#1A1A1A]">
+              <h2 className="font-display text-sm font-black uppercase text-[#134E4A]">
                 Permintaan Pengajuan Akun Pengajar (member_requests)
               </h2>
-              <p className="mt-0.5 text-[11px] font-bold text-[#1A1A1A]/70">
+              <p className="mt-0.5 text-[11px] font-bold text-[#134E4A]/70">
                 Verifikasi berkas pengajuan ustadz dari santri atau pendaftar baru
               </p>
             </div>
@@ -595,7 +617,7 @@ export function AdminUsersPage() {
           </div>
 
           {filteredRequests.length === 0 ? (
-            <div className="p-10 text-center text-xs font-bold text-[#1A1A1A]/70">
+            <div className="p-10 text-center text-xs font-bold text-[#134E4A]/70">
               Tidak ada pengajuan akun yang ditemukan.
             </div>
           ) : (
@@ -611,7 +633,7 @@ export function AdminUsersPage() {
                   >
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <span className="truncate text-sm font-black text-[#1A1A1A]">
+                        <span className="truncate text-sm font-black text-[#134E4A]">
                           {reqName}
                         </span>
                         <span
@@ -632,12 +654,12 @@ export function AdminUsersPage() {
                       </div>
 
                       {req.reason && (
-                        <p className="rounded-xl border-[2px] border-[#1A1A1A]/20 bg-[#FFF4DC] p-2.5 text-xs font-bold text-[#1A1A1A]">
+                        <p className="rounded-xl border-[2px] border-[#134E4A]/20 bg-[#F0FDF4] p-2.5 text-xs font-bold text-[#134E4A]">
                           {req.reason}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-3 text-[11px] font-bold text-[#1A1A1A]/60">
+                      <div className="flex items-center gap-3 text-[11px] font-bold text-[#134E4A]/60">
                         <span>Tipe: {req.request_type || "USTADZ"}</span>
                         <span>&bull;</span>
                         <span>
@@ -686,7 +708,7 @@ export function AdminUsersPage() {
                         </button>
                       </div>
                     ) : (
-                      <span className="self-end text-xs font-black text-[#1A1A1A]/50 md:self-center">
+                      <span className="self-end text-xs font-black text-[#134E4A]/50 md:self-center">
                         Sudah Diproses
                       </span>
                     )}
@@ -698,18 +720,24 @@ export function AdminUsersPage() {
         </div>
       )}
 
-      {/* User Form Modal (Tambah/Edit User) */}
-      {isFormOpen && (
-        <UserFormModal
-          mode={editingUser ? "edit" : "create"}
+      {/* User Form Bottom Sheet (Tambah Pengguna) */}
+      <AppBottomSheet
+        isOpen={isCreateSheetOpen}
+        onClose={() => {
+          setIsCreateSheetOpen(false);
+          setEditingUser(null);
+        }}
+        title="Tambah Pengguna"
+      >
+        <UserForm
           initialUser={editingUser}
           onClose={() => {
-            setIsFormOpen(false);
+            setIsCreateSheetOpen(false);
             setEditingUser(null);
           }}
           onSubmit={handleSaveUserForm}
         />
-      )}
+      </AppBottomSheet>
     </div>
   );
 }

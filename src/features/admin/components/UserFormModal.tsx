@@ -76,12 +76,19 @@ function Field({
   );
 }
 
-export function UserFormModal({
-  mode,
+export interface UserFormProps {
+  initialUser?: AdminUser | null;
+  onClose: () => void;
+  onSubmit: (values: UserFormValues) => Promise<void>;
+  isEdit?: boolean;
+}
+
+export function UserForm({
   initialUser,
   onClose,
   onSubmit,
-}: UserFormModalProps) {
+  isEdit = Boolean(initialUser),
+}: UserFormProps) {
   const [name, setName] = useState(initialUser?.name ?? "");
   const [username, setUsername] = useState(initialUser?.username ?? "");
   const [email, setEmail] = useState(initialUser?.email ?? "");
@@ -92,14 +99,6 @@ export function UserFormModal({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isSubmitting) onClose();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onClose, isSubmitting]);
 
   const validate = (): FieldErrors => {
     const next: FieldErrors = {};
@@ -137,135 +136,151 @@ export function UserFormModal({
     }
   };
 
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <Field id="user-name" label="Nama Lengkap" error={errors.name}>
+        <input
+          id="user-name"
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Mis. Abdullah Fattah"
+          className={INPUT}
+        />
+      </Field>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field id="user-username" label="Username" error={errors.username}>
+          <input
+            id="user-username"
+            type="text"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            placeholder="Mis. ceria_abdullah"
+            className={INPUT}
+          />
+        </Field>
+        <Field id="user-email" label="Email" error={errors.email}>
+          <input
+            id="user-email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="nama@email.com"
+            className={INPUT}
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field id="user-role" label="Role">
+          <div className="relative">
+            <select
+              id="user-role"
+              value={role}
+              onChange={(event) =>
+                setRole(event.target.value as AdminUserRole)
+              }
+              className={SELECT}
+            >
+              {ROLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
+            />
+          </div>
+        </Field>
+        <Field id="user-status" label="Status">
+          <div className="relative">
+            <select
+              id="user-status"
+              value={status}
+              onChange={(event) =>
+                setStatus(event.target.value as AdminUserStatus)
+              }
+              className={SELECT}
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#134E4A]"
+            />
+          </div>
+        </Field>
+      </div>
+
+      {submitError ? (
+        <div
+          role="alert"
+          className="rounded-xl border-[2.5px] border-[#134E4A] bg-[#FF6B6B]/15 px-3 py-2 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]"
+        >
+          {submitError}
+        </div>
+      ) : null}
+
+      <div className="flex items-center justify-end gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isSubmitting}
+          className={BTN_SECONDARY}
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className={`${BTN_PRIMARY} min-w-[176px]`}
+        >
+          {isSubmitting ? <Spinner size={14} /> : null}
+          {isSubmitting
+            ? "Menyimpan..."
+            : isEdit
+              ? "Simpan Perubahan"
+              : "Tambah Pengguna"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function UserFormModal({
+  mode,
+  initialUser,
+  onClose,
+  onSubmit,
+}: UserFormModalProps) {
   const isEdit = mode === "edit";
 
   return (
     <AppModal
       isOpen={true}
-      onClose={isSubmitting ? () => {} : onClose}
+      onClose={onClose}
       title={isEdit ? "Edit Pengguna" : "Tambah Pengguna"}
     >
-      <p className="mb-4 text-xs font-bold text-[#1A1A1A]/70">
+      <p className="mb-4 text-xs font-bold text-[#134E4A]/70">
         {isEdit
           ? "Perbarui data pengguna Tartila."
           : "Tambahkan pengguna baru ke platform Tartila."}
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        <Field id="user-name" label="Nama Lengkap" error={errors.name}>
-          <input
-            id="user-name"
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Mis. Abdullah Fattah"
-            className={INPUT}
-          />
-        </Field>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field id="user-username" label="Username" error={errors.username}>
-            <input
-              id="user-username"
-              type="text"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              placeholder="Mis. ceria_abdullah"
-              className={INPUT}
-            />
-          </Field>
-          <Field id="user-email" label="Email" error={errors.email}>
-            <input
-              id="user-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="nama@email.com"
-              className={INPUT}
-            />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field id="user-role" label="Role">
-            <div className="relative">
-              <select
-                id="user-role"
-                value={role}
-                onChange={(event) =>
-                  setRole(event.target.value as AdminUserRole)
-                }
-                className={SELECT}
-              >
-                {ROLE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]"
-              />
-            </div>
-          </Field>
-          <Field id="user-status" label="Status">
-            <div className="relative">
-              <select
-                id="user-status"
-                value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as AdminUserStatus)
-                }
-                className={SELECT}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]"
-              />
-            </div>
-          </Field>
-        </div>
-
-        {submitError ? (
-          <div
-            role="alert"
-            className="rounded-xl border-[2.5px] border-[#1A1A1A] bg-[#FF6B6B]/15 px-3 py-2 text-xs font-black text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]"
-          >
-            {submitError}
-          </div>
-        ) : null}
-
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className={BTN_SECONDARY}
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            aria-busy={isSubmitting}
-            className={`${BTN_PRIMARY} min-w-[176px]`}
-          >
-            {isSubmitting ? <Spinner size={14} /> : null}
-            {isSubmitting
-              ? "Menyimpan..."
-              : isEdit
-                ? "Simpan Perubahan"
-                : "Tambah Pengguna"}
-          </button>
-        </div>
-      </form>
+      <UserForm
+        initialUser={initialUser}
+        onClose={onClose}
+        onSubmit={onSubmit}
+        isEdit={isEdit}
+      />
     </AppModal>
   );
 }

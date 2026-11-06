@@ -8,9 +8,9 @@ export function AdminRouteGuard() {
 
   if (loading || !isRoleVerified) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#FFF4DC]">
+      <div className="flex min-h-dvh items-center justify-center bg-[#F0FDF4]">
         <div
-          className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#1A1A1A] border-t-transparent"
+          className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#0D9488] border-t-transparent"
           role="status"
           aria-label="Memuat"
         />

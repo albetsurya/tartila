@@ -18,6 +18,8 @@ export interface ArenaSocketCallbacks {
   onGameFinished?: (data: { leaderboard: any[]; kkm?: number; winnerId?: string; outcome?: string; isDraw?: boolean }) => void;
   onViolationWarning?: (data: { violations: number; maxViolations: number; autoSubmitted: boolean; message: string }) => void;
   onPlayerViolation?: (data: { playerId: string; nickname: string; violations: number; autoSubmitted: boolean }) => void;
+  onThemeChanged?: (data: { theme: string }) => void;
+  onPlayerUpdated?: (data: { playerId: string; avatarId: string }) => void;
   onHostDisconnected?: (data: { message?: string }) => void;
   onRoomReset?: (data: { status: string }) => void;
   /** Dipanggil setiap socket benar-benar terbuka (termasuk percobaan pertama). */
@@ -58,6 +60,15 @@ export class ArenaSocket {
     this.nickname = identity.nickname;
     this.avatarId = identity.avatarId;
     this.setupResumeListeners();
+  }
+
+  /**
+   * Ganti callback tanpa membuat koneksi baru. Dipakai saat halaman Lobi
+   * menyerahkan soketnya ke halaman permainan: koneksi tetap hidup, tetapi
+   * callback lama (milik komponen yang sudah unmount) dilepas.
+   */
+  setCallbacks(callbacks: ArenaSocketCallbacks): void {
+    this.callbacks = callbacks;
   }
 
   connect(): void {
@@ -284,6 +295,12 @@ export class ArenaSocket {
       case "player_violation":
         this.callbacks.onPlayerViolation?.(msg.payload);
         break;
+      case "theme_changed":
+        this.callbacks.onThemeChanged?.(msg.payload);
+        break;
+      case "player_updated":
+        this.callbacks.onPlayerUpdated?.(msg.payload);
+        break;
       case "error":
         this.callbacks.onError?.(typeof msg.payload === "string" ? msg.payload : msg.payload?.message || "Terjadi kesalahan");
         break;
@@ -328,6 +345,16 @@ export class ArenaSocket {
     this.send("reset_room", {});
   }
 
+  /** Host mengganti tema lobi; server menyimpan & menyiarkan theme_changed. */
+  changeTheme(theme: string): void {
+    this.send("change_theme", { theme });
+  }
+
+  /** Player mengganti avatar; server menyiarkan player_updated. */
+  changeAvatar(avatarId: string, playerId?: string): void {
+    this.send("change_avatar", { avatarId, playerId });
+  }
+
   recordViolation(): void {
     this.send("record_violation", { type: "tab_switch" });
   }
@@ -350,4 +377,42 @@ export class ArenaSocket {
       this.ws = null;
     }
   }
+}
+
+/**
+ * Soket Lobi yang sedang diserahkan ke halaman permainan.
+ *
+ * Memutus koneksi Host tepat saat berpindah halaman membuat backend membaca
+ * "host keluar" dan mengakhiri room. Karena itu koneksi lama dibiarkan hidup
+ * sampai halaman berikutnya tersambung, atau ditutup paksa setelah TTL bila
+ * Host ternyata tidak menuju halaman permainan.
+ */
+const handedOffSockets = new Map<string, ArenaSocket>();
+const HANDOFF_TTL_MS = 15000;
+
+/** Serahkan soket Lobi tanpa memutusnya; pemilik berikutnya menutupnya. */
+export function handOffArenaSocket(pin: string, socket: ArenaSocket): void {
+  const previous = handedOffSockets.get(pin);
+  if (previous && previous !== socket) {
+    previous.disconnect();
+  }
+  socket.setCallbacks({});
+  handedOffSockets.set(pin, socket);
+  window.setTimeout(() => {
+    if (handedOffSockets.get(pin) === socket) {
+      handedOffSockets.delete(pin);
+      socket.disconnect();
+    }
+  }, HANDOFF_TTL_MS);
+}
+
+/**
+ * Tutup soket Lobi yang diserahkan. Dipanggil setelah soket halaman permainan
+ * benar-benar terbuka, sehingga backend tidak pernah melihat room tanpa Host.
+ */
+export function releaseHandedOffArenaSocket(pin: string): void {
+  const socket = handedOffSockets.get(pin);
+  if (!socket) return;
+  handedOffSockets.delete(pin);
+  socket.disconnect();
 }

@@ -6,19 +6,18 @@ import {
   AlertCircle,
   CheckSvg,
   XSvg,
-  ChevronLeftSvg,
   AlertTriangleSvg,
+  LightbulbSvg,
 } from "@/components/ui/CustomIcons";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ArenaSocket } from "../../services/arenaSocket";
-import { arenaRoomService } from "@/services/arenaRoomService";
 import type { ClientQuestionPayload } from "../../data/quiz/types";
 import LeaderboardModal, {
   type LeaderboardEntry,
 } from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
 import { ArenaQuestionStage } from "../../components/multiplayer/ArenaQuestionStage";
+import { ArenaTopbar } from "../../components/multiplayer/ArenaTopbar";
 import {
-  MultiplayerAvatar,
   loadMultiplayerProfile,
 } from "../../components/multiplayer/MultiplayerSetupSheet";
 
@@ -99,6 +98,18 @@ export default function PlayerGamePage() {
 
   const socketRef = useRef<ArenaSocket | null>(null);
   const hostDisconnectedRef = useRef(false);
+  // Tenggat soal (epoch ms) dari serverTimestamp + timeLimitSeconds. Bukan
+  // decrement lokal: santri dengan jaringan lambat tidak kehilangan waktu.
+  const deadlineRef = useRef<number | null>(null);
+  // Tenggat hitung mundur 3..2..1 dari Host (startsAt), agar kedua layar
+  // menampilkan angka yang sama pada saat yang sama.
+  const countdownDeadlineRef = useRef<number | null>(null);
+  // Nilai timeLimit terkini untuk guard "jangan mulai dari 0" saat
+  // QUESTION_ACTIVE (phase_changed) datang tanpa loro soal baru.
+  const timeLimitRef = useRef(timeLimit);
+  useEffect(() => {
+    timeLimitRef.current = timeLimit;
+  }, [timeLimit]);
 
   useEffect(() => {
     if (!pin) return;
@@ -153,6 +164,15 @@ export default function PlayerGamePage() {
           });
           setQuestionIndex(state.question || 0);
           setTotalQuestions(state.totalQ || 1);
+          // room_state datang beberapa detik setelah timer mulai; sinkronkan
+          // waktu soal berjalan supaya santri tidak mulai dari 0s.
+          setTimeLimit(state.currentQuestion.timeLimitSeconds || 20);
+          // room_state tidak membawa serverTimestamp: mulai tenggat baru dari
+          // durasi penuh supaya timer tidak langsung 0.
+          const resyncLimit = state.currentQuestion.timeLimitSeconds || 20;
+          deadlineRef.current =
+            Date.now() + resyncLimit * 1000;
+          setTimeLeft(resyncLimit);
           setGamePhase("QUESTION_ACTIVE");
         }
       },
@@ -210,8 +230,19 @@ export default function PlayerGamePage() {
         setQuestion(incoming);
         setQuestionIndex(data.questionIndex ?? 0);
         setTotalQuestions(data.totalQuestions ?? 1);
-        setTimeLimit(data.timeLimit || 20);
-        setTimeLeft(data.timeLimit || 20);
+        const startLimit =
+          data.timeLimit ||
+          (data as any).timeLimitSeconds ||
+          incoming.timeLimitSeconds ||
+          20;
+        setTimeLimit(startLimit);
+        // Hitung selisih jam lokal vs server, lalu pangkas sisa waktu
+        // supaya perbedaan jam (clock skew) tidak membuat timer langsung 0.
+        const serverTimestamp = Number((data as any).serverTimestamp) || Date.now();
+        const delay = Date.now() - serverTimestamp;
+        const actualRemaining = Math.max(0, (startLimit * 1000) - delay);
+        deadlineRef.current = Date.now() + actualRemaining;
+        setTimeLeft(Math.ceil(actualRemaining / 1000));
         setSelectedAnswer(null);
         setIsLocked(false);
         setHasAnswered(false);
@@ -235,8 +266,21 @@ export default function PlayerGamePage() {
         setQuestion(incoming);
         setQuestionIndex(data.questionIndex);
         setTotalQuestions(data.totalQuestions);
-        setTimeLimit(data.timeLimit || 20);
-        setTimeLeft(data.timeLimit || 20);
+        // Server mengirim `timeLimitSeconds` (bukan `timeLimit`) pada
+        // next_question; tanpa fallback ini timer soal baru mulai dari 0.
+        const nextLimit =
+          (data as any).timeLimitSeconds ||
+          data.timeLimit ||
+          incoming.timeLimitSeconds ||
+          20;
+        setTimeLimit(nextLimit);
+        // Hitung selisih jam lokal vs server, lalu pangkas sisa waktu
+        // supaya perbedaan jam (clock skew) tidak membuat timer langsung 0.
+        const serverTimestamp = Number((data as any).serverTimestamp) || Date.now();
+        const delay = Date.now() - serverTimestamp;
+        const actualRemaining = Math.max(0, (nextLimit * 1000) - delay);
+        deadlineRef.current = Date.now() + actualRemaining;
+        setTimeLeft(Math.ceil(actualRemaining / 1000));
         setSelectedAnswer(null);
         setIsLocked(false);
         setHasAnswered(false);
@@ -268,11 +312,21 @@ export default function PlayerGamePage() {
       },
       onPhaseChanged: (data) => {
         if (data.phase === "COUNTDOWN") {
+          // Host kirim startsAt (epoch ms saat soal aktif dimulai). Hitung
+          // sisa detik dari jumlah tersebut, bukan dari clock lokal.
+          const startsAt = Number((data as any).startsAt) || Date.now();
+          const secs = Math.max(1, Number(data.countdownSeconds) || 3);
+          countdownDeadlineRef.current = startsAt + secs * 1000;
           setGamePhase("COUNTDOWN");
-          setCountdown(data.countdownSeconds || 3);
+          setCountdown(
+            Math.max(
+              0,
+              Math.ceil((countdownDeadlineRef.current - Date.now()) / 1000),
+            ),
+          );
         } else if (data.phase === "QUESTION_ACTIVE") {
-          setCountdown(null);
-          setGamePhase("QUESTION_ACTIVE");
+          // Timer wajib dikendalikan oleh onGameStarted/onNextQuestion.
+          // Jangan pakai setTimeLeft() di sini.
         }
       },
       onError: (err) => {
@@ -308,7 +362,7 @@ export default function PlayerGamePage() {
     return () => clearTimeout(timer);
   }, [question, socketError, hostDisconnected, disqualified, gamePhase]);
 
-  // Countdown sebelum soal aktif
+  // Countdown sebelum soal aktif (3..2..1), sumber: host `startsAt`.
   useEffect(() => {
     if (countdown === null) return;
     if (countdown <= 0) {
@@ -318,31 +372,52 @@ export default function PlayerGamePage() {
       }
       return;
     }
-    soundManager.playSfx("pop");
     const t = setTimeout(() => {
-      setCountdown((c) => (c !== null ? c - 1 : null));
-    }, 1000);
+      const deadline = countdownDeadlineRef.current ?? Date.now() + 3000;
+      if (deadline !== undefined) {
+        const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        setCountdown(left > 0 ? left : null);
+        if (left <= 0) {
+          countdownDeadlineRef.current = null;
+          if (gamePhase === "COUNTDOWN") {
+            setGamePhase("QUESTION_ACTIVE");
+          }
+        }
+      } else {
+        setCountdown((c) => (c !== null ? c - 1 : null));
+      }
+    }, 250);
     return () => clearTimeout(t);
   }, [countdown, gamePhase]);
 
-  // Timer per soal & auto-transition to REVEAL_ANSWER
+  // Timer per soal berbasis tenggat server (deadline) — menggantikan
+  // decrement setTimeout yang bisa tertinggal saat frame macet.
   useEffect(() => {
     if (
+      !question ||
       gamePhase !== "QUESTION_ACTIVE" ||
       disqualified ||
       hostDisconnected
     ) {
       return;
     }
-    if (timeLeft <= 0) {
-      setGamePhase("REVEAL_ANSWER");
-      return;
-    }
-    const timer = setTimeout(() => {
-      setTimeLeft((s) => s - 1);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [gamePhase, timeLeft, disqualified, hostDisconnected]);
+
+    const tick = () => {
+      const deadline = deadlineRef.current;
+      if (deadline !== null) {
+        const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        setTimeLeft(left);
+        if (left <= 0) {
+          deadlineRef.current = null;
+          setGamePhase("REVEAL_ANSWER");
+        }
+      }
+    };
+
+    tick();
+    const timer = setInterval(tick, 250);
+    return () => clearInterval(timer);
+  }, [question, gamePhase, disqualified, hostDisconnected]);
 
   // Hitung mundur pembahasan soal -> Otomatis buka Leaderboard Modal
   useEffect(() => {
@@ -408,19 +483,6 @@ export default function PlayerGamePage() {
     (question as any)?.correctAnswer ||
     (question as any)?.correct_answer ||
     "";
-  const correctOptionObj = question?.options?.find(
-    (opt: any, idx: number) => {
-      const optId = opt.id || String.fromCharCode(65 + idx);
-      const optText = typeof opt === "string" ? opt : opt.text;
-      return (
-        optId === activeCorrectAnswer ||
-        optText === activeCorrectAnswer ||
-        (typeof activeCorrectAnswer === "string" &&
-          optId.toLowerCase() === activeCorrectAnswer.toLowerCase()) ||
-        opt.isCorrect
-      );
-    },
-  );
   const canAnswer =
     !isLocked &&
     !disqualified &&
@@ -428,231 +490,198 @@ export default function PlayerGamePage() {
     gamePhase === "QUESTION_ACTIVE" &&
     Boolean(question);
 
-  const correctAnswerText = correctOptionObj
-    ? typeof correctOptionObj === "string"
-      ? correctOptionObj
-      : correctOptionObj.text
-    : activeCorrectAnswer;
-  const correctAnswerLetter = correctOptionObj
-    ? correctOptionObj.id || activeCorrectAnswer
-    : activeCorrectAnswer;
-
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col bg-[#F0FDF4] select-none">
-      {/* HUD Header Santri */}
-      <header className="shrink-0 flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 bg-white border-b-[3px] border-[#134E4A] shadow-[0px_2px_0px_#134E4A] z-20">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowBackModal(true)}
-            aria-label="Kembali"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#134E4A] bg-white text-[#134E4A] shadow-[2px_2px_0px_#134E4A] active:translate-y-0.5 cursor-pointer"
-          >
-            <ChevronLeftSvg size={18} />
-          </button>
-          <div className="flex items-center gap-2">
-            <MultiplayerAvatar avatarId={avatarId} size={30} />
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block leading-tight">
-                Santri
-              </span>
-              <span className="font-black text-sm text-[#134E4A] leading-none">
-                {nickname}
-              </span>
-            </div>
-          </div>
-        </div>
+    <div className="relative min-h-[100dvh] w-full bg-[#F0FDF4] pb-28 lg:pb-32 overflow-x-hidden select-none">
+      {/* Pola Titik Taktis Arena (sama dengan layar Host) */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-20 z-0"
+        style={{
+          backgroundImage: "radial-gradient(#0D9488 2px, transparent 2px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
 
-        <div className="text-center">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block leading-tight">
-            Soal
-          </span>
-          <span className="font-display text-sm sm:text-base font-black text-[#134E4A] leading-none">
-            {questionIndex + 1} / {totalQuestions || 1}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="text-center">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block leading-tight">
-              Timer
-            </span>
-            <span
-              className={`font-display text-sm sm:text-base font-black leading-none ${
-                timeLeft <= 5 ? "text-[#EF4444] animate-pulse" : "text-[#0D9488]"
-              }`}
-            >
-              {timeLeft}s
-            </span>
-          </div>
-          <div className="hidden xs:block w-14 sm:w-16 h-2.5 bg-gray-200 border-[2px] border-[#134E4A] rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${
-                timeLeft <= 5 ? "bg-[#EF4444]" : "bg-[#0D9488]"
-              }`}
-              style={{
-                width: `${Math.max(0, Math.min(100, (timeLeft / timeLimit) * 100))}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="text-right">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#134E4A]/60 block leading-tight">
-            Skor
-          </span>
-          <span className="font-display text-sm sm:text-base font-black text-[#0D9488] leading-none">
-            {totalScore} pts
-          </span>
-        </div>
-      </header>
-
-      {/* Konten Utama Layar Santri */}
-      <main className="flex-1 w-full max-w-lg mx-auto p-3.5 sm:p-4 flex flex-col justify-between gap-3.5 overflow-y-auto">
-        {/* Panggung soal bersama Host & Player: satu komponen, satu tampilan */}
+      <div className="relative z-10 max-w-3xl mx-auto px-3.5 sm:px-4 pt-3 sm:pt-4 space-y-3.5">
         {question ? (
-          <ArenaQuestionStage
-            question={question}
-            questionIndex={questionIndex}
-            totalQuestions={totalQuestions}
-            selectedOptionId={selectedAnswer}
-            revealed={gamePhase === "REVEAL_ANSWER" || gamePhase === "LEADERBOARD"}
-            correctAnswer={activeCorrectAnswer}
-            disabled={!canAnswer}
-            onSelect={handleSelectOption}
-          />
+          <>
+            {/* HUD Topbar (bersama Host): Soal / Timer / Skor identik */}
+            <ArenaTopbar
+              role="player"
+              name={nickname}
+              avatarId={avatarId}
+              pin={pin || ""}
+              questionIndex={questionIndex}
+              totalQuestions={totalQuestions}
+              timeLeft={timeLeft}
+              timeLimit={timeLimit}
+              revealed={
+                gamePhase === "REVEAL_ANSWER" || gamePhase === "LEADERBOARD"
+              }
+              score={totalScore}
+              onBack={() => setShowBackModal(true)}
+            />
+
+            {/* Panggung soal yang sama persis dengan layar Host */}
+            <ArenaQuestionStage
+              question={question}
+              questionIndex={questionIndex}
+              totalQuestions={totalQuestions}
+              selectedOptionId={selectedAnswer}
+              revealed={
+                gamePhase === "REVEAL_ANSWER" || gamePhase === "LEADERBOARD"
+              }
+              correctAnswer={activeCorrectAnswer}
+              disabled={!canAnswer}
+              onSelect={handleSelectOption}
+              footer={
+                <div className="space-y-3">
+                  {selectedAnswer && !isLocked && (
+                    <p className="text-[11px] font-bold text-center text-[#134E4A]/70">
+                      Pilihan tersimpan. Kamu masih bisa mengganti pilihan sebelum waktu habis.
+                    </p>
+                  )}
+
+                  {gamePhase === "REVEAL_ANSWER" && (
+                    <>
+                      {/* Hasil Jawaban Santri (kartu sama dengan Host) */}
+                      {selectedAnswer &&
+                      (selectedAnswer === activeCorrectAnswer ||
+                        selectedAnswer.toLowerCase() ===
+                          activeCorrectAnswer.toLowerCase()) ? (
+                        <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#D1FAE5] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-[#10B981] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
+                              <CheckSvg size={18} />
+                            </div>
+                            <div>
+                              <span className="font-display text-sm sm:text-base font-black text-[#0F766E] block">
+                                Luar Biasa! Jawabanmu Benar!
+                              </span>
+                              <span className="text-[11px] font-bold text-[#134E4A]/70">
+                                Poin kuis berhasil kamu dapatkan
+                              </span>
+                            </div>
+                          </div>
+                          {result && (
+                            <span className="font-display text-base font-black text-[#0D9488] shrink-0">
+                              +{result.scoreAwarded} Pts
+                            </span>
+                          )}
+                        </div>
+                      ) : selectedAnswer ? (
+                        <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEE2E2] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-[#EF4444] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
+                            <XSvg size={18} />
+                          </div>
+                          <div>
+                            <span className="font-display text-sm sm:text-base font-black text-[#B91C1C] block">
+                              Jawaban Kamu Belum Tepat
+                            </span>
+                            <span className="text-[11px] font-bold text-[#134E4A]/70">
+                              Tetap semangat di soal berikutnya!
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-[#F59E0B] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
+                            <AlertCircle size={18} />
+                          </div>
+                          <div>
+                            <span className="font-display text-sm sm:text-base font-black text-[#B45309] block">
+                              Waktu Telah Habis!
+                            </span>
+                            <span className="text-[11px] font-bold text-[#134E4A]/70">
+                              Kamu belum sempat memilih jawaban
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Kunci Jawaban Resmi (markup identik dengan Host) */}
+                      <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] space-y-1.5 text-left">
+                        <div className="flex items-center gap-2">
+                          <CheckSvg size={16} stroke="#0D9488" />
+                          <span className="font-display text-xs font-black uppercase text-[#0F766E]">
+                            Kunci Jawaban Resmi:
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-md border border-[#134E4A] bg-[#FEF08A] font-black text-xs text-[#134E4A]">
+                            {activeCorrectAnswer || "—"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <AnimatePresence>
+                        {explanation && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="p-3.5 rounded-2xl border-[2.5px] border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] text-left text-xs sm:text-sm font-bold shadow-[3px_3px_0px_#134E4A] flex items-start gap-2.5"
+                          >
+                            <div className="w-7 h-7 rounded-lg bg-[#FEF08A] border-2 border-[#134E4A] flex items-center justify-center shrink-0">
+                              <LightbulbSvg size={15} className="text-[#134E4A]" />
+                            </div>
+                            <div className="leading-snug">
+                              <span className="font-black uppercase text-[10px] tracking-wider block text-[#0F766E]">
+                                Penjelasan Jawaban
+                              </span>
+                              {explanation}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Hitung Mundur Otomatis Membuka Leaderboard */}
+                      <div className="py-2.5 px-3 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-center flex items-center justify-center gap-2 shadow-[2px_2px_0px_#134E4A]">
+                        <div className="w-3.5 h-3.5 border-2 border-[#134E4A] border-t-transparent rounded-full animate-spin shrink-0" />
+                        <span className="text-xs font-black text-[#134E4A]">
+                          Membuka Klasemen otomatis dalam {revealCountdown ?? 4}s...
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              }
+            />
+          </>
         ) : (
-          <div className="py-12 text-center space-y-3">
-            <div className="w-10 h-10 border-4 border-[#0D9488] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-display text-sm font-black text-[#134E4A]">
-              Menyiapkan soal...
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-12 h-12 border-4 border-[#134E4A] border-t-transparent rounded-full animate-spin" />
+            <p className="mt-3 text-xs sm:text-sm font-black text-[#134E4A]">
+              Menyiapkan panggung kuis...
             </p>
           </div>
         )}
+      </div>
 
-        {/* Status Bawah: Sesi Menjawab / Feedback Reveal */}
-        <div className="space-y-2.5 pt-1 shrink-0">
-          {gamePhase === "QUESTION_ACTIVE" && (
-            <>
-              {!isLocked ? (
-                selectedAnswer ? (
-                  <div className="space-y-2 animate-in zoom-in-95">
-                    <button
-                      type="button"
-                      onClick={handleLockAnswer}
-                      className="w-full py-3.5 px-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] text-white font-black text-sm sm:text-base shadow-[4px_4px_0px_#134E4A] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <CheckSvg size={18} />
-                      <span>Kunci Jawaban Saya</span>
-                    </button>
-                    <p className="text-[11px] font-bold text-center text-[#134E4A]/70">
-                      Pilihan tersimpan. Kamu masih bisa mengganti pilihan sebelum menekan kunci jawaban.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="py-2.5 px-4 rounded-xl border-2 border-dashed border-[#134E4A]/30 bg-white text-center">
-                    <p className="text-xs font-black text-[#134E4A]/70">
-                      Pilih salah satu jawaban di atas sebelum waktu habis!
-                    </p>
-                  </div>
-                )
-              ) : (
-                <div className="py-3 px-4 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF08A] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] flex items-center justify-center gap-2.5 animate-in zoom-in-95">
-                  <div className="w-4 h-4 border-2 border-[#134E4A] border-t-transparent rounded-full animate-spin shrink-0" />
-                  <span className="font-display text-xs sm:text-sm font-black">
-                    Jawaban Terkunci! Menunggu santri lain menjawab...
-                  </span>
-                </div>
-              )}
-            </>
-          )}
+      {/* FLOATING DOCK BAWAH (ala Host): status jawaban & tombol aksi */}
+      {question && gamePhase !== "LEADERBOARD" && (
+        <div className="fixed bottom-0 inset-x-0 z-40 p-3 bg-gradient-to-t from-[#F0FDF4] via-[#F0FDF4]/95 to-transparent">
+          <div className="max-w-2xl mx-auto rounded-2xl border-[3.5px] border-[#134E4A] bg-[#FFFBEB] p-2.5 shadow-[0_-3px_0px_#134E4A,4px_4px_0px_#134E4A] flex items-center justify-between gap-3">
+            <span className="text-[11px] font-black text-[#134E4A]/70 truncate">
+              {gamePhase === "REVEAL_ANSWER"
+                ? `Klasemen terbuka otomatis dalam ${revealCountdown ?? 0}s`
+                : isLocked
+                  ? "Jawaban terkunci. Menunggu santri lain menjawab..."
+                  : selectedAnswer
+                    ? "Pilihanmu tersimpan. Kunci jawabanmu sekarang."
+                    : "Pilih jawabanmu sebelum waktu habis"}
+            </span>
 
-          {gamePhase === "REVEAL_ANSWER" && (
-            <div className="space-y-2 animate-in zoom-in-95">
-              {/* Hasil Jawaban Santri */}
-              {selectedAnswer &&
-              (selectedAnswer === activeCorrectAnswer ||
-                selectedAnswer.toLowerCase() ===
-                  activeCorrectAnswer.toLowerCase()) ? (
-                <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#D1FAE5] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#10B981] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
-                      <CheckSvg size={18} />
-                    </div>
-                    <div>
-                      <span className="font-display text-sm sm:text-base font-black text-[#0F766E] block">
-                        Luar Biasa! Jawabanmu Benar!
-                      </span>
-                      <span className="text-[11px] font-bold text-[#134E4A]/70">
-                        Poin kuis berhasil kamu dapatkan
-                      </span>
-                    </div>
-                  </div>
-                  {result && (
-                    <span className="font-display text-base font-black text-[#0D9488] shrink-0">
-                      +{result.scoreAwarded} Pts
-                    </span>
-                  )}
-                </div>
-              ) : selectedAnswer ? (
-                <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEE2E2] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#EF4444] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
-                    <XSvg size={18} />
-                  </div>
-                  <div>
-                    <span className="font-display text-sm sm:text-base font-black text-[#B91C1C] block">
-                      Jawaban Kamu Belum Tepat
-                    </span>
-                    <span className="text-[11px] font-bold text-[#134E4A]/70">
-                      Tetap semangat di soal berikutnya!
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#F59E0B] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
-                    <AlertCircle size={18} />
-                  </div>
-                  <div>
-                    <span className="font-display text-sm sm:text-base font-black text-[#B45309] block">
-                      Waktu Telah Habis!
-                    </span>
-                    <span className="text-[11px] font-bold text-[#134E4A]/70">
-                      Kamu belum sempat memilih jawaban
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Kunci Jawaban Eksplisit */}
-              {activeCorrectAnswer && (
-                <div className="p-3 rounded-xl border-[2.5px] border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] shadow-[2.5px_2.5px_0px_#134E4A] space-y-1">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#0F766E]">
-                    <CheckSvg size={14} />
-                    <span>Kunci Jawaban: {correctAnswerLetter}</span>
-                  </div>
-                  <p className="font-black text-xs sm:text-sm text-[#134E4A]">
-                    {correctAnswerText}
-                  </p>
-                  {explanation && (
-                    <p className="text-xs font-bold text-[#134E4A]/80 pt-1 border-t border-[#134E4A]/15">
-                      {explanation}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Hitung Mundur Otomatis Membuka Leaderboard */}
-              <div className="py-2.5 px-3 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-center flex items-center justify-center gap-2 shadow-[2px_2px_0px_#134E4A]">
-                <div className="w-3.5 h-3.5 border-2 border-[#134E4A] border-t-transparent rounded-full animate-spin shrink-0" />
-                <span className="text-xs font-black text-[#134E4A]">
-                  Membuka Klasemen otomatis dalam {revealCountdown ?? 4}s...
-                </span>
-              </div>
-            </div>
-          )}
+            {gamePhase === "QUESTION_ACTIVE" && !isLocked && selectedAnswer && (
+              <button
+                type="button"
+                onClick={handleLockAnswer}
+                className="py-2.5 px-4 rounded-xl border-[2.5px] border-[#134E4A] bg-[#0D9488] hover:bg-[#0F766E] text-white font-display font-black text-[11px] sm:text-xs uppercase shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <CheckSvg size={15} />
+                <span>Kunci Jawaban</span>
+              </button>
+            )}
+          </div>
         </div>
-      </main>
+      )}
 
       {/* Leaderboard Modal (muncul saat fase LEADERBOARD aktif) */}
       <LeaderboardModal

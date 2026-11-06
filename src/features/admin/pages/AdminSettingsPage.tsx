@@ -12,10 +12,12 @@ import {
   AlertCircle,
   ChevronRight,
   Check,
+  Pencil,
 } from "@/components/ui/CustomIcons";
 import {
   BTN_BASE,
   BTN_DANGER_COLOR,
+  BTN_SECONDARY_SM,
   CARD,
   ICON_BOX,
   PAGE_SUBTITLE,
@@ -81,7 +83,7 @@ export function AdminSettingsPage() {
   const adminRole = user?.role === "superadmin" ? "Superadmin" : "Tartila Admin";
 
   return (
-    <div className="max-w-3xl space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
+    <div className="max-w-3xl space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={TOAST}>
@@ -91,7 +93,7 @@ export function AdminSettingsPage() {
       )}
 
       {/* Header Halaman */}
-      <div className={`p-5 ${CARD}`}>
+      <div className={`p-4 sm:p-5 ${CARD}`}>
         <h1 className={PAGE_TITLE}>Pengaturan Sistem</h1>
         <p className={PAGE_SUBTITLE}>
           Kelola profil administratif, tampilan antarmuka, dan akses dokumentasi.
@@ -99,46 +101,55 @@ export function AdminSettingsPage() {
       </div>
 
       {/* 1. Kartu Profil Admin */}
-      <div className={`space-y-4 p-5 sm:p-6 ${CARD}`}>
-        <h2 className={SECTION_TITLE}>Profil Administrator</h2>
-
-        <div className="flex flex-col justify-between gap-4 pt-1 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-4">
-            <div className={`h-14 w-14 bg-[#9BE58B] font-display text-xl font-black text-[#1A1A1A] ${ICON_BOX}`}>
-              {adminName.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h3 className="font-display text-base font-black leading-tight text-[#1A1A1A] sm:text-lg">
-                  {adminName}
-                </h3>
-                <span className="inline-flex items-center rounded-lg border-2 border-[#1A1A1A] bg-[#FF9F1C] px-2.5 py-0.5 text-[11px] font-black text-[#1A1A1A] shadow-[1px_1px_0px_#1A1A1A]">
-                  {adminRole}
-                </span>
-              </div>
-              <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">{adminEmail}</p>
-              <p className="mt-1 text-[11px] font-bold text-[#1A1A1A]/60">
-                Akses level penuh ke modul manajemen konten &amp; event
-              </p>
-            </div>
+      <div className={`p-4 sm:p-5 ${CARD}`}>
+        <div className="flex items-center justify-between gap-3">
+          {/* Avatar kiri */}
+          <div className={`h-12 w-12 shrink-0 bg-[#99F6E4] font-display text-lg font-black text-[#134E4A] ${ICON_BOX}`}>
+            {adminName.charAt(0).toUpperCase()}
           </div>
+
+          {/* Teks tengah */}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h3 className="truncate font-display text-sm font-black leading-tight text-[#134E4A] sm:text-base">
+                {adminName}
+              </h3>
+              <span className="inline-flex items-center rounded-md border-[1.5px] border-[#134E4A] bg-[#F59E0B] px-1.5 py-0.5 text-[10px] font-black text-[#134E4A]">
+                {adminRole}
+              </span>
+            </div>
+            <p className="truncate text-xs font-bold text-[#134E4A]/70">{adminEmail}</p>
+            <p className="hidden text-[10px] font-bold text-[#134E4A]/60 sm:block">
+              Akses level penuh ke modul manajemen sistem
+            </p>
+          </div>
+
+          {/* Tombol Edit kanan */}
+          <button
+            type="button"
+            onClick={() => showToast("Fitur edit profil segera hadir.")}
+            className={`${BTN_SECONDARY_SM} shrink-0 px-2.5 py-1 text-xs`}
+          >
+            <Pencil size={13} />
+            <span>Edit</span>
+          </button>
         </div>
       </div>
 
       {/* 2. Sakelar tema aplikasi */}
-      <div className={`space-y-4 p-5 sm:p-6 ${CARD}`}>
-        <h2 className={SECTION_TITLE}>Tampilan Antarmuka</h2>
+      <div className={`p-4 sm:p-5 ${CARD}`}>
+        <h2 className={`mb-3 ${SECTION_TITLE}`}>Tampilan Antarmuka</h2>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFF4DC] p-4 shadow-[2px_2px_0px_#1A1A1A]">
+        <div className="flex items-center justify-between gap-4 rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] p-3 sm:p-4 shadow-[2px_2px_0px_#134E4A]">
           <div className="flex items-center gap-3">
-            <div className={`h-10 w-10 bg-[#FFFBF2] text-[#1A1A1A] ${ICON_BOX}`}>
-              {isDarkMode ? <Moon size={20} /> : <Sun size={20} className="text-[#FF9F1C]" />}
+            <div className={`h-9 w-9 bg-white text-[#134E4A] sm:h-10 sm:w-10 ${ICON_BOX}`}>
+              {isDarkMode ? <Moon size={18} /> : <Sun size={18} className="text-[#F59E0B]" />}
             </div>
             <div>
-              <h3 className="text-sm font-black text-[#1A1A1A]">
+              <h3 className="text-xs sm:text-sm font-black text-[#134E4A]">
                 {isDarkMode ? "Mode Gelap (Dark Mode)" : "Mode Terang (Light Mode)"}
               </h3>
-              <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
+              <p className="mt-0.5 text-[11px] sm:text-xs font-bold text-[#134E4A]/70">
                 Berlaku untuk area aplikasi lain. Panel admin selalu tampil terang.
               </p>
             </div>
@@ -150,58 +161,60 @@ export function AdminSettingsPage() {
             onClick={handleToggleTheme}
             aria-pressed={isDarkMode}
             aria-label="Ganti tema aplikasi"
-            className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-[2.5px] border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-[#FFD60A]/30 ${
-              isDarkMode ? "bg-[#FFD60A]" : "bg-[#FFFBF2]"
+            className={`relative inline-flex h-7 w-12 sm:h-8 sm:w-14 shrink-0 cursor-pointer items-center rounded-full border-[2.5px] border-[#134E4A] shadow-[2px_2px_0px_#134E4A] transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-[#0D9488]/30 ${
+              isDarkMode ? "bg-[#0D9488]" : "bg-white"
             }`}
           >
             <span
-              className={`pointer-events-none ml-0.5 inline-block h-5 w-5 transform rounded-full border-2 border-[#1A1A1A] transition duration-200 ease-in-out ${
-                isDarkMode ? "translate-x-6 bg-[#FFFBF2]" : "translate-x-0 bg-[#FF9F1C]"
+              className={`pointer-events-none ml-0.5 inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full border-2 border-[#134E4A] transition duration-200 ease-in-out ${
+                isDarkMode ? "translate-x-5 sm:translate-x-6 bg-white" : "translate-x-0 bg-[#F59E0B]"
               }`}
             />
           </button>
         </div>
       </div>
 
-      {/* 3. Tautan Bantuan */}
-      <div className={`space-y-3 p-5 sm:p-6 ${CARD}`}>
-        <h2 className={SECTION_TITLE}>Tautan &amp; Dukungan</h2>
+      {/* 3. Menu Pengaturan & Tautan */}
+      <div className="overflow-hidden rounded-2xl border-[3px] border-[#134E4A] bg-white shadow-[4px_4px_0px_#134E4A]">
+        <div className="border-b-[2px] border-[#134E4A]/20 bg-[#F0FDF4] px-4 py-3">
+          <h2 className={SECTION_TITLE}>Tautan &amp; Dukungan</h2>
+        </div>
 
-        <div className="space-y-3">
+        <div className="divide-y-2 divide-[#134E4A]/20">
           <Link
             to="/admin/audio-check"
-            className="flex items-center justify-between rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFFBF2] p-3.5 shadow-[2px_2px_0px_#1A1A1A] transition-all hover:bg-[#FFF4DC] active:translate-y-[2px] active:shadow-none"
+            className="flex items-center justify-between p-3.5 transition-colors hover:bg-[#F0FDF4]"
           >
             <div className="flex items-center gap-3">
-              <Volume2 size={18} className="text-[#2F6FED]" />
+              <Volume2 size={18} className="text-[#0D9488]" />
               <div>
-                <span className="block text-xs font-black text-[#1A1A1A]">
+                <span className="block text-xs font-black text-[#134E4A]">
                   Cek &amp; Verifikasi Audio Tilawati
                 </span>
-                <span className="text-[11px] font-bold text-[#1A1A1A]/70">
+                <span className="text-[11px] font-bold text-[#134E4A]/70">
                   Verifikasi fisik aset audio tilawati jilid 1 sampai 6
                 </span>
               </div>
             </div>
-            <ChevronRight size={16} className="text-[#1A1A1A]" />
+            <ChevronRight size={16} className="text-[#134E4A]" />
           </Link>
 
           <Link
             to="/privacy-policy"
-            className="flex items-center justify-between rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFFBF2] p-3.5 shadow-[2px_2px_0px_#1A1A1A] transition-all hover:bg-[#FFF4DC] active:translate-y-[2px] active:shadow-none"
+            className="flex items-center justify-between p-3.5 transition-colors hover:bg-[#F0FDF4]"
           >
             <div className="flex items-center gap-3">
-              <FileText size={18} className="text-[#1A1A1A]" />
+              <FileText size={18} className="text-[#134E4A]" />
               <div>
-                <span className="block text-xs font-black text-[#1A1A1A]">
+                <span className="block text-xs font-black text-[#134E4A]">
                   Kebijakan Privasi &amp; Ketentuan Layanan
                 </span>
-                <span className="text-[11px] font-bold text-[#1A1A1A]/70">
+                <span className="text-[11px] font-bold text-[#134E4A]/70">
                   Pedoman perlindungan data pengguna dan hak cipta
                 </span>
               </div>
             </div>
-            <ChevronRight size={16} className="text-[#1A1A1A]" />
+            <ChevronRight size={16} className="text-[#134E4A]" />
           </Link>
         </div>
       </div>
@@ -211,7 +224,7 @@ export function AdminSettingsPage() {
         <button
           type="button"
           onClick={handleLogout}
-          className={`${BTN_BASE} ${BTN_DANGER_COLOR} w-full px-5 py-3.5 text-sm`}
+          className={`${BTN_BASE} ${BTN_DANGER_COLOR} w-full px-5 py-3 text-sm`}
         >
           <LogOut size={18} />
           Keluar dari Akun Admin

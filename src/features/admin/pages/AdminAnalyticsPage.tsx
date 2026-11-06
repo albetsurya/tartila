@@ -49,7 +49,7 @@ const TOP_USERS: TopUser[] = [
 ];
 
 /** Warna latar badge peringkat: emas, perak, perunggu, lalu netral. */
-const RANK_BG = ["bg-[#FF9F1C]", "bg-[#E5E7EB]", "bg-[#FDBA74]", "bg-[#FFFBF2]", "bg-[#FFFBF2]"];
+const RANK_BG = ["bg-[#F59E0B]", "bg-[#E5E7EB]", "bg-[#FDBA74]", "bg-white", "bg-white"];
 
 function ActivityBarChart() {
   const maxValue = Math.max(...WEEKLY_ACTIVITY.map((item) => item.value));
@@ -60,17 +60,17 @@ function ActivityBarChart() {
         const heightPct = Math.round((item.value / maxValue) * 100);
         return (
           <div key={item.day} className="flex flex-1 flex-col items-center">
-            <span className="mb-1 text-[10px] font-black tabular-nums text-[#1A1A1A]/70">
+            <span className="mb-1 text-[10px] font-black tabular-nums text-[#134E4A]/70">
               {item.value}
             </span>
             <div className="flex w-full flex-1 items-end">
               <div
-                className="w-full rounded-t-lg border-[2px] border-b-0 border-[#1A1A1A] bg-[#FFD60A] transition-all duration-150 hover:bg-[#F5C400]"
+                className="w-full rounded-t-lg border-[2px] border-b-0 border-[#134E4A] bg-[#0D9488] transition-all duration-150 hover:bg-[#0F766E]"
                 style={{ height: `${heightPct}%` }}
                 title={`${item.day}: ${item.value} sesi`}
               />
             </div>
-            <span className="mt-2 text-xs font-black text-[#1A1A1A]">{item.day}</span>
+            <span className="mt-2 text-xs font-black text-[#134E4A]">{item.day}</span>
           </div>
         );
       })}
@@ -94,8 +94,8 @@ function TopUsersTable() {
           <tr key={user.id} className={TR}>
             <td className="px-5 py-3">
               <span
-                className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border-[2px] border-[#1A1A1A] text-xs font-black text-[#1A1A1A] shadow-[1px_1px_0px_#1A1A1A] ${
-                  RANK_BG[index] ?? "bg-[#FFFBF2]"
+                className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border-[2px] border-[#134E4A] text-xs font-black text-[#134E4A] shadow-[1px_1px_0px_#134E4A] ${
+                  RANK_BG[index] ?? "bg-white"
                 }`}
               >
                 {index + 1}
@@ -104,15 +104,15 @@ function TopUsersTable() {
             <td className="px-5 py-3">
               <div className="flex items-center gap-3">
                 <Avatar name={user.name} size={32} />
-                <span className="truncate font-black text-[#1A1A1A]">{user.name}</span>
+                <span className="truncate font-black text-[#134E4A]">{user.name}</span>
               </div>
             </td>
             <td className={`px-5 py-3 text-right tabular-nums ${TD}`}>
               {user.sessions}
             </td>
             <td className="px-5 py-3 text-right">
-              <span className="inline-flex items-center justify-end gap-1 font-black tabular-nums text-[#1A1A1A]">
-                <Star size={12} className="text-[#FF9F1C]" />
+              <span className="inline-flex items-center justify-end gap-1 font-black tabular-nums text-[#134E4A]">
+                <Star size={12} className="text-[#F59E0B]" />
                 {user.stars}
               </span>
             </td>
@@ -130,7 +130,7 @@ export function AdminAnalyticsPage() {
   );
 
   return (
-    <div className="space-y-6 pb-12 font-sans font-bold text-[#1A1A1A]">
+    <div className="space-y-6 pb-12 font-sans font-bold text-[#134E4A]">
       <header className={`p-5 ${CARD}`}>
         <h1 className={PAGE_TITLE}>Analitik</h1>
         <p className={PAGE_SUBTITLE}>
@@ -168,7 +168,7 @@ export function AdminAnalyticsPage() {
             <h2 className={SECTION_TITLE}>
               Aktivitas Belajar 7 Hari Terakhir
             </h2>
-            <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
+            <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
               Total {weeklyTotal.toLocaleString("id-ID")} sesi minggu ini
             </p>
           </div>
@@ -177,11 +177,11 @@ export function AdminAnalyticsPage() {
       </section>
 
       <section className={TABLE_WRAP}>
-        <div className="border-b-[3px] border-[#1A1A1A] bg-[#FFFBF2] px-5 py-4">
+        <div className="border-b-[3px] border-[#134E4A] bg-white px-5 py-4">
           <h2 className={SECTION_TITLE}>
             Top 5 Pengguna Paling Aktif
           </h2>
-          <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
+          <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
             Berdasarkan jumlah sesi belajar 7 hari terakhir
           </p>
         </div>

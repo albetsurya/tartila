@@ -54,12 +54,17 @@ function createEmptyMission(): FormMissionItem {
   };
 }
 
-export function AdminEventFormModal({
-  isOpen,
-  eventToEdit,
+export interface AdminEventFormProps {
+  eventToEdit?: AdminEvent | null;
+  onClose: () => void;
+  onSave: (payload: CreateEventPayload, editId?: string) => Promise<void>;
+}
+
+export function AdminEventForm({
+  eventToEdit = null,
   onClose,
   onSave,
-}: AdminEventFormModalProps) {
+}: AdminEventFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -99,9 +104,7 @@ export function AdminEventFormModal({
       setMissions([createEmptyMission()]);
     }
     setErrorMessage(null);
-  }, [eventToEdit, isOpen]);
-
-  if (!isOpen) return null;
+  }, [eventToEdit]);
 
   const handleAddMission = () => {
     setMissions((prev) => [...prev, createEmptyMission()]);
@@ -189,15 +192,271 @@ export function AdminEventFormModal({
   };
 
   return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {errorMessage && (
+        <div className="rounded-xl border-[2.5px] border-[#134E4A] bg-[#FF6B6B]/15 p-3 text-xs font-black text-[#134E4A] shadow-[2px_2px_0px_#134E4A]">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Section 1: Info Dasar */}
+      <div className="space-y-4">
+        <h3 className={SECTION_TITLE}>
+          Informasi Dasar
+        </h3>
+
+        <div>
+          <label className={LABEL}>
+            Nama Event *
+          </label>
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Contoh: Semarak Ramadhan Mengaji"
+            className={INPUT}
+          />
+        </div>
+
+        <div>
+          <label className={LABEL}>
+            Deskripsi
+          </label>
+          <textarea
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Tuliskan tujuan atau detail event ini..."
+            className={INPUT}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={LABEL}>
+              Tanggal Mulai *
+            </label>
+            <input
+              type="date"
+              required
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className={INPUT}
+            />
+          </div>
+
+          <div>
+            <label className={LABEL}>
+              Tanggal Selesai *
+            </label>
+            <input
+              type="date"
+              required
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className={INPUT}
+            />
+          </div>
+        </div>
+      </div>
+
+      <hr className="border-t-[3px] border-[#134E4A]/20" />
+
+      {/* Section 2: Daftar Misi Dinamis */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className={SECTION_TITLE}>
+              Daftar Misi Dinamis
+            </h3>
+            <p className="text-[11px] font-bold text-[#134E4A]/60">
+              Santri menyelesaikan target untuk memperoleh hadiah
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddMission}
+            className={BTN_PRIMARY_SM}
+          >
+            <Plus size={14} />
+            Tambah Misi
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {missions.map((mission, idx) => (
+            <div
+              key={mission.id}
+              className="relative space-y-3 rounded-xl border-[2px] border-[#134E4A] bg-[#F0FDF4] p-4 shadow-[2px_2px_0px_#134E4A]"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-display text-xs font-black uppercase text-[#134E4A]">
+                  Misi #{idx + 1}
+                </span>
+                {missions.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveMission(mission.id)}
+                    className="rounded-lg p-1 text-[#134E4A]/60 transition-colors hover:text-[#FF6B6B]"
+                    title="Hapus misi"
+                    aria-label={`Hapus misi ${idx + 1}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <label className={LABEL}>
+                  Judul Misi *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={mission.title}
+                  onChange={(e) =>
+                    handleMissionChange(mission.id, "title", e.target.value)
+                  }
+                  placeholder="Contoh: Mainkan 3 Game Ceria"
+                  className={INPUT}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={LABEL}>
+                    Tipe Aksi *
+                  </label>
+                  <select
+                    value={mission.action_type}
+                    onChange={(e) =>
+                      handleMissionChange(mission.id, "action_type", e.target.value)
+                    }
+                    className={INPUT}
+                  >
+                    {ACTION_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={LABEL}>
+                    Target Angka *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={mission.target_amount}
+                    onChange={(e) =>
+                      handleMissionChange(mission.id, "target_amount", e.target.value)
+                    }
+                    placeholder="Contoh: 3"
+                    className={INPUT}
+                  />
+                </div>
+              </div>
+
+              {/* Hadiah Section */}
+              <div>
+                <label className={LABEL}>
+                  Hadiah Misi
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <span className="mb-0.5 block text-[10px] font-black uppercase text-[#134E4A]/70">
+                      Koin
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={mission.reward_coins}
+                      onChange={(e) =>
+                        handleMissionChange(mission.id, "reward_coins", e.target.value)
+                      }
+                      className={INPUT}
+                    />
+                  </div>
+                  <div>
+                    <span className="mb-0.5 block text-[10px] font-black uppercase text-[#134E4A]/70">
+                      Tiket
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={mission.reward_tickets}
+                      onChange={(e) =>
+                        handleMissionChange(mission.id, "reward_tickets", e.target.value)
+                      }
+                      className={INPUT}
+                    />
+                  </div>
+                  <div>
+                    <span className="mb-0.5 block text-[10px] font-black uppercase text-[#134E4A]/70">
+                      Hati
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={mission.reward_hearts}
+                      onChange={(e) =>
+                        handleMissionChange(mission.id, "reward_hearts", e.target.value)
+                      }
+                      className={INPUT}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Form Actions */}
+      <div className="flex items-center justify-end gap-3 border-t-[3px] border-[#134E4A]/20 pt-4">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={submitting}
+          className={BTN_SECONDARY}
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className={`${BTN_PRIMARY} px-6`}
+        >
+          {submitting && <Loader2 size={14} className="animate-spin" />}
+          {submitting ? "Menyimpan..." : "Simpan"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function AdminEventFormModal({
+  isOpen,
+  eventToEdit,
+  onClose,
+  onSave,
+}: AdminEventFormModalProps) {
+  if (!isOpen) return null;
+
+  return (
     <div className={MODAL_OVERLAY}>
-      <div className={`${MODAL_PANEL} my-8 max-w-2xl font-sans font-bold text-[#1A1A1A]`}>
+      <div className={`${MODAL_PANEL} my-8 max-w-2xl font-sans font-bold text-[#134E4A]`}>
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b-[3px] border-[#1A1A1A] bg-[#FFF4DC] px-5 py-4">
+        <div className="flex items-center justify-between border-b-[3px] border-[#134E4A] bg-[#F0FDF4] px-5 py-4">
           <div>
             <h2 className={`${TITLE} text-base sm:text-lg`}>
               {eventToEdit ? "Edit Event" : "Buat Event Baru"}
             </h2>
-            <p className="mt-0.5 text-xs font-bold text-[#1A1A1A]/70">
+            <p className="mt-0.5 text-xs font-bold text-[#134E4A]/70">
               Isi parameter event dan rancang misi tantangan santri
             </p>
           </div>
@@ -212,250 +471,13 @@ export function AdminEventFormModal({
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6">
-          {errorMessage && (
-            <div className="rounded-xl border-[2.5px] border-[#1A1A1A] bg-[#FF6B6B]/15 p-3 text-xs font-black text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]">
-              {errorMessage}
-            </div>
-          )}
-
-          {/* Section 1: Info Dasar */}
-          <div className="space-y-4">
-            <h3 className={SECTION_TITLE}>
-              Informasi Dasar
-            </h3>
-
-            <div>
-              <label className={LABEL}>
-                Nama Event *
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Contoh: Semarak Ramadhan Mengaji"
-                className={INPUT}
-              />
-            </div>
-
-            <div>
-              <label className={LABEL}>
-                Deskripsi
-              </label>
-              <textarea
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tuliskan tujuan atau detail event ini..."
-                className={INPUT}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={LABEL}>
-                  Tanggal Mulai *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className={INPUT}
-                />
-              </div>
-
-              <div>
-                <label className={LABEL}>
-                  Tanggal Selesai *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className={INPUT}
-                />
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-t-[3px] border-[#1A1A1A]/20" />
-
-          {/* Section 2: Daftar Misi Dinamis */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className={SECTION_TITLE}>
-                  Daftar Misi Dinamis
-                </h3>
-                <p className="text-[11px] font-bold text-[#1A1A1A]/60">
-                  Santri menyelesaikan target untuk memperoleh hadiah
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAddMission}
-                className={BTN_PRIMARY_SM}
-              >
-                <Plus size={14} />
-                Tambah Misi
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {missions.map((mission, idx) => (
-                <div
-                  key={mission.id}
-                  className="relative space-y-3 rounded-xl border-[2px] border-[#1A1A1A] bg-[#FFF4DC] p-4 shadow-[2px_2px_0px_#1A1A1A]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-xs font-black uppercase text-[#1A1A1A]">
-                      Misi #{idx + 1}
-                    </span>
-                    {missions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMission(mission.id)}
-                        className="rounded-lg p-1 text-[#1A1A1A]/60 transition-colors hover:text-[#FF6B6B]"
-                        title="Hapus misi"
-                        aria-label={`Hapus misi ${idx + 1}`}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className={LABEL}>
-                      Judul Misi *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={mission.title}
-                      onChange={(e) =>
-                        handleMissionChange(mission.id, "title", e.target.value)
-                      }
-                      placeholder="Contoh: Mainkan 3 Game Ceria"
-                      className={INPUT}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className={LABEL}>
-                        Tipe Aksi *
-                      </label>
-                      <select
-                        value={mission.action_type}
-                        onChange={(e) =>
-                          handleMissionChange(mission.id, "action_type", e.target.value)
-                        }
-                        className={INPUT}
-                      >
-                        {ACTION_TYPES.map((t) => (
-                          <option key={t.value} value={t.value}>
-                            {t.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className={LABEL}>
-                        Target Angka *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        required
-                        value={mission.target_amount}
-                        onChange={(e) =>
-                          handleMissionChange(mission.id, "target_amount", e.target.value)
-                        }
-                        placeholder="Contoh: 3"
-                        className={INPUT}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hadiah Section */}
-                  <div>
-                    <label className={LABEL}>
-                      Hadiah Misi
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#1A1A1A]/70">
-                          Koin
-                        </span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={mission.reward_coins}
-                          onChange={(e) =>
-                            handleMissionChange(mission.id, "reward_coins", e.target.value)
-                          }
-                          className={INPUT}
-                        />
-                      </div>
-                      <div>
-                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#1A1A1A]/70">
-                          Tiket
-                        </span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={mission.reward_tickets}
-                          onChange={(e) =>
-                            handleMissionChange(mission.id, "reward_tickets", e.target.value)
-                          }
-                          className={INPUT}
-                        />
-                      </div>
-                      <div>
-                        <span className="mb-0.5 block text-[10px] font-black uppercase text-[#1A1A1A]/70">
-                          Hati
-                        </span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={mission.reward_hearts}
-                          onChange={(e) =>
-                            handleMissionChange(mission.id, "reward_hearts", e.target.value)
-                          }
-                          className={INPUT}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 border-t-[3px] border-[#1A1A1A]/20 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className={BTN_SECONDARY}
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`${BTN_PRIMARY} px-6`}
-            >
-              {submitting && <Loader2 size={14} className="animate-spin" />}
-              {submitting ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
-        </form>
+        <div className="max-h-[75vh] overflow-y-auto p-5 sm:p-6">
+          <AdminEventForm
+            eventToEdit={eventToEdit}
+            onClose={onClose}
+            onSave={onSave}
+          />
+        </div>
       </div>
     </div>
   );

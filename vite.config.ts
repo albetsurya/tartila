@@ -801,11 +801,11 @@ async function resolveProxyTarget(preferred?: string): Promise<string> {
   }
 
   // Auto-detect active Go backend port: 8080 (native) vs 29001 (Docker Compose)
-  if (await probePort(8080)) {
-    return "http://127.0.0.1:8080";
-  }
   if (await probePort(29001)) {
     return "http://127.0.0.1:29001";
+  }
+  if (await probePort(8080)) {
+    return "http://127.0.0.1:8080";
   }
 
   return preferred ? sanitizeProxyTarget(preferred) : "http://127.0.0.1:8080";

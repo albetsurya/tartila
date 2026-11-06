@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { NgajiCeriaLayout } from "../../components/NgajiCeriaLayout";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   TrophySvg,
@@ -10,13 +9,15 @@ import {
   KeyRoundSvg,
   AlertTriangleSvg,
 } from "@/components/ui/CustomIcons";
-import { ArenaSocket } from "../../services/arenaSocket";
-import { arenaRoomService } from "@/services/arenaRoomService";
-import { clearBotSimulatorState } from "../../hooks/useBotSimulator";
+import {
+  ArenaSocket,
+  releaseHandedOffArenaSocket,
+} from "../../services/arenaSocket";
+import { arenaRoomService } from "@/services/arenaRoomService";import { clearBotSimulatorState } from "../../hooks/useBotSimulator";
 import LeaderboardModal from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
 import { ArenaQuestionStage } from "../../components/multiplayer/ArenaQuestionStage";
+import { ArenaTopbar } from "../../components/multiplayer/ArenaTopbar";
 import {
-  MultiplayerAvatar,
   loadMultiplayerProfile,
 } from "../../components/multiplayer/MultiplayerSetupSheet";
 import { getQuizHubQuestions } from "../../data/quizHubData";
@@ -72,12 +73,17 @@ export default function HostGamePage() {
   const [serverQuestion, setServerQuestion] = useState<any | null>(null);
 
   const socketRef = useRef<ArenaSocket | null>(null);
+  // Tenggat soal berjalan (epoch ms). Dihitung dari serverTimestamp + durasi,
+  // bukan decrement lokal, supaya Host & santri mulai/berhenti bersamaan.
+  const deadlineRef = useRef<number | null>(null);
   // Effect socket sengaja tidak bergantung pada state yang berubah selama
   // permainan (soal, papan skor). Tanpa ref, setiap perubahan skor akan
   // membuat koneksi dibongkar-pasang dan start_game terkirim ulang sehingga
   // soal santri kembali ke nomor 1.
   const questionsRef = useRef<any[]>([]);
   const leaderboardRef = useRef<any[]>([]);
+
+  const roomStateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Ambil soal yang dipakai room. Utamakan salinan Host (lengkap dengan kunci
   // jawaban), lalu barulah RPC room_questions.
@@ -146,6 +152,10 @@ export default function HostGamePage() {
         setQuestions(loadedQuestions);
         setQuestionIndex(0);
         setTotalQuestions(loadedQuestions.length);
+        // Tenggat soal pertama = sejak host mendapat soal, supaya timer
+        // tidak langsung 0 saat room_state / lobby state masih kosong.
+        deadlineRef.current =
+          Date.now() + (loadedQuestions[0].timeLimitSeconds || 20) * 1000;
         setTimeLeft(loadedQuestions[0].timeLimitSeconds || 20);
       } catch (err: any) {
         if (cancelled) return;
@@ -158,6 +168,7 @@ export default function HostGamePage() {
     load();
     return () => {
       cancelled = true;
+      if (roomStateTimer.current) clearTimeout(roomStateTimer.current);
     };
   }, [pin]);
 
@@ -166,8 +177,6 @@ export default function HostGamePage() {
   // yang disiarkan server. Keduanya memakai panggung soal yang sama sehingga
   // teks dan pilihan A-D dijamin identik dengan layar santri.
   const currentQuestion = localQuestion || serverQuestion;
-  const maxTime = currentQuestion?.timeLimitSeconds || 20;
-  const timePercent = Math.max(0, Math.min(100, (timeLeft / maxTime) * 100));
   const isExamMode = roomType === "exam" || roomType === "ujian_resmi";
 
   questionsRef.current = questions;
@@ -266,6 +275,12 @@ export default function HostGamePage() {
     setShowLeaderboard(false);
     setHostAnswer(null);
     setServerQuestion(null);
+    // Pastikan interval saat ini dimatikan sebelum soal berikutnya
+    // dimulai, sehingga host tidak menggandakan timer.
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     // index tujuan = soal yang sedang ditampilkan (yang dipilih host
     // untuk maju), sesuai guard server "expected == current && revealed".
     const nextIdx = questionIndex + 1;
@@ -284,7 +299,10 @@ export default function HostGamePage() {
     const targetQuestion = questions[nextIdx];
     setQuestionIndex(nextIdx);
     setRevealed(false);
-    setTimeLeft(targetQuestion?.timeLimitSeconds || 20);
+    const nextLimit = targetQuestion?.timeLimitSeconds || 20;
+    setTimeLeft(nextLimit);
+    // Server menimpai dengan serverTimestamp yang otoritatif.
+    deadlineRef.current = Date.now() + nextLimit * 1000;
     socketRef.current?.nextQuestion(questionIndex);
   }, [
     questionIndex,
@@ -310,7 +328,11 @@ export default function HostGamePage() {
     return () => clearTimeout(timer);
   }, [revealed, showLeaderboard, revealCountdown, handleShowLeaderboard]);
 
-  // Timer HANYA berjalan jika questions.length > 0 dan belum revealed
+  // Timer per soal berbasis tenggat server (serverTimestamp + durasi). Ini
+  // menggantikan decrement setTimeout yang bisa tertinggal saat frame macet.
+  // intervalRef memastikan satu interval per soal; onNextQuestion akan
+  // clearInterval-nya sebelum soal baru dimulai.
+  const intervalRef = useRef<number | null>(null);
   useEffect(() => {
     if (
       questions.length === 0 ||
@@ -319,26 +341,44 @@ export default function HostGamePage() {
       !currentQuestion ||
       Boolean(errorMsg)
     ) {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
-    if (timeLeft <= 0) {
-      handleReveal();
-      return;
-    }
+    let done = false;
+    const tick = () => {
+      if (deadlineRef.current === null) {
+        deadlineRef.current =
+          Date.now() + (currentQuestion.timeLimitSeconds || 20) * 1000;
+      }
+      const left = Math.max(
+        0,
+        Math.ceil((deadlineRef.current - Date.now()) / 1000),
+      );
+      setTimeLeft(left);
+      if (left <= 0 && !done) {
+        done = true;
+        handleReveal();
+      }
+    };
 
-    const timer = setTimeout(() => {
-      setTimeLeft((s) => s - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    tick();
+    intervalRef.current = window.setInterval(tick, 250);
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [
     questions.length,
     revealed,
     loadingQuestions,
     currentQuestion,
     errorMsg,
-    timeLeft,
     handleReveal,
   ]);
 
@@ -412,7 +452,12 @@ export default function HostGamePage() {
         // setTimeout(400ms) yang bisa mendahului handshake; pesan yang dikirim
         // saat socket belum OPEN dibuang diam-diam sehingga server kehabisan
         // soal dan seluruh santri menerima soal contoh.
-        onOpen: () => startBroadcast(socket),
+        onOpen: () => {
+          startBroadcast(socket);
+          // Soket Lobi yang diserahkan baru ditutup setelah koneksi halaman
+          // game ini terdaftar sebagai Host, agar room tidak pernah tanpa Host.
+          releaseHandedOffArenaSocket(pin);
+        },
         onRoomState: (state) => {
           if (state.status === "finished") {
             navigate(`/arena/podium/${pin}`, {
@@ -429,13 +474,22 @@ export default function HostGamePage() {
             setServerQuestion(state.currentQuestion);
             setQuestionIndex(state.question);
             setTotalQuestions(state.totalQ);
-            setTimeLeft(state.currentQuestion.timeLimitSeconds || 20);
+            // room_state tidak membawa serverTimestamp: pakai durasi penuh
+            // sebagai tenggat baru (timer tetap jalan, bukan berhenti di 0).
+            const limit = state.currentQuestion.timeLimitSeconds || 20;
+            deadlineRef.current = Date.now() + limit * 1000;
+            setTimeLeft(limit);
           }
         },
         onGameStarted: (data) => {
+          const limit =
+            data.timeLimit || (data as any).timeLimitSeconds || 20;
           setQuestionIndex(data.questionIndex ?? 0);
           setTotalQuestions(data.totalQuestions ?? questionsRef.current.length);
-          setTimeLeft(data.timeLimit || 20);
+          setTimeLeft(limit);
+          deadlineRef.current =
+            (Number((data as any).serverTimestamp) || Date.now()) +
+            limit * 1000;
           setRevealed(false);
         },
         onQuestionResult: (data) => {
@@ -454,16 +508,31 @@ export default function HostGamePage() {
           setServerQuestion(data.question);
           setQuestionIndex(data.questionIndex);
           setTotalQuestions(data.totalQuestions);
-          setTimeLeft(data.question?.timeLimitSeconds || 20);
+          const limit =
+            data.question?.timeLimitSeconds ||
+            (data as any).timeLimitSeconds ||
+            (data as any).timeLimit ||
+            20;
+          setTimeLeft(limit);
+          deadlineRef.current =
+            (Number((data as any).serverTimestamp) || Date.now()) +
+            limit * 1000;
           setRevealed(false);
           setRevealCountdown(null);
           setShowLeaderboard(false);
           setHostAnswer(null);
         },
         onGameFinished: (data) => {
+          // Podium WAJIB dari leaderboard server (event game_finished), bukan
+          // gabungan lokal. Salinan Host hanya fallback bila server kosong.
+          const finalBoard =
+            Array.isArray(data.leaderboard) && data.leaderboard.length > 0
+              ? data.leaderboard
+              : leaderboardRef.current;
+          leaderboardRef.current = finalBoard as any;
           navigate(`/arena/podium/${pin}`, {
             state: {
-              leaderboard: leaderboardRef.current,
+              leaderboard: finalBoard,
               kkm: data.kkm || 75,
               myScore: hostScoreRef.current,
               myName: `${hostName} (Host)`,
@@ -498,12 +567,7 @@ export default function HostGamePage() {
   ).toString();
 
   return (
-    <NgajiCeriaLayout
-      title={`Tartila Arena Host - PIN ${pin}`}
-      hideMascot={true}
-      showBack={true}
-      onBack={() => setShowExitConfirm(true)}
-    >
+    <>
       <ConfirmDialog
         isOpen={showExitConfirm}
         title="Hentikan Permainan?"
@@ -566,61 +630,20 @@ export default function HostGamePage() {
 
           {stageQuestion && !loadingQuestions && !errorMsg && (
             <>
-              {/* HUD RINGKAS: identitas host, timer, skor */}
-              <section className="rounded-2xl border-[3.5px] border-[#134E4A] bg-white px-3 py-2.5 sm:px-4 shadow-[4px_4px_0px_#134E4A] space-y-2">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <MultiplayerAvatar avatarId={hostAvatarId} size={32} />
-                    <div className="min-w-0">
-                      <span className="block text-[9px] font-black uppercase tracking-wider text-[#134E4A]/60 leading-none">
-                        Host
-                      </span>
-                      <span className="block text-xs font-black text-[#134E4A] truncate max-w-[120px]">
-                        {hostName}
-                      </span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-lg border-2 border-[#134E4A] bg-[#CCFBF1] text-[10px] font-black text-[#134E4A]">
-                      PIN {pin}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2.5 flex-1 max-w-[220px] min-w-[140px]">
-                    <div className="flex-1 h-3 rounded-full border-2 border-[#134E4A] bg-gray-100 overflow-hidden p-0.5">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          revealed
-                            ? "bg-[#6B7280]"
-                            : timeLeft <= 5
-                              ? "bg-[#EF4444]"
-                              : "bg-[#0D9488]"
-                        }`}
-                        style={{ width: `${revealed ? 0 : timePercent}%` }}
-                      />
-                    </div>
-                    <div
-                      className={`min-w-[46px] h-8 px-2 rounded-xl border-[2.5px] border-[#134E4A] flex items-center justify-center font-display text-sm font-black shadow-[2px_2px_0px_#134E4A] ${
-                        revealed
-                          ? "bg-gray-200 text-[#134E4A]"
-                          : timeLeft <= 5
-                            ? "bg-[#EF4444] text-white animate-pulse"
-                            : "bg-[#FEF08A] text-[#134E4A]"
-                      }`}
-                    >
-                      {/* Satuan detik, bukan hari: sebelumnya terbaca "5d" */}
-                      {revealed ? "—" : `${timeLeft}s`}
-                    </div>
-                  </div>
-
-                  <div className="px-3 py-1 rounded-xl border-[2.5px] border-[#134E4A] bg-[#FEF08A] shadow-[2px_2px_0px_#134E4A] text-right shrink-0">
-                    <span className="block text-[9px] font-black uppercase text-[#B45309] leading-none">
-                      Skor Kamu
-                    </span>
-                    <span className="font-display text-sm font-black text-[#134E4A]">
-                      {hostScore} pts
-                    </span>
-                  </div>
-                </div>
-              </section>
+              {/* HUD Topbar (bersama santri): Soal / Timer / Skor sama 100% */}
+              <ArenaTopbar
+                role="host"
+                name={hostName}
+                avatarId={hostAvatarId}
+                pin={pin || ""}
+                questionIndex={questionIndex}
+                totalQuestions={totalQuestions}
+                timeLeft={timeLeft}
+                timeLimit={currentQuestion?.timeLimitSeconds || 20}
+                revealed={revealed}
+                score={hostScore}
+                onBack={() => setShowExitConfirm(true)}
+              />
 
               {/* PANGGUNG SOAL: komponen yang sama persis dengan layar santri */}
               <ArenaQuestionStage
@@ -754,6 +777,6 @@ export default function HostGamePage() {
           currentNickname={`${hostName} (Host)`}
         />
       </div>
-    </NgajiCeriaLayout>
+    </>
   );
 }

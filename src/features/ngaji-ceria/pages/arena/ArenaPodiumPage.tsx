@@ -13,6 +13,7 @@ import { TilaMascot } from "@/components/ui/TilaMascot";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { arenaRoomService } from "@/services/arenaRoomService";
+import { ArenaSocket } from "../../services/arenaSocket";
 import {
   MultiplayerAvatar,
   loadMultiplayerProfile,
@@ -61,6 +62,14 @@ export default function ArenaPodiumPage() {
       : null) ||
     "Santri";
   const myAvatarId = profile?.avatarId || "boy-peci";
+  // Hanya Host boleh memicu reset lobi via WS (guard server kecil).
+  const isHostPlayer = useMemo(() => {
+    try {
+      return sessionStorage.getItem(`arena_is_host_${pin}`) === "true";
+    } catch {
+      return false;
+    }
+  }, [pin]);
 
   // Nama & avatar diambil dari leaderboard server (sudah membawa nickname dan
   // avatarId hasil pilihan di lobi). Tidak ada lagi daftar nama contoh dan
@@ -130,6 +139,17 @@ export default function ArenaPodiumPage() {
       await arenaRoomService.resetRoomToLobby(pin);
     } catch (err) {
       console.warn("Gagal mereset status room:", err);
+    }
+    // Reset asli lewat WebSocket: server Go mengubah status room/skor ke
+    // service_role dan menyiarkan room_reset. Hanya Host yang boleh kirim.
+    if (isHostPlayer) {
+      const socket = new ArenaSocket(pin, "host", true, {
+        onOpen: () => {
+          socket.resetRoom();
+        },
+        onClose: () => {},
+      });
+      socket.connect();
     }
     navigate(`/arena/lobby/${pin}`);
   };
