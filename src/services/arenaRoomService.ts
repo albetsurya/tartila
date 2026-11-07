@@ -242,7 +242,12 @@ export const arenaRoomService = {
       p_pin: key,
     });
     if (error) throw error;
-    return (data as ArenaRoomPlayer[]) ?? [];
+    // RPC SQL mengembalikan kolom snake_case (avatar_id); type-cast mentah
+    // membuat polling tiap 2 detik menimpa avatarId hasil WS dengan undefined.
+    return ((data || []) as any[]).map((p) => ({
+      ...p,
+      avatarId: p.avatarId || p.avatar_id,
+    })) as ArenaRoomPlayer[];
   },
 
   /**

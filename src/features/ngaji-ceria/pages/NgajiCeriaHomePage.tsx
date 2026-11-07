@@ -19,6 +19,7 @@ import {
 import { useEconomyStore, getTodayDateKey } from "../hooks/useEconomyStore";
 import { ngajiCeriaApi } from "../services/ngajiCeriaApi";
 import { arenaRoomService } from "@/services/arenaRoomService";
+import { ArenaJoinPinModal } from "../components/arena/ArenaJoinPinModal";
 import {
   GiftSvg,
   TilawatiLearningSvg,
@@ -164,6 +165,7 @@ export default function NgajiCeriaHomePage() {
   const [isClaiming, setIsClaiming] = useState(false);
   const autoModalTriggeredRef = useRef(false);
   const [isArenaSheetOpen, setIsArenaSheetOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
@@ -1230,7 +1232,7 @@ export default function NgajiCeriaHomePage() {
                   type="button"
                   onClick={() => {
                     setIsArenaSheetOpen(false);
-                    navigate("/arena/join");
+                    setIsJoinModalOpen(true);
                   }}
                   className="shrink-0 rounded-lg border-2 border-[#134E4A] bg-[#0D9488] px-4 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_#134E4A] transition-all hover:bg-[#0F766E] active:translate-y-[1px] active:shadow-none"
                 >
@@ -1297,6 +1299,11 @@ export default function NgajiCeriaHomePage() {
         <RankJourneyModal
           isOpen={isRankModalOpen}
           onClose={() => setIsRankModalOpen(false)}
+        />
+
+        <ArenaJoinPinModal
+          isOpen={isJoinModalOpen}
+          onClose={() => setIsJoinModalOpen(false)}
         />
       </NgajiCeriaLayout>
     </>

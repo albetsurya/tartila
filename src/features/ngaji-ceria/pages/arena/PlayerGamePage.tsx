@@ -3,11 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { soundManager } from "../../services/soundManager";
 import {
-  AlertCircle,
   CheckSvg,
-  XSvg,
   AlertTriangleSvg,
-  LightbulbSvg,
 } from "@/components/ui/CustomIcons";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ArenaSocket } from "../../services/arenaSocket";
@@ -16,6 +13,7 @@ import LeaderboardModal, {
   type LeaderboardEntry,
 } from "@/features/ngaji-ceria/components/quiz-models/LeaderboardModal";
 import { ArenaQuestionStage } from "../../components/multiplayer/ArenaQuestionStage";
+import { AnswerFeedbackSheet } from "../../components/AnswerFeedbackSheet";
 import { ArenaTopbar } from "../../components/multiplayer/ArenaTopbar";
 import {
   loadMultiplayerProfile,
@@ -95,15 +93,19 @@ export default function PlayerGamePage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [revealCountdown, setRevealCountdown] = useState<number | null>(null);
+  // Bottom sheet benar/salah: muncul sekali per soal (hanya dari
+  // onQuestionResult), ditutup manual dan direset saat soal baru.
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const socketRef = useRef<ArenaSocket | null>(null);
   const hostDisconnectedRef = useRef(false);
   // Tenggat soal (epoch ms) dari serverTimestamp + timeLimitSeconds. Bukan
   // decrement lokal: santri dengan jaringan lambat tidak kehilangan waktu.
   const deadlineRef = useRef<number | null>(null);
-  // Tenggat hitung mundur 3..2..1 dari Host (startsAt), agar kedua layar
-  // menampilkan angka yang sama pada saat yang sama.
+  // Tenggat hitung mundur 3..2..1 (startsAt, epoch ms saat countdown selesai),
+  // agar kedua layar menampilkan angka yang sama pada saat yang sama.
   const countdownDeadlineRef = useRef<number | null>(null);
+  const countdownRef = useRef<number | null>(null);
   // Nilai timeLimit terkini untuk guard "jangan mulai dari 0" saat
   // QUESTION_ACTIVE (phase_changed) datang tanpa loro soal baru.
   const timeLimitRef = useRef(timeLimit);
@@ -159,20 +161,13 @@ export default function PlayerGamePage() {
               setResult(null);
               setCorrectAnswer("");
               setExplanation("");
+              setShowFeedback(false);
             }
             return state.currentQuestion;
           });
           setQuestionIndex(state.question || 0);
           setTotalQuestions(state.totalQ || 1);
-          // room_state datang beberapa detik setelah timer mulai; sinkronkan
-          // waktu soal berjalan supaya santri tidak mulai dari 0s.
           setTimeLimit(state.currentQuestion.timeLimitSeconds || 20);
-          // room_state tidak membawa serverTimestamp: mulai tenggat baru dari
-          // durasi penuh supaya timer tidak langsung 0.
-          const resyncLimit = state.currentQuestion.timeLimitSeconds || 20;
-          deadlineRef.current =
-            Date.now() + resyncLimit * 1000;
-          setTimeLeft(resyncLimit);
           setGamePhase("QUESTION_ACTIVE");
         }
       },
@@ -185,7 +180,10 @@ export default function PlayerGamePage() {
         setGamePhase("REVEAL_ANSWER");
         setIsLocked(true);
         setHasAnswered(true);
+        // Kunci jawaban HANYA dari server; dievaluasi saat render terhadap
+        // pilihan pemain.
         setCorrectAnswer(data.correctAnswer);
+        setShowFeedback(true);
         setExplanation(data.explanation || "");
         setTimeLeft(0);
         setRevealCountdown(4);
@@ -249,6 +247,7 @@ export default function PlayerGamePage() {
         setResult(null);
         setCorrectAnswer("");
         setExplanation("");
+        setShowFeedback(false);
         setRevealCountdown(null);
         setGamePhase("QUESTION_ACTIVE");
         setShowLeaderboard(false);
@@ -287,6 +286,7 @@ export default function PlayerGamePage() {
         setResult(null);
         setCorrectAnswer("");
         setExplanation("");
+        setShowFeedback(false);
         setRevealCountdown(null);
         setGamePhase("QUESTION_ACTIVE");
         setShowLeaderboard(false);
@@ -312,17 +312,14 @@ export default function PlayerGamePage() {
       },
       onPhaseChanged: (data) => {
         if (data.phase === "COUNTDOWN") {
-          // Host kirim startsAt (epoch ms saat soal aktif dimulai). Hitung
-          // sisa detik dari jumlah tersebut, bukan dari clock lokal.
-          const startsAt = Number((data as any).startsAt) || Date.now();
-          const secs = Math.max(1, Number(data.countdownSeconds) || 3);
-          countdownDeadlineRef.current = startsAt + secs * 1000;
+          // Server mengirim startsAt = epoch ms saat countdown SELESAI (jam
+          // server). Tenggatnya adalah langsumya sendiri — jangan dijumlah
+          // dengan countdownSeconds lagi, dan jangan dikurangi manual.
+          const startsAt = Number((data as any).startsAt) || Date.now() + 3000;
+          countdownDeadlineRef.current = startsAt;
           setGamePhase("COUNTDOWN");
           setCountdown(
-            Math.max(
-              0,
-              Math.ceil((countdownDeadlineRef.current - Date.now()) / 1000),
-            ),
+            Math.max(0, Math.ceil((startsAt - Date.now()) / 1000)),
           );
         } else if (data.phase === "QUESTION_ACTIVE") {
           // Timer wajib dikendalikan oleh onGameStarted/onNextQuestion.
@@ -362,32 +359,31 @@ export default function PlayerGamePage() {
     return () => clearTimeout(timer);
   }, [question, socketError, hostDisconnected, disqualified, gamePhase]);
 
-  // Countdown sebelum soal aktif (3..2..1), sumber: host `startsAt`.
+  // Countdown 3..2..1: interval menghitung sisa jarak ke `startsAt` (jam
+  // server). Saat <= 0, interval di-clear dan fase berubah QUESTION_ACTIVE.
   useEffect(() => {
     if (countdown === null) return;
-    if (countdown <= 0) {
-      setCountdown(null);
-      if (gamePhase === "COUNTDOWN") {
-        setGamePhase("QUESTION_ACTIVE");
-      }
-      return;
-    }
-    const t = setTimeout(() => {
-      const deadline = countdownDeadlineRef.current ?? Date.now() + 3000;
-      if (deadline !== undefined) {
-        const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-        setCountdown(left > 0 ? left : null);
-        if (left <= 0) {
-          countdownDeadlineRef.current = null;
-          if (gamePhase === "COUNTDOWN") {
-            setGamePhase("QUESTION_ACTIVE");
-          }
+    const tick = () => {
+      const deadline = countdownDeadlineRef.current;
+      if (deadline === null) return;
+      const left = Math.ceil((deadline - Date.now()) / 1000);
+      if (left <= 0) {
+        setCountdown(null);
+        countdownDeadlineRef.current = null;
+        if (gamePhase === "COUNTDOWN") {
+          setGamePhase("QUESTION_ACTIVE");
         }
       } else {
-        setCountdown((c) => (c !== null ? c - 1 : null));
+        setCountdown(left);
       }
-    }, 250);
-    return () => clearTimeout(t);
+    };
+    tick();
+    const t = window.setInterval(tick, 250);
+    countdownRef.current = t;
+    return () => {
+      window.clearInterval(t);
+      countdownRef.current = null;
+    };
   }, [countdown, gamePhase]);
 
   // Timer per soal berbasis tenggat server (deadline) — menggantikan
@@ -490,6 +486,20 @@ export default function PlayerGamePage() {
     gamePhase === "QUESTION_ACTIVE" &&
     Boolean(question);
 
+  // Benar/salah HANYA dari kunci server (correctAnswer), bukan state lokal.
+  // Cocokkan id pilihan maupun teks opsi (server kadang kirim teks).
+  const selectedOptionText = (question?.options || []).find((o: any) =>
+    typeof o === "string" ? o === selectedAnswer : o?.id === selectedAnswer,
+  );
+  const feedbackIsCorrect =
+    showFeedback &&
+    Boolean(selectedAnswer) &&
+    Boolean(correctAnswer) &&
+    (selectedAnswer === correctAnswer ||
+      selectedAnswer!.toLowerCase() === correctAnswer.toLowerCase() ||
+      (typeof selectedOptionText === "object" &&
+        (selectedOptionText as any)?.text === correctAnswer));
+
   return (
     <div className="relative min-h-[100dvh] w-full bg-[#F0FDF4] pb-28 lg:pb-32 overflow-x-hidden select-none">
       {/* Pola Titik Taktis Arena (sama dengan layar Host) */}
@@ -543,61 +553,6 @@ export default function PlayerGamePage() {
 
                   {gamePhase === "REVEAL_ANSWER" && (
                     <>
-                      {/* Hasil Jawaban Santri (kartu sama dengan Host) */}
-                      {selectedAnswer &&
-                      (selectedAnswer === activeCorrectAnswer ||
-                        selectedAnswer.toLowerCase() ===
-                          activeCorrectAnswer.toLowerCase()) ? (
-                        <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#D1FAE5] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-[#10B981] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
-                              <CheckSvg size={18} />
-                            </div>
-                            <div>
-                              <span className="font-display text-sm sm:text-base font-black text-[#0F766E] block">
-                                Luar Biasa! Jawabanmu Benar!
-                              </span>
-                              <span className="text-[11px] font-bold text-[#134E4A]/70">
-                                Poin kuis berhasil kamu dapatkan
-                              </span>
-                            </div>
-                          </div>
-                          {result && (
-                            <span className="font-display text-base font-black text-[#0D9488] shrink-0">
-                              +{result.scoreAwarded} Pts
-                            </span>
-                          )}
-                        </div>
-                      ) : selectedAnswer ? (
-                        <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEE2E2] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-[#EF4444] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
-                            <XSvg size={18} />
-                          </div>
-                          <div>
-                            <span className="font-display text-sm sm:text-base font-black text-[#B91C1C] block">
-                              Jawaban Kamu Belum Tepat
-                            </span>
-                            <span className="text-[11px] font-bold text-[#134E4A]/70">
-                              Tetap semangat di soal berikutnya!
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#FEF3C7] text-[#134E4A] shadow-[3.5px_3.5px_0px_#134E4A] flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-[#F59E0B] text-white border-2 border-[#134E4A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#134E4A]">
-                            <AlertCircle size={18} />
-                          </div>
-                          <div>
-                            <span className="font-display text-sm sm:text-base font-black text-[#B45309] block">
-                              Waktu Telah Habis!
-                            </span>
-                            <span className="text-[11px] font-bold text-[#134E4A]/70">
-                              Kamu belum sempat memilih jawaban
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Kunci Jawaban Resmi (markup identik dengan Host) */}
                       <div className="p-3.5 rounded-2xl border-[3px] border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] shadow-[3px_3px_0px_#134E4A] space-y-1.5 text-left">
                         <div className="flex items-center gap-2">
@@ -610,27 +565,6 @@ export default function PlayerGamePage() {
                           </span>
                         </div>
                       </div>
-
-                      <AnimatePresence>
-                        {explanation && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="p-3.5 rounded-2xl border-[2.5px] border-[#134E4A] bg-[#CCFBF1] text-[#134E4A] text-left text-xs sm:text-sm font-bold shadow-[3px_3px_0px_#134E4A] flex items-start gap-2.5"
-                          >
-                            <div className="w-7 h-7 rounded-lg bg-[#FEF08A] border-2 border-[#134E4A] flex items-center justify-center shrink-0">
-                              <LightbulbSvg size={15} className="text-[#134E4A]" />
-                            </div>
-                            <div className="leading-snug">
-                              <span className="font-black uppercase text-[10px] tracking-wider block text-[#0F766E]">
-                                Penjelasan Jawaban
-                              </span>
-                              {explanation}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
 
                       {/* Hitung Mundur Otomatis Membuka Leaderboard */}
                       <div className="py-2.5 px-3 rounded-xl border-2 border-[#134E4A] bg-[#FEF08A] text-center flex items-center justify-center gap-2 shadow-[2px_2px_0px_#134E4A]">
@@ -692,6 +626,17 @@ export default function PlayerGamePage() {
         currentPlayerId={playerId}
         currentNickname={nickname}
         subtitle="Menunggu host memulai soal berikutnya..."
+      />
+
+      {/* Bottom sheet benar/salah: muncul sekali per soal saat REVEAL_ANSWER */}
+      <AnswerFeedbackSheet
+        isOpen={showFeedback && gamePhase === "REVEAL_ANSWER"}
+        isCorrect={feedbackIsCorrect}
+        isRetryable={false}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
+        onNext={() => setShowFeedback(false)}
+        onClose={() => setShowFeedback(false)}
       />
 
       {/* Modal Host Terputus / Keluar (Kritis Bug 4) */}

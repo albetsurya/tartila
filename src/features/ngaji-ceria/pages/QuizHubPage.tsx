@@ -23,6 +23,7 @@ import { GameLevelSelectSheet } from "./games/_shared/GameLevelSelectSheet";
 import { useEconomyStore } from "../hooks/useEconomyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { arenaRoomService } from "@/services/arenaRoomService";
+import { ArenaJoinPinModal } from "../components/arena/ArenaJoinPinModal";
 import {
   QUIZ_HUB_CATEGORIES,
   QuizHubCategory,
@@ -401,6 +402,7 @@ export default function QuizHubPage() {
 
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
   const handleCreateArena = async () => {
     if (isCreatingRoom) return;
@@ -578,7 +580,7 @@ export default function QuizHubPage() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/arena/join")}
+                onClick={() => setIsJoinModalOpen(true)}
                 className="flex items-center justify-center gap-2 rounded-xl border-[2.5px] border-[#134E4A] bg-[#DCFCE7] hover:bg-[#BBF7D0] px-3 py-2.5 text-xs font-black text-[#14532D] shadow-[2.5px_2.5px_0px_#134E4A] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 <GamepadSvg size={15} />
@@ -778,6 +780,11 @@ export default function QuizHubPage() {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
         gameId="quiz-hub"
+      />
+
+      <ArenaJoinPinModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
       />
     </NgajiCeriaLayout>
   );

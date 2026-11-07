@@ -337,8 +337,20 @@ export class ArenaSocket {
     this.send("host_left", {});
   }
 
-  sendPhaseChanged(phase: string, countdownSeconds?: number): void {
-    this.send("match.phase_changed", { phase, countdownSeconds });
+  /**
+   * Host mengumumkan pergantian fase. `startsAt` (epoch ms) hanya disertakan
+   * bila diberikan, dipakai untuk menyelaraskan hitung mundur antar layar.
+   */
+  sendPhaseChanged(
+    phase: string,
+    countdownSeconds?: number,
+    startsAt?: number,
+  ): void {
+    this.send("match.phase_changed", {
+      phase,
+      countdownSeconds,
+      ...(startsAt ? { startsAt } : {}),
+    });
   }
 
   resetRoom(): void {

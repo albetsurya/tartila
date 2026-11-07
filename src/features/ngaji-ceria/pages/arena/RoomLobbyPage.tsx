@@ -38,7 +38,7 @@ import {
   clearBotSimulatorState,
 } from "../../hooks/useBotSimulator";
 import { normalizeJoinCode } from "@/lib/joinCode";
-import { isTartilaAdmin } from "@/lib/roles";
+import { ArenaSocket, handOffArenaSocket } from "../../services/arenaSocket";
 import { soundManager } from "../../services/soundManager";
 import { triggerBibiReaction } from "@/utils/tilaEvent";
 import { motion, AnimatePresence } from "framer-motion";
@@ -152,6 +152,15 @@ export default function RoomLobbyPage() {
   const [profile, setProfile] = useState<MultiplayerProfile | null>(() =>
     loadMultiplayerProfile(),
   );
+  // Avatar wajib dipilih HANYA saat masuk room yang BERBEDA (per-PIN).
+  // Kalau pilihan untuk room ini sudah ada di sessionStorage, tidak diulang
+  // dan tidak diganti default.
+  const [avatarPending, setAvatarPending] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !window.sessionStorage.getItem(`arena_avatar_chosen_${pin}`);
+  });
+  const avatarChosenRef = useRef(!avatarPending);
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null);
   const [showProfileSheet, setShowProfileSheet] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   // P0 Late Join: user yang membuka lobi saat room sedang berjalan tidak
@@ -174,7 +183,20 @@ export default function RoomLobbyPage() {
 
   const { bots, addBot, removeBot, reset: resetBots } = useBotSimulator();
 
+  // Belum pernah menyimpan profil/avatar? Buka sheet pilih karakter secara
+  // otomatis begitu lobi terbuka (di luar aturan per-PIN di avatarPending).
+  useEffect(() => {
+    const savedProfile = loadMultiplayerProfile();
+    if (!savedProfile || !savedProfile.avatarId) {
+      setShowProfileSheet(true);
+    }
+  }, []);
+
+  const socketRef = useRef<ArenaSocket | null>(null);
   const pendingReadyRef = useRef<boolean | null>(null);
+  // Kill-switch polling: true bila WS sudah mengumumkan mulai game, supaya
+  // poll REST 2 detik tidak menimpa state yang sudah diganti event.
+  const wsStartedRef = useRef(false);
   const myPlayerIdRef = useRef<string | null>(myPlayerId);
   useEffect(() => {
     myPlayerIdRef.current = myPlayerId;
@@ -196,6 +218,66 @@ export default function RoomLobbyPage() {
       return true;
     return false;
   }, [pin, room?.host_id, user?.id]);
+
+  // Koneksi WebSocket lobi: tema, avatar, dan penanda mulai game didorong
+  // realtime oleh server (theme_changed / player_updated / match.phase_changed).
+  useEffect(() => {
+    if (!pin) return;
+    const socket = new ArenaSocket(
+      pin,
+      myPlayerId || undefined,
+      isHost,
+      {
+        onOpen: () => {
+          // Sinkron awal avatar HANYA setelah pemain benar-benar memilih
+          // karakter di sheet (setiap masuk room). Sebelum itu, handshake
+          // cukup membawa profil lama di DB — jangan disetel default.
+          if (!avatarChosenRef.current) return;
+          if (myPlayerIdRef.current) {
+            socket.changeAvatar(profile?.avatarId || "", myPlayerIdRef.current);
+          }
+        },
+        onThemeChanged: (data) => {
+          if (!data?.theme) return;
+          setSelectedTheme(data.theme);
+          try {
+            sessionStorage.setItem(`arena_theme_${pin}`, data.theme);
+          } catch {
+            /* sessionStorage tidak tersedia */
+          }
+        },
+        onPlayerUpdated: (data) => {
+          if (!data?.playerId || !data?.avatarId) return;
+          setPlayers((prev) =>
+            prev.map((p) =>
+              p.id === data.playerId ? { ...p, avatarId: data.avatarId } : p,
+            ),
+          );
+        },
+        onGameStarted: () => {
+          wsStartedRef.current = true;
+        },
+        onPhaseChanged: () => {
+          wsStartedRef.current = true;
+        },
+      },
+      { nickname: profile?.displayName, avatarId: profile?.avatarId },
+    );
+    socketRef.current = socket;
+    socket.connect();
+    return () => {
+      socketRef.current = null;
+      if (isHost) {
+        // Host tidak boleh memutus koneksi saat pindah ke halaman game:
+        // backend membacanya sebagai "host keluar" dan mengakhiri room.
+        handOffArenaSocket(pin, socket);
+      } else {
+        socket.disconnect();
+      }
+    };
+    // `myPlayerId` masuk dependency: handshake WebSocket membawa playerId, jadi
+    // sambung ulang sekali setelah ID tersedia dari room_state/polling.
+  }, [pin, isHost, myPlayerId, profile?.displayName, profile?.avatarId]);
 
   useEffect(() => {
     if (!room || myPlayerId) return;
@@ -316,6 +398,12 @@ export default function RoomLobbyPage() {
         intervalId = null;
       }
       if (!alive) return;
+      // WS sudah mengumumkan mulai game: matikan interval, polling REST tidak
+      // boleh hidup lagi setelah start.
+      if (wsStartedRef.current) {
+        alive = false;
+        return;
+      }
       // Jaring pengaman terakhir: sekali rute berpindah ke layar game/podium,
       // jangan ever menjadwalkan poll baru lagi.
       if (
@@ -343,7 +431,8 @@ export default function RoomLobbyPage() {
     const poll = async () => {
       // Satu request dalam satu waktu: tanpa guard ini, poll yang lambat bisa
       // menumpuk dan membanjiri get_room_by_pin / get_room_players_by_pin.
-      if (!alive || inFlight) return;
+      // WS sudah umumkan mulai game? Berhenti total, jangan tanya REST lagi.
+      if (!alive || inFlight || wsStartedRef.current) return;
       if (typeof document !== "undefined" && document.hidden) {
         schedule(4000);
         return;
@@ -426,13 +515,7 @@ export default function RoomLobbyPage() {
     } catch {
       /* ignore */
     }
-    // Update tema tetap via backend REST (bukan WS). Lintasan dev/offline ini
-    // tidak berhubungan dengan klaim tetap mencerminkan `sambung-ngaji`.
-    const res = await (arenaRoomService as any).updateRoomTheme(pin, newTheme);
-    if (!res.ok) {
-      alert(res.message || "Gagal memperbarui tema room.");
-      return;
-    }
+    socketRef.current?.changeTheme(newTheme);
   };
 
   useEffect(() => {
@@ -850,7 +933,7 @@ export default function RoomLobbyPage() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                {isTartilaAdmin(user?.role) && (
+                {isHost && (
                   <button
                     type="button"
                     onClick={() => addBot()}
@@ -942,7 +1025,7 @@ export default function RoomLobbyPage() {
                           </span>
                         </div>
 
-                        {isTartilaAdmin(user?.role) && isBotPlayer && (
+                        {isHost && isBotPlayer && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -1051,26 +1134,30 @@ export default function RoomLobbyPage() {
       </div>
 
       <MultiplayerSetupSheet
-        isOpen={showProfileSheet || !profile}
+        isOpen={showProfileSheet || avatarPending}
         defaultName={user?.name || user?.username || ""}
         onClose={() => {
-          setShowProfileSheet(false);
-          if (!profile) {
-            const fallback: MultiplayerProfile = {
-              displayName: (user?.name || user?.username || "Santri").slice(
-                0,
-                12,
-              ),
-              avatarId: "boy-peci",
-            };
-            saveMultiplayerProfile(fallback);
-            setProfile(fallback);
+          if (avatarPending) {
+            // Sheet wajib pilih avatar: belum ada pilihan tersimpan, biarkan
+            // terbuka — jangan diam-diam pakai avatar default.
+            return;
           }
+          setShowProfileSheet(false);
         }}
         onSave={(p) => {
           saveMultiplayerProfile(p);
           setProfile(p);
           setShowProfileSheet(false);
+          avatarChosenRef.current = true;
+          setAvatarPending(false);
+          try {
+            sessionStorage.setItem(`arena_avatar_chosen_${pin}`, "1");
+          } catch {
+            /* sessionStorage tidak tersedia */
+          }
+          // Kirim avatar baru via WebSocket: backend broadcast player_updated
+          // ke semua pemain dan persist ke DB (handlers.go change_avatar).
+          socketRef.current?.changeAvatar(p.avatarId, myPlayerId || undefined);
         }}
       />
 
